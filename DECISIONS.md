@@ -5,6 +5,39 @@ decisions live in the relevant `results/*.md`. Format defined in `CLAUDE.md`.
 
 ---
 
+### 2026-06-13T15:05 — Execute each experiment unit in a fresh, isolated Claude session
+
+- **Decision:** Adopt an **isolated-session execution methodology** (in `experiments/`): every
+  campaign is decomposed into independent **units** (for the model sweep, one unit per model),
+  and **each unit is run by a freshly spawned, cold Claude session** initialized only from
+  `CLAUDE.md` + a single self-contained **run card**. The repo filesystem is the message bus —
+  run cards in, result blocks / `RESULTS.md` rows / raw logs out; no session shares another's
+  in-memory context. A constant `bootstrap-prompt.md` enforces the restriction (one unit only,
+  capture failures, fulfil the output contract, then STOP; BLOCKED+stop on ambiguity, never
+  guess). Cards carry `status:` (TODO/RUNNING/DONE/FAILED/BLOCKED) as the single source of
+  truth; `run-unit.sh` / `run-campaign.sh` spawn sessions via `claude -p`, sequential and
+  resumable.
+- **Alternatives considered:** (a) one long-lived session driving all ~10 models; (b) Agent-tool
+  sub-agents fanned out from an orchestrator session; (c) this — independent headless `claude -p`
+  sessions per unit.
+- **Reasoning:** Fresh context per unit is an **experimental control**, not just tooling: it
+  eliminates cross-run context contamination (earlier models' numbers/debugging can't bias later
+  setup or interpretation) and forces every unit through the identical protocol by construction.
+  It also stays within context budget (a 10-model sweep would overflow one session) and is
+  reproducible/resumable (a unit = a versioned file; re-run = re-spawn). (a) contaminates and
+  overflows; (b) keeps a long-lived orchestrator whose context still grows per spawned summary,
+  and the Jetson is a single device so the fan-out parallelism sub-agents buy is unusable anyway.
+- **Tradeoff / cost accepted:** Each unit pays cold-start overhead (re-reads `CLAUDE.md`,
+  re-derives device state) and no live cross-unit synthesis — synthesis is a separate pass that
+  reads the on-disk results. Hands-off runs default to `--permission-mode bypassPermissions`,
+  acceptable only because this is the operator's own testbed device with a scoped sudo allowlist;
+  tighten via `CLAUDE_PERM=acceptEdits` + `--allowedTools` if needed.
+- **Revisit when:** A campaign genuinely needs live cross-unit reasoning mid-run (→ orchestrator +
+  sub-agents), units can run concurrently on independent hardware (→ parallel dispatch), or the
+  cold-start re-derivation cost becomes material (→ a cached device-state preamble).
+
+---
+
 ### 2026-06-13T14:42 — Sudo on the Jetson: scoped passwordless for bench commands
 
 - **Decision:** `jfdg` has NOPASSWD sudo for a tight, full-path command allowlist only,
