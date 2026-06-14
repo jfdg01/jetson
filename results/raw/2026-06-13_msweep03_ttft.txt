@@ -1,0 +1,31 @@
+0.00.012.960 I llama_completion: llama backend init
+0.00.012.982 I llama_completion: load the model and apply lora adapter, if any
+0.00.012.999 I common_init_result: fitting params to device memory ...
+0.00.013.000 I common_init_result: (for bugs during this step try to reproduce them with -fit off, or provide --verbose logs if the bug only occurs with -fit on)
+0.01.537.623 W load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+0.02.361.962 W llama_context: n_ctx_seq (4096) < n_ctx_train (32768) -- the full capacity of the model will not be utilized
+0.02.506.161 I common_init_from_params: warming up the model with an empty run - please wait ... (--no-warmup to disable)
+0.02.602.358 I llama_completion: llama threadpool init, n_threads = 6
+0.02.602.497 I 
+0.02.602.657 I system_info: n_threads = 6 (n_threads_batch = 6) / 6 | CUDA : ARCHS = 870 | USE_GRAPHS = 1 | PEER_MAX_BATCH_SIZE = 128 | CPU : NEON = 1 | ARM_FMA = 1 | FP16_VA = 1 | DOTPROD = 1 | LLAMAFILE = 1 | OPENMP = 1 | REPACK = 1 | 
+0.02.602.661 I 
+0.02.603.908 I sampler seed: 3996359167
+0.02.603.935 I sampler params: 
+	repeat_last_n = 64, repeat_penalty = 1,000, frequency_penalty = 0,000, presence_penalty = 0,000
+	dry_multiplier = 0,000, dry_base = 1,750, dry_allowed_length = 2, dry_penalty_last_n = -1
+	top_k = 40, top_p = 0,950, min_p = 0,050, xtc_probability = 0,000, xtc_threshold = 0,100, typical_p = 1,000, top_n_sigma = -1,000, temp = 0,800
+	mirostat = 0, mirostat_lr = 0,100, mirostat_ent = 5,000, adaptive_target = -1,000, adaptive_decay = 0,900
+0.02.604.017 I sampler chain: logits -> ?penalties -> ?dry -> ?top-n-sigma -> top-k -> ?typical -> top-p -> min-p -> ?xtc -> temp-ext -> dist 
+0.02.604.020 I generate: n_ctx = 4096, n_batch = 2048, n_predict = 128, n_keep = 0
+0.02.604.020 I 
+Explain what an edge AI accelerator is in two sentences. An edge AI accelerator is a hardware device that can process machine learning models on-device, closer to the source data, without the need for expensive cloud-based services. This allows for faster decision-making and better privacy and security. Edge AI accelerators can include specialized chips or specialized software that can be integrated into existing devices or systems to provide faster and more efficient AI processing. [end of text]
+
+
+0.05.465.040 I common_perf_print:    sampling time =      26,89 ms
+0.05.465.046 I common_perf_print:    samplers time =      11,97 ms /    86 tokens
+0.05.465.055 I common_perf_print:        load time =    1316,29 ms
+0.05.465.057 I common_perf_print: prompt eval time =      59,34 ms /    12 tokens (    4,95 ms per token,   202,22 tokens per second)
+0.05.465.061 I common_perf_print:        eval time =    2772,21 ms /    73 runs   (   37,98 ms per token,    26,33 tokens per second)
+0.05.465.062 I common_perf_print:       total time =    2862,70 ms /    85 tokens
+0.05.465.065 I common_perf_print: unaccounted time =       4,26 ms /   0,1 %      (total - sampling - prompt eval - eval) / (total)
+0.05.465.066 I common_perf_print:    graphs reused =         72

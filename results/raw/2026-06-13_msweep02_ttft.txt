@@ -1,0 +1,30 @@
+0.00.012.952 I llama_completion: llama backend init
+0.00.012.975 I llama_completion: load the model and apply lora adapter, if any
+0.00.012.989 I common_init_result: fitting params to device memory ...
+0.00.012.990 I common_init_result: (for bugs during this step try to reproduce them with -fit off, or provide --verbose logs if the bug only occurs with -fit on)
+0.02.683.645 W llama_context: n_ctx_seq (4096) < n_ctx_train (131072) -- the full capacity of the model will not be utilized
+0.02.815.235 I common_init_from_params: warming up the model with an empty run - please wait ... (--no-warmup to disable)
+0.02.902.339 I llama_completion: llama threadpool init, n_threads = 6
+0.02.902.463 I 
+0.02.902.611 I system_info: n_threads = 6 (n_threads_batch = 6) / 6 | CUDA : ARCHS = 870 | USE_GRAPHS = 1 | PEER_MAX_BATCH_SIZE = 128 | CPU : NEON = 1 | ARM_FMA = 1 | FP16_VA = 1 | DOTPROD = 1 | LLAMAFILE = 1 | OPENMP = 1 | REPACK = 1 | 
+0.02.902.616 I 
+0.02.902.791 I sampler seed: 1806587080
+0.02.902.818 I sampler params: 
+	repeat_last_n = 64, repeat_penalty = 1,000, frequency_penalty = 0,000, presence_penalty = 0,000
+	dry_multiplier = 0,000, dry_base = 1,750, dry_allowed_length = 2, dry_penalty_last_n = -1
+	top_k = 40, top_p = 0,950, min_p = 0,050, xtc_probability = 0,000, xtc_threshold = 0,100, typical_p = 1,000, top_n_sigma = -1,000, temp = 0,800
+	mirostat = 0, mirostat_lr = 0,100, mirostat_ent = 5,000, adaptive_target = -1,000, adaptive_decay = 0,900
+0.02.902.914 I sampler chain: logits -> ?penalties -> ?dry -> ?top-n-sigma -> top-k -> ?typical -> top-p -> min-p -> ?xtc -> temp-ext -> dist 
+0.02.902.919 I generate: n_ctx = 4096, n_batch = 2048, n_predict = 128, n_keep = 1
+0.02.902.920 I 
+Explain what an edge AI accelerator is in two sentences. An edge AI accelerator is a specialized hardware device designed to accelerate the processing of AI models at the edge, i.e., near the source of data, reducing latency and increasing real-time processing capabilities. These devices are typically used in applications such as smart cameras, autonomous vehicles, and smart homes, where AI models need to be processed in real-time without the need for significant computational resources or network connectivity. [end of text]
+
+
+0.05.239.307 I common_perf_print:    sampling time =      24,44 ms
+0.05.239.314 I common_perf_print:    samplers time =      10,86 ms /    93 tokens
+0.05.239.322 I common_perf_print:        load time =    1386,17 ms
+0.05.239.325 I common_perf_print: prompt eval time =      48,96 ms /    13 tokens (    3,77 ms per token,   265,51 tokens per second)
+0.05.239.327 I common_perf_print:        eval time =    2260,37 ms /    79 runs   (   28,61 ms per token,    34,95 tokens per second)
+0.05.239.328 I common_perf_print:       total time =    2336,99 ms /    92 tokens
+0.05.239.330 I common_perf_print: unaccounted time =       3,21 ms /   0,1 %      (total - sampling - prompt eval - eval) / (total)
+0.05.239.332 I common_perf_print:    graphs reused =         78

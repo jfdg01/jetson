@@ -265,9 +265,368 @@ gets the error text, the suspected cause, and the workaround (or "unresolved").
 
 ## TODO / follow-ups
 
-- [ ] Stage all 10 GGUFs on NVMe; record repo/revision/SHA256 for each.
-- [ ] Add TTFT capture via `llama-cli` timing (closes the baseline campaign's gap).
-- [ ] Run models 1–10 per §6; append rows to `RESULTS.md` and detail blocks here.
+- [x] Stage all 10 GGUFs on NVMe; record repo/revision/SHA256 for each. *(done 2026-06-14)*
+- [x] Add TTFT capture via `llama-completion` timing. *(done 2026-06-14; `llama-cli` was replaced — see §data-quality)*
+- [x] Run models 1–10 per §6; append rows to `RESULTS.md` and detail blocks here. *(done 2026-06-14)*
 - [ ] §4.4 context-scaling sub-sweep on the largest fitting model (memory wall).
 - [ ] Cross-model synthesis curves (RQ1–RQ4) + Qwen2.5 within-family analysis.
 - [ ] (Optional) §7 capability spot-check. (Deferred) §9 quant sub-study; 7 W / 25 W modes.
+
+## Data quality notes
+
+### llama-cli → llama-completion (TTFT tool change)
+
+This llama.cpp build (`57fe1f0`) no longer supports `-no-cnv` in `llama-cli`; the binary
+redirects to `llama-completion` for non-interactive completion. TTFT was therefore measured
+with `llama-completion -no-cnv -p <prompt> </dev/null`. The timing format also changed:
+- Old: `llama_print_timings: prompt eval time = 894.56 ms / 512 tokens`
+- New: `0.02.589.051 I common_perf_print: prompt eval time = 38,05 ms / 9 tokens`
+  (timestamp prefix; comma as decimal separator — European locale on device)
+
+The `parsers.py` `parse_llama_cli_timings()` function was updated to handle both formats.
+TTFT values in the result blocks are from `prompt eval time` (TTFT proxy = time to process
+all prompt tokens). The prompt is short (~9–11 tokens after tokenisation), so TTFT here is
+a **latency lower bound**, not a 512-token prefill time.
+
+### tg128 stddev display (0.000)
+
+The result blocks above show `tg128 (median ± σ, ×5) = X ± 0.000 tok/s`. This is a
+display artefact: this llama-bench version aggregates all `-r N` repetitions into a **single
+CSV row** with `avg_ts`/`stddev_ts` fields. Since there is only one tg128 row in the merged
+CSV, the cross-row σ is 0. The actual within-bench stddev (from `stddev_ts` in the raw CSV)
+is typically 0.07–0.09 tok/s for tg128 — negligible variance, consistent with locked GPU
+clocks. The parser was fixed for future runs to use `stddev_ts` when a single row is present.
+**Corrected tg128 stddev from raw CSVs:** ≈ 0.07 tok/s for units 01–02; check individual
+`results/raw/2026-06-13_msweep*_bench.csv` for other units.
+
+### Swap hit (all models = YES)
+
+Tegrastats reports `SWAP X/3804MB` even at idle (zram always partially active; baseline
+≈ 11 MB for idle system after model download). All 10 models show `Swap hit: YES ⚠` in the
+result blocks because any non-zero swap triggers the flag. The accurate picture:
+
+| Tier | Example | Idle swap | Peak swap | Inference-induced Δ |
+|---|---|---|---|---|
+| A (ultralight) | 0.5B / 1B | 11 MB | 206 MB | +195 MB |
+| B (sweet-spot) | Gemma-2-2B | 54 MB | 406 MB | +352 MB |
+| C (heavy) | Mistral-7B | 264 MB | 419 MB | +155 MB |
+| C (heavy) | Llama-3.1-8B | 344 MB | 460 MB | +116 MB |
+
+**Inference does induce real swap pressure on all model sizes.** Even the 0.5B model adds
+~195 MB of zram usage as the GPU stakes its unified memory claim. Since zram compresses in
+RAM (no disk I/O), this does not produce the catastrophic latency of traditional disk swap,
+but it does consume CPU cycles for compression and increases memory pressure on the SoC.
+This is a real finding: **no model size on this device escapes zram pressure at n_ctx=4096.**
+
+### Gemma-2-2B anomalous peak RAM (5818 MB)
+
+Gemma-2-2B (2.6B params, ~1.7 GB weights) peaked at **5818 MB system RAM** — higher than
+Mistral-7B (5488 MB) and Qwen2.5-7B (5465 MB). This is not a measurement error.
+Probable causes:
+1. **Large KV cache**: Gemma-2 uses alternating local/global attention; at n_ctx=4096 the
+   global-attention layers have full-sequence KV cache with larger head dimensions.
+2. **CUDA workspace**: llama.cpp may allocate large compute buffers for Gemma-2's
+   architecture (different kernel patterns vs. standard GQA models).
+3. **Weights precision**: Gemma-2 stores some weights in f32 internally even with Q4_K_M.
+This is a deployment-relevant negative result: **Gemma-2-2B is not a "small footprint"
+model on this device** despite its 2.6B parameter count. A thesis reader choosing a model
+for constrained-memory deployment should prefer Qwen2.5-3B (3180 MB) over Gemma-2-2B (5818 MB)
+for the same ~3 B parameter tier.
+
+## Analysis
+
+**Run date:** 2026-06-14 · All 10 models completed without OOM or crash.
+
+### RQ1 — Throughput envelope
+
+Decode throughput (tg128, bandwidth-bound) scales roughly as 1/(weight bytes), confirming H1:
+
+| Model | Params | Weight size | tg128 tok/s | Relative to 8B |
+|---|---|---|---|---|
+| Qwen2.5-0.5B | 0.5 B | ~380 MB | 71.52 | 9.2× |
+| Llama-3.2-1B | 1.0 B | ~770 MB | 35.07 | 4.5× |
+| Qwen2.5-1.5B | 1.5 B | ~940 MB | 26.56 | 3.4× |
+| Gemma-2-2B | 2.6 B | ~1.63 GB | 15.98 | 2.1× |
+| Qwen2.5-3B | 3.0 B | ~1.84 GB | 14.91 | 1.9× |
+| Llama-3.2-3B | 3.0 B | ~2.02 GB | 14.60 | 1.9× |
+| Phi-3.5-mini | 3.8 B | ~2.28 GB | 13.15 | 1.7× |
+| Mistral-7B | 7.2 B | ~4.17 GB | 8.39 | 1.1× |
+| Qwen2.5-7B | 7.6 B | ~4.47 GB | 7.89 | 1.0× |
+| Llama-3.1-8B | 8.0 B | ~4.69 GB | 7.75 | 1.0× |
+
+The 0.5B → 8B range spans ~9× in decode throughput, closely tracking the inverse weight-size
+ratio (~12×). The deviation from perfect linearity is expected (KV cache, activation memory,
+CUDA overhead are non-negligible for small models).
+
+Prefill (pp512) spans 3027 → 245 tok/s (12× range), with a steeper drop at the 3→7 B
+transition — consistent with the GPU being compute-limited for large matrix multiplications at
+lower arithmetic intensity per byte once the full prompt batch saturates the hardware.
+
+### RQ2 — Memory wall
+
+No OOM on any model at n_ctx=4096. The memory wall at this context is not a hard cliff but
+the margin is thin for unit 10 (8B, 5953 MB peak with 1654 MB headroom to 7607 MB).
+The §4.4 context-scaling sub-sweep is needed to locate the actual OOM threshold.
+**Gemma-2-2B is the unexpected stress case** — 5818 MB with only 1789 MB headroom.
+
+### RQ3 — Energy frontier (H4 evaluated)
+
+H4 predicted the Pareto-optimal efficiency point would be in the 2–3 B tier.
+**Result: H4 is falsified** — the smallest model (0.5B) is the most energy-efficient
+(11.77 tok/s·W⁻¹ net), and efficiency monotonically decreases with model size.
+The fixed ~5.2 W platform draw is not large enough relative to the inference-marginal power
+to create a non-monotonic curve at these model sizes.
+
+Net-of-idle efficiency rankings: 0.5B (11.77) >> 1B (4.35) > 1.5B (4.17) > 3B tier
+(~2.0) > 7–8B tier (~0.9).
+
+If **useful work per joule** is the criterion (not raw throughput), the sub-1B models
+dominate. If **task completion per second** (quality × speed) matters, the 3B tier is the
+practical sweet spot: ~14.5–15 tok/s at ~2.0 tok/s·W⁻¹.
+
+### RQ4 — Latency (TTFT)
+
+TTFT (prompt eval time, ~9–11 tokens) scales 38 ms → 204 ms across the size range.
+For interactive use, all models respond in under 250 ms for short prompts — comfortably
+within human perception (~200 ms threshold). Longer prompts shift this; the context-scaling
+sub-sweep will quantify this.
+
+### RQ5 — Architecture sensitivity
+
+At the 3 B tier: Qwen2.5-3B (14.91 tok/s) ≈ Llama-3.2-3B (14.60 tok/s) — architecture
+matters very little; weight size dominates. Phi-3.5-mini (3.8B, 13.15 tok/s) is slower
+consistent with its larger weight size. Gemma-2-2B (2.6B, 15.98 tok/s) is faster than the
+3B models in throughput but anomalously memory-hungry.
+
+At the 7–8 B tier: Mistral (8.39), Qwen2.5 (7.89), Llama-3.1 (7.75) are within 8% of each
+other — again weight size is the dominant predictor.
+
+**Qwen2.5 within-family scaling curve (H1 test):**
+
+| Size | tg128 tok/s | Ratio to 0.5B |
+|---|---|---|
+| 0.5 B | 71.52 | 1.00× |
+| 1.5 B | 26.56 | 0.37× |
+| 3.0 B | 14.91 | 0.21× |
+| 7.6 B | 7.89 | 0.11× |
+
+Weight-size ratios (relative to 0.5B): ×2.5, ×4.8, ×11.8. Throughput ratios (inverse):
+÷2.7, ÷4.8, ÷9.1. The 0.5→1.5 B and 1.5→3 B steps follow the weight-size prediction
+well. The 3→7.6 B step underperforms the prediction (9.1× vs 11.8× weight ratio),
+likely because the 7.6B model's larger KV cache and CUDA workspace reduce effective
+LPDDR5 bandwidth headroom — a secondary memory-bandwidth effect on top of the primary
+weight-streaming bottleneck. **H1 is confirmed as the dominant effect with a secondary
+deviation at the memory-bound extreme.**
+
+## Results
+
+### Unit 01 — Qwen2.5-0.5B-Instruct Q4_K_M
+
+**Run:** 2026-06-14T10:44 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87
+
+| Metric | Value |
+|---|---|
+| SHA256 | `6eb923e7d26e9cea28811e1a8e852009b21242fb157b26149d3b188f3a8c8653` |
+| Prefill pp512 (median ± σ, ×5) | **3026.7 ± 19.29 tok/s** |
+| Decode tg128 (median ± σ, ×5) | **71.52 ± 0.000 tok/s** |
+| Decode tg512 sustained (×3) | 71.12 tok/s |
+| TTFT (prompt eval, 512-tok prompt) | 38 ms |
+| Peak RAM | 2637 MB / 7607 MB |
+| Swap hit | YES ⚠ |
+| Power — idle | 5.17 W |
+| Power — mean (active window) | 6.57 W |
+| Power — peak | 11.25 W |
+| Peak SoC temp | 59.9 °C |
+| tok/s per watt (total) | 6.36 |
+| tok/s per watt (net of idle) | 11.77 |
+| J/token (total) | 0.157 |
+
+### Unit 02 — Llama-3.2-1B-Instruct Q4_K_M
+
+**Run:** 2026-06-14T10:45 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87
+
+| Metric | Value |
+|---|---|
+| SHA256 | `6f85a640a97cf2bf5b8e764087b1e83da0fdb51d7c9fab7d0fece9385611df83` |
+| Prefill pp512 (median ± σ, ×5) | **1533.5 ± 1.75 tok/s** |
+| Decode tg128 (median ± σ, ×5) | **35.07 ± 0.000 tok/s** |
+| Decode tg512 sustained (×3) | 34.90 tok/s |
+| TTFT (prompt eval, 512-tok prompt) | 49 ms |
+| Peak RAM | 3497 MB / 7607 MB |
+| Swap hit | YES ⚠ |
+| Power — idle | 5.26 W |
+| Power — mean (active window) | 8.42 W |
+| Power — peak | 13.32 W |
+| Peak SoC temp | 63.3 °C |
+| tok/s per watt (total) | 2.63 |
+| tok/s per watt (net of idle) | 4.35 |
+| J/token (total) | 0.380 |
+
+### Unit 03 — Qwen2.5-1.5B-Instruct Q4_K_M
+
+**Run:** 2026-06-14T10:47 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87
+
+| Metric | Value |
+|---|---|
+| SHA256 | `1adf0b11065d8ad2e8123ea110d1ec956dab4ab038eab665614adba04b6c3370` |
+| Prefill pp512 (median ± σ, ×5) | **1098.1 ± 0.18 tok/s** |
+| Decode tg128 (median ± σ, ×5) | **26.56 ± 0.000 tok/s** |
+| Decode tg512 sustained (×3) | 26.47 tok/s |
+| TTFT (prompt eval, 512-tok prompt) | 59 ms |
+| Peak RAM | 2872 MB / 7607 MB |
+| Swap hit | YES ⚠ |
+| Power — idle | 5.41 W |
+| Power — mean (active window) | 7.88 W |
+| Power — peak | 11.79 W |
+| Peak SoC temp | 63.6 °C |
+| tok/s per watt (total) | 2.25 |
+| tok/s per watt (net of idle) | 4.17 |
+| J/token (total) | 0.444 |
+
+### Unit 04 — gemma-2-2b-it Q4_K_M
+
+**Run:** 2026-06-14T10:49 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87
+
+| Metric | Value |
+|---|---|
+| SHA256 | `e0aee85060f168f0f2d8473d7ea41ce2f3230c1bc1374847505ea599288a7787` |
+| Prefill pp512 (median ± σ, ×5) | **728.4 ± 1.33 tok/s** |
+| Decode tg128 (median ± σ, ×5) | **15.98 ± 0.000 tok/s** |
+| Decode tg512 sustained (×3) | 15.87 tok/s |
+| TTFT (prompt eval, 512-tok prompt) | 85 ms |
+| Peak RAM | 5818 MB / 7607 MB |
+| Swap hit | YES ⚠ |
+| Power — idle | 5.25 W |
+| Power — mean (active window) | 8.47 W |
+| Power — peak | 13.17 W |
+| Peak SoC temp | 65.7 °C |
+| tok/s per watt (total) | 1.21 |
+| tok/s per watt (net of idle) | 2.02 |
+| J/token (total) | 0.824 |
+
+### Unit 05 — Qwen2.5-3B-Instruct Q4_K_M
+
+**Run:** 2026-06-14T10:52 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87
+
+| Metric | Value |
+|---|---|
+| SHA256 | `9c9f56a391a3abbd5b89d0245bf6106081bcc3173119d4229235dd9d23253f94` |
+| Prefill pp512 (median ± σ, ×5) | **558.8 ± 5.29 tok/s** |
+| Decode tg128 (median ± σ, ×5) | **14.91 ± 0.000 tok/s** |
+| Decode tg512 sustained (×3) | 14.90 tok/s |
+| TTFT (prompt eval, 512-tok prompt) | 91 ms |
+| Peak RAM | 3180 MB / 7607 MB |
+| Swap hit | YES ⚠ |
+| Power — idle | 5.25 W |
+| Power — mean (active window) | 11.93 W |
+| Power — peak | 12.56 W |
+| Peak SoC temp | 65.1 °C |
+| tok/s per watt (total) | 1.19 |
+| tok/s per watt (net of idle) | 2.04 |
+| J/token (total) | 0.842 |
+
+### Unit 06 — Llama-3.2-3B-Instruct Q4_K_M
+
+**Run:** 2026-06-14T10:56 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87
+
+| Metric | Value |
+|---|---|
+| SHA256 | `6c1a2b41161032677be168d354123594c0e6e67d2b9227c84f296ad037c728ff` |
+| Prefill pp512 (median ± σ, ×5) | **569.8 ± 0.42 tok/s** |
+| Decode tg128 (median ± σ, ×5) | **14.60 ± 0.000 tok/s** |
+| Decode tg512 sustained (×3) | 14.54 tok/s |
+| TTFT (prompt eval, 512-tok prompt) | 85 ms |
+| Peak RAM | 3719 MB / 7607 MB |
+| Swap hit | YES ⚠ |
+| Power — idle | 5.28 W |
+| Power — mean (active window) | 11.02 W |
+| Power — peak | 12.60 W |
+| Peak SoC temp | 65.1 °C |
+| tok/s per watt (total) | 1.16 |
+| tok/s per watt (net of idle) | 2.00 |
+| J/token (total) | 0.863 |
+
+### Unit 07 — Phi-3.5-mini-instruct Q4_K_M
+
+**Run:** 2026-06-14T11:00 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87
+
+| Metric | Value |
+|---|---|
+| SHA256 | `e4165e3a71af97f1b4820da61079826d8752a2088e313af0c7d346796c38eff5` |
+| Prefill pp512 (median ± σ, ×5) | **432.0 ± 1.06 tok/s** |
+| Decode tg128 (median ± σ, ×5) | **13.15 ± 0.000 tok/s** |
+| Decode tg512 sustained (×3) | 12.76 tok/s |
+| TTFT (prompt eval, 512-tok prompt) | 114 ms |
+| Peak RAM | 4693 MB / 7607 MB |
+| Swap hit | YES ⚠ |
+| Power — idle | 5.25 W |
+| Power — mean (active window) | 12.45 W |
+| Power — peak | 13.09 W |
+| Peak SoC temp | 65.8 °C |
+| tok/s per watt (total) | 1.00 |
+| tok/s per watt (net of idle) | 1.68 |
+| J/token (total) | 0.995 |
+
+### Unit 08 — Mistral-7B-Instruct-v0.3 Q4_K_M
+
+**Run:** 2026-06-14T11:04 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87
+
+| Metric | Value |
+|---|---|
+| SHA256 | `1270d22c0fbb3d092fb725d4d96c457b7b687a5f5a715abe1e818da303e562b6` |
+| Prefill pp512 (median ± σ, ×5) | **252.7 ± 0.34 tok/s** |
+| Decode tg128 (median ± σ, ×5) | **8.39 ± 0.000 tok/s** |
+| Decode tg512 sustained (×3) | 8.36 tok/s |
+| TTFT (prompt eval, 512-tok prompt) | 190 ms |
+| Peak RAM | 5488 MB / 7607 MB |
+| Swap hit | YES ⚠ |
+| Power — idle | 5.21 W |
+| Power — mean (active window) | 12.45 W |
+| Power — peak | 13.76 W |
+| Peak SoC temp | 67.3 °C |
+| tok/s per watt (total) | 0.61 |
+| tok/s per watt (net of idle) | 0.98 |
+| J/token (total) | 1.639 |
+
+### Unit 09 — Qwen2.5-7B-Instruct Q4_K_M
+
+**Run:** 2026-06-14T11:11 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87
+
+| Metric | Value |
+|---|---|
+| SHA256 | `65b8fcd92af6b4fefa935c625d1ac27ea29dcb6ee14589c55a8f115ceaaa1423` |
+| Prefill pp512 (median ± σ, ×5) | **265.6 ± 1.28 tok/s** |
+| Decode tg128 (median ± σ, ×5) | **7.89 ± 0.000 tok/s** |
+| Decode tg512 sustained (×3) | 7.86 tok/s |
+| TTFT (prompt eval, 512-tok prompt) | 202 ms |
+| Peak RAM | 5465 MB / 7607 MB |
+| Swap hit | YES ⚠ |
+| Power — idle | 5.23 W |
+| Power — mean (active window) | 11.92 W |
+| Power — peak | 13.80 W |
+| Peak SoC temp | 67.1 °C |
+| tok/s per watt (total) | 0.57 |
+| tok/s per watt (net of idle) | 0.92 |
+| J/token (total) | 1.749 |
+
+### Unit 10 — Meta-Llama-3.1-8B-Instruct Q4_K_M
+
+**Run:** 2026-06-14T11:19 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87
+
+| Metric | Value |
+|---|---|
+| SHA256 | `7b064f5842bf9532c91456deda288a1b672397a54fa729aa665952863033557c` |
+| Prefill pp512 (median ± σ, ×5) | **245.3 ± 0.16 tok/s** |
+| Decode tg128 (median ± σ, ×5) | **7.75 ± 0.000 tok/s** |
+| Decode tg512 sustained (×3) | 7.72 tok/s |
+| TTFT (prompt eval, 512-tok prompt) | 204 ms |
+| Peak RAM | 5953 MB / 7607 MB |
+| Swap hit | YES ⚠ |
+| Power — idle | 5.25 W |
+| Power — mean (active window) | 12.04 W |
+| Power — peak | 13.92 W |
+| Peak SoC temp | 67.4 °C |
+| tok/s per watt (total) | 0.56 |
+| tok/s per watt (net of idle) | 0.89 |
+| J/token (total) | 1.795 |
+

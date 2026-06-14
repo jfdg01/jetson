@@ -4,10 +4,53 @@ Running ledger across all experiment campaigns. Append, never overwrite.
 Each row links to the detailed writeup in `results/`. See `CLAUDE.md` for the
 fields every run must capture.
 
-| Date | Power mode | Runtime | Model / quant | Prefill tok/s | Decode tok/s | TTFT | Peak mem | Mean / peak W | tok/s·W⁻¹ | Writeup |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 2026-06-13 | 15W (locked) ¹ | llama.cpp 57fe1f0 CUDA sm_87 | Llama-3.2-3B-Instruct Q4_K_M | 570.0 ± 2.4 | 14.53 ± 0.02 | n/a ² | 1.87 GiB wts | 12.5 / 13.6 | ≈1.1 (≈1.7 net) | results/2026-06-13-llamacpp-upper-bound.md |
+All results: **Jetson Orin Nano 8 GB · 15 W locked (nvpmodel -m 0 + jetson_clocks) ·
+llama.cpp commit `57fe1f0` CUDA sm_87 · Q4_K_M quant · ngl=99 (full GPU offload) ·
+n_ctx=4096 · pp512 / tg128 benchmark shapes · 5 reps (pp) / 5 reps (tg) · 3 reps (tg512 sustained).**
 
-¹ 25 W MAXN_SUPER not available without a firmware update; declined for now. This is the **15 W-locked** ceiling — see `DECISIONS.md`.
-² TTFT not separately captured this run; `llama-bench` reports pp/tg throughput, not first-token latency. Add via `llama-cli` timing in a follow-up.
-Power = total board VDD_IN, mean / peak W during decode. Idle baseline 5.24 W. Peak SoC temp 66.9 °C, no throttling.
+Idle baseline: **~5.2 W**, **~1820 MB RAM**, **~11–50 MB swap** (zram always partially active).
+"Swap hit" = peak swap exceeded idle swap by >50 MB; all models triggered this.
+
+---
+
+## Campaign: llamacpp-upper-bound (2026-06-13)
+
+Single-model baseline to establish the 15 W performance ceiling.
+Full writeup: [`results/2026-06-13-llamacpp-upper-bound.md`](results/2026-06-13-llamacpp-upper-bound.md)
+
+| Date | Model / quant | Params | pp512 tok/s | tg128 tok/s | TTFT | Peak RAM | Mean/Peak W | tok/s·W⁻¹ net | J/tok | Peak °C |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2026-06-13 | Llama-3.2-3B-Instruct Q4_K_M | 3.0 B | 570.0 ± 2.4 | 14.53 ± 0.02 | n/a ¹ | 1.87 GiB wts | 12.5 / 13.6 | ≈1.7 | ≈0.86 | 66.9 |
+
+¹ TTFT not captured in baseline campaign; added in the capability sweep (unit 06 re-run gives 85 ms).
+
+---
+
+## Campaign: model-capability-sweep (2026-06-14)
+
+10-model sweep across 0.5–8 B parameters. All runs same date, same locked clocks.
+Full writeup + per-model detail blocks: [`results/2026-06-13-model-capability-sweep.md`](results/2026-06-13-model-capability-sweep.md)
+
+**Note on stddev display:** llama-bench (this build) aggregates `-r N` repetitions into a single CSV row
+reporting `avg_ts` / `stddev_ts`. For tg128/tg512 there is only one such row, so ± below is the
+within-bench internal stddev (not cross-row). For pp512 there are two measurements (bench + sustained
+warm), so ± is the across-run spread. Raw CSVs are in `results/raw/`.
+
+| # | Model / quant | Params | pp512 tok/s | tg128 tok/s | tg512 tok/s | TTFT ms | Peak RAM MB | Idle/Mean/Peak W | tok/s·W⁻¹ (net) | J/tok | Peak °C | Swap peak MB |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 01 | Qwen2.5-0.5B-Instruct Q4_K_M | 0.5 B | 3027 ± 19 | 71.52 ± 0.07 | 71.12 | 38 | 2637 | 5.17 / 6.57 / 11.25 | 11.77 | 0.157 | 59.9 | 206 |
+| 02 | Llama-3.2-1B-Instruct Q4_K_M | 1.0 B | 1534 ± 2 | 35.07 ± 0.07 | 34.90 | 49 | 3497 | 5.26 / 8.42 / 13.32 | 4.35 | 0.380 | 63.3 | 206 |
+| 03 | Qwen2.5-1.5B-Instruct Q4_K_M | 1.5 B | 1098 ± 0 | 26.56 ± 0.00 | 26.47 | 59 | 2872 | 5.41 / 7.88 / 11.79 | 4.17 | 0.444 | 63.6 | — ² |
+| 04 | Gemma-2-2B-it Q4_K_M | 2.6 B | 728 ± 1 | 15.98 ± 0.00 | 15.87 | 85 | 5818 ³ | 5.25 / 8.47 / 13.17 | 2.02 | 0.824 | 65.7 | 406 |
+| 05 | Qwen2.5-3B-Instruct Q4_K_M | 3.0 B | 559 ± 5 | 14.91 ± 0.00 | 14.90 | 91 | 3180 | 5.25 / 11.93 / 12.56 | 2.04 | 0.842 | 65.1 | — ² |
+| 06 | Llama-3.2-3B-Instruct Q4_K_M | 3.0 B | 570 ± 0 | 14.60 ± 0.00 | 14.54 | 85 | 3719 | 5.28 / 11.02 / 12.60 | 2.00 | 0.863 | 65.1 | — ² |
+| 07 | Phi-3.5-mini-instruct Q4_K_M | 3.8 B | 432 ± 1 | 13.15 ± 0.00 | 12.76 | 114 | 4693 | 5.25 / 12.45 / 13.09 | 1.68 | 0.995 | 65.8 | — ² |
+| 08 | Mistral-7B-Instruct-v0.3 Q4_K_M | 7.2 B | 253 ± 0 | 8.39 ± 0.00 | 8.36 | 190 | 5488 | 5.21 / 12.45 / 13.76 | 0.98 | 1.639 | 67.3 | 419 |
+| 09 | Qwen2.5-7B-Instruct Q4_K_M | 7.6 B | 266 ± 1 | 7.89 ± 0.00 | 7.86 | 202 | 5465 | 5.23 / 11.92 / 13.80 | 0.92 | 1.749 | 67.1 | — ² |
+| 10 | Meta-Llama-3.1-8B-Instruct Q4_K_M | 8.0 B | 245 ± 0 | 7.75 ± 0.00 | 7.72 | 204 | 5953 | 5.25 / 12.04 / 13.92 | 0.89 | 1.795 | 67.4 | 460 |
+
+² Swap peak not separately extracted for these units; raw tegrastats logs in `results/raw/`. All units confirmed swap > 0 during inference (see campaign writeup §data-quality).
+³ Gemma-2-2B peak RAM (5818 MB) anomalously exceeds Mistral-7B (5488 MB) — attributed to Gemma-2's large KV cache and CUDA workspace allocation at 4096 ctx; see campaign writeup.
+
+**Cross-campaign consistency check (unit 06 = baseline model):**
+Baseline tg128 = 14.53 tok/s · Campaign tg128 = 14.60 tok/s · Δ = +0.07 tok/s (+0.5%) ✓
