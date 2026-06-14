@@ -75,3 +75,10 @@ not all paged in during inference); G4 **N/A** (4.7 GiB malloc > free RAM; mmap 
 for G4 on the Orin Nano — see §11.3).
 ⁵ G5 never loaded: `cudaMalloc` failed allocating 7694 MiB with `-ngl 99` (full offload, auto-fit
 aborted). Hard OOM at load, not the swap-thrash HG5 predicted. See campaign §8 (Unit G5) / §11.
+| 2026-06-14 | V1 | SmolVLM-256M-Instruct Q8_0 | 0.26B | 15W locked vlm-server | per_frame=304ms | 3.29Hz | img_tok=64 | 6.6W mean | 1777MB |  |
+| 2026-06-14 | V2 | SmolVLM-500M-Instruct Q8_0 | 0.5B | 15W locked vlm-server | per_frame=338ms | 2.96Hz | img_tok=64 | 7.2W mean | 2241MB |  |
+| 2026-06-14 | V3 | gemma-3-4b-it q4_0 | 4.0B | 15W locked vlm-server | per_frame=9576ms | 0.10Hz | img_tok=256 | 9.7W mean | 6414MB | swap |
+| 2026-06-14 | V4 | gemma-4-E2B-it q4_0 QAT | 5.1B | 15W locked vlm-server | per_frame=3286ms | 0.30Hz | img_tok=144 | 8.6W mean | 4616MB | thinking-on INVALID (token budget exhausted on chain-of-thought) |
+| 2026-06-14 | V5 | gemma-4-E4B-it q4_0 QAT | 8.0B | 15W locked vlm-server | per_frame=5359ms | 0.19Hz | img_tok=144 | 9.4W mean | 6444MB | thinking-on INVALID |
+| 2026-06-14 | V4 | gemma-4-E2B-it q4_0 QAT | 5.1B | 15W locked vlm-server --reasoning off | per_frame=2035ms | 0.49Hz | img_tok=144 | 8.2W mean | 4616MB | canonical |
+| 2026-06-14 | V5 | gemma-4-E4B-it q4_0 QAT | 8.0B | 15W locked vlm-server --reasoning off | per_frame=2963ms | 0.34Hz | img_tok=144 | 8.8W mean | 6444MB | swap canonical |

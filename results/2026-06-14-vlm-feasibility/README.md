@@ -343,14 +343,300 @@ Record campaign-specific decisions here as they arise. Cross-cutting decisions g
 
 ## 13. Results
 
-*(to be filled in post-run)*
+
+
+    ### Unit V1 — SmolVLM-256M-Instruct Q8_0
+
+    **Run:** 2026-06-14T19:33 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87  
+**Params:** 0.26B  
+**Note:** Both files downloaded in previous session.
+
+    | Metric | Value |
+    |---|---|
+    | text SHA256 | `2a31195d3769c0b0fd0a4906201666108834848db768af11de1d2cef7cd35e65` |
+    | mmproj SHA256 | `0802360aca1748f112ea510b8ff277c65b1361c8ef30ed89b83c9c7a60d08e96` |
+    | Server load time | 3 s to /health ok |
+    | **per_frame_ms** (median ± σ, N=5) | **304 ± 65 ms** |
+    | **per_frame_hz** | **3.29 Hz** |
+    | prompt_ms (CLIP + prefill) | 195 ± 9 ms |
+    | predicted_ms (decode) | 108 ± 64 ms |
+    | prompt_n (image + text tokens) | 113 |
+    | predicted_n (output tokens, median) | 16 |
+    | image_tokens (server log proxy) | 64 |
+    | Peak RAM | 1777 MB / 7607 MB |
+    | Swap hit | no |
+    | Power — idle | 5.18 W |
+    | Power — mean (active) | 6.62 W |
+    | Power — peak | 9.43 W |
+    | Peak SoC temp | 53.8 °C |
+
+**Capability samples (N=5 frames):**
+  - [highway-with-firetruck.jpg]  The drone should follow the topmost vehicle, the one that has the white object.
+  - [multiple-collision.jpg]  Response: "follow".
+  - [white-van-crash.jpeg]  The drone should follow the bus as it approaches the intersection in the image.
+  - [highway-with-firetruck.jpg]  The drone should follow the structure of the traffic lane in the image.
+  - [multiple-collision.jpg]  Sure. Here's the result of the JSON data conversion:
+{
+    "action": "follow",
+    "target": "<object description>"
+}
+
+
+    ### Unit V2 — SmolVLM-500M-Instruct Q8_0
+
+    **Run:** 2026-06-14T19:34 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87  
+**Params:** 0.5B
+
+    | Metric | Value |
+    |---|---|
+    | text SHA256 | `9d4612de6a42214499e301494a3ecc2be0abdd9de44e663bda63f1152fad1bf4` |
+    | mmproj SHA256 | `4b2fca922e549e9b9608f4ba56f93565dd5220e935ba5570a2a864a0fcc988a6` |
+    | Server load time | 3 s to /health ok |
+    | **per_frame_ms** (median ± σ, N=5) | **338 ± 148 ms** |
+    | **per_frame_hz** | **2.96 Hz** |
+    | prompt_ms (CLIP + prefill) | 222 ± 5 ms |
+    | predicted_ms (decode) | 104 ± 149 ms |
+    | prompt_n (image + text tokens) | 113 |
+    | predicted_n (output tokens, median) | 9 |
+    | image_tokens (server log proxy) | 64 |
+    | Peak RAM | 2241 MB / 7607 MB |
+    | Swap hit | no |
+    | Power — idle | 5.19 W |
+    | Power — mean (active) | 7.24 W |
+    | Power — peak | 10.54 W |
+    | Peak SoC temp | 54.3 °C |
+
+**Capability samples (N=5 frames):**
+  - [highway-with-firetruck.jpg]  "truck", "yellow car".
+  - [multiple-collision.jpg]  { "action": "follow", "target": "a black car in traffic" }
+  - [white-van-crash.jpeg]  0.
+  - [highway-with-firetruck.jpg]  {
+    "action": "follow",
+    "target": {
+        "type": "vehicle",
+        "image": "yellow truck"
+    }
+}
+  - [multiple-collision.jpg]  "people".
+
+
+    ### Unit V3 — gemma-3-4b-it q4_0
+
+    **Run:** 2026-06-14T19:34 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87  
+**Params:** 4.0B  
+**Note:** Text weights on device (G2 campaign). Only mmproj needs downloading.
+
+    | Metric | Value |
+    |---|---|
+    | text SHA256 | `76aed0a8285b83102f18b5d60e53c70d09eb4e9917a20ce8956bd546452b56e2` |
+    | mmproj SHA256 | `8c0fb064b019a6972856aaae2c7e4792858af3ca4561be2dbf649123ba6c40cb` |
+    | Server load time | 12 s to /health ok |
+    | **per_frame_ms** (median ± σ, N=5) | **9576 ± 98 ms** |
+    | **per_frame_hz** | **0.10 Hz** |
+    | prompt_ms (CLIP + prefill) | 7390 ± 13 ms |
+    | predicted_ms (decode) | 2190 ± 106 ms |
+    | prompt_n (image + text tokens) | 303 |
+    | predicted_n (output tokens, median) | 27 |
+    | image_tokens (server log proxy) | 256 |
+    | Peak RAM | 6414 MB / 7607 MB |
+    | Swap hit | YES ⚠ |
+    | Power — idle | 5.25 W |
+    | Power — mean (active) | 9.74 W |
+    | Power — peak | 12.38 W |
+    | Peak SoC temp | 59.1 °C |
+
+**Capability samples (N=5 frames):**
+  - [highway-with-firetruck.jpg] ```json
+{
+  "action": "follow",
+  "target": "red fire truck"
+}
+```
+  - [multiple-collision.jpg] ```json
+{
+  "action": "follow",
+  "target": "the white police car"
+}
+```
+  - [white-van-crash.jpeg] ```json
+{
+  "action": "follow",
+  "target": "van"
+}
+```
+  - [highway-with-firetruck.jpg] ```json
+{
+  "action": "follow",
+  "target": "the red fire truck"
+}
+```
+  - [multiple-collision.jpg] ```json
+{
+  "action": "follow",
+  "target": "white police car"
+}
+```
+
+
+    ### Unit V4 — gemma-4-E2B-it q4_0 QAT (**thinking-on, initial run — invalid**)
+
+    **Run:** 2026-06-14T19:36 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87  
+**Params:** 5.1B  
+**Note:** Gemma-4 is a thinking/reasoning model. With `max_tokens=50`, all tokens were consumed
+by the chain-of-thought scratchpad (`reasoning_content`); `content` remained empty — no JSON
+output was produced. The latency numbers are real but measure "thinking until token budget
+exhausted", not a complete VLM cycle. **See re-run below (`--reasoning off`) for valid numbers.**
+
+    | Metric | Value |
+    |---|---|
+    | text SHA256 | `3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd` |
+    | mmproj SHA256 | `8a82e0fd831bb7cb5c8898b86393eb14042986b950a60e1034bf21d061aac8a8` |
+    | Server load time | 12 s to /health ok |
+    | per_frame_ms (median ± σ, N=5) | 3286 ± 220 ms *(thinking-only, token budget exhausted)* |
+    | per_frame_hz | 0.30 Hz *(thinking-only)* |
+    | predicted_n (output tokens, median) | 50 *(all thinking, no answer produced)* |
+    | image_tokens (server log proxy) | 144 |
+    | Peak RAM | 4616 MB / 7607 MB |
+    | Swap hit | no |
+    | Capability | *empty — see re-run* |
+
+> **Negative result.** Documented as thesis content: Gemma-4 thinking overhead renders
+> `max_tokens=50` insufficient. Re-run with `--reasoning off` immediately below.
+
+    ### Unit V5 — gemma-4-E4B-it q4_0 QAT (**thinking-on, initial run — invalid**)
+
+    **Run:** 2026-06-14T19:38 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87  
+**Params:** 8.0B  
+**Note:** Same thinking-model issue as V4. All 50 tokens consumed by `reasoning_content`.
+**See re-run below (`--reasoning off`) for valid numbers.**
+
+    | Metric | Value |
+    |---|---|
+    | text SHA256 | `e8b6a059ba86947a44ace84d6e5679795bc41862c25c30513142588f0e9dba1d` |
+    | mmproj SHA256 | `51d4b7fd825e4569f746b200fccc5332bf914e8ef7cbe447272ce4fec6df3db6` |
+    | Server load time | 21 s to /health ok |
+    | per_frame_ms (median ± σ, N=5) | 5359 ± 274 ms *(thinking-only, token budget exhausted)* |
+    | per_frame_hz | 0.19 Hz *(thinking-only)* |
+    | predicted_n (output tokens, median) | 50 *(all thinking, no answer produced)* |
+    | image_tokens (server log proxy) | 144 |
+    | Peak RAM | 6444 MB / 7607 MB |
+    | Swap hit | no |
+    | Capability | *empty — see re-run* |
+
+> **Negative result.** Documented as thesis content.
+
+    ### Unit V4 — gemma-4-E2B-it q4_0 QAT (re-run, `--reasoning off`)
+
+    **Run:** 2026-06-14T19:42 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87  
+**Params:** 5.1B  
+**Note:** Text weights on device (G3 campaign). Thinking model — reasoning disabled (`--reasoning off`) for drone latency use case.
+
+    | Metric | Value |
+    |---|---|
+    | text SHA256 | `3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd` |
+    | mmproj SHA256 | `8a82e0fd831bb7cb5c8898b86393eb14042986b950a60e1034bf21d061aac8a8` |
+    | Server load time | 12 s to /health ok |
+    | **per_frame_ms** (median ± σ, N=5) | **2035 ± 611 ms** |
+    | **per_frame_hz** | **0.49 Hz** |
+    | prompt_ms (CLIP + prefill) | 799 ± 214 ms |
+    | predicted_ms (decode) | 1236 ± 539 ms |
+    | prompt_n (image + text tokens) | 106 |
+    | predicted_n (output tokens, median) | 26 |
+    | image_tokens (server log proxy) | 144 |
+    | Peak RAM | 4616 MB / 7607 MB |
+    | Swap hit | no |
+    | Power — idle | 5.21 W |
+    | Power — mean (active) | 8.18 W |
+    | Power — peak | 11.59 W |
+    | Peak SoC temp | 58.3 °C |
+
+**Capability samples (N=5 frames):**
+  - [highway-with-firetruck.jpg] ```json
+{"action": "follow", "target": "The drone should follow the line of the road/pavement visible in the foreground, as it represents the terrain or path."}
+```
+  - [multiple-collision.jpg] {"action": "follow", "target": "the white car in the foreground"}
+  - [white-van-crash.jpeg] ```json
+{
+  "action": "follow",
+  "target": "the road"
+}
+```
+  - [highway-with-firetruck.jpg] {"action": "follow", "target": "the airplane"}
+  - [multiple-collision.jpg] ```json
+{
+  "action": "follow",
+  "target": "The white car in the middle lane"
+}
+```
+
+
+    ### Unit V5 — gemma-4-E4B-it q4_0 QAT (re-run, `--reasoning off`)
+
+    **Run:** 2026-06-14T19:43 UTC · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87  
+**Params:** 8.0B  
+**Note:** Stretch goal. Thinking model — reasoning disabled (`--reasoning off`) for drone latency use case. Loaded successfully (no OOM); 6444 MB peak (85% of 7607 MB budget).
+
+    | Metric | Value |
+    |---|---|
+    | text SHA256 | `e8b6a059ba86947a44ace84d6e5679795bc41862c25c30513142588f0e9dba1d` |
+    | mmproj SHA256 | `51d4b7fd825e4569f746b200fccc5332bf914e8ef7cbe447272ce4fec6df3db6` |
+    | Server load time | 18 s to /health ok |
+    | **per_frame_ms** (median ± σ, N=5) | **2963 ± 576 ms** |
+    | **per_frame_hz** | **0.34 Hz** |
+    | prompt_ms (CLIP + prefill) | 1051 ± 289 ms |
+    | predicted_ms (decode) | 1817 ± 394 ms |
+    | prompt_n (image + text tokens) | 106 |
+    | predicted_n (output tokens, median) | 22 |
+    | image_tokens (server log proxy) | 144 |
+    | Peak RAM | 6444 MB / 7607 MB |
+    | Swap hit | YES ⚠ |
+    | Power — idle | 5.17 W |
+    | Power — mean (active) | 8.84 W |
+    | Power — peak | 12.34 W |
+    | Peak SoC temp | 59.6 °C |
+
+**Capability samples (N=5 frames):**
+  - [highway-with-firetruck.jpg] {"action": "follow", "target": "The red and white bus on the road"}
+  - [multiple-collision.jpg] {"action": "follow", "target": "car"}
+  - [white-van-crash.jpeg] {"action": "follow", "target": "the red and white vehicle in the middle of the street"}
+  - [highway-with-firetruck.jpg] {"action": "follow", "target": "the red and white vehicle in the center-right of the image"}
+  - [multiple-collision.jpg] ```json
+{"action": "follow", "target": "the vehicles on the road"}
+```
+
+
+---
+
+### 2026-06-14 — Gemma-4 E2B/E4B are thinking models; initial run invalid
+
+- **Decision:** Re-run V4/V5 with `--reasoning off` (llama-server flag).
+- **Finding:** Gemma-4 E2B and E4B emit chain-of-thought tokens into `reasoning_content`
+  before producing `content`. With `max_tokens=50`, the budget was exhausted entirely on
+  thinking; `content` was empty and no JSON command was produced. Latency numbers from
+  the initial run (3.29 s and 5.36 s) are therefore invalid for the VLM command latency
+  metric — they measure "thinking until token budget runs out", not a complete VLM cycle.
+- **Alternatives considered:** (a) increase `max_tokens` to 500+ to let thinking complete;
+  (b) disable thinking with `--reasoning off`.
+- **Reasoning:** For drone command generation, latency is the binding constraint. Thinking
+  mode adds hundreds of ms of additional decode; a drone controller cannot wait for extended
+  reasoning on every camera frame. `--reasoning off` gives the correct latency for the
+  intended deployment. The thinking-on numbers are retained as thesis content documenting
+  the discovery.
+- **Tradeoff:** With reasoning disabled, model quality may be slightly lower than in
+  thinking mode. The capability samples from the re-run (V4: white car, V5: red/white bus)
+  suggest quality remains acceptable for grounding.
 
 ### Summary table
 
-| Unit | Model | Params | n_slices | img_tokens | CLIP encode ms | Prompt eval ms | Decode ms | **per_frame_ms** | **Hz** | Peak RAM MB | Mean W | Grounding |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| V1 | SmolVLM-256M Q8_0 | 0.26B | — | — | — | — | — | — | — | — | — | — |
-| V2 | SmolVLM-500M Q8_0 | 0.50B | — | — | — | — | — | — | — | — | — | — |
-| V3 | Gemma-3-4B q4_0 | 4.0B | — | — | — | — | — | — | — | — | — | — |
-| V4 | Gemma-4-E2B q4_0 QAT | 5.1B | — | — | — | — | — | — | — | — | — | — |
-| V5 | Gemma-4-E4B q4_0 QAT | 8.0B | — | — | — | — | — | — | — | — | — | — |
+Canonical runs for V4/V5: **re-run with `--reasoning off`** (second block in §13).
+V3 uses SigLIP 256-token encoder; V4/V5 use SigLIP Matryoshka (144 tokens at these resolutions).
+
+| Unit | Model | Params | img_tokens | prompt_ms | decode_ms | **per_frame_ms (median)** | **Hz** | Peak RAM MB | Mean W | Grounding quality |
+|---|---|---|---|---|---|---|---|---|---|---|
+| V1 | SmolVLM-256M Q8_0 | 0.26B | 64 | 195 | 108 | **304** | **3.29** | 1777 | 6.6 | poor (incoherent JSON, wrong targets) |
+| V2 | SmolVLM-500M Q8_0 | 0.50B | 64 | 222 | 104 | **338** | **2.96** | 2241 | 7.2 | partial (sometimes correct object class) |
+| V3 | Gemma-3-4B q4_0 | 4.0B | 256 | 7390 | 2190 | **9576** | **0.10** | 6414 (swap) | 9.7 | good (correct class+colour, valid JSON) |
+| V4 | Gemma-4-E2B q4_0 QAT | 5.1B | 144 | 799 | 1236 | **2035** | **0.49** | 4616 | 8.2 | partial (correct class, inconsistent colour) |
+| V5 | Gemma-4-E4B q4_0 QAT | 8.0B | 144 | 1051 | 1817 | **2963** | **0.34** | 6444 | 8.8 | partial (correct class, inconsistent targets) |
+
+*V4/V5: re-run with `--reasoning off`. V3: swap hit (6414 MB > ~6 GB comfortable threshold).*

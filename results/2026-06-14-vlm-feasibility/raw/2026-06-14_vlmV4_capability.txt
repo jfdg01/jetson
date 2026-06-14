@@ -1,0 +1,17 @@
+[highway-with-firetruck.jpg] ```json
+{"action": "follow", "target": "The drone should follow the line of the road/pavement visible in the foreground, as it represents the terrain or path."}
+```
+[multiple-collision.jpg] {"action": "follow", "target": "the white car in the foreground"}
+[white-van-crash.jpeg] ```json
+{
+  "action": "follow",
+  "target": "the road"
+}
+```
+[highway-with-firetruck.jpg] {"action": "follow", "target": "the airplane"}
+[multiple-collision.jpg] ```json
+{
+  "action": "follow",
+  "target": "The white car in the middle lane"
+}
+```

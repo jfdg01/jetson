@@ -1,0 +1,11 @@
+[highway-with-firetruck.jpg]  "truck", "yellow car".
+[multiple-collision.jpg]  { "action": "follow", "target": "a black car in traffic" }
+[white-van-crash.jpeg]  0.
+[highway-with-firetruck.jpg]  {
+    "action": "follow",
+    "target": {
+        "type": "vehicle",
+        "image": "yellow truck"
+    }
+}
+[multiple-collision.jpg]  "people".

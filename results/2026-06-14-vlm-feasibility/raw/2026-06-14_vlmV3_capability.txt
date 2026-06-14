@@ -1,0 +1,30 @@
+[highway-with-firetruck.jpg] ```json
+{
+  "action": "follow",
+  "target": "red fire truck"
+}
+```
+[multiple-collision.jpg] ```json
+{
+  "action": "follow",
+  "target": "the white police car"
+}
+```
+[white-van-crash.jpeg] ```json
+{
+  "action": "follow",
+  "target": "van"
+}
+```
+[highway-with-firetruck.jpg] ```json
+{
+  "action": "follow",
+  "target": "the red fire truck"
+}
+```
+[multiple-collision.jpg] ```json
+{
+  "action": "follow",
+  "target": "white police car"
+}
+```

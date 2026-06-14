@@ -95,6 +95,7 @@ class ModelSpec:
     expected_mb_text: int   # 0 if already on device
     expected_mb_mmproj: int
     is_gated: bool
+    server_extra_args: str = ""   # extra flags appended to llama-server command
     notes: str = ""
 
 
@@ -152,7 +153,8 @@ MODELS: list[ModelSpec] = [
         expected_mb_text=0,
         expected_mb_mmproj=400,
         is_gated=True,
-        notes="Text weights on device (G3 campaign). Only mmproj needs downloading.",
+        server_extra_args="--reasoning off",
+        notes="Text weights on device (G3 campaign). Thinking model — reasoning disabled for drone use (latency). First run (thinking-on) recorded in §13 results.",
     ),
     ModelSpec(
         unit_id="V5",
@@ -166,7 +168,8 @@ MODELS: list[ModelSpec] = [
         expected_mb_text=0,
         expected_mb_mmproj=850,
         is_gated=True,
-        notes="Stretch goal. At 8B + mmproj may OOM. Load failure is a valid result.",
+        server_extra_args="--reasoning off",
+        notes="Stretch goal. Thinking model — reasoning disabled for drone use. First run (thinking-on) recorded in §13 results.",
     ),
 ]
 
@@ -360,7 +363,15 @@ def _post(payload: bytes, timeout: int = 300) -> str:
 def _response_text(json_text: str) -> str:
     try:
         data = json.loads(json_text)
-        return data["choices"][0]["message"]["content"]
+        msg = data["choices"][0]["message"]
+        content = msg.get("content") or ""
+        if not content.strip():
+            # Thinking models (Gemma-4) put chain-of-thought in reasoning_content;
+            # content stays empty until thinking completes. Surface whatever we have.
+            reasoning = msg.get("reasoning_content") or ""
+            if reasoning:
+                return f"[thinking-only: {reasoning[:120]}…]"
+        return content
     except Exception:
         return "(parse error)"
 
@@ -401,10 +412,11 @@ def run_unit(spec: ModelSpec, text_path: str, mmproj_path: str,
     server_log_remote = f"/tmp/{tag}_server.log"
 
     if dry_run:
+        extra = f" {spec.server_extra_args}" if spec.server_extra_args else ""
         server_cmd = (
             _ld_prefix() +
             f"{LLAMA_SERVER} -m {text_path} --mmproj {mmproj_path} "
-            f"-ngl {NGL} --port {SERVER_PORT} -v "
+            f"-ngl {NGL} --port {SERVER_PORT} -v{extra} "
             f"> {server_log_remote} 2>&1"
         )
         print(f"  [dry-run] server: {server_cmd}")
@@ -418,10 +430,11 @@ def run_unit(spec: ModelSpec, text_path: str, mmproj_path: str,
     time.sleep(5)  # idle baseline
 
     # ── start server ──────────────────────────────────────────────────────
+    extra = f" {spec.server_extra_args}" if spec.server_extra_args else ""
     server_cmd = (
         _ld_prefix() +
         f"{LLAMA_SERVER} -m {text_path} --mmproj {mmproj_path} "
-        f"-ngl {NGL} --port {SERVER_PORT} -v "
+        f"-ngl {NGL} --port {SERVER_PORT} -v{extra} "
         f"> {server_log_remote} 2>&1"
     )
     ssh_bg(server_cmd)

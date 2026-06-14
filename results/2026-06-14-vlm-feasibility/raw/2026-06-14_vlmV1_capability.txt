@@ -1,0 +1,9 @@
+[highway-with-firetruck.jpg]  The drone should follow the topmost vehicle, the one that has the white object.
+[multiple-collision.jpg]  Response: "follow".
+[white-van-crash.jpeg]  The drone should follow the bus as it approaches the intersection in the image.
+[highway-with-firetruck.jpg]  The drone should follow the structure of the traffic lane in the image.
+[multiple-collision.jpg]  Sure. Here's the result of the JSON data conversion:
+{
+    "action": "follow",
+    "target": "<object description>"
+}

@@ -1,0 +1,7 @@
+[highway-with-firetruck.jpg] {"action": "follow", "target": "The red and white bus on the road"}
+[multiple-collision.jpg] {"action": "follow", "target": "car"}
+[white-van-crash.jpeg] {"action": "follow", "target": "the red and white vehicle in the middle of the street"}
+[highway-with-firetruck.jpg] {"action": "follow", "target": "the red and white vehicle in the center-right of the image"}
+[multiple-collision.jpg] ```json
+{"action": "follow", "target": "the vehicles on the road"}
+```

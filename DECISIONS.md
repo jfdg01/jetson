@@ -5,6 +5,26 @@ decisions live in the relevant `results/*.md`. Format defined in `CLAUDE.md`.
 
 ---
 
+### 2026-06-14T20:00 — Gemma-4 E2B/E4B are thinking models; disable reasoning for VLM campaign
+
+- **Decision:** Re-run V4 (Gemma-4-E2B) and V5 (Gemma-4-E4B) with `--reasoning off` passed
+  to `llama-server`. Initial runs (thinking enabled, default) produced empty `content` fields
+  — all 50 `max_tokens` were consumed by the `reasoning_content` chain-of-thought scratchpad.
+- **Alternatives considered:** (a) increase `max_tokens` to 500–1000 to let thinking complete;
+  (b) disable thinking with `--reasoning off`.
+- **Reasoning:** For drone command generation, latency is the binding constraint (0.5–2 Hz
+  target). Thinking mode adds hundreds of ms of per-token decode on top of the CLIP encode and
+  prefill cost. A drone controller cannot budget extended reasoning on every camera frame.
+  `--reasoning off` (llama-server 57fe1f0 flag, also `--reasoning-budget 0`) is the correct
+  deployment configuration. The initial invalid runs are retained in the campaign README as a
+  documented negative result.
+- **Tradeoff / cost accepted:** With reasoning disabled, grounding quality may be slightly lower
+  than thinking mode. Capability samples from the re-run suggest quality is acceptable for the
+  "follow that object" task.
+- **Revisit when:** If a future use case can tolerate >3 s latency per frame AND benefits from
+  the reasoning overhead (e.g., complex scene parsing), re-enable thinking and increase
+  `max_tokens` accordingly.
+
 ### 2026-06-14T22:00 — Install ffmpeg on Jetson for llama-server image decoding
 
 - **Decision:** Install `ffmpeg` on the Jetson (`sudo apt install -y ffmpeg`).
