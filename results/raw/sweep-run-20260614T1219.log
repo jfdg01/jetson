@@ -1,0 +1,43 @@
+═════════════════════════════════════════════════════════════════
+  Jetson Orin Nano — 10-model capability sweep
+  Campaign: 2026-06-13-model-capability-sweep
+═════════════════════════════════════════════════════════════════
+
+── preflight checks ──────────────────────────────────────────
+  ✓ ssh jetson
+  ✓ ~/llama.cpp/build/bin/llama-bench present
+  ✓ llama.cpp @ 57fe1f0
+  ℹ  nvpmodel: 'NV Power Mode: 15W\n0'
+  ⚠  Ensure you ran: ssh jetson 'sudo nvpmodel -m 0 && sudo jetson_clocks'
+  ✓ 195991 MB free
+  ✓ ~/models exists
+
+── Unit 01: Qwen2.5-0.5B-Instruct (0.5B, A ultralight) ──
+  ✓ model already on device (380 MB) — skipping download
+  SHA256: 6eb923e7d26e9cea…
+  → llama-bench pp512+tg128 ×5 …
+  → llama-bench tg512 ×3 …
+  → llama-cli TTFT …
+Traceback (most recent call last):
+  File "/home/gara/jetson/experiments/run_campaign.py", line 502, in <module>
+    main()
+  File "/home/gara/jetson/experiments/run_campaign.py", line 467, in main
+    bench_csv, ttft_text, tegra_text = run_unit(
+                                       ^^^^^^^^^
+  File "/home/gara/jetson/experiments/run_campaign.py", line 310, in run_unit
+    r = ssh(ttft_cmd, timeout=600)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/experiments/run_campaign.py", line 128, in ssh
+    return subprocess.run(full, capture_output=True, text=True,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/.pyenv/versions/3.12.10/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/.pyenv/versions/3.12.10/lib/python3.12/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/.pyenv/versions/3.12.10/lib/python3.12/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/home/gara/.pyenv/versions/3.12.10/lib/python3.12/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['ssh', 'jetson', "export LD_LIBRARY_PATH=~/llama.cpp/build/bin:/usr/local/cuda/lib64; ~/llama.cpp/build/bin/llama-cli -m ~/models/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf -ngl 99 -c 4096 -n 128 -no-cnv -p 'Explain what an edge AI accelerator is in two sentences.' 2>&1"]' timed out after 600 seconds

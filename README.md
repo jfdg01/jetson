@@ -50,7 +50,7 @@ ssh jetson        # user: jfdg, hostname: jetson
 - Monitor live with `tegrastats` (CPU/GPU/mem/temps), no root needed
 - ⚠️ The JetPack 6.2 **"Super" mode (25 W / MAXN_SUPER)** is *not* enabled here —
   only 7 W and 15 W modes are present. Enabling it (firmware + `nvpmodel`) would
-  raise GPU clocks and LLM throughput; worth doing for the thesis benchmarks.
+  raise GPU clocks and LLM throughput
 
 ## Installed ML / CUDA stack
 
@@ -61,7 +61,7 @@ ssh jetson        # user: jfdg, hostname: jetson
 | TensorRT | 10.3.0 (incl. `python3-libnvinfer`) |
 | nvcc | present at `/usr/local/cuda/bin/nvcc` (not on default PATH) |
 
-`nvcc` is not on `$PATH` by default — add it:
+`nvcc` is not on `$PATH` by default — you may add it:
 ```bash
 export PATH=/usr/local/cuda/bin:$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
@@ -69,7 +69,7 @@ export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 
 ### Not yet installed (you'll add these for the thesis)
 - **No** PyTorch / Transformers / ONNX Runtime / llama.cpp / Ollama
-- **No Docker** (user `jfdg` *is* in no docker group; would need install)
+- **No Docker** (user `jfdg` is not in the docker group; would need install)
 - **No `cmake`** (have `gcc`, `git`, `python3-venv`)
 
 ---
@@ -88,20 +88,9 @@ Use **4-bit quantization** (GGUF `Q4_K_M`, AWQ, or TensorRT-LLM INT4) for anythi
 | 7–8B | Q5/Q6/Q8 | 6–8.5 GB | ❌ / risky | OOM or heavy swapping |
 | 13B+ | any | >7 GB | ❌ | Won't fit |
 
-### Recommended runtimes to test (in rough order of ease)
+### Runtime
 
-1. **Ollama** — easiest; one-line install, auto GPU offload, GGUF models.
-   ```bash
-   curl -fsSL https://ollama.com/install.sh | sh
-   ollama run llama3.2:3b
-   ```
-2. **llama.cpp** (build with CUDA) — most control + best for benchmarking tok/s.
-   Requires installing `cmake` first (`sudo apt install cmake`); build with
-   `cmake -B build -DGGML_CUDA=ON` targeting `sm_87`.
-3. **MLC-LLM** — strong throughput on Orin via TVM, but heavier setup.
-4. **TensorRT-LLM / `transformers` + bitsandbytes** — best raw perf but most setup;
-   use NVIDIA's `jetson-containers` (`dusty-nv/jetson-containers`) to get prebuilt
-   images (requires installing Docker first).
+* We are running with llama.cpp
 
 ### Benchmarking checklist for the thesis
 - Set a fixed power mode before each run: `sudo nvpmodel -m 0` (15 W) and lock clocks

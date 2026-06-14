@@ -1,0 +1,31 @@
+═════════════════════════════════════════════════════════════════
+  Jetson Orin Nano — 10-model capability sweep
+  Campaign: 2026-06-13-model-capability-sweep
+═════════════════════════════════════════════════════════════════
+
+── preflight checks ──────────────────────────────────────────
+  ✓ ssh jetson
+  ✓ ~/llama.cpp/build/bin/llama-bench present
+  ✓ llama.cpp @ 57fe1f0
+  ℹ  nvpmodel: 'NV Power Mode: 15W\n0'
+  ⚠  Ensure you ran: ssh jetson 'sudo nvpmodel -m 0 && sudo jetson_clocks'
+  ✓ 195991 MB free
+  ✓ ~/models exists
+
+── Unit 01: Qwen2.5-0.5B-Instruct (0.5B, A ultralight) ──
+  ✓ model already on device (380 MB) — skipping download
+  SHA256: 6eb923e7d26e9cea…
+Traceback (most recent call last):
+  File "/home/gara/jetson/experiments/run_campaign.py", line 502, in <module>
+    main()
+  File "/home/gara/jetson/experiments/run_campaign.py", line 467, in main
+    bench_csv, ttft_text, tegra_text = run_unit(
+                                       ^^^^^^^^^
+  File "/home/gara/jetson/experiments/run_campaign.py", line 260, in run_unit
+    ssh(f"pkill -f tegrastats || true")
+  File "/home/gara/jetson/experiments/run_campaign.py", line 128, in ssh
+    return subprocess.run(full, capture_output=True, text=True,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/.pyenv/versions/3.12.10/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['ssh', 'jetson', 'pkill -f tegrastats || true']' returned non-zero exit status 255.

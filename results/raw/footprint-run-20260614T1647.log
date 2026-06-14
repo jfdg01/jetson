@@ -1,0 +1,23 @@
+── footprint re-measure (--no-mmap, authoritative buffers) ──
+  Unit G2: gemma-3-4b-it
+    → loading with -ngl 99 --no-mmap …
+    model=4283  KV=254  compute=190  resident=4727 MiB  (RSS Δ≈5074 MB)
+  Unit G3: gemma-4-E2B-it
+    → loading with -ngl 99 --no-mmap …
+    model=3494  KV=36  compute=294  resident=3824 MiB  (RSS Δ≈1866 MB)
+  Unit G4: gemma-4-E4B-it
+    → loading with -ngl 99 --no-mmap …
+    model=0  KV=0  compute=142  resident=142 MiB  (RSS Δ≈1150 MB)
+  Unit G5: partial offload -ngl 28 (cliff vs gradient)
+    → loading with -ngl 28 --no-mmap …
+    G5: **CLIFF** — still OOM at -ngl 28
+  ⚠  §11.3 placeholder not found; table:
+| Unit | Model | model MiB | KV MiB | compute MiB | resident MiB | RSS Δ MB |
+|---|---|---|---|---|---|---|
+| G2 | gemma-3-4b-it | 4283 | 254 | 190 | **4727** | 5074 |
+| G3 | gemma-4-E2B-it | 3494 | 36 | 294 | **3824** | 1866 |
+| G4 | gemma-4-E4B-it | 0 | 0 | 142 | **142** | 1150 |
+
+**G5 partial offload (-ngl 28):** **CLIFF** — still OOM at -ngl 28  
+_Run: 2026-06-14T17:13 UTC · 15 W locked · llama.cpp `57fe1f0` · `--no-mmap --verbose`_
+

@@ -136,6 +136,76 @@ def parse_llama_cli_timings(text: str) -> Optional[LlamaCliTimings]:
     )
 
 
+# ── llama.cpp load-buffer footprint ──────────────────────────────────────────
+
+@dataclass
+class LlamaLoadFootprint:
+    """Exact allocation breakdown printed by llama.cpp at load (MiB).
+
+    These are authoritative (reported by the runtime), unlike tegrastats RAM
+    sampling, which under-counts mmap'd weights and can miss the load spike at
+    1 s resolution. Captured with --no-mmap --verbose. See the gemma-family
+    campaign §11 / RQ-G3.
+    """
+    model_buffer_mb: dict[str, float] = field(default_factory=dict)   # device -> MiB
+    kv_buffer_mb: dict[str, float] = field(default_factory=dict)
+    compute_buffer_mb: dict[str, float] = field(default_factory=dict)
+
+    @property
+    def model_total_mb(self) -> float:
+        return sum(self.model_buffer_mb.values())
+
+    @property
+    def kv_total_mb(self) -> float:
+        return sum(self.kv_buffer_mb.values())
+
+    @property
+    def compute_total_mb(self) -> float:
+        return sum(self.compute_buffer_mb.values())
+
+    @property
+    def resident_total_mb(self) -> float:
+        """Model weights + KV cache + compute buffers — true on-device footprint."""
+        return self.model_total_mb + self.kv_total_mb + self.compute_total_mb
+
+
+# Matches e.g.:
+#   load_tensors:        CUDA0 model buffer size =  3000.50 MiB
+#   llama_kv_cache:      CUDA0 KV buffer size =   512.00 MiB
+#   llama_context:       CUDA0 compute buffer size =   300.25 MiB
+_BUF_RE = re.compile(
+    r"(?P<device>\S+)\s+(?P<kind>model|KV|compute)\s+buffer size\s*=\s*"
+    r"(?P<size>[\d.,]+)\s*MiB",
+    re.IGNORECASE,
+)
+
+
+def parse_llama_load_buffers(text: str) -> LlamaLoadFootprint:
+    """Parse the per-device buffer-size lines from a llama.cpp load log.
+
+    llama.cpp runs two passes per load: a probe/dry-run pass (all zeros for
+    model and KV, but real values for compute), then the real allocation pass.
+    Accumulating naively would double-count compute.  Strategy per field:
+      - model: accumulate (probe=0 + real=R → R)
+      - KV:    accumulate non-zeros only (skip probe zeros; sum distinct segs)
+      - compute: last-wins per device (probe and real have identical values;
+                 overwriting avoids the 2× duplication)
+    """
+    fp = LlamaLoadFootprint()
+    for m in _BUF_RE.finditer(text):
+        device = m.group("device")
+        kind = m.group("kind").lower()
+        size = float(m.group("size").replace(",", "."))
+        if kind == "model":
+            fp.model_buffer_mb[device] = fp.model_buffer_mb.get(device, 0.0) + size
+        elif kind == "kv":
+            if size > 0:  # skip probe-pass zeros; sum real KV cache segments
+                fp.kv_buffer_mb[device] = fp.kv_buffer_mb.get(device, 0.0) + size
+        elif kind == "compute":
+            fp.compute_buffer_mb[device] = size  # last wins; probe == real value
+    return fp
+
+
 # ── tegrastats ───────────────────────────────────────────────────────────────
 
 @dataclass
@@ -193,9 +263,38 @@ class TegrastatsSummary:
             return 0.0
         return max(x.ram_used_mb for x in self.readings)
 
+    # ── swap ──────────────────────────────────────────────────────────────
+    # The device almost always carries a *pre-existing* swap baseline (other
+    # processes), so "swap > 0" is not evidence that inference pushed the model
+    # into swap. We measure GROWTH relative to the idle baseline instead. See
+    # the gemma-family campaign §11 (data-quality correction): a flat 306 MB
+    # baseline was mis-flagged as a swap hit on every unit by the old
+    # `any(swap > 0)` test.
+    SWAP_HIT_THRESHOLD_MB: float = 50.0
+
+    @property
+    def swap_baseline_mb(self) -> float:
+        """Swap in use during the idle window, before the model loads."""
+        r = self.idle_readings()
+        if not r:
+            return 0.0
+        return min(x.swap_used_mb for x in r)
+
+    @property
+    def peak_swap_mb(self) -> float:
+        if not self.readings:
+            return 0.0
+        return max(x.swap_used_mb for x in self.readings)
+
+    @property
+    def swap_growth_mb(self) -> float:
+        """How much swap grew above the idle baseline during the run."""
+        return max(0.0, self.peak_swap_mb - self.swap_baseline_mb)
+
     @property
     def swap_hit(self) -> bool:
-        return any(x.swap_used_mb > 0 for x in self.active_readings())
+        """True only if swap grew meaningfully above the idle baseline."""
+        return self.swap_growth_mb > self.SWAP_HIT_THRESHOLD_MB
 
 
 _TEGRA_RE = re.compile(
@@ -270,6 +369,45 @@ def _test_parse_tegrastats():
     assert summary.peak_w == 12517 / 1000
 
 
+def _test_swap_growth_detection():
+    # Flat swap (gemma case): pre-existing 306 MB baseline, never grows -> no hit.
+    flat = (
+        "RAM 1357/7607MB (lfb 7x2MB) SWAP 306/3804MB (cached 1MB) "
+        "GR3D_FREQ 0% tj@54.6C VDD_IN 5237mW/5237mW\n"
+    )
+    s_flat = parse_tegrastats(flat * 20)
+    assert s_flat.swap_baseline_mb == 306
+    assert s_flat.swap_growth_mb == 0
+    assert s_flat.swap_hit is False
+
+    # Real growth (10-model-sweep case): 11 MB idle -> 206 MB during decode -> hit.
+    idle = (
+        "RAM 1000/7607MB SWAP 11/3804MB GR3D_FREQ 0% tj@50.0C VDD_IN 5200mW/5200mW\n"
+    )
+    busy = (
+        "RAM 5000/7607MB SWAP 206/3804MB GR3D_FREQ 99% tj@65.0C VDD_IN 13000mW/13000mW\n"
+    )
+    s_grow = parse_tegrastats(idle * 5 + busy * 15)
+    assert s_grow.swap_baseline_mb == 11
+    assert s_grow.peak_swap_mb == 206
+    assert s_grow.swap_growth_mb == 195
+    assert s_grow.swap_hit is True
+
+
+def _test_parse_llama_load_buffers():
+    text = (
+        "load_tensors:        CUDA0 model buffer size =  3000.50 MiB\n"
+        "load_tensors:          CPU model buffer size =   200.00 MiB\n"
+        "llama_kv_cache:      CUDA0 KV buffer size =   512.00 MiB\n"
+        "llama_context:       CUDA0 compute buffer size =   300.25 MiB\n"
+    )
+    fp = parse_llama_load_buffers(text)
+    assert abs(fp.model_total_mb - 3200.50) < 0.01
+    assert abs(fp.kv_total_mb - 512.00) < 0.01
+    assert abs(fp.compute_total_mb - 300.25) < 0.01
+    assert abs(fp.resident_total_mb - 4012.75) < 0.01
+
+
 def _test_parse_llama_cli_timings():
     text = (
         "llama_print_timings:        load time =    1234.56 ms\n"
@@ -291,5 +429,7 @@ if __name__ == "__main__":
     _test_parse_bench_csv_pm_format()
     _test_parse_bench_csv_columns_format()
     _test_parse_tegrastats()
+    _test_swap_growth_detection()
+    _test_parse_llama_load_buffers()
     _test_parse_llama_cli_timings()
     print("all parsers tests passed")

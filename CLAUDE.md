@@ -1,4 +1,6 @@
-# CLAUDE.md — Jetson Edge-LLM Thesis Testbed
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 This repo is the working record for a **master's thesis** on running local LLMs on
 edge hardware (Jetson Orin Nano 8 GB). The numbers and notes here go into the
@@ -35,6 +37,78 @@ reader (and the thesis committee) could reproduce it and trust the result.
   `tegrastats` logs) lives alongside in `results/raw/`.
 - `RESULTS.md` (root) — a running **summary table** across all experiments, the
   at-a-glance ledger the thesis pulls from. Append, don't overwrite.
+- `experiments/` — Python automation scripts, run cards, and the isolated-session
+  execution methodology. See `experiments/README.md`.
+- `DECISIONS.md` — project-wide decision log (most-recent first).
+
+## Python tooling
+
+The `experiments/` tooling is **stdlib-only by design** — no pip dependencies for
+the data-collection path, so results stay reproducible without pinning a
+dependency tree.
+
+```bash
+# Activate the venv (created at repo root)
+source .venv/bin/activate
+
+# Run the parser unit tests (no pytest needed)
+python experiments/parsers.py          # prints "all parsers tests passed"
+
+# 10-model capability sweep (campaign 2026-06-13)
+# Prerequisite: ssh jetson 'sudo nvpmodel -m 0 && sudo jetson_clocks'
+python experiments/run_campaign.py [--only 01,03] [--dry-run] [--start-from 05] [--skip-download]
+
+# Gemma-family sweep (campaign 2026-06-14)
+python experiments/run_gemma_sweep.py [--only G1,G3] [--dry-run] [--start-from G3] [--skip-download]
+
+# Gemma footprint re-measure (§11 / RQ-G3): authoritative --no-mmap buffers for G2/G3/G4
+# and partial-offload cliff probe for G5
+python experiments/run_gemma_sweep.py --footprint [--g5-ngl 28]
+```
+
+HF token for gated models (e.g. Gemma): place it in `.hugging-face-token` at the
+repo root (gitignored). `run_gemma_sweep.py` reads it automatically.
+
+## Experiment automation architecture
+
+Each campaign has one Python script (`experiments/run_<campaign>.py`) that:
+
+1. **Preflight** — SSH to the device, verify llama-bench binary and commit, check
+   disk space, warn if clocks not locked.
+2. **Model acquisition** — download via `wget -c` on the device if not present;
+   verify with `sha256sum`.
+3. **Benchmark loop** — for each `ModelSpec` in the script's `MODELS` list:
+   - Start `tegrastats --logfile` in the background via SSH.
+   - Run `llama-bench` (pp512 + tg128, then tg512 sustained).
+   - Run `llama-completion` for a TTFT timing block.
+   - Stop `tegrastats`; `scp` the log back to `results/raw/`.
+4. **Parse + write** — `parsers.py` digests raw text into typed dataclasses
+   (`BenchRow`, `TegrastatsSummary`, `LlamaCliTimings`, `LlamaLoadFootprint`);
+   the script formats a Markdown result block and appends it to the campaign doc
+   and a summary row to `RESULTS.md`.
+
+`parsers.py` is side-effect-free (text in → dataclasses out) and has inline
+`_test_*` functions runnable directly with `python experiments/parsers.py`.
+
+**Key invariants in the parsers:**
+- `TegrastatsSummary.swap_hit` measures *growth over the idle baseline*, not
+  `swap > 0` — the device always carries a pre-existing zram baseline.
+- `parse_llama_load_buffers` de-duplicates the probe/real pass double-count:
+  model buffers accumulate, compute buffers last-wins per device, KV skips zeros.
+- `parse_bench_csv` handles both the old `t/s = "14.61 ± 0.00"` format and the
+  newer explicit `avg_ts`/`stddev_ts` column format.
+
+### Adding a new campaign
+
+1. Write a `results/<date>-<campaign>/README.md` pre-registering RQs, controlled
+   variables, and metrics (the *what/why*).
+2. Create `experiments/run_<campaign>.py` by copying the closest existing script.
+   Add `ModelSpec` entries to `MODELS`. The `ModelSpec` dataclass fields and the
+   `run_unit` / `format_result_block` / `results_md_row` trio are the extension
+   points.
+3. Run with `--dry-run` first to verify the command strings and paths.
+4. After a real run, commit raw logs + the updated campaign doc + `RESULTS.md` row
+   together so the record stays atomic.
 
 ## What to capture for every benchmark run
 
@@ -70,6 +144,10 @@ single cherry-picked best. Note warm-up/cold-cache effects explicitly.
   comparing runtimes; change one variable at a time.
 - Prefer `llama-bench` for authoritative prefill/decode separation; note when a
   number comes from a looser source (e.g. Ollama `--verbose` eval rate).
+- tegrastats RAM **under-counts mmap'd weights** (demand-paged; pages not yet
+  accessed won't be resident). Use `--no-mmap` + `parse_llama_load_buffers` for
+  authoritative footprints, especially for models with shared weight matrices (e.g.
+  Gemma MoE / PLE architectures).
 
 ## Decision log
 

@@ -3,3 +3,17 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Secrets
+.hugging-face-token
+
+# Large binary footprint files — G2/G3 raw --no-mmap dumps are multi-GB binary blobs
+# that exceed GitHub's 100 MB per-file limit. Keep them locally; don't commit.
+# (G4/G5 footprint files are plain text at ~100-150 KB and are fine to commit.)
+results/2026-06-14-gemma-family-sweep/raw/2026-06-14_gsweepG2_footprint.txt
+results/2026-06-14-gemma-family-sweep/raw/2026-06-14_gsweepG3_footprint.txt
+
+# OS / editor noise
+.DS_Store
+*.swp
+*~

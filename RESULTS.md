@@ -49,8 +49,29 @@ warm), so ± is the across-run spread. Raw CSVs are in `results/raw/`.
 | 09 | Qwen2.5-7B-Instruct Q4_K_M | 7.6 B | 266 ± 1 | 7.89 ± 0.00 | 7.86 | 202 | 5465 | 5.23 / 11.92 / 13.80 | 0.92 | 1.749 | 67.1 | — ² |
 | 10 | Meta-Llama-3.1-8B-Instruct Q4_K_M | 8.0 B | 245 ± 0 | 7.75 ± 0.00 | 7.72 | 204 | 5953 | 5.25 / 12.04 / 13.92 | 0.89 | 1.795 | 67.4 | 460 |
 
-² Swap peak not separately extracted for these units; raw tegrastats logs in `results/raw/`. All units confirmed swap > 0 during inference (see campaign writeup §data-quality).
+² Swap peak not separately extracted for these units; raw tegrastats logs in `results/raw/`. These units showed genuine swap *growth* during inference (spot-checked: msweep01 11→206 MB, msweep04 54→406 MB, msweep08 263→419 MB, msweep10 342→460 MB). NB: the original detector flagged any `swap > 0`, which is a false positive when a pre-existing baseline exists — corrected to a growth-over-idle test (see gemma campaign §11). The 10-model sweep numbers survive because the growth was real; the gemma sweep had flat swap and was over-flagged.
 ³ Gemma-2-2B peak RAM (5818 MB) anomalously exceeds Mistral-7B (5488 MB) — attributed to Gemma-2's large KV cache and CUDA workspace allocation at 4096 ctx; see campaign writeup.
 
 **Cross-campaign consistency check (unit 06 = baseline model):**
 Baseline tg128 = 14.53 tok/s · Campaign tg128 = 14.60 tok/s · Δ = +0.07 tok/s (+0.5%) ✓
+
+### Gemma-family sweep (campaign `2026-06-14-gemma-family-sweep`)
+Peak RAM is the tegrastats mmap lower bound (see campaign §11); swap column corrected to
+*growth over idle* (the original "swap" flags were a pre-existing-baseline false positive).
+
+| Date | Unit | Model + quant | Params | Power | pp512 | tg128 | Peak W | tok/s·W | J/tok | °C | Peak RAM / swap |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 2026-06-14 | G1 | gemma-3-270m-it Q8_0 | 0.27B | 15W locked | 7097 | 104.42 | 10.9 | 9.62 | 0.104 | 58 | 2458MB ⁴ · no swap |
+| 2026-06-14 | G2 | gemma-3-4b-it q4_0 QAT | 4.0B | 15W locked | 502 | 12.15 | 12.7 | 0.96 | 1.043 | 65 | 4617MB ⁴ · no swap |
+| 2026-06-14 | G3 | gemma-4-E2B-it q4_0 QAT | 5.1B | 15W locked | 701 | 20.44 | 11.9 | 1.71 | 0.584 | 64 | 2968MB ⁴ · no swap |
+| 2026-06-14 | G4 | gemma-4-E4B-it q4_0 QAT | 8.0B | 15W locked | 362 | 11.42 | 12.7 | 0.90 | 1.110 | 66 | 4374MB ⁴ · +97MB swap |
+| 2026-06-14 | G5 | gemma-3-12b-it q4_0 QAT | 12.0B | 15W locked | **FAILED — CUDA OOM at load** | — | 6.6 | — | — | 57 | weights ~7.7GiB > free VRAM ⁵ |
+
+⁴ tegrastats RAM under-counts mmap'd weights (demand-paged; pages not accessed during the
+short benchmark may not be resident). Authoritative `--no-mmap` resident footprints (campaign
+§11.3): G2 **4632 MiB** (vs tegrastats 4617 MB — close because G2's weights are small enough
+to be fully accessed); G3 **3677 MiB** (vs 2968 MB — 709 MiB gap: PLE shared matrices were
+not all paged in during inference); G4 **N/A** (4.7 GiB malloc > free RAM; mmap is essential
+for G4 on the Orin Nano — see §11.3).
+⁵ G5 never loaded: `cudaMalloc` failed allocating 7694 MiB with `-ngl 99` (full offload, auto-fit
+aborted). Hard OOM at load, not the swap-thrash HG5 predicted. See campaign §8 (Unit G5) / §11.
