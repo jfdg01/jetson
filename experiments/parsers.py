@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 import re
 import statistics
 from dataclasses import dataclass, field
@@ -134,6 +135,57 @@ def parse_llama_cli_timings(text: str) -> Optional[LlamaCliTimings]:
         pp_ts=pp_ts,
         tg_ts=tg_ts,
     )
+
+
+# ── llama-server VLM per-frame timings ──────────────────────────────────────
+
+@dataclass
+class VLMFrameTimings:
+    """Per-frame timings from a single llama-server /v1/chat/completions response.
+
+    Both fields come from response['__verbose']['timings']. prompt_ms includes
+    CLIP encode time — it is NOT a separate addend (verified empirically; see
+    vlm-feasibility campaign §4.2). Do not add a separate clip_encode_ms term.
+    """
+    prompt_ms: float       # CLIP encode + LLM prefill (combined)
+    predicted_ms: float    # token decode time
+    prompt_n: int          # total prompt tokens (image tokens + text tokens)
+    predicted_n: int       # tokens generated
+
+    @property
+    def per_frame_ms(self) -> float:
+        return self.prompt_ms + self.predicted_ms
+
+    @property
+    def per_frame_hz(self) -> float:
+        return 1000.0 / self.per_frame_ms if self.per_frame_ms > 0 else 0.0
+
+
+def parse_vlm_server_timings(json_text: str) -> Optional[VLMFrameTimings]:
+    """Parse llama-server /v1/chat/completions JSON response for per-frame timing.
+
+    Reads timings from response['__verbose']['timings']. Returns None on parse
+    failure or if the __verbose block is absent (e.g. error response).
+    """
+    try:
+        data = json.loads(json_text)
+    except (json.JSONDecodeError, ValueError):
+        return None
+    verbose = data.get("__verbose")
+    if not verbose:
+        return None
+    timings = verbose.get("timings")
+    if not timings:
+        return None
+    try:
+        return VLMFrameTimings(
+            prompt_ms=float(timings["prompt_ms"]),
+            predicted_ms=float(timings["predicted_ms"]),
+            prompt_n=int(timings.get("prompt_n", 0)),
+            predicted_n=int(timings.get("predicted_n", 0)),
+        )
+    except (KeyError, TypeError, ValueError):
+        return None
 
 
 # ── llama.cpp load-buffer footprint ──────────────────────────────────────────
@@ -425,6 +477,31 @@ def _test_parse_llama_cli_timings():
     assert abs(t.tg_ts - 14.49) < 0.5
 
 
+def _test_parse_vlm_server_timings():
+    sample = json.dumps({
+        "id": "chatcmpl-abc",
+        "choices": [{"message": {"role": "assistant",
+                                  "content": '{"action":"follow","target":"white van"}'}}],
+        "__verbose": {
+            "timings": {
+                "prompt_ms": 192.5,
+                "predicted_ms": 108.3,
+                "prompt_n": 85,
+                "predicted_n": 14,
+            }
+        }
+    })
+    t = parse_vlm_server_timings(sample)
+    assert t is not None
+    assert abs(t.prompt_ms - 192.5) < 0.01
+    assert abs(t.predicted_ms - 108.3) < 0.01
+    assert t.prompt_n == 85
+    assert abs(t.per_frame_ms - 300.8) < 0.01
+    assert abs(t.per_frame_hz - 1000 / 300.8) < 0.01
+    assert parse_vlm_server_timings('{"error":"bad request"}') is None
+    assert parse_vlm_server_timings("not json at all") is None
+
+
 if __name__ == "__main__":
     _test_parse_bench_csv_pm_format()
     _test_parse_bench_csv_columns_format()
@@ -432,4 +509,5 @@ if __name__ == "__main__":
     _test_swap_growth_detection()
     _test_parse_llama_load_buffers()
     _test_parse_llama_cli_timings()
+    _test_parse_vlm_server_timings()
     print("all parsers tests passed")

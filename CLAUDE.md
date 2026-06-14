@@ -189,3 +189,8 @@ justifies methodology, and how we avoid re-litigating settled choices.
 - Surface negative/unexpected results plainly; don't smooth them over.
 - When a number depends on a config (power mode, flags, ctx), always report the
   config next to the number.
+- **Ask the user to install tools whenever a development or measurement need requires
+  it.** Don't work around a missing tool (ffmpeg, cmake, python packages, apt packages)
+  — state what is needed and why, then ask. The user can run `sudo apt install` or
+  other package managers interactively. Always document which tool was installed and
+  why in `DECISIONS.md`.
