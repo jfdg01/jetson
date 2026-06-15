@@ -218,13 +218,15 @@ def _collate_fn(batch, processor):
     # Append target response so the model trains on the answer
     full_texts = [t + tj for t, tj in zip(texts, target_jsons)]
 
+    # max_length must accommodate image tokens: SmolVLM uses ~1136 tokens for 1 image
+    # + text prompt (~50 tokens) + target JSON (~30 tokens) → use 1280 to be safe
     inputs = processor(
         text=full_texts,
         images=images,
         return_tensors="pt",
         padding=True,
         truncation=True,
-        max_length=512,
+        max_length=1280,
     )
 
     # Labels = input_ids with prompt tokens masked as -100
@@ -233,11 +235,12 @@ def _collate_fn(batch, processor):
         text=texts,
         images=images,
         return_tensors="pt",
-        padding=True,
+        padding="longest",
         truncation=True,
-        max_length=512,
+        max_length=1280,
     )
     labels = inputs["input_ids"].clone()
+    # mask everything up to (and including) the prompt portion
     prompt_len = prompt_inputs["input_ids"].shape[1]
     labels[:, :prompt_len] = -100   # mask prompt; only supervise target
     labels[labels == processor.tokenizer.pad_token_id] = -100
@@ -384,10 +387,11 @@ def train(args):
     def collate(batch):
         return _collate_fn(batch, processor)
 
+    # num_workers=0: processor can't be pickled across worker processes reliably
     train_loader = DataLoader(train_ds, batch_size=args.batch, shuffle=True,
-                              collate_fn=collate, num_workers=2, pin_memory=True)
+                              collate_fn=collate, num_workers=0)
     val_loader   = DataLoader(val_ds,   batch_size=1, shuffle=False,
-                              collate_fn=collate, num_workers=1)
+                              collate_fn=collate, num_workers=0)
 
     # ── optimizer ─────────────────────────────────────────────────────────────
     optimizer = torch.optim.AdamW(
@@ -439,21 +443,27 @@ def train(args):
                 elapsed = time.time() - t0
                 lr_now  = scheduler.get_last_lr()[0]
                 print(f"  E{epoch} step {step}/{len(train_loader)}  "
-                      f"loss={loss_val:.4f}  lr={lr_now:.2e}  {elapsed:.0f}s")
+                      f"loss={loss_val:.4f}  lr={lr_now:.2e}  {elapsed:.0f}s", flush=True)
                 loss_rows.append([epoch, global_step, f"{loss_val:.6f}",
                                   f"{lr_now:.2e}", f"{elapsed:.1f}"])
 
         mean_loss = epoch_loss / max(n_batches, 1)
-        print(f"[epoch {epoch}] mean_loss={mean_loss:.4f}  ({time.time()-t0:.0f}s total)")
+        print(f"[epoch {epoch}] mean_loss={mean_loss:.4f}  ({time.time()-t0:.0f}s total)", flush=True)
 
-        # per-epoch eval
+        # per-epoch eval + checkpoint
         if accelerator.is_main_process:
             eval_model = accelerator.unwrap_model(model)
             metrics = evaluate(eval_model, processor, val_ds, device)
             print(f"[eval E{epoch}] parse_rate={metrics['parse_rate']:.1%}  "
-                  f"iou@0.25={metrics['iou@0.25']:.1%}  mean_iou={metrics['mean_iou']:.3f}")
+                  f"iou@0.25={metrics['iou@0.25']:.1%}  mean_iou={metrics['mean_iou']:.3f}", flush=True)
             iou_rows.append([epoch, f"{metrics['parse_rate']:.4f}",
                              f"{metrics['iou@0.25']:.4f}", f"{metrics['mean_iou']:.4f}"])
+
+            # save per-epoch checkpoint (unmerged LoRA adapter)
+            ckpt_dir = output_dir / f"epoch{epoch}"
+            eval_model.save_pretrained(ckpt_dir)
+            processor.save_pretrained(ckpt_dir)
+            print(f"[train] epoch {epoch} adapter checkpoint saved to {ckpt_dir}", flush=True)
 
     # ── save ─────────────────────────────────────────────────────────────────
     if accelerator.is_main_process:
