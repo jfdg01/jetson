@@ -87,6 +87,36 @@ aborted). Hard OOM at load, not the swap-thrash HG5 predicted. See campaign §8 
 
 ---
 
+## Campaign: toy-nl-demo (2026-06-15)
+
+End-to-end natural-language drone command demo (pipeline mechanics validation).
+Script: [`experiments/demo_nlcommand.py`](experiments/demo_nlcommand.py)
+Full writeup: [`results/2026-06-15-toy-demo/README.md`](results/2026-06-15-toy-demo/README.md)
+**Device:** Jetson Orin Nano 8 GB · 15 W locked · llama.cpp `57fe1f0` CUDA sm_87 · SmolVLM-500M Q8_0
+
+### TURN commands (no VLM)
+
+| Date | Command | Verb | Direction | yaw_rate_dps | parse_ok |
+|---|---|---|---|---|---|
+| 2026-06-15 | "turn around the right corner" | TURN | around | 40.0 | true |
+| 2026-06-15 | "turn left" | TURN | left | -20.0 | true |
+
+TURN commands resolve in <1 ms via a closed heuristic; no Jetson call, no model loaded.
+
+### FOLLOW / ZOOM commands — zero-shot VLM grounding on VisDrone nadir frames
+
+| Date | Command | Image (res) | VLM latency ms | parse_ok | VLM raw (summary) | Notes |
+|---|---|---|---|---|---|---|
+| 2026-06-15 | "follow that white car" | `0000001_05499_d_0000010.jpg` (1920×1080) | 534 | **false** | Template echo `{"x1":.., …}` (no coords) | Model repeated format without filling values |
+| 2026-06-15 | "zoom on that red bird" | `0000026_00000_d_0000024.jpg` (1360×765) | 2046 | **false** | Whole-image bbox `[0,0,1360,765]` (degenerate, filtered) | SmolVLM returned full-frame coords when object absent |
+
+**Finding:** Zero-shot SmolVLM-500M cannot ground specific objects in dense nadir drone frames.
+Both failures are consistent with Phase A (S2: parse 4%, IoU@0.25 = 0%) and were the
+pre-registered expected outcome. The pipeline mechanics work end-to-end; grounding quality
+requires Stage-2 fine-tuning.
+
+---
+
 ## Campaign: phase-b-sitl (2026-06-15)
 
 SITL pipeline-integration validation (oracle bbox -> ByteTrack -> cascade PID -> pymavlink offboard).

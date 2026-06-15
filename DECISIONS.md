@@ -5,6 +5,43 @@ decisions live in the relevant `results/*.md`. Format defined in `CLAUDE.md`.
 
 ---
 
+### 2026-06-15T13:00 — Toy NL-command demo: scope, image source, and honest grounding claim
+
+- **Decision:** Build `experiments/demo_nlcommand.py` as a lightweight orchestration
+  layer over existing infrastructure (llama-server on Jetson, Phase A client helpers) with
+  three command verbs (FOLLOW/ZOOM → VLM grounding; TURN → heuristic yaw with no VLM call).
+  Tested on VisDrone nadir frames (the thesis target domain). Grounding failures reported
+  honestly as the expected zero-shot result; not smoothed over or tested on easier imagery
+  to manufacture a success.
+- **Alternatives considered:**
+  - (a) **Use non-aerial imagery** (street-level photo where SmolVLM might ground "white car")
+    — rejected: the thesis target is aerial drone frames. Showing zero-shot success on a
+    ground-level image would misrepresent the system's capability on the actual deployment
+    domain.
+  - (b) **Build as a full measurement campaign** with tegrastats, RESULTS.md device rows, and
+    N-frame sweep — rejected: the demo's goal is pipeline validation and presentation, not a
+    new benchmark. The latency numbers recorded in RESULTS.md (534 ms, 2046 ms) are real
+    observations but not campaign-grade measurements (single calls, no spread).
+  - (c) **Gate on VLM grounding working before writing the demo** — rejected: the pipeline
+    mechanics (server lifecycle, async port-forward, command parsing, bbox parsing) are
+    independent of grounding quality and are the deliverable. Grounding quality is a measured
+    output, not a precondition.
+- **Reasoning:** The toy demo serves two thesis purposes: (1) demonstrates the end-to-end
+  pipeline concept for a committee/reader audience (TURN always works; FOLLOW/ZOOM show the
+  VLM path firing); (2) records the honest zero-shot baseline that motivates Stage-2
+  fine-tuning. Building it before the fine-tune exists is the correct sequence — it
+  establishes what the zero-shot system does before fine-tuning changes it.
+- **Tradeoff / cost accepted:** The demo is not visually impressive for FOLLOW/ZOOM on
+  aerial imagery until Stage-2 fine-tuning is done. The honest outcome: TURN commands
+  demonstrate the pipeline working; FOLLOW/ZOOM demonstrate the VLM path firing while
+  being explicit that grounding fails zero-shot. This is documented in RESULTS.md and in
+  `results/2026-06-15-toy-demo/README.md`.
+- **Revisit when:** Stage-2 fine-tuned SmolVLM-500M GGUF is ready — re-run the demo
+  with `--start-server` pointing at the fine-tuned weights; the rest of the pipeline is
+  unchanged.
+
+---
+
 ### 2026-06-15T09:30 — Phase B target: programmatic rover trajectory + gimbal-stabilized oracle camera
 
 - **Decision:** Drive the Phase B target with a **programmatic** constant-velocity trajectory (0.25 m/s north, 0.5 m ahead) computed in the copter's own NED frame and anchored to the copter's captured (N,E) at each trial start, rather than reading the second SITL (ArduRover) instance's position telemetry. Pair this with a **gimbal-stabilized (nadir) oracle camera** — level roll/pitch fed into the projection, real yaw retained — modeling a 2-axis stabilized downward camera rather than an airframe-fixed one.
