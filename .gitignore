@@ -1,5 +1,7 @@
 # Python
 .venv/
+.venv-ft/
+smolvlm_ft/
 __pycache__/
 *.pyc
 .pytest_cache/

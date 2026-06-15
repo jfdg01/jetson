@@ -133,5 +133,30 @@ re-anchored to the copter relative position each trial, so initial conditions ar
 P-controller converges to the same steady-state lag (~12 px) every run. Runs start at different
 absolute copter N (0.01 / 16.2 / 32.4 m, carried drift) yet re-anchor 0.5 m ahead identically.
 Threshold (Hz>=1, px_err<50, coverage>=80%) met honestly; no widening.
-| 2026-06-15 | Phase C inject-oracle Branch-1 | x86_64 SITL | hz=19.99 px_err=89.4 valid=100% b1=PASS |
-| 2026-06-15 | Phase C vlm zero-shot Branch-2 | x86_64 SITL + Gazebo + Jetson SmolVLM-500M Q8_0 | hz=19.99 px_err=190.5 valid=12.5% track_cov=21% b2=negative(expected) |
+
+---
+
+## Campaign: phase-c-vlm (2026-06-15)
+
+Phase C closed-loop VLM-in-the-loop validation. Full writeup:
+[`results/2026-06-14-stage1-baseline/phase-c-vlm.md`](results/2026-06-14-stage1-baseline/phase-c-vlm.md)
+
+| Date | Mode | Platform | Key metrics | Result |
+|---|---|---|---|---|
+| 2026-06-15 | inject-oracle Branch-1 | x86_64 SITL | hz=19.99 px_err=89.4 valid=100% reseed=0.000s | **b1=PASS** |
+| 2026-06-15 | vlm zero-shot Branch-2 | x86_64 SITL + Gazebo + Jetson SmolVLM-500M Q8_0 | hz=19.99 px_err=190.5 valid=12.5% track_cov=21% | b2=negative (expected) |
+
+Branch-2 "negative" is the pre-registered expected outcome: zero-shot SmolVLM cannot ground
+targets in aerial frames reliably (12.5% valid, IoU near 0). Motivates Stage 2.
+
+---
+
+## Stage 2: fine-tuning (PENDING — 2026-06-15)
+
+Fine-tune SmolVLM-500M-Instruct on RefDrone + VisDrone aerial grounding data.
+Pre-registration: [`results/stage2-finetune/README.md`](results/stage2-finetune/README.md)
+Full writeup (in progress): [`results/stage2-finetune/train-log.md`](results/stage2-finetune/train-log.md)
+
+| Date | Model | Training platform | Parse rate | IoU@0.25 | Phase C valid_rate | Phase C px_err | Result |
+|---|---|---|---|---|---|---|---|
+| TBD | SmolVLM-500M FT Q8_0 | RTX 3090 → Jetson Orin Nano | — | — | — | — | PENDING |
