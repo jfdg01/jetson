@@ -5,6 +5,17 @@ decisions live in the relevant `results/*.md`. Format defined in `CLAUDE.md`.
 
 ---
 
+### 2026-06-15T17:30 — Phase C `run_phase_c.py`: async slot architecture, track-loss definition, re-seed test
+
+- **Decision:** Build `experiments/run_phase_c.py` as a two-thread architecture: a 20 Hz control+track thread reading from a lock-protected `LatestDetectionSlot`, and a `~1 Hz` detection thread that writes either oracle injections (`--inject-oracle`) or live VLM calls (Gazebo frame → Jetson llama-server). Three specific design choices worth recording:
+  1. **Track-loss events count empty-ByteTracker returns only** (not ID changes). With score=1.0 detections and the `_lost`-list re-detection pattern in ByteTrack, every 1 Hz injection creates a new track ID when the previous track has drifted to `_lost` after 30 frames (1.5 s). Counting ID changes would inflate the loss metric to equal the injection count. Pre-registered limitation (§3.4): "SmolVLM emits no confidence; score=1.0 for any parsed box; ByteTrack's low-score association unused."
+  2. **Forced re-seed gap in run 3 of `--inject-oracle`**: injection pauses for `LOST_TIMEOUT_S + 1 = 4 s` at t=30 s, validates Branch-1 criterion 3 (re-seed < 2 s) reproducibly in a pre-registered run structure.
+  3. **Gazebo frame-grabber left as `NotImplementedError` stub**: the exact gz transport topic name is not known until Gazebo Harmonic is installed. The stub raises a clear error with install instructions; `--inject-oracle` bypasses it entirely for the Branch-1 gate.
+- **Alternatives considered:** (a) Import Gazebo Python bindings at module load time and mock them for `--inject-oracle` — rejected: couples the non-Gazebo code path to a not-yet-installed package. (b) Count ID changes as track-loss events (Phase B's definition) — rejected: produces misleading metric at 1 Hz VLM; honest to count only full-track-disappearance per the Phase C context. (c) Use `MAX_LOST_FRAMES = 60` in ByteTrack to match `LOST_TIMEOUT_S = 3.0 s` at 20 Hz — rejected: changing ByteTrack's constant without documenting it in the pre-registration would be an undocumented deviation; the 1.5 s drop is documented as a known difference.
+- **Reasoning:** The `LatestDetectionSlot` stale-rejection (monotonic timestamp guard) was unit-tested for the read-returns-copy invariant, older-ts rejection, and same-ts rejection. The `xyxy_to_cxcywh` adapter was unit-tested for center, size, and degenerate (zero-size) boxes. The dry-run (`--inject-oracle --dry-run`) confirmed: Hz=20.31 ≥ 15, track-coverage=100%, coasting_max=19 ≥ 15, track-losses=0.
+- **Tradeoff / cost accepted:** The live VLM path (`_vlm_grounding_thread`) and the Gazebo frame-grabber (`_grab_gazebo_frame`) are stubs — they raise `NotImplementedError` until Gazebo Harmonic is installed and the camera topic identified. The Branch-1 gate (`--inject-oracle`) is fully testable without Gazebo.
+- **Revisit when:** Gazebo Harmonic is installed — implement `_grab_gazebo_frame()` against the real gz transport API (run `gz topic -l` to find the camera topic), then run Branch-1 in live mode to confirm the VLM path doesn't block the control thread.
+
 ### 2026-06-15T13:00 — Toy NL-command demo: scope, image source, and honest grounding claim
 
 - **Decision:** Build `experiments/demo_nlcommand.py` as a lightweight orchestration
