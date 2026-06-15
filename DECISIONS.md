@@ -5,6 +5,60 @@ decisions live in the relevant `results/*.md`. Format defined in `CLAUDE.md`.
 
 ---
 
+### 2026-06-15T09:30 — Phase B target: programmatic rover trajectory + gimbal-stabilized oracle camera
+
+- **Decision:** Drive the Phase B target with a **programmatic** constant-velocity trajectory (0.25 m/s north, 0.5 m ahead) computed in the copter's own NED frame and anchored to the copter's captured (N,E) at each trial start, rather than reading the second SITL (ArduRover) instance's position telemetry. Pair this with a **gimbal-stabilized (nadir) oracle camera** — level roll/pitch fed into the projection, real yaw retained — modeling a 2-axis stabilized downward camera rather than an airframe-fixed one.
+- **Alternatives considered:** (a) **ArduRover telemetry directly** — the two SITL instances don't share an NED origin (~584 m D discrepancy at CMAC home), so cross-instance position differencing is invalid without an uncalibratable frame offset. (b) **Body-fixed camera (real attitude into oracle)** — empirically diverged: ArduPilot's nose-down accel pitch (~13°) tilts a body-fixed camera, injecting `FOCAL_PX·tan(pitch) ≈ 130 px` of apparent target shift, far exceeding the true ~28 px offset and forming a positive-feedback loop (pixel error → vx → pitch → more apparent error → saturation; first live run hit 246 px mean, vx pinned at 3 m/s). (c) **Lower the P gain** to suppress pitch — treats the symptom, leaves the unstable mode in place.
+- **Reasoning:** The programmatic trajectory sidesteps the cross-instance NED mismatch and makes runs self-consistent; anchoring to the copter's real (N,E) keeps the target in-frame from t=0 even as the copter drifts between runs. A gimbal-stabilized nadir camera is the standard tracking-UAV assumption and removes the attitude coupling at its source, touching only the oracle call site (not `oracle_bbox.py`). Yaw is kept because the body→NED velocity transform needs the true heading. With both in place: 19.99 Hz, 12.9 px mean error, 100% oracle coverage, 0 track losses across 3×60 s — **Phase B PASS**, threshold met honestly with no widening.
+- **Tradeoff / cost accepted:** (1) The target is scripted, not a physics-simulated vehicle — Phase B validates the tracker→PID→MAVLink loop, not target dynamics. (2) The gimbal assumption means Phase B does not exercise attitude de-rotation; if Phase C's camera is **fixed-mount**, attitude compensation becomes a required, not-yet-validated pipeline step.
+- **Revisit when:** Phase C uses a real/rendered **fixed-mount** camera (then add and validate attitude de-rotation) or needs a physics-driven target vehicle (then reconcile the two-instance NED frames or use a single combined sim).
+
+Campaign-specific sub-decisions (honest pixel-error coverage gate, telemetry-drain bug fix, disabled yaw channel) are documented in `results/2026-06-14-stage1-baseline/phase-b-sitl.md` under `## Decisions`.
+
+---
+
+### 2026-06-15 — Phase B SITL toolchain: ArduPilot headless + local x86_64; no Gazebo for Phase B
+
+- **Decision:** Use **ArduPilot SITL (ArduCopter/ArduRover, Copter-4.6.3, built 2026-06-15)** running headlessly on the **local x86_64 workstation (Ubuntu 24.04)**. No Gazebo for Phase B. Oracle bboxes are computed by geometric projection from SITL world-state telemetry, not from rendered video. pymavlink (offboard velocity setpoints) is the sole MAVLink interface. ByteTrack is implemented as a minimal in-repo Python module (~250 lines, numpy + scipy only). Gazebo Harmonic will be added for Phase C only if a real camera rendering is found necessary; the decision is deferred and documented as Phase C's first sub-task.
+- **Alternatives considered:**
+  - (a) **PX4 SITL**: Also mature and well-supported, but requires ROS2 for typical offboard workflows and has a heavier cmake build. CLAUDE.md specifies pymavlink directly; ArduPilot exposes the same offboard interface over raw MAVLink with less setup friction. PX4 is a valid alternative if ArduPilot SITL proves problematic, but there is no reason to prefer it here.
+  - (b) **Gazebo Harmonic from the start**: Adds camera rendering and a physics-engine target vehicle but also adds ~1–2 hours of setup and a significant CPU draw during runs. Phase B only needs to validate that the MAVLink control loop achieves ≥1 Hz — no vision is in the loop yet. Oracle bbox from geometric projection is functionally equivalent for Phase B's success criterion.
+  - (c) **Run SITL on the Jetson (aarch64)**: The Jetson has 153 GB free disk and 3.2 GB free RAM but only a 6-core Cortex-A78AE CPU. SITL + Gazebo + simultaneous VLM inference would exhaust RAM and compete heavily for CPU. aarch64 Gazebo pre-built packages are less mature. The Jetson is the *measurement device* for Phase C; running the simulation there as well conflates the measurement with the stimulus.
+  - (d) **Pre-recorded video as camera feed (no SITL physics)**: Would validate VLM grounding (Phase A/C concern) but not the MAVLink offboard control loop — the drone's response to setpoints needs a dynamics model to close the loop. Ruled out for Phase B; acceptable as a supplementary offline probe in Phase C if needed.
+- **Reasoning:** Phase B's sole job is to verify the tracker → PID → MAVLink loop works mechanically before the VLM is added. ArduPilot headless SITL on the local machine achieves this with the least external-dependency surface. A SITL vehicle responds to offboard velocity setpoints identically whether or not Gazebo is rendering it. The oracle bbox—computed from the SITL-reported world position of the target vehicle projected through a pinhole camera model—is functionally a perfect-perception upper bound, which is exactly what Phase B asks for. ArduCopter Copter is the controller mode; pymavlink sends `SET_POSITION_TARGET_LOCAL_NED` (type_mask: velocity + yaw_rate only). A second ArduRover SITL instance (port 5770) serves as the scripted ground vehicle at 2 m/s.
+- **Tradeoff / cost accepted:** Without Gazebo, Phase B does not produce rendered camera frames — Phase C will need to revisit whether Gazebo is required or whether a pre-recorded aerial video over a similar scene can serve as the Phase C camera feed. This is the primary deferred cost. Also: headless oracle bbox bypasses any rendering/detection pipeline, so Phase B numbers represent an upper bound that VLM performance in Phase C will fall below by design.
+- **Revisit when:** Phase C requires actual rendered camera frames (not just MAVLink position telemetry). If so, add Gazebo Harmonic with the `ardupilot_gazebo` plugin and log the Gazebo install as a new DECISIONS entry.
+
+---
+
+### 2026-06-15T08:10 — Phase A decision gate: S2 selected for Phase C fine-tuning
+
+- **Decision:** Select SmolVLM-500M-Instruct Q8_0 (S2) as the fine-tuning target for Stage 2 (Phase C). The zero-shot baseline establishes that both SmolVLM models completely fail at drone grounding without fine-tuning.
+- **Alternatives considered:** (a) S1 (SmolVLM-256M-Instruct Q8_0) — smaller, faster (3.58 Hz), but parse rate 0% with no bbox-structure in responses; (b) S2 (SmolVLM-500M-Instruct Q8_0) — slower (1.20 Hz), parse rate 4%, but generated bbox-like coordinate structures in most responses (using single-quoted Python dicts, failing JSON parser — not complete absence of grounding representation); (c) pursue prompt engineering before fine-tuning — ruled out because the binding constraint is zero localization signal, not output formatting.
+- **Reasoning:** Both models fail the IoU@0.25 < 30% threshold (both 0%). Both also fail the parse-rate < 50% threshold (S1: 0%, S2: 4%). Under the pre-registered decision gate, fine-tuning is therefore load-bearing and Stage 2 is the thesis centerpiece. S2 is preferred over S1 because it demonstrated latent awareness of coordinate output structure in its raw responses — it generated `{'x1': ..., 'y1': ..., 'x2': ..., 'y2': ...}` and `{'bbox': [x,y,x2,y2]}` patterns consistently. S1 produced only free-text descriptions. S2's structure suggests the fine-tuning signal has something to anchor to. S2 also fits comfortably in RAM (2734 MB, no swap). The speed gap (1.20 Hz vs 3.58 Hz) is acceptable for evaluation runs and expected to narrow post-quantization if needed.
+- **Tradeoff / cost accepted:** S2 runs more slowly at inference. At 1.20 Hz unquantized on the zero-shot probe, fine-tuned performance will depend on whether llama.cpp can export and run the fine-tuned weights at similar speed. The slower rate is within the thesis's 0.5–2 Hz target range for drone control.
+- **Revisit when:** Phase C fine-tuning results show S2 fails to converge or occupies too much RAM in the fine-tuned form — then fall back to S1.
+
+---
+
+### 2026-06-14 — PaliGemma excluded from Stage 1; SmolVLM-only grounding path
+
+- **Decision:** Remove PaliGemma (v1 and v2) from the Stage 1 grounding candidate list. Stage 1 Phase A will evaluate SmolVLM-256M Q8_0 and SmolVLM-500M Q8_0 only.
+- **Alternatives considered:** (a) Use a custom llama.cpp build that includes PR #7553; (b) Proceed with SmolVLM-only path as pre-planned in the risk register.
+- **Reasoning:** PaliGemma support in llama.cpp (PR #7553 by abetlen) is unmerged draft code as of 2026-06-14 — the maintainer deferred it pending a new vision API initiative. The controlled variable for this thesis is llama.cpp commit `57fe1f0`, which predates and excludes PR #7553. A custom build would break the controlled-variable invariant and introduce untested code. Additionally, no GGUF conversion of PaliGemma **2** (the model specified in the plan) has been published; the only available GGUF (`abetlen/paligemma-3b-mix-224-gguf`) is PaliGemma v1. This is exactly the risk the register anticipated: "PaliGemma fails to load in current llama.cpp commit."
+- **Tradeoff / cost accepted:** We lose one data point (the potential accuracy ceiling from PaliGemma's native `<loc>` detection vocabulary). Phase A now answers: "What is the zero-shot ceiling for SmolVLM?" rather than "which of PaliGemma or SmolVLM is better?" The fine-tune target for Stage 2 will be SmolVLM-500M (or 256M if 500M underperforms). If PaliGemma GGUF support matures before Stage 2 fine-tuning, revisit.
+- **Revisit when:** (1) A community GGUF for PaliGemma-2-3B-mix-224 is published AND (2) PaliGemma support is merged into llama.cpp mainline (or we decide to adopt a specific fork). At that point, add it as an optional Phase A extension rather than a controlled variable.
+
+### 2026-06-14 — RefDrone HF dataset repo ID correction
+
+- **Decision:** Use `sunzc-sunny/RefDrone` as the RefDrone dataset source, replacing `sun-langwei/RefDrone` cited in the Stage 1 README.
+- **Alternatives considered:** None — the original ID returns HTTP 401; the correct ID was confirmed from the project's GitHub page.
+- **Reasoning:** The Stage 1 README noted the repo as `sun-langwei/RefDrone` "or equivalent" with a flag that it was unconfirmed. Phase 0-C found the correct repo: the GitHub project (`github.com/sunzc-sunny/refdrone`) links explicitly to `huggingface.co/datasets/sunzc-sunny/RefDrone` (CC-BY-4.0, appears public). Additionally: RefDrone annotations do NOT bundle images — VisDrone 2019-DET images must be downloaded separately and matched by filename.
+- **Tradeoff / cost accepted:** Minor extra download step (VisDrone images). No methodological impact.
+- **Revisit when:** N/A — factual correction.
+
+---
+
 ### 2026-06-14T20:00 — Gemma-4 E2B/E4B are thinking models; disable reasoning for VLM campaign
 
 - **Decision:** Re-run V4 (Gemma-4-E2B) and V5 (Gemma-4-E4B) with `--reasoning off` passed

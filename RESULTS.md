@@ -82,3 +82,24 @@ aborted). Hard OOM at load, not the swap-thrash HG5 predicted. See campaign §8 
 | 2026-06-14 | V5 | gemma-4-E4B-it q4_0 QAT | 8.0B | 15W locked vlm-server | per_frame=5359ms | 0.19Hz | img_tok=144 | 9.4W mean | 6444MB | thinking-on INVALID |
 | 2026-06-14 | V4 | gemma-4-E2B-it q4_0 QAT | 5.1B | 15W locked vlm-server --reasoning off | per_frame=2035ms | 0.49Hz | img_tok=144 | 8.2W mean | 4616MB | canonical |
 | 2026-06-14 | V5 | gemma-4-E4B-it q4_0 QAT | 8.0B | 15W locked vlm-server --reasoning off | per_frame=2963ms | 0.34Hz | img_tok=144 | 8.8W mean | 6444MB | swap canonical |
+| 2026-06-15 | S1 | SmolVLM-256M-Instruct Q8_0 | Phase A grounding | 15W locked | format=A parse=0% iou@0.25=0% iou@0.5=0% mean_iou=0.000 | 3.58Hz | 2338MB  |
+| 2026-06-15 | S2 | SmolVLM-500M-Instruct Q8_0 | Phase A grounding | 15W locked | format=A parse=4% iou@0.25=0% iou@0.5=0% mean_iou=0.001 | 1.20Hz | 2734MB  |
+
+---
+
+## Campaign: phase-b-sitl (2026-06-15)
+
+SITL pipeline-integration validation (oracle bbox -> ByteTrack -> cascade PID -> pymavlink offboard).
+Run on the **local x86_64 workstation**, not the Jetson — no on-device throughput/power columns apply,
+so this campaign does not produce a standard device-ledger row. Full writeup:
+[`results/2026-06-14-stage1-baseline/phase-b-sitl.md`](results/2026-06-14-stage1-baseline/phase-b-sitl.md)
+
+| Date | Trials | Loop Hz | Mean pixel err (px) | Oracle coverage | Track losses | Result |
+|---|---|---|---|---|---|---|
+| 2026-06-15 | 3 x 60s | 19.99 +/- 0.0 | 12.9 +/- 0.0 | 100% | 0 | **PASS** |
+
+Zero cross-run variance is real, not duplicated rows: the rover trajectory is programmatic and
+re-anchored to the copter relative position each trial, so initial conditions are identical and the
+P-controller converges to the same steady-state lag (~12 px) every run. Runs start at different
+absolute copter N (0.01 / 16.2 / 32.4 m, carried drift) yet re-anchor 0.5 m ahead identically.
+Threshold (Hz>=1, px_err<50, coverage>=80%) met honestly; no widening.
