@@ -5,6 +5,16 @@ decisions live in the relevant `results/*.md`. Format defined in `CLAUDE.md`.
 
 ---
 
+### 2026-06-15T18:30 — Phase C Gazebo integration: decoupled render-only approach + gz transport Python bindings
+
+- **Decision:** Implement the Phase C Gazebo rendering layer as a **decoupled, render-only** gz sim process. SITL runs with `--model quad` (same built-in physics as Phase B); Gazebo runs headless (`gz sim -s -r`). Python moves `downward_cam` and `target_rover` model poses every control frame via the `/world/phase_c/set_pose` gz transport service. SITL and Gazebo share no physics coupling.
+- **Alternatives considered:** (a) Full ArduPilot-Gazebo coupling (`--model gazebo` + `libArduPilotPlugin.so`): SITL delegates physics to Gazebo, camera sensor built into the Iris model. Rejected: requires patching the ardupilot_gazebo world/model SDF to add a camera sensor, introduces complex FDMCC bridge handshake, and the ardupilot_gazebo Iris models have no built-in camera. (b) ROS 2 image bridge: gz→ROS→Python. Rejected: ROS overhead and extra dependency. (c) gz→socket bridge (custom C++ plugin): maintains render isolation but adds C++ build work.
+- **Reasoning:** The decoupled approach reuses 100% of the Phase B SITL pipeline unchanged. All that changes is: (1) a headless gz sim process for rendering, (2) Python calls `_update_gz_pose()` to keep the camera and rover models in sync with SITL telemetry, (3) `_grab_gazebo_frame()` converts the gz transport `Image` callback (raw R8G8B8 bytes) to JPEG via Pillow. The gz Python transport bindings are confirmed available at `/usr/lib/python3/dist-packages/gz/` (Gazebo Harmonic 8.13.0, `transport13` + `msgs10`). The set_pose service uses a 50 ms timeout — well within the 50 ms control period at 20 Hz.
+- **Tradeoff / cost accepted:** Camera pose is updated once per 20 Hz control frame (not continuously by the gz rendering thread). At 20 Hz copter motion is ≤0.05 m/frame, producing at most 1–2 px camera shift between pose updates at 10 m altitude — negligible for VLM grounding. The target rover NED position is programmatic, so the gz pose is the authoritative position (no physics drift).
+- **Revisit when:** If per-frame pose calls at 20 Hz add measurable latency to the control loop (log loop_dt spikes > 10 ms in phase-c raw CSVs). Alternative: drop pose updates to 5 Hz in a background thread.
+
+---
+
 ### 2026-06-15T17:30 — Phase C `run_phase_c.py`: async slot architecture, track-loss definition, re-seed test
 
 - **Decision:** Build `experiments/run_phase_c.py` as a two-thread architecture: a 20 Hz control+track thread reading from a lock-protected `LatestDetectionSlot`, and a `~1 Hz` detection thread that writes either oracle injections (`--inject-oracle`) or live VLM calls (Gazebo frame → Jetson llama-server). Three specific design choices worth recording:

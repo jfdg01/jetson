@@ -33,6 +33,7 @@ from __future__ import annotations
 import argparse
 import csv
 import math
+import os
 import signal
 import subprocess
 import sys
@@ -80,6 +81,14 @@ GAP_DURATION_S  = LOST_TIMEOUT_S + 1.0   # 4 s; > LOST_TIMEOUT_S to guarantee lo
 # Frame size (matches Phase C design doc §5.2)
 FRAME_W = 640
 FRAME_H = 480
+
+# Gazebo world / topics
+GZ_WORLD_SDF    = Path(__file__).parent / "sitl/worlds/phase_c.sdf"
+GZ_WORLD_NAME   = "phase_c"
+GZ_CAM_TOPIC    = (f"/world/{GZ_WORLD_NAME}/model/downward_cam"
+                   f"/link/cam_link/sensor/downward_cam/image")
+GZ_SET_POSE_SVC = f"/world/{GZ_WORLD_NAME}/set_pose"
+ARDUPILOT_GZ_BUILD = Path.home() / "ardupilot_gazebo/build"
 
 # VLM prompt format (Phase A Format A; higher parse rate for S2)
 DEFAULT_EXPRESSION = "the vehicle"
@@ -287,25 +296,114 @@ def _oracle_inject_thread(
 
 
 # ---------------------------------------------------------------------------
+# Gazebo state (module-level; initialised in _setup_gz_node)
+# ---------------------------------------------------------------------------
+
+_gz_node         = None
+_gz_latest_frame: dict = {"data": None, "w": 0, "h": 0}
+_gz_frame_lock   = threading.Lock()
+_gz_frame_event  = threading.Event()
+
+
+def _euler_to_quat(roll: float, pitch: float, yaw: float) -> tuple:
+    """Return (w, x, y, z) quaternion from intrinsic ZYX Euler angles."""
+    cr = math.cos(roll  / 2); sr = math.sin(roll  / 2)
+    cp = math.cos(pitch / 2); sp = math.sin(pitch / 2)
+    cy = math.cos(yaw   / 2); sy = math.sin(yaw   / 2)
+    w =  cr*cp*cy + sr*sp*sy
+    x =  sr*cp*cy - cr*sp*sy
+    y =  cr*sp*cy + sr*cp*sy
+    z =  cr*cp*sy - sr*sp*cy
+    return (w, x, y, z)
+
+
+def _start_gazebo(log_path: Path) -> subprocess.Popen:
+    """Start gz sim headless (server-only, real-time) with the phase_c world."""
+    env = os.environ.copy()
+    env["GZ_SIM_SYSTEM_PLUGIN_PATH"] = str(ARDUPILOT_GZ_BUILD)
+    env["GZ_SIM_RESOURCE_PATH"] = str(ARDUPILOT_GZ_BUILD.parent)
+    cmd = ["gz", "sim", "-s", "-r", str(GZ_WORLD_SDF)]
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_file = open(log_path, "w")
+    return subprocess.Popen(cmd, stdout=log_file, stderr=log_file, env=env)
+
+
+def _setup_gz_node() -> None:
+    """Create the gz transport Node and subscribe to the downward camera topic."""
+    global _gz_node
+    sys.path.insert(0, "/usr/lib/python3/dist-packages")
+    import gz.transport13 as transport  # noqa: PLC0415
+    from gz.msgs10 import image_pb2     # noqa: PLC0415
+
+    _gz_node = transport.Node()
+
+    def _on_image(msg):
+        with _gz_frame_lock:
+            _gz_latest_frame["data"] = bytes(msg.data)
+            _gz_latest_frame["w"]    = msg.width
+            _gz_latest_frame["h"]    = msg.height
+        _gz_frame_event.set()
+
+    _gz_node.subscribe(image_pb2.Image, GZ_CAM_TOPIC, _on_image)
+    print(f"[gazebo] subscribed to {GZ_CAM_TOPIC}")
+
+
+def _wait_gazebo(timeout: float = 30.0) -> bool:
+    """Block until the first camera frame arrives (or timeout). Returns True on success."""
+    return _gz_frame_event.wait(timeout=timeout)
+
+
+# ---------------------------------------------------------------------------
 # VLM grounding thread (requires Gazebo Harmonic; placeholder until installed)
 # ---------------------------------------------------------------------------
 
-def _grab_gazebo_frame() -> bytes:
+def _grab_gazebo_frame():
     """
-    Grab a 640×480 JPEG frame from the Gazebo camera topic.
+    Return the latest Gazebo camera frame as JPEG bytes, or None if no frame yet.
 
-    PLACEHOLDER — requires Gazebo Harmonic + ardupilot_gazebo plugin installed.
-    After installation, run `gz topic -l` to find the camera topic, then
-    implement this against the gz transport Python API or an image-bridge socket.
-
-    Phase C checklist §9 (setup): install Gazebo Harmonic, confirm topic publishes,
-    then replace this stub.
+    Uses the module-level _gz_latest_frame buffer filled by the gz transport
+    callback registered in _setup_gz_node().  Converts raw R8G8B8 bytes to JPEG
+    via Pillow (installed in the project venv).
     """
-    raise NotImplementedError(
-        "Gazebo Harmonic not installed. "
-        "Complete the Phase C setup checklist (phase-c-vlm.md §9) first, "
-        "then implement _grab_gazebo_frame() against the real gz transport API."
-    )
+    with _gz_frame_lock:
+        data = _gz_latest_frame["data"]
+        w    = _gz_latest_frame["w"]
+        h    = _gz_latest_frame["h"]
+    if data is None:
+        return None
+    from PIL import Image as PILImage  # noqa: PLC0415
+    import io                          # noqa: PLC0415
+    img = PILImage.frombytes("RGB", (w, h), data)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=85)
+    return buf.getvalue()
+
+
+def _update_gz_pose(model_name: str,
+                    x: float, y: float, z: float,
+                    roll: float, pitch: float, yaw: float) -> None:
+    """
+    Move a Gazebo model via the /world/phase_c/set_pose service.
+
+    Coordinates are Gazebo ENU (x=East, y=North, z=Up).
+    Orientation is roll/pitch/yaw in radians (intrinsic ZYX).
+    Silently returns if the gz node is not yet initialised.
+    """
+    if _gz_node is None:
+        return
+    from gz.msgs10 import pose_pb2, boolean_pb2  # noqa: PLC0415
+    p = pose_pb2.Pose()
+    p.name = model_name
+    p.position.x = x
+    p.position.y = y
+    p.position.z = z
+    qw, qx, qy, qz = _euler_to_quat(roll, pitch, yaw)
+    p.orientation.w = qw
+    p.orientation.x = qx
+    p.orientation.y = qy
+    p.orientation.z = qz
+    # 50 ms timeout; non-blocking relative to control loop pace
+    _gz_node.request(GZ_SET_POSE_SVC, p, pose_pb2.Pose, boolean_pb2.Boolean, 50)
 
 
 def _vlm_grounding_thread(
@@ -328,14 +426,11 @@ def _vlm_grounding_thread(
     while not stop_event.is_set():
         t_grab = time.monotonic()
 
-        # Grab frame (Gazebo — raises NotImplementedError until installed)
-        try:
-            frame_jpeg = _grab_gazebo_frame()
-        except NotImplementedError as e:
-            print(f"\n[vlm-thread] BLOCKED: {e}\n"
-                  f"  Use --inject-oracle for Branch-1 gate without Gazebo.")
-            stop_event.set()
-            return
+        # Grab frame from Gazebo camera (returns None if no frame yet)
+        frame_jpeg = _grab_gazebo_frame()
+        if frame_jpeg is None:
+            time.sleep(0.05)   # wait for first Gazebo frame
+            continue
 
         if dry_run:
             # Simulate a successful grounding call
@@ -651,6 +746,20 @@ def run_trial(
 
         last_det_ts = new_det_ts
 
+        # --- Update Gazebo model poses (NED → ENU: x=E, y=N, z=Up) ---
+        # Camera always nadir (gimbal-stabilised); rover sits on ground (z=0.5=box half-h).
+        if _gz_node is not None:
+            _update_gz_pose(
+                "downward_cam",
+                copter_ned[1], copter_ned[0], -copter_ned[2],
+                0.0, -math.pi / 2, 0.0,
+            )
+            _update_gz_pose(
+                "target_rover",
+                rover_ned[1], rover_ned[0], 0.5,
+                0.0, 0.0, 0.0,
+            )
+
         # --- Coasting counter ---
         if is_new_det:
             metrics["coasting_max_consecutive"] = max(
@@ -938,10 +1047,26 @@ def main():
     print("=" * 65)
 
     copter_proc  = None
+    gz_proc      = None
     pf_server    = None
     slot         = LatestDetectionSlot()
 
     try:
+        # ---- Gazebo (live VLM mode only) ----
+        if not args.inject_oracle and not args.dry_run:
+            if not GZ_WORLD_SDF.exists():
+                sys.exit(f"ERROR: Gazebo world not found: {GZ_WORLD_SDF}")
+            gz_log = RAW_DIR / f"phase-c-{ts}-gz.log"
+            print(f"[gazebo] starting gz sim headless (world={GZ_WORLD_SDF.name}) …")
+            gz_proc = _start_gazebo(gz_log)
+            time.sleep(3.0)          # let gz sim initialise before subscribing
+            _setup_gz_node()
+            print("[gazebo] waiting for first camera frame (up to 30 s) …")
+            if not _wait_gazebo(timeout=30.0):
+                sys.exit("ERROR: Gazebo camera topic produced no frame within 30 s. "
+                         "Check gz sim log: " + str(gz_log))
+            print("[gazebo] camera active — first frame received")
+
         # ---- VLM server (live mode only) ----
         if not args.inject_oracle and not args.skip_server and not args.dry_run:
             spec = _probe.MODELS[1]  # S2: SmolVLM-500M
@@ -1011,6 +1136,12 @@ def main():
                 copter_proc.wait(timeout=5.0)
             except subprocess.TimeoutExpired:
                 copter_proc.kill()
+        if gz_proc and gz_proc.poll() is None:
+            gz_proc.terminate()
+            try:
+                gz_proc.wait(timeout=5.0)
+            except subprocess.TimeoutExpired:
+                gz_proc.kill()
         if pf_server:
             try:
                 _probe.stop_server(pf_server)

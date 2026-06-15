@@ -465,3 +465,4 @@ most-recent first.
 5. `--dry-run`, then the **Branch-1 injected-detection gate**.
 6. 3 × 60 s live VLM runs; fill in metrics; append RESULTS.md device row; write up the Branch-2 outcome honestly.
 
+
