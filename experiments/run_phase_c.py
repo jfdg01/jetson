@@ -905,7 +905,7 @@ def _eval_branch1(all_metrics: list[dict]) -> tuple[bool, str]:
     reason = (
         f"hz={hz_mean:.2f} ({'✓' if crit1 else '✗'}≥15)  "
         f"coasting_max={coasting_max} ({'✓' if crit2 else '✗'}≥15)  "
-        f"reseed={'%.3f' % reseed_val if reseed_val else 'N/A'} "
+        f"reseed={'%.3f' % reseed_val if reseed_val is not None else 'N/A'} "
         f"({'✓' if crit3 else '✗'}<2s)"
     )
     return ok, reason

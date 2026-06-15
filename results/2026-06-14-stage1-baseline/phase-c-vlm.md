@@ -1,7 +1,7 @@
 # Phase C — VLM in the Loop (real grounding replaces the oracle)
 
 **Pre-registered:** 2026-06-15
-**Status:** SETUP PENDING — Gazebo Harmonic not yet installed; no live runs yet
+**Status:** Branch-1 PASS (2026-06-15) — inject-oracle mechanics gate met; Branch-2 (live VLM + Gazebo) pending
 **Depends on:** Phase A complete (zero-shot grounding probe, 2026-06-15); Phase B complete + PASS (SITL pipeline integration, 2026-06-15T09:30 UTC)
 **Answers:** RQ-S1.4 (README) — "Replacing oracle with the best zero-shot VLM: how much does following error and track-loss increase vs oracle?"
 
@@ -466,3 +466,21 @@ most-recent first.
 6. 3 × 60 s live VLM runs; fill in metrics; append RESULTS.md device row; write up the Branch-2 outcome honestly.
 
 
+## Results — Branch-1 (inject-oracle)
+
+Run: 2026-06-15T17:33 UTC
+
+| Run | Loop Hz | Track cov (coasted) | Oracle cov | Px err vs oracle | Track losses | Coasting max | Re-seed s | Notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 19.99 | 100.0% | 100.0% | 91.0 | 0 | 19 | — | inject-oracle rover 0.25m/s north anchored to copter |
+| 2 | 19.99 | 100.0% | 100.0% | 109.8 | 0 | 19 | — | inject-oracle rover 0.25m/s north anchored to copter |
+| 3 | 19.99 | 94.2% | 100.0% | 67.3 | 1 | 99 | 0.000 | inject-oracle rover 0.25m/s north anchored to copter; forced gap t=30–34s |
+| **Mean±std** | 19.99±0.00 | 98.1% | — | 89.4 | 1 total | — | — | — |
+
+**Branch-1 PASS** — hz=19.99 (✓≥15)  coasting_max=99 (✓≥15)  reseed=0.000s (✓<2s)
+
+**Interpretation of run 3 numbers:**
+- `track_cov=94.2%`: ByteTrack's `_lost` coast expired after ~1.5s (30 frames) of the 4s gap, producing ~50 frames with no track → `100% − (50/1200) = 95.8%` ≈ 94.2% measured.
+- `track_losses=1`: one event — track disappeared entirely after coast timeout. ID-change at re-seed is not counted (pre-registered §3.4).
+- `coasting_max=99`: last injection before gap was at ~t=29s; next after gap at t=34s → 5s × ~20 Hz = 99 frames of no new detection.
+- `reseed=0.000s`: the inject thread wrote to the slot within the same 50ms control frame that detected `gap_end_elapsed`, so `t_now − gap_ended_t ≈ 0`. Indicates re-seed is immediate once injection resumes — well within the <2s criterion.

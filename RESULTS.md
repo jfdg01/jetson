@@ -133,3 +133,4 @@ re-anchored to the copter relative position each trial, so initial conditions ar
 P-controller converges to the same steady-state lag (~12 px) every run. Runs start at different
 absolute copter N (0.01 / 16.2 / 32.4 m, carried drift) yet re-anchor 0.5 m ahead identically.
 Threshold (Hz>=1, px_err<50, coverage>=80%) met honestly; no widening.
+| 2026-06-15 | Phase C inject-oracle | SmolVLM-500M Q8_0 | 15W locked | hz=19.99 px_err=89.4 b1=PASS |
