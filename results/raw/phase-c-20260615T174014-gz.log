@@ -1,0 +1,12 @@
+libEGL warning: pci id for fd 66: 10de:2204, driver (null)
+
+pci id for fd 67: 10de:2204, driver (null)
+pci id for fd 68: 10de:2204, driver (null)
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: pci id for fd 66: 10de:2204, driver (null)
+
+pci id for fd 67: 10de:2204, driver (null)
+pci id for fd 68: 10de:2204, driver (null)
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: pci id for fd 66: 10de:2204, driver (null)
+

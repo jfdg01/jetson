@@ -1,7 +1,7 @@
 # Phase C — VLM in the Loop (real grounding replaces the oracle)
 
 **Pre-registered:** 2026-06-15
-**Status:** Branch-1 PASS (2026-06-15) — inject-oracle mechanics gate met; Branch-2 (live VLM + Gazebo) pending
+**Status:** COMPLETE (2026-06-15) — Branch-1 PASS · Branch-2 negative (pre-registered expected outcome: zero-shot SmolVLM not usable as closed-loop tracker; Stage 2 fine-tune is load-bearing)
 **Depends on:** Phase A complete (zero-shot grounding probe, 2026-06-15); Phase B complete + PASS (SITL pipeline integration, 2026-06-15T09:30 UTC)
 **Answers:** RQ-S1.4 (README) — "Replacing oracle with the best zero-shot VLM: how much does following error and track-loss increase vs oracle?"
 
@@ -484,3 +484,64 @@ Run: 2026-06-15T17:33 UTC
 - `track_losses=1`: one event — track disappeared entirely after coast timeout. ID-change at re-seed is not counted (pre-registered §3.4).
 - `coasting_max=99`: last injection before gap was at ~t=29s; next after gap at t=34s → 5s × ~20 Hz = 99 frames of no new detection.
 - `reseed=0.000s`: the inject thread wrote to the slot within the same 50ms control frame that detected `gap_end_elapsed`, so `t_now − gap_ended_t ≈ 0`. Indicates re-seed is immediate once injection resumes — well within the <2s criterion.
+
+
+## Results — Branch-2 (vlm)
+
+Run: 2026-06-15T17:40 UTC · x86_64 workstation · Gazebo Harmonic 8.13.0 headless ·
+ArduCopter SITL Copter-4.6.3 · SmolVLM-500M-Instruct Q8_0 on Jetson Orin Nano 8 GB ·
+llama.cpp `57fe1f0` sm_87 · 15 W locked
+
+| Run | Loop Hz | Track cov (coasted) | Oracle cov | Px err vs oracle | Track losses | Coasting max | Re-seed s | Notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 19.98 | 24.3% | 41.8% | 209.3 | 8 | 187 | — | vlm-grounding; 64 calls, 10 valid (15.6%) |
+| 2 | 19.99 | 16.7% | 37.9% | 234.6 | 5 | 414 | — | vlm-grounding; 67 calls, 7 valid (10.4%) |
+| 3 | 19.99 | 21.2% | 37.9% | 127.7 | 6 | 701 | — | vlm-grounding; 77 calls, 9 valid (11.7%) |
+| **Mean±std** | 19.99±0.01 | 20.7% | — | 190.5 | 19 total | — | — | det=208 valid=26 (12.5%) |
+
+**Branch-2: negative (zero-shot not usable)** —
+valid_rate=12.5% (<30%)  mean_px_err=190.5 (≥100)  any_zero_loss=no
+
+**Pre-registered outcome confirmed.** This is the "expected / zero-shot is not usable" path (§6).
+It answers RQ-S1.4 with evidence: replacing the oracle with zero-shot SmolVLM-500M
+collapses track coverage from ~100% (Phase B oracle) to **21%** and inflates pixel
+error from ~12.9 px to **191 px**. The Stage 2 fine-tune is load-bearing, not optional.
+
+### Interpretation of Branch-2 metrics
+
+**Parse rate 12.5%** (26/208 calls): SmolVLM produced parseable coordinates in ~1 in 8 calls.
+This is higher than Phase A's 4% on RefDrone nadir frames (the Gazebo scene is simpler and
+more uniform than real aerial footage), but still sparse. The remaining 87.5% of calls
+returned free-text or degenerate whole-image bboxes (rejected by `Bbox.is_valid`).
+
+**Track coverage 21%** (vs 100% Phase B oracle): sparse valid detections (≈1 every 8s) give
+ByteTrack a fresh seed every ~8s, but the track coasts only 1.5s (30 frames at 20 Hz, per
+`MAX_LOST_FRAMES=30`) before expiring. Between valid detections the tracker returns empty for
+~6.5s → coverage well below 50%.
+
+**Oracle coverage 39%** (vs 100% Phase B): the copter has no reliable perception signal to
+follow the rover, so it hovers approximately in place while the rover walks north at 0.25 m/s.
+After ~25s the rover exits the 60° nadir FOV at 10 m altitude (FOV radius ≈ 5.8 m, rover
+offset grows to >6 m), making the oracle return None. The oracle_cov drop is a *consequence*
+of failed tracking, not an independent failure.
+
+**Pixel error 191 px** (vs 12.9 px Phase B): when a track *is* active, it seeds from a
+likely-wrong VLM bbox (degenerate or off-centre), driving the PID toward random positions.
+The reported error is the distance from the ByteTrack centroid to the oracle GT centroid, so
+191 px is mostly the random-seed displacement, not meaningful control signal.
+
+**Track losses 19 total** (vs 0 Phase B): every gap between valid detections long enough to
+exceed 1.5s produces a track-loss event. At ~1 valid detection / 8 calls / ~8s, and 3×60s
+= ~60 loss opportunities, 19 events is consistent (roughly 1 loss every 9.5s on average).
+
+### Comparison table: Phase B oracle vs Phase C zero-shot
+
+| Metric | Phase B oracle | Phase C zero-shot | Δ |
+|---|---|---|---|
+| Track coverage | ~100% | 21% | −79 pp |
+| Oracle / GT coverage | ~100% | 39% | −61 pp ² |
+| Mean px err vs oracle | 12.9 px | 190.5 px | +178 px (+1380%) |
+| Track loss events (3 runs) | 0 | 19 | +19 |
+| Control Hz | 19.99 | 19.99 | 0 |
+
+² Oracle coverage drops because the drone can't follow without reliable VLM boxes.

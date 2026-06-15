@@ -877,8 +877,37 @@ def run_trial(
 
 
 # ---------------------------------------------------------------------------
-# Branch-1 pass/fail evaluation
+# Branch evaluation
 # ---------------------------------------------------------------------------
+
+def _eval_branch2(all_metrics: list[dict]) -> tuple[str, str]:
+    """
+    Branch-2: tracking-quality outcome for live-VLM runs (pre-registered §6).
+
+    Not a binary pass/fail — reports which pre-registered sub-outcome occurred:
+      "stretch"  : valid_rate≥30% AND mean_px_err<100 AND ≥1 run with 0 track losses
+      "negative" : otherwise (zero-shot not usable; valid pre-registered outcome)
+
+    Returns (outcome_label, reason_str).
+    """
+    total_calls = sum(r["n_det_calls"] for r in all_metrics)
+    total_valid = sum(r["n_det_valid"] for r in all_metrics)
+    valid_rate  = (total_valid / total_calls * 100.0) if total_calls else 0.0
+
+    px_errs = [r["pixel_error_mean_px"] for r in all_metrics if r["pixel_error_mean_px"] > 0]
+    mean_px  = sum(px_errs) / len(px_errs) if px_errs else float("inf")
+
+    any_no_loss = any(r["track_loss_events"] == 0 for r in all_metrics)
+
+    stretch = valid_rate >= 30.0 and mean_px < 100.0 and any_no_loss
+    label   = "stretch (zero-shot usable)" if stretch else "negative (zero-shot not usable)"
+    reason  = (
+        f"valid_rate={valid_rate:.1f}% ({'≥' if valid_rate>=30 else '<'}30%)  "
+        f"mean_px_err={mean_px:.1f} ({'<' if mean_px<100 else '≥'}100)  "
+        f"any_zero_loss={'yes' if any_no_loss else 'no'}"
+    )
+    return label, reason
+
 
 def _eval_branch1(all_metrics: list[dict]) -> tuple[bool, str]:
     """
@@ -922,7 +951,8 @@ def _std(xs: list) -> float:
     return math.sqrt(sum((x - mean) ** 2 for x in xs) / (len(xs) - 1))
 
 
-def _format_branch1_table(runs: list[dict], b1_pass: bool, b1_reason: str) -> str:
+def _format_results_table(runs: list[dict], verdict: str, reason: str,
+                          inject_oracle: bool) -> str:
     header = ("| Run | Loop Hz | Track cov (coasted) | Oracle cov | "
               "Px err vs oracle | Track losses | Coasting max | Re-seed s | Notes |")
     sep    = "|---|---|---|---|---|---|---|---|---|"
@@ -937,56 +967,62 @@ def _format_branch1_table(runs: list[dict], b1_pass: bool, b1_reason: str) -> st
             f"| {r['pixel_error_mean_px']} "
             f"| {r['track_loss_events']} "
             f"| {r['coasting_max_consecutive']} "
-            f"| {'%.3f' % rs if rs else '—'} "
+            f"| {'%.3f' % rs if rs is not None else '—'} "
             f"| {r['notes']} |"
         )
     hz_list  = [r["loop_hz_mean"] for r in runs]
     cov_list = [r["track_coverage_pct"] for r in runs]
     px_list  = [r["pixel_error_mean_px"] for r in runs]
     tl_total = sum(r["track_loss_events"] for r in runs)
+    det_total = sum(r["n_det_calls"] for r in runs)
+    val_total = sum(r["n_det_valid"] for r in runs)
+    summary_extra = (
+        f" det={det_total} valid={val_total} ({100.0*val_total/det_total:.1f}%) |"
+        if not inject_oracle else " — |"
+    )
     rows.append(
         f"| **Mean±std** "
         f"| {sum(hz_list)/len(hz_list):.2f}±{_std(hz_list):.2f} "
         f"| {sum(cov_list)/len(cov_list):.1f}% "
         f"| — | {sum(px_list)/len(px_list):.1f} "
-        f"| {tl_total} total | — | — | — |"
+        f"| {tl_total} total | — | —"
+        + summary_extra
     )
-    status = "**Branch-1 PASS**" if b1_pass else "**Branch-1 FAIL**"
     return (
         "\n".join([header, sep] + rows)
-        + f"\n\n{status} — {b1_reason}"
+        + f"\n\n{verdict} — {reason}"
     )
 
 
-def _patch_phase_c_md(table: str, date: str, mode: str) -> None:
+def _patch_phase_c_md(table: str, date: str, tag_suffix: str) -> None:
     if not PHASE_C_MD.exists():
         print(f"[results] WARNING: {PHASE_C_MD} not found — skipping patch")
         return
-    text = PHASE_C_MD.read_text()
-    tag  = f"## Results — Branch-1 ({mode})"
+    text  = PHASE_C_MD.read_text()
+    tag   = f"## Results — {tag_suffix}"
     block = f"\n{tag}\n\nRun: {date}\n\n{table}\n"
     if tag in text:
-        start = text.index(tag)
-        # Find the next ## heading after our tag
+        start  = text.index(tag)
         next_h = text.find("\n## ", start + len(tag))
-        end = next_h if next_h != -1 else len(text)
-        text = text[:start] + block.lstrip("\n") + text[end:]
+        end    = next_h if next_h != -1 else len(text)
+        text   = text[:start] + block.lstrip("\n") + text[end:]
     else:
         text = text.rstrip("\n") + "\n\n" + block
     PHASE_C_MD.write_text(text)
     print(f"[results] {PHASE_C_MD.relative_to(PHASE_C_MD.parent.parent.parent)} updated")
 
 
-def _append_results_md(runs: list[dict], date: str, mode: str,
-                       b1_pass: bool) -> None:
-    hz_list = [r["loop_hz_mean"] for r in runs]
-    hz_mean = sum(hz_list) / len(hz_list)
-    px_list = [r["pixel_error_mean_px"] for r in runs]
-    px_mean = sum(px_list) / len(px_list)
+def _append_results_md(runs: list[dict], date: str, mode: str, verdict: str) -> None:
+    hz_list  = [r["loop_hz_mean"] for r in runs]
+    hz_mean  = sum(hz_list) / len(hz_list)
+    px_list  = [r["pixel_error_mean_px"] for r in runs]
+    px_mean  = sum(px_list) / len(px_list)
+    det_tot  = sum(r["n_det_calls"] for r in runs)
+    val_tot  = sum(r["n_det_valid"] for r in runs)
+    valid_pct = f"{100.0*val_tot/det_tot:.1f}%" if det_tot else "—"
     row = (
         f"| {date[:10]} | Phase C {mode} | SmolVLM-500M Q8_0 | 15W locked "
-        f"| hz={hz_mean:.2f} px_err={px_mean:.1f} "
-        f"b1={'PASS' if b1_pass else 'FAIL'} |"
+        f"| hz={hz_mean:.2f} px_err={px_mean:.1f} valid={valid_pct} {verdict} |"
     )
     with RESULTS_MD.open("a") as f:
         f.write(row + "\n")
@@ -1114,17 +1150,26 @@ def main():
             ctrl.land_and_disarm()
         ctrl.close()
 
-        # ---- Evaluate Branch-1 ----
-        b1_pass, b1_reason = _eval_branch1(all_metrics)
+        # ---- Evaluate ----
         print(f"\n{'=' * 65}")
-        print(f"Branch-1 {'PASS ✓' if b1_pass else 'FAIL ✗'}  {b1_reason}")
+        if args.inject_oracle:
+            b1_pass, reason = _eval_branch1(all_metrics)
+            verdict    = f"**Branch-1 {'PASS ✓' if b1_pass else 'FAIL ✗'}**"
+            tag_suffix = "Branch-1 (inject-oracle)"
+            short_verdict = "b1=PASS" if b1_pass else "b1=FAIL"
+        else:
+            b2_label, reason = _eval_branch2(all_metrics)
+            verdict    = f"**Branch-2: {b2_label}**"
+            tag_suffix = "Branch-2 (vlm)"
+            short_verdict = "b2=" + ("stretch" if "stretch" in b2_label else "negative")
+        print(f"{verdict}  {reason}")
         print(f"{'=' * 65}")
 
         # ---- Write results ----
-        table = _format_branch1_table(all_metrics, b1_pass, b1_reason)
+        table = _format_results_table(all_metrics, verdict, reason, args.inject_oracle)
         print("\n" + table)
-        _patch_phase_c_md(table, date_str, mode)
-        _append_results_md(all_metrics, date_str, mode, b1_pass)
+        _patch_phase_c_md(table, date_str, tag_suffix)
+        _append_results_md(all_metrics, date_str, mode, short_verdict)
 
         print(f"\nPhase C [{mode}] complete.")
         print(f"Raw CSVs: {RAW_DIR}/phase-c-{ts}-run*.csv")
