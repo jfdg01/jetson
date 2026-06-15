@@ -827,7 +827,18 @@ def main() -> None:
     parser.add_argument("--seed",           type=int, default=SEED_DEFAULT)
     parser.add_argument("--format",         choices=["A", "B"],
                         help="Force format; skip pilot")
+    parser.add_argument("--vlm-model",     default=None,
+                        help="Override text GGUF path on Jetson (for Stage 2 re-run). "
+                             "Implies --only S2 --skip-download.")
+    parser.add_argument("--mmproj-model",  default=None,
+                        help="Override mmproj GGUF path on Jetson (default: reuse S2 original).")
     args = parser.parse_args()
+
+    # --vlm-model implies --only S2 --skip-download
+    if args.vlm_model:
+        if not args.only:
+            args.only = "S2"
+        args.skip_download = True
 
     only_ids = set(args.only.split(",")) if args.only else None
     ann_path = Path(args.refdrone_ann)
@@ -876,7 +887,10 @@ def main() -> None:
 
         run_ts = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M")
 
-        if args.skip_download:
+        if args.vlm_model:
+            text_path   = args.vlm_model
+            mmproj_path = args.mmproj_model or f"{MODELS_DIR}/{spec.mmproj_file}"
+        elif args.skip_download:
             text_path   = f"{MODELS_DIR}/{spec.gguf_file}"
             mmproj_path = f"{MODELS_DIR}/{spec.mmproj_file}"
         else:
