@@ -7,3 +7,6 @@
 #
 # Add analysis-only deps (e.g. pandas, matplotlib) below if/when needed for
 # post-processing — keep the data-collection path dependency-free.
+
+# Dataset download (Phase A — RefDrone + VisDrone via HuggingFace Hub)
+huggingface_hub[cli]>=1.19.0
