@@ -31,6 +31,7 @@ JETSON_LLAMA_CLI  = "/home/jfdg/llama.cpp/build/bin/llama-cli"
 
 REFDRONE_VAL_JSON = Path.home() / ".cache/huggingface/hub/datasets--sunzc-sunny--RefDrone/snapshots"
 VISDRONE_VAL_IMAGES = Path("/home/gara/jetson/data/VisDrone2019-DET/images/val")
+STAGE2_RESULTS_DIR = Path(__file__).parent.parent / "results/stage2-finetune"
 
 
 def run(cmd, check=True, capture=False, **kw):
@@ -107,6 +108,7 @@ def step4_phase_a(dry_run: bool):
         "--visdrone-images", str(VISDRONE_VAL_IMAGES),
         "--vlm-model",       JETSON_GGUF_PATH,
         "--mmproj-model",    JETSON_MMPROJ_PATH,
+        "--out-dir",         str(STAGE2_RESULTS_DIR),
         "--n-sample",        "50",
         "--seed",            "42",
     ]
@@ -122,6 +124,7 @@ def step5_phase_c(dry_run: bool):
     cmd = [
         sys.executable, "experiments/run_phase_c.py",
         "--vlm-model", JETSON_GGUF_PATH,
+        "--out-dir",   str(STAGE2_RESULTS_DIR),
     ]
     if dry_run:
         print(f"[dry-run] would run: {' '.join(cmd)}")

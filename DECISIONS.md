@@ -5,6 +5,16 @@ decisions live in the relevant `results/*.md`. Format defined in `CLAUDE.md`.
 
 ---
 
+### 2026-06-16T10:00 — Stage 2 outcome: G2 FAIL — text-only LoRA insufficient for spatial grounding
+
+- **Decision:** Accept the G2 gate failure (IoU@0.25=1%, gate ≥20%) as a valid negative result. Skip GGUF export and Jetson Phase A/C re-runs (G3/G4 gates are moot if grounding doesn't work). Document the finding and move to thesis write-up.
+- **Alternatives considered:** (a) Run 1–2 more epochs with saved LoRA adapter (`smolvlm_ft/epoch1/`) — rejected: the failure is mode collapse driven by frozen vision features, not underfitting; more epochs will not fix the root cause and will cost another ~9h of compute. (b) Re-run with vision encoder unfrozen (add LoRA to `vision_model.*` layers) — plausible path, but significantly increases VRAM use and training time; out of scope for this thesis iteration. (c) Try a model with coordinate-aware visual tokens (SpatialVLM, Qwen-VL grounding) — different model family, different thesis scope. (d) Convert to GGUF and do Jetson Phase A anyway — no value: the model is known to predict constant boxes; Jetson inference would just reproduce the same collapse at lower throughput; the finding is already documented.
+- **Reasoning:** parse_rate=100% confirms the training pipeline (data loading, label masking, LoRA training loop) is functioning correctly. The failure is specifically spatial: the frozen SigLIP encoder cannot update its spatial feature mappings, so the text backbone has no information gradient path to learn "where in the image is the target." The model converged to the trivial minimum of predicting the marginal mean training bbox. This is a well-documented failure mode for modular VLM fine-tuning (frozen vision + LoRA text) on localization tasks that require dense spatial correspondence.
+- **Tradeoff / cost accepted:** 9.1h of GPU training for a negative result. This is thesis content: understanding *why* naive text-only LoRA fails on aerial grounding is itself a contribution. The result cleanly motivates either (a) vision-encoder fine-tuning or (b) using a model designed for grounding.
+- **Revisit when:** If a Stage 3 is in scope, explore: (1) add `vision_model.encoder.layers.*.self_attn.*` to LoRA targets; (2) reduce learning rate to 5e-5 to avoid destabilising the encoder; (3) use 3+ epochs with warmup; (4) consider SpatialVLM or Qwen-VL-grounding as drop-in replacement.
+
+---
+
 ### 2026-06-15T22:00 — Stage 2 fine-tuning: LoRA on SmolVLM-500M with RefDrone MDETR JSON + VisDrone images
 
 - **Decision:** Fine-tune SmolVLM-500M-Instruct using LoRA (r=16, alpha=32) applied to the LLaMA text backbone's `q_proj, k_proj, v_proj, o_proj` layers. Load RefDrone annotations from the MDETR-format JSON files (`RefDrone_train_mdetr.json`, `RefDrone_val_mdetr.json`) distributed alongside the HuggingFace repo. Use a local `.venv-ft` venv with torch 2.6.0+cu124, transformers 5.12.1, peft 0.19.1, accelerate 1.14.0, bitsandbytes 0.49.2. Training runs on the local RTX 3090 24 GB, then merged checkpoint is SCP'd to the Jetson for GGUF conversion.

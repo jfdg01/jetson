@@ -1054,7 +1054,17 @@ def main():
     parser.add_argument("--dry-run",     action="store_true")
     parser.add_argument("--runs",        type=int, default=3)
     parser.add_argument("--duration",    type=float, default=60.0)
+    parser.add_argument("--out-dir",     default=None,
+                        help="Override campaign output directory (default: results/2026-06-14-stage1-baseline). "
+                             "Use for Stage 2 re-runs to avoid overwriting Stage 1 results.")
     args = parser.parse_args()
+
+    # Override output directory if requested (Stage 2 re-run)
+    if args.out_dir:
+        global RESULTS_DIR, PHASE_C_MD, RAW_DIR
+        RESULTS_DIR = Path(args.out_dir)
+        PHASE_C_MD  = RESULTS_DIR / "phase-c-vlm.md"
+        RAW_DIR     = RESULTS_DIR / "raw"
 
     _expression = args.expression
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M UTC")

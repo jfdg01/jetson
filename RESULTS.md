@@ -151,12 +151,24 @@ targets in aerial frames reliably (12.5% valid, IoU near 0). Motivates Stage 2.
 
 ---
 
-## Stage 2: fine-tuning (PENDING — 2026-06-15)
+## Stage 2: fine-tuning (COMPLETE — 2026-06-16)
 
-Fine-tune SmolVLM-500M-Instruct on RefDrone + VisDrone aerial grounding data.
-Pre-registration: [`results/stage2-finetune/README.md`](results/stage2-finetune/README.md)
-Full writeup (in progress): [`results/stage2-finetune/train-log.md`](results/stage2-finetune/train-log.md)
+Fine-tune SmolVLM-500M-Instruct on RefDrone + VisDrone aerial grounding data.  
+Pre-registration: [`results/stage2-finetune/README.md`](results/stage2-finetune/README.md)  
+Full writeup: [`results/stage2-finetune/train-log.md`](results/stage2-finetune/train-log.md)
 
-| Date | Model | Training platform | Parse rate | IoU@0.25 | Phase C valid_rate | Phase C px_err | Result |
+Training: 1 epoch, 23,437 steps, 32,723s (~9.1h), mean loss=0.8341, exit code 0.  
+Checkpoint: `smolvlm_ft/` (merged) + `smolvlm_ft/epoch1/` (LoRA adapter).
+
+| Date | Model | Epoch | Parse rate | IoU@0.25 | G1 | G2 | Result |
 |---|---|---|---|---|---|---|---|
-| TBD | SmolVLM-500M FT Q8_0 | RTX 3090 → Jetson Orin Nano | — | — | — | — | PENDING |
+| 2026-06-16 | SmolVLM-500M-Instruct LoRA r=16 (text only) | 1 | **100%** | **1.0%** | PASS | **FAIL** | **G2 FAIL — mode collapse** |
+
+**Finding:** Model learned output format (100% parse rate) but collapsed to predicting a
+near-constant bounding box (~[223,111,229,120] in 512×288 space) for all inputs. Root cause:
+LoRA applied only to text backbone; frozen SigLIP vision encoder cannot update spatial
+feature representations. Text side converged to predicting the marginal mean of the training
+bbox distribution. Meaningful negative result: demonstrates limit of text-only LoRA for
+spatial grounding in VLMs.
+
+Full diagnosis: [`results/stage2-finetune/train-log.md#root-cause-diagnosis`](results/stage2-finetune/train-log.md)

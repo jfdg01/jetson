@@ -832,6 +832,9 @@ def main() -> None:
                              "Implies --only S2 --skip-download.")
     parser.add_argument("--mmproj-model",  default=None,
                         help="Override mmproj GGUF path on Jetson (default: reuse S2 original).")
+    parser.add_argument("--out-dir",       default=None,
+                        help="Override campaign output directory (default: results/2026-06-14-stage1-baseline). "
+                             "Use for Stage 2 re-runs to avoid overwriting Stage 1 results.")
     args = parser.parse_args()
 
     # --vlm-model implies --only S2 --skip-download
@@ -839,6 +842,13 @@ def main() -> None:
         if not args.only:
             args.only = "S2"
         args.skip_download = True
+
+    # Override output directory if requested (Stage 2 re-run)
+    if args.out_dir:
+        global CAMPAIGN_DIR, RAW_DIR, PHASE_A_MD
+        CAMPAIGN_DIR = Path(args.out_dir)
+        RAW_DIR      = CAMPAIGN_DIR / "raw"
+        PHASE_A_MD   = CAMPAIGN_DIR / "phase-a-grounding-probe.md"
 
     only_ids = set(args.only.split(",")) if args.only else None
     ann_path = Path(args.refdrone_ann)
