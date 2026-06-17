@@ -7,6 +7,30 @@ running local LLMs at the edge. Probed on **2026-06-13**.
 > (Maxwell GPU, 4 GB, JetPack 4.x). It is a **Jetson Orin Nano 8GB Developer Kit**
 > running JetPack 6.2.2 — roughly an order of magnitude more capable.
 
+## Project layout
+
+The repo is a lab notebook in two parts:
+
+- **Part I — Exploratory** (`results/`, `experiments/`, `experiments/legacy/`,
+  `archive/`): device benchmark campaigns + the VLM grounding fine-tune arc (Stages
+  1–4). Complete and frozen as the historical record. Legacy per-stage trainers /
+  exporters live in `experiments/legacy/`; research prose in `archive/research/`.
+- **Part II — Principled rebuild (v2)** (`grounding/` package, branch
+  `v2/principled-rebuild`): a deliberate rebuild organised around one shared
+  *contract* and a fidelity-before-GPU workflow. See `grounding/README.md`.
+
+```
+grounding/        # v2 package: contract.py (shared truth) + data/ eval/ train/ export/ deploy/ resolution.py
+experiments/      # device-benchmark tooling (stdlib-only) + legacy/ (archived Part-I scripts)
+archive/research/ # archived research/handoff prose
+results/          # Part-I experiment writeups (one dir per campaign)
+DECISIONS.md      # decision log (Part II newest-first at top; Part I below)
+RESULTS.md        # results ledger (Part II appended at bottom)
+```
+
+The ledgers (`DECISIONS.md`, `RESULTS.md`) are append-only and carry a `Part II`
+demarcation; Part I content is untouched.
+
 ## Connection
 
 ```bash

@@ -13,7 +13,8 @@ __pycache__/
 *.gguf
 
 # Datasets (COCO train2014, VisDrone, RefDrone cache) — tens of GB, not thesis source.
-data/
+# Anchored to repo root so it does NOT swallow the grounding/data/ package.
+/data/
 
 # Secrets
 .hugging-face-token

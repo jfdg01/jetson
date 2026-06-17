@@ -28,18 +28,69 @@ reader (and the thesis committee) could reproduce it and trust the result.
 - **Date and version every entry.** Hardware/firmware/runtime versions drift;
   an undated number is worthless for a thesis.
 
+## Project parts: I (exploratory) and II (v2 rebuild)
+
+The notebook is split. **Part I — Exploratory** is the original record: device
+benchmark campaigns + the VLM grounding fine-tune arc (Stages 1–4), now frozen.
+**Part II — Principled rebuild (v2)** is the deliberate rebuild on branch
+`v2/principled-rebuild`, organised around one shared *contract* and a
+**fidelity-before-GPU** workflow (see the v2 section below). Both `DECISIONS.md` and
+`RESULTS.md` are append-only and carry a `Part II` demarcation; Part I is untouched.
+
 ## Where things go
 
-- `README.md` — stable hardware/platform survey of the device (already written).
+- `README.md` — stable hardware/platform survey + the Part I/II project-layout map.
 - `CLAUDE.md` — this file: working conventions.
+- `grounding/` — **v2 Python package** (Part II). The shared `contract.py` plus
+  `data/ eval/ train/ export/ deploy/ resolution.py`. See `grounding/README.md`.
 - `results/` — one Markdown file per experiment campaign (e.g.
   `results/2026-06-13-llamacpp-upper-bound.md`). Raw tool output (llama-bench CSV,
   `tegrastats` logs) lives alongside in `results/raw/`.
 - `RESULTS.md` (root) — a running **summary table** across all experiments, the
   at-a-glance ledger the thesis pulls from. Append, don't overwrite.
-- `experiments/` — Python automation scripts, run cards, and the isolated-session
-  execution methodology. See `experiments/README.md`.
-- `DECISIONS.md` — project-wide decision log (most-recent first).
+- `experiments/` — Part-I Python automation scripts, run cards, and the
+  isolated-session execution methodology. See `experiments/README.md`.
+- `experiments/legacy/` — archived Part-I per-stage trainers / exporters / demo
+  (kept for the record; superseded by `grounding/`).
+- `archive/research/` — archived research & handoff prose (literature sweep, research
+  prompts, handoff notes).
+- `DECISIONS.md` — project-wide decision log (most-recent first; Part II on top).
+
+## v2 — Principled rebuild architecture (Part II)
+
+v2 is designed **backwards from deployment** and **de-risks cheaply before spending
+GPU**. The whole effort pivots on **one shared contract** — the verbatim
+`GROUNDING_PROMPT`, the `parse_bbox` parser, and the IoU / `center_std` metric —
+defined in exactly one place (`grounding/contract.py`) and imported everywhere
+(probe, train, export, Jetson) so prompt/parser/metric can never drift again.
+
+Two findings from Part I are *binding constraints* the v2 design is organised around:
+1. **Deployment-runtime fidelity gap** — exported skill dropped HF bf16 85% → GGUF
+   F16 62% (−23pp, a llama.cpp Idefics3 image-preprocessing divergence) → Q8_0 55%
+   (−7pp quant). The runtime penalty dominates the quant penalty, and it was only
+   found *after* training. **v2 measures backend fidelity before any GPU run.**
+2. **Tiny-object resolution ceiling** — aerial objects 5–30 px → 2–11 px after the
+   512 long-edge resize through a frozen SigLIP encoder. **v2 treats resolution as an
+   explicit, pre-registered variable.**
+
+Phased, gated workflow (each phase's module is fleshed out at its own startup; do not
+start the next phase until the prior gate is green and documented in `results/` +
+`RESULTS.md` + `DECISIONS.md` in the same turn):
+- **Phase 0 — backend-fidelity harness first** (`grounding/eval/`): backend-agnostic
+  eval spine (HF / GGUF / Jetson behind one interface) + HF-vs-llama.cpp parity probe;
+  pick the model spine *by the numbers*, not by opinion.
+- **Phase 1 — dataset audit gate** (`grounding/data/`): box-per-caption + object-size
+  distributions baked into the canonical schema before any GPU run.
+- **Phase 2 — resolution strategy** (`grounding/resolution.py`): tiling/crops vs
+  higher-res vs accepting the frozen-512 ceiling, chosen and pre-registered.
+- **Phase 3 — train** (`grounding/train/`): one config-driven LoRA loop (not per-stage
+  forks), only after 0–2 are green. Gate: aerial IoU@0.25 ≥ 20%, `center_std`
+  non-degenerate, parse_rate ≥ 90%.
+- **Phase 4 — export & deploy** (`grounding/export/`, `grounding/deploy/`): GGUF export
+  with the F16-vs-Q8 disambiguation as a default gate; Jetson serve + Phase C hook.
+
+**venvs:** `.venv-ft` (torch 2.6.0+cu124 — reused, painful to rebuild) for all
+GPU/eval/training work; stdlib-only `.venv` for the Part-I device-benchmark tooling.
 
 ## Python tooling
 

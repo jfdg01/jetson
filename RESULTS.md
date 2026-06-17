@@ -4,6 +4,11 @@ Running ledger across all experiment campaigns. Append, never overwrite.
 Each row links to the detailed writeup in `results/`. See `CLAUDE.md` for the
 fields every run must capture.
 
+This ledger is split into **Part I — Exploratory** (device benchmark campaigns +
+grounding Stages 1–4, everything below up to the Part II marker) and **Part II —
+Principled rebuild (v2)** (appended at the very bottom, `v2/principled-rebuild`
+onward). Part I is the untouched historical record.
+
 All results: **Jetson Orin Nano 8 GB · 15 W locked (nvpmodel -m 0 + jetson_clocks) ·
 llama.cpp commit `57fe1f0` CUDA sm_87 · Q4_K_M quant · ngl=99 (full GPU offload) ·
 n_ctx=4096 · pp512 / tg128 benchmark shapes · 5 reps (pp) / 5 reps (tg) · 3 reps (tg512 sustained).**
@@ -235,3 +240,9 @@ intractable Stage 2 target into a learnable aerial grounding skill on a frozen-S
 (2–11 px after the 512 long-edge resize) through a frozen encoder; the documented next levers
 are **largest-box augmentation** (→~12,339 samples) and/or **higher input resolution**.
 Merged checkpoint: `smolvlm_ft4/`.
+
+---
+
+# Part II — Principled rebuild (v2)
+
+<!-- v2 campaign result rows are appended below, in chronological order. -->

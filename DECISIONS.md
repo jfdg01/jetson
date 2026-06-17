@@ -3,7 +3,29 @@
 Cross-cutting decisions and their rationale, most recent first. Campaign-specific
 decisions live in the relevant `results/*.md`. Format defined in `CLAUDE.md`.
 
+The log is split into two parts. **Part II — Principled rebuild (v2)** holds all
+decisions from the `v2/principled-rebuild` branch onward (newest first). **Part I —
+Exploratory** below is the original notebook (device benchmark campaigns + grounding
+Stages 1–4), left untouched as the historical record (paths in Part I entries refer
+to the tree as it was then; legacy scripts now live under `experiments/legacy/`).
+
 ---
+
+# Part II — Principled rebuild (v2)
+
+<!-- v2 decisions are appended here, most recent first. -->
+
+### 2026-06-17T00:00 — Principled rebuild: branch `v2/principled-rebuild`, shared-contract package, fidelity-before-GPU workflow
+
+- **Decision:** Halt the exploratory line and rebuild deliberately. (a) Consolidated Part I onto `main` (committed the uncommitted Stage 4 work, merged `stage3-refcoco-finetune`) and branched **`v2/principled-rebuild`** from it. (b) Tidied by **archive, never delete**: `git mv` the five per-stage trainers/exporters + `demo_nlcommand.py` → `experiments/legacy/`, and the research/handoff prose → `archive/research/`. (c) Stood up an importable `grounding/` package whose **`contract.py` is the single source of truth** (GROUNDING_PROMPT verbatim + parse_bbox + iou + center_std + constants), with `data/ eval/ train/ export/ deploy/ resolution.py` as **skeletons only** (typed signatures + `NotImplementedError`), each filled at the startup of its gated phase. (d) `DECISIONS.md`/`RESULTS.md` made append-only with a Part II demarcation (Part I untouched); `README.md`/`CLAUDE.md` updated with the v2 layout. The experiment arc is organised as gated **Phases 0–4** (fidelity harness → dataset audit → resolution → train → export/deploy).
+- **Alternatives considered:** (a) **Keep iterating on the `stage3-*` branch** — rejected: five copies of the contract had already silently diverged and per-stage forks duplicated the loop; the next collapse would be invisible. (b) **Rewrite history / reset the ledgers** for a clean tree — rejected: violates the prime directive (the lab notebook must stay intact and linear). (c) **Delete the legacy scripts** — rejected for the same reason; they document results, so they are archived, not removed. (d) **Decide the model (SmolVLM vs PaliGemma/Florence-2/Qwen2-VL) and the resolution strategy now** — rejected: those are deferred to be settled *by measurement* in Phases 0 and 2, not by opinion up front. (e) **A fresh venv** — rejected: reuse `.venv-ft` (torch 2.6.0+cu124 is painful to rebuild).
+- **Reasoning:** The two findings that actually stalled progress are *process* failures, not code-tidiness ones, and the structure is built to make them impossible to repeat. (1) **Deployment-runtime fidelity gap** — the skill dropped HF bf16 85% → GGUF F16 62% (−23pp, llama.cpp Idefics3 preprocessing) → Q8_0 55% (−7pp quant), and this was discovered *after* training; v2 puts a backend-agnostic fidelity harness (`eval/`) **before** any GPU run and picks the spine by the parity numbers. (2) **Tiny-object resolution ceiling** — 5–30 px → 2–11 px through a frozen SigLIP at 512; v2 makes resolution an explicit pre-registered variable (`resolution.py`). The shared contract guarantees prompt/parser/metric are byte-identical across probe/train/export/deploy, so every thesis number is comparable by construction. Designing backwards from deployment and de-risking cheaply before spending GPU is the explicit lesson from the ~20 h cross-domain detour.
+- **Tradeoff / cost accepted:** Up-front scaffolding effort and indirection (a package + import discipline) before any new result; the skeleton-only modules mean nothing runs yet. The phased gates deliberately slow the path to the next training run in exchange for not burning GPU on an un-de-risked configuration. Reusing `.venv-ft` ties v2 to the existing pinned stack until a model candidate forces a change.
+- **Revisit when:** A Phase-0 candidate model needs a dependency `.venv-ft` can't satisfy (then a second venv); or if the fidelity harness shows the GGUF preprocessing gap is unfixable for the chosen spine (then reconsider the runtime, not just the model). Per-phase decisions are logged as each phase fills.
+
+---
+
+# Part I — Exploratory (device campaigns + grounding Stages 1–4)
 
 ### 2026-06-17T00:00 — Stage 4 outcome: RefCOCO→RefDrone well-posed curriculum — G4-S4 NARROW MISS (19.5%), Stage 2 root cause eliminated
 
