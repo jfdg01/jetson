@@ -27,10 +27,13 @@ COORD_SCALE    = 1000     # normalized coordinate range [0, COORD_SCALE]
 SEED           = 42
 MAX_NEW_TOKENS = 64       # response cap for grounding eval calls
 
-# Part-I incumbent base model + the Phase-0 default spine, pending the Phase-0c
-# data-driven spine selection (SmolVLM vs a grounding-native candidate). Also used
-# as the base-processor fallback when a merged checkpoint's own processor won't load.
-MODEL_ID       = "HuggingFaceTB/SmolVLM-500M-Instruct"
+# The v2 spine, selected by the numbers in Phase 0c (RefCOCO base-vs-base parity:
+# Qwen2-VL-2B 15% IoU@0.25 / center_std 162 healthy vs SmolVLM-500M 0% / 61 collapsed,
+# and an ~8× smaller HF→GGUF deployment-fidelity gap). Qwen2-VL's native dynamic
+# resolution is the built-in lever for binding constraint #2 (the tiny-object ceiling).
+# Also used as the base-processor fallback when a merged checkpoint's own processor
+# won't load. (Part-I incumbent was HuggingFaceTB/SmolVLM-500M-Instruct.)
+MODEL_ID       = "Qwen/Qwen2-VL-2B-Instruct"
 
 # UNIFIED prompt — must match every consumer (probe, train, export, Phase C) verbatim.
 # Lifted byte-identical from experiments/legacy/run_stage3_finetune.py.
