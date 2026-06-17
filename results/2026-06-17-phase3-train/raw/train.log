@@ -1,0 +1,162 @@
+[train] device=cuda  effective_batch=16  model=Qwen/Qwen2-VL-2B-Instruct  res=1024
+[train] loading processor + model...
+The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00, 32.20it/s]
+trainable params: 18,464,768 || all params: 2,227,450,368 || trainable%: 0.8290
+[train] loading data: refdrone:train / refdrone:val
+[train] 4101 train / 439 val samples
+  E1 step 0/2051  loss=0.8567  lr=2.00e-04  1s
+  E1 step 50/2051  loss=0.6737  lr=2.00e-04  50s
+  E1 step 100/2051  loss=0.5604  lr=2.00e-04  98s
+  E1 step 150/2051  loss=0.9519  lr=2.00e-04  148s
+  E1 step 200/2051  loss=0.5795  lr=1.99e-04  198s
+  E1 step 250/2051  loss=0.7585  lr=1.99e-04  247s
+  E1 step 300/2051  loss=0.7068  lr=1.99e-04  295s
+  E1 step 350/2051  loss=0.6352  lr=1.98e-04  344s
+  E1 step 400/2051  loss=0.7025  lr=1.98e-04  392s
+  E1 step 450/2051  loss=0.8206  lr=1.97e-04  442s
+  E1 step 500/2051  loss=0.6783  lr=1.97e-04  490s
+  E1 step 550/2051  loss=0.7744  lr=1.96e-04  538s
+  E1 step 600/2051  loss=0.6370  lr=1.95e-04  587s
+  E1 step 650/2051  loss=0.9325  lr=1.95e-04  635s
+  E1 step 700/2051  loss=0.7138  lr=1.94e-04  684s
+  E1 step 750/2051  loss=0.5307  lr=1.93e-04  733s
+  E1 step 800/2051  loss=0.7170  lr=1.92e-04  782s
+  E1 step 850/2051  loss=0.4838  lr=1.91e-04  832s
+  E1 step 900/2051  loss=0.8632  lr=1.90e-04  882s
+  E1 step 950/2051  loss=0.7610  lr=1.89e-04  930s
+  E1 step 1000/2051  loss=0.6111  lr=1.87e-04  979s
+  E1 step 1050/2051  loss=0.6799  lr=1.86e-04  1029s
+  E1 step 1100/2051  loss=0.6254  lr=1.85e-04  1079s
+  E1 step 1150/2051  loss=0.5188  lr=1.83e-04  1128s
+  E1 step 1200/2051  loss=0.6559  lr=1.82e-04  1177s
+  E1 step 1250/2051  loss=0.7317  lr=1.80e-04  1228s
+  E1 step 1300/2051  loss=0.5670  lr=1.79e-04  1277s
+  E1 step 1350/2051  loss=0.5819  lr=1.77e-04  1327s
+  E1 step 1400/2051  loss=0.6992  lr=1.76e-04  1377s
+  E1 step 1450/2051  loss=0.5394  lr=1.74e-04  1426s
+  E1 step 1500/2051  loss=0.6881  lr=1.72e-04  1475s
+  E1 step 1550/2051  loss=0.5488  lr=1.70e-04  1525s
+  E1 step 1600/2051  loss=0.6584  lr=1.68e-04  1573s
+  E1 step 1650/2051  loss=0.7092  lr=1.67e-04  1622s
+  E1 step 1700/2051  loss=0.5668  lr=1.65e-04  1672s
+  E1 step 1750/2051  loss=0.8299  lr=1.63e-04  1721s
+  E1 step 1800/2051  loss=0.5497  lr=1.61e-04  1770s
+  E1 step 1850/2051  loss=0.4991  lr=1.59e-04  1818s
+  E1 step 1900/2051  loss=0.5361  lr=1.57e-04  1868s
+  E1 step 1950/2051  loss=0.6326  lr=1.55e-04  1918s
+  E1 step 2000/2051  loss=0.7032  lr=1.52e-04  1967s
+  E1 step 2050/2051  loss=0.5528  lr=1.50e-04  2016s
+[epoch 1] mean_loss=0.6487  (2016s)
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+  [hf] 40/200  parsed=40  gate_hits=21
+  [hf] 80/200  parsed=80  gate_hits=48
+  [hf] 120/200  parsed=120  gate_hits=76
+  [hf] 160/200  parsed=160  gate_hits=100
+  [hf] 200/200  parsed=200  gate_hits=126
+[eval E1] n=200  parse=100.0%  iou@0.25=63.0%  mean_iou=0.469  center_std=212.3
+[train] epoch 1 adapter -> runs/v2/phase3-refdrone-1024/epoch1
+  E2 step 0/2051  loss=0.7055  lr=1.50e-04  2270s
+  E2 step 50/2051  loss=0.7746  lr=1.48e-04  2321s
+  E2 step 100/2051  loss=0.6223  lr=1.45e-04  2370s
+  E2 step 150/2051  loss=0.7702  lr=1.43e-04  2419s
+  E2 step 200/2051  loss=0.5380  lr=1.41e-04  2467s
+  E2 step 250/2051  loss=0.5319  lr=1.38e-04  2515s
+  E2 step 300/2051  loss=0.5353  lr=1.36e-04  2563s
+  E2 step 350/2051  loss=0.5667  lr=1.34e-04  2612s
+  E2 step 400/2051  loss=0.6382  lr=1.31e-04  2660s
+  E2 step 450/2051  loss=0.7785  lr=1.29e-04  2707s
+  E2 step 500/2051  loss=0.6978  lr=1.26e-04  2758s
+  E2 step 550/2051  loss=0.6259  lr=1.24e-04  2806s
+  E2 step 600/2051  loss=0.6251  lr=1.21e-04  2855s
+  E2 step 650/2051  loss=0.4792  lr=1.19e-04  2903s
+  E2 step 700/2051  loss=0.6571  lr=1.16e-04  2952s
+  E2 step 750/2051  loss=0.7618  lr=1.14e-04  3002s
+  E2 step 800/2051  loss=0.4092  lr=1.11e-04  3050s
+  E2 step 850/2051  loss=0.5473  lr=1.09e-04  3100s
+  E2 step 900/2051  loss=0.7081  lr=1.06e-04  3148s
+  E2 step 950/2051  loss=0.6512  lr=1.04e-04  3197s
+  E2 step 1000/2051  loss=0.6168  lr=1.01e-04  3245s
+  E2 step 1050/2051  loss=0.4947  lr=9.86e-05  3294s
+  E2 step 1100/2051  loss=0.5521  lr=9.61e-05  3342s
+  E2 step 1150/2051  loss=0.5266  lr=9.37e-05  3392s
+  E2 step 1200/2051  loss=0.4325  lr=9.08e-05  3441s
+  E2 step 1250/2051  loss=0.6341  lr=8.84e-05  3490s
+  E2 step 1300/2051  loss=0.4748  lr=8.60e-05  3539s
+  E2 step 1350/2051  loss=0.5727  lr=8.35e-05  3588s
+  E2 step 1400/2051  loss=0.5382  lr=8.07e-05  3637s
+  E2 step 1450/2051  loss=0.5199  lr=7.83e-05  3686s
+  E2 step 1500/2051  loss=0.6602  lr=7.59e-05  3734s
+  E2 step 1550/2051  loss=0.5359  lr=7.36e-05  3783s
+  E2 step 1600/2051  loss=0.7745  lr=7.08e-05  3832s
+  E2 step 1650/2051  loss=0.6066  lr=6.85e-05  3880s
+  E2 step 1700/2051  loss=0.6199  lr=6.62e-05  3930s
+  E2 step 1750/2051  loss=0.4943  lr=6.39e-05  3979s
+  E2 step 1800/2051  loss=0.5743  lr=6.12e-05  4027s
+  E2 step 1850/2051  loss=0.5961  lr=5.90e-05  4076s
+  E2 step 1900/2051  loss=0.5516  lr=5.67e-05  4125s
+  E2 step 1950/2051  loss=0.4831  lr=5.45e-05  4173s
+  E2 step 2000/2051  loss=0.5400  lr=5.20e-05  4222s
+  E2 step 2050/2051  loss=0.5395  lr=4.95e-05  4270s
+[epoch 2] mean_loss=0.5802  (4270s)
+  [hf] 40/200  parsed=40  gate_hits=24
+  [hf] 80/200  parsed=80  gate_hits=52
+  [hf] 120/200  parsed=120  gate_hits=79
+  [hf] 160/200  parsed=160  gate_hits=103
+  [hf] 200/200  parsed=200  gate_hits=130
+[eval E2] n=200  parse=100.0%  iou@0.25=65.0%  mean_iou=0.494  center_std=224.3
+[train] epoch 2 adapter -> runs/v2/phase3-refdrone-1024/epoch2
+  E3 step 0/2051  loss=0.6407  lr=4.95e-05  4524s
+  E3 step 50/2051  loss=0.4367  lr=4.74e-05  4576s
+  E3 step 100/2051  loss=0.5027  lr=4.54e-05  4626s
+  E3 step 150/2051  loss=0.4337  lr=4.33e-05  4673s
+  E3 step 200/2051  loss=0.5336  lr=4.10e-05  4723s
+  E3 step 250/2051  loss=0.5351  lr=3.90e-05  4771s
+  E3 step 300/2051  loss=0.5006  lr=3.71e-05  4822s
+  E3 step 350/2051  loss=0.5957  lr=3.52e-05  4870s
+  E3 step 400/2051  loss=0.4714  lr=3.31e-05  4920s
+  E3 step 450/2051  loss=0.4379  lr=3.13e-05  4968s
+  E3 step 500/2051  loss=0.4915  lr=2.95e-05  5018s
+  E3 step 550/2051  loss=0.3554  lr=2.78e-05  5068s
+  E3 step 600/2051  loss=0.6112  lr=2.58e-05  5117s
+  E3 step 650/2051  loss=0.4220  lr=2.42e-05  5165s
+  E3 step 700/2051  loss=0.5516  lr=2.26e-05  5215s
+  E3 step 750/2051  loss=0.5709  lr=2.11e-05  5264s
+  E3 step 800/2051  loss=0.4514  lr=1.94e-05  5313s
+  E3 step 850/2051  loss=0.5140  lr=1.80e-05  5361s
+  E3 step 900/2051  loss=0.4561  lr=1.66e-05  5410s
+  E3 step 950/2051  loss=0.5435  lr=1.53e-05  5459s
+  E3 step 1000/2051  loss=0.4464  lr=1.38e-05  5508s
+  E3 step 1050/2051  loss=0.4835  lr=1.26e-05  5557s
+  E3 step 1100/2051  loss=0.4432  lr=1.14e-05  5607s
+  E3 step 1150/2051  loss=0.6102  lr=1.03e-05  5657s
+  E3 step 1200/2051  loss=0.5071  lr=9.06e-06  5706s
+  E3 step 1250/2051  loss=0.4664  lr=8.07e-06  5755s
+  E3 step 1300/2051  loss=0.6188  lr=7.13e-06  5802s
+  E3 step 1350/2051  loss=0.5714  lr=6.25e-06  5852s
+  E3 step 1400/2051  loss=0.4895  lr=5.29e-06  5902s
+  E3 step 1450/2051  loss=0.5647  lr=4.53e-06  5952s
+  E3 step 1500/2051  loss=0.4502  lr=3.83e-06  6001s
+  E3 step 1550/2051  loss=0.4202  lr=3.19e-06  6050s
+  E3 step 1600/2051  loss=0.4690  lr=2.51e-06  6100s
+  E3 step 1650/2051  loss=0.5180  lr=2.00e-06  6149s
+  E3 step 1700/2051  loss=0.4928  lr=1.54e-06  6198s
+  E3 step 1750/2051  loss=0.5108  lr=1.14e-06  6248s
+  E3 step 1800/2051  loss=0.5224  lr=7.50e-07  6297s
+  E3 step 1850/2051  loss=0.3675  lr=4.80e-07  6347s
+  E3 step 1900/2051  loss=0.3841  lr=2.70e-07  6397s
+  E3 step 1950/2051  loss=0.4629  lr=1.20e-07  6447s
+  E3 step 2000/2051  loss=0.5463  lr=2.09e-08  6497s
+  E3 step 2050/2051  loss=0.4773  lr=3.34e-09  6546s
+[epoch 3] mean_loss=0.5218  (6546s)
+  [hf] 40/200  parsed=40  gate_hits=24
+  [hf] 80/200  parsed=80  gate_hits=52
+  [hf] 120/200  parsed=120  gate_hits=79
+  [hf] 160/200  parsed=160  gate_hits=102
+  [hf] 200/200  parsed=200  gate_hits=130
+[eval E3] n=200  parse=100.0%  iou@0.25=65.0%  mean_iou=0.497  center_std=226.6
+[train] epoch 3 adapter -> runs/v2/phase3-refdrone-1024/epoch3
+[train] merging LoRA adapter into base weights...
+[train] merged checkpoint -> runs/v2/phase3-refdrone-1024
+[train] manifest -> runs/20260617T212559Z

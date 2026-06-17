@@ -325,3 +325,26 @@ Part-I's 19.5% miss as resolution-starved at 512); `center_std` rises monotonica
 dominates, capturing ~78% of the 1280 ceiling) and it already **clears the 20% gate before any
 training**, with 1280 held in reserve as the pre-measured Phase-3 lever. The 8 GB-Jetson
 deploy footprint motivates 1024 over 1280. Phase 2 complete → proceed to Phase 3 (train).
+
+## Phase 3 — Config-driven LoRA fine-tune (2026-06-17 / 2026-06-18)
+
+One config-driven LoRA loop (`grounding/train/{config,trainer}.py`, replacing the Part-I
+per-stage forks) on the full Phase-0/1/2 stack: **Qwen2-VL-2B + RefDrone well-posed (4101
+train / 439 val) + `max_side=1024`**. LoRA r16/α32 on the LLM attn+MLP (vision frozen,
+18.5 M trainable = 0.83%), lr 2e-4, 3 epochs, effective batch 16, verbatim contract, greedy
+eval. Full writeup: [`results/2026-06-17-phase3-train/`](results/2026-06-17-phase3-train/README.md)
+
+| Model | max_side | n | parse | **IoU@0.25** | mean_iou | center_std | Manifest |
+|---|---|---|---|---|---|---|---|
+| Qwen2-VL-2B **base** (Phase 2) | 1024 | 439 | 91.8% | 30.3% | 0.202 | 192.0 | `runs/20260617T191739Z` |
+| Qwen2-VL-2B **+ LoRA** (in-loop) | 1024 | 200 | 100.0% | 65.0% | 0.497 | 226.6 | `runs/20260617T212559Z` |
+| Qwen2-VL-2B **+ LoRA** (full val) | 1024 | **439** | **100.0%** | **59.5%** | **0.451** | **215.2** | `runs/20260617T212559Z` |
+
+**Phase 3 gate ✅ — PASS, decisively.** Full-val **IoU@0.25 = 59.5%** is ~3.0× the 20% gate
+and ~3.1× Part-I Stage 4's 19.5% on the same aerial task; gate cleared at **epoch 1** so
+neither reserved lever (`largest_box_aug`, `max_side=1280`) was needed. Health: parse 100%
+(fine-tune fixed base 91.8%→100%), `center_std` 215 and rising — ≈3.5× the ~61 collapse
+floor, opposite of Stage-2 collapse. The 19.5%→59.5% gain decomposes cleanly: **resolution**
+(base 512→1024 = 4.1%→30.3% zero-shot, Phase 2) **× the LoRA fine-tune** (30.3%→59.5% on top).
+Merged checkpoint `runs/v2/phase3-refdrone-1024/`. Phase 3 complete → proceed to Phase 4
+(export & deploy); HF full-val **59.5% is the fidelity reference** for the deployed GGUF.

@@ -1,0 +1,9 @@
+The tokenizer you are loading from 'runs/v2/phase3-refdrone-1024' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+`torch_dtype` is deprecated! Use `dtype` instead!
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+  [hf] 87/439  parsed=87  gate_hits=58
+  [hf] 174/439  parsed=174  gate_hits=113
+  [hf] 261/439  parsed=261  gate_hits=159
+  [hf] 348/439  parsed=348  gate_hits=208
+  [hf] 435/439  parsed=435  gate_hits=260
+[eval-only] runs/v2/phase3-refdrone-1024  n=439  parse=100.0%  iou@0.25=59.5%  mean_iou=0.451  center_std=215.2
