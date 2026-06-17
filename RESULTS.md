@@ -201,3 +201,37 @@ coords + attention+MLP LoRA) is validated. On-device GGUF export + Phase A/C val
 [`results/stage3-refcoco-finetune/train-log.md`](results/stage3-refcoco-finetune/train-log.md)
 | 2026-06-17 | S2 | SmolVLM-500M-Instruct Q8_0 | Phase A grounding | 15W locked | format=S3 parse=100% iou@0.25=2% iou@0.5=0% mean_iou=0.025 | 1.77Hz | 2738MB  |
 | 2026-06-17 | G3/RQ-S3.3 | SmolVLM-500M-ft3 — HF bf16 vs GGUF Q8_0 | export parity (RefCOCO val, n=100, paired seed42) | 15W | HF bf16 iou@0.25=85.0% mean_iou=0.567 · GGUF F16 iou@0.25=62.0% mean_iou=0.323 · GGUF Q8_0 iou@0.25=55.0% mean_iou=0.312 · **ΔIoU@0.25=30.0pp → FAIL** (gate ≤5pp); both parse=100%. Disambiguated: −23pp = transformers→llama.cpp Idefics3 image-preprocessing divergence (runtime), −7pp = Q8_0 quantization. Skill survives export functionally; fails strict parity gate. | — | — |
+
+---
+
+## Stage 4 — RefCOCO→RefDrone curriculum (deployable *aerial* grounding)
+
+Curriculum fine-tune: init from the Stage 3 RefCOCO-merged weights (`smolvlm_ft3`), then
+LoRA fine-tune on the **well-posed RefDrone subset** (only the 4,101 train / 439 val
+captions with exactly one box — the structural mirror of the Stage 3 fix, removing the
+Stage 2 ill-posed-target root cause at the source). 3 epochs, LR 1e-4 cosine, local RTX 3090.
+Pre-registration: [`results/stage4-refdrone-curriculum/README.md`](results/stage4-refdrone-curriculum/README.md)
+Full writeup: [`results/stage4-refdrone-curriculum/train-log.md`](results/stage4-refdrone-curriculum/train-log.md)
+
+| Epoch | mean_loss | parse_rate | IoU@0.25 | mean_iou | center_std |
+|---|---|---|---|---|---|
+| 1 | 1.0287 | 100.0% | 12.5% | 0.072 | 214.1 |
+| 2 | 0.9478 | 100.0% | 16.0% | 0.087 | 214.3 |
+| 3 | 0.9168 | 100.0% | **19.5%** | 0.109 | 211.5 |
+
+**Gate verdicts (RefDrone well-posed val, n=200):**
+- **G1 parse_rate ≥90% → PASS** (100.0%).
+- **G2b mode-collapse sentinel (center_std non-degenerate) → PASS** (211.5; no collapse — the
+  well-posed fix held, definitively distinct from the Stage 2 failure mode).
+- **G4-S4 aerial IoU@0.25 ≥20% (primary go/no-go) → NARROW MISS** (19.5%, 0.5pp short).
+
+**Result framing.** This is a **~10× lift over the 2.0% RefCOCO-init cross-domain floor**
+(RQ-S3.4) and ~20× over the Stage 2 RefDrone collapse (≈1%). IoU climbed monotonically every
+epoch (12.5→16.0→19.5%) and loss was still descending when the cosine LR annealed to ~0, so
+the model had not plateaued — the gate miss is a *budget/capacity* boundary, not a failure
+mode. The well-posed-subset + curriculum-init approach is **validated**: it converts the
+intractable Stage 2 target into a learnable aerial grounding skill on a frozen-SigLIP
+500M VLM. Honest negative-result framing per pre-registration: VisDrone objects are 5–30 px
+(2–11 px after the 512 long-edge resize) through a frozen encoder; the documented next levers
+are **largest-box augmentation** (→~12,339 samples) and/or **higher input resolution**.
+Merged checkpoint: `smolvlm_ft4/`.

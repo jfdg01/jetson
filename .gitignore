@@ -3,6 +3,7 @@
 .venv-ft/
 smolvlm_ft/
 smolvlm_ft3/
+smolvlm_ft4/
 __pycache__/
 *.pyc
 .pytest_cache/
