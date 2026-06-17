@@ -246,3 +246,18 @@ Merged checkpoint: `smolvlm_ft4/`.
 # Part II — Principled rebuild (v2)
 
 <!-- v2 campaign result rows are appended below, in chronological order. -->
+
+## Phase 0 — Backend-fidelity harness (2026-06-17)
+
+Backend-agnostic eval spine (HF / GGUF / Jetson behind one interface, all importing
+`grounding.contract`) + HF↔GGUF parity probe, run *before* any GPU training so the
+deployment-fidelity gap is a known quantity. Spine picked by the numbers.
+Full writeup: [`results/2026-06-17-phase0-backend-fidelity/`](results/2026-06-17-phase0-backend-fidelity/README.md)
+
+Eval set: RefCOCO `validation`, seed-42 shuffle, first N (same subset construction as
+the Part-I Stage-3 trainer). Local RTX 3090; `.venv-ft` (torch 2.6.0+cu124). Metrics
+from the shared contract (IoU@0.25, parse_rate, mean IoU, `center_std`).
+
+| Date | Step | Backend | Model | n | IoU@0.25 | parse_rate | mean IoU | center_std | Manifest | Verdict |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2026-06-17 | 0a anchor | HF bf16 | smolvlm_ft3 | 100 | **85.0%** | 100.0% | 0.567 | 187.8 | `runs/20260617T115913Z` | ✅ reproduces Part-I 82.5% (n=200) |

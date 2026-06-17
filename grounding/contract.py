@@ -27,6 +27,11 @@ COORD_SCALE    = 1000     # normalized coordinate range [0, COORD_SCALE]
 SEED           = 42
 MAX_NEW_TOKENS = 64       # response cap for grounding eval calls
 
+# Part-I incumbent base model + the Phase-0 default spine, pending the Phase-0c
+# data-driven spine selection (SmolVLM vs a grounding-native candidate). Also used
+# as the base-processor fallback when a merged checkpoint's own processor won't load.
+MODEL_ID       = "HuggingFaceTB/SmolVLM-500M-Instruct"
+
 # UNIFIED prompt — must match every consumer (probe, train, export, Phase C) verbatim.
 # Lifted byte-identical from experiments/legacy/run_stage3_finetune.py.
 GROUNDING_PROMPT = (
