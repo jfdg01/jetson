@@ -272,3 +272,34 @@ from the shared contract (IoU@0.25, parse_rate, mean IoU, `center_std`).
 (15% vs SmolVLM-base 0%), deployment fidelity gap −2pp ≪ SmolVLM-ft3's −16pp (0b), and
 native dynamic resolution attacks the tiny-object resolution ceiling (constraint #2).
 Phase 0 complete → proceed to Phase 1 (dataset audit gate).
+
+## Phase 1 — Dataset audit gate (2026-06-17)
+
+Box-per-caption + object-size distributions computed and baked into the canonical
+schema *before* any GPU run — the gate that would have caught the Stage-2 ill-posed
+target for free. CPU-only annotation statistics (no model, no images decoded).
+Full writeup: [`results/2026-06-17-phase1-dataset-audit/`](results/2026-06-17-phase1-dataset-audit/README.md)
+
+**RQ-1.1 — well-posedness (box-per-caption).** The Stage-2 sentinel reproduces exactly.
+
+| Split | Captions | Real boxes | Mean boxes/caption | Well-posed (=1 box) | Trainable budget | Manifest |
+|---|---|---|---|---|---|---|
+| RefDrone train | 12 339 | 46 874 | **3.80** | 4 101 (**33.2%**) | **4 101** (0 missing) | `runs/20260617T173529Z-audit-refdrone-train` |
+| RefDrone val | 1 421 | 4 734 | **3.33** | 439 (**30.9%**) | **439** (0 missing) | `runs/20260617T173529Z-audit-refdrone-val` |
+| RefCOCO val (control) | 2 000 | 2 000 | **1.00** | 2 000 (**100%**) | 2 000 | `runs/20260617T173532Z-audit-refcoco-validation` |
+
+**RQ-1.2 — object size (√area px), pre/post the 512 long-edge resize.** Constraint #2 in numbers.
+
+| Split | view | p5 | p10 | p25 | p50 | p75 | p90 | p95 |
+|---|---|---|---|---|---|---|---|---|
+| RefDrone train | pre | 17.3 | 20.8 | 29.5 | 47.3 | 76.8 | 115.3 | 149.3 |
+| RefDrone train | **@512** | **6.0** | 7.2 | **10.2** | **15.9** | 25.4 | 38.6 | 49.7 |
+| RefDrone val | @512 | 5.5 | 6.5 | 9.4 | 14.6 | 23.8 | 35.9 | 44.7 |
+| RefCOCO val (control) | @512 | 106.9 | 116.1 | 136.4 | **172.0** | 224.4 | 281.6 | 327.2 |
+
+**Phase 1 gate ✅** — the well-posed RefDrone target is one-box-per-caption by construction
+(`assert_well_posed` FAILS raw 0.332 / PASSES filtered 1.000), trainable budget known
+(**4 101 train / 439 val**, 0 missing), and the aerial object-size distribution quantified.
+The two gating numbers: **33% of captions usable** (small budget → favours RefCOCO warm-start +
+`largest_box_aug` lever) and **median object ≈16 px / bottom-quartile 6–10 px @512** (resolution
+is the dominant lever). Phase 1 complete → proceed to Phase 2 (resolution strategy).
