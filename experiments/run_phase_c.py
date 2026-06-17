@@ -90,7 +90,11 @@ GZ_CAM_TOPIC    = (f"/world/{GZ_WORLD_NAME}/model/downward_cam"
 GZ_SET_POSE_SVC = f"/world/{GZ_WORLD_NAME}/set_pose"
 ARDUPILOT_GZ_BUILD = Path.home() / "ardupilot_gazebo/build"
 
-# VLM prompt format (Phase A Format A; higher parse rate for S2)
+# VLM prompt/coordinate format. Shared verbatim with run_grounding_probe.py:
+#   "A"  = zero-shot baseline JSON pixel format (Stage 1/2 baseline)
+#   "S3" = Stage 3 unified normalized-0-1000 prompt (fine-tuned checkpoints)
+# Set at runtime in main() from --coord-format (auto S3 when a FT --vlm-model is given).
+COORD_FORMAT       = "A"
 DEFAULT_EXPRESSION = "the vehicle"
 DEFAULT_VLM_MODEL  = "~/models/SmolVLM-500M-Instruct-Q8_0.gguf"
 DEFAULT_MMPROJ     = "~/models/mmproj-SmolVLM-500M-Instruct-f16.gguf"
@@ -421,7 +425,9 @@ def _vlm_grounding_thread(
 
     REQUIRES: Gazebo Harmonic running and llama-server healthy on localhost:8080.
     """
-    prompt_fn = _probe.prompt_format_a
+    prompt_fn = _probe.PROMPT_FORMATS[COORD_FORMAT]
+    parse_fn  = _probe.RESPONSE_PARSERS[COORD_FORMAT]
+    print(f"[vlm-thread] coordinate format: {COORD_FORMAT}")
 
     while not stop_event.is_set():
         t_grab = time.monotonic()
@@ -450,7 +456,7 @@ def _vlm_grounding_thread(
             raw = _probe._post(payload, timeout=10)
             vlm_ms  = _probe._response_ms(raw)
             text    = _probe._response_text(raw)
-            parsed  = _probe.parse_response_a(text, FRAME_W, FRAME_H)
+            parsed  = parse_fn(text, FRAME_W, FRAME_H)
 
             if parsed is not None and parsed.is_valid(FRAME_W, FRAME_H):
                 bbox_cxcywh = xyxy_to_cxcywh(parsed.x1, parsed.y1, parsed.x2, parsed.y2)
@@ -1057,7 +1063,20 @@ def main():
     parser.add_argument("--out-dir",     default=None,
                         help="Override campaign output directory (default: results/2026-06-14-stage1-baseline). "
                              "Use for Stage 2 re-runs to avoid overwriting Stage 1 results.")
+    parser.add_argument("--coord-format", choices=["A", "B", "S3"], default=None,
+                        help="Prompt/coordinate format (default: A; auto S3 when "
+                             "--vlm-model points at a fine-tuned checkpoint).")
     args = parser.parse_args()
+
+    # Coordinate format: explicit flag wins; otherwise infer S3 for a fine-tuned
+    # checkpoint (any --vlm-model other than the zero-shot baseline GGUF).
+    global COORD_FORMAT
+    if args.coord_format:
+        COORD_FORMAT = args.coord_format
+    elif args.vlm_model != DEFAULT_VLM_MODEL:
+        COORD_FORMAT = "S3"
+    else:
+        COORD_FORMAT = "A"
 
     # Override output directory if requested (Stage 2 re-run)
     if args.out_dir:

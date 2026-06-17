@@ -1,0 +1,19 @@
+{
+  "date": "2026-06-17",
+  "n": 100,
+  "seed": 42,
+  "gate_pp": 5.0,
+  "quant": "F16",
+  "hf": {
+    "parse_rate": 1.0,
+    "iou@0.25": 0.85,
+    "mean_iou": 0.5665358033459382
+  },
+  "gguf": {
+    "parse_rate": 1.0,
+    "iou@0.25": 0.62,
+    "mean_iou": 0.32318704667953796
+  },
+  "delta_iou25_pp": 23.0,
+  "verdict": "FAIL"
+}

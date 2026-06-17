@@ -1,0 +1,577 @@
+`torch_dtype` is deprecated! Use `dtype` instead!
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[train] device: cuda | effective batch: 16
+[train] loading processor...
+[train] loading model...
+trainable params: 9,568,256 || all params: 517,050,560 || trainable%: 1.8505
+[dataset] loading RefCOCO 'train' from jxu124/refcoco
+[dataset] 120624 caption-box pairs (0 refs skipped: image not found)
+[dataset] using 50000 samples
+[dataset] loading RefCOCO 'validation' from jxu124/refcoco
+[dataset] 10834 caption-box pairs (0 refs skipped: image not found)
+[dataset] using 200 samples
+  E1 step 0/25000  loss=1.8928  lr=2.00e-04  3s
+  E1 step 50/25000  loss=1.3840  lr=2.00e-04  79s
+  E1 step 100/25000  loss=1.2134  lr=2.00e-04  156s
+  E1 step 150/25000  loss=1.1480  lr=2.00e-04  232s
+  E1 step 200/25000  loss=1.1666  lr=2.00e-04  311s
+  E1 step 250/25000  loss=1.1859  lr=2.00e-04  391s
+  E1 step 300/25000  loss=1.2333  lr=2.00e-04  470s
+  E1 step 350/25000  loss=1.1909  lr=2.00e-04  550s
+  E1 step 400/25000  loss=1.1239  lr=2.00e-04  629s
+  E1 step 450/25000  loss=1.2537  lr=2.00e-04  708s
+  E1 step 500/25000  loss=1.1683  lr=2.00e-04  789s
+  E1 step 550/25000  loss=1.1646  lr=2.00e-04  866s
+  E1 step 600/25000  loss=0.9638  lr=2.00e-04  945s
+  E1 step 650/25000  loss=1.0849  lr=2.00e-04  1022s
+  E1 step 700/25000  loss=1.1769  lr=2.00e-04  1102s
+  E1 step 750/25000  loss=1.1281  lr=2.00e-04  1181s
+  E1 step 800/25000  loss=1.2181  lr=1.99e-04  1260s
+  E1 step 850/25000  loss=1.2217  lr=1.99e-04  1340s
+  E1 step 900/25000  loss=1.1515  lr=1.99e-04  1417s
+  E1 step 950/25000  loss=1.3623  lr=1.99e-04  1496s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 1000 (global_step 1000) -> smolvlm_ft3/accel_state
+  E1 step 1000/25000  loss=0.9850  lr=1.99e-04  1575s
+  E1 step 1050/25000  loss=0.8871  lr=1.99e-04  1655s
+  E1 step 1100/25000  loss=1.2009  lr=1.99e-04  1732s
+  E1 step 1150/25000  loss=1.0958  lr=1.99e-04  1811s
+  E1 step 1200/25000  loss=1.2284  lr=1.99e-04  1891s
+  E1 step 1250/25000  loss=1.1130  lr=1.99e-04  1969s
+  E1 step 1300/25000  loss=1.1559  lr=1.99e-04  2048s
+  E1 step 1350/25000  loss=1.1714  lr=1.99e-04  2126s
+  E1 step 1400/25000  loss=1.0820  lr=1.98e-04  2203s
+  E1 step 1450/25000  loss=1.1258  lr=1.98e-04  2280s
+  E1 step 1500/25000  loss=1.2299  lr=1.98e-04  2357s
+  E1 step 1550/25000  loss=0.8847  lr=1.98e-04  2435s
+  E1 step 1600/25000  loss=1.1830  lr=1.98e-04  2514s
+  E1 step 1650/25000  loss=1.2384  lr=1.98e-04  2593s
+  E1 step 1700/25000  loss=1.0817  lr=1.98e-04  2672s
+  E1 step 1750/25000  loss=0.9580  lr=1.98e-04  2747s
+  E1 step 1800/25000  loss=1.2225  lr=1.97e-04  2827s
+  E1 step 1850/25000  loss=1.1706  lr=1.97e-04  2904s
+  E1 step 1900/25000  loss=1.2445  lr=1.97e-04  2983s
+  E1 step 1950/25000  loss=1.1353  lr=1.97e-04  3061s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 2000 (global_step 2000) -> smolvlm_ft3/accel_state
+  E1 step 2000/25000  loss=1.0531  lr=1.97e-04  3145s
+  E1 step 2050/25000  loss=0.9363  lr=1.97e-04  3224s
+  E1 step 2100/25000  loss=1.0526  lr=1.97e-04  3304s
+  E1 step 2150/25000  loss=1.1662  lr=1.96e-04  3386s
+  E1 step 2200/25000  loss=1.2483  lr=1.96e-04  3464s
+  E1 step 2250/25000  loss=1.2132  lr=1.96e-04  3544s
+  E1 step 2300/25000  loss=1.1540  lr=1.96e-04  3624s
+  E1 step 2350/25000  loss=0.9326  lr=1.96e-04  3705s
+  E1 step 2400/25000  loss=1.2187  lr=1.95e-04  3785s
+  E1 step 2450/25000  loss=1.0733  lr=1.95e-04  3865s
+  E1 step 2500/25000  loss=1.1135  lr=1.95e-04  3945s
+  E1 step 2550/25000  loss=1.1298  lr=1.95e-04  4026s
+  E1 step 2600/25000  loss=1.0107  lr=1.95e-04  4106s
+  E1 step 2650/25000  loss=0.6962  lr=1.95e-04  4184s
+  E1 step 2700/25000  loss=1.1356  lr=1.94e-04  4262s
+  E1 step 2750/25000  loss=1.1191  lr=1.94e-04  4341s
+  E1 step 2800/25000  loss=1.2209  lr=1.94e-04  4420s
+  E1 step 2850/25000  loss=1.1003  lr=1.94e-04  4498s
+  E1 step 2900/25000  loss=1.1530  lr=1.93e-04  4578s
+  E1 step 2950/25000  loss=1.0753  lr=1.93e-04  4656s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 3000 (global_step 3000) -> smolvlm_ft3/accel_state
+  E1 step 3000/25000  loss=1.1885  lr=1.93e-04  4739s
+  E1 step 3050/25000  loss=1.2066  lr=1.93e-04  4817s
+  E1 step 3100/25000  loss=1.1216  lr=1.93e-04  4896s
+  E1 step 3150/25000  loss=1.0826  lr=1.92e-04  4975s
+  E1 step 3200/25000  loss=1.2219  lr=1.92e-04  5054s
+  E1 step 3250/25000  loss=1.1129  lr=1.92e-04  5132s
+  E1 step 3300/25000  loss=1.1330  lr=1.92e-04  5210s
+  E1 step 3350/25000  loss=0.9225  lr=1.91e-04  5289s
+  E1 step 3400/25000  loss=0.8648  lr=1.91e-04  5366s
+  E1 step 3450/25000  loss=1.0920  lr=1.91e-04  5445s
+  E1 step 3500/25000  loss=0.9471  lr=1.91e-04  5523s
+  E1 step 3550/25000  loss=1.1875  lr=1.90e-04  5604s
+  E1 step 3600/25000  loss=1.0635  lr=1.90e-04  5681s
+  E1 step 3650/25000  loss=0.9908  lr=1.90e-04  5759s
+  E1 step 3700/25000  loss=1.0704  lr=1.89e-04  5837s
+  E1 step 3750/25000  loss=1.1927  lr=1.89e-04  5915s
+  E1 step 3800/25000  loss=1.0945  lr=1.89e-04  5997s
+  E1 step 3850/25000  loss=1.0140  lr=1.89e-04  6077s
+  E1 step 3900/25000  loss=0.9265  lr=1.88e-04  6155s
+  E1 step 3950/25000  loss=1.2464  lr=1.88e-04  6233s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 4000 (global_step 4000) -> smolvlm_ft3/accel_state
+  E1 step 4000/25000  loss=1.1653  lr=1.88e-04  6316s
+  E1 step 4050/25000  loss=1.0788  lr=1.87e-04  6395s
+  E1 step 4100/25000  loss=1.0851  lr=1.87e-04  6473s
+  E1 step 4150/25000  loss=0.9937  lr=1.87e-04  6550s
+  E1 step 4200/25000  loss=1.0100  lr=1.86e-04  6627s
+  E1 step 4250/25000  loss=1.2052  lr=1.86e-04  6705s
+  E1 step 4300/25000  loss=0.9946  lr=1.86e-04  6784s
+  E1 step 4350/25000  loss=1.0652  lr=1.85e-04  6861s
+  E1 step 4400/25000  loss=1.1843  lr=1.85e-04  6941s
+  E1 step 4450/25000  loss=0.9810  lr=1.85e-04  7019s
+  E1 step 4500/25000  loss=1.0065  lr=1.84e-04  7097s
+  E1 step 4550/25000  loss=1.1045  lr=1.84e-04  7174s
+  E1 step 4600/25000  loss=1.0693  lr=1.84e-04  7251s
+  E1 step 4650/25000  loss=1.0956  lr=1.83e-04  7328s
+  E1 step 4700/25000  loss=0.9288  lr=1.83e-04  7408s
+  E1 step 4750/25000  loss=0.8283  lr=1.83e-04  7487s
+  E1 step 4800/25000  loss=1.1668  lr=1.82e-04  7567s
+  E1 step 4850/25000  loss=1.0016  lr=1.82e-04  7647s
+  E1 step 4900/25000  loss=0.8100  lr=1.82e-04  7726s
+  E1 step 4950/25000  loss=1.1141  lr=1.81e-04  7804s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 5000 (global_step 5000) -> smolvlm_ft3/accel_state
+  E1 step 5000/25000  loss=1.1035  lr=1.81e-04  7888s
+  E1 step 5050/25000  loss=0.9392  lr=1.81e-04  7965s
+  E1 step 5100/25000  loss=1.0713  lr=1.80e-04  8043s
+  E1 step 5150/25000  loss=1.0091  lr=1.80e-04  8122s
+  E1 step 5200/25000  loss=1.2416  lr=1.79e-04  8199s
+  E1 step 5250/25000  loss=1.0047  lr=1.79e-04  8278s
+  E1 step 5300/25000  loss=0.9487  lr=1.79e-04  8355s
+  E1 step 5350/25000  loss=1.1300  lr=1.78e-04  8433s
+  E1 step 5400/25000  loss=0.9034  lr=1.78e-04  8511s
+  E1 step 5450/25000  loss=0.9886  lr=1.77e-04  8590s
+  E1 step 5500/25000  loss=1.0704  lr=1.77e-04  8668s
+  E1 step 5550/25000  loss=1.0479  lr=1.77e-04  8747s
+  E1 step 5600/25000  loss=1.0320  lr=1.76e-04  8825s
+  E1 step 5650/25000  loss=1.0926  lr=1.76e-04  8904s
+  E1 step 5700/25000  loss=1.1570  lr=1.75e-04  8981s
+  E1 step 5750/25000  loss=1.1473  lr=1.75e-04  9060s
+  E1 step 5800/25000  loss=0.8246  lr=1.75e-04  9137s
+  E1 step 5850/25000  loss=1.0286  lr=1.74e-04  9217s
+  E1 step 5900/25000  loss=1.1968  lr=1.74e-04  9293s
+  E1 step 5950/25000  loss=1.0637  lr=1.73e-04  9373s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 6000 (global_step 6000) -> smolvlm_ft3/accel_state
+  E1 step 6000/25000  loss=0.8651  lr=1.73e-04  9457s
+  E1 step 6050/25000  loss=1.1500  lr=1.72e-04  9536s
+  E1 step 6100/25000  loss=1.1554  lr=1.72e-04  9613s
+  E1 step 6150/25000  loss=0.8157  lr=1.72e-04  9690s
+  E1 step 6200/25000  loss=0.9887  lr=1.71e-04  9768s
+  E1 step 6250/25000  loss=1.0503  lr=1.71e-04  9845s
+  E1 step 6300/25000  loss=0.9795  lr=1.70e-04  9924s
+  E1 step 6350/25000  loss=1.0195  lr=1.70e-04  10004s
+  E1 step 6400/25000  loss=1.0254  lr=1.69e-04  10083s
+  E1 step 6450/25000  loss=0.9906  lr=1.69e-04  10163s
+  E1 step 6500/25000  loss=1.0030  lr=1.68e-04  10241s
+  E1 step 6550/25000  loss=1.0185  lr=1.68e-04  10321s
+  E1 step 6600/25000  loss=1.1296  lr=1.68e-04  10399s
+  E1 step 6650/25000  loss=1.0831  lr=1.67e-04  10478s
+  E1 step 6700/25000  loss=0.9211  lr=1.67e-04  10558s
+  E1 step 6750/25000  loss=1.0979  lr=1.66e-04  10638s
+  E1 step 6800/25000  loss=1.0838  lr=1.66e-04  10718s
+  E1 step 6850/25000  loss=1.0277  lr=1.65e-04  10795s
+  E1 step 6900/25000  loss=1.0744  lr=1.65e-04  10873s
+  E1 step 6950/25000  loss=1.0474  lr=1.64e-04  10952s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 7000 (global_step 7000) -> smolvlm_ft3/accel_state
+  E1 step 7000/25000  loss=1.0133  lr=1.64e-04  11035s
+  E1 step 7050/25000  loss=1.0201  lr=1.63e-04  11115s
+  E1 step 7100/25000  loss=0.9600  lr=1.63e-04  11195s
+  E1 step 7150/25000  loss=1.1338  lr=1.62e-04  11275s
+  E1 step 7200/25000  loss=1.0260  lr=1.62e-04  11356s
+  E1 step 7250/25000  loss=1.2559  lr=1.61e-04  11436s
+  E1 step 7300/25000  loss=1.0656  lr=1.61e-04  11513s
+  E1 step 7350/25000  loss=0.9524  lr=1.60e-04  11591s
+  E1 step 7400/25000  loss=1.0507  lr=1.60e-04  11671s
+  E1 step 7450/25000  loss=0.9311  lr=1.59e-04  11750s
+  E1 step 7500/25000  loss=0.9673  lr=1.59e-04  11830s
+  E1 step 7550/25000  loss=0.9802  lr=1.58e-04  11910s
+  E1 step 7600/25000  loss=1.0339  lr=1.58e-04  11989s
+  E1 step 7650/25000  loss=1.0164  lr=1.57e-04  12067s
+  E1 step 7700/25000  loss=0.9681  lr=1.57e-04  12145s
+  E1 step 7750/25000  loss=1.0758  lr=1.56e-04  12224s
+  E1 step 7800/25000  loss=1.1601  lr=1.56e-04  12301s
+  E1 step 7850/25000  loss=1.1780  lr=1.55e-04  12380s
+  E1 step 7900/25000  loss=0.9985  lr=1.55e-04  12461s
+  E1 step 7950/25000  loss=1.0562  lr=1.54e-04  12541s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 8000 (global_step 8000) -> smolvlm_ft3/accel_state
+  E1 step 8000/25000  loss=0.8475  lr=1.54e-04  12625s
+  E1 step 8050/25000  loss=1.0087  lr=1.53e-04  12705s
+  E1 step 8100/25000  loss=1.1654  lr=1.53e-04  12784s
+  E1 step 8150/25000  loss=1.3497  lr=1.52e-04  12864s
+  E1 step 8200/25000  loss=1.0238  lr=1.51e-04  12942s
+  E1 step 8250/25000  loss=1.0593  lr=1.51e-04  13020s
+  E1 step 8300/25000  loss=1.0032  lr=1.50e-04  13097s
+  E1 step 8350/25000  loss=0.9425  lr=1.50e-04  13178s
+  E1 step 8400/25000  loss=1.0019  lr=1.49e-04  13257s
+  E1 step 8450/25000  loss=0.9866  lr=1.49e-04  13337s
+  E1 step 8500/25000  loss=1.3010  lr=1.48e-04  13418s
+  E1 step 8550/25000  loss=1.0907  lr=1.48e-04  13495s
+  E1 step 8600/25000  loss=0.9706  lr=1.47e-04  13574s
+  E1 step 8650/25000  loss=1.0135  lr=1.47e-04  13653s
+  E1 step 8700/25000  loss=1.0402  lr=1.46e-04  13731s
+  E1 step 8750/25000  loss=0.9777  lr=1.45e-04  13808s
+  E1 step 8800/25000  loss=1.0722  lr=1.45e-04  13889s
+  E1 step 8850/25000  loss=1.0952  lr=1.44e-04  13969s
+  E1 step 8900/25000  loss=0.9705  lr=1.44e-04  14048s
+  E1 step 8950/25000  loss=1.0424  lr=1.43e-04  14126s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 9000 (global_step 9000) -> smolvlm_ft3/accel_state
+  E1 step 9000/25000  loss=1.2727  lr=1.43e-04  14211s
+  E1 step 9050/25000  loss=1.1046  lr=1.42e-04  14290s
+  E1 step 9100/25000  loss=1.0872  lr=1.41e-04  14370s
+  E1 step 9150/25000  loss=1.0975  lr=1.41e-04  14450s
+  E1 step 9200/25000  loss=0.8024  lr=1.40e-04  14529s
+  E1 step 9250/25000  loss=1.1395  lr=1.40e-04  14608s
+  E1 step 9300/25000  loss=1.0586  lr=1.39e-04  14687s
+  E1 step 9350/25000  loss=1.0314  lr=1.39e-04  14765s
+  E1 step 9400/25000  loss=1.0003  lr=1.38e-04  14843s
+  E1 step 9450/25000  loss=0.9096  lr=1.37e-04  14924s
+  E1 step 9500/25000  loss=1.0175  lr=1.37e-04  15004s
+  E1 step 9550/25000  loss=1.0206  lr=1.36e-04  15083s
+  E1 step 9600/25000  loss=0.8378  lr=1.36e-04  15164s
+  E1 step 9650/25000  loss=1.0009  lr=1.35e-04  15243s
+  E1 step 9700/25000  loss=0.8363  lr=1.35e-04  15323s
+  E1 step 9750/25000  loss=0.9014  lr=1.34e-04  15401s
+  E1 step 9800/25000  loss=0.9158  lr=1.33e-04  15480s
+  E1 step 9850/25000  loss=0.7297  lr=1.33e-04  15559s
+  E1 step 9900/25000  loss=0.9673  lr=1.32e-04  15638s
+  E1 step 9950/25000  loss=1.0007  lr=1.32e-04  15719s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 10000 (global_step 10000) -> smolvlm_ft3/accel_state
+  E1 step 10000/25000  loss=0.6318  lr=1.31e-04  15802s
+  E1 step 10050/25000  loss=0.7997  lr=1.30e-04  15881s
+  E1 step 10100/25000  loss=0.9867  lr=1.30e-04  15959s
+  E1 step 10150/25000  loss=1.0298  lr=1.29e-04  16037s
+  E1 step 10200/25000  loss=0.9457  lr=1.29e-04  16115s
+  E1 step 10250/25000  loss=1.0846  lr=1.28e-04  16197s
+  E1 step 10300/25000  loss=1.0368  lr=1.27e-04  16275s
+  E1 step 10350/25000  loss=1.0770  lr=1.27e-04  16356s
+  E1 step 10400/25000  loss=0.8782  lr=1.26e-04  16434s
+  E1 step 10450/25000  loss=0.8214  lr=1.26e-04  16514s
+  E1 step 10500/25000  loss=0.8914  lr=1.25e-04  16594s
+  E1 step 10550/25000  loss=1.1275  lr=1.24e-04  16674s
+  E1 step 10600/25000  loss=0.7286  lr=1.24e-04  16755s
+  E1 step 10650/25000  loss=1.0271  lr=1.23e-04  16834s
+  E1 step 10700/25000  loss=0.9025  lr=1.22e-04  16914s
+  E1 step 10750/25000  loss=1.1154  lr=1.22e-04  16992s
+  E1 step 10800/25000  loss=1.2182  lr=1.21e-04  17072s
+  E1 step 10850/25000  loss=0.8433  lr=1.21e-04  17151s
+  E1 step 10900/25000  loss=0.8390  lr=1.20e-04  17228s
+  E1 step 10950/25000  loss=0.8430  lr=1.19e-04  17308s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 11000 (global_step 11000) -> smolvlm_ft3/accel_state
+  E1 step 11000/25000  loss=0.9682  lr=1.19e-04  17395s
+  E1 step 11050/25000  loss=1.0645  lr=1.18e-04  17474s
+  E1 step 11100/25000  loss=1.0614  lr=1.18e-04  17554s
+  E1 step 11150/25000  loss=0.8261  lr=1.17e-04  17635s
+  E1 step 11200/25000  loss=0.8890  lr=1.16e-04  17718s
+  E1 step 11250/25000  loss=0.9842  lr=1.16e-04  17798s
+  E1 step 11300/25000  loss=0.9983  lr=1.15e-04  17878s
+  E1 step 11350/25000  loss=1.1567  lr=1.14e-04  17958s
+  E1 step 11400/25000  loss=1.1084  lr=1.14e-04  18037s
+  E1 step 11450/25000  loss=0.9402  lr=1.13e-04  18119s
+  E1 step 11500/25000  loss=1.0213  lr=1.13e-04  18196s
+  E1 step 11550/25000  loss=0.9429  lr=1.12e-04  18277s
+  E1 step 11600/25000  loss=0.9853  lr=1.11e-04  18356s
+  E1 step 11650/25000  loss=1.0124  lr=1.11e-04  18437s
+  E1 step 11700/25000  loss=1.0337  lr=1.10e-04  18516s
+  E1 step 11750/25000  loss=0.9684  lr=1.09e-04  18595s
+  E1 step 11800/25000  loss=1.0960  lr=1.09e-04  18676s
+  E1 step 11850/25000  loss=0.9399  lr=1.08e-04  18755s
+  E1 step 11900/25000  loss=0.9201  lr=1.08e-04  18835s
+  E1 step 11950/25000  loss=1.0115  lr=1.07e-04  18914s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 12000 (global_step 12000) -> smolvlm_ft3/accel_state
+  E1 step 12000/25000  loss=1.0422  lr=1.06e-04  18996s
+  E1 step 12050/25000  loss=0.9866  lr=1.06e-04  19076s
+  E1 step 12100/25000  loss=0.9942  lr=1.05e-04  19156s
+  E1 step 12150/25000  loss=0.7521  lr=1.04e-04  19237s
+  E1 step 12200/25000  loss=0.8764  lr=1.04e-04  19314s
+  E1 step 12250/25000  loss=0.9590  lr=1.03e-04  19395s
+  E1 step 12300/25000  loss=0.9217  lr=1.03e-04  19475s
+  E1 step 12350/25000  loss=1.0110  lr=1.02e-04  19553s
+  E1 step 12400/25000  loss=1.2440  lr=1.01e-04  19631s
+  E1 step 12450/25000  loss=0.9623  lr=1.01e-04  19710s
+  E1 step 12500/25000  loss=0.9331  lr=1.00e-04  19789s
+  E1 step 12550/25000  loss=0.9189  lr=9.94e-05  19868s
+  E1 step 12600/25000  loss=0.9913  lr=9.87e-05  19947s
+  E1 step 12650/25000  loss=0.8706  lr=9.81e-05  20025s
+  E1 step 12700/25000  loss=0.8367  lr=9.75e-05  20106s
+  E1 step 12750/25000  loss=0.9947  lr=9.69e-05  20185s
+  E1 step 12800/25000  loss=0.9083  lr=9.62e-05  20264s
+  E1 step 12850/25000  loss=1.0127  lr=9.56e-05  20344s
+  E1 step 12900/25000  loss=1.0886  lr=9.50e-05  20422s
+  E1 step 12950/25000  loss=0.9138  lr=9.44e-05  20503s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 13000 (global_step 13000) -> smolvlm_ft3/accel_state
+  E1 step 13000/25000  loss=0.9736  lr=9.37e-05  20587s
+  E1 step 13050/25000  loss=1.0352  lr=9.31e-05  20668s
+  E1 step 13100/25000  loss=1.2631  lr=9.25e-05  20745s
+  E1 step 13150/25000  loss=0.8733  lr=9.19e-05  20824s
+  E1 step 13200/25000  loss=1.0134  lr=9.12e-05  20903s
+  E1 step 13250/25000  loss=1.0364  lr=9.06e-05  20983s
+  E1 step 13300/25000  loss=1.0326  lr=9.00e-05  21060s
+  E1 step 13350/25000  loss=1.0499  lr=8.94e-05  21140s
+  E1 step 13400/25000  loss=0.8176  lr=8.87e-05  21219s
+  E1 step 13450/25000  loss=0.9702  lr=8.81e-05  21297s
+  E1 step 13500/25000  loss=0.9542  lr=8.75e-05  21376s
+  E1 step 13550/25000  loss=0.9344  lr=8.69e-05  21455s
+  E1 step 13600/25000  loss=1.0976  lr=8.62e-05  21533s
+  E1 step 13650/25000  loss=1.0913  lr=8.56e-05  21614s
+  E1 step 13700/25000  loss=0.9773  lr=8.50e-05  21692s
+  E1 step 13750/25000  loss=1.0615  lr=8.44e-05  21771s
+  E1 step 13800/25000  loss=0.7499  lr=8.37e-05  21850s
+  E1 step 13850/25000  loss=0.9474  lr=8.31e-05  21930s
+  E1 step 13900/25000  loss=1.2512  lr=8.25e-05  22010s
+  E1 step 13950/25000  loss=0.7587  lr=8.20e-05  22089s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 14000 (global_step 14000) -> smolvlm_ft3/accel_state
+  E1 step 14000/25000  loss=0.9277  lr=8.13e-05  22174s
+  E1 step 14050/25000  loss=0.9753  lr=8.07e-05  22254s
+  E1 step 14100/25000  loss=0.9519  lr=8.01e-05  22334s
+  E1 step 14150/25000  loss=0.9272  lr=7.95e-05  22414s
+  E1 step 14200/25000  loss=1.0758  lr=7.88e-05  22492s
+  E1 step 14250/25000  loss=1.0117  lr=7.82e-05  22572s
+  E1 step 14300/25000  loss=1.0390  lr=7.76e-05  22654s
+  E1 step 14350/25000  loss=0.8380  lr=7.70e-05  22734s
+  E1 step 14400/25000  loss=0.9986  lr=7.64e-05  22813s
+  E1 step 14450/25000  loss=0.9914  lr=7.58e-05  22891s
+  E1 step 14500/25000  loss=1.0756  lr=7.52e-05  22971s
+  E1 step 14550/25000  loss=1.3818  lr=7.46e-05  23051s
+  E1 step 14600/25000  loss=1.0432  lr=7.39e-05  23129s
+  E1 step 14650/25000  loss=0.8953  lr=7.33e-05  23210s
+  E1 step 14700/25000  loss=0.9777  lr=7.28e-05  23290s
+  E1 step 14750/25000  loss=0.9635  lr=7.22e-05  23370s
+  E1 step 14800/25000  loss=0.9536  lr=7.15e-05  23451s
+  E1 step 14850/25000  loss=0.9983  lr=7.09e-05  23533s
+  E1 step 14900/25000  loss=1.0447  lr=7.03e-05  23612s
+  E1 step 14950/25000  loss=0.7343  lr=6.98e-05  23693s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 15000 (global_step 15000) -> smolvlm_ft3/accel_state
+  E1 step 15000/25000  loss=1.1183  lr=6.91e-05  23778s
+  E1 step 15050/25000  loss=1.0984  lr=6.85e-05  23859s
+  E1 step 15100/25000  loss=0.8758  lr=6.80e-05  23937s
+  E1 step 15150/25000  loss=0.9646  lr=6.74e-05  24016s
+  E1 step 15200/25000  loss=0.9416  lr=6.67e-05  24095s
+  E1 step 15250/25000  loss=0.9329  lr=6.61e-05  24172s
+  E1 step 15300/25000  loss=0.9970  lr=6.56e-05  24254s
+  E1 step 15350/25000  loss=0.8421  lr=6.50e-05  24333s
+  E1 step 15400/25000  loss=0.9494  lr=6.44e-05  24414s
+  E1 step 15450/25000  loss=1.2059  lr=6.38e-05  24493s
+  E1 step 15500/25000  loss=1.0066  lr=6.32e-05  24572s
+  E1 step 15550/25000  loss=0.8494  lr=6.27e-05  24653s
+  E1 step 15600/25000  loss=0.9382  lr=6.20e-05  24731s
+  E1 step 15650/25000  loss=1.0818  lr=6.15e-05  24807s
+  E1 step 15700/25000  loss=0.7548  lr=6.09e-05  24887s
+  E1 step 15750/25000  loss=1.2269  lr=6.04e-05  24966s
+  E1 step 15800/25000  loss=1.0207  lr=5.97e-05  25045s
+  E1 step 15850/25000  loss=0.6495  lr=5.92e-05  25123s
+  E1 step 15900/25000  loss=0.7623  lr=5.86e-05  25202s
+  E1 step 15950/25000  loss=1.0616  lr=5.81e-05  25282s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 16000 (global_step 16000) -> smolvlm_ft3/accel_state
+  E1 step 16000/25000  loss=0.8851  lr=5.74e-05  25366s
+  E1 step 16050/25000  loss=1.0228  lr=5.69e-05  25446s
+  E1 step 16100/25000  loss=0.8936  lr=5.63e-05  25526s
+  E1 step 16150/25000  loss=0.6564  lr=5.58e-05  25607s
+  E1 step 16200/25000  loss=0.7342  lr=5.52e-05  25688s
+  E1 step 16250/25000  loss=0.9084  lr=5.46e-05  25766s
+  E1 step 16300/25000  loss=0.7931  lr=5.41e-05  25848s
+  E1 step 16350/25000  loss=0.8492  lr=5.36e-05  25928s
+  E1 step 16400/25000  loss=1.0788  lr=5.29e-05  26007s
+  E1 step 16450/25000  loss=1.1828  lr=5.24e-05  26085s
+  E1 step 16500/25000  loss=0.9086  lr=5.19e-05  26163s
+  E1 step 16550/25000  loss=0.8831  lr=5.13e-05  26243s
+  E1 step 16600/25000  loss=1.1535  lr=5.07e-05  26319s
+  E1 step 16650/25000  loss=0.9204  lr=5.02e-05  26398s
+  E1 step 16700/25000  loss=0.8114  lr=4.97e-05  26477s
+  E1 step 16750/25000  loss=1.0441  lr=4.92e-05  26558s
+  E1 step 16800/25000  loss=0.8941  lr=4.86e-05  26637s
+  E1 step 16850/25000  loss=0.9399  lr=4.80e-05  26716s
+  E1 step 16900/25000  loss=0.5691  lr=4.75e-05  26794s
+  E1 step 16950/25000  loss=0.9882  lr=4.70e-05  26873s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 17000 (global_step 17000) -> smolvlm_ft3/accel_state
+  E1 step 17000/25000  loss=1.0313  lr=4.64e-05  26957s
+  E1 step 17050/25000  loss=0.8009  lr=4.59e-05  27036s
+  E1 step 17100/25000  loss=1.0160  lr=4.54e-05  27116s
+  E1 step 17150/25000  loss=1.0410  lr=4.49e-05  27195s
+  E1 step 17200/25000  loss=1.0272  lr=4.43e-05  27275s
+  E1 step 17250/25000  loss=0.7784  lr=4.38e-05  27356s
+  E1 step 17300/25000  loss=0.9405  lr=4.33e-05  27433s
+  E1 step 17350/25000  loss=0.8777  lr=4.28e-05  27514s
+  E1 step 17400/25000  loss=1.1875  lr=4.22e-05  27594s
+  E1 step 17450/25000  loss=1.0804  lr=4.18e-05  27672s
+  E1 step 17500/25000  loss=1.0284  lr=4.13e-05  27752s
+  E1 step 17550/25000  loss=0.9956  lr=4.08e-05  27832s
+  E1 step 17600/25000  loss=0.7227  lr=4.02e-05  27913s
+  E1 step 17650/25000  loss=1.0215  lr=3.97e-05  27991s
+  E1 step 17700/25000  loss=0.9990  lr=3.92e-05  28069s
+  E1 step 17750/25000  loss=1.0004  lr=3.88e-05  28149s
+  E1 step 17800/25000  loss=0.8845  lr=3.82e-05  28229s
+  E1 step 17850/25000  loss=0.9562  lr=3.77e-05  28309s
+  E1 step 17900/25000  loss=0.7621  lr=3.73e-05  28388s
+  E1 step 17950/25000  loss=0.9482  lr=3.68e-05  28468s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 18000 (global_step 18000) -> smolvlm_ft3/accel_state
+  E1 step 18000/25000  loss=1.0297  lr=3.63e-05  28551s
+  E1 step 18050/25000  loss=0.9999  lr=3.58e-05  28631s
+  E1 step 18100/25000  loss=0.9825  lr=3.53e-05  28711s
+  E1 step 18150/25000  loss=0.9119  lr=3.49e-05  28790s
+  E1 step 18200/25000  loss=0.9856  lr=3.43e-05  28867s
+  E1 step 18250/25000  loss=0.9550  lr=3.39e-05  28947s
+  E1 step 18300/25000  loss=0.8213  lr=3.34e-05  29027s
+  E1 step 18350/25000  loss=0.9295  lr=3.30e-05  29105s
+  E1 step 18400/25000  loss=0.9403  lr=3.25e-05  29185s
+  E1 step 18450/25000  loss=0.8017  lr=3.20e-05  29265s
+  E1 step 18500/25000  loss=0.8918  lr=3.16e-05  29344s
+  E1 step 18550/25000  loss=0.9630  lr=3.11e-05  29424s
+  E1 step 18600/25000  loss=1.0942  lr=3.06e-05  29503s
+  E1 step 18650/25000  loss=0.9961  lr=3.02e-05  29580s
+  E1 step 18700/25000  loss=1.0841  lr=2.98e-05  29659s
+  E1 step 18750/25000  loss=1.0520  lr=2.93e-05  29738s
+  E1 step 18800/25000  loss=0.7136  lr=2.88e-05  29816s
+  E1 step 18850/25000  loss=0.9365  lr=2.84e-05  29894s
+  E1 step 18900/25000  loss=0.8030  lr=2.80e-05  29971s
+  E1 step 18950/25000  loss=0.8179  lr=2.76e-05  30048s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 19000 (global_step 19000) -> smolvlm_ft3/accel_state
+  E1 step 19000/25000  loss=0.8509  lr=2.71e-05  30131s
+  E1 step 19050/25000  loss=0.9716  lr=2.67e-05  30211s
+  E1 step 19100/25000  loss=0.9453  lr=2.63e-05  30289s
+  E1 step 19150/25000  loss=0.9170  lr=2.59e-05  30370s
+  E1 step 19200/25000  loss=0.7432  lr=2.54e-05  30447s
+  E1 step 19250/25000  loss=1.2102  lr=2.50e-05  30526s
+  E1 step 19300/25000  loss=1.0125  lr=2.46e-05  30605s
+  E1 step 19350/25000  loss=0.9197  lr=2.42e-05  30685s
+  E1 step 19400/25000  loss=0.8738  lr=2.38e-05  30764s
+  E1 step 19450/25000  loss=1.1287  lr=2.34e-05  30842s
+  E1 step 19500/25000  loss=1.1543  lr=2.30e-05  30924s
+  E1 step 19550/25000  loss=0.8963  lr=2.26e-05  31002s
+  E1 step 19600/25000  loss=0.9183  lr=2.22e-05  31081s
+  E1 step 19650/25000  loss=1.1096  lr=2.18e-05  31160s
+  E1 step 19700/25000  loss=0.7777  lr=2.14e-05  31240s
+  E1 step 19750/25000  loss=1.0094  lr=2.10e-05  31318s
+  E1 step 19800/25000  loss=1.0794  lr=2.06e-05  31397s
+  E1 step 19850/25000  loss=0.8334  lr=2.02e-05  31478s
+  E1 step 19900/25000  loss=1.0728  lr=1.99e-05  31558s
+  E1 step 19950/25000  loss=0.7611  lr=1.95e-05  31640s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 20000 (global_step 20000) -> smolvlm_ft3/accel_state
+  E1 step 20000/25000  loss=0.8812  lr=1.91e-05  31725s
+  E1 step 20050/25000  loss=0.9693  lr=1.87e-05  31804s
+  E1 step 20100/25000  loss=0.9213  lr=1.84e-05  31881s
+  E1 step 20150/25000  loss=0.7931  lr=1.80e-05  31960s
+  E1 step 20200/25000  loss=0.9576  lr=1.76e-05  32038s
+  E1 step 20250/25000  loss=0.7011  lr=1.73e-05  32116s
+  E1 step 20300/25000  loss=0.7972  lr=1.70e-05  32194s
+  E1 step 20350/25000  loss=0.9831  lr=1.66e-05  32271s
+  E1 step 20400/25000  loss=0.7405  lr=1.62e-05  32353s
+  E1 step 20450/25000  loss=1.0550  lr=1.59e-05  32430s
+  E1 step 20500/25000  loss=0.8279  lr=1.56e-05  32509s
+  E1 step 20550/25000  loss=0.8241  lr=1.53e-05  32588s
+  E1 step 20600/25000  loss=0.8182  lr=1.49e-05  32668s
+  E1 step 20650/25000  loss=0.9375  lr=1.46e-05  32745s
+  E1 step 20700/25000  loss=0.8436  lr=1.43e-05  32824s
+  E1 step 20750/25000  loss=0.7674  lr=1.40e-05  32905s
+  E1 step 20800/25000  loss=0.9836  lr=1.36e-05  32984s
+  E1 step 20850/25000  loss=0.8216  lr=1.33e-05  33061s
+  E1 step 20900/25000  loss=0.9521  lr=1.30e-05  33140s
+  E1 step 20950/25000  loss=1.1094  lr=1.27e-05  33220s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 21000 (global_step 21000) -> smolvlm_ft3/accel_state
+  E1 step 21000/25000  loss=0.8750  lr=1.24e-05  33303s
+  E1 step 21050/25000  loss=1.2119  lr=1.21e-05  33383s
+  E1 step 21100/25000  loss=0.9861  lr=1.18e-05  33461s
+  E1 step 21150/25000  loss=1.0404  lr=1.15e-05  33539s
+  E1 step 21200/25000  loss=0.8366  lr=1.12e-05  33619s
+  E1 step 21250/25000  loss=1.2822  lr=1.09e-05  33697s
+  E1 step 21300/25000  loss=0.9766  lr=1.06e-05  33773s
+  E1 step 21350/25000  loss=1.1277  lr=1.04e-05  33852s
+  E1 step 21400/25000  loss=1.0101  lr=1.01e-05  33930s
+  E1 step 21450/25000  loss=0.9112  lr=9.80e-06  34008s
+  E1 step 21500/25000  loss=0.9696  lr=9.54e-06  34086s
+  E1 step 21550/25000  loss=0.8696  lr=9.28e-06  34164s
+  E1 step 21600/25000  loss=0.8781  lr=8.99e-06  34243s
+  E1 step 21650/25000  loss=0.9382  lr=8.74e-06  34323s
+  E1 step 21700/25000  loss=0.8504  lr=8.50e-06  34403s
+  E1 step 21750/25000  loss=0.8779  lr=8.25e-06  34481s
+  E1 step 21800/25000  loss=0.9024  lr=7.98e-06  34558s
+  E1 step 21850/25000  loss=0.8128  lr=7.74e-06  34637s
+  E1 step 21900/25000  loss=0.9008  lr=7.51e-06  34716s
+  E1 step 21950/25000  loss=1.0420  lr=7.28e-06  34795s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 22000 (global_step 22000) -> smolvlm_ft3/accel_state
+  E1 step 22000/25000  loss=0.8903  lr=7.02e-06  34880s
+  E1 step 22050/25000  loss=0.9631  lr=6.80e-06  34960s
+  E1 step 22100/25000  loss=1.0225  lr=6.59e-06  35039s
+  E1 step 22150/25000  loss=0.9143  lr=6.37e-06  35117s
+  E1 step 22200/25000  loss=0.9430  lr=6.13e-06  35194s
+  E1 step 22250/25000  loss=0.9324  lr=5.92e-06  35273s
+  E1 step 22300/25000  loss=1.0174  lr=5.72e-06  35354s
+  E1 step 22350/25000  loss=0.8648  lr=5.52e-06  35431s
+  E1 step 22400/25000  loss=1.0136  lr=5.29e-06  35510s
+  E1 step 22450/25000  loss=0.8524  lr=5.10e-06  35589s
+  E1 step 22500/25000  loss=0.9254  lr=4.91e-06  35666s
+  E1 step 22550/25000  loss=0.9516  lr=4.72e-06  35746s
+  E1 step 22600/25000  loss=1.0712  lr=4.51e-06  35825s
+  E1 step 22650/25000  loss=0.7955  lr=4.34e-06  35905s
+  E1 step 22700/25000  loss=1.2573  lr=4.16e-06  35985s
+  E1 step 22750/25000  loss=0.9591  lr=3.99e-06  36066s
+  E1 step 22800/25000  loss=0.9614  lr=3.80e-06  36146s
+  E1 step 22850/25000  loss=0.9513  lr=3.63e-06  36224s
+  E1 step 22900/25000  loss=1.0335  lr=3.47e-06  36303s
+  E1 step 22950/25000  loss=0.9760  lr=3.32e-06  36381s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 23000 (global_step 23000) -> smolvlm_ft3/accel_state
+  E1 step 23000/25000  loss=1.0444  lr=3.14e-06  36466s
+  E1 step 23050/25000  loss=0.9496  lr=2.99e-06  36544s
+  E1 step 23100/25000  loss=0.7350  lr=2.85e-06  36620s
+  E1 step 23150/25000  loss=0.8864  lr=2.71e-06  36698s
+  E1 step 23200/25000  loss=0.7366  lr=2.55e-06  36777s
+  E1 step 23250/25000  loss=1.0314  lr=2.41e-06  36855s
+  E1 step 23300/25000  loss=0.9707  lr=2.28e-06  36934s
+  E1 step 23350/25000  loss=0.9053  lr=2.16e-06  37013s
+  E1 step 23400/25000  loss=0.7966  lr=2.01e-06  37092s
+  E1 step 23450/25000  loss=1.2363  lr=1.90e-06  37170s
+  E1 step 23500/25000  loss=1.1383  lr=1.78e-06  37249s
+  E1 step 23550/25000  loss=0.9165  lr=1.67e-06  37327s
+  E1 step 23600/25000  loss=1.0520  lr=1.54e-06  37405s
+  E1 step 23650/25000  loss=0.9630  lr=1.44e-06  37483s
+  E1 step 23700/25000  loss=0.8655  lr=1.34e-06  37563s
+  E1 step 23750/25000  loss=0.8355  lr=1.24e-06  37640s
+  E1 step 23800/25000  loss=0.8660  lr=1.13e-06  37718s
+  E1 step 23850/25000  loss=0.9258  lr=1.05e-06  37796s
+  E1 step 23900/25000  loss=0.9858  lr=9.61e-07  37875s
+  E1 step 23950/25000  loss=1.0270  lr=8.79e-07  37953s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 24000 (global_step 24000) -> smolvlm_ft3/accel_state
+  E1 step 24000/25000  loss=1.1902  lr=7.89e-07  38041s
+  E1 step 24050/25000  loss=1.0615  lr=7.15e-07  38120s
+  E1 step 24100/25000  loss=1.0686  lr=6.45e-07  38198s
+  E1 step 24150/25000  loss=0.8644  lr=5.78e-07  38277s
+  E1 step 24200/25000  loss=1.2945  lr=5.05e-07  38356s
+  E1 step 24250/25000  loss=0.6347  lr=4.46e-07  38435s
+  E1 step 24300/25000  loss=1.0121  lr=3.91e-07  38514s
+  E1 step 24350/25000  loss=0.9151  lr=3.40e-07  38594s
+  E1 step 24400/25000  loss=0.9674  lr=2.84e-07  38673s
+  E1 step 24450/25000  loss=0.9106  lr=2.40e-07  38753s
+  E1 step 24500/25000  loss=1.0790  lr=2.00e-07  38832s
+  E1 step 24550/25000  loss=1.0021  lr=1.64e-07  38911s
+  E1 step 24600/25000  loss=0.9050  lr=1.26e-07  38989s
+  E1 step 24650/25000  loss=0.8493  lr=9.78e-08  39067s
+  E1 step 24700/25000  loss=0.9798  lr=7.30e-08  39147s
+  E1 step 24750/25000  loss=0.7949  lr=5.17e-08  39224s
+  E1 step 24800/25000  loss=1.0932  lr=3.16e-08  39303s
+  E1 step 24850/25000  loss=0.7722  lr=1.82e-08  39382s
+  E1 step 24900/25000  loss=1.2903  lr=8.54e-09  39459s
+  E1 step 24950/25000  loss=0.9244  lr=2.48e-09  39538s
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[ckpt] saved resumable state @ E1 batch 25000 (global_step 25000) -> smolvlm_ft3/accel_state
+[epoch 1] mean_loss=0.9950  (39619s total)
+[eval E1] parse_rate=100.0%  iou@0.25=82.5%  mean_iou=0.527  center_std=200.5
+    gt=[32, 209, 265, 734]  pred={"bbox": [11, 191, 231, 751]}
+    gt=[1, 556, 222, 1000]  pred={"bbox": [10, 520, 231, 989]}
+    gt=[2, 254, 1000, 988]  pred={"bbox": [1, 406, 999, 989]}
+    gt=[2, 651, 305, 1000]  pred={"bbox": [603, 620, 1000, 989]}
+    gt=[205, 67, 613, 514]  pred={"bbox": [10, 110, 441, 471]}
+    gt=[877, 54, 1000, 673]  pred={"bbox": [792, 2, 1000, 702]}
+    gt=[571, 190, 938, 1000]  pred={"bbox": [611, 200, 999, 989]}
+    gt=[608, 286, 747, 912]  pred={"bbox": [505, 370, 645, 890]}
+You are using a model of type idefics3 to instantiate a model of type smolvlm. This is not supported for all configurations of models and can yield errors.
+[train] epoch 1 adapter checkpoint saved to smolvlm_ft3/epoch1
+[train] merging LoRA adapter into base weights...
+[train] merged checkpoint saved to smolvlm_ft3
+[train] logs written to results/stage3-refcoco-finetune/raw/train_loss.csv, results/stage3-refcoco-finetune/raw/eval_iou.csv

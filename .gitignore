@@ -2,9 +2,17 @@
 .venv/
 .venv-ft/
 smolvlm_ft/
+smolvlm_ft3/
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Stage 3 model artifacts — merged checkpoint + GGUF exports (multi-GB binaries,
+# exceed GitHub's 100 MB per-file limit). Kept locally + on the Jetson; not committed.
+*.gguf
+
+# Datasets (COCO train2014, VisDrone, RefDrone cache) — tens of GB, not thesis source.
+data/
 
 # Secrets
 .hugging-face-token

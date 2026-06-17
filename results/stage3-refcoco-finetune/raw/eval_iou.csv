@@ -1,0 +1,2 @@
+epoch,parse_rate,iou@0.25,mean_iou,center_std
+1,1.0000,0.8250,0.5275,200.50

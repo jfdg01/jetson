@@ -172,3 +172,32 @@ bbox distribution. Meaningful negative result: demonstrates limit of text-only L
 spatial grounding in VLMs.
 
 Full diagnosis: [`results/stage2-finetune/train-log.md#root-cause-diagnosis`](results/stage2-finetune/train-log.md)
+
+---
+
+## Stage 3 — RefCOCO fine-tuning (methodological correction)
+
+Fine-tune SmolVLM-500M-Instruct on RefCOCO referring expressions, normalized 0–1000
+coords, attention+MLP LoRA. Fixes the Stage 2 mode-collapse (well-posed targets +
+more adaptation capacity).
+Pre-registration: [`results/stage3-refcoco-finetune/README.md`](results/stage3-refcoco-finetune/README.md)
+Full writeup: [`results/stage3-refcoco-finetune/train-log.md`](results/stage3-refcoco-finetune/train-log.md)
+
+| Date | Run | Result | Notes |
+|---|---|---|---|
+| 2026-06-16 | Run 1 | **CRASHED** | CUDA `unspecified launch failure` (GPU hardware fault, not code) at batch 17,450/25,000 (~7.9 h, 70% of epoch 1). Loss descending healthily (1.25→0.94, no collapse). All progress lost — old script had no mid-epoch checkpoint. |
+| 2026-06-17 | Run 2 | **SUCCESS** | Full epoch, 11.0 h, 270 W cap. **G1 parse_rate=100%**, **G2 IoU@0.25=82.5%** (gate ≥30%), **G2b center_std=200.5** (non-degenerate), mean_iou=0.527. Clean loss descent (1.28→0.97), no collapse. Merged checkpoint `smolvlm_ft3/` ready for GGUF export. |
+
+**Negative result (hardware):** a transient RTX 3090 CUDA fault killed a long run that
+was training correctly. Trainer hardened with resumable mid-epoch checkpointing
+(`--save-every` / `--resume-from`) before relaunch.
+
+**Positive result (Run 2):** the relaunched run completed cleanly and **passed all
+training-side gates** — input-dependent boxes overlapping ground truth 82.5 % of the
+time (IoU@0.25), a complete reversal of the Stage 2 RefDrone mode collapse
+(IoU@0.25 ≈ 1 %). The methodological correction (well-posed RefCOCO + normalized-0–1000
+coords + attention+MLP LoRA) is validated. On-device GGUF export + Phase A/C validation
+(G3/G4/RQ-S3.5) is next. Full diagnosis:
+[`results/stage3-refcoco-finetune/train-log.md`](results/stage3-refcoco-finetune/train-log.md)
+| 2026-06-17 | S2 | SmolVLM-500M-Instruct Q8_0 | Phase A grounding | 15W locked | format=S3 parse=100% iou@0.25=2% iou@0.5=0% mean_iou=0.025 | 1.77Hz | 2738MB  |
+| 2026-06-17 | G3/RQ-S3.3 | SmolVLM-500M-ft3 — HF bf16 vs GGUF Q8_0 | export parity (RefCOCO val, n=100, paired seed42) | 15W | HF bf16 iou@0.25=85.0% mean_iou=0.567 · GGUF F16 iou@0.25=62.0% mean_iou=0.323 · GGUF Q8_0 iou@0.25=55.0% mean_iou=0.312 · **ΔIoU@0.25=30.0pp → FAIL** (gate ≤5pp); both parse=100%. Disambiguated: −23pp = transformers→llama.cpp Idefics3 image-preprocessing divergence (runtime), −7pp = Q8_0 quantization. Skill survives export functionally; fails strict parity gate. | — | — |

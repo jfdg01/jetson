@@ -1,0 +1,32 @@
+`torch_dtype` is deprecated! Use `dtype` instead!
+[dataset] loading RefCOCO 'validation' from jxu124/refcoco
+[dataset] 10834 caption-box pairs (0 refs skipped: image not found)
+[dataset] using 200 samples
+[g3] paired parity on 100 RefCOCO val samples (seed 42)
+
+=== GGUF Q8_0 arm (Jetson llama-server) ===
+  ⏳ waiting for server health (up to 180s) …
+  ✓ server healthy in 3s
+  1/100  gt=[32, 209, 265, 734] pred=[4, 264, 253, 817] iou=0.665
+  11/100  gt=[578, 27, 1000, 506] pred=[211, 227, 831, 704] iou=0.165
+  21/100  gt=[52, 273, 384, 820] pred=[194, 329, 478, 831] iou=0.404
+  31/100  gt=[192, 29, 598, 402] pred=[3, 209, 743, 659] iou=0.193
+  41/100  gt=[159, 334, 631, 1000] pred=[26, 214, 375, 760] iou=0.223
+  51/100  gt=[0, 409, 252, 854] pred=[0, 328, 141, 436] iou=0.031
+  61/100  gt=[586, 446, 801, 831] pred=[647, 309, 967, 874] iou=0.290
+  71/100  gt=[675, 304, 997, 986] pred=[279, 173, 841, 982] iou=0.200
+  81/100  gt=[128, 472, 482, 703] pred=[2, 274, 521, 906] iou=0.249
+  91/100  gt=[348, 339, 495, 793] pred=[299, 284, 575, 646] iou=0.371
+  100/100  gt=[357, 64, 594, 885] pred=[528, 215, 1000, 610] iou=0.073
+
+=== HF bf16 arm (local) ===
+  HF: parse=100.0% iou@0.25=85.0% mean_iou=0.567
+
+============================================================
+  G3 / RQ-S3.3 export parity (n=100, RefCOCO val)
+  HF bf16   IoU@0.25 = 85.0%  parse=100.0%  mean_iou=0.567
+  GGUF Q8_0 IoU@0.25 = 55.0%  parse=100.0%  mean_iou=0.312
+  ΔIoU@0.25 = 30.0 pp   (gate ≤ 5 pp)  →  FAIL
+============================================================
+
+Saved: /home/gara/jetson/results/stage3-refcoco-finetune/raw/g3_parity.json

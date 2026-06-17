@@ -1,0 +1,31 @@
+[dataset] loading RefCOCO 'validation' from jxu124/refcoco
+[dataset] 10834 caption-box pairs (0 refs skipped: image not found)
+[dataset] using 200 samples
+[g3] paired parity on 100 RefCOCO val samples (seed 42)
+
+=== GGUF F16 arm (Jetson llama-server) === [/home/jfdg/models/smolvlm_ft3_f16.gguf]
+  ⏳ waiting for server health (up to 180s) …
+  ✓ server healthy in 3s
+  1/100  gt=[32, 209, 265, 734] pred=[0, 244, 186, 699] iou=0.512
+  11/100  gt=[578, 27, 1000, 506] pred=[322, 181, 845, 483] iou=0.289
+  21/100  gt=[52, 273, 384, 820] pred=[78, 278, 533, 802] iou=0.617
+  31/100  gt=[192, 29, 598, 402] pred=[53, 429, 657, 671] iou=0.000
+  41/100  gt=[159, 334, 631, 1000] pred=[3, 205, 496, 799] iou=0.348
+  51/100  gt=[0, 409, 252, 854] pred=[3, 193, 269, 457] iou=0.070
+  61/100  gt=[586, 446, 801, 831] pred=[580, 434, 986, 995] iou=0.363
+  71/100  gt=[675, 304, 997, 986] pred=[122, 159, 808, 827] iou=0.114
+  81/100  gt=[128, 472, 482, 703] pred=[3, 226, 437, 960] iou=0.217
+  91/100  gt=[348, 339, 495, 793] pred=[111, 248, 548, 698] iou=0.251
+  100/100  gt=[357, 64, 594, 885] pred=[562, 152, 914, 445] iou=0.033
+
+=== HF bf16 arm (local) ===
+  HF (reused from g3_parity.json): iou@0.25=85.0% mean_iou=0.567
+
+============================================================
+  G3 / RQ-S3.3 export parity (n=100, RefCOCO val)
+  HF bf16   IoU@0.25 = 85.0%  parse=100.0%  mean_iou=0.567
+  GGUF Q8_0 IoU@0.25 = 62.0%  parse=100.0%  mean_iou=0.323
+  ΔIoU@0.25 = 23.0 pp   (gate ≤ 5 pp)  →  FAIL
+============================================================
+
+Saved: /home/gara/jetson/results/stage3-refcoco-finetune/raw/g3_parity_f16.json

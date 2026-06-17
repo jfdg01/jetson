@@ -146,9 +146,26 @@ def prompt_format_b(expression: str, _width: int, _height: int) -> str:
     )
 
 
-PROMPT_FORMATS = {"A": prompt_format_a, "B": prompt_format_b}
+def prompt_format_s3(expression: str, _width: int, _height: int) -> str:
+    """Stage 3 unified grounding prompt — normalized 0-1000 coordinates.
+
+    MUST stay byte-for-byte identical to run_stage3_finetune.GROUNDING_PROMPT and
+    the prompt used in run_phase_c.py, so train and inference never diverge. The
+    model never sees pixel coordinates; the image dimensions are therefore not
+    part of the prompt (resolution-independent).
+    """
+    return (
+        f'Locate "{expression}". Return the bounding box as JSON '
+        f'{{"bbox": [x1, y1, x2, y2]}} with integer coordinates normalized from 0 to 1000.'
+    )
+
+
+PROMPT_FORMATS = {"A": prompt_format_a, "B": prompt_format_b, "S3": prompt_format_s3}
 
 # ── bbox utilities ────────────────────────────────────────────────────────────
+
+# Stage 3 coordinate normalization scale (PaliGemma/Florence convention).
+COORD_SCALE = 1000
 
 @dataclass
 class Bbox:
@@ -224,7 +241,43 @@ def parse_response_b(text: str, img_w: int, img_h: int) -> Optional[Bbox]:
         return None
 
 
-RESPONSE_PARSERS = {"A": parse_response_a, "B": parse_response_b}
+def parse_response_s3(text: str, img_w: int, img_h: int) -> Optional[Bbox]:
+    """Parse Stage 3 `{"bbox":[x1,y1,x2,y2]}` in 0-1000 normalized space and
+    scale to absolute pixels by image W/H. Returns None on parse failure.
+
+    The returned Bbox is in PIXEL space so it can be IoU-compared against the
+    pixel-space ground-truth box, exactly like the format-A/B parsers.
+    """
+    text = text.strip()
+    if text.lower() in ("null", "none", ""):
+        return None
+    # Prefer the explicit "bbox": [...] form; fall back to the first 4-number list.
+    m = re.search(
+        r'"bbox"\s*:\s*\[\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,'
+        r'\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\]',
+        text,
+    )
+    if not m:
+        m = re.search(
+            r'\[\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\]',
+            text,
+        )
+    if not m:
+        return None
+    try:
+        nx1, ny1, nx2, ny2 = (float(m.group(i)) for i in range(1, 5))
+    except ValueError:
+        return None
+    box = Bbox(
+        x1=nx1 / COORD_SCALE * img_w,
+        y1=ny1 / COORD_SCALE * img_h,
+        x2=nx2 / COORD_SCALE * img_w,
+        y2=ny2 / COORD_SCALE * img_h,
+    )
+    return box if box.is_valid(img_w, img_h) else None
+
+
+RESPONSE_PARSERS = {"A": parse_response_a, "B": parse_response_b, "S3": parse_response_s3}
 
 
 def _test_bbox_utils() -> None:
@@ -242,6 +295,15 @@ def _test_bbox_utils() -> None:
     r = parse_response_b("10, 20, 100, 80", 640, 480)
     assert r is not None and r.y2 == 80, "parse_b broken"
     assert parse_response_b("none", 640, 480) is None
+
+    # format S3 parsing (normalized 0-1000 → pixels): 100/1000*640=64, 400/1000*480=192
+    r = parse_response_s3('{"bbox": [100, 200, 500, 400]}', 640, 480)
+    assert r is not None and abs(r.x1 - 64.0) < 1e-6 and abs(r.y2 - 192.0) < 1e-6, "parse_s3 broken"
+    # bare list fallback (no "bbox" key)
+    r = parse_response_s3("[0, 0, 1000, 1000]", 640, 480)
+    assert r is not None and r.x2 == 640 and r.y2 == 480, "parse_s3 fallback broken"
+    assert parse_response_s3("null", 640, 480) is None
+    assert parse_response_s3("garbage text", 640, 480) is None
 
     print("  ✓ bbox util tests passed")
 
@@ -825,8 +887,9 @@ def main() -> None:
                         help="Run format pilot only; skip bulk run")
     parser.add_argument("--n-sample",       type=int, default=N_SAMPLE_DEFAULT)
     parser.add_argument("--seed",           type=int, default=SEED_DEFAULT)
-    parser.add_argument("--format",         choices=["A", "B"],
-                        help="Force format; skip pilot")
+    parser.add_argument("--format",         choices=["A", "B", "S3"],
+                        help="Force format; skip pilot. S3 = Stage 3 unified "
+                             "normalized-0-1000 prompt (auto-selected with --vlm-model).")
     parser.add_argument("--vlm-model",     default=None,
                         help="Override text GGUF path on Jetson (for Stage 2 re-run). "
                              "Implies --only S2 --skip-download.")
@@ -842,6 +905,10 @@ def main() -> None:
         if not args.only:
             args.only = "S2"
         args.skip_download = True
+        # A fine-tuned checkpoint was trained on the Stage 3 unified prompt; force
+        # S3 (normalized 0-1000) and skip the A/B pixel-format pilot.
+        if not args.format:
+            args.format = "S3"
 
     # Override output directory if requested (Stage 2 re-run)
     if args.out_dir:
@@ -934,7 +1001,7 @@ def main() -> None:
                 # ── warmup ────────────────────────────────────────────────────
                 if not args.dry_run and sample:
                     warmup_item = sample[0]
-                    warmup_prompt = prompt_format_a(
+                    warmup_prompt = PROMPT_FORMATS[chosen_fmt](
                         warmup_item.expression, warmup_item.img_w, warmup_item.img_h
                     )
                     print("  → warmup frame …")
