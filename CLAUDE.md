@@ -94,9 +94,16 @@ GPU/eval/training work; stdlib-only `.venv` for the Part-I device-benchmark tool
 
 ## Python tooling
 
-The `experiments/` tooling is **stdlib-only by design** — no pip dependencies for
-the data-collection path, so results stay reproducible without pinning a
-dependency tree.
+There are **two toolchains** by design — keep them separate:
+
+- **Part I (`experiments/`)** is **stdlib-only** — no pip dependencies for the
+  data-collection path, so device-benchmark results reproduce without pinning a
+  dependency tree. Documented immediately below.
+- **Part II (`grounding/`)** is the managed toolchain — **uv + a fully-pinned
+  lockfile**, file-based run manifests, **pytest**, driven by a **Makefile**. See
+  "v2 toolchain (Part II)" further down and `DECISIONS.md` (Part II) for *why*.
+
+### Part I — device-benchmark tooling (stdlib-only)
 
 ```bash
 # Activate the venv (created at repo root)
@@ -119,6 +126,43 @@ python experiments/run_gemma_sweep.py --footprint [--g5-ngl 28]
 
 HF token for gated models (e.g. Gemma): place it in `.hugging-face-token` at the
 repo root (gitignored). `run_gemma_sweep.py` reads it automatically.
+
+## v2 toolchain (Part II)
+
+The `grounding/` package and all GPU/eval/training work use a managed, reproducible
+toolchain. **All commands go through the `Makefile`** (`make help` lists them) so they
+are identical across sessions.
+
+```bash
+make help          # list targets
+make sync          # reproduce .venv-ft EXACTLY from the lock (uv pip sync)
+make dev           # add dev/test tooling (pytest) on top of .venv-ft
+make test          # run the pytest contract + manifest suite
+make lock          # regenerate the pinned lock after editing requirements-ft.txt
+```
+
+- **Dependencies** — `uv` (user-local at `~/.local/bin/uv`) with a **fully-pinned
+  transitive lockfile**. `requirements-ft.txt` is the human-edited *direct* deps;
+  `requirements-ft.lock.txt` is the authoritative pinned set (`uv pip sync` target).
+  It carries `--extra-index-url .../whl/cu124` so the `torch==2.6.0+cu124` /
+  `torchvision==0.21.0+cu124` wheels stay findable — **the env is reproduced by
+  freezing what works, not by re-resolving** (`.venv-ft` is painful to rebuild).
+  Dev/test tooling (`pytest`) lives in `requirements-dev.txt`, kept *out* of the
+  runtime lock. **Edit policy:** edit `requirements-ft.txt`, apply, then `make lock`.
+- **Experiment tracking** — plain per-run **manifest files** (no MLflow/W&B daemon).
+  `grounding/manifest.py` (stdlib-only) captures git SHA + dirty flag, the pinned
+  `LLAMACPP_COMMIT`, the lockfile sha256, python/platform, and the run config, then
+  writes `runs/<id>/manifest.json` + `run-card.md` (+ `results.json`). Provenance is
+  plaintext and committed; multi-GB checkpoints under `runs/` are gitignored (see
+  `.gitignore` negation block). **Every eval/train/export run writes a manifest.**
+- **Testing** — `pytest` (`make test`). `tests/test_contract.py` locks the
+  `GROUNDING_PROMPT` byte-identical and pins parser/metric behaviour;
+  `tests/test_manifest.py` covers the manifest writer. The contract suite is the
+  regression gate against prompt/parser/metric drift.
+- **llama.cpp** — **pinned** to commit
+  `57fe1f07c3b6a1de3f4fff19098e2056a85275b7` (recorded in `grounding/manifest.py` as
+  `LLAMACPP_COMMIT` and stamped into every run manifest), so the −23pp Idefics3
+  preprocessing fidelity gap is measured against a fixed backend.
 
 ## Experiment automation architecture
 

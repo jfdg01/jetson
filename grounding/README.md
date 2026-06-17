@@ -66,3 +66,22 @@ Fill order follows the gated phases (see the APPENDIX in `DECISIONS.md` / the pl
 Each phase is a lab-notebook unit: do not start the next until the prior gate is
 green **and documented** in `results/` + `RESULTS.md` + `DECISIONS.md` in the same
 turn.
+
+## Toolchain & reproducibility
+
+Everything in Part II runs through the repo `Makefile` (`make help`) so commands are
+identical across sessions. See `DECISIONS.md` (Part II) for the rationale.
+
+- **Env** — `.venv-ft` (torch 2.6.0+cu124), reproduced from a **fully-pinned**
+  lockfile via `make sync` (`uv pip sync requirements-ft.lock.txt`). The lock is
+  frozen from a working env (not re-resolved) and pins the cu124 torch wheels.
+  `make dev` adds `pytest` (kept out of the runtime lock).
+- **Tests** — `make test` runs `tests/`. The contract suite locks
+  `GROUNDING_PROMPT` byte-identical and pins parser/metric behaviour — the
+  regression gate against the Part I drift problem.
+- **Run tracking** — every eval/train/export run calls `manifest.capture(...)` +
+  `manifest.write(...)` to emit `runs/<id>/manifest.json` + `run-card.md`
+  (+ `results.json`). The manifest stamps git SHA/dirty, the pinned
+  `LLAMACPP_COMMIT`, the lockfile sha256, and the run config — so any number is
+  traceable to exact code, backend, deps, and data. Provenance is committed;
+  checkpoints are gitignored.
