@@ -166,8 +166,13 @@ def write(
     """
     run_dir = Path(runs_dir) / manifest.run_id
     run_dir.mkdir(parents=True, exist_ok=True)
-    (run_dir / "manifest.json").write_text(json.dumps(asdict(manifest), indent=2) + "\n")
-    (run_dir / "run-card.md").write_text(_run_card(manifest, results))
+    # Pin UTF-8: run-cards carry an em-dash, and non-interactive/sandbox shells can
+    # fall back to an ascii locale for the bare open() default (a real crash seen in
+    # Phase 0c.2). Encoding is data, not locale.
+    (run_dir / "manifest.json").write_text(
+        json.dumps(asdict(manifest), indent=2) + "\n", encoding="utf-8")
+    (run_dir / "run-card.md").write_text(_run_card(manifest, results), encoding="utf-8")
     if results is not None:
-        (run_dir / "results.json").write_text(json.dumps(results, indent=2) + "\n")
+        (run_dir / "results.json").write_text(
+            json.dumps(results, indent=2) + "\n", encoding="utf-8")
     return run_dir

@@ -263,3 +263,12 @@ from the shared contract (IoU@0.25, parse_rate, mean IoU, `center_std`).
 | 2026-06-17 | 0a anchor | HF bf16 | smolvlm_ft3 | 100 | **85.0%** | 100.0% | 0.567 | 187.8 | `runs/20260617T115913Z` | ✅ reproduces Part-I 82.5% (n=200) |
 | 2026-06-17 | 0b parity | GGUF F16 | smolvlm_ft3 | 100 | **69.0%** | 100.0% | 0.393 | 149.7 | `runs/20260617T121539Z` | ✅ runtime gap −16.0 pp vs HF (CPU build, `57fe1f0`) |
 | 2026-06-17 | 0b parity | GGUF Q8_0 | smolvlm_ft3 | 100 | **67.0%** | 100.0% | 0.389 | 148.0 | `runs/20260617T121756Z` | ✅ quant gap −2.0 pp vs F16 — runtime ≫ quant reproduced |
+| 2026-06-17 | 0c.2 spine | HF bf16 | SmolVLM-500M **base** | 100 | 0.0% | 9.0% | 0.004 | 61.3 | `runs/20260617T165959Z` | base collapse — no grounding to deploy |
+| 2026-06-17 | 0c.2 spine | HF bf16 | **Qwen2-VL-2B base** | 100 | **15.0%** | 24.0% | 0.393 | 162.1 | `runs/20260617T170339Z` | ✅ grounding-native zero-shot (healthy center_std) |
+| 2026-06-17 | 0c.2 spine | GGUF F16 | Qwen2-VL-2B base | 100 | 13.0% | 18.0% | 0.548 | 198.7 | `runs/20260617T171534Z` | runtime gap −2.0 pp vs HF |
+| 2026-06-17 | 0c.2 spine | GGUF Q8_0 | Qwen2-VL-2B base | 100 | 14.0% | 19.0% | 0.533 | 187.5 | `runs/20260617T172502Z` | quant +1.0 pp vs F16 — fidelity ~8× better than SmolVLM |
+
+**Phase 0 gate ✅ — v2 spine = Qwen2-VL-2B** (RQ-0.3 green): grounding-native zero-shot
+(15% vs SmolVLM-base 0%), deployment fidelity gap −2pp ≪ SmolVLM-ft3's −16pp (0b), and
+native dynamic resolution attacks the tiny-object resolution ceiling (constraint #2).
+Phase 0 complete → proceed to Phase 1 (dataset audit gate).
