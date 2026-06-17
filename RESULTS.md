@@ -303,3 +303,25 @@ Full writeup: [`results/2026-06-17-phase1-dataset-audit/`](results/2026-06-17-ph
 The two gating numbers: **33% of captions usable** (small budget → favours RefCOCO warm-start +
 `largest_box_aug` lever) and **median object ≈16 px / bottom-quartile 6–10 px @512** (resolution
 is the dominant lever). Phase 1 complete → proceed to Phase 2 (resolution strategy).
+
+## Phase 2 — Resolution strategy (2026-06-17)
+
+Input long-edge resize made a pre-registered, measured variable. No-training ladder on
+the Phase-0 harness over RefDrone well-posed val (**n=439**, Qwen2-VL-2B **base**,
+HFBackend bf16 greedy, verbatim contract) — picks the resolution *by the numbers*.
+Full writeup: [`results/2026-06-17-phase2-resolution/`](results/2026-06-17-phase2-resolution/README.md)
+
+| Date | Arm | max_side | parse | **IoU@0.25** | mean_iou | center_std | Manifest | Note |
+|---|---|---|---|---|---|---|---|---|
+| 2026-06-17 | ladder | 512  | 100.0% | 4.1%  | 0.031 | 129.1 | `runs/20260617T190608Z` | Part-I setting — resolution-starved |
+| 2026-06-17 | ladder | 768  | 100.0% | 10.7% | 0.065 | 157.9 | `runs/20260617T191130Z` | still below gate, pre-elbow |
+| 2026-06-17 | ladder | **1024** | 91.8% | **30.3%** | 0.202 | 192.0 | `runs/20260617T191739Z` | ✅ **chosen** — elbow, clears 20% gate zero-shot |
+| 2026-06-17 | ladder | 1280 | 92.0% | 38.7% | 0.313 | 196.1 | `runs/20260617T192436Z` | highest, but +8.4pp past elbow → Phase-3 lever |
+
+**Phase 2 gate ✅ — v2 resolution = `max_side=1024`** (RQ-2.1/2.2/2.3 green): resolution is
+**the** dominant lever (4.1% → 38.7% IoU@0.25, a 9.4× swing with frozen weights — reframes
+Part-I's 19.5% miss as resolution-starved at 512); `center_std` rises monotonically (129 → 196,
+≫ collapse floor 61) so no collapse risk; the elbow is at 1024 (the +19.6 pp 768→1024 jump
+dominates, capturing ~78% of the 1280 ceiling) and it already **clears the 20% gate before any
+training**, with 1280 held in reserve as the pre-measured Phase-3 lever. The 8 GB-Jetson
+deploy footprint motivates 1024 over 1280. Phase 2 complete → proceed to Phase 3 (train).

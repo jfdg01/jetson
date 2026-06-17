@@ -14,6 +14,8 @@ from __future__ import annotations
 import os
 from typing import Protocol, runtime_checkable
 
+from grounding.contract import IMAGE_SIZE
+
 # Local CPU-only llama.cpp build at the pinned commit (see DECISIONS.md, Phase 0b).
 # Override with LLAMACPP_BIN_DIR if the build lives elsewhere.
 _DEFAULT_LLAMACPP_BIN = "/tmp/llama.cpp-57fe1f0/build/bin"
@@ -62,12 +64,19 @@ class HFBackend:
 
     name = "hf"
 
-    def __init__(self, model_path: str, *, device: str = "cuda", dtype: str = "bfloat16"):
+    def __init__(self, model_path: str, *, device: str = "cuda", dtype: str = "bfloat16",
+                 max_side: int = IMAGE_SIZE):
         import torch
         from transformers import AutoModelForImageTextToText, AutoProcessor
 
         self.model_path = model_path
         self.device = device
+        # Input long-edge resize (the Phase-2 resolution lever). Default = the
+        # Part-I/Phase-0 IMAGE_SIZE=512, so existing numbers reproduce unchanged.
+        # A whole-image resize keeps the 0–COORD_SCALE box invariant (coords are
+        # normalized to the *original* image), so this is metric-safe with no box
+        # remapping. Mutable so a sweep can load the model once and vary resolution.
+        self.max_side = max_side
         torch_dtype = getattr(torch, dtype)
 
         # Merged Stage-3 checkpoints ship a processor save with the
@@ -88,10 +97,10 @@ class HFBackend:
         import torch
         from PIL import Image
 
-        from grounding.contract import GROUNDING_PROMPT, IMAGE_SIZE, MAX_NEW_TOKENS
+        from grounding.contract import GROUNDING_PROMPT, MAX_NEW_TOKENS
 
         img = Image.open(image_path).convert("RGB")
-        img = _resize_keep_aspect(img, IMAGE_SIZE)
+        img = _resize_keep_aspect(img, self.max_side)
 
         prompt = GROUNDING_PROMPT.format(target=caption)
         messages = [{"role": "user", "content": [
