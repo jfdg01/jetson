@@ -42,3 +42,6 @@ results/2026-06-14-gemma-family-sweep/raw/2026-06-14_gsweepG3_footprint.txt
 
 # Stray hardware dumps (e.g. eeprom reads) — not thesis content
 eeprom.bin
+
+# Auto-continuation runtime state (logs, sentinels, locks) — mechanism in scripts/ is committed
+.auto-continue/
