@@ -29,6 +29,11 @@ def _build_backend(args):
     if args.backend == "hf":
         from grounding.eval.backends import HFBackend
         return HFBackend(args.model, device=args.device, dtype=args.dtype)
+    if args.backend == "gguf":
+        from grounding.eval.backends import GGUFBackend
+        if not args.mmproj:
+            raise SystemExit("--mmproj is required for the gguf backend")
+        return GGUFBackend(args.model, args.mmproj, n_gpu_layers=args.ngl)
     raise SystemExit(f"backend '{args.backend}' not wired in run.py yet")
 
 
@@ -39,6 +44,8 @@ def main():
     p.add_argument("--split", default="validation")
     p.add_argument("--n", type=int, default=100, help="number of val samples")
     p.add_argument("--coco-root", default="data/coco")
+    p.add_argument("--mmproj", default="", help="mmproj GGUF (required for gguf backend)")
+    p.add_argument("--ngl", type=int, default=0, help="GPU layers for the gguf backend (0 = CPU)")
     p.add_argument("--device", default="cuda")
     p.add_argument("--dtype", default="bfloat16")
     p.add_argument("--note", default="", help="free-text note saved into the manifest")
@@ -51,7 +58,12 @@ def main():
 
     backend = _build_backend(args)
     print("[run] evaluating...", flush=True)
-    report = evaluate(backend, samples, progress_every=max(1, args.n // 10))
+    try:
+        report = evaluate(backend, samples, progress_every=max(1, args.n // 10))
+    finally:
+        close = getattr(backend, "close", None)
+        if callable(close):
+            close()
 
     results = asdict(report)
     print(f"[run] DONE  n={report.n}  parse_rate={report.parse_rate:.1%}  "
@@ -68,6 +80,9 @@ def main():
         "dtype": args.dtype,
         "note": args.note,
     }
+    if args.backend == "gguf":
+        cfg["mmproj"] = args.mmproj
+        cfg["ngl"] = args.ngl
     m = manifest.capture("eval", cfg)
     run_dir = manifest.write(m, results=results)
     print(f"[run] manifest -> {run_dir}", flush=True)

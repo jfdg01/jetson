@@ -261,3 +261,5 @@ from the shared contract (IoU@0.25, parse_rate, mean IoU, `center_std`).
 | Date | Step | Backend | Model | n | IoU@0.25 | parse_rate | mean IoU | center_std | Manifest | Verdict |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 2026-06-17 | 0a anchor | HF bf16 | smolvlm_ft3 | 100 | **85.0%** | 100.0% | 0.567 | 187.8 | `runs/20260617T115913Z` | ✅ reproduces Part-I 82.5% (n=200) |
+| 2026-06-17 | 0b parity | GGUF F16 | smolvlm_ft3 | 100 | **69.0%** | 100.0% | 0.393 | 149.7 | `runs/20260617T121539Z` | ✅ runtime gap −16.0 pp vs HF (CPU build, `57fe1f0`) |
+| 2026-06-17 | 0b parity | GGUF Q8_0 | smolvlm_ft3 | 100 | **67.0%** | 100.0% | 0.389 | 148.0 | `runs/20260617T121756Z` | ✅ quant gap −2.0 pp vs F16 — runtime ≫ quant reproduced |

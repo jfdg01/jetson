@@ -1,0 +1,8 @@
+{
+  "backend": "gguf",
+  "n": 100,
+  "parse_rate": 1.0,
+  "iou_gate_pass_rate": 0.67,
+  "mean_iou": 0.3888639370400005,
+  "center_std": 148.0144977219823
+}
