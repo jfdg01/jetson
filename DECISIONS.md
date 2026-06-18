@@ -17,7 +17,55 @@ legacy scripts now live under `experiments/legacy/`).
 
 <!-- v3 decisions are appended here, most recent first. -->
 
-### 2026-06-18T12:00 — Open Part III: persistent tracking / object permanence, on a new branch, leveraging Parts I+II (charter only, no GPU yet)
+### 2026-06-18T13:30 — T0 gate PASS: anchor spine = Qwen2-VL-2B Q8_0 @ 512, event-triggered re-acquisition, two-tier architecture confirmed by the numbers
+
+- **Decision:** Pass the **T0 (cadence & dynamics) gate** and lock the operating point
+  for the rest of Part III. (1) **Anchor spine = the deployed Qwen2-VL-2B Q8_0 at 512
+  long-edge** — measured **0.44 Hz / 2.27 s per anchor** on the Orin (15 W); 768/1024
+  long-edge dropped, and **Gemma 4 stays dropped**. (2) **The two-tier architecture is
+  mandatory, not a preference** — a 20 Hz fast tracker holds the lock, the VLM anchors
+  sparsely. (3) **Re-acquisition must be event-triggered (fire an anchor on loss), not
+  timer-only**, because `anchor_period (2.27 s) > coast_horizon (1.5 s)`. (4) **An
+  appearance/re-ID head is admitted into the design space for T2** (compute-free at
+  0.05 ms tracker cost; geometrically feasible at 10–20 m).
+- **Alternatives considered:** (a) **Anchor at 768/1024 long-edge** for headroom — rejected
+  by the numbers: the SITL camera is 640×480 and `_resize_keep_aspect` is downscale-only,
+  so 768/1024 do **no** upscaling (zero fidelity gain on these frames) while costing
+  1.6×/2.8× the latency (0.27/0.16 Hz). Pure loss. (b) **Gemma 4 as anchor** — stays
+  rejected: image-only E2B/E4B already at 0.34–0.49 Hz (slower than the 512 Qwen point),
+  video variants don't fit 8 GB; the untested token-budget lever didn't earn a seat. (c)
+  **Timer-only periodic re-anchor** (simplest scheduler) — rejected: 2.27 s anchor period
+  exceeds the 1.5 s Kalman coast, so a purely scheduled anchor arrives ~0.8 s after the
+  track is already dropped. (d) **Lean on motion continuity alone (no appearance), extend
+  `MAX_LOST_FRAMES`** — rejected as the *primary* mechanism: longer blind constant-velocity
+  coasting trades recall for ID-switch risk, which is exactly the permanence failure T2
+  exists to fix; appearance/re-ID is kept on the table instead.
+- **Reasoning:** Two budgets fell out with **opposite verdicts**, and that split *is* the
+  finding. **Inter-anchor tracking is comfortable** — per-frame target motion ≤ 27.7 px
+  (10 m × 10 m/s) is tiny against a 110–222 px box, and the tracker costs 0.051 ms median
+  (~1000× headroom under the 50 ms budget), so the fast loop carries the lock between
+  anchors with ample room for an added appearance model. **Recovery-after-loss is tight** —
+  the 2.27 s anchor period vs the 1.5 s coast horizon means a fully-lost target can't be
+  re-anchored before its track is dropped; at low altitude + high speed the target is in
+  frame only ~1.2 s and crosses the whole frame inside one anchor period — precisely the
+  regime where Part-I Phase C (memoryless @ ~1 Hz) collapsed to ~0 % coverage. This
+  quantifies *why* the two-tier architecture is forced and what T2/T3 must beat. Prefill
+  (image encode) dominates and scales ∝ pixels (1113→2431→5111 ms) while decode is
+  ~constant (~21.6 tok/s) — so resolution is the only cadence lever, and at this camera
+  size 512 is both fastest and lossless.
+- **Tradeoff / cost accepted:** `jetson_clocks` was **not confirmed engaged** (the NOPASSWD
+  `--show` returned only the machine banner), so the cadence numbers are a *conservative
+  default-15 W* point, not a clock-locked upper bound — a clock-locked run could only make
+  the anchor faster, so the budget verdict (anchor > coast) is the safe side. T0c/d
+  dynamics are **analytic** (pinhole projection via `oracle_bbox`), not yet from rendered
+  pixels; the re-ID embedding-separability half is deferred to T1 where realistic frames
+  exist (the no-pure-color constraint can't be tested on analytic boxes). The 1.5 s coast
+  horizon is a tunable left at its current `MAX_LOST_FRAMES=30` default for now.
+- **Revisit when:** T1 rendered clips give real occlusion/out-of-frame durations and a
+  measured re-ID embedding separability (may move the appearance-vs-motion call or the
+  coast-horizon tuning); or a clock-locked Orin run is taken (raises the cadence ceiling);
+  or the target-dynamics envelope changes (faster targets / higher altitude shrink the
+  budget further).
 
 - **Decision:** Open **Part III** on branch `v3/object-permanence` (from
   `v2/principled-rebuild`) to attack **persistent single-object tracking under language

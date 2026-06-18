@@ -100,6 +100,44 @@ def project(
     }
 
 
+def project_unclipped(
+    copter_ned: tuple,
+    rover_ned: tuple,
+    roll: float,
+    pitch: float,
+    yaw: float,
+) -> dict | None:
+    """Unclipped pinhole projection: TRUE target centre + full box size in px.
+
+    Identical optics to project(), but the centre/size are NOT clipped to the
+    frame, so the returned centre is the target's true pixel position even when
+    the box runs off-screen. project() returns the clipped-box centre, which
+    underestimates pixel motion for a large (low-altitude) box straddling an
+    edge — use this one for the T0c cadence-vs-dynamics budget.
+
+    Returns dict(cx, cy, w, h, visible) or None if behind / too close to lens.
+    `visible` is True when the unclipped box overlaps the image rectangle.
+    """
+    rel = np.array(rover_ned) - np.array(copter_ned)
+    body = _ned2body(roll, pitch, yaw) @ rel
+
+    cam_x = body[1]
+    cam_y = -body[0]
+    cam_z = body[2]
+
+    if cam_z < MIN_DEPTH_M:
+        return None
+
+    u = FOCAL_PX * cam_x / cam_z + IMG_W / 2
+    v = FOCAL_PX * cam_y / cam_z + IMG_H / 2
+    half_w = FOCAL_PX * (TARGET_WID_M / 2) / cam_z
+    half_h = FOCAL_PX * (TARGET_LEN_M / 2) / cam_z
+
+    visible = (u + half_w > 0) and (u - half_w < IMG_W) and \
+              (v + half_h > 0) and (v - half_h < IMG_H)
+    return {"cx": u, "cy": v, "w": 2 * half_w, "h": 2 * half_h, "visible": visible}
+
+
 # ---------------------------------------------------------------------------
 # Unit tests
 # ---------------------------------------------------------------------------

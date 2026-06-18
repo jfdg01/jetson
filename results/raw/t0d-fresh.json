@@ -1,0 +1,27 @@
+{
+  "started": "2026-06-18T11:42:03.909158+00:00",
+  "T0d": {
+    "phase": "T0d",
+    "note": "Geometry half only. Crop = projected target bbox at nadir for a 4\u00d72 m vehicle. Embedding-separability half deferred to T1 (needs rendered pixels).",
+    "crops": [
+      {
+        "altitude_m": 10,
+        "crop_w_px": 110.9,
+        "crop_h_px": 221.7,
+        "crop_area_px": 24576.0
+      },
+      {
+        "altitude_m": 20,
+        "crop_w_px": 55.4,
+        "crop_h_px": 110.9,
+        "crop_area_px": 6144.0
+      },
+      {
+        "altitude_m": 30,
+        "crop_w_px": 37.0,
+        "crop_h_px": 73.9,
+        "crop_area_px": 2731.0
+      }
+    ]
+  }
+}

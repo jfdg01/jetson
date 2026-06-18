@@ -388,5 +388,38 @@ sanity check.
 [`results/2026-06-18-part3-charter/README.md`](results/2026-06-18-part3-charter/README.md)
 — paradigm shift, the two binding constraints (#1 cadence-vs-dynamics budget; #2
 identity-through-absence), the forced sparse-VLM-anchor + 20 Hz-fast-tracker
-architecture, the temporal metric suite, and the proposed gated phase plan T0–T4. No
-measured results yet — rows are appended as phases T0→T4 complete.
+architecture, the temporal metric suite, and the proposed gated phase plan T0–T4.
+
+## T0 — Cadence & dynamics harness (measure before design) (2026-06-18)
+
+On-Orin anchor-cadence sweep + 20 Hz tracker-cost profile + analytic target-dynamics &
+re-ID crop geometry, to quantify the **cadence-vs-dynamics budget** that governs every
+later phase. Device: Orin Nano 8 GB, 15 W (`nvpmodel -m 0`), `jetson_clocks` not
+confirmed engaged (conservative default-15 W point). Anchor = deployed Qwen2-VL-2B Q8_0
+(`phase3-refdrone-1024-q8_0`), llama.cpp `57fe1f0`, `-ngl 99`, greedy. Full writeup:
+[`results/2026-06-18-t0-cadence/`](results/2026-06-18-t0-cadence/README.md)
+
+| Probe | Measurement | Value |
+|---|---|---|
+| **T0a anchor cadence** | wall Hz @ 512 / 768 / 1024 long-edge (N=8) | **0.44** / 0.27 / 0.16 Hz |
+| | prefill (image encode) @ 512/768/1024 | 1113 / 2431 / 5111 ms (dominant, ∝ pixels) |
+| | decode (resolution-independent) | ~1.1 s / 24 tok ≈ 21.6 tok/s |
+| | power / thermal / mem | idle 5.2 W, mean 10.9 W, peak 11.7 W; 62.7 °C; 4849 MB; no swap |
+| **T0b tracker cost** | `ByteTracker.update()` median (1180 fr) | **0.051 ms** → ~1000× headroom under 50 ms |
+| | coast horizon (`MAX_LOST_FRAMES=30`) | **1.5 s** @ 20 Hz |
+| **T0c dynamics** | target px velocity (nadir, 1–10 m/s, 10–30 m) | 18.5 – 554 px/s (≤ 27.7 px/frame) |
+| | scale-change under 2 m/s descent | 1.0 %/frame median, 2.0 % max |
+| **T0d re-ID geometry** | target crop @ 10 / 20 / 30 m | 111×222 / 55×111 / 37×74 px |
+
+**T0 gate ✅ — PASS.** Two budgets with opposite verdicts: (1) **inter-anchor tracking
+is comfortable** — per-frame motion ≤ 27.7 px is tiny vs the 110–222 px box and the
+tracker is ~free (0.05 ms), so the fast loop carries the lock between anchors with room
+to spare for a re-ID head (constraint #2 is compute-free); (2) **recovery-after-loss is
+tight** — `anchor_period (2.27 s @ 512) > coast_horizon (1.5 s)`, so re-acquisition must
+be **event-triggered on loss**, not timer-only, and the fast tracker *must* hold identity
+through gaps — quantifying *why* the two-tier architecture is mandatory and *why* Phase C
+(memoryless @ ~1 Hz) collapsed to ~0 % on a moving target. **Anchor spine confirmed by
+the numbers: Qwen2-VL-2B Q8_0 @ 512 long-edge** (640×480 camera + downscale-only resize
+⇒ 768/1024 add latency with no fidelity gain). Re-ID appearance head geometrically
+feasible at 10–20 m (≥ 55 px), marginal at 30 m; embedding-separability check carried
+into T1.

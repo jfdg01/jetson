@@ -143,9 +143,11 @@ def parse_llama_cli_timings(text: str) -> Optional[LlamaCliTimings]:
 class VLMFrameTimings:
     """Per-frame timings from a single llama-server /v1/chat/completions response.
 
-    Both fields come from response['__verbose']['timings']. prompt_ms includes
-    CLIP encode time — it is NOT a separate addend (verified empirically; see
-    vlm-feasibility campaign §4.2). Do not add a separate clip_encode_ms term.
+    Both fields come from the response 'timings' block (top-level on the pinned
+    llama.cpp commit; an older '__verbose'.'timings' nesting is also accepted).
+    prompt_ms includes CLIP encode time — it is NOT a separate addend (verified
+    empirically; see vlm-feasibility campaign §4.2). Do not add a separate
+    clip_encode_ms term.
     """
     prompt_ms: float       # CLIP encode + LLM prefill (combined)
     predicted_ms: float    # token decode time
@@ -164,17 +166,19 @@ class VLMFrameTimings:
 def parse_vlm_server_timings(json_text: str) -> Optional[VLMFrameTimings]:
     """Parse llama-server /v1/chat/completions JSON response for per-frame timing.
 
-    Reads timings from response['__verbose']['timings']. Returns None on parse
-    failure or if the __verbose block is absent (e.g. error response).
+    Reads the 'timings' block, which the pinned llama.cpp commit returns at the
+    top level of the response; an older '__verbose'.'timings' nesting is also
+    accepted. Returns None on parse failure or if no timings block is present
+    (e.g. an error response).
     """
     try:
         data = json.loads(json_text)
     except (json.JSONDecodeError, ValueError):
         return None
-    verbose = data.get("__verbose")
-    if not verbose:
-        return None
-    timings = verbose.get("timings")
+    timings = data.get("timings")
+    if not timings:
+        verbose = data.get("__verbose")
+        timings = verbose.get("timings") if isinstance(verbose, dict) else None
     if not timings:
         return None
     try:
@@ -498,6 +502,20 @@ def _test_parse_vlm_server_timings():
     assert t.prompt_n == 85
     assert abs(t.per_frame_ms - 300.8) < 0.01
     assert abs(t.per_frame_hz - 1000 / 300.8) < 0.01
+    # top-level 'timings' (what the pinned llama.cpp commit actually returns)
+    top = json.dumps({
+        "id": "chatcmpl-xyz",
+        "choices": [{"message": {"role": "assistant", "content": "(1,2),(3,4)"}}],
+        "usage": {"prompt_tokens": 316, "completion_tokens": 24},
+        "timings": {
+            "prompt_ms": 1121.127, "predicted_ms": 1108.471,
+            "prompt_n": 316, "predicted_n": 24,
+        },
+    })
+    t2 = parse_vlm_server_timings(top)
+    assert t2 is not None
+    assert abs(t2.prompt_ms - 1121.127) < 0.01
+    assert t2.predicted_n == 24
     assert parse_vlm_server_timings('{"error":"bad request"}') is None
     assert parse_vlm_server_timings("not json at all") is None
 

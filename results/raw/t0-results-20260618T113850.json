@@ -1,0 +1,83 @@
+{
+  "started": "2026-06-18T11:36:36.597530+00:00",
+  "T0a": {
+    "phase": "T0a",
+    "device": "Orin Nano 8GB, nvpmodel -m 0 (15 W)",
+    "jetson_clocks": "SOC family:tegra234  Machine:NVIDIA Jetson Orin Nano Developer Kit",
+    "model": "phase3-refdrone-1024-q8_0.gguf",
+    "n_warmup": 2,
+    "n_reps": 8,
+    "resolutions": {
+      "512": {
+        "max_side": 512,
+        "wall_ms": {
+          "n": 8,
+          "mean": 2264.605926000513,
+          "median": 2264.6085415035486,
+          "p99": 2265.5209439981263,
+          "min": 2263.4422489791177,
+          "max": 2265.5209439981263
+        },
+        "wall_hz_median": 0.44157742129510247,
+        "parse_rate": 1.0,
+        "server_timings_present": true,
+        "prompt_ms_mean": 1112.525,
+        "predicted_ms_mean": 1105.8385,
+        "per_frame_ms_mean": 2218.3635000000004,
+        "server_hz": 0.4507827504374282,
+        "predicted_n_mean": 24,
+        "prompt_n_mean": 316
+      },
+      "768": {
+        "max_side": 768,
+        "wall_ms": {
+          "n": 8,
+          "mean": 3643.6018756212434,
+          "median": 3643.537951487815,
+          "p99": 3646.1423890141305,
+          "min": 3639.8841819900554,
+          "max": 3646.1423890141305
+        },
+        "wall_hz_median": 0.2744585107427402,
+        "parse_rate": 1.0,
+        "server_timings_present": true,
+        "prompt_ms_mean": 2430.628625,
+        "predicted_ms_mean": 1110.14175,
+        "per_frame_ms_mean": 3540.770375,
+        "server_hz": 0.2824244144891774,
+        "predicted_n_mean": 24,
+        "prompt_n_mean": 631
+      },
+      "1024": {
+        "max_side": 1024,
+        "wall_ms": {
+          "n": 8,
+          "mean": 6415.278635009599,
+          "median": 6415.734838010394,
+          "p99": 6417.510819010204,
+          "min": 6411.734918016009,
+          "max": 6417.510819010204
+        },
+        "wall_hz_median": 0.1558667908273643,
+        "parse_rate": 1.0,
+        "server_timings_present": true,
+        "prompt_ms_mean": 5110.9715,
+        "predicted_ms_mean": 1118.453375,
+        "per_frame_ms_mean": 6229.424875,
+        "server_hz": 0.16052846291047054,
+        "predicted_n_mean": 24,
+        "prompt_n_mean": 1063
+      }
+    },
+    "power": {
+      "idle_w": 5.2058,
+      "mean_w": 10.903647999999999,
+      "peak_w": 11.707,
+      "peak_temp_c": 62.656,
+      "peak_ram_mb": 4849.0,
+      "swap_growth_mb": 0.0,
+      "swap_hit": false,
+      "log": "/home/gara/jetson/results/raw/t0a-tegrastats-20260618T113636.log"
+    }
+  }
+}
