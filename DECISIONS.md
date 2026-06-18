@@ -3,11 +3,65 @@
 Cross-cutting decisions and their rationale, most recent first. Campaign-specific
 decisions live in the relevant `results/*.md`. Format defined in `CLAUDE.md`.
 
-The log is split into two parts. **Part II — Principled rebuild (v2)** holds all
-decisions from the `v2/principled-rebuild` branch onward (newest first). **Part I —
-Exploratory** below is the original notebook (device benchmark campaigns + grounding
-Stages 1–4), left untouched as the historical record (paths in Part I entries refer
-to the tree as it was then; legacy scripts now live under `experiments/legacy/`).
+The log is split into three parts. **Part III — Persistent tracking / object
+permanence (v3)** holds decisions from the `v3/object-permanence` branch onward
+(newest first). **Part II — Principled rebuild (v2)** holds the single-frame grounding
+rebuild decisions (`v2/principled-rebuild`). **Part I — Exploratory** below is the
+original notebook (device benchmark campaigns + grounding Stages 1–4), left untouched
+as the historical record (paths in Part I entries refer to the tree as it was then;
+legacy scripts now live under `experiments/legacy/`).
+
+---
+
+# Part III — Persistent tracking / object permanence (v3)
+
+<!-- v3 decisions are appended here, most recent first. -->
+
+### 2026-06-18T12:00 — Open Part III: persistent tracking / object permanence, on a new branch, leveraging Parts I+II (charter only, no GPU yet)
+
+- **Decision:** Open **Part III** on branch `v3/object-permanence` (from
+  `v2/principled-rebuild`) to attack **persistent single-object tracking under language
+  conditioning** — keep a lock on a *moving* target across a video stream (occlusion,
+  scale change, motion blur, out-of-frame, re-acquisition) well enough to close a
+  following loop. Frame it explicitly as **NOT from scratch**: reuse the Part-I SITL
+  follow stack (`experiments/sitl/`: ByteTrack, oracle_bbox, cascade_pid, offboard) and
+  the Part-II deployed grounding anchor (Qwen2-VL-2B Q8_0, RefDrone 62.6%). Pre-register
+  the general terms in `results/2026-06-18-part3-charter/README.md`: two binding
+  constraints (#1 detection-cadence vs target-dynamics budget; #2 identity-through-
+  absence / object permanence), the forced sparse-VLM-anchor + 20 Hz-fast-tracker
+  architecture, a temporal metric suite (track continuity, ID switches, re-acquisition
+  time, oracle-coverage, closed-loop error), and a proposed gated phase plan T0–T4.
+  This turn is **charter + rules only — no code, no GPU, no measured result.**
+- **Alternatives considered:** (a) **Start a clean v3 ignoring Part I/II** — rejected:
+  the SITL stack and the deployed anchor are exactly the plumbing Part III would
+  otherwise rebuild; the genuinely unsolved piece is permanence, so effort should go
+  there. (b) **Commit to Gemma 4 as the anchor up front** (user's stated "very good
+  fit") — rejected as a *decision*, kept as a *candidate*: Gemma 4's video-capable
+  variants (26B/31B) don't fit the 8 GB Orin, and the fitting E2B/E4B already measured
+  **0.34–0.49 Hz** on-device (slowest candidates, untested token-budget speed lever).
+  The spine is picked by the numbers in T0, Part-II style. (c) **Skip the charter, jump
+  to coding the loop** — rejected: violates the gated, measure-before-spend discipline
+  that made Part II work; Phase C already showed the naive loop fails, so the design
+  must be pre-registered. (d) **Extend Part II in place (no new branch/part)** —
+  rejected: the metric, the problem (stream vs frame) and the binding constraints all
+  change; a clean Part III demarcation keeps the lab notebook honest.
+- **Reasoning:** Part II's success came from designing backwards from the constraint
+  and de-risking cheaply before GPU. Part III inherits that: its two binding
+  constraints are the temporal analogs of Part II's (cadence-vs-dynamics ↔ deployment-
+  fidelity; permanence ↔ resolution ceiling), and its "fidelity-before-GPU" analog is
+  "measure on-Orin cadence + target dynamics before designing the loop." The
+  hardware-imposed ~20–60× rate gap (VLM 0.3–1.2 Hz vs control 20 Hz) forces the
+  sparse-anchor + fast-tracker architecture; Phase C proved the naive version fails, so
+  the contribution is making the tracker carry identity through absence and the VLM
+  re-anchor correctly.
+- **Tradeoff / cost accepted:** A third Part adds notebook surface and another gated
+  arc to maintain. Charter-only this turn means no measured numbers yet — accepted: the
+  whole point is to pre-register before spending GPU. The temporal metric suite is a new
+  contract surface to lock (deferred to T1). Real-video vs SITL data and anchor-model
+  choice are left as open forks for the user rather than decided unilaterally.
+- **Revisit when:** T0 numbers come in (cadence budget + spine pick may reshape the
+  phase plan); or the user resolves the open forks (anchor model, data source); or a
+  Gemma 4 token-budget sweep changes its on-Orin viability.
 
 ---
 

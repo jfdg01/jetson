@@ -28,14 +28,20 @@ reader (and the thesis committee) could reproduce it and trust the result.
 - **Date and version every entry.** Hardware/firmware/runtime versions drift;
   an undated number is worthless for a thesis.
 
-## Project parts: I (exploratory) and II (v2 rebuild)
+## Project parts: I (exploratory), II (v2 rebuild), III (object permanence)
 
-The notebook is split. **Part I — Exploratory** is the original record: device
-benchmark campaigns + the VLM grounding fine-tune arc (Stages 1–4), now frozen.
-**Part II — Principled rebuild (v2)** is the deliberate rebuild on branch
-`v2/principled-rebuild`, organised around one shared *contract* and a
-**fidelity-before-GPU** workflow (see the v2 section below). Both `DECISIONS.md` and
-`RESULTS.md` are append-only and carry a `Part II` demarcation; Part I is untouched.
+The notebook is split into three parts. **Part I — Exploratory** is the original
+record: device benchmark campaigns + the VLM grounding fine-tune arc (Stages 1–4),
+now frozen. **Part II — Principled rebuild (v2)** is the deliberate single-frame
+grounding rebuild on branch `v2/principled-rebuild`, organised around one shared
+*contract* and a **fidelity-before-GPU** workflow (see the v2 section below) — ALL
+phases 0–4 complete, deployed on Jetson (Qwen2-VL-2B Q8_0, RefDrone IoU@0.25 = 62.6%).
+**Part III — Persistent tracking / object permanence (v3)** is the next phase on
+branch `v3/object-permanence`: moving from a single *frame* to a *video stream* —
+keep a lock on a moving target across occlusion / scale change / out-of-frame and
+close a following control loop (see the v3 section below). All of `DECISIONS.md` and
+`RESULTS.md` are append-only and carry `Part II` / `Part III` demarcations; earlier
+parts are untouched.
 
 ## Where things go
 
@@ -54,7 +60,7 @@ benchmark campaigns + the VLM grounding fine-tune arc (Stages 1–4), now frozen
   (kept for the record; superseded by `grounding/`).
 - `archive/research/` — archived research & handoff prose (literature sweep, research
   prompts, handoff notes).
-- `DECISIONS.md` — project-wide decision log (most-recent first; Part II on top).
+- `DECISIONS.md` — project-wide decision log (most-recent first; Part III on top).
 
 ## v2 — Principled rebuild architecture (Part II)
 
@@ -91,6 +97,68 @@ start the next phase until the prior gate is green and documented in `results/` 
 
 **venvs:** `.venv-ft` (torch 2.6.0+cu124 — reused, painful to rebuild) for all
 GPU/eval/training work; stdlib-only `.venv` for the Part-I device-benchmark tooling.
+
+## v3 — Persistent tracking / object permanence architecture (Part III)
+
+v3 moves the problem from a single **frame** to a **video stream**: given a referring
+phrase, keep a lock on that *moving* target across time — through occlusion, scale
+change, motion blur, brief out-of-frame and re-acquisition — well enough to close a
+drone following loop. Single-frame IoU@0.25 (Part II's headline) is retained only as a
+per-anchor sanity check; the Part III headline metrics are **temporal** (track
+continuity / SOT success-precision, ID switches, re-acquisition time, oracle-coverage,
+closed-loop following error). The full charter is
+`results/2026-06-18-part3-charter/README.md`.
+
+**This is not from scratch.** Part I already built the SITL follow stack
+(`experiments/sitl/`: ByteTrack Kalman tracker, oracle_bbox perfect-perception upper
+bound + free labels, cascade_pid outer loop, pymavlink offboard) and ran Phase B
+(oracle closed loop, PASS) / Phase C (zero-shot VLM @ ~1 Hz, Branch-2 NEGATIVE — naive
+rate-mismatch + memoryless coasting could not hold a moving lock). Part II produced a
+deployable language-grounding **anchor** (Qwen2-VL-2B Q8_0, 62.6%). v3's job is the
+**bridge and the memory**, not the plumbing.
+
+**Forced architecture (hardware-imposed):** a VLM forward pass on the Orin is
+~0.3–1.2 Hz; a following loop needs ~20 Hz. That ~20–60× gap is structural, so v3 runs
+a **fast per-frame tracker (motion + appearance) at 20 Hz holding the lock**, with the
+**VLM as a sparse async semantic anchor** for acquisition, periodic re-anchor and
+re-acquisition.
+
+Two findings become v3's *binding constraints* (the analogs of Part II's two):
+1. **Detection-cadence vs target-dynamics budget** (the new dominant variable, analog
+   of the deployment-fidelity gap) — how far the target moves between anchors vs the
+   tracker's coasting horizon. **Measure on-Orin cadence + target dynamics before
+   tuning the loop** (the "fidelity-before-GPU" discipline becomes "measure cadence-vs-
+   dynamics before design").
+2. **Identity through absence / object permanence** (the new accuracy frontier, analog
+   of the resolution ceiling) — the current ByteTrack is constant-velocity Kalman with
+   **NO appearance / re-ID memory**, so re-acquisition can re-lock the *wrong* object.
+   This is the genuinely unsolved piece the Part III chapter is about.
+
+Proposed gated phases (T0–T4; same gate rule — don't start the next until the prior is
+green and documented in `results/` + `RESULTS.md` + `DECISIONS.md` same-turn):
+- **T0 — cadence & dynamics harness** (measure-before-design): on-Orin VLM Hz sweep
+  (incl. Gemma 4 token-budget lever), per-frame tracker cost at 20 Hz, target-dynamics
+  / occlusion stats. Gate: cadence-vs-dynamics budget quantified, anchor spine picked
+  by the numbers.
+- **T1 — data & temporal contract**: choose data (real aerial referring-video vs
+  SITL clips with free oracle labels); extend `contract.py` with temporal metric
+  primitives, pytest-locked.
+- **T2 — permanence mechanism**: add identity-through-absence (appearance/re-ID memory
+  and/or VLM re-verification). Gate: beat memoryless-ByteTrack ID-switch / re-acq.
+- **T3 — closed-loop integration** in SITL: beat the Phase-C negative (oracle-coverage
+  well above ~0% on a *moving* target).
+- **T4 — on-Orin deployment** within the T0 cadence budget; characterise sim-to-device.
+
+**Gemma 4 note (honest):** the user wants to try Gemma 4 (variable-resolution + a
+70–1120 token/image latency lever — real appeal). But video-capable Gemma 4 is 26B/31B
+(won't fit 8 GB Orin); the fitting E2B/E4B are image-only and already measured at
+**0.34–0.49 Hz on the Orin — the slowest candidates** (slower than SmolVLM-500M 1.2 Hz).
+The token-budget speed lever is untested. So Gemma 4 enters T0 as a *candidate to
+measure*, not a foregone choice; the anchor spine is picked **by the numbers** against
+the already-deployed Qwen2-VL-2B Q8_0.
+
+**venvs / hardware unchanged:** `.venv-ft` for GPU/eval/train, stdlib `.venv` for
+device tooling; Orin Nano 8 GB inference, RTX 3090 24 GB training.
 
 ## Python tooling
 

@@ -5,9 +5,10 @@ Each row links to the detailed writeup in `results/`. See `CLAUDE.md` for the
 fields every run must capture.
 
 This ledger is split into **Part I — Exploratory** (device benchmark campaigns +
-grounding Stages 1–4, everything below up to the Part II marker) and **Part II —
-Principled rebuild (v2)** (appended at the very bottom, `v2/principled-rebuild`
-onward). Part I is the untouched historical record.
+grounding Stages 1–4, everything below up to the Part II marker), **Part II —
+Principled rebuild (v2)** (single-frame grounding, `v2/principled-rebuild`), and
+**Part III — Persistent tracking / object permanence (v3)** (`v3/object-permanence`),
+each appended below in turn. Earlier parts are the untouched historical record.
 
 All results: **Jetson Orin Nano 8 GB · 15 W locked (nvpmodel -m 0 + jetson_clocks) ·
 llama.cpp commit `57fe1f0` CUDA sm_87 · Q4_K_M quant · ngl=99 (full GPU offload) ·
@@ -371,3 +372,21 @@ by deployment fidelity in Phase 0c, *before* any GPU training. **Q8_0 is the dep
 ≈½ the weights (1.65 vs 3.09 GB) at indistinguishable accuracy, fitting the 8 GB unified memory with
 headroom. mmproj is bit-equivalent to base (vision frozen). Jetson server runs single-slot, no prompt
 cache (`-np 1 --cache-ram 0 --no-cache-idle-slots`) to avoid the 8 GB OOM. **Phases 0–4 complete.**
+
+---
+
+# Part III — Persistent tracking / object permanence (v3)
+
+Branch `v3/object-permanence`. The problem moves from a single frame to a **video
+stream**: keep a lock on a *moving* referred target across occlusion / scale change /
+out-of-frame and close a following loop. Headline metrics become **temporal** (track
+continuity / SOT success-precision, ID switches, re-acquisition time, oracle-coverage,
+closed-loop following error) — single-frame IoU@0.25 is retained only as a per-anchor
+sanity check.
+
+**Charter pre-registered (2026-06-18):**
+[`results/2026-06-18-part3-charter/README.md`](results/2026-06-18-part3-charter/README.md)
+— paradigm shift, the two binding constraints (#1 cadence-vs-dynamics budget; #2
+identity-through-absence), the forced sparse-VLM-anchor + 20 Hz-fast-tracker
+architecture, the temporal metric suite, and the proposed gated phase plan T0–T4. No
+measured results yet — rows are appended as phases T0→T4 complete.
