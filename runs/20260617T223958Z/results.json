@@ -1,0 +1,12 @@
+{
+  "F16": {
+    "gguf_path": "runs/v2/phase3-refdrone-1024/gguf/phase3-refdrone-1024-f16.gguf",
+    "iou_gate_pass_rate": NaN,
+    "drop_vs_hf_pp": NaN
+  },
+  "Q8_0": {
+    "gguf_path": "runs/v2/phase3-refdrone-1024/gguf/phase3-refdrone-1024-q8_0.gguf",
+    "iou_gate_pass_rate": NaN,
+    "drop_vs_hf_pp": NaN
+  }
+}

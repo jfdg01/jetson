@@ -348,3 +348,26 @@ floor, opposite of Stage-2 collapse. The 19.5%→59.5% gain decomposes cleanly: 
 (base 512→1024 = 4.1%→30.3% zero-shot, Phase 2) **× the LoRA fine-tune** (30.3%→59.5% on top).
 Merged checkpoint `runs/v2/phase3-refdrone-1024/`. Phase 3 complete → proceed to Phase 4
 (export & deploy); HF full-val **59.5% is the fidelity reference** for the deployed GGUF.
+
+## Phase 4 — Export & deploy (GGUF on Jetson, fidelity disambiguation) (2026-06-18)
+
+Export the Phase-3 merged checkpoint to GGUF (`grounding/export/to_gguf.py`, `convert_hf_to_gguf.py`
+@ pinned llama.cpp `57fe1f07…`) and run the **F16-vs-Q8_0 disambiguation on the Jetson** over the
+full RefDrone well-posed val (n=439), same contract path as the HF reference. The Jetson runs the
+*same pinned commit* as the local build (no backend-version confound) under CUDA full-offload, 15 W,
+clocks locked. Full writeup: [`results/2026-06-18-phase4-export-deploy/`](results/2026-06-18-phase4-export-deploy/README.md)
+
+| Backend | size | n | parse | **IoU@0.25** | mean_iou | center_std | Manifest |
+|---|---|---|---|---|---|---|---|
+| HF bf16 **(reference)** | — | 439 | 100.0% | **59.5%** | 0.451 | 215.2 | `runs/20260617T212559Z` |
+| GGUF **F16** (Jetson) | 3.09 GB | 439 | 100.0% | **62.2%** | 0.466 | 218.2 | `runs/20260617T233529Z` |
+| GGUF **Q8_0** (Jetson) | 1.65 GB | 439 | 100.0% | **62.6%** | 0.468 | 217.4 | `runs/20260618T001147Z` |
+
+**Phase 4 gate ✅ — PASS, decisively.** Deployed IoU *exceeds* the HF reference: **runtime/preprocessing
+gap (HF→F16) = −2.7pp** and **quant gap (F16→Q8_0) = −0.5pp** — both negative (deployed beats HF) and
+within n=439 noise, i.e. **no measurable fidelity loss**. The Part-I catastrophe (**−23pp** runtime +
+**−7pp** quant on SmolVLM/Idefics3) does **not** reproduce on Qwen2-VL — the payoff of picking the spine
+by deployment fidelity in Phase 0c, *before* any GPU training. **Q8_0 is the deployment artifact**:
+≈½ the weights (1.65 vs 3.09 GB) at indistinguishable accuracy, fitting the 8 GB unified memory with
+headroom. mmproj is bit-equivalent to base (vision frozen). Jetson server runs single-slot, no prompt
+cache (`-np 1 --cache-ram 0 --no-cache-idle-slots`) to avoid the 8 GB OOM. **Phases 0–4 complete.**

@@ -21,40 +21,66 @@ import argparse
 from dataclasses import asdict
 
 from grounding import manifest
-from grounding.data.refcoco import load_refcoco
+from grounding.contract import IMAGE_SIZE
 from grounding.eval.harness import evaluate
+
+
+def _load_samples(args):
+    if args.dataset == "refcoco":
+        from grounding.data.refcoco import load_refcoco
+        return load_refcoco(args.split, coco_root=args.coco_root, max_samples=args.n)
+    if args.dataset == "refdrone":
+        from grounding.data.refdrone import load_refdrone
+        return load_refdrone(args.split, max_samples=args.n)
+    raise SystemExit(f"unknown dataset '{args.dataset}'")
 
 
 def _build_backend(args):
     if args.backend == "hf":
         from grounding.eval.backends import HFBackend
-        return HFBackend(args.model, device=args.device, dtype=args.dtype)
+        return HFBackend(args.model, device=args.device, dtype=args.dtype,
+                         max_side=args.max_side)
     if args.backend == "gguf":
         from grounding.eval.backends import GGUFBackend
         if not args.mmproj:
             raise SystemExit("--mmproj is required for the gguf backend")
-        return GGUFBackend(args.model, args.mmproj, n_gpu_layers=args.ngl)
+        return GGUFBackend(args.model, args.mmproj, n_gpu_layers=args.ngl,
+                           max_side=args.max_side)
+    if args.backend == "jetson":
+        from grounding.eval.backends import JetsonBackend
+        if not args.mmproj:
+            raise SystemExit("--mmproj (remote path) is required for the jetson backend")
+        # On the Jetson we want full GPU offload by default; --ngl 0 stays CPU.
+        ngl = args.ngl if args.ngl else 99
+        return JetsonBackend(args.model, args.mmproj, n_gpu_layers=ngl,
+                             max_side=args.max_side)
     raise SystemExit(f"backend '{args.backend}' not wired in run.py yet")
 
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--backend", default="hf", choices=["hf", "gguf", "jetson"])
-    p.add_argument("--model", required=True, help="checkpoint path or HF id")
-    p.add_argument("--split", default="validation")
-    p.add_argument("--n", type=int, default=100, help="number of val samples")
+    p.add_argument("--dataset", default="refcoco", choices=["refcoco", "refdrone"])
+    p.add_argument("--model", required=True, help="checkpoint path or HF id (remote path for jetson)")
+    p.add_argument("--split", default="validation",
+                   help="dataset split (refcoco: validation; refdrone: val)")
+    p.add_argument("--n", type=int, default=100, help="number of val samples (0 = all)")
     p.add_argument("--coco-root", default="data/coco")
-    p.add_argument("--mmproj", default="", help="mmproj GGUF (required for gguf backend)")
-    p.add_argument("--ngl", type=int, default=0, help="GPU layers for the gguf backend (0 = CPU)")
+    p.add_argument("--mmproj", default="",
+                   help="mmproj GGUF (required for gguf/jetson; remote path for jetson)")
+    p.add_argument("--ngl", type=int, default=0,
+                   help="GPU layers (gguf: 0 = CPU; jetson: 0 -> full offload)")
+    p.add_argument("--max-side", type=int, default=IMAGE_SIZE,
+                   help="long-edge input resize (Phase-2 lever; Phase-3/4 used 1024)")
     p.add_argument("--device", default="cuda")
     p.add_argument("--dtype", default="bfloat16")
     p.add_argument("--note", default="", help="free-text note saved into the manifest")
     args = p.parse_args()
 
-    print(f"[run] loading RefCOCO '{args.split}' subset (n={args.n})...", flush=True)
-    samples = load_refcoco(args.split, coco_root=args.coco_root, max_samples=args.n)
+    print(f"[run] loading {args.dataset} '{args.split}' subset (n={args.n or 'all'})...", flush=True)
+    samples = _load_samples(args)
     print(f"[run] {len(samples)} samples; building {args.backend} backend "
-          f"({args.model})...", flush=True)
+          f"({args.model}) max_side={args.max_side}...", flush=True)
 
     backend = _build_backend(args)
     print("[run] evaluating...", flush=True)
@@ -71,16 +97,17 @@ def main():
           f"center_std={report.center_std:.1f}", flush=True)
 
     cfg = {
-        "phase": "0",
         "backend": args.backend,
+        "dataset": args.dataset,
         "model": args.model,
         "split": args.split,
         "n": args.n,
+        "max_side": args.max_side,
         "device": args.device,
         "dtype": args.dtype,
         "note": args.note,
     }
-    if args.backend == "gguf":
+    if args.backend in ("gguf", "jetson"):
         cfg["mmproj"] = args.mmproj
         cfg["ngl"] = args.ngl
     m = manifest.capture("eval", cfg)

@@ -1,0 +1,8 @@
+{
+  "backend": "jetson",
+  "n": 439,
+  "parse_rate": 1.0,
+  "iou_gate_pass_rate": 0.621867881548975,
+  "mean_iou": 0.4661183713764769,
+  "center_std": 218.1606293586703
+}

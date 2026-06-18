@@ -21,6 +21,72 @@ from grounding.contract import IMAGE_SIZE
 _DEFAULT_LLAMACPP_BIN = "/tmp/llama.cpp-57fe1f0/build/bin"
 
 
+def _llama_server_chat(base_url: str, image_path: str, caption: str,
+                       max_side: int, *, timeout: int = 300) -> str:
+    """POST one (image, caption) to a llama.cpp `/v1/chat/completions` endpoint.
+
+    Shared by `GGUFBackend` (local CPU server) and `JetsonBackend` (remote server
+    over an ssh tunnel) so both runtimes send byte-identical requests — the image is
+    long-edge-resized to `max_side` with the SAME `_resize_keep_aspect` the HF arm
+    uses, saved as lossless PNG, base64'd; the verbatim `GROUNDING_PROMPT` is the
+    user text; greedy (`temperature=0`), `cache_prompt=False`, `max_tokens` from the
+    contract. Keeping this in one place means the only residual between local-GGUF
+    and Jetson is the hardware, not the request.
+    """
+    import base64
+    import json
+    import tempfile
+    import urllib.request
+
+    from PIL import Image
+
+    from grounding.contract import GROUNDING_PROMPT, MAX_NEW_TOKENS
+
+    img = Image.open(image_path).convert("RGB")
+    img = _resize_keep_aspect(img, max_side)
+    prompt = GROUNDING_PROMPT.format(target=caption)
+
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as tmp:
+        img.save(tmp.name)  # lossless PNG — identical pixels to the HF arm
+        b64 = base64.b64encode(open(tmp.name, "rb").read()).decode()
+
+    payload = json.dumps({
+        "model": "vlm",
+        "messages": [{"role": "user", "content": [
+            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}},
+            {"type": "text", "text": prompt},
+        ]}],
+        "max_tokens": MAX_NEW_TOKENS,
+        "temperature": 0.0,  # greedy / deterministic
+        "cache_prompt": False,
+    }).encode()
+    req = urllib.request.Request(
+        f"{base_url}/v1/chat/completions", data=payload,
+        headers={"Content-Type": "application/json"}, method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        data = json.loads(resp.read().decode())
+    return data["choices"][0]["message"].get("content") or ""
+
+
+def _wait_for_health(base_url: str, proc, timeout_s: int) -> None:
+    """Block until `<base_url>/health` reports ok, or raise (proc may be None for remote)."""
+    import time
+    import urllib.request
+
+    deadline = time.time() + timeout_s
+    while time.time() < deadline:
+        if proc is not None and proc.poll() is not None:
+            raise RuntimeError(f"llama-server exited early (code {proc.returncode})")
+        try:
+            with urllib.request.urlopen(f"{base_url}/health", timeout=3) as r:
+                if b"ok" in r.read():
+                    return
+        except Exception:
+            time.sleep(1)
+    raise RuntimeError(f"llama-server not healthy after {timeout_s}s")
+
+
 def _resize_keep_aspect(img, max_side: int):
     """Downscale so the long edge == max_side (no-op if already smaller).
 
@@ -151,14 +217,17 @@ class GGUFBackend:
         n_gpu_layers: int = 0,
         bin_dir: str | None = None,
         startup_timeout_s: int = 120,
+        max_side: int = IMAGE_SIZE,
     ):
         import socket
         import subprocess
-        import time
-        import urllib.request
 
         self.model_path = model_path
         self.mmproj_path = mmproj_path
+        # Input long-edge resize (Phase-2 resolution lever); default IMAGE_SIZE=512
+        # for back-compat with the Phase-0 parity numbers. Phase-4 passes 1024 to
+        # match the resolution the Phase-3 checkpoint was trained/evaluated under.
+        self.max_side = max_side
         self.bin_dir = bin_dir or os.environ.get("LLAMACPP_BIN_DIR", _DEFAULT_LLAMACPP_BIN)
         server_bin = os.path.join(self.bin_dir, "llama-server")
         if not os.path.exists(server_bin):
@@ -186,60 +255,16 @@ class GGUFBackend:
 
         # Wait for /health to report ok (or the process to die).
         base = f"http://127.0.0.1:{self.port}"
-        deadline = time.time() + startup_timeout_s
-        while time.time() < deadline:
-            if self._proc.poll() is not None:
-                self._log.flush()
-                raise RuntimeError(
-                    f"llama-server exited early (code {self._proc.returncode}); "
-                    f"see {self._log.name}"
-                )
-            try:
-                with urllib.request.urlopen(f"{base}/health", timeout=3) as r:
-                    if b"ok" in r.read():
-                        break
-            except Exception:
-                time.sleep(1)
-        else:
+        try:
+            _wait_for_health(base, self._proc, startup_timeout_s)
+        except RuntimeError:
+            self._log.flush()
             self.close()
-            raise RuntimeError(f"llama-server not healthy after {startup_timeout_s}s")
+            raise
         self._base = base
 
     def generate(self, image_path: str, caption: str) -> str:
-        import base64
-        import json
-        import tempfile
-        import urllib.request
-
-        from PIL import Image
-
-        from grounding.contract import GROUNDING_PROMPT, IMAGE_SIZE, MAX_NEW_TOKENS
-
-        img = Image.open(image_path).convert("RGB")
-        img = _resize_keep_aspect(img, IMAGE_SIZE)
-        prompt = GROUNDING_PROMPT.format(target=caption)
-
-        with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as tmp:
-            img.save(tmp.name)  # lossless PNG — identical pixels to the HF arm
-            b64 = base64.b64encode(open(tmp.name, "rb").read()).decode()
-
-        payload = json.dumps({
-            "model": "vlm",
-            "messages": [{"role": "user", "content": [
-                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}},
-                {"type": "text", "text": prompt},
-            ]}],
-            "max_tokens": MAX_NEW_TOKENS,
-            "temperature": 0.0,  # greedy / deterministic
-            "cache_prompt": False,
-        }).encode()
-        req = urllib.request.Request(
-            f"{self._base}/v1/chat/completions", data=payload,
-            headers={"Content-Type": "application/json"}, method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=300) as resp:
-            data = json.loads(resp.read().decode())
-        return data["choices"][0]["message"].get("content") or ""
+        return _llama_server_chat(self._base, image_path, caption, self.max_side)
 
     def close(self) -> None:
         proc = getattr(self, "_proc", None)
@@ -267,12 +292,131 @@ class GGUFBackend:
 
 
 class JetsonBackend:
-    """Remote llama.cpp on the Jetson over `ssh jetson` (deployment target)."""
+    """Remote llama.cpp `llama-server` on the Jetson Orin Nano (deployment target).
+
+    This is the runtime that produces the **deployment number** the whole v2 effort
+    is designed backwards from: the GGUF skill served on the actual edge device, with
+    CUDA offload, at the same pinned llama.cpp commit as the local build (so backend
+    version is not a confound — only the hardware differs).
+
+    Mechanics: boot `llama-server` on the Jetson over `ssh jetson` (backgrounded,
+    GPU-offloaded with `-ngl`), open an `ssh -N -L` tunnel forwarding a free local
+    port to the remote server, then reuse the exact same `_llama_server_chat` request
+    path as `GGUFBackend` — so the local-GGUF and Jetson arms send byte-identical
+    requests and the F16↔Q8 disambiguation is apples-to-apples across both. `close()`
+    tears down the tunnel and kills the remote server.
+    """
 
     name = "jetson"
 
-    def __init__(self, remote_model_path: str, remote_mmproj_path: str):
-        raise NotImplementedError("filled in at Phase 0 startup")
+    def __init__(
+        self,
+        remote_model_path: str,
+        remote_mmproj_path: str,
+        *,
+        ssh_host: str = "jetson",
+        remote_bin_dir: str = "/home/jfdg/llama.cpp/build/bin",
+        remote_port: int = 18080,
+        n_ctx: int = 4096,
+        n_gpu_layers: int = 99,
+        startup_timeout_s: int = 240,
+        max_side: int = IMAGE_SIZE,
+    ):
+        import socket
+        import subprocess
+
+        self.ssh_host = ssh_host
+        self.remote_model_path = remote_model_path
+        self.remote_mmproj_path = remote_mmproj_path
+        self.remote_port = remote_port
+        self.max_side = max_side
+        self._remote_pid: int | None = None
+        self._tunnel: subprocess.Popen | None = None
+
+        server_bin = f"{remote_bin_dir}/llama-server"
+        remote_log = f"/tmp/grounding_llama_server_{remote_port}.log"
+        # Backgrounded remote server; print its PID so we can kill it on close().
+        #
+        # Memory discipline for the 8 GB unified-memory Orin Nano (DECISIONS.md
+        # 2026-06-18): the batch eval sends independent images, so the server's
+        # prompt cache is pure waste — and its default (`--cache-ram 8192`, an 8 GB
+        # cache) plus auto multi-slot (`--parallel -1`) OOM-killed the server mid-run
+        # (slots 0–3 each saving ~870-tok idle prompts). Force a single slot, disable
+        # the prompt cache (`--cache-ram 0`), and stop idle-slot saving so host
+        # memory stays flat across all 439 samples.
+        remote_cmd = (
+            f"env LD_LIBRARY_PATH={remote_bin_dir} nohup {server_bin} "
+            f"-m {remote_model_path} --mmproj {remote_mmproj_path} "
+            f"-ngl {n_gpu_layers} -c {n_ctx} "
+            f"-np 1 --cache-ram 0 --no-cache-idle-slots "
+            f"--port {remote_port} --host 127.0.0.1 "
+            f"> {remote_log} 2>&1 & echo $!"
+        )
+        out = subprocess.run(
+            ["ssh", ssh_host, remote_cmd],
+            capture_output=True, text=True, timeout=60,
+        )
+        if out.returncode != 0:
+            raise RuntimeError(f"failed to start remote llama-server: {out.stderr.strip()}")
+        try:
+            self._remote_pid = int(out.stdout.strip().split()[-1])
+        except (ValueError, IndexError):
+            raise RuntimeError(f"could not parse remote PID from: {out.stdout!r}")
+
+        # Free local port for the tunnel head.
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(("127.0.0.1", 0))
+            self.local_port = s.getsockname()[1]
+
+        # ssh -N -L <local>:127.0.0.1:<remote> jetson  (forward only, no shell).
+        self._tunnel = subprocess.Popen(
+            ["ssh", "-N",
+             "-o", "ExitOnForwardFailure=yes",
+             "-L", f"{self.local_port}:127.0.0.1:{remote_port}",
+             ssh_host],
+        )
+
+        base = f"http://127.0.0.1:{self.local_port}"
+        try:
+            # proc=None: health is gated on the *remote* server, reached via the
+            # tunnel; the local tunnel process staying up is necessary but not
+            # sufficient, so we poll /health (which round-trips to the Jetson).
+            _wait_for_health(base, None, startup_timeout_s)
+        except RuntimeError:
+            self.close()
+            raise
+        self._base = base
 
     def generate(self, image_path: str, caption: str) -> str:
-        raise NotImplementedError("filled in at Phase 0 startup")
+        return _llama_server_chat(self._base, image_path, caption, self.max_side)
+
+    def close(self) -> None:
+        import subprocess
+
+        tunnel = getattr(self, "_tunnel", None)
+        if tunnel is not None and tunnel.poll() is None:
+            tunnel.terminate()
+            try:
+                tunnel.wait(timeout=10)
+            except Exception:
+                tunnel.kill()
+        pid = getattr(self, "_remote_pid", None)
+        if pid is not None:
+            try:
+                subprocess.run(["ssh", self.ssh_host, f"kill {pid} 2>/dev/null || true"],
+                               timeout=30, capture_output=True)
+            except Exception:
+                pass
+            self._remote_pid = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+
+    def __del__(self):
+        try:
+            self.close()
+        except Exception:
+            pass
