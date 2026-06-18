@@ -104,3 +104,190 @@ def center_std(bboxes: Sequence[Sequence[float]]) -> float:
     cx = [(b[0] + b[2]) / 2 for b in boxes]
     cy = [(b[1] + b[3]) / 2 for b in boxes]
     return (st.pstdev(cx) + st.pstdev(cy)) / 2
+
+
+# ── temporal metric primitives (Part III — object permanence) ─────────────────────
+#
+# The single-frame metrics above (iou / center_std) answer "where is it in THIS frame".
+# Part III scores a *stream*: keep a lock on a moving target across time. These
+# primitives are the §6 charter suite (results/2026-06-18-part3-charter §6) lifted into
+# the one contract so anchor/tracker/eval can never disagree on what "success" means.
+#
+# Data model — a clip of N frames, each described by parallel per-frame lists:
+#   pred[i]    : predicted/tracked box [x1,y1,x2,y2], or None when the tracker has no lock
+#   gt[i]      : the target's oracle GT box, or None when the target is not visible
+#   visible[i] : bool, target present in frame i (gt is not None ⟺ visible, by convention)
+#   locked_id[i]: identity label the tracker is locked onto (any hashable), or None
+# Scored ranges differ on purpose (see the T1 writeup): SOT success/precision are over
+# *visible* frames (tracking quality while the target exists); oracle-coverage is over
+# *all* frames (the closed-loop framing measure carried from Phase C).
+
+# Default precision radius: a centre within 20 px of the oracle counts as "on target".
+# 20 px ≈ a small fraction of the 640-wide SITL frame; tune per-clip via the argument.
+PRECISION_THRESHOLD_PX = 20.0
+
+# Success-plot threshold sweep (OTB convention: 0.00 → 1.00 step 0.05). The AUC over
+# this sweep is the standard single-number SOT success score.
+SUCCESS_AUC_THRESHOLDS = tuple(i / 20 for i in range(21))
+
+
+def center_error(a: Sequence[float], b: Sequence[float]) -> float:
+    """Euclidean distance between the centres of two [x1,y1,x2,y2] boxes (px)."""
+    acx, acy = (a[0] + a[2]) / 2, (a[1] + a[3]) / 2
+    bcx, bcy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2
+    return ((acx - bcx) ** 2 + (acy - bcy) ** 2) ** 0.5
+
+
+def sot_success(pred: Sequence[Optional[Sequence[float]]],
+                gt: Sequence[Optional[Sequence[float]]],
+                threshold: float = IOU_GATE_THRESHOLD) -> float:
+    """Fraction of *visible* frames with IoU(pred, gt) ≥ threshold.
+
+    A frame is scored only when gt is not None (target visible). A None prediction on
+    a visible frame counts as a miss (IoU 0). Returns 0.0 if no frame is visible.
+    """
+    scored = [(p, g) for p, g in zip(pred, gt) if g is not None]
+    if not scored:
+        return 0.0
+    hits = sum(1 for p, g in scored if p is not None and iou(p, g) >= threshold)
+    return hits / len(scored)
+
+
+def sot_success_auc(pred: Sequence[Optional[Sequence[float]]],
+                    gt: Sequence[Optional[Sequence[float]]],
+                    thresholds: Sequence[float] = SUCCESS_AUC_THRESHOLDS) -> float:
+    """Mean SOT success over an IoU-threshold sweep — the success-plot AUC."""
+    if not thresholds:
+        return 0.0
+    return sum(sot_success(pred, gt, t) for t in thresholds) / len(thresholds)
+
+
+def sot_precision(pred: Sequence[Optional[Sequence[float]]],
+                  gt: Sequence[Optional[Sequence[float]]],
+                  threshold_px: float = PRECISION_THRESHOLD_PX) -> float:
+    """Fraction of *visible* frames with centre error ≤ threshold_px.
+
+    Scored over frames where gt is not None; a None prediction counts as a miss.
+    Returns 0.0 if no frame is visible.
+    """
+    scored = [(p, g) for p, g in zip(pred, gt) if g is not None]
+    if not scored:
+        return 0.0
+    hits = sum(1 for p, g in scored
+               if p is not None and center_error(p, g) <= threshold_px)
+    return hits / len(scored)
+
+
+def count_id_switches(locked_id: Sequence[object]) -> int:
+    """Times the locked identity jumps between consecutive *locked* frames.
+
+    None entries (no lock) are skipped, so a switch is only counted when the tracker
+    holds a lock, drops nothing, and the identity differs from the previous lock. This
+    is the direct constraint-#2 (object-permanence) failure signal: a memoryless
+    tracker that re-locks the wrong object after an occlusion scores ≥1 here.
+    """
+    switches = 0
+    last = None
+    for cur in locked_id:
+        if cur is None:
+            continue
+        if last is not None and cur != last:
+            switches += 1
+        last = cur
+    return switches
+
+
+def identity_purity(locked_id: Sequence[object], target_id: object) -> float:
+    """Fraction of *locked* frames where the lock is on the true target.
+
+    Complements count_id_switches: a tracker that steadily locks the WRONG object
+    scores 0 switches but ~0 purity; the two numbers together describe the failure.
+    Returns 0.0 if the tracker never holds a lock.
+    """
+    locked = [c for c in locked_id if c is not None]
+    if not locked:
+        return 0.0
+    return sum(1 for c in locked if c == target_id) / len(locked)
+
+
+def reacquisition_frames(visible: Sequence[bool],
+                         correct: Sequence[bool]) -> List[Optional[int]]:
+    """Frames from each target reappearance to the first correct re-lock.
+
+    A reappearance is a visibility transition absent→present (and frame 0 if it starts
+    visible — the initial acquisition). For each, returns the number of frames until
+    the first frame where the target is both visible and correctly locked
+    (`correct[i]` True). Returns None for that event if the target leaves the frame
+    again before being re-locked (a failed re-acquisition). One list entry per event;
+    an empty list means the target never appeared.
+    """
+    n = len(visible)
+    events: List[Optional[int]] = []
+    for i in range(n):
+        is_reappear = visible[i] and (i == 0 or not visible[i - 1])
+        if not is_reappear:
+            continue
+        delta: Optional[int] = None
+        for j in range(i, n):
+            if not visible[j]:
+                break          # left again before any correct re-lock
+            if correct[j]:
+                delta = j - i
+                break
+        events.append(delta)
+    return events
+
+
+def oracle_coverage(pred: Sequence[Optional[Sequence[float]]],
+                    gt: Sequence[Optional[Sequence[float]]],
+                    threshold: float = IOU_GATE_THRESHOLD) -> float:
+    """Fraction of *all* clip frames where the tracked box matches oracle GT ≥ threshold.
+
+    Distinct from sot_success on purpose: the denominator is the whole clip length, so
+    this penalises every frame the drone fails to frame the target — including genuine
+    out-of-frame windows. This is the Phase-C closed-loop ground-truth metric (which
+    read ~0% on a moving target). Returns 0.0 for an empty clip.
+    """
+    if not gt:
+        return 0.0
+    covered = sum(1 for p, g in zip(pred, gt)
+                  if g is not None and p is not None and iou(p, g) >= threshold)
+    return covered / len(gt)
+
+
+def following_error(pred: Sequence[Optional[Sequence[float]]],
+                    gt: Sequence[Optional[Sequence[float]]]) -> Optional[float]:
+    """Mean centre offset (px) of the tracked box vs oracle, over co-present frames.
+
+    Only frames where both pred and gt exist are averaged (you cannot measure framing
+    error when there is no box). Returns None if no frame has both — the closed-loop
+    framing-quality number for T3/T4.
+    """
+    errs = [center_error(p, g) for p, g in zip(pred, gt)
+            if p is not None and g is not None]
+    if not errs:
+        return None
+    return sum(errs) / len(errs)
+
+
+def track_loss_events(visible: Sequence[bool], correct: Sequence[bool],
+                      timeout: int) -> int:
+    """Count runs where the target is visible but un-tracked for ≥ `timeout` frames.
+
+    A track-loss event is a maximal run of consecutive frames in which the target is
+    visible yet `correct` is False, whose length is ≥ timeout (the LOST_TIMEOUT
+    exceedance from the follow stack). Brief, recoverable gaps shorter than the timeout
+    are not counted. `timeout` must be ≥ 1.
+    """
+    if timeout < 1:
+        raise ValueError("timeout must be >= 1")
+    events = 0
+    run = 0
+    for vis, ok in zip(visible, correct):
+        if vis and not ok:
+            run += 1
+            if run == timeout:        # crossed the threshold exactly once per run
+                events += 1
+        else:
+            run = 0
+    return events
