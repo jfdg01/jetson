@@ -468,3 +468,26 @@ and **degrades to the baseline** below it (noise ≥ van/decoy gap) — an hones
 separability-dependent win, the quantitative statement of *when* appearance memory helps.
 Control `clean_follow` unchanged (purity/coverage 1.0 → no regression). Verify:
 `python experiments/sitl/reid_policy.py` + `make test`.
+
+### Part III — T3 closed-loop integration in SITL (2026-06-24) ✅ GATE PASS
+
+`experiments/run_t3.py` closes the loop: the lock **drives the camera** (cascade-PID →
+body velocity → copter → re-projection), so a wrong lock steers the aircraft off the true
+target and the failure compounds — the exact Phase-C mechanic, now an **identity** test
+(same-class distractor crosses, briefly occludes the target at t = 29–31 s, then veers
+away). Two policies share one harness, 20 Hz control / 1 Hz detect, 10 m alt. Reuses
+oracle_bbox + bytetrack + cascade_pid + offboard + the T2 `_observe`. Headline: true-target
+oracle-coverage % (Phase-C ≈ **0 %** on a moving target). Full writeup:
+[`results/2026-06-24-t3-closed-loop/`](results/2026-06-24-t3-closed-loop/README.md).
+
+| policy | kinematic A/B coverage | live ArduCopter SITL coverage | occlusion frames |
+|---|---|---|---|
+| memoryless baseline | 49.2 % | 53.7 % | 40 |
+| **re-ID (snr 8)** | **97.6 %** | **71.5 %** | 40 |
+
+**T3 gate ✅ — PASS:** Phase-C ≈ 0 % → re-ID **97.6 %** kinematic / **71.5 %** live SITL,
+both ≫ 0 % on a *moving* target. The memoryless baseline (49–54 %) shows the win is the
+**permanence mechanism** (appearance gate holds identity through the occlusion/crossing),
+not just the faster loop. Live margin is smaller than kinematic because real PID-lag +
+inertia lower *both* policies' absolute coverage, but direction + mechanism hold. Verify:
+`.venv-ft/bin/python experiments/run_t3.py` (3 self-checks) + `--live` under `.venv`.

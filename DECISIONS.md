@@ -17,6 +17,38 @@ legacy scripts now live under `experiments/legacy/`).
 
 <!-- v3 decisions are appended here, most recent first. -->
 
+### 2026-06-24T12:00 — T3 gate PASS: closed-loop A/B (kinematic primary + live SITL confirm)
+
+- **Decision:** Deliver T3 as a **two-policy closed-loop A/B** (memoryless vs the T2 re-ID
+  gate) on one shared harness (`experiments/run_t3.py`), with a **deterministic kinematic
+  dry-run as the primary comparison** and a **live ArduCopter SITL run as the sim-to-flight
+  confirmation**. The lock drives cascade-PID → body velocity → copter motion → re-projection,
+  so a wrong lock steers the camera off the true target (the Phase-C compounding failure),
+  now an *identity* test via a same-class distractor that crosses, briefly occludes the
+  target (t = 29–31 s), then veers away. Build a focused new runner reusing oracle_bbox +
+  bytetrack + cascade_pid + offboard + the T2 `_observe`, not an extension of the 1239-line
+  `run_phase_c.py`.
+- **Result:** Phase-C ≈ 0 % on a moving target → re-ID **97.6 %** (kinematic) / **71.5 %**
+  (live SITL) true-target coverage; memoryless baseline 49.2 % / 53.7 %. The baseline-vs-reID
+  gap localises the win to the **permanence mechanism** (the appearance gate holds identity
+  through the occlusion/crossing), not merely the faster loop. Live margin < kinematic because
+  real PID-lag + inertia lower both policies' absolute coverage; direction + mechanism hold,
+  both ≫ 0 %. Full writeup: `results/2026-06-24-t3-closed-loop/`.
+- **Alternatives considered:** (a) extend `run_phase_c.py` — rejected (Gazebo/VLM/dual-branch
+  baggage; focused runner is the shorter diff); (b) live-SITL only — rejected (flight noise
+  blurs the mechanism; kinematic A/B is the clean deterministic, self-check-able comparison);
+  (c) kinematic only — rejected (charter says *in SITL*; the live run is the honest reality
+  check); (d) both policies in one shared flight — rejected (first policy leaves the copter
+  chased-off → reid starts degraded: 2.8 % shared vs 71.5 % on its own fresh takeoff). One
+  fresh flight per policy is the apples-to-apples that matches the kinematic A/B.
+- **Tradeoff:** kinematic abstracts away flight dynamics; live SITL is noisier + slower (two
+  boots + two 60 s flights). Accepted — together they bracket the result (mechanism isolation
+  + real-flight confirmation). Live-SITL reproducibility gotchas captured in the writeup
+  (GUIDED before takeoff; `--uartA=tcp:5760` or the lockstep clock never advances; drain
+  `LOCAL_POSITION_NED` to freshest; hard-reap arducopter between flights; run foreground).
+- **Revisit when:** T4 (on-Orin within the T0 cadence budget) and/or a real appearance
+  encoder replaces the scalar `_observe` — both re-measure this loop with the real stack.
+
 ### 2026-06-24T00:00 — T2 gate PASS: appearance-memory re-ID with an explicit SNR/range knob
 
 - **Decision:** Solve object permanence (constraint #2) with a stored **appearance
