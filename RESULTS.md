@@ -491,3 +491,27 @@ both ≫ 0 % on a *moving* target. The memoryless baseline (49–54 %) shows the
 not just the faster loop. Live margin is smaller than kinematic because real PID-lag +
 inertia lower *both* policies' absolute coverage, but direction + mechanism hold. Verify:
 `.venv-ft/bin/python experiments/run_t3.py` (3 self-checks) + `--live` under `.venv`.
+
+### Part III — T4 on-Orin deployment + sim-to-device (2026-06-24) ✅ GATE PASS
+
+`experiments/run_t4.py` runs the **integrated two-tier loop on the actual Orin Nano 8 GB
+(15 W)** and reconciles the **device** timings against the T0 cadence budget — the
+deployment gate. T0 had measured the anchor on the Orin (T0a) but the tracker on the dev
+box (T0b); T4 closes that. Reuses the T0 harness wholesale; one file (`bytetrack.py`)
+pushed to the device. Full writeup:
+[`results/2026-06-24-t4-deployment/`](results/2026-06-24-t4-deployment/README.md).
+
+| tier | dev box / T0a | **Orin (T4)** | sim-to-device |
+|---|---|---|---|
+| fast: `ByteTracker.update` median (p99) | 0.051 ms (0.103) | **0.143 ms (0.291)** | 2.8× slower, **99.7 % of 50 ms budget free** |
+| slow: VLM anchor @512 wall | 2265 ms (0.44 Hz) | **2264 ms (0.44 Hz), 100 % parse** | **−0.03 %** (deployed model intact) |
+
+**T4 gate ✅ — PASS:** both tiers fit their roles on the metal — fast tracker holds 20 Hz
+with ~350× headroom, real deployed Qwen2-VL-2B Q8_0 anchor reproduces the T0a cadence and
+emits valid bboxes every rep; anchor period 2.26 s > 1.5 s coast → event-triggered re-acq
+required (the T0 verdict, confirmed on-device). `deploys_within_t0_budget = True`. Verify:
+`.venv-ft/bin/python experiments/run_t4.py` (self-check) + `--phase all` (on `ssh jetson`).
+
+**Part III COMPLETE** — T0–T4 all GATE PASS. Cadence budget (T0) → temporal contract
+(T1) → permanence mechanism (T2) → closed-loop A/B beating the Phase-C negative (T3) →
+on-Orin deployment within budget (T4).

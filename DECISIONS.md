@@ -17,6 +17,34 @@ legacy scripts now live under `experiments/legacy/`).
 
 <!-- v3 decisions are appended here, most recent first. -->
 
+### 2026-06-24T18:40 — T4 gate PASS: on-Orin deployment within the T0 cadence budget
+
+- **Decision:** Close Part III with an **on-Orin timing/cadence reconciliation** rather
+  than a physical hardware-in-the-loop flight. `experiments/run_t4.py` times the fast
+  tier on the device CPU (T4a), fires the **real deployed Qwen2-VL-2B Q8_0 grounding
+  model** as the in-loop anchor through the verbatim contract path (T4b), and reconciles
+  both against the 50 ms / 1.5 s-coast T0 budget (T4c). Reuses the T0 harness wholesale
+  (imports `run_t0_cadence`); one file pushed to the device.
+- **Result:** PASS. Fast tier 0.143 ms median / 0.291 ms p99 on aarch64 @ 15 W — 2.8×
+  the dev box but **99.7 % of the 20 Hz budget free** (~350× headroom). Real VLM anchor
+  2264 ms / **0.44 Hz**, **−0.03 % drift vs T0a**, **100 % bbox parse** (deployed model
+  intact). Anchor period 2.26 s > 1.5 s coast → event-triggered re-acq required, the T0
+  verdict confirmed on the metal. `deploys_within_t0_budget = True`.
+- **Alternatives considered:** (a) **Full HW-in-the-loop flight on the Orin** — rejected:
+  no physical airframe/camera; the deployable claim is whether the two-tier *timing* fits
+  the device, measured directly here. (b) **Trust T0's mixed-host budget** — rejected:
+  T0b was the dev box; the charter says *on-Orin within the T0 budget*, so the tracker
+  tier had to be measured on aarch64 to honestly close the gate. (c) **Re-run the T3 SITL
+  loop pointed at the on-device VLM** — rejected as premature: per-frame VLM-in-the-loop
+  integration is separate engineering; the gate is the cadence budget, decided by the two
+  tier timings + the event-triggered re-acq condition, all measured here.
+- **Tradeoff / cost accepted:** T4 proves the loop *fits* the device timing budget through
+  the actual deployed artifacts, not that a physical drone flies it. The closed-loop
+  *behaviour* is the T3 SITL PASS; T4 is the honest deployment-feasibility characterisation.
+- **Revisit when:** a physical airframe + camera is available for a true HW-in-the-loop
+  flight, or a real appearance encoder replaces the scalar T2 `_observe` (adds per-frame
+  cost to re-measure against this headroom). **This closes Part III (T0–T4 all PASS).**
+
 ### 2026-06-24T12:00 — T3 gate PASS: closed-loop A/B (kinematic primary + live SITL confirm)
 
 - **Decision:** Deliver T3 as a **two-policy closed-loop A/B** (memoryless vs the T2 re-ID

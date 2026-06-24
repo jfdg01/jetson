@@ -1,0 +1,56 @@
+{
+  "generated_utc": "20260624T183835",
+  "t4c": {
+    "phase": "T4c",
+    "tracker_p99_ms": 0.2906000008806586,
+    "budget_ms": 50.0,
+    "fast_tier_fits_20hz": true,
+    "anchor_period_s": 2.2643268140018336,
+    "coast_horizon_s": 1.5,
+    "event_triggered_reacq_required": true,
+    "sim_to_device": {
+      "tracker_devbox_median_ms": 0.051,
+      "tracker_orin_median_ms": 0.14280399773269892,
+      "tracker_slowdown": 2.8000783869156654,
+      "anchor_t0a_wall_ms": 2265.0,
+      "anchor_orin_wall_ms": 2264.3268140018336
+    },
+    "deploys_within_t0_budget": true
+  },
+  "t4a": {
+    "phase": "T4a",
+    "host": "Orin Nano 8GB (aarch64, 15 W)",
+    "update_ms": {
+      "n": 1180,
+      "median": 0.14280399773269892,
+      "mean": 0.1694865384675815,
+      "p99": 0.2906000008806586,
+      "max": 0.426157028414309,
+      "max_lost_frames": 30
+    },
+    "budget_ms": 50.0,
+    "implied_max_hz": 7002.605080228944,
+    "headroom_ms_median": 49.8571960022673,
+    "headroom_frac": 0.997143920045346,
+    "devbox_median_ms": 0.051,
+    "sim_to_device_slowdown": 2.8000783869156654
+  },
+  "t4b": {
+    "phase": "T4b",
+    "host": "Orin Nano 8GB (15 W)",
+    "max_side": 512,
+    "wall_ms": {
+      "n": 8,
+      "mean": 2264.339814375944,
+      "median": 2264.3268140018336,
+      "p99": 2265.085765000549,
+      "min": 2263.741729002504,
+      "max": 2265.085765000549
+    },
+    "anchor_hz_median": 0.44163236234996517,
+    "anchor_period_s": 2.2643268140018336,
+    "parse_rate": 1.0,
+    "t0a_512_wall_ms": 2265.0,
+    "drift_vs_t0a_pct": -0.02972123612213888
+  }
+}
