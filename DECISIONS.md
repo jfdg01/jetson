@@ -17,6 +17,32 @@ legacy scripts now live under `experiments/legacy/`).
 
 <!-- v3 decisions are appended here, most recent first. -->
 
+### 2026-06-24T00:00 — T2 gate PASS: appearance-memory re-ID with an explicit SNR/range knob
+
+- **Decision:** Solve object permanence (constraint #2) with a stored **appearance
+  descriptor** matched at re-acquisition behind a **refuse-to-lock gate**
+  (`experiments/sitl/reid_policy.py`), and model appearance as a scalar whose observation
+  noise scales with crop size — one `snr` knob that *is* the T0d separability-vs-range
+  frontier. Reuse the T1 tracker and §6 metric assembly unchanged (factored
+  `assemble_scores` out of `clip_recorder.score_clip`).
+- **Result:** above the knee (snr ≳ 1) the gate **beats the memoryless baseline**:
+  identity purity 0.725→1.000, ID switches 1→0, failed re-acq 1→0, coverage 0.575→0.695
+  (= the 139/200 visible-frame ceiling), following error 67.7→0.13 px. Below the knee it
+  degrades to the baseline (noise ≥ van/decoy gap). Control clip unchanged (no regression).
+- **Alternatives considered:** (a) **VLM re-verification** of each re-acq crop — deferred
+  to T3/T4: it is the other permanence lever but needs rendered crops + an on-Orin VLM call
+  inside the cadence budget; the appearance gate is the cheap renderer-free slice that
+  already clears the gate. (b) **Render RGB now + real embedding** — rejected (same reason
+  T1 deferred rendering): heavy non-deterministic dependency before it is load-bearing; the
+  scalar+noise stand-in isolates the *mechanism* (memory + gate) from the *encoder* and
+  turns range-dependence into a measured `snr` variable. (c) **Motion-only re-ID** — that
+  *is* the baseline that fails (both vehicles share the crossing region).
+- **Tradeoff / cost accepted:** the win is **conditional on separability** (snr ≳ 1);
+  below the knee appearance memory alone is no better than memoryless. Reported as the
+  headline frontier, not smoothed over.
+- **Revisit when:** T2+ renders crops (swap `_observe` for an embedding distance off the
+  same manifests) and/or T3 adds VLM re-verification for the low-SNR regime.
+
 ### 2026-06-18T15:30 — T1 gate PASS: temporal contract + scored clip set without a renderer
 
 - **Decision:** Close the T1 gate with (a) the §6 temporal metrics locked in the shared

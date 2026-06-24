@@ -152,11 +152,7 @@ def score_clip(clip_dir, timeout=30):
     sys.path.insert(0, here)
     sys.path.insert(0, os.path.join(here, "..", ".."))
     from bytetrack import ByteTracker
-    from grounding.contract import (iou, sot_success, sot_precision,
-                                    sot_success_auc, oracle_coverage,
-                                    following_error, count_id_switches,
-                                    identity_purity, reacquisition_frames,
-                                    track_loss_events)
+    from grounding.contract import iou
 
     manifest, recs = load_clip(clip_dir)
     tgt_id = manifest["target_id"]
@@ -202,11 +198,21 @@ def score_clip(clip_dir, timeout=30):
         correct.append(gtid == tgt_id and gt_box is not None
                        and pred is not None and iou(pred, gt_box) >= 0.25)
 
+    return assemble_scores(manifest["name"], tgt_id, preds, gts, vis,
+                           locked_gt, correct, timeout)
+
+
+def assemble_scores(name, tgt_id, preds, gts, vis, locked_gt, correct, timeout=30):
+    """Run the §6 suite over per-frame streams → a scores dict (policy-agnostic)."""
+    from grounding.contract import (sot_success, sot_precision, sot_success_auc,
+                                    oracle_coverage, following_error,
+                                    count_id_switches, identity_purity,
+                                    reacquisition_frames, track_loss_events)
     reacq = reacquisition_frames(vis, correct)
     ok_reacq = [r for r in reacq if r is not None]
-    scores = {
-        "clip": manifest["name"],
-        "frames": len(recs),
+    return {
+        "clip": name,
+        "frames": len(preds),
         "sot_success": round(sot_success(preds, gts), 4),
         "sot_precision": round(sot_precision(preds, gts), 4),
         "sot_success_auc": round(sot_success_auc(preds, gts), 4),
@@ -219,7 +225,6 @@ def score_clip(clip_dir, timeout=30):
         "reacq_mean_frames": (round(sum(ok_reacq) / len(ok_reacq), 1) if ok_reacq else None),
         "track_loss_events": track_loss_events(vis, correct, timeout),
     }
-    return scores
 
 
 # ponytail: GT is deterministic (no RNG); seed lives in the manifest for the

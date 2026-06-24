@@ -445,3 +445,26 @@ hard clip exposes the failure). The memoryless tracker **re-locks the wrong same
 object after occlusion** — purity 0.725, 1 ID-switch, 1/2 re-acquisitions failed,
 coverage 0.575: **constraint #2 (object permanence) made numeric, and the baseline T2
 must beat.** Verify: `python experiments/sitl/{oracle_bbox,clip_recorder}.py` + `make test`.
+
+### Part III — T2 permanence mechanism (2026-06-24) ✅ GATE PASS
+
+`experiments/sitl/reid_policy.py` adds an **appearance memory**: store the target's
+descriptor at acquisition, re-acquire by minimum descriptor distance behind a
+**refuse-to-lock gate**, EMA-refine while locked. Pixels aren't rendered yet (T1
+decision), so appearance is a per-instance scalar with **noise scaling by crop size** —
+one `snr` knob = the T0d separability-vs-range frontier. Tracker + §6 assembly reused
+unchanged. Full writeup: [`results/2026-06-24-t2-permanence/`](results/2026-06-24-t2-permanence/README.md).
+
+| policy (`crossing_occlusion`) | **ID sw** | **purity** | reacq fail | coverage | SOT succ | follow px |
+|---|---|---|---|---|---|---|
+| memoryless baseline (T1) | 1 | 0.725 | 1 | 0.575 | 0.827 | 67.7 |
+| **re-ID, snr ≳ 1** | **0** | **1.000** | **0** | **0.695** | **1.000** | **0.13** |
+| re-ID, snr ≤ 0.8 (below knee) | 1 | 0.751 | 1 | 0.575 | 0.827 | 67.7 |
+
+**T2 gate ✅ — PASS** (separable regime, snr ≳ 1): ID switches 1→0, failed re-acq 1→0,
+identity purity 0.725→**1.000**, coverage 0.575→**0.695** (= visible-frame ceiling
+139/200). The appearance gate **fully resolves the wrong-object re-lock** above the knee
+and **degrades to the baseline** below it (noise ≥ van/decoy gap) — an honest,
+separability-dependent win, the quantitative statement of *when* appearance memory helps.
+Control `clean_follow` unchanged (purity/coverage 1.0 → no regression). Verify:
+`python experiments/sitl/reid_policy.py` + `make test`.
