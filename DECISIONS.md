@@ -17,6 +17,29 @@ legacy scripts now live under `experiments/legacy/`).
 
 <!-- v3 decisions are appended here, most recent first. -->
 
+### 2026-06-18T15:30 — T1 gate PASS: temporal contract + scored clip set without a renderer
+
+- **Decision:** Close the T1 gate with (a) the §6 temporal metrics locked in the shared
+  `contract.py` (T1b) and (b) a **renderer-free** clip set — deterministic NED
+  trajectory→pixel-GT via `oracle_bbox.project_object`, written as `labels.jsonl` +
+  `manifest.json`, scored by the **memoryless-ByteTrack baseline** (`clip_recorder.py`).
+  Gazebo rendering is deferred to T2.
+- **Alternatives considered:** render RGB in Gazebo now (rejected — the gate scores boxes
+  not pixels; pixels are load-bearing only when an appearance re-ID head/real VLM consumes
+  crops, i.e. T2); oracle-association scoring for the headline (rejected — trivially hides
+  the failure; kept only as a sanity test). See the campaign doc for the full rationale.
+- **Reasoning:** the §6 metrics operate on `(pred_box, gt_box, visible, locked_id)`, all of
+  which the oracle projection supplies deterministically. Keeping T1 pure-stdlib+numpy
+  preserves the "de-risk cheaply before GPU/renderer" discipline and gives a reproducible
+  baseline now. Control clip near-perfect (purity 1.0) while the 4-stressor clip drops to
+  purity 0.725 / 1 ID-switch / coverage 0.575 → the suite both discriminates and quantifies
+  constraint #2 (object permanence) as the explicit T2 target.
+- **Tradeoff / cost accepted:** clips carry no photometric realism, so the appearance half
+  of re-ID and a real VLM anchor can't be exercised until T2 adds a render pass keyed off
+  the same manifests.
+- **Revisit when:** T2 needs appearance crops → render frame-aligned RGB from these
+  manifests (trajectory + intrinsics already define the SDF camera).
+
 ### 2026-06-18T13:30 — T0 gate PASS: anchor spine = Qwen2-VL-2B Q8_0 @ 512, event-triggered re-acquisition, two-tier architecture confirmed by the numbers
 
 - **Decision:** Pass the **T0 (cadence & dynamics) gate** and lock the operating point

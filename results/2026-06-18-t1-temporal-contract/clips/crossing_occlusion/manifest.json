@@ -1,0 +1,83 @@
+{
+  "alt_keys": [
+    [
+      0.0,
+      20.0
+    ],
+    [
+      1.0,
+      12.0
+    ]
+  ],
+  "fps": 20,
+  "intrinsics": {
+    "FOCAL_PX": 554.2562584220408,
+    "FOV_H_DEG": 60.0,
+    "IMG_H": 480,
+    "IMG_W": 640
+  },
+  "n_frames": 200,
+  "name": "crossing_occlusion",
+  "object_size_m": {
+    "len": 4.0,
+    "wid": 2.0
+  },
+  "objects": {
+    "decoy": [
+      [
+        0.0,
+        6.0,
+        -6.0
+      ],
+      [
+        0.5,
+        1.0,
+        1.0
+      ],
+      [
+        1.0,
+        -6.0,
+        6.0
+      ]
+    ],
+    "van": [
+      [
+        0.0,
+        -9.0,
+        0.0
+      ],
+      [
+        0.5,
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        9.0,
+        2.5
+      ]
+    ]
+  },
+  "occluders": [
+    [
+      [
+        1.0,
+        -6.0,
+        -6.0
+      ],
+      [
+        3.0,
+        6.0,
+        -4.0
+      ]
+    ]
+  ],
+  "seed": 0,
+  "stressors": [
+    "occlusion",
+    "scale_change",
+    "distractor_proximity",
+    "out_of_frame"
+  ],
+  "target_id": "van"
+}

@@ -423,3 +423,25 @@ the numbers: Qwen2-VL-2B Q8_0 @ 512 long-edge** (640×480 camera + downscale-onl
 ⇒ 768/1024 add latency with no fidelity gain). Re-ID appearance head geometrically
 feasible at 10–20 m (≥ 55 px), marginal at 30 m; embedding-separability check carried
 into T1.
+
+### Part III — T1 data & temporal contract (2026-06-18) ✅ GATE PASS
+
+T1b extended `grounding/contract.py` with the §6 temporal-metric suite (SOT
+success/precision, success-AUC, ID-switches, identity purity, re-acquisition time,
+oracle-coverage, following error, track-loss events), pure-stdlib & pytest-locked.
+T1a added `experiments/sitl/clip_recorder.py`: deterministic trajectory→GT clips (no
+renderer — boxes, not pixels, are what the gate scores; Gazebo deferred to T2) +
+the **memoryless-ByteTrack baseline** (event-triggered, appearance-blind re-acq).
+Full writeup: [`results/2026-06-18-t1-temporal-contract/`](results/2026-06-18-t1-temporal-contract/README.md).
+
+| Clip | SOT succ | coverage | **ID sw** | **purity** | reacq fail | follow px |
+|---|---|---|---|---|---|---|
+| `clean_follow` (control) | 1.000 | 1.000 | 0 | 1.000 | 0/1 | 0.03 |
+| `crossing_occlusion` (4 stressors) | 0.827 | **0.575** | **1** | **0.725** | **1/2** | 67.7 |
+
+**T1 gate ✅ — PASS.** A scored eval clip set exists with reproducible GT and the
+temporal metrics run deterministically (control near-perfect → suite isn't pessimistic;
+hard clip exposes the failure). The memoryless tracker **re-locks the wrong same-class
+object after occlusion** — purity 0.725, 1 ID-switch, 1/2 re-acquisitions failed,
+coverage 0.575: **constraint #2 (object permanence) made numeric, and the baseline T2
+must beat.** Verify: `python experiments/sitl/{oracle_bbox,clip_recorder}.py` + `make test`.

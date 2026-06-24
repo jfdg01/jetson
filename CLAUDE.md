@@ -96,7 +96,9 @@ start the next phase until the prior gate is green and documented in `results/` 
   with the F16-vs-Q8 disambiguation as a default gate; Jetson serve + Phase C hook.
 
 **venvs:** `.venv-ft` (torch 2.6.0+cu124 — reused, painful to rebuild) for all
-GPU/eval/training work; stdlib-only `.venv` for the Part-I device-benchmark tooling.
+GPU/eval/training work, and for any Part-III script that uses `numpy`/`scipy`/`PIL`
+(e.g. `run_t0_cadence.py`); `.venv` for the Part-I device-benchmark tooling **and**
+pymavlink SITL offboard (it is not purely stdlib — pymavlink is installed there).
 
 ## v3 — Persistent tracking / object permanence architecture (Part III)
 
@@ -205,9 +207,15 @@ are identical across sessions.
 make help          # list targets
 make sync          # reproduce .venv-ft EXACTLY from the lock (uv pip sync)
 make dev           # add dev/test tooling (pytest) on top of .venv-ft
-make test          # run the pytest contract + manifest suite
+make test          # run the pytest contract + manifest + audit suite
 make lock          # regenerate the pinned lock after editing requirements-ft.txt
+
+# Run a single test file or test:
+.venv-ft/bin/python -m pytest tests/test_contract.py -v
+.venv-ft/bin/python -m pytest tests/test_contract.py::test_iou_zero_when_no_overlap -v
 ```
+
+`pyproject.toml` exists **only** to configure pytest (`testpaths`, `addopts`) and mark the repo root for package imports. It does **not** manage runtime deps — those live in `requirements-ft.txt` + `requirements-ft.lock.txt`.
 
 - **Dependencies** — `uv` (user-local at `~/.local/bin/uv`) with a **fully-pinned
   transitive lockfile**. `requirements-ft.txt` is the human-edited *direct* deps;
@@ -260,6 +268,17 @@ Each campaign has one Python script (`experiments/run_<campaign>.py`) that:
   model buffers accumulate, compute buffers last-wins per device, KV skips zeros.
 - `parse_bench_csv` handles both the old `t/s = "14.61 ± 0.00"` format and the
   newer explicit `avg_ts`/`stddev_ts` column format.
+
+## SITL follow stack (`experiments/sitl/`)
+
+Four modules, built for Phase B (oracle closed-loop) and Phase C (VLM-in-the-loop), reused by Part III:
+
+- **`oracle_bbox.py`** — perfect-perception upper bound. Converts SITL world-state (copter NED + attitude, rover NED) to pixel bounding boxes via a pinhole camera model (downward-facing, `FOV_H_DEG=60`, `IMG_W=640`, `IMG_H=480`). No ML; used as the free-label source for the 20 Hz tracker during T0c/T1+.
+- **`bytetrack.py`** — simplified ByteTrack with a constant-velocity Kalman filter (8-D state: `[cx,cy,w,h,vx,vy,vw,vh]`) and two-round IoU matching. No appearance embedding — re-ID via appearance is constraint #2 (object permanence), not yet addressed here. Needs `numpy` + `scipy` → **run under `.venv-ft`**.
+- **`cascade_pid.py`** — P-only cascade PID outer loop (image-plane error → body-frame velocity setpoints). Runs at tracker/oracle rate; autopilot handles attitude at 400 Hz.
+- **`offboard.py`** — pymavlink state machine (`CONNECT → ARM → TAKEOFF → OFFBOARD → LAND`), sends `SET_POSITION_TARGET_LOCAL_NED` velocity-only at ~20 Hz. Needs `pymavlink` → **run with the project `.venv`** (pymavlink is installed there; it is NOT purely stdlib).
+
+Unit tests for each: `python experiments/sitl/<module>.py` (inline `_test_*` functions, no pytest).
 
 ### Adding a new campaign
 
