@@ -184,8 +184,10 @@ def _save(frames, out_path, out_fps):
     Anything else -> animated GIF via PIL. mp4 is the quality path for committed clips."""
     if not out_path.lower().endswith(".mp4"):
         dur = round(1000 / max(out_fps, 1e-6))
+        # disposal=2 (restore to background) clears each frame before the next; without
+        # it PIL stores partial diffs and the moving box ghosts/smears across its trail.
         frames[0].save(out_path, save_all=True, append_images=frames[1:],
-                       duration=dur, loop=0, optimize=True)
+                       duration=dur, loop=0, optimize=False, disposal=2)
         return
     import subprocess
     w, h = frames[0].size
