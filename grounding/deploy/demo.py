@@ -37,6 +37,23 @@ _REMOTE_MODELS = {
 _REMOTE_MMPROJ = "mmproj-phase3-refdrone-1024-f16.gguf"  # bit-equiv to base; serves both
 _TRAIN_MAX_SIDE = 1024  # the resolution the Phase-3 checkpoint was trained/evaluated under
 
+# Demo presets — real RefDrone val (image, caption) pairs spanning target sizes, so a
+# live demo is one click instead of file-hunting. Images ship in the repo. Captions are
+# the dataset's own referring expressions; not pre-scored — the demo shows the live box.
+_VAL = "data/VisDrone2019-DET/images/val"
+PRESETS = {
+    "motorbike-small": (f"{_VAL}/0000242_04116_d_0000013.jpg",
+                        "The white motorbike is near the right side of the road."),
+    "bus-midlane":     (f"{_VAL}/0000199_01269_d_0000166.jpg",
+                        "The white bus is traveling in the middle lane."),
+    "bus-intersection": (f"{_VAL}/0000291_01001_d_0000873.jpg",
+                        "The green bus is prominently located at the center of the intersection."),
+    "pedestrians-red": (f"{_VAL}/0000330_01001_d_0000805.jpg",
+                        "The pedestrians in red walk near the center median."),
+    "car-large":       (f"{_VAL}/0000103_00502_d_0000027.jpg",
+                        "The white car parks on the paved area."),
+}
+
 
 def _draw_box(image_path: str, box_norm: list[int], caption: str, out_path: str) -> None:
     """Draw a normalized [x1,y1,x2,y2] (0..COORD_SCALE) box onto the image and save."""
@@ -65,14 +82,21 @@ def _draw_box(image_path: str, box_norm: list[int], caption: str, out_path: str)
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--image", required=True, help="local image path")
-    ap.add_argument("--caption", required=True, help="referring phrase to ground")
+    ap.add_argument("--preset", choices=list(PRESETS),
+                    help="use a bundled RefDrone (image, caption) preset instead of --image/--caption")
+    ap.add_argument("--image", help="local image path")
+    ap.add_argument("--caption", help="referring phrase to ground")
     ap.add_argument("--out", default="/tmp/grounding-demo.png", help="annotated PNG output")
     ap.add_argument("--quant", choices=list(_REMOTE_MODELS), default="q8_0")
     ap.add_argument("--remote-dir", default=_DEFAULT_REMOTE_DIR)
     ap.add_argument("--ssh-host", default="jetson")
     ap.add_argument("--max-side", type=int, default=_TRAIN_MAX_SIDE)
     args = ap.parse_args(argv)
+
+    if args.preset:
+        args.image, args.caption = PRESETS[args.preset]
+    if not args.image or not args.caption:
+        ap.error("need --preset, or both --image and --caption")
 
     remote_model = f"{args.remote_dir}/{_REMOTE_MODELS[args.quant]}"
     remote_mmproj = f"{args.remote_dir}/{_REMOTE_MMPROJ}"

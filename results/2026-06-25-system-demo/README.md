@@ -1,0 +1,60 @@
+# Whole-system interactive demo (Part III)
+
+**Built:** 2026-06-25. **Branch:** `v3/object-permanence`. **Rebuilt 2026-06-25T13:00**
+(see `DECISIONS.md`): the original static 4-tab page was retired in favour of a **live
+2-tab `grounding/deploy/gui.py`**.
+
+```bash
+source .venv-ft/bin/activate
+python -m grounding.deploy.gui            # boots the Orin server, serves http://127.0.0.1:8000
+```
+
+## The two tabs
+1. **Manual grounding** — the VLM in isolation. Pick a RefDrone preset (varied target
+   sizes) or upload an image, type a phrase → one box, **live on the deployed Qwen2-VL-2B
+   Q8_0** on the Orin (`ssh jetson`). The single-frame anchor tier, by hand.
+2. **Tracking on video** — the **two-tier architecture** on real aerial footage: a fresh
+   VLM anchor (~every 2.26 s, the measured on-Orin cadence) seeds a fast tracker that
+   **coasts** between anchors; the next anchor regrounds. Three pre-rendered clips
+   (`clips/*.mp4`), each with **real Orin VLM passes** on VisDrone-VID.
+
+   | clip | caption | seq |
+   |---|---|---|
+   | `clips/black-suv.mp4` | the black SUV in the middle of the road | `uav0000182_00000_v` |
+   | `clips/green-bus.mp4` | the green bus | `uav0000305_00000_v` |
+   | `clips/yellow-taxi.mp4` | the yellow taxi | `uav0000339_00001_v` |
+
+   Box colours: **green** = fresh VLM box · **cyan** = tracker coasting · **orange/red**
+   = stale / lost. Tracker is MIL (headless OpenCV ships it); `video.py` auto-upgrades to
+   CSRT if `opencv-contrib-python` is ever installed.
+
+## The honest seam (do NOT fake it)
+The real VLM anchor runs only on real aerial frames (Orin). Tab 2's clips ARE real on
+both tiers — real Orin VLM anchors + a real visual tracker coasting on real VisDrone
+frames. What does *not* exist on real video is **closed-loop following** (Level 3): a
+pre-recorded clip has no actuation to close the loop on — it stays sim-only (the T3
+result, in `results/2026-06-24-t3-closed-loop/`). Permanence A/B (T2) and closed-loop
+(T3) keep their own canonical GIFs in their own result folders; they are no longer
+embedded in this viewer.
+
+## Regenerating the clips
+```bash
+source .venv-ft/bin/activate          # needs the Orin reachable (ssh jetson), VisDrone frames on disk
+mkdir -p /tmp/scratch
+for s in "uav0000182_00000_v:the black SUV in the middle of the road:black-suv" \
+         "uav0000305_00000_v:the green bus:green-bus" \
+         "uav0000339_00001_v:the yellow taxi:yellow-taxi"; do
+  IFS=: read seq cap name <<<"$s"
+  python -m grounding.deploy.video \
+    --video data/VisDrone2019-VID/VisDrone2019-VID/images/val/$seq \
+    --caption "$cap" --track --out /tmp/scratch/$name.gif
+  ffmpeg -y -i /tmp/scratch/$name.gif -movflags +faststart -pix_fmt yuv420p \
+    -vf "scale=640:-2,fps=15" results/2026-06-25-system-demo/clips/$name.mp4
+done
+python -m grounding.deploy.video --selfcheck   # offline schedule + coord-roundtrip + tracker check
+```
+
+VisDrone frames are fetched via `remotezip` HTTP range-requests from the HF re-host
+`lanlanlan23/VisDrone2019` (`VisDrone2019-VID.zip`); they are gitignored-scale (not
+committed). The clips are ~0.3–1 MB mp4 each (vs a ~40 MB GIF), so the folder is small
+enough to commit.
