@@ -515,3 +515,25 @@ required (the T0 verdict, confirmed on-device). `deploys_within_t0_budget = True
 **Part III COMPLETE** — T0–T4 all GATE PASS. Cadence budget (T0) → temporal contract
 (T1) → permanence mechanism (T2) → closed-loop A/B beating the Phase-C negative (T3) →
 on-Orin deployment within budget (T4).
+
+---
+
+### 2026-06-26 — Terse output re-LoRA: cut JSON scaffolding from the anchor's decode
+
+Part II re-train of the deployed grounding anchor (Qwen2-VL-2B) to emit **four
+space-separated integers** instead of `{"bbox": [...]}`, to shrink decode latency for the
+Part III sub-1s-anchor lever. One variable changed (output format); base/data/resolution/
+LoRA/quant held identical to the 62.6% deploy. Writeup:
+[`results/2026-06-25-terse-output-retrain/`](results/2026-06-25-terse-output-retrain/README.md).
+
+| metric | JSON (deploy) | **terse (re-LoRA)** | delta |
+|---|---|---|---|
+| RefDrone IoU@0.25 (HF, val n=200) | 59.5% | **60.5%** | **+1.0 pp** (noise) |
+| parse_rate | 100% | **91.0%** | **−9 pp** (no brackets to anchor) |
+| decode tokens (Qwen tokenizer) | 23 tok | **15 tok** | **−8 tok / −35%** |
+| center_std | — | 234 | healthy (no collapse) |
+
+**Provisional KEEP:** accuracy free, decode −35% tokens (≈−0.37s of the 2.27s anchor →
+−16% total). On-Orin Q8_0 decode wall-time (Phase-4 export + re-deploy) still TODO — the
+token saving is the irreducible 8 JSON-scaffolding tokens, measured but not yet confirmed
+as wall-time on the device.

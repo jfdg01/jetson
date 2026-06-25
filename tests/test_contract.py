@@ -16,41 +16,40 @@ from grounding import contract as c
 # ── GROUNDING_PROMPT: byte-stability ─────────────────────────────────────────────
 
 def test_prompt_is_byte_identical_to_validated_string():
-    # The exact validated string from the Stage-3 G2-PASS trainer. If this fails,
-    # the contract drifted from what the fine-tuned weights were trained on.
+    # Terse re-LoRA (2026-06-25): four space-separated ints, no JSON. Re-pinned on
+    # purpose — the model is retrained on this exact string. If it fails, the contract
+    # drifted from what the fine-tuned weights were trained on.
     expected = (
-        'Locate "{target}". Return the bounding box as JSON '
-        '{{"bbox": [x1, y1, x2, y2]}} with integer coordinates normalized from 0 to 1000.'
+        'Locate "{target}". Return the bounding box as four space-separated integers '
+        'x1 y1 x2 y2, normalized from 0 to 1000.'
     )
     assert c.GROUNDING_PROMPT == expected
 
 
-def test_prompt_formats_target_and_leaves_literal_json_braces():
+def test_prompt_formats_target():
     out = c.GROUNDING_PROMPT.format(target="red car")
     assert 'Locate "red car".' in out
-    assert '{"bbox": [x1, y1, x2, y2]}' in out  # doubled braces collapse to literals
+    assert 'four space-separated integers' in out
 
 
-# ── parse_bbox ───────────────────────────────────────────────────────────────────
+# ── parse_bbox (terse: exactly four ints) ────────────────────────────────────────
 
-def test_parse_clean_json():
-    assert c.parse_bbox('{"bbox": [10, 20, 30, 40]}') == [10, 20, 30, 40]
-
-
-def test_parse_with_surrounding_prose():
-    txt = 'Sure! The object is at {"bbox": [1, 2, 3, 4]} in the image.'
-    assert c.parse_bbox(txt) == [1, 2, 3, 4]
+def test_parse_clean_terse():
+    assert c.parse_bbox("10 20 30 40") == [10, 20, 30, 40]
 
 
-def test_parse_floats_are_truncated_to_int():
-    assert c.parse_bbox('{"bbox": [10.9, 20.1, 30.5, 40.7]}') == [10, 20, 30, 40]
+def test_parse_extra_whitespace_and_newlines():
+    assert c.parse_bbox("  10   20\n30\t40 ") == [10, 20, 30, 40]
+
+
+def test_parse_handles_negative():
+    assert c.parse_bbox("-5 20 30 40") == [-5, 20, 30, 40]
 
 
 @pytest.mark.parametrize("bad", [
-    "no bbox here",
-    '{"bbox": [1, 2, 3]}',          # only three coords
-    '{"bbox": []}',                  # empty
-    '{"bbox": [a, b, c, d]}',        # non-numeric
+    "no numbers here",
+    "1 2 3",            # only three coords
+    "1 2 3 4 5",        # five — extra coordinate is a parse-fail, not silent corruption
     "",
 ])
 def test_parse_unparseable_returns_none(bad):

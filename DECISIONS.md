@@ -17,6 +17,30 @@ legacy scripts now live under `experiments/legacy/`).
 
 <!-- v3 decisions are appended here, most recent first. -->
 
+### 2026-06-26T22:30 — terse output format (4 space-separated ints) replaces JSON in the contract
+
+- **Decision:** Change the grounding contract's output format from `{"bbox": [x1,y1,x2,y2]}`
+  to **four space-separated integers** (`x1 y1 x2 y2`) and **re-LoRA** the anchor on it
+  (`runs/v2/phase3-terse-1024/`). Deliberately breaks the byte-identical `GROUNDING_PROMPT`
+  contract test (`tests/test_contract.py`), re-pinned to the new string. `parse_bbox` now
+  requires *exactly four* integers.
+- **Alternatives considered:** (a) keep JSON (zero decode saving — the scaffolding is the
+  cost); (b) prompt-only change without retraining (saves nothing — the deployed weights emit
+  learned JSON byte-for-byte); (c) a delimited terse form like `[123,456,234,567]` (keeps an
+  anchor for the parser but re-adds 4–6 scaffolding tokens, defeating the point).
+- **Reasoning:** the on-Orin anchor decode is ~24 tok ≈ 1.1s of the 2.27s anchor, almost all
+  JSON scaffolding. Measured: JSON 23 tok → terse 15 tok (**−8 tok, −35%**, the exact 8
+  scaffolding tokens). Re-LoRA cost **+1.0 pp** IoU@0.25 (60.5% vs 59.5% HF — noise, accuracy
+  is free) at the price of **−9 pp parse_rate** (91% vs 100%: no brackets to anchor on, model
+  needs all 3 epochs to learn the format). Net: real token saving, no accuracy loss.
+- **Tradeoff / cost accepted:** −9pp parse_rate (mitigated: exactly-4 guard makes a
+  dropped/extra coord an honest parse-fail, not silent corruption). The contract test is no
+  longer a regression anchor to the *original* deployed JSON weights — but those are superseded
+  by this re-train. On-Orin Q8_0 decode wall-time not yet measured (token premise is local-only).
+- **Revisit when:** the on-Orin export + deploy measures decode wall-time — if it doesn't drop
+  materially (≈−0.37s expected), or if 91% parse hurts a downstream consumer, revert to JSON
+  (the saving would not justify the parse cost). See `results/2026-06-25-terse-output-retrain/`.
+
 ### 2026-06-25T15:00 — install CSRT (opencv-contrib-python) + add a live-tracking demo tab
 
 - **Decision:** Replace `opencv-python` with the same-version **`opencv-contrib-python==4.13.0.92`**

@@ -35,7 +35,6 @@ Run:  source .venv-ft/bin/activate && python -m grounding.train.trainer [opts]
 from __future__ import annotations
 
 import csv
-import json
 import time
 from dataclasses import asdict
 from pathlib import Path
@@ -90,10 +89,12 @@ class _GroundingDataset:
         s = self.samples[idx]
         img = Image.open(s.image_path).convert("RGB")
         img = _resize_keep_aspect(img, self.image_size)
+        x1, y1, x2, y2 = s.bbox
         return {
             "image": img,
             "prompt": GROUNDING_PROMPT.format(target=s.caption),
-            "target_json": json.dumps({"bbox": s.bbox}),
+            # terse contract: four space-separated ints (no JSON) — see contract.py
+            "target_json": f"{x1} {y1} {x2} {y2}",
         }
 
 

@@ -36,10 +36,14 @@ MAX_NEW_TOKENS = 64       # response cap for grounding eval calls
 MODEL_ID       = "Qwen/Qwen2-VL-2B-Instruct"
 
 # UNIFIED prompt — must match every consumer (probe, train, export, Phase C) verbatim.
-# Lifted byte-identical from experiments/legacy/run_stage3_finetune.py.
+# TERSE format (2026-06-25 re-LoRA): four space-separated integers instead of JSON, to
+# cut decode tokens (~24 → ~10) and shrink the on-Orin anchor latency. The model must be
+# re-trained on this target for the saving to land (the JSON scaffolding is learned, not
+# free) — see results/2026-06-25-terse-output-retrain/. Previous JSON form was lifted
+# byte-identical from experiments/legacy/run_stage3_finetune.py.
 GROUNDING_PROMPT = (
-    'Locate "{target}". Return the bounding box as JSON '
-    '{{"bbox": [x1, y1, x2, y2]}} with integer coordinates normalized from 0 to 1000.'
+    'Locate "{target}". Return the bounding box as four space-separated integers '
+    'x1 y1 x2 y2, normalized from 0 to 1000.'
 )
 
 # Standing primary gate for aerial grounding (Phase 3). Kept here so the trainer and
@@ -64,16 +68,16 @@ def normalize_bbox(bbox_xyxy: Sequence[float], img_w: float, img_h: float,
 # ── output parsing ───────────────────────────────────────────────────────────────
 
 def parse_bbox(text: str) -> Optional[List[int]]:
-    """Extract [x1,y1,x2,y2] from model output; return None if unparseable."""
-    m = re.search(r'\{[^{}]*"bbox"\s*:\s*\[([^\]]+)\][^{}]*\}', text)
-    if m:
-        try:
-            vals = [float(v.strip()) for v in m.group(1).split(",")]
-            if len(vals) == 4:
-                return [int(v) for v in vals]
-        except ValueError:
-            pass
-    return None
+    """Extract [x1,y1,x2,y2] from terse model output; return None if unparseable.
+
+    Terse format = four space-separated integers ("123 456 234 567"). Require *exactly*
+    four integers: with no brackets to anchor on, a dropped/extra coordinate would
+    otherwise be silent corruption — exactly-4 turns it into an honest parse-fail.
+    """
+    nums = re.findall(r"-?\d+", text)
+    if len(nums) != 4:
+        return None
+    return [int(n) for n in nums]
 
 
 # ── metrics ──────────────────────────────────────────────────────────────────────
