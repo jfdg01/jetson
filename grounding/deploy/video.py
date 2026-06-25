@@ -174,11 +174,33 @@ def render(video_path, caption, out_path, backend, stride=3, period_s=ANCHOR_PER
             col = ORANGE
         out_frames.append(_draw(rgb, box, caption, tag, col))
 
-    dur = round(1000 * stride / fps)
-    out_frames[0].save(out_path, save_all=True, append_images=out_frames[1:],
-                       duration=dur, loop=0, optimize=True)
+    _save(out_frames, out_path, fps / max(1, stride))
     print(f"[video] {len(out_frames)} frames, {len(anchors)} anchors -> {out_path}", flush=True)
     return out_path
+
+
+def _save(frames, out_path, out_fps):
+    """.mp4 -> pipe raw RGB to ffmpeg (h264, full res, no 256-colour loss).
+    Anything else -> animated GIF via PIL. mp4 is the quality path for committed clips."""
+    if not out_path.lower().endswith(".mp4"):
+        dur = round(1000 / max(out_fps, 1e-6))
+        frames[0].save(out_path, save_all=True, append_images=frames[1:],
+                       duration=dur, loop=0, optimize=True)
+        return
+    import subprocess
+    w, h = frames[0].size
+    p = subprocess.Popen(
+        ["ffmpeg", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24",
+         "-s", f"{w}x{h}", "-r", f"{out_fps:.4f}", "-i", "-",
+         "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+         # even dims required by yuv420p; pad (no content loss) rather than crop
+         "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2", "-loglevel", "error", out_path],
+        stdin=subprocess.PIPE)
+    for f in frames:
+        p.stdin.write(f.convert("RGB").tobytes())
+    p.stdin.close()
+    if p.wait() != 0:
+        raise RuntimeError(f"ffmpeg failed writing {out_path}")
 
 
 def _selfcheck():
@@ -195,7 +217,15 @@ def _selfcheck():
     assert max(abs(a - b) for a, b in zip(rt, [100, 200, 300, 500])) < 1e-6, rt
     name = _make_tracker()[1]
     assert name in ("CSRT", "MIL"), name
-    print(f"  selfcheck PASS  anchors {sorted(anchors)}  tracker={name}")
+    # mp4 writer: 3 odd-sized frames must pad+encode to a non-empty file
+    mf = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
+    mf.close()
+    try:
+        _save([Image.new("RGB", (65, 49), (i, 0, 0)) for i in (10, 120, 230)], mf.name, 10.0)
+        assert os.path.getsize(mf.name) > 0, "empty mp4"
+    finally:
+        os.unlink(mf.name)
+    print(f"  selfcheck PASS  anchors {sorted(anchors)}  tracker={name}  mp4-writer ok")
 
 
 def main(argv=None) -> int:

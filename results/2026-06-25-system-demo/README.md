@@ -43,23 +43,24 @@ result, in `results/2026-06-24-t3-closed-loop/`). Permanence A/B (T2) and closed
 embedded in this viewer.
 
 ## Regenerating the clips
+`--out *.mp4` renders the annotated frames **straight to h264 at full source resolution**
+(`video.py:_save()` pipes raw RGB to ffmpeg) — no GIF intermediate, so no 256-colour
+quantisation. (Pass `--out *.gif` for the old animated-GIF path; the live-upload tab uses
+that for an inline preview.)
 ```bash
 source .venv-ft/bin/activate          # needs the Orin reachable (ssh jetson), VisDrone frames on disk
-mkdir -p /tmp/scratch
 for s in "uav0000182_00000_v:the black SUV in the middle of the road:black-suv" \
          "uav0000305_00000_v:the green bus:green-bus" \
          "uav0000339_00001_v:the yellow taxi:yellow-taxi"; do
   IFS=: read seq cap name <<<"$s"
   python -m grounding.deploy.video \
     --video data/VisDrone2019-VID/VisDrone2019-VID/images/val/$seq \
-    --caption "$cap" --track --out /tmp/scratch/$name.gif
-  ffmpeg -y -i /tmp/scratch/$name.gif -movflags +faststart -pix_fmt yuv420p \
-    -vf "scale=640:-2,fps=15" results/2026-06-25-system-demo/clips/$name.mp4
+    --caption "$cap" --track --out results/2026-06-25-system-demo/clips/$name.mp4
 done
-python -m grounding.deploy.video --selfcheck   # offline schedule + coord-roundtrip + tracker check
+python -m grounding.deploy.video --selfcheck   # offline schedule + coord-roundtrip + tracker + mp4-writer check
 ```
 
 VisDrone frames are fetched via `remotezip` HTTP range-requests from the HF re-host
 `lanlanlan23/VisDrone2019` (`VisDrone2019-VID.zip`); they are gitignored-scale (not
-committed). The clips are ~0.3–1 MB mp4 each (vs a ~40 MB GIF), so the folder is small
-enough to commit.
+committed). The clips are ~3–5 MB mp4 each (full-res h264, vs a ~40 MB GIF), small enough
+to commit.
