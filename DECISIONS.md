@@ -17,6 +17,89 @@ legacy scripts now live under `experiments/legacy/`).
 
 <!-- v3 decisions are appended here, most recent first. -->
 
+### 2026-06-25T13:00 — demo rebuilt around Level-2; old static 4-tab page retired
+
+- **Decision:** Replace the static 4-tab whole-system page
+  (`results/2026-06-25-system-demo/` — architecture / anchor / permanence / closed-loop)
+  with a **2-tab live `grounding/deploy/gui.py`**: **(1) manual grounding** (the existing
+  preset/upload → live-Orin VLM box, kept verbatim — "test the VLM in isolation") and
+  **(2) Level-2 tracking on video** (the new headline: VLM anchors + MIL coast on real
+  footage, shown as **3 short ~5 s clips**). The old static page and its three GIFs
+  (`anchor-on-video.gif` 40 MB, `permanence.gif`, `closedloop.gif`) are deleted.
+- **Alternatives considered:** (a) keep the static 4-tab page and just swap tab 2's GIF;
+  (b) two separate artifacts (live gui + a static video page); (c) commit the heavy GIFs.
+- **Reasoning:** the user's new ask is narrower — keep only the **manual single-image VLM
+  test** and grow **Level 2** to several videos. The manual test is *inherently live* (it
+  calls the Orin), so the laziest coherent home for both is the already-live `gui.py`: tab 1
+  is the live test unchanged, tab 2 just serves pre-rendered clips (works even with the Orin
+  down). The permanence / closed-loop / architecture panels are dropped from the demo per the
+  user ("for now I only need …") — they remain fully documented in `results/` + `RESULTS.md`,
+  so nothing is lost from the record, only from this one viewer. **Clips served as mp4**
+  (`<video loop muted>`), not GIF: the Level-2 GIF is ~40 MB vs ~0.6 MB mp4 (ffmpeg
+  one-liner), so the page is light and the mp4s are small enough to keep.
+- **Video source:** 2 more **VisDrone-VID val** sequences (we already have
+  `uav0000182_00000_v`), fetched via **`uv run --with remotezip`** HTTP range-requests from
+  the HF re-host `lanlanlan23/VisDrone2019` — an **ephemeral env**, so the painful pinned
+  `.venv-ft` lockfile is **not** touched (rendering still uses `.venv-ft`). ~150 frames/seq
+  ≈ 5 s @ 30 fps, matching the verified clip length.
+- **Tradeoff / cost accepted:** the demo no longer shows permanence/closed-loop in the same
+  window (deliberate, reversible — those tabs/GIFs are recoverable from git + still in
+  `results/`). Tab 1 needs `ssh jetson` reachable to run live; tab 2 does not.
+- **Revisit when:** the professor wants the permanence / closed-loop stories back in one
+  page → re-add them as tabs (the GIFs are in git history); or Level 2 graduates from demo
+  to a measured number → it needs its own `results/` campaign, not just a viewer.
+
+### 2026-06-25T12:30 — Level-2 real-video tracker = MIL (built-in), not CSRT yet
+
+- **Decision:** The two-tier "VLM anchor seeds a fast tracker that coasts between anchors"
+  on real video (Level 2, `grounding/deploy/video.py --track`) uses **`cv2.TrackerMIL`**,
+  the only tracker in the installed **headless OpenCV 4.13** build. We are **NOT** adding
+  `opencv-contrib-python` (CSRT/KCF) at this point. `_make_tracker()` auto-selects CSRT if
+  it is ever present, so the upgrade is a no-code swap.
+- **Alternatives considered:** `uv add opencv-contrib-python` now to get **CSRT** (clearly
+  the stronger tracker for fast aerial/scale-changing motion) or **KCF** (faster, weaker).
+- **Reasoning:** ladder discipline — use what's installed before paying for a dependency.
+  MIL ships with the current build (zero install), and the first job is just to see whether
+  the *architecture* (anchor→coast→re-anchor) reads correctly on real footage; tracker
+  quality is a second-order tuning knob. Adding contrib touches the **pinned `.venv-ft`
+  lockfile**, and `opencv-contrib-python` vs the existing headless `opencv-python-headless`
+  both vendor `cv2` → a real conflict risk in an env that is painful to rebuild. Not worth
+  that until MIL is shown to be the bottleneck.
+- **Tradeoff / cost accepted:** MIL drifts more under fast motion / scale change, so the
+  between-anchor coast may visibly wander on hard clips. Acceptable: anchors re-ground every
+  ~2.26 s, capping drift, and the demo's point is the cadence/coast structure, not SOTA
+  tracking. First real run (seq `uav0000182_00000_v`, "the black SUV…", 3 Orin anchors)
+  produced a coherent GIF.
+- **Revisit when:** MIL visibly loses the lock on a clip we want to show → `uv add
+  opencv-contrib-python`, verify `cv2` still imports + the contract tests pass, then
+  `_make_tracker()` picks CSRT automatically. Also revisit if Level 2 ever graduates from
+  demo to a measured T2/T3 number (then tracker choice needs justifying by the numbers).
+
+### 2026-06-25T00:00 — whole-system demo ships as a static page, not a live tool
+
+- **Decision:** The professor-facing whole-system demo is a **static, self-contained
+  HTML folder** (`results/2026-06-25-system-demo/index.html` + 3 GIFs), opened from
+  `file://` — no server, no live Orin inference in the page. Stage-4 closed-loop is
+  **included** via a new `experiments/sitl/closedloop_viz.py` that drives the existing
+  T3 harness through a one-line `on_frame` hook added to `run_t3.run_loop` (no new
+  control/perception code).
+- **Alternatives considered:** (a) extend `grounding/deploy/gui.py` into a live 4-tab
+  page driving the Orin (the TODO's original "laziest path"); (b) defer stage 4.
+- **Reasoning:** the user's explicit ask — *"static so I can simply show it"*. A live
+  page needs `ssh jetson` reachable, the llama-server up, and PIL on a host; a static
+  folder travels to any laptop/projector and never fails mid-talk. Tab 2 therefore
+  embeds the **pre-rendered real-Orin anchor GIF** (3 genuine VLM passes) rather than a
+  live grounding call — the numbers are still 100 % real, just frozen. The `on_frame`
+  hook reuses the verbatim closed-loop, so the stage-4 viz cannot drift from the T3
+  result (self-check asserts re-ID coverage > baseline and ≥ 80 %).
+- **Tradeoff / cost accepted:** no live "type a caption, watch the box" interactivity in
+  the page (the live GUI still exists separately for that). The anchor GIF is ~41 MB, so
+  GIFs are referenced by relative path, not base64-embedded — the folder is the unit you
+  copy. The demo deliberately shows **three honest stages with a stated seam**, never a
+  single faked end-to-end video (the two tiers live in different data worlds — T1).
+- **Revisit when:** the committee wants live "type-a-phrase" grounding in the room →
+  boot `grounding/deploy/gui.py` against the Orin as a separate live tab.
+
 ### 2026-06-24T18:40 — T4 gate PASS: on-Orin deployment within the T0 cadence budget
 
 - **Decision:** Close Part III with an **on-Orin timing/cadence reconciliation** rather
