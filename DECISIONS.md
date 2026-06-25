@@ -17,6 +17,30 @@ legacy scripts now live under `experiments/legacy/`).
 
 <!-- v3 decisions are appended here, most recent first. -->
 
+### 2026-06-25T15:00 — install CSRT (opencv-contrib-python) + add a live-tracking demo tab
+
+- **Decision:** Replace `opencv-python` with the same-version **`opencv-contrib-python==4.13.0.92`**
+  in `.venv-ft` (a strict superset that ships `TrackerCSRT_create`), and add a third
+  GUI tab **"Live tracking (your video)"**: upload a clip + type a phrase → the real
+  two-tier pipeline runs on the Orin (`video.py render --track`) and returns the
+  annotated GIF in the browser. `video.py:_make_tracker()` now auto-selects CSRT.
+- **Alternatives considered:** (a) stay on MIL (the 2026-06-25T12:30 deferral — no new
+  dep, but a visibly weaker tracker); (b) install both opencv-python + contrib (they
+  share the `cv2/` dir → file clash, unsupported); (c) opencv-contrib-python-headless
+  (no codecs/GUI — but we want mp4 decode for uploads).
+- **Reasoning:** the user asked for it explicitly now that Level-2 is the headline.
+  contrib is the upstream-recommended single package; same version → satisfies
+  `ultralytics`'s `opencv-python>=4.6.0` at the version level, and `cv2` imports
+  identically, so nothing at runtime breaks (verified: torch+CUDA intact, mp4 decode
+  OK, real end-to-end /track run on the Orin produced a coherent CSRT-tracked GIF).
+- **Tradeoff / cost accepted:** `pip check` will note `ultralytics requires
+  opencv-python` (different dist name) — cosmetic only; `cv2` is fully present. The
+  pinned dep is now explicit in `requirements-ft.txt` + the lock, overriding the
+  transitive `opencv-python`. The live tab is single-user (shares the one `_BACKEND`,
+  no request lock) and slow (~15-30 s/clip, real ssh VLM passes) — fine for a demo.
+- **Revisit when:** a non-contrib pin is forced (e.g. ultralytics hard-pins a conflicting
+  opencv build), or the demo needs concurrent users (then a backend pool / queue).
+
 ### 2026-06-25T13:00 — demo rebuilt around Level-2; old static 4-tab page retired
 
 - **Decision:** Replace the static 4-tab whole-system page

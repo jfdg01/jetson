@@ -26,6 +26,7 @@ import base64
 import io
 import json
 import os
+import subprocess
 import tempfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
@@ -35,7 +36,13 @@ from PIL import Image, ImageDraw, ImageFont
 from grounding.contract import parse_bbox, COORD_SCALE
 from grounding.deploy.demo import PRESETS
 from grounding.deploy.serve import _DEFAULT_REMOTE_DIR
+from grounding.deploy.video import render as _render_track
 from grounding.eval.backends import JetsonBackend
+
+# Upload-track tab: cap an uploaded clip so it stays a few VLM anchors, not a long run.
+_TRACK_MAX_S = 6        # seconds of the upload to use (≈3 anchors at the on-Orin cadence)
+_TRACK_W = 720          # extract/render width — small enough for a light mp4, big enough to ground
+_TRACK_MAX_BYTES = 80 * 1024 * 1024
 
 _REMOTE_MODELS = {
     "q8_0": "phase3-refdrone-1024-q8_0.gguf",
@@ -88,6 +95,7 @@ _PAGE = """<!doctype html>
 <nav>
  <button data-tab="manual" class="on">Manual grounding</button>
  <button data-tab="video">Tracking on video</button>
+ <button data-tab="live">Live tracking (your video)</button>
 </nav>
 
 <section id="manual" class="on">
@@ -108,6 +116,20 @@ real Orin VLM passes on VisDrone-VID footage.</p>
 __CLIPS__
 <p class="legend"><span class="g">green</span> = fresh VLM box · <span class="c">cyan</span>
 = tracker coasting · <span class="o">orange/red</span> = stale / lost between anchors</p>
+</section>
+
+<section id="live">
+<p class="muted">Run the two-tier pipeline on <b>your own</b> clip: upload a short aerial
+video and type a phrase. It samples the VLM at the on-Orin cadence (~2.26&nbsp;s) and
+lets the CSRT tracker coast between anchors — a <b>real</b> run on the Orin, so a 5&nbsp;s
+clip takes ~15-30&nbsp;s (a few VLM passes over ssh).</p>
+<div class="row"><input type="file" id="vid" accept="video/*"></div>
+<div class="row"><input type="text" id="vcap" placeholder="the white car near the building"></div>
+<div class="row">play every <input type="text" id="vstride" value="3" style="width:3rem">th frame
+ <button onclick="track()">Run tracking</button> <span id="vstatus" class="muted"></span></div>
+<div id="vout"></div>
+<p class="legend"><span class="g">green</span> = fresh VLM box · <span class="c">cyan</span>
+= CSRT coasting · <span class="o">red</span> = lost between anchors</p>
 </section>
 
 <script>
@@ -145,6 +167,26 @@ async function run(){
     document.getElementById('raw').textContent='box '+JSON.stringify(j.box)+'   raw: '+j.raw;
     s.textContent='done';
   }catch(err){s.textContent='error'; document.getElementById('raw').textContent=err;}
+}
+let vidData=null;
+document.getElementById('vid').onchange=e=>{
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader(); r.onload=()=>{vidData=r.result;}; r.readAsDataURL(f);};
+async function track(){
+  const cap=document.getElementById('vcap').value.trim();
+  const stride=parseInt(document.getElementById('vstride').value)||3;
+  if(!vidData){alert('pick a video first');return;}
+  if(!cap){alert('type a phrase first');return;}
+  const s=document.getElementById('vstatus'); s.textContent='running on the Orin (this takes a bit)...';
+  document.getElementById('vout').innerHTML='';
+  try{
+    const resp=await fetch('/track',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({video:vidData,caption:cap,stride:stride})});
+    const j=await resp.json();
+    if(j.error){s.textContent='error: '+j.error; return;}
+    document.getElementById('vout').innerHTML='<img src="'+j.gif+'" style="max-width:100%;border:1px solid #ccc;margin-top:.8rem">';
+    s.textContent=j.note||'done';
+  }catch(err){s.textContent='error: '+err;}
 }
 </script></body></html>"""
 
@@ -206,33 +248,50 @@ class _Handler(BaseHTTPRequestHandler):
             self._send(404, "text/plain", b"not found")
 
     def do_POST(self):  # noqa: N802
-        if self.path != "/infer":
+        handler = {"/infer": self._infer, "/track": self._track}.get(self.path)
+        if handler is None:
             self._send(404, "text/plain", b"not found")
             return
         try:
             n = int(self.headers.get("Content-Length", 0))
-            req = json.loads(self.rfile.read(n))
-            caption = req["caption"]
-            header, b64 = req["image"].split(",", 1)  # strip "data:image/...;base64,"
-            png_bytes = base64.b64decode(b64)
-
-            with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as tf:
-                tf.write(png_bytes)
-                tf.flush()
-                raw = _BACKEND.generate(tf.name, caption)
-
-            box = parse_bbox(raw)
-            if box is None:
-                self._send(200, "application/json",
-                           json.dumps({"error": f"unparseable output: {raw!r}"}).encode())
-                return
-            annotated = base64.b64encode(_annotate(png_bytes, box, caption)).decode()
-            self._send(200, "application/json", json.dumps({
-                "box": box, "raw": raw,
-                "annotated": "data:image/png;base64," + annotated,
-            }).encode())
+            out = handler(json.loads(self.rfile.read(n)))
         except Exception as e:  # noqa: BLE001 — surface any failure to the browser
-            self._send(200, "application/json", json.dumps({"error": str(e)}).encode())
+            out = {"error": str(e)}
+        self._send(200, "application/json", json.dumps(out).encode())
+
+    def _infer(self, req: dict) -> dict:
+        caption = req["caption"]
+        _, b64 = req["image"].split(",", 1)  # strip "data:image/...;base64,"
+        png_bytes = base64.b64decode(b64)
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as tf:
+            tf.write(png_bytes)
+            tf.flush()
+            raw = _BACKEND.generate(tf.name, caption)
+        box = parse_bbox(raw)
+        if box is None:
+            return {"error": f"unparseable output: {raw!r}"}
+        annotated = base64.b64encode(_annotate(png_bytes, box, caption)).decode()
+        return {"box": box, "raw": raw, "annotated": "data:image/png;base64," + annotated}
+
+    def _track(self, req: dict) -> dict:
+        """Level-2 two-tier run on an uploaded clip → annotated GIF. Real Orin VLM
+        anchors + CSRT coasting; slow (a few ssh VLM passes), single-user demo only."""
+        caption = req["caption"]
+        stride = max(1, int(req.get("stride", 3)))
+        _, b64 = req["video"].split(",", 1)
+        vid_bytes = base64.b64decode(b64)
+        vf = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
+        gf = tempfile.NamedTemporaryFile(suffix=".gif", delete=False)
+        try:
+            vf.write(vid_bytes)
+            vf.close()
+            gf.close()
+            _render_track(vf.name, caption, gf.name, _BACKEND, stride=stride, track=True)
+            gif_b64 = base64.b64encode(open(gf.name, "rb").read()).decode()
+        finally:
+            os.unlink(vf.name)
+            os.unlink(gf.name)
+        return {"gif": "data:image/gif;base64," + gif_b64, "note": "done — CSRT tracker"}
 
     def log_message(self, *_):  # quiet the per-request stderr spam
         pass

@@ -9,7 +9,7 @@ source .venv-ft/bin/activate
 python -m grounding.deploy.gui            # boots the Orin server, serves http://127.0.0.1:8000
 ```
 
-## The two tabs
+## The three tabs
 1. **Manual grounding** — the VLM in isolation. Pick a RefDrone preset (varied target
    sizes) or upload an image, type a phrase → one box, **live on the deployed Qwen2-VL-2B
    Q8_0** on the Orin (`ssh jetson`). The single-frame anchor tier, by hand.
@@ -24,9 +24,14 @@ python -m grounding.deploy.gui            # boots the Orin server, serves http:/
    | `clips/green-bus.mp4` | the green bus | `uav0000305_00000_v` |
    | `clips/yellow-taxi.mp4` | the yellow taxi | `uav0000339_00001_v` |
 
-   Box colours: **green** = fresh VLM box · **cyan** = tracker coasting · **orange/red**
-   = stale / lost. Tracker is MIL (headless OpenCV ships it); `video.py` auto-upgrades to
-   CSRT if `opencv-contrib-python` is ever installed.
+3. **Live tracking (your video)** — same pipeline, *your* clip: upload a short aerial
+   video + a phrase → it runs the real two-tier pass on the Orin and returns the
+   annotated GIF. Slow (~15-30 s/clip — a few ssh VLM passes), single-user.
+
+   Box colours (tabs 2-3): **green** = fresh VLM box · **cyan** = tracker coasting ·
+   **orange/red** = stale / lost. Tracker is **CSRT** (`.venv-ft` ships
+   `opencv-contrib-python`); `video.py:_make_tracker()` falls back to MIL if only base
+   opencv is present.
 
 ## The honest seam (do NOT fake it)
 The real VLM anchor runs only on real aerial frames (Orin). Tab 2's clips ARE real on
