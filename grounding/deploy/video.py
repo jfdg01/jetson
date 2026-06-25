@@ -48,8 +48,9 @@ GREEN, ORANGE, CYAN, RED = (40, 190, 70), (240, 150, 40), (60, 180, 240), (230, 
 
 
 def _make_tracker():
-    """Best per-frame visual tracker available. CSRT (contrib) >> MIL (headless build).
-    ponytail: MIL is what the headless opencv ships; `uv add opencv-contrib-python` for CSRT."""
+    """Best per-frame visual tracker available. CSRT (contrib) >> MIL (base build).
+    `.venv-ft` ships opencv-contrib-python so this picks CSRT; MIL is the fallback if
+    only base opencv-python is present."""
     if hasattr(cv2, "TrackerCSRT_create"):
         return cv2.TrackerCSRT_create(), "CSRT"
     return cv2.TrackerMIL_create(), "MIL"
