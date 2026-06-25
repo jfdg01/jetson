@@ -34,7 +34,6 @@ from urllib.parse import parse_qs, urlparse
 from PIL import Image, ImageDraw, ImageFont
 
 from grounding.contract import parse_bbox, COORD_SCALE
-from grounding.deploy.demo import PRESETS
 from grounding.deploy.serve import _DEFAULT_REMOTE_DIR
 from grounding.deploy.video import render as _render_track
 from grounding.eval.backends import JetsonBackend
@@ -62,6 +61,16 @@ _CLIPS = [  # (file, caption)
     ("yellow-taxi.mp4", "the yellow taxi"),
 ]
 
+# Manual-tab example images: thumbnails to click; clicking loads the image, NOT a caption.
+_EXAMPLES_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..",
+                                              "examples", "images"))
+_EXAMPLES = sorted(f for f in os.listdir(_EXAMPLES_DIR) if f.endswith(".jpg"))
+
+def _examples_html() -> str:
+    return "".join(f'<img src="/examples/{fn}" title="{fn}" onclick="pick(\'{fn}\')">'
+                   for fn in _EXAMPLES)
+
+
 def _clips_html() -> str:
     panels = []
     for fn, cap in _CLIPS:
@@ -72,7 +81,7 @@ def _clips_html() -> str:
 
 
 _PAGE = """<!doctype html>
-<html><head><meta charset="utf-8"><title>Part III demo — grounding &amp; tracking</title>
+<html><head><meta charset="utf-8"><title>Orin VLM</title>
 <style>
  body{font-family:system-ui,sans-serif;max-width:820px;margin:2rem auto;padding:0 1rem}
  h1{font-size:1.3rem} .row{margin:.6rem 0}
@@ -90,8 +99,10 @@ _PAGE = """<!doctype html>
  figcaption{color:#555;font-size:.9rem;margin-top:.3rem}
  .legend{font-size:.85rem;color:#666;margin:.4rem 0 0}
  .g{color:#1a9e3a;font-weight:600} .c{color:#2a86c8;font-weight:600} .o{color:#d97a16;font-weight:600}
+ #examples img{height:72px;border:2px solid #ccc;border-radius:4px;margin:0 .4rem .4rem 0;cursor:pointer;vertical-align:top}
+ #examples img:hover{border-color:#2a7}
 </style></head><body>
-<h1>Part III — Qwen2-VL-2B (Q8_0) on Jetson Orin Nano</h1>
+<h1>Orin VLM</h1>
 <nav>
  <button data-tab="manual" class="on">Manual grounding</button>
  <button data-tab="video">Tracking on video</button>
@@ -99,9 +110,7 @@ _PAGE = """<!doctype html>
 </nav>
 
 <section id="manual" class="on">
-<p class="muted">Test the VLM in isolation: pick a preset (RefDrone val frames, varied target sizes)
-or upload your own, then hit Run. One image in, one box out — live on the Orin.</p>
-<div class="row" id="presets"></div>
+<div class="row" id="examples">__EXAMPLES__</div>
 <div class="row"><input type="file" id="img" accept="image/*"></div>
 <div class="row"><input type="text" id="cap" placeholder="the white car near the building"></div>
 <div class="row"><button onclick="run()">Run</button> <span id="status" class="muted"></span></div>
@@ -138,14 +147,10 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('section').forEach(x=>x.classList.remove('on'));
   b.classList.add('on'); document.getElementById(b.dataset.tab).classList.add('on');});
 let dataUrl=null;
-fetch('/presets').then(r=>r.json()).then(names=>{
-  const box=document.getElementById('presets');
-  names.forEach(n=>{const b=document.createElement('button');b.textContent=n;
-    b.style.margin='0 .3rem .3rem 0';b.onclick=()=>loadPreset(n);box.appendChild(b);});});
-async function loadPreset(n){
-  const s=document.getElementById('status'); s.textContent='loading preset...';
-  const j=await(await fetch('/preset?name='+encodeURIComponent(n))).json();
-  dataUrl=j.image; document.getElementById('cap').value=j.caption;
+async function pick(fn){
+  const s=document.getElementById('status'); s.textContent='loading...';
+  const j=await(await fetch('/example?name='+encodeURIComponent(fn))).json();
+  dataUrl=j.image;  // load the image only — leave the caption for the user to type
   document.getElementById('out').innerHTML='<img src="'+dataUrl+'">'; s.textContent='';
 }
 document.getElementById('img').onchange=e=>{
@@ -223,8 +228,8 @@ class _Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):  # noqa: N802
         if self.path in ("/", "/index.html"):
-            self._send(200, "text/html; charset=utf-8",
-                       _PAGE.replace("__CLIPS__", _clips_html()).encode())
+            page = _PAGE.replace("__CLIPS__", _clips_html()).replace("__EXAMPLES__", _examples_html())
+            self._send(200, "text/html; charset=utf-8", page.encode())
         elif self.path.startswith("/clips/"):
             fn = os.path.basename(self.path)  # basename: no path traversal
             if fn not in {c[0] for c in _CLIPS}:
@@ -232,18 +237,22 @@ class _Handler(BaseHTTPRequestHandler):
                 return
             with open(os.path.join(_CLIPS_DIR, fn), "rb") as f:
                 self._send(200, "video/mp4", f.read())
-        elif self.path == "/presets":
-            self._send(200, "application/json", json.dumps(list(PRESETS)).encode())
-        elif self.path.startswith("/preset?"):
-            name = parse_qs(urlparse(self.path).query).get("name", [""])[0]
-            if name not in PRESETS:
-                self._send(404, "text/plain", b"unknown preset")
+        elif self.path.startswith("/examples/"):
+            fn = os.path.basename(self.path)  # basename: no path traversal
+            if fn not in _EXAMPLES:
+                self._send(404, "text/plain", b"unknown example")
                 return
-            path, caption = PRESETS[name]
-            with open(path, "rb") as f:
+            with open(os.path.join(_EXAMPLES_DIR, fn), "rb") as f:
+                self._send(200, "image/jpeg", f.read())
+        elif self.path.startswith("/example?"):
+            fn = parse_qs(urlparse(self.path).query).get("name", [""])[0]
+            if fn not in _EXAMPLES:
+                self._send(404, "text/plain", b"unknown example")
+                return
+            with open(os.path.join(_EXAMPLES_DIR, fn), "rb") as f:
                 b64 = base64.b64encode(f.read()).decode()
-            self._send(200, "application/json", json.dumps({
-                "image": "data:image/jpeg;base64," + b64, "caption": caption}).encode())
+            self._send(200, "application/json",
+                       json.dumps({"image": "data:image/jpeg;base64," + b64}).encode())
         else:
             self._send(404, "text/plain", b"not found")
 
