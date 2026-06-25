@@ -92,9 +92,11 @@ def _obs(tracks, tid, objs, fi, snr):
     return _observe(DESC[oid], oid, ob["w"] * ob["h"], fi, snr)
 
 
-def run_loop(policy, snr=8.0, ctrl=None, dry_run=True):
+def run_loop(policy, snr=8.0, ctrl=None, dry_run=True, on_frame=None):
     """One closed-loop trial. policy ∈ {baseline, reid}. Returns metrics dict.
-    dry_run integrates the velocity setpoints kinematically (no SITL); else ctrl flies it."""
+    dry_run integrates the velocity setpoints kinematically (no SITL); else ctrl flies it.
+    on_frame(dict) — optional per-frame hook for the closed-loop visualiser (no perception
+    code duplicated): gets {fi, elapsed, objs, tgt_box, lock_box, locked, covered}."""
     tracker = ByteTracker()
     pid = CascadePID(kp_yaw=0.0)
     copter_ned = [0.0, 0.0, -ALT_M]
@@ -165,8 +167,14 @@ def run_loop(policy, snr=8.0, ctrl=None, dry_run=True):
                     mem = 0.9 * mem + 0.1 * o
 
         # coverage = lock is on the TRUE target's (unsuppressed) box
-        if tgt_box is not None and lock_box is not None and _iou(lock_box, tgt_box) >= IOU_GATE:
+        covered = (tgt_box is not None and lock_box is not None
+                   and _iou(lock_box, tgt_box) >= IOU_GATE)
+        if covered:
             cover += 1
+
+        if on_frame is not None:
+            on_frame({"fi": fi, "elapsed": elapsed, "objs": objs, "tgt_box": tgt_box,
+                      "lock_box": lock_box, "locked": locked, "covered": covered})
 
         sp = pid.compute(lock_box)
         if dry_run:
