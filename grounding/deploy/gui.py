@@ -184,7 +184,7 @@ async function track(){
       body:JSON.stringify({video:vidData,caption:cap,stride:stride})});
     const j=await resp.json();
     if(j.error){s.textContent='error: '+j.error; return;}
-    document.getElementById('vout').innerHTML='<img src="'+j.gif+'" style="max-width:100%;border:1px solid #ccc;margin-top:.8rem">';
+    document.getElementById('vout').innerHTML='<video src="'+j.video+'" controls autoplay loop muted playsinline style="max-width:100%;border:1px solid #ccc;margin-top:.8rem"></video>';
     s.textContent=j.note||'done';
   }catch(err){s.textContent='error: '+err;}
 }
@@ -274,24 +274,25 @@ class _Handler(BaseHTTPRequestHandler):
         return {"box": box, "raw": raw, "annotated": "data:image/png;base64," + annotated}
 
     def _track(self, req: dict) -> dict:
-        """Level-2 two-tier run on an uploaded clip → annotated GIF. Real Orin VLM
-        anchors + CSRT coasting; slow (a few ssh VLM passes), single-user demo only."""
+        """Level-2 two-tier run on an uploaded clip → annotated mp4 (full-res h264, one
+        box/frame — no GIF compositing). Real Orin VLM anchors + CSRT coasting; slow
+        (a few ssh VLM passes), single-user demo only."""
         caption = req["caption"]
         stride = max(1, int(req.get("stride", 3)))
         _, b64 = req["video"].split(",", 1)
         vid_bytes = base64.b64decode(b64)
         vf = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
-        gf = tempfile.NamedTemporaryFile(suffix=".gif", delete=False)
+        of = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
         try:
             vf.write(vid_bytes)
             vf.close()
-            gf.close()
-            _render_track(vf.name, caption, gf.name, _BACKEND, stride=stride, track=True)
-            gif_b64 = base64.b64encode(open(gf.name, "rb").read()).decode()
+            of.close()
+            _render_track(vf.name, caption, of.name, _BACKEND, stride=stride, track=True)
+            mp4_b64 = base64.b64encode(open(of.name, "rb").read()).decode()
         finally:
             os.unlink(vf.name)
-            os.unlink(gf.name)
-        return {"gif": "data:image/gif;base64," + gif_b64, "note": "done — CSRT tracker"}
+            os.unlink(of.name)
+        return {"video": "data:video/mp4;base64," + mp4_b64, "note": "done — CSRT tracker"}
 
     def log_message(self, *_):  # quiet the per-request stderr spam
         pass

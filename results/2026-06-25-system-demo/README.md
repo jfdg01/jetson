@@ -25,8 +25,9 @@ python -m grounding.deploy.gui            # boots the Orin server, serves http:/
    | `clips/yellow-taxi.mp4` | the yellow taxi | `uav0000339_00001_v` |
 
 3. **Live tracking (your video)** — same pipeline, *your* clip: upload a short aerial
-   video + a phrase → it runs the real two-tier pass on the Orin and returns the
-   annotated GIF. Slow (~15-30 s/clip — a few ssh VLM passes), single-user.
+   video + a phrase → it runs the real two-tier pass on the Orin and returns an
+   annotated **mp4** (full-res h264, one box/frame). Slow (~15-30 s/clip — a few ssh
+   VLM passes), single-user.
 
    Box colours (tabs 2-3): **green** = fresh VLM box · **cyan** = tracker coasting ·
    **orange/red** = stale / lost. Tracker is **CSRT** (`.venv-ft` ships
