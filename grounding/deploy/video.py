@@ -9,8 +9,8 @@ pass lands.
 
 This is the honest "anchor on real video" — no tracker, no oracle, no permanence. The
 20 Hz fast tier (which would hold the lock between anchors) is Level 2 (see
-TODO-system-demo.md); closed-loop following on pre-recorded video is impossible (no
-actuation) and stays sim-only.
+results/2026-06-25-system-demo/PLANNING-history.md); closed-loop following on
+pre-recorded video is impossible (no actuation) and stays sim-only.
 
     source .venv-ft/bin/activate
     python -m grounding.deploy.video \
