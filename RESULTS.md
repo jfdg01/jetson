@@ -580,3 +580,23 @@ drift — all above baseline. **GATE PASS** — a tight upscaled crop is *both* 
 accurate (super-resolution beats Part II constraint #2). Open follow-up: on-device Q8_0 ROI
 accuracy confirm. Decode unchanged (~964 ms) — orthogonal to the terse decode lever; the two
 stack toward the sub-1s anchor.
+
+---
+
+### 2026-06-26 — ROI re-anchor demo tab + live on-device prefill confirm
+
+Wired the ROI lever into the deploy GUI as a fourth tab ("Re-anchor speedup": full-frame anchor
+vs ROI re-anchor side by side, live on the Orin). Doubles as a qualitative on-device check of
+the latency lever on the **deployed terse Q8_0** model. Writeup:
+[`results/2026-06-26-roi-demo-tab/`](results/2026-06-26-roi-demo-tab/README.md).
+
+| upload | full-frame prefill | ROI re-anchor prefill | speedup |
+|---|---|---|---|
+| "the white car" | 4034 ms | 1388 ms | 2.91× |
+| "the red car" | 3042 ms | 1375 ms | 2.21× |
+| "the bus" | 3696 ms | 1373 ms | 2.69× |
+
+ROI prefill pinned at **~1375 ms** (fixed 512×512 → matches the offline 1374 ms); full-frame
+scales with upload size. Boxes preserved/tightened → the lever transfers to the deployed model.
+Confirms the *latency* lever on-device; quantified on-device IoU@0.25 (RefDrone via GGUF) still
+the open follow-up.

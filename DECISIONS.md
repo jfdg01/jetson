@@ -17,6 +17,30 @@ legacy scripts now live under `experiments/legacy/`).
 
 <!-- v3 decisions are appended here, most recent first. -->
 
+### 2026-06-26T09:00 — add a "Re-anchor speedup" demo tab (ROI vs full-frame, live on Orin)
+
+- **Decision:** Add a fourth tab to the deploy GUI (`grounding/deploy/gui.py`) that runs the
+  full-frame anchor and the ROI-crop re-anchor side by side on one uploaded image, showing the
+  prefill/decode split for each. Reuses `grounding/roi.py` as-is; new endpoint `/compare`,
+  helper `_timed_post` (verbose POST for the server `timings` split), `_annotate` gains
+  `color`/`window`. Experiment doc: `results/2026-06-26-roi-demo-tab/`.
+- **Alternatives considered:** (a) a static pre-rendered comparison (like the "Tracking on
+  video" tab) — cheaper but not live, and the point is to *show it running on the Orin*; (b)
+  wire ROI straight into the Level-2 closed loop (the real two-mode deploy) — more moving parts
+  and needs the quantified on-device IoU first; deferred to T2/T4. The user picked the live
+  side-by-side compare.
+- **Reasoning:** makes the validated prefill lever (the 2026-06-26T02:30 entry below /
+  `2026-06-25-roi-crop-anchor`) tangible for the committee, and doubles as a live on-device
+  check. Integration test on the deployed terse Q8_0 (3 example images): ROI prefill **~1375 ms**
+  (matches the offline 1374 ms) vs full-frame 3042–4034 ms → **2.2–2.9× speedup**, boxes
+  preserved/tightened — the lever transfers to the deployed model.
+- **Tradeoff / cost accepted:** single-user (shares the one `_BACKEND`, no request lock, like
+  the other live tabs); the "prior" is the full-frame box (faithful to deploy, not an oracle);
+  this confirms the *latency* lever on-device, NOT accuracy — quantified on-device IoU@0.25
+  (RefDrone via GGUF) stays the open follow-up.
+- **Revisit when:** wiring ROI into the Level-2 loop (then the tab's two-mode flow becomes the
+  real deploy path), or when the on-device IoU confirm lands.
+
 ### 2026-06-26T02:30 — adopt ROI-crop re-anchor (M=2.0 @512): cut prefill AND beat the resolution ceiling
 
 - **Decision:** Adopt **ROI-crop re-anchoring** for the Part III follow loop: while the lock

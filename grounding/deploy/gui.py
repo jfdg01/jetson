@@ -1,12 +1,16 @@
 """Dead-simple browser GUI for the deployed aerial-grounding skill — the Part III demo.
 
-Two tabs:
+Tabs:
   1. **Manual grounding** — the VLM in isolation. Upload/preset image + phrase → one
      box, live on the deployed Qwen2-VL-2B Q8_0 over `ssh jetson`.
   2. **Tracking on video** — the two-tier architecture (VLM anchor seeds a fast tracker
      that coasts between anchors) on real VisDrone footage, served as pre-rendered
      `results/2026-06-25-system-demo/clips/*.mp4` (built by `grounding/deploy/video.py
      --track`). Static files, no live model needed for this tab.
+  3. **Live tracking (your video)** — the same two-tier pipeline on an uploaded clip.
+  4. **Re-anchor speedup** — full-frame anchor vs ROI-crop re-anchor, side by side, with
+     the prefill/decode split for each (the prefill latency lever; see
+     `results/2026-06-26-roi-demo-tab/` + `results/2026-06-25-roi-crop-anchor/`).
 
 Stdlib-only (no Flask/Gradio — keeps the lock-pinned `.venv-ft` untouched; PIL is
 already present for drawing). Boots the Jetson GGUF server ONCE at startup and
@@ -37,6 +41,13 @@ from grounding.contract import parse_bbox, COORD_SCALE
 from grounding.deploy.serve import _DEFAULT_REMOTE_DIR
 from grounding.deploy.video import render as _render_track
 from grounding.eval.backends import JetsonBackend
+from grounding.roi import roi_window, crop_resize, map_to_full
+
+# ROI re-anchor compare tab (results/2026-06-26-roi-demo-tab): full-frame acquire →
+# crop around that box (margin M) upscaled to OUT_RES → cheap re-anchor. Validated
+# config from results/2026-06-25-roi-crop-anchor (M=2.0 @512: 2.7× prefill, +22.6 pp).
+_ROI_MARGIN = 2.0
+_ROI_OUT_RES = 512
 
 # Upload-track tab: cap an uploaded clip so it stays a few VLM anchors, not a long run.
 _TRACK_MAX_S = 6        # seconds of the upload to use (≈3 anchors at the on-Orin cadence)
@@ -103,12 +114,18 @@ _PAGE = """<!doctype html>
  .g{color:#1a9e3a;font-weight:600} .c{color:#2a86c8;font-weight:600} .o{color:#d97a16;font-weight:600}
  #examples img{height:72px;border:2px solid #ccc;border-radius:4px;margin:0 .4rem .4rem 0;cursor:pointer;vertical-align:top}
  #examples img:hover{border-color:#2a7}
+ .cmp{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.8rem}
+ .cmp figure{flex:1;min-width:280px;margin:0}
+ .cmp img{width:100%;border:1px solid #ccc}
+ .cmp .stat{font-family:monospace;font-size:.85rem;margin-top:.3rem}
+ .banner{font-size:1.05rem;margin:.6rem 0;padding:.5rem .7rem;background:#f2faf4;border-left:4px solid #2a7;border-radius:3px}
 </style></head><body>
 <h1>Orin VLM</h1>
 <nav>
  <button data-tab="manual" class="on">Manual grounding</button>
  <button data-tab="video">Tracking on video</button>
  <button data-tab="live">Live tracking (your video)</button>
+ <button data-tab="compare">Re-anchor speedup</button>
 </nav>
 
 <section id="manual" class="on">
@@ -141,6 +158,21 @@ clip takes ~15-30&nbsp;s (a few VLM passes over ssh).</p>
 <div id="vout"></div>
 <p class="legend"><span class="g">green</span> = fresh VLM box · <span class="c">cyan</span>
 = CSRT coasting · <span class="o">red</span> = lost between anchors</p>
+</section>
+
+<section id="compare">
+<p class="muted">The <b>prefill lever</b> for the following loop. The full frame acquires the
+target (one expensive VLM pass); every re-anchor after that crops to a <b>__MARGIN__×</b>
+box around the last position and upscales it to <b>__OUTRES__&nbsp;px</b> — fewer pixels →
+cheaper prefill, and the zoom is super-resolution on the target, so the box gets
+<i>tighter</i> too. Live on the deployed Q8_0. Measured (RefDrone): <b>2.7× prefill,
++22.6&nbsp;pp IoU</b> — <a href="https://github.com" onclick="return false" title="results/2026-06-25-roi-crop-anchor">see the experiment</a>.</p>
+<div class="row"><input type="file" id="cimg" accept="image/*"></div>
+<div class="row"><input type="text" id="ccap" placeholder="the white car near the building"></div>
+<div class="row"><button onclick="compare()">Compare</button> <span id="cstatus" class="muted"></span></div>
+<div id="cout" class="cmp"></div>
+<p class="legend"><span class="o" style="color:#d62828">red</span> = full-frame anchor ·
+<span class="g">green</span> = ROI re-anchor (grey box = the crop the VLM saw)</p>
 </section>
 
 <script>
@@ -195,29 +227,104 @@ async function track(){
     s.textContent=j.note||'done';
   }catch(err){s.textContent='error: '+err;}
 }
+let cData=null;
+document.getElementById('cimg').onchange=e=>{
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader(); r.onload=()=>{cData=r.result;
+    document.getElementById('cout').innerHTML='<figure><img src="'+cData+'"></figure>';}; r.readAsDataURL(f);};
+async function compare(){
+  const cap=document.getElementById('ccap').value.trim();
+  if(!cData){alert('pick an image first');return;}
+  if(!cap){alert('type a phrase first');return;}
+  const s=document.getElementById('cstatus'); s.textContent='running both passes on the Orin...';
+  document.getElementById('cout').innerHTML='';
+  try{
+    const resp=await fetch('/compare',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({image:cData,caption:cap})});
+    const j=await resp.json();
+    if(j.error){s.textContent='error'; document.getElementById('cout').textContent=j.error; return;}
+    const fig=(d,title)=>'<figure><img src="'+d.annotated+'">'
+      +'<div class="stat">'+title+'<br>prefill <b>'+d.prefill_ms+' ms</b>'
+      +(d.decode_ms?' · decode '+d.decode_ms+' ms':'')+'</div></figure>';
+    document.getElementById('cout').innerHTML=
+      '<div class="banner">ROI re-anchor: <b>'+j.speedup+'× cheaper prefill</b> '
+      +'('+j.full.prefill_ms+' → '+j.roi.prefill_ms+' ms) — same model, fewer pixels, tighter box.</div>'
+      +'<div class="cmp">'+fig(j.full,'Full-frame anchor')+fig(j.roi,'ROI re-anchor (M=__MARGIN__ @__OUTRES__)')+'</div>';
+    s.textContent='done';
+  }catch(err){s.textContent='error'; document.getElementById('cout').textContent=err;}
+}
 </script></body></html>"""
 
 
-def _annotate(png_bytes: bytes, box_norm: list[int], caption: str) -> bytes:
-    """Draw a normalized 0..COORD_SCALE box on the image; return PNG bytes."""
+def _annotate(png_bytes: bytes, box_norm: list[int], caption: str,
+              *, color: tuple = (255, 0, 0), window: tuple | None = None) -> bytes:
+    """Draw a normalized 0..COORD_SCALE box on the image; return PNG bytes.
+
+    `color` sets the box/label colour; `window` (pixel XYXY) optionally outlines the
+    ROI crop region the VLM actually saw (drawn faint, so the compare tab can show
+    "this is all the model looked at")."""
     img = Image.open(io.BytesIO(png_bytes)).convert("RGB")
     w, h = img.size
     x1, y1, x2, y2 = (box_norm[0] / COORD_SCALE * w, box_norm[1] / COORD_SCALE * h,
                       box_norm[2] / COORD_SCALE * w, box_norm[3] / COORD_SCALE * h)
     draw = ImageDraw.Draw(img)
     lw = max(2, round(min(w, h) / 200))
-    draw.rectangle([x1, y1, x2, y2], outline=(255, 0, 0), width=lw)
+    if window is not None:
+        draw.rectangle(list(window), outline=(120, 120, 120), width=max(1, lw - 1))
+    draw.rectangle([x1, y1, x2, y2], outline=color, width=lw)
     try:
         font = ImageFont.truetype("DejaVuSans-Bold.ttf", max(14, round(min(w, h) / 40)))
     except OSError:
         font = ImageFont.load_default()
     label = caption if len(caption) <= 60 else caption[:57] + "..."
     ty = max(0, y1 - (lw + 18))
-    draw.rectangle([x1, ty, x1 + 9 * len(label), ty + 18], fill=(255, 0, 0))
+    draw.rectangle([x1, ty, x1 + 9 * len(label), ty + 18], fill=color)
     draw.text((x1 + 2, ty), label, fill=(255, 255, 255), font=font)
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()
+
+
+def _timed_post(img: Image.Image, caption: str, max_side: int) -> tuple[str, float, float]:
+    """One verbose POST to the already-booted server → (raw, prefill_ms, decode_ms).
+
+    Mirrors `backends._llama_server_chat` (verbatim GROUNDING_PROMPT, greedy,
+    cache_prompt off) but (1) asks for server timings via "__verbose" so we can show
+    the prefill/decode split, and (2) takes a PIL image so a pre-cropped ROI is sent
+    as-is (pass a large max_side to skip re-resize). Falls back to wall-clock prefill
+    if the server omits timings."""
+    import time
+    import urllib.request
+
+    from grounding.contract import GROUNDING_PROMPT, MAX_NEW_TOKENS
+    from grounding.eval.backends import _resize_keep_aspect
+
+    img = _resize_keep_aspect(img.convert("RGB"), max_side)
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as tmp:
+        img.save(tmp.name)
+        b64 = base64.b64encode(open(tmp.name, "rb").read()).decode()
+    payload = json.dumps({
+        "model": "vlm",
+        "messages": [{"role": "user", "content": [
+            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}},
+            {"type": "text", "text": GROUNDING_PROMPT.format(target=caption)},
+        ]}],
+        "max_tokens": MAX_NEW_TOKENS, "temperature": 0.0,
+        "cache_prompt": False, "__verbose": True,
+    }).encode()
+    req = urllib.request.Request(f"{_BACKEND._base}/v1/chat/completions", data=payload,
+                                 headers={"Content-Type": "application/json"}, method="POST")
+    t0 = time.perf_counter()
+    with urllib.request.urlopen(req, timeout=300) as resp:
+        data = json.loads(resp.read().decode())
+    wall_ms = (time.perf_counter() - t0) * 1000.0
+    raw = data["choices"][0]["message"].get("content") or ""
+    t = data.get("timings")
+    if not t and isinstance(data.get("__verbose"), dict):
+        t = data["__verbose"].get("timings")
+    if t and "prompt_ms" in t:
+        return raw, float(t["prompt_ms"]), float(t.get("predicted_ms", 0.0))
+    return raw, wall_ms, 0.0  # ponytail: server omitted timings → wall-clock prefill
 
 
 class _Handler(BaseHTTPRequestHandler):
@@ -230,7 +337,10 @@ class _Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):  # noqa: N802
         if self.path in ("/", "/index.html"):
-            page = _PAGE.replace("__CLIPS__", _clips_html()).replace("__EXAMPLES__", _examples_html())
+            page = (_PAGE.replace("__CLIPS__", _clips_html())
+                    .replace("__EXAMPLES__", _examples_html())
+                    .replace("__MARGIN__", f"{_ROI_MARGIN:g}")
+                    .replace("__OUTRES__", str(_ROI_OUT_RES)))
             self._send(200, "text/html; charset=utf-8", page.encode())
         elif self.path.startswith("/clips/"):
             fn = os.path.basename(self.path)  # basename: no path traversal
@@ -259,7 +369,8 @@ class _Handler(BaseHTTPRequestHandler):
             self._send(404, "text/plain", b"not found")
 
     def do_POST(self):  # noqa: N802
-        handler = {"/infer": self._infer, "/track": self._track}.get(self.path)
+        handler = {"/infer": self._infer, "/track": self._track,
+                   "/compare": self._compare}.get(self.path)
         if handler is None:
             self._send(404, "text/plain", b"not found")
             return
@@ -283,6 +394,46 @@ class _Handler(BaseHTTPRequestHandler):
             return {"error": f"unparseable output: {raw!r}"}
         annotated = base64.b64encode(_annotate(png_bytes, box, caption)).decode()
         return {"box": box, "raw": raw, "annotated": "data:image/png;base64," + annotated}
+
+    def _compare(self, req: dict) -> dict:
+        """ROI re-anchor vs full-frame, side by side, on one uploaded image.
+
+        Full-frame pass = acquire (the box + its prefill cost). Then crop around that
+        box (margin M, upscaled to OUT_RES) and re-anchor — the cheap per-frame pass a
+        following loop would actually run. Returns both annotated images + the prefill/
+        decode split for each, so the speed *and* the super-resolution tightening are
+        both visible. (Live, on the deployed Q8_0 — a qualitative on-device check of the
+        results/2026-06-25-roi-crop-anchor finding, which was quantified on HF bf16.)"""
+        caption = req["caption"]
+        _, b64 = req["image"].split(",", 1)
+        png_bytes = base64.b64decode(b64)
+        img = Image.open(io.BytesIO(png_bytes)).convert("RGB")
+
+        # 1) full-frame acquire — the deploy resize (max_side) the server normally uses.
+        raw_f, pf_ms, df_ms = _timed_post(img, caption, _BACKEND.max_side)
+        box_f = parse_bbox(raw_f)
+        if box_f is None:
+            return {"error": f"full-frame pass unparseable: {raw_f!r}"}
+
+        # 2) ROI re-anchor — crop around the acquired box, upscale to the budget.
+        win = roi_window(box_f, img.width, img.height, _ROI_MARGIN)
+        crop = crop_resize(img, win, _ROI_OUT_RES)
+        raw_r, pr_ms, dr_ms = _timed_post(crop, caption, 10 ** 9)  # crop is pre-sized
+        box_r = parse_bbox(raw_r)
+        if box_r is None:
+            return {"error": f"ROI pass unparseable: {raw_r!r}"}
+        box_roi = map_to_full(box_r, win, img.width, img.height)
+
+        ann_f = _annotate(png_bytes, box_f, caption, color=(214, 40, 40))
+        ann_r = _annotate(png_bytes, box_roi, caption, color=(26, 158, 58), window=win)
+        speedup = pf_ms / pr_ms if pr_ms else 0.0
+        return {
+            "full": {"annotated": "data:image/png;base64," + base64.b64encode(ann_f).decode(),
+                     "prefill_ms": round(pf_ms), "decode_ms": round(df_ms), "box": box_f},
+            "roi": {"annotated": "data:image/png;base64," + base64.b64encode(ann_r).decode(),
+                    "prefill_ms": round(pr_ms), "decode_ms": round(dr_ms), "box": box_roi},
+            "speedup": round(speedup, 2),
+        }
 
     def _track(self, req: dict) -> dict:
         """Level-2 two-tier run on an uploaded clip → annotated mp4 (full-res h264, one
