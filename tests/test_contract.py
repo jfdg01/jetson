@@ -21,7 +21,7 @@ def test_prompt_is_byte_identical_to_validated_string():
     # drifted from what the fine-tuned weights were trained on.
     expected = (
         'Locate "{target}". Return the bounding box as four space-separated integers '
-        'x1 y1 x2 y2, normalized from 0 to 1000.'
+        'x1 y1 x2 y2, normalized from 0 to 100.'
     )
     assert c.GROUNDING_PROMPT == expected
 
@@ -59,12 +59,12 @@ def test_parse_unparseable_returns_none(bad):
 # ── normalize_bbox ───────────────────────────────────────────────────────────────
 
 def test_normalize_basic():
-    # full-image box on a 100x200 image → [0,0,1000,1000]
-    assert c.normalize_bbox([0, 0, 100, 200], 100, 200) == [0, 0, 1000, 1000]
+    # full-image box on a 100x200 image → [0,0,100,100] (COORD_SCALE=100)
+    assert c.normalize_bbox([0, 0, 100, 200], 100, 200) == [0, 0, 100, 100]
 
 
 def test_normalize_clamps_overflow():
-    assert c.normalize_bbox([-10, -10, 200, 400], 100, 200) == [0, 0, 1000, 1000]
+    assert c.normalize_bbox([-10, -10, 200, 400], 100, 200) == [0, 0, 100, 100]
 
 
 # ── iou ──────────────────────────────────────────────────────────────────────────

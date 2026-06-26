@@ -55,29 +55,40 @@ legacy scripts now live under `experiments/legacy/`).
   (then widen M or fall back to full-frame more often). See
   `results/2026-06-25-roi-crop-anchor/`.
 
-### 2026-06-26T22:30 — terse output format (4 space-separated ints) replaces JSON in the contract
+### 2026-06-26T23:30 — terse output: attack coord *precision* (0–100), not JSON syntax; + EOS-supervision fix
 
-- **Decision:** Change the grounding contract's output format from `{"bbox": [x1,y1,x2,y2]}`
-  to **four space-separated integers** (`x1 y1 x2 y2`) and **re-LoRA** the anchor on it
-  (`runs/v2/phase3-terse-1024/`). Deliberately breaks the byte-identical `GROUNDING_PROMPT`
-  contract test (`tests/test_contract.py`), re-pinned to the new string. `parse_bbox` now
-  requires *exactly four* integers.
-- **Alternatives considered:** (a) keep JSON (zero decode saving — the scaffolding is the
-  cost); (b) prompt-only change without retraining (saves nothing — the deployed weights emit
-  learned JSON byte-for-byte); (c) a delimited terse form like `[123,456,234,567]` (keeps an
-  anchor for the parser but re-adds 4–6 scaffolding tokens, defeating the point).
-- **Reasoning:** the on-Orin anchor decode is ~24 tok ≈ 1.1s of the 2.27s anchor, almost all
-  JSON scaffolding. Measured: JSON 23 tok → terse 15 tok (**−8 tok, −35%**, the exact 8
-  scaffolding tokens). Re-LoRA cost **+1.0 pp** IoU@0.25 (60.5% vs 59.5% HF — noise, accuracy
-  is free) at the price of **−9 pp parse_rate** (91% vs 100%: no brackets to anchor on, model
-  needs all 3 epochs to learn the format). Net: real token saving, no accuracy loss.
-- **Tradeoff / cost accepted:** −9pp parse_rate (mitigated: exactly-4 guard makes a
-  dropped/extra coord an honest parse-fail, not silent corruption). The contract test is no
-  longer a regression anchor to the *original* deployed JSON weights — but those are superseded
-  by this re-train. On-Orin Q8_0 decode wall-time not yet measured (token premise is local-only).
-- **Revisit when:** the on-Orin export + deploy measures decode wall-time — if it doesn't drop
-  materially (≈−0.37s expected), or if 91% parse hurts a downstream consumer, revert to JSON
-  (the saving would not justify the parse cost). See `results/2026-06-25-terse-output-retrain/`.
+- **Decision:** Move the grounding contract's output to **terse low-precision** coordinates —
+  four integers at **0–100** scale (`COORD_SCALE 1000→100`) — and re-LoRA on it, rather than the
+  first attempt's bare-ints-at-0–1000. Also fix a latent training bug: **append `<|im_end|>`/EOS
+  to every supervised target** (`grounding/train/trainer.py`). Contract test re-pinned to the new
+  prompt; `parse_bbox` requires exactly four ints.
+- **What this supersedes:** the 2026-06-26 premise that terse saves ~−35% decode by dropping the
+  `{"bbox": …}` wrapper. **Measured wrong on-device.** Qwen2-VL tokenizes digits one-per-token,
+  so the dominant decode cost is **digit count**, not JSON syntax. Iter-1 (bare ints, 0–1000),
+  deployed Q8_0 on the Orin: the model **reverted to its bracketed prior** (`[266, 476, 346, 644]`)
+  and shed only the wrapper → **21 decode tok vs JSON 24 (−3), wall 2114 vs 2265 ms (−6.7%)** —
+  not −35%. Accuracy held (61.0% Q8_0 vs 62.6%). So the wrapper is a minority of the tokens; the
+  real lever is fewer digits.
+- **Alternatives considered:** (a) ship iter-1 as-is (−6.7% latency for −1.6pp — marginal, not
+  worth the contract churn); (b) parse-first-4 to tolerate rambling (rescues accuracy but the
+  model still emits to the 64-tok cap → *worse* latency — defeats the purpose); (c) 0–100 +
+  **brackets** `[27, 48, 35, 64]` (gives the model an end-cue so it stops, ~16 tok); (d) 0–100 +
+  **bare** `27 48 35 64` (~11 tok, −54% — the most aggressive; the user's bracketless interest).
+- **Reasoning:** 0–100 halves the digit tokens (12→8) and is the prior-independent lever.
+  Quantization is safe for the gate: **0%** of RefDrone-val boxes (incl. tiny aerial, n=93) drop
+  below IoU 0.25 under 0–100 rounding. The bare-vs-bracket question exposed the EOS bug — iter-2
+  (0–100 bare, no EOS) **collapsed to 5% parse**: the model emitted correct coords then rambled
+  to the token cap because it was *never supervised to stop* (JSON/bracketed only stopped via the
+  prior's `}`/`]`→`<|im_end|>` habit). With EOS supervised, bare 0–100 is the cleanest shot at
+  the full saving (iter-2b, running).
+- **Tradeoff / cost accepted:** mean_iou drops slightly under 0–100 quantization (coarser boxes),
+  acceptable for the @0.25 gate. The EOS fix changes training for all formats (strictly more
+  correct). Deliberately breaks the contract test (re-pinned). Bracketless remains the risky axis
+  (no parser anchor) — kept alive per the user, but 0–100+brackets is the graceful fallback.
+- **Revisit when:** iter-2b on-Orin decode lands. Keep terse only if decode drops *materially*
+  (target ≪ −6.7%) with IoU within ~2pp of 62.6%; else the precision/format churn isn't worth it
+  and the bigger latency win is the ROI-crop prefill lever (see 2026-06-26T02:30). See
+  `results/2026-06-25-terse-output-retrain/`.
 
 ### 2026-06-25T15:00 — install CSRT (opencv-contrib-python) + add a live-tracking demo tab
 

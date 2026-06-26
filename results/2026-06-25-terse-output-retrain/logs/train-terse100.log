@@ -1,0 +1,285 @@
+[train] device=cuda  effective_batch=16  model=Qwen/Qwen2-VL-2B-Instruct  res=1024
+[train] loading processor + model...
+The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00, 31.41it/s]
+trainable params: 18,464,768 || all params: 2,227,450,368 || trainable%: 0.8290
+[train] loading data: refdrone:train / refdrone:val
+[train] 4101 train / 439 val samples
+  E1 step 0/4101  loss=2.9190  lr=2.00e-04  1s
+  E1 step 50/4101  loss=1.4324  lr=2.00e-04  37s
+  E1 step 100/4101  loss=0.7209  lr=2.00e-04  72s
+  E1 step 150/4101  loss=0.9140  lr=2.00e-04  105s
+  E1 step 200/4101  loss=0.5511  lr=2.00e-04  138s
+  E1 step 250/4101  loss=2.0981  lr=2.00e-04  170s
+  E1 step 300/4101  loss=0.9647  lr=2.00e-04  202s
+  E1 step 350/4101  loss=0.3416  lr=2.00e-04  233s
+  E1 step 400/4101  loss=0.5927  lr=1.99e-04  264s
+  E1 step 450/4101  loss=0.4795  lr=1.99e-04  297s
+  E1 step 500/4101  loss=0.7196  lr=1.99e-04  329s
+  E1 step 550/4101  loss=0.3370  lr=1.99e-04  361s
+  E1 step 600/4101  loss=0.8244  lr=1.99e-04  392s
+  E1 step 650/4101  loss=0.6111  lr=1.99e-04  424s
+  E1 step 700/4101  loss=1.1412  lr=1.98e-04  457s
+  E1 step 750/4101  loss=0.5265  lr=1.98e-04  490s
+  E1 step 800/4101  loss=0.2302  lr=1.98e-04  522s
+  E1 step 850/4101  loss=0.6983  lr=1.98e-04  554s
+  E1 step 900/4101  loss=0.4671  lr=1.97e-04  586s
+  E1 step 950/4101  loss=0.3220  lr=1.97e-04  619s
+  E1 step 1000/4101  loss=0.3218  lr=1.97e-04  651s
+  E1 step 1050/4101  loss=0.4419  lr=1.96e-04  684s
+  E1 step 1100/4101  loss=0.6000  lr=1.96e-04  717s
+  E1 step 1150/4101  loss=0.3515  lr=1.96e-04  750s
+  E1 step 1200/4101  loss=0.1358  lr=1.95e-04  783s
+  E1 step 1250/4101  loss=0.2772  lr=1.95e-04  817s
+  E1 step 1300/4101  loss=0.8081  lr=1.95e-04  850s
+  E1 step 1350/4101  loss=0.3703  lr=1.94e-04  884s
+  E1 step 1400/4101  loss=0.5470  lr=1.94e-04  916s
+  E1 step 1450/4101  loss=0.3564  lr=1.93e-04  950s
+  E1 step 1500/4101  loss=0.7790  lr=1.93e-04  984s
+  E1 step 1550/4101  loss=1.7504  lr=1.92e-04  1017s
+  E1 step 1600/4101  loss=0.5696  lr=1.92e-04  1049s
+  E1 step 1650/4101  loss=0.2300  lr=1.91e-04  1084s
+  E1 step 1700/4101  loss=0.4725  lr=1.91e-04  1118s
+  E1 step 1750/4101  loss=0.9275  lr=1.90e-04  1150s
+  E1 step 1800/4101  loss=0.4942  lr=1.90e-04  1181s
+  E1 step 1850/4101  loss=0.9079  lr=1.89e-04  1214s
+  E1 step 1900/4101  loss=0.2229  lr=1.89e-04  1246s
+  E1 step 1950/4101  loss=0.6217  lr=1.88e-04  1278s
+  E1 step 2000/4101  loss=0.4862  lr=1.87e-04  1311s
+  E1 step 2050/4101  loss=0.2348  lr=1.87e-04  1343s
+  E1 step 2100/4101  loss=0.8786  lr=1.86e-04  1374s
+  E1 step 2150/4101  loss=1.0317  lr=1.85e-04  1406s
+  E1 step 2200/4101  loss=0.5137  lr=1.85e-04  1438s
+  E1 step 2250/4101  loss=0.3968  lr=1.84e-04  1470s
+  E1 step 2300/4101  loss=0.4106  lr=1.83e-04  1502s
+  E1 step 2350/4101  loss=0.3371  lr=1.83e-04  1535s
+  E1 step 2400/4101  loss=0.6365  lr=1.82e-04  1567s
+  E1 step 2450/4101  loss=1.6393  lr=1.81e-04  1599s
+  E1 step 2500/4101  loss=0.6005  lr=1.80e-04  1632s
+  E1 step 2550/4101  loss=0.3842  lr=1.80e-04  1665s
+  E1 step 2600/4101  loss=0.4496  lr=1.79e-04  1697s
+  E1 step 2650/4101  loss=0.4249  lr=1.78e-04  1730s
+  E1 step 2700/4101  loss=1.2246  lr=1.77e-04  1763s
+  E1 step 2750/4101  loss=0.9344  lr=1.77e-04  1795s
+  E1 step 2800/4101  loss=0.5770  lr=1.75e-04  1829s
+  E1 step 2850/4101  loss=1.0293  lr=1.75e-04  1862s
+  E1 step 2900/4101  loss=0.6582  lr=1.74e-04  1896s
+  E1 step 2950/4101  loss=0.3416  lr=1.73e-04  1929s
+  E1 step 3000/4101  loss=0.0867  lr=1.72e-04  1963s
+  E1 step 3050/4101  loss=0.7697  lr=1.71e-04  1996s
+  E1 step 3100/4101  loss=0.7009  lr=1.70e-04  2030s
+  E1 step 3150/4101  loss=0.4787  lr=1.70e-04  2062s
+  E1 step 3200/4101  loss=0.8208  lr=1.68e-04  2096s
+  E1 step 3250/4101  loss=0.6034  lr=1.67e-04  2129s
+  E1 step 3300/4101  loss=0.1479  lr=1.67e-04  2162s
+  E1 step 3350/4101  loss=0.4695  lr=1.66e-04  2195s
+  E1 step 3400/4101  loss=0.9328  lr=1.65e-04  2228s
+  E1 step 3450/4101  loss=0.3931  lr=1.64e-04  2261s
+  E1 step 3500/4101  loss=0.6986  lr=1.63e-04  2294s
+  E1 step 3550/4101  loss=0.7891  lr=1.62e-04  2326s
+  E1 step 3600/4101  loss=0.7051  lr=1.61e-04  2360s
+  E1 step 3650/4101  loss=0.1682  lr=1.60e-04  2393s
+  E1 step 3700/4101  loss=0.1889  lr=1.59e-04  2426s
+  E1 step 3750/4101  loss=0.2826  lr=1.58e-04  2457s
+  E1 step 3800/4101  loss=0.4805  lr=1.57e-04  2491s
+  E1 step 3850/4101  loss=0.4896  lr=1.56e-04  2523s
+  E1 step 3900/4101  loss=0.5908  lr=1.55e-04  2556s
+  E1 step 3950/4101  loss=0.2822  lr=1.53e-04  2588s
+  E1 step 4000/4101  loss=0.3936  lr=1.52e-04  2620s
+  E1 step 4050/4101  loss=0.3855  lr=1.51e-04  2653s
+  E1 step 4100/4101  loss=0.6199  lr=1.50e-04  2684s
+[epoch 1] mean_loss=0.6339  (2684s)
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+  [hf] 40/200  parsed=3  gate_hits=1
+  [hf] 80/200  parsed=7  gate_hits=3
+  [hf] 120/200  parsed=10  gate_hits=5
+  [hf] 160/200  parsed=11  gate_hits=6
+  [hf] 200/200  parsed=12  gate_hits=7
+[eval E1] n=200  parse=6.0%  iou@0.25=3.5%  mean_iou=0.485  center_std=79.6
+[train] epoch 1 adapter -> runs/v2/phase3-terse100-1024/epoch1
+  E2 step 0/4101  loss=0.2814  lr=1.50e-04  3323s
+  E2 step 50/4101  loss=0.3834  lr=1.49e-04  3359s
+  E2 step 100/4101  loss=0.4494  lr=1.48e-04  3394s
+  E2 step 150/4101  loss=0.3139  lr=1.46e-04  3430s
+  E2 step 200/4101  loss=0.1430  lr=1.45e-04  3465s
+  E2 step 250/4101  loss=0.2516  lr=1.44e-04  3501s
+  E2 step 300/4101  loss=0.2868  lr=1.43e-04  3535s
+  E2 step 350/4101  loss=0.0928  lr=1.42e-04  3571s
+  E2 step 400/4101  loss=0.2424  lr=1.41e-04  3606s
+  E2 step 450/4101  loss=0.2410  lr=1.39e-04  3641s
+  E2 step 500/4101  loss=0.1698  lr=1.38e-04  3666s
+  E2 step 550/4101  loss=0.7565  lr=1.37e-04  3687s
+  E2 step 600/4101  loss=0.4448  lr=1.36e-04  3710s
+  E2 step 650/4101  loss=0.2371  lr=1.35e-04  3732s
+  E2 step 700/4101  loss=0.8127  lr=1.34e-04  3754s
+  E2 step 750/4101  loss=0.3873  lr=1.33e-04  3776s
+  E2 step 800/4101  loss=0.3442  lr=1.31e-04  3799s
+  E2 step 850/4101  loss=0.7763  lr=1.30e-04  3821s
+  E2 step 900/4101  loss=0.2310  lr=1.29e-04  3843s
+  E2 step 950/4101  loss=0.3074  lr=1.27e-04  3866s
+  E2 step 1000/4101  loss=0.3333  lr=1.26e-04  3888s
+  E2 step 1050/4101  loss=0.3178  lr=1.25e-04  3910s
+  E2 step 1100/4101  loss=0.5713  lr=1.24e-04  3933s
+  E2 step 1150/4101  loss=0.1566  lr=1.23e-04  3956s
+  E2 step 1200/4101  loss=0.4134  lr=1.21e-04  3977s
+  E2 step 1250/4101  loss=0.3999  lr=1.20e-04  4000s
+  E2 step 1300/4101  loss=1.0097  lr=1.19e-04  4022s
+  E2 step 1350/4101  loss=0.1154  lr=1.17e-04  4044s
+  E2 step 1400/4101  loss=0.3034  lr=1.16e-04  4066s
+  E2 step 1450/4101  loss=0.4742  lr=1.15e-04  4088s
+  E2 step 1500/4101  loss=0.4532  lr=1.14e-04  4110s
+  E2 step 1550/4101  loss=0.5799  lr=1.13e-04  4132s
+  E2 step 1600/4101  loss=0.2529  lr=1.11e-04  4154s
+  E2 step 1650/4101  loss=0.7346  lr=1.10e-04  4176s
+  E2 step 1700/4101  loss=0.2099  lr=1.09e-04  4199s
+  E2 step 1750/4101  loss=0.2852  lr=1.07e-04  4222s
+  E2 step 1800/4101  loss=0.5564  lr=1.06e-04  4245s
+  E2 step 1850/4101  loss=0.3180  lr=1.05e-04  4267s
+  E2 step 1900/4101  loss=1.0747  lr=1.04e-04  4289s
+  E2 step 1950/4101  loss=0.1380  lr=1.02e-04  4311s
+  E2 step 2000/4101  loss=0.6649  lr=1.01e-04  4334s
+  E2 step 2050/4101  loss=0.1608  lr=9.96e-05  4356s
+  E2 step 2100/4101  loss=0.4149  lr=9.84e-05  4379s
+  E2 step 2150/4101  loss=0.3033  lr=9.71e-05  4401s
+  E2 step 2200/4101  loss=0.8681  lr=9.59e-05  4423s
+  E2 step 2250/4101  loss=0.3286  lr=9.47e-05  4445s
+  E2 step 2300/4101  loss=0.8817  lr=9.35e-05  4468s
+  E2 step 2350/4101  loss=0.5305  lr=9.22e-05  4490s
+  E2 step 2400/4101  loss=0.1052  lr=9.06e-05  4512s
+  E2 step 2450/4101  loss=0.1078  lr=8.94e-05  4534s
+  E2 step 2500/4101  loss=0.5709  lr=8.82e-05  4562s
+  E2 step 2550/4101  loss=0.2458  lr=8.69e-05  4594s
+  E2 step 2600/4101  loss=0.1337  lr=8.57e-05  4627s
+  E2 step 2650/4101  loss=0.3973  lr=8.45e-05  4659s
+  E2 step 2700/4101  loss=0.1800  lr=8.33e-05  4692s
+  E2 step 2750/4101  loss=0.4583  lr=8.21e-05  4725s
+  E2 step 2800/4101  loss=0.2470  lr=8.05e-05  4758s
+  E2 step 2850/4101  loss=0.4272  lr=7.93e-05  4792s
+  E2 step 2900/4101  loss=0.7705  lr=7.81e-05  4825s
+  E2 step 2950/4101  loss=0.5207  lr=7.69e-05  4858s
+  E2 step 3000/4101  loss=0.2445  lr=7.57e-05  4891s
+  E2 step 3050/4101  loss=0.3144  lr=7.45e-05  4924s
+  E2 step 3100/4101  loss=0.3336  lr=7.33e-05  4956s
+  E2 step 3150/4101  loss=0.2814  lr=7.21e-05  4989s
+  E2 step 3200/4101  loss=0.2291  lr=7.06e-05  5022s
+  E2 step 3250/4101  loss=0.9282  lr=6.94e-05  5055s
+  E2 step 3300/4101  loss=0.7103  lr=6.82e-05  5088s
+  E2 step 3350/4101  loss=0.6428  lr=6.71e-05  5121s
+  E2 step 3400/4101  loss=0.7841  lr=6.59e-05  5154s
+  E2 step 3450/4101  loss=0.0959  lr=6.48e-05  5186s
+  E2 step 3500/4101  loss=0.1053  lr=6.36e-05  5217s
+  E2 step 3550/4101  loss=0.2188  lr=6.25e-05  5251s
+  E2 step 3600/4101  loss=0.3154  lr=6.10e-05  5285s
+  E2 step 3650/4101  loss=1.0553  lr=5.99e-05  5316s
+  E2 step 3700/4101  loss=1.0242  lr=5.87e-05  5348s
+  E2 step 3750/4101  loss=0.3992  lr=5.76e-05  5380s
+  E2 step 3800/4101  loss=0.2260  lr=5.65e-05  5413s
+  E2 step 3850/4101  loss=1.2853  lr=5.54e-05  5446s
+  E2 step 3900/4101  loss=0.2374  lr=5.43e-05  5478s
+  E2 step 3950/4101  loss=0.1424  lr=5.32e-05  5510s
+  E2 step 4000/4101  loss=0.5487  lr=5.18e-05  5544s
+  E2 step 4050/4101  loss=1.3645  lr=5.07e-05  5577s
+  E2 step 4100/4101  loss=0.1601  lr=4.93e-05  5610s
+[epoch 2] mean_loss=0.4601  (5610s)
+  [hf] 40/200  parsed=0  gate_hits=0
+  [hf] 80/200  parsed=1  gate_hits=1
+  [hf] 120/200  parsed=3  gate_hits=1
+  [hf] 160/200  parsed=7  gate_hits=3
+  [hf] 200/200  parsed=8  gate_hits=4
+[eval E2] n=200  parse=4.0%  iou@0.25=2.0%  mean_iou=0.335  center_std=92.2
+[train] epoch 2 adapter -> runs/v2/phase3-terse100-1024/epoch2
+  E3 step 0/4101  loss=0.3416  lr=4.93e-05  6235s
+  E3 step 50/4101  loss=0.5275  lr=4.82e-05  6268s
+  E3 step 100/4101  loss=0.1307  lr=4.72e-05  6301s
+  E3 step 150/4101  loss=0.1457  lr=4.62e-05  6336s
+  E3 step 200/4101  loss=0.1305  lr=4.51e-05  6370s
+  E3 step 250/4101  loss=0.3174  lr=4.41e-05  6403s
+  E3 step 300/4101  loss=0.0862  lr=4.31e-05  6436s
+  E3 step 350/4101  loss=0.6637  lr=4.21e-05  6468s
+  E3 step 400/4101  loss=0.1832  lr=4.08e-05  6501s
+  E3 step 450/4101  loss=0.2096  lr=3.98e-05  6533s
+  E3 step 500/4101  loss=0.1167  lr=3.88e-05  6555s
+  E3 step 550/4101  loss=0.4422  lr=3.78e-05  6578s
+  E3 step 600/4101  loss=0.0348  lr=3.69e-05  6600s
+  E3 step 650/4101  loss=0.9548  lr=3.59e-05  6622s
+  E3 step 700/4101  loss=0.2604  lr=3.50e-05  6645s
+  E3 step 750/4101  loss=0.2478  lr=3.41e-05  6668s
+  E3 step 800/4101  loss=0.2171  lr=3.28e-05  6691s
+  E3 step 850/4101  loss=0.3112  lr=3.19e-05  6715s
+  E3 step 900/4101  loss=0.3112  lr=3.10e-05  6737s
+  E3 step 950/4101  loss=0.3120  lr=3.02e-05  6760s
+  E3 step 1000/4101  loss=0.3186  lr=2.93e-05  6783s
+  E3 step 1050/4101  loss=0.0721  lr=2.84e-05  6805s
+  E3 step 1100/4101  loss=0.2957  lr=2.76e-05  6832s
+  E3 step 1150/4101  loss=1.3894  lr=2.67e-05  6866s
+  E3 step 1200/4101  loss=0.1625  lr=2.56e-05  6898s
+  E3 step 1250/4101  loss=0.1703  lr=2.48e-05  6931s
+  E3 step 1300/4101  loss=0.0962  lr=2.40e-05  6957s
+  E3 step 1350/4101  loss=0.1956  lr=2.32e-05  6989s
+  E3 step 1400/4101  loss=0.2135  lr=2.24e-05  7022s
+  E3 step 1450/4101  loss=0.2075  lr=2.17e-05  7055s
+  E3 step 1500/4101  loss=0.9045  lr=2.09e-05  7087s
+  E3 step 1550/4101  loss=0.3437  lr=2.02e-05  7121s
+  E3 step 1600/4101  loss=0.1586  lr=1.92e-05  7154s
+  E3 step 1650/4101  loss=0.1604  lr=1.85e-05  7187s
+  E3 step 1700/4101  loss=0.9448  lr=1.78e-05  7220s
+  E3 step 1750/4101  loss=0.3175  lr=1.71e-05  7254s
+  E3 step 1800/4101  loss=0.3737  lr=1.64e-05  7287s
+  E3 step 1850/4101  loss=0.2343  lr=1.57e-05  7321s
+  E3 step 1900/4101  loss=0.2275  lr=1.51e-05  7353s
+  E3 step 1950/4101  loss=0.0281  lr=1.44e-05  7386s
+  E3 step 2000/4101  loss=0.3446  lr=1.36e-05  7419s
+  E3 step 2050/4101  loss=0.2450  lr=1.30e-05  7452s
+  E3 step 2100/4101  loss=0.3229  lr=1.24e-05  7485s
+  E3 step 2150/4101  loss=0.3007  lr=1.18e-05  7517s
+  E3 step 2200/4101  loss=0.6472  lr=1.12e-05  7551s
+  E3 step 2250/4101  loss=0.1198  lr=1.07e-05  7584s
+  E3 step 2300/4101  loss=0.1066  lr=1.01e-05  7617s
+  E3 step 2350/4101  loss=0.0657  lr=9.60e-06  7651s
+  E3 step 2400/4101  loss=0.0579  lr=8.91e-06  7684s
+  E3 step 2450/4101  loss=0.2061  lr=8.41e-06  7717s
+  E3 step 2500/4101  loss=0.6691  lr=7.93e-06  7750s
+  E3 step 2550/4101  loss=0.4774  lr=7.46e-06  7783s
+  E3 step 2600/4101  loss=0.4896  lr=7.00e-06  7816s
+  E3 step 2650/4101  loss=0.3894  lr=6.55e-06  7848s
+  E3 step 2700/4101  loss=0.7428  lr=6.12e-06  7880s
+  E3 step 2750/4101  loss=0.0380  lr=5.71e-06  7913s
+  E3 step 2800/4101  loss=0.1244  lr=5.18e-06  7946s
+  E3 step 2850/4101  loss=0.0519  lr=4.79e-06  7979s
+  E3 step 2900/4101  loss=0.5512  lr=4.43e-06  8011s
+  E3 step 2950/4101  loss=0.1389  lr=4.07e-06  8044s
+  E3 step 3000/4101  loss=0.9471  lr=3.73e-06  8077s
+  E3 step 3050/4101  loss=0.1678  lr=3.41e-06  8110s
+  E3 step 3100/4101  loss=0.2696  lr=3.10e-06  8143s
+  E3 step 3150/4101  loss=0.1020  lr=2.80e-06  8176s
+  E3 step 3200/4101  loss=0.3340  lr=2.43e-06  8209s
+  E3 step 3250/4101  loss=0.7629  lr=2.17e-06  8240s
+  E3 step 3300/4101  loss=0.5841  lr=1.92e-06  8272s
+  E3 step 3350/4101  loss=0.1257  lr=1.69e-06  8305s
+  E3 step 3400/4101  loss=0.3279  lr=1.47e-06  8338s
+  E3 step 3450/4101  loss=0.8066  lr=1.27e-06  8372s
+  E3 step 3500/4101  loss=0.5036  lr=1.08e-06  8405s
+  E3 step 3550/4101  loss=0.1765  lr=9.10e-07  8437s
+  E3 step 3600/4101  loss=0.1960  lr=7.03e-07  8470s
+  E3 step 3650/4101  loss=0.4715  lr=5.65e-07  8503s
+  E3 step 3700/4101  loss=0.5717  lr=4.42e-07  8536s
+  E3 step 3750/4101  loss=0.1021  lr=3.34e-07  8570s
+  E3 step 3800/4101  loss=0.1828  lr=2.42e-07  8603s
+  E3 step 3850/4101  loss=0.1861  lr=1.64e-07  8636s
+  E3 step 3900/4101  loss=0.4080  lr=1.01e-07  8671s
+  E3 step 3950/4101  loss=0.5871  lr=5.35e-08  8704s
+  E3 step 4000/4101  loss=0.0844  lr=1.34e-08  8737s
+  E3 step 4050/4101  loss=0.8348  lr=8.37e-10  8771s
+  E3 step 4100/4101  loss=0.1213  lr=7.53e-09  8804s
+[epoch 3] mean_loss=0.3427  (8804s)
+  [hf] 40/200  parsed=0  gate_hits=0
+  [hf] 80/200  parsed=3  gate_hits=3
+  [hf] 120/200  parsed=7  gate_hits=5
+  [hf] 160/200  parsed=9  gate_hits=6
+  [hf] 200/200  parsed=10  gate_hits=7
+[eval E3] n=200  parse=5.0%  iou@0.25=3.5%  mean_iou=0.557  center_std=85.7
+[train] epoch 3 adapter -> runs/v2/phase3-terse100-1024/epoch3
+[train] merging LoRA adapter into base weights...
+[train] merged checkpoint -> runs/v2/phase3-terse100-1024
+[train] manifest -> runs/20260626T014126Z

@@ -1,39 +1,71 @@
 # Terse-output re-LoRA: cut decode tokens to shrink anchor latency (Part II/III)
 
-**Status:** ✅ trained + HF-evaluated (2026-06-26). On-Orin decode wall-time (RQ1 device leg) still TODO.
-**Date opened:** 2026-06-25 · **Run:** 2026-06-26 · **Branch:** `v3/object-permanence`.
+**Status:** 🔄 iterating. Iter-1 fully measured (HF + on-Orin). Iter-2 collapsed → root-caused
+(EOS bug) → iter-2b re-running with the fix.
+**Date opened:** 2026-06-25 · **Runs:** 2026-06-26 · **Branch:** `v3/object-permanence`.
 **Phase:** Part II re-train of the deployed anchor; motivated by Part III latency budget.
 
-## Results (2026-06-26)
+## The core finding (read this first)
 
-Re-LoRA on the terse format, **one variable changed** (output format); everything else held
-identical to the 62.6% deploy run (Qwen2-VL-2B, RefDrone well-posed 4101/439, `--image-size
-1024`, lr 2e-4, 3 epochs, bf16). Merged checkpoint `runs/v2/phase3-terse-1024/`, manifest
-`runs/20260625T222753Z`. Log: `logs/train.log`.
+Qwen2-VL **tokenizes digits one-per-token** (`266` → `2`,`6`,`6`). So the decode-token cost of
+a bbox is dominated by **digit count**, and the JSON `{"bbox": …}` scaffolding is a *minority*
+of the tokens:
 
-| epoch | parse_rate | IoU@0.25 | mean_iou | center_std |
+| target string (what the model emits) | decode tokens |
+|---|---|
+| `{"bbox": [266, 476, 346, 644]}` (JSON, 0–1000) | 23 |
+| `[266, 476, 346, 644]` (bracketed, 0–1000) | 20 |
+| `266 476 346 644` (bare, 0–1000) | 15 |
+| `[27, 48, 35, 64]` (bracketed, **0–100**) | 13–16 |
+| `27 48 35 64` (bare, **0–100**) | **11** |
+
+Two levers, measured: **(a)** drop the JSON wrapper (−3 tok, but the model clings to brackets);
+**(b)** halve the digits via 0–100 precision (−4 tok, and 0% of RefDrone-val boxes — incl. tiny
+aerial, n=93 — drop below the 0.25 IoU gate under 0–100 rounding). Lever (b) is the bigger,
+prior-independent win.
+
+## Iteration log
+
+### Iter-1 — bare ints, 0–1000 precision (`runs/v2/phase3-terse-1024`, manifest `…222753Z`)
+
+One variable vs the 62.6% deploy: JSON → `x1 y1 x2 y2`. 3 epochs, all else identical.
+
+| arm | parse | IoU@0.25 | decode tok | notes |
 |---|---|---|---|---|
-| 1 | 62.0% | 40.0% | 0.484 | 239 |
-| 2 | 83.5% | 56.0% | 0.518 | 237 |
-| **3** | **91.0%** | **60.5%** | 0.505 | 234 |
+| HF val (n=200) | 91.0% | 60.5% | — | center_std 234, healthy |
+| **Orin Q8_0 val (n=439)** | **99.3%** | **61.0%** | — | manifest `…232748Z` |
+| Orin decode @512 (n=8) | 100% | — | **21** | wall **2114 ms** vs JSON 2265 |
 
-vs JSON Phase-3 HF baseline (`results/2026-06-17-phase3-train`): IoU@0.25 **59.5%**, parse **100%**.
+- **Accuracy held** — Orin 61.0% vs JSON deploy 62.6% = **−1.6 pp** (within noise; mean_iou
+  0.462 vs 0.468). The format change is ~free on accuracy.
+- **But the token saving largely evaporated on-device.** The model **reverted to its pretrained
+  bracketed prior** — on real images it emits `[266, 476, 346, 644]` (not the trained bare
+  `266 476 346 644`), occasionally `(406,330,486,375)`. So it only shed the `{"bbox": …}`
+  wrapper: **21 decode tok vs JSON's ~24** = −3 tok, decode 963 ms vs 1106 ms, **wall 2114 ms
+  vs 2265 = −6.7%** — far short of the −35% the *target-string* token count predicted.
+- **Parse-robustness risk realized**: e.g. `(316,25 361,173)` (a dropped comma) — the lenient
+  exactly-4-ints parser silently accepted it. The risk the pre-registration flagged.
 
-- **RQ2 (accuracy) — PASS.** Terse **60.5%** vs JSON **59.5%** = **+1.0 pp** (within noise).
-  The format change costs ~nothing in IoU; center_std 234 healthy (no collapse). Gate ≥−2pp cleared.
-- **RQ3 (parse robustness) — measurable cost.** parse_rate **91.0%** vs JSON **100%** = **−9 pp**.
-  The model takes all 3 epochs to learn the delimiter-free format (parse 62→83.5→91%); 9% of
-  outputs still don't yield exactly-4 ints. This is the price of no brackets to anchor on — but
-  the exactly-4 guard turns those into honest parse-fails, not silent corruption (RQ3 risk averted).
-- **RQ1 (decode tokens) — premise confirmed locally, device leg TODO.** Qwen2-VL tokenizer:
-  JSON target = **23 tok**, terse = **15 tok** → **−8 tok (−35%)**. The saving is *exactly* the
-  8 JSON-scaffolding tokens (`{"bbox": [ … ] }`); the 4 numbers + spaces are irreducible. Smaller
-  than the pre-reg ~24→~10 guess. At the measured 21.7 tok/s that's ~1.06s → ~0.69s decode
-  (~0.37s off the 2.27s anchor ⇒ ~1.9s, **−16% total latency**). Actual on-Orin Q8_0 decode not
-  yet measured — needs Phase-4 GGUF export + re-deploy.
+**Verdict:** bare-ints-at-0–1000 fights the model's prior and loses; net −7% latency for the
+trouble. Not worth shipping alone. Motivates iter-2 (attack digits, not brackets).
 
-**Decision:** provisional **KEEP** — accuracy free (+1pp), decode −35% tokens; pending on-device
-confirmation. The −9pp parse_rate is the honest cost to log. See `DECISIONS.md` (Part III).
+### Iter-2 — bare ints, 0–100 precision (`…phase3-terse100-1024`, manifest `…014126Z`) — COLLAPSED
+
+Changed precision to 0–100 (2-digit coords). **HF eval E3: parse 5.0%, IoU@0.25 3.5%.**
+Diagnosis (raw outputs): the model emits the **correct** coords then **never stops** —
+`27 48 34 65 65 65 65 …` to the 64-token cap (gt was `[27,48,34,65]` — first 4 exact!).
+
+**Root cause (a real latent bug the bracketless format exposed):** the training collate appended
+the raw target with **no `<|im_end|>`/EOS** (`grounding/train/trainer.py` `full_texts = t + tj`).
+The model was never *supervised* to stop. JSON/bracketed targets only stopped by luck — Qwen's
+prior emits `<|im_end|>` after a closed `}`/`]`; **bare ints give no such cue**, so it rambles.
+Fix: append `processor.tokenizer.eos_token` to every target.
+
+### Iter-2b — bare ints, 0–100, **+ EOS fix** (`…phase3-terse100eos-1024`) — RUNNING
+
+Same as iter-2 with the EOS supervision fix. Target = `27 48 35 64<|im_end|>` ≈ 11 decode tok
+if it holds. Tests the user's bracketless route *and* the precision lever together. Results +
+on-Orin decode pending.
 
 ## Why this exists (context to start cold)
 

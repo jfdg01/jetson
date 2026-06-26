@@ -526,17 +526,21 @@ Part III sub-1s-anchor lever. One variable changed (output format); base/data/re
 LoRA/quant held identical to the 62.6% deploy. Writeup:
 [`results/2026-06-25-terse-output-retrain/`](results/2026-06-25-terse-output-retrain/README.md).
 
-| metric | JSON (deploy) | **terse (re-LoRA)** | delta |
-|---|---|---|---|
-| RefDrone IoU@0.25 (HF, val n=200) | 59.5% | **60.5%** | **+1.0 pp** (noise) |
-| parse_rate | 100% | **91.0%** | **−9 pp** (no brackets to anchor) |
-| decode tokens (Qwen tokenizer) | 23 tok | **15 tok** | **−8 tok / −35%** |
-| center_std | — | 234 | healthy (no collapse) |
+**Iter-1 (bare ints, 0–1000)** — exported Q8_0, deployed + measured on the Orin:
 
-**Provisional KEEP:** accuracy free, decode −35% tokens (≈−0.37s of the 2.27s anchor →
-−16% total). On-Orin Q8_0 decode wall-time (Phase-4 export + re-deploy) still TODO — the
-token saving is the irreducible 8 JSON-scaffolding tokens, measured but not yet confirmed
-as wall-time on the device.
+| metric | JSON (deploy) | **iter-1 terse** | delta |
+|---|---|---|---|
+| RefDrone IoU@0.25 (Orin Q8_0, n=439) | 62.6% | **61.0%** | −1.6 pp (noise) |
+| parse_rate (Orin) | 100% | 99.3% | ~0 |
+| **decode tokens (Orin, real)** | ~24 | **21** | **−3 tok only** |
+| anchor wall @512 (Orin) | 2265 ms | **2114 ms** | **−6.7%** |
+
+**Negative-ish result:** accuracy held, but the token win mostly evaporated — the model
+**reverted to its bracketed prior** (`[266, 476, 346, 644]`) instead of bare ints, shedding only
+the `{"bbox": …}` wrapper. Root cause of *why* terse is hard: Qwen tokenizes digits 1-per-token,
+so the dominant cost is digit count, not the JSON syntax. **Iter-2** attacks that (0–100, 2-digit
+coords); it first exposed an EOS-supervision bug (bare targets never learned to stop → rambled to
+the token cap, parse 5%), now fixed (iter-2b running). Full log in the writeup.
 
 ---
 

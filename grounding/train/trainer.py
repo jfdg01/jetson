@@ -114,7 +114,11 @@ def _collate_fn(batch, processor):
         for p in prompts
     ]
     texts = [processor.apply_chat_template(m, add_generation_prompt=True) for m in messages]
-    full_texts = [t + tj for t, tj in zip(texts, target_jsons)]
+    # Append the turn-end token so the model is SUPERVISED to stop (Qwen eos=<|im_end|>).
+    # Without it, only formats whose closing char (}/]) the pretrained prior already ends
+    # a turn on will stop; bare-int terse targets ramble to the token cap (2026-06-26 fix).
+    eos = processor.tokenizer.eos_token
+    full_texts = [t + tj + eos for t, tj in zip(texts, target_jsons)]
 
     inputs = processor(
         text=full_texts, images=images, return_tensors="pt",
