@@ -104,7 +104,7 @@ def crop_resize(img, win: Window, out_res: Optional[int]):
         return crop
     w, h = crop.size
     s = out_res / max(w, h)
-    return crop.resize((max(1, round(w * s)), max(1, round(h * s))), Image.BILINEAR)
+    return crop.resize((max(1, round(w * s)), max(1, round(h * s))), Image.LANCZOS)
 
 
 def evaluate_roi(backend, samples: Sequence[GroundingSample], margin: float,

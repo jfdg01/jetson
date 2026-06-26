@@ -37,15 +37,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 from grounding.contract import COORD_SCALE, parse_bbox
 from grounding.deploy.serve import _DEFAULT_REMOTE_DIR
-from grounding.deploy.video import render as _render_track
+from grounding.deploy.video import ROI_MARGIN as _ROI_MARGIN, ROI_OUT_RES as _ROI_OUT_RES, render as _render_track
 from grounding.eval.backends import JetsonBackend
 from grounding.roi import crop_resize, map_to_full, roi_window
-
-# ROI re-anchor compare tab (results/2026-06-26-roi-demo-tab): full-frame acquire →
-# crop around that box (margin M) upscaled to OUT_RES → cheap re-anchor. Validated
-# config from results/2026-06-25-roi-crop-anchor (M=2.0 @512: 2.7× prefill, +22.6 pp).
-_ROI_MARGIN = 2.0
-_ROI_OUT_RES = 512
 
 # Upload-track tab: cap an uploaded clip so it stays a few VLM anchors, not a long run.
 _TRACK_MAX_S = 9  # seconds of the upload to use (≈3 anchors at the on-Orin cadence)
@@ -72,9 +66,9 @@ _EXAMPLES_DIR = os.path.normpath(
 _EXAMPLES = sorted(f for f in os.listdir(_EXAMPLES_DIR) if f.endswith(".jpg"))
 
 
-def _examples_html() -> str:
+def _examples_html(picker: str = "pick") -> str:
     return "".join(
-        f'<img src="/examples/{fn}" title="{fn}" onclick="pick(\'{fn}\')">'
+        f'<img src="/examples/{fn}" title="{fn}" onclick="{picker}(\'{fn}\')">'
         for fn in _EXAMPLES
     )
 
@@ -98,13 +92,16 @@ _PAGE = """<!doctype html>
  figcaption{color:#555;font-size:.9rem;margin-top:.3rem}
  .legend{font-size:.85rem;color:#666;margin:.4rem 0 0}
  .g{color:#1a9e3a;font-weight:600} .c{color:#2a86c8;font-weight:600} .o{color:#d97a16;font-weight:600}
- #examples img{height:72px;border:2px solid #ccc;border-radius:4px;margin:0 .4rem .4rem 0;cursor:pointer;vertical-align:top}
- #examples img:hover{border-color:#2a7}
+ #examples img,#cexamples img{height:72px;border:2px solid #ccc;border-radius:4px;margin:0 .4rem .4rem 0;cursor:pointer;vertical-align:top}
+ #examples img:hover,#cexamples img:hover{border-color:#2a7}
  .cmp{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.8rem}
  .cmp figure{flex:1;min-width:280px;margin:0}
  .cmp img{width:100%;border:1px solid #ccc}
  .cmp .stat{font-family:monospace;font-size:.85rem;margin-top:.3rem}
  .banner{font-size:1.05rem;margin:.6rem 0;padding:.5rem .7rem;background:#f2faf4;border-left:4px solid #2a7;border-radius:3px}
+ .anchors{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.8rem;margin-top:.8rem}
+ .anchor-pair p{margin:0 0 .2rem;font-family:monospace;font-size:.78rem;color:#666}
+ .anchor-pair img{width:100%;border:1px solid #ccc;display:block;margin-bottom:.3rem}
 </style></head><body>
 <h1>Orin VLM</h1>
 <nav>
@@ -124,7 +121,7 @@ _PAGE = """<!doctype html>
 <section id="live">
 <div class="row"><input type="file" id="vid" accept="video/*"></div>
 <div class="row"><input type="text" id="vcap" placeholder="the white car near the building"></div>
-<div class="row">play every <input type="number" id="vstride" value="3" min="1" style="width:3.5rem"> frames
+<div class="row">play every <input type="number" id="vstride" value="1" min="1" style="width:3.5rem"> frames
  <button onclick="track()">Run tracking</button> <span id="vstatus" class="muted"></span></div>
 <div id="vout"></div>
 <p class="legend"><span class="g">green</span> = VLM · <span class="c">cyan</span>
@@ -132,12 +129,7 @@ _PAGE = """<!doctype html>
 </section>
 
 <section id="compare">
-<p class="muted">The <b>prefill lever</b> for the following loop. The full frame acquires the
-target (one expensive VLM pass); every re-anchor after that crops to a <b>__MARGIN__×</b>
-box around the last position and upscales it to <b>__OUTRES__&nbsp;px</b> — fewer pixels →
-cheaper prefill, and the zoom is super-resolution on the target, so the box gets
-<i>tighter</i> too. Live on the deployed Q8_0. Measured (RefDrone): <b>2.7× prefill,
-+22.6&nbsp;pp IoU</b> — <a href="https://github.com" onclick="return false" title="results/2026-06-25-roi-crop-anchor">see the experiment</a>.</p>
+<div class="row" id="cexamples">__CEXAMPLES__</div>
 <div class="row"><input type="file" id="cimg" accept="image/*"></div>
 <div class="row"><input type="text" id="ccap" placeholder="the white car near the building"></div>
 <div class="row"><button onclick="compare()">Compare</button> <span id="cstatus" class="muted"></span></div>
@@ -178,27 +170,37 @@ async function run(){
     s.textContent='done';
   }catch(err){s.textContent='error'; document.getElementById('raw').textContent=err;}
 }
-let vidData=null;
-document.getElementById('vid').onchange=e=>{
-  const f=e.target.files[0]; if(!f)return;
-  const r=new FileReader(); r.onload=()=>{vidData=r.result;}; r.readAsDataURL(f);};
+let vidFile=null;
+document.getElementById('vid').onchange=e=>{vidFile=e.target.files[0]||null;};
 async function track(){
   const cap=document.getElementById('vcap').value.trim();
   const stride=parseInt(document.getElementById('vstride').value)||3;
-  if(!vidData){alert('pick a video first');return;}
+  if(!vidFile){alert('pick a video first');return;}
   if(!cap){alert('type a phrase first');return;}
-  const s=document.getElementById('vstatus'); s.textContent='running on the Orin (this takes a bit)...';
+  const s=document.getElementById('vstatus'); s.textContent='uploading + running on the Orin (this takes a bit)...';
   document.getElementById('vout').innerHTML='';
   try{
-    const resp=await fetch('/track',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({video:vidData,caption:cap,stride:stride})});
+    // raw bytes in the body — base64-in-JSON overflows the browser string allocator on big files
+    const url='/track?caption='+encodeURIComponent(cap)+'&stride='+stride;
+    const resp=await fetch(url,{method:'POST',body:vidFile});
     const j=await resp.json();
     if(j.error){s.textContent='error: '+j.error; return;}
-    document.getElementById('vout').innerHTML='<video src="'+j.video+'" controls autoplay loop muted playsinline style="max-width:100%;border:1px solid #ccc;margin-top:.8rem"></video>';
+    let vhtml='<video src="'+j.video+'" controls autoplay loop muted playsinline style="max-width:100%;border:1px solid #ccc;margin-top:.8rem"></video>';
+    if(j.anchors&&j.anchors.length){
+      vhtml+='<h4 style="margin:.8rem 0 .3rem;font-size:.9rem">Anchor passes ('+j.anchors.length+')</h4><div class="anchors">';
+      j.anchors.forEach(a=>{vhtml+='<div class="anchor-pair"><p>frame '+a.fi+' — '+a.elapsed_s+'s</p><img src="'+a.fed+'" title="fed to VLM"><p style="margin-top:.2rem">VLM result</p><img src="'+a.annotated+'"></div>';});
+      vhtml+='</div>';}
+    document.getElementById('vout').innerHTML=vhtml;
     s.textContent=j.note||'done';
   }catch(err){s.textContent='error: '+err;}
 }
 let cData=null;
+async function cpick(fn){
+  const s=document.getElementById('cstatus'); s.textContent='loading...';
+  const j=await(await fetch('/example?name='+encodeURIComponent(fn))).json();
+  cData=j.image;  // load the image only — leave the caption for the user to type
+  document.getElementById('cout').innerHTML='<figure><img src="'+cData+'"></figure>'; s.textContent='';
+}
 document.getElementById('cimg').onchange=e=>{
   const f=e.target.files[0]; if(!f)return;
   const r=new FileReader(); r.onload=()=>{cData=r.result;
@@ -341,6 +343,7 @@ class _Handler(BaseHTTPRequestHandler):
         if self.path in ("/", "/index.html"):
             page = (
                 _PAGE.replace("__EXAMPLES__", _examples_html())
+                .replace("__CEXAMPLES__", _examples_html("cpick"))
                 .replace("__MARGIN__", f"{_ROI_MARGIN:g}")
                 .replace("__OUTRES__", str(_ROI_OUT_RES))
             )
@@ -368,17 +371,31 @@ class _Handler(BaseHTTPRequestHandler):
             self._send(404, "text/plain", b"not found")
 
     def do_POST(self):  # noqa: N802
+        parsed = urlparse(self.path)
         handler = {
             "/infer": self._infer,
             "/track": self._track,
             "/compare": self._compare,
-        }.get(self.path)
+        }.get(parsed.path)
         if handler is None:
             self._send(404, "text/plain", b"not found")
             return
         try:
             n = int(self.headers.get("Content-Length", 0))
-            out = handler(json.loads(self.rfile.read(n)))
+            body = self.rfile.read(n)
+            if parsed.path == "/track":
+                # /track POSTs the raw video bytes (no base64 — big files overflow the
+                # browser string allocator); caption + stride ride in the query string.
+                q = parse_qs(parsed.query)
+                out = handler(
+                    {
+                        "video_bytes": body,
+                        "caption": q.get("caption", [""])[0],
+                        "stride": q.get("stride", ["3"])[0],
+                    }
+                )
+            else:
+                out = handler(json.loads(body))
         except Exception as e:  # noqa: BLE001 — surface any failure to the browser
             out = {"error": str(e)}
         self._send(200, "application/json", json.dumps(out).encode())
@@ -456,9 +473,24 @@ class _Handler(BaseHTTPRequestHandler):
         box/frame). Terse anchor (full-frame acquire → ROI-crop re-anchor) + CSRT
         coasting; slow (a few ssh VLM passes), single-user demo only."""
         caption = req["caption"]
-        stride = max(1, int(req.get("stride", 3)))
-        _, b64 = req["video"].split(",", 1)
-        vid_bytes = base64.b64decode(b64)
+        stride = max(1, int(req.get("stride", 3) or 3))
+        vid_bytes = req["video_bytes"]
+        anchors_out = []
+
+        def _on_anchor(fi, fed_pil, box, full_pil, elapsed_s):
+            def _b64png(img):
+                buf = io.BytesIO(); img.save(buf, "PNG")
+                return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
+            fed_b64 = _b64png(fed_pil)
+            if box is not None:
+                buf = io.BytesIO(); full_pil.save(buf, "PNG")
+                ann_b64 = "data:image/png;base64," + base64.b64encode(
+                    _annotate(buf.getvalue(), box, caption, color=(40, 190, 70))
+                ).decode()
+            else:
+                ann_b64 = _b64png(full_pil)
+            anchors_out.append({"fi": fi, "fed": fed_b64, "annotated": ann_b64, "elapsed_s": round(elapsed_s, 2)})
+
         vf = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
         of = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
         try:
@@ -466,7 +498,14 @@ class _Handler(BaseHTTPRequestHandler):
             vf.close()
             of.close()
             _render_track(
-                vf.name, caption, of.name, _BACKEND, stride=stride, track=True
+                vf.name,
+                caption,
+                of.name,
+                _BACKEND,
+                stride=stride,
+                track=True,
+                max_seconds=_TRACK_MAX_S,
+                on_anchor=_on_anchor,
             )
             mp4_b64 = base64.b64encode(open(of.name, "rb").read()).decode()
         finally:
@@ -475,6 +514,7 @@ class _Handler(BaseHTTPRequestHandler):
         return {
             "video": "data:video/mp4;base64," + mp4_b64,
             "note": "done — terse anchor + ROI re-anchor + CSRT coast",
+            "anchors": anchors_out,
         }
 
     def log_message(self, *_):  # quiet the per-request stderr spam

@@ -32,6 +32,7 @@ import io
 import os
 import sys
 import tempfile
+import time
 
 import cv2
 from PIL import Image, ImageDraw, ImageFont
@@ -58,14 +59,14 @@ _TRAIN_MAX_SIDE = 1024
 # server-side — it under-reported the GUI's real 1024 full-frame acquire by ~2×.
 ANCHOR_PERIOD_S = 2.0  # ROI re-anchor wall — the repeating steady-state cadence
 ACQUIRE_PERIOD_S = (
-    4.0  # full-frame acquire wall — first anchor (and post-loss re-acquire)
+    2.0  # full-frame acquire wall — first anchor (and post-loss re-acquire)
 )
 
 # ROI re-anchor (results/2026-06-25-roi-crop-anchor): while the lock holds, re-anchor on a
 # tight crop around the last box, upscaled to OUT_RES — 2.7× cheaper prefill AND +22.6 pp
 # (super-resolution on the target). Cold acquire / re-acquire after a loss stays full-frame.
-ROI_MARGIN = 2.0
-ROI_OUT_RES = 512
+ROI_MARGIN = 4.0
+ROI_OUT_RES = 1024
 
 GREEN, ORANGE, CYAN, RED = (40, 190, 70), (240, 150, 40), (60, 180, 240), (230, 60, 60)
 
@@ -160,9 +161,14 @@ def _draw(frame_rgb, box_norm, caption, tag, col):
     return img
 
 
-def _read_frames(path, fps_default=30.0):
+def _read_frames(path, fps_default=30.0, max_seconds=None):
     """BGR frame list + fps. Accepts a video file OR a directory of sorted jpg/png frames
-    (VisDrone-VID is natively frame sequences — read them directly, no re-encode)."""
+    (VisDrone-VID is natively frame sequences — read them directly, no re-encode). Frames
+    are kept at FULL resolution — the ROI re-anchor crops a tight window and upscales it, so
+    it needs the original pixels (the full-frame anchor doesn't: the backend caps it to
+    ≤1024). `max_seconds` stops decoding early.
+    ponytail: memory is bounded by max_seconds, not resolution — a 4K clip is heavy; lower
+    _TRACK_MAX_S (or add a decode-side long-edge cap) if a giant source OOMs the host."""
     if os.path.isdir(path):
         import glob
 
@@ -172,6 +178,8 @@ def _read_frames(path, fps_default=30.0):
         )
         if not files:
             raise RuntimeError(f"no .jpg/.png frames in directory: {path}")
+        if max_seconds:
+            files = files[: max(1, round(max_seconds * fps_default))]
         return [cv2.imread(f) for f in files], fps_default
     cap = cv2.VideoCapture(path)
     if not cap.isOpened():
@@ -180,12 +188,15 @@ def _read_frames(path, fps_default=30.0):
             "decoder — pass a directory of extracted frames instead)"
         )
     fps = cap.get(cv2.CAP_PROP_FPS) or fps_default
+    max_frames = round(max_seconds * fps) if max_seconds else None
     frames = []
     while True:
         ok, fr = cap.read()
         if not ok:
             break
         frames.append(fr)
+        if max_frames and len(frames) >= max_frames:
+            break
     cap.release()
     return frames, fps
 
@@ -226,6 +237,8 @@ def render(
     acquire_s=ACQUIRE_PERIOD_S,
     track=False,
     roi=True,
+    max_seconds=None,
+    on_anchor=None,
 ):
     """Anchor the VLM at the on-Orin cadence; between anchors either hold the box stale
     (Level 1) or, if `track`, let a fast visual tracker hold the lock (Level 2 — the real
@@ -234,27 +247,46 @@ def render(
     super-res); cold acquire and post-loss re-acquire stay full-frame. Cadence is two-tier
     too: the first anchor is spaced by `acquire_s` (slow full-frame), the rest by `period_s`
     (fast ROI re-anchor)."""
-    frames_bgr, fps = _read_frames(video_path)
+    frames_bgr, fps = _read_frames(video_path, max_seconds=max_seconds)
     n = len(frames_bgr)
     if n == 0:
         raise RuntimeError(f"no frames decoded from {video_path}")
 
     played, anchors = anchor_schedule(n, fps, acquire_s, period_s, stride)
+    played_set = set(played)
     box = None
     lost = False  # tracker dropped the lock → next anchor must re-acquire full-frame
     last_anchor_t = 0.0
     tracker = tracker_name = None
+    tag, col = "", ORANGE
     out_frames = []
-    for fi in played:
+    # Iterate EVERY frame so the tracker is fed continuously (CSRT drifts and reports a
+    # spurious loss if it only sees strided frames — that latched `lost` and forced the
+    # next periodic anchor to a needless full-frame re-acquire). Draw only on played frames.
+    for fi in range(n):
         bgr = frames_bgr[fi]
-        rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
         h, w = bgr.shape[:2]
         fresh = fi in anchors
         if fresh:
+            rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
             # ROI re-anchor only while a lock is held; cold acquire & post-loss re-acquire
             # are full-frame (a crop can't re-find a target that left the window).
             use_roi = roi and box is not None and not lost
-            box = _anchor_box(backend, Image.fromarray(rgb), caption, box, use_roi)
+            img_pil = Image.fromarray(rgb)
+            if on_anchor is not None:
+                _fed = (
+                    crop_resize(
+                        img_pil,
+                        roi_window(box, img_pil.width, img_pil.height, ROI_MARGIN),
+                        ROI_OUT_RES,
+                    )
+                    if use_roi
+                    else img_pil
+                )
+            _t0 = time.perf_counter()
+            box = _anchor_box(backend, img_pil, caption, box, use_roi)
+            if on_anchor is not None:
+                on_anchor(fi, _fed, box, img_pil, time.perf_counter() - _t0)
             lost = False
             last_anchor_t = fi / fps
             mode = "ROI re-anchor" if use_roi else "full-frame acquire"
@@ -271,7 +303,6 @@ def render(
             label = f"ANCHOR — {mode} ({tracker_name})" if track else f"ANCHOR — {mode}"
             tag, col = label, GREEN
         elif track and tracker is not None:
-            # ponytail: tracker updates on played (strided) frames only; feed every frame if drift shows.
             try:
                 ok, xywh = tracker.update(bgr)
             except cv2.error:
@@ -291,7 +322,9 @@ def render(
         else:
             tag = f"held stale +{fi / fps - last_anchor_t:.1f}s (no new VLM yet)"
             col = ORANGE
-        out_frames.append(_draw(rgb, box, caption, tag, col))
+        if fi in played_set:
+            rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+            out_frames.append(_draw(rgb, box, caption, tag, col))
 
     _save(out_frames, out_path, fps / max(1, stride))
     print(
