@@ -1,0 +1,29 @@
+{
+  "run_id": "20260626T032701Z",
+  "created_utc": "2026-06-26T03:27:01.074148+00:00",
+  "kind": "export",
+  "git_sha": "d806ed10e5a93b8951889cafeb39bae0ddcea03c",
+  "git_dirty": true,
+  "llamacpp_commit": "57fe1f07c3b6a1de3f4fff19098e2056a85275b7",
+  "lockfile_sha256": "c85c39dfe299fff25dd94b8a84ffa4ae2a65a3a79146e6efd38c8b51d02f9ad7",
+  "python_version": "3.12.10",
+  "platform": "Linux-6.17.0-35-generic-x86_64-with-glibc2.39",
+  "config": {
+    "phase": "4a",
+    "kind": "gguf-export",
+    "checkpoint": "runs/v2/phase3-terse100eos-1024",
+    "convert_script": "/tmp/llama.cpp-57fe1f0/convert_hf_to_gguf.py",
+    "mmproj": "runs/v2/phase3-terse100eos-1024/gguf/mmproj-phase3-terse100eos-1024-f16.gguf",
+    "quants": [
+      "F16",
+      "Q8_0"
+    ],
+    "outputs": {
+      "F16": "runs/v2/phase3-terse100eos-1024/gguf/phase3-terse100eos-1024-f16.gguf",
+      "Q8_0": "runs/v2/phase3-terse100eos-1024/gguf/phase3-terse100eos-1024-q8_0.gguf"
+    }
+  },
+  "dataset_path": null,
+  "dataset_sha256": null,
+  "extra": {}
+}

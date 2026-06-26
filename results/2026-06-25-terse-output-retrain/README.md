@@ -1,7 +1,8 @@
 # Terse-output re-LoRA: cut decode tokens to shrink anchor latency (Part II/III)
 
-**Status:** 🔄 iterating. Iter-1 fully measured (HF + on-Orin). Iter-2 collapsed → root-caused
-(EOS bug) → iter-2b re-running with the fix.
+**Status:** ✅ WIN (iter-2b). Bare 0–100 + EOS fix → on-Orin **decode −45%, anchor wall −24%**,
+Q8_0 IoU **63.1%** (beats JSON deploy 62.6%), 100% parse. Strict upgrade — replaces the deploy
+artifact. Iter-1 (−7%) and iter-2 (collapse) are the road there.
 **Date opened:** 2026-06-25 · **Runs:** 2026-06-26 · **Branch:** `v3/object-permanence`.
 **Phase:** Part II re-train of the deployed anchor; motivated by Part III latency budget.
 
@@ -61,11 +62,44 @@ The model was never *supervised* to stop. JSON/bracketed targets only stopped by
 prior emits `<|im_end|>` after a closed `}`/`]`; **bare ints give no such cue**, so it rambles.
 Fix: append `processor.tokenizer.eos_token` to every target.
 
-### Iter-2b — bare ints, 0–100, **+ EOS fix** (`…phase3-terse100eos-1024`) — RUNNING
+### Iter-2b — bare ints, 0–100, **+ EOS fix** (`…phase3-terse100eos-1024`, manifest `…032431Z`) — ✅ WIN
 
-Same as iter-2 with the EOS supervision fix. Target = `27 48 35 64<|im_end|>` ≈ 11 decode tok
-if it holds. Tests the user's bracketless route *and* the precision lever together. Results +
-on-Orin decode pending.
+Same as iter-2 with EOS supervised on every target. **The EOS fix unlocked the bracketless
+format**: the model now emits clean bare 2-digit ints and stops.
+
+| arm | parse | IoU@0.25 | decode tok | notes |
+|---|---|---|---|---|
+| HF val (n=200) | 100.0% | 62.0% | — | center_std 23.0 (≈230 at 0–1000 scale), healthy |
+| **Orin Q8_0 val (n=439)** | **100.0%** | **63.1%** | — | manifest `…040441Z`; **beats JSON 62.6%** |
+| **Orin decode @512, real imgs (n=20)** | 100% | — | **12** | bare `28 44 36 59` |
+
+**On-Orin decode — real win** (vs JSON deploy, *same 20 real val images @512, same harness*;
+the synthetic anchor frame is OOD and makes both models fall back to the 0–1000 tuple prior, so
+it under-reports — real images are the valid measurement):
+
+| | JSON deploy | terse iter-2b | delta |
+|---|---|---|---|
+| decode tokens (median) | 21 | **12** | **−43%** |
+| decode ms (median) | 967 | **531** | **−45%** (−436 ms) |
+| anchor wall ms @512 (median) | 1807 | **1372** | **−24%** |
+| output format | `(286, 439, 371, 575)` | `28 44 36 59` | bare 0–100 ✓ |
+| parse_rate | 100% | 100% | — |
+
+- **Bracketless works now** — `28 44 36 59`, no brackets, 100% parse. The two levers stacked:
+  dropping the wrapper *and* halving the digits (0–100), with EOS making the bare format
+  terminate. Decode is nearly halved (−45%); the whole anchor is −24%.
+- **Accuracy improved** — Orin Q8_0 **63.1% vs JSON deploy 62.6% (+0.5 pp)**, 100% parse, n=439;
+  HF 62.0% vs JSON HF 59.5% (+2.5 pp). center_std healthy. The terse model is a strict upgrade:
+  **better accuracy AND nearly half the decode.** It should replace the JSON deploy artifact.
+
+## Verdict
+
+The terse lever is real **but only with all three pieces together** — the first attempt
+(bare @0–1000) saved just −7% because the model clung to brackets; the win needed (1) **0–100
+precision** (digits are the real cost — Qwen tokenizes digit-per-token), (2) **EOS supervision**
+(bare targets never learned to stop otherwise — a latent bug exposed here), and the bracketless
+format then falls out for free. Net on the Orin: **decode −45%, anchor wall −24%, accuracy +2.5pp
+HF.** This stacks with the ROI-crop prefill lever (2026-06-26T02:30) toward the sub-1s anchor.
 
 ## Why this exists (context to start cold)
 

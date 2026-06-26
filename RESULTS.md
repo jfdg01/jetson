@@ -538,9 +538,24 @@ LoRA/quant held identical to the 62.6% deploy. Writeup:
 **Negative-ish result:** accuracy held, but the token win mostly evaporated — the model
 **reverted to its bracketed prior** (`[266, 476, 346, 644]`) instead of bare ints, shedding only
 the `{"bbox": …}` wrapper. Root cause of *why* terse is hard: Qwen tokenizes digits 1-per-token,
-so the dominant cost is digit count, not the JSON syntax. **Iter-2** attacks that (0–100, 2-digit
-coords); it first exposed an EOS-supervision bug (bare targets never learned to stop → rambled to
-the token cap, parse 5%), now fixed (iter-2b running). Full log in the writeup.
+so the dominant cost is digit count, not the JSON syntax.
+
+**Iter-2b (bare ints, 0–100, + EOS-supervision fix) — WIN, replaces the deploy artifact.**
+Two levers stacked + a bug fix: 0–100 precision (halve the digits), and supervise `<|im_end|>` on
+the target (iter-2 without it collapsed to 5% parse — bare outputs never learned to stop, rambled
+to the token cap). The model then emits clean bare `28 44 36 59`, 100% parse.
+
+| metric | JSON deploy | **terse iter-2b** | delta |
+|---|---|---|---|
+| RefDrone IoU@0.25 (Orin Q8_0, n=439) | 62.6% | **63.1%** | **+0.5 pp** |
+| parse_rate (Orin) | 100% | 100% | — |
+| decode tokens (Orin, real imgs @512) | 21 | **12** | **−43%** |
+| decode ms (Orin) | 967 | **531** | **−45%** |
+| anchor wall @512 (Orin) | 1807 | **1372** | **−24%** |
+
+**KEEP — strict upgrade**: better accuracy *and* ~half the decode. Stacks with the ROI-crop
+prefill lever (2026-06-26T02:30) toward the sub-1s anchor. Full arc (iter-1 −7% → iter-2 collapse
+→ iter-2b) in the writeup.
 
 ---
 

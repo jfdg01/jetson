@@ -55,6 +55,32 @@ legacy scripts now live under `experiments/legacy/`).
   (then widen M or fall back to full-frame more often). See
   `results/2026-06-25-roi-crop-anchor/`.
 
+### 2026-06-26T04:30 — KEEP terse (bare ints @0–100 + EOS): replaces the JSON deploy artifact
+
+- **Decision:** Adopt the **iter-2b** terse anchor (`runs/v2/phase3-terse100eos-1024`, GGUF Q8_0)
+  as the deployed grounding artifact, replacing the JSON `{"bbox": …}` model. Output = four bare
+  space-separated 2-digit ints (`28 44 36 59`).
+- **Reasoning — measured strict upgrade on the Orin** (Q8_0, 15 W, clocks locked): IoU@0.25
+  **63.1% vs 62.6%** (n=439, +0.5 pp), parse **100%**, and on real val images @512 decode
+  **12 tok vs 21 (−43%)**, decode **531 ms vs 967 (−45%)**, anchor wall **1372 ms vs 1807 (−24%)**.
+  Better accuracy *and* ~half the decode — no tradeoff to accept.
+- **What made it work (the three pieces, none sufficient alone):** (1) **0–100 precision** — Qwen
+  tokenizes digit-per-token, so digit count dominates decode cost; 0–100 quantization keeps 100%
+  of RefDrone-val boxes (incl. tiny aerial) above the 0.25 gate. (2) **EOS supervision** — the
+  bracketless format exposed that targets were never `<|im_end|>`-terminated, so bare ints never
+  learned to stop (iter-2 collapsed to 5% parse, rambling to the token cap). (3) **bracketless**
+  then falls out for free. Iter-1 (bare @0–1000, no precision lever) only got −7% because the
+  model clung to its bracketed prior.
+- **Alternatives considered:** keep JSON (slower, no benefit); iter-1 bare @0–1000 (−7% only);
+  0–100 *with* brackets (safer parser anchor, ~16 tok — less saving; unnecessary since bare works);
+  parse-first-4 to tolerate rambling (masks the bug, leaves latency worse). All dominated.
+- **Tradeoff / cost accepted:** bracketless gives the parser no structural anchor — mitigated by
+  the exactly-4-ints guard + 100% measured parse on-device. mean_iou slightly coarser under 0–100
+  (irrelevant to the @0.25 gate). Old JSON GGUF kept on the Jetson for rollback.
+- **Revisit when:** a downstream consumer needs sub-pixel boxes (then 0–100 is too coarse), or the
+  bare format's parse rate degrades on a new dataset. Synthetic-frame timing is invalid for this
+  model (OOD → 0–1000 tuple fallback); always measure decode on real images.
+
 ### 2026-06-26T23:30 — terse output: attack coord *precision* (0–100), not JSON syntax; + EOS-supervision fix
 
 - **Decision:** Move the grounding contract's output to **terse low-precision** coordinates —
