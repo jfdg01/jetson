@@ -35,11 +35,11 @@ from urllib.parse import parse_qs, urlparse
 
 from PIL import Image, ImageDraw, ImageFont
 
-from grounding.contract import parse_bbox, COORD_SCALE
+from grounding.contract import COORD_SCALE, parse_bbox
 from grounding.deploy.serve import _DEFAULT_REMOTE_DIR
 from grounding.deploy.video import render as _render_track
 from grounding.eval.backends import JetsonBackend
-from grounding.roi import roi_window, crop_resize, map_to_full
+from grounding.roi import crop_resize, map_to_full, roi_window
 
 # ROI re-anchor compare tab (results/2026-06-26-roi-demo-tab): full-frame acquire →
 # crop around that box (margin M) upscaled to OUT_RES → cheap re-anchor. Validated
@@ -48,9 +48,11 @@ _ROI_MARGIN = 2.0
 _ROI_OUT_RES = 512
 
 # Upload-track tab: cap an uploaded clip so it stays a few VLM anchors, not a long run.
-_TRACK_MAX_S = 6        # seconds of the upload to use (≈3 anchors at the on-Orin cadence)
-_TRACK_W = 720          # extract/render width — small enough for a light mp4, big enough to ground
-_TRACK_MAX_BYTES = 80 * 1024 * 1024
+_TRACK_MAX_S = 9  # seconds of the upload to use (≈3 anchors at the on-Orin cadence)
+_TRACK_W = (
+    1080  # extract/render width — small enough for a light mp4, big enough to ground
+)
+_TRACK_MAX_BYTES = 800 * 1024 * 1024
 
 # terse iter-2b anchor (2026-06-26): bare 0–100 ints, Orin Q8_0 63.1% (> JSON 62.6%),
 # decode −45%. Must match the terse GROUNDING_PROMPT in contract.py.
@@ -64,13 +66,17 @@ _TRAIN_MAX_SIDE = 1024
 _BACKEND: JetsonBackend | None = None  # booted once in main(), reused per request
 
 # Manual-tab example images: thumbnails to click; clicking loads the image, NOT a caption.
-_EXAMPLES_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..",
-                                              "examples", "images"))
+_EXAMPLES_DIR = os.path.normpath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "examples", "images")
+)
 _EXAMPLES = sorted(f for f in os.listdir(_EXAMPLES_DIR) if f.endswith(".jpg"))
 
+
 def _examples_html() -> str:
-    return "".join(f'<img src="/examples/{fn}" title="{fn}" onclick="pick(\'{fn}\')">'
-                   for fn in _EXAMPLES)
+    return "".join(
+        f'<img src="/examples/{fn}" title="{fn}" onclick="pick(\'{fn}\')">'
+        for fn in _EXAMPLES
+    )
 
 
 _PAGE = """<!doctype html>
@@ -116,21 +122,13 @@ _PAGE = """<!doctype html>
 </section>
 
 <section id="live">
-<p class="muted">The <b>whole deployed system</b> on <b>your own</b> clip: upload a short aerial
-video and type a phrase. The <span class="g">terse anchor</span> (bare 0–100 ints,
-−45% decode) acquires the target full-frame, then re-anchors on a <b>ROI crop</b>
-(2.7× cheaper prefill + super-res) at the measured on-Orin cadence (~2&nbsp;s re-anchor;
-the one-time full-frame acquire is ~4.8&nbsp;s) while the CSRT tracker
-<span class="c">coasts</span> between anchors; a lost lock re-acquires full-frame.
-A <b>real</b> run on the Orin, so a 5&nbsp;s clip takes ~15-30&nbsp;s (a few VLM passes
-over ssh).</p>
 <div class="row"><input type="file" id="vid" accept="video/*"></div>
 <div class="row"><input type="text" id="vcap" placeholder="the white car near the building"></div>
 <div class="row">play every <input type="number" id="vstride" value="3" min="1" style="width:3.5rem"> frames
  <button onclick="track()">Run tracking</button> <span id="vstatus" class="muted"></span></div>
 <div id="vout"></div>
-<p class="legend"><span class="g">green</span> = fresh VLM box · <span class="c">cyan</span>
-= CSRT coasting · <span class="o">red</span> = lost between anchors</p>
+<p class="legend"><span class="g">green</span> = VLM · <span class="c">cyan</span>
+= CSRT tracking · <span class="o">red</span> = lost</p>
 </section>
 
 <section id="compare">
@@ -229,8 +227,14 @@ async function compare(){
 </script></body></html>"""
 
 
-def _annotate(png_bytes: bytes, box_norm: list[int], caption: str,
-              *, color: tuple = (255, 0, 0), window: tuple | None = None) -> bytes:
+def _annotate(
+    png_bytes: bytes,
+    box_norm: list[int],
+    caption: str,
+    *,
+    color: tuple = (255, 0, 0),
+    window: tuple | None = None,
+) -> bytes:
     """Draw a normalized 0..COORD_SCALE box on the image; return PNG bytes.
 
     `color` sets the box/label colour; `window` (pixel XYXY) optionally outlines the
@@ -238,8 +242,12 @@ def _annotate(png_bytes: bytes, box_norm: list[int], caption: str,
     "this is all the model looked at")."""
     img = Image.open(io.BytesIO(png_bytes)).convert("RGB")
     w, h = img.size
-    x1, y1, x2, y2 = (box_norm[0] / COORD_SCALE * w, box_norm[1] / COORD_SCALE * h,
-                      box_norm[2] / COORD_SCALE * w, box_norm[3] / COORD_SCALE * h)
+    x1, y1, x2, y2 = (
+        box_norm[0] / COORD_SCALE * w,
+        box_norm[1] / COORD_SCALE * h,
+        box_norm[2] / COORD_SCALE * w,
+        box_norm[3] / COORD_SCALE * h,
+    )
     draw = ImageDraw.Draw(img)
     lw = max(2, round(min(w, h) / 200))
     if window is not None:
@@ -258,7 +266,9 @@ def _annotate(png_bytes: bytes, box_norm: list[int], caption: str,
     return buf.getvalue()
 
 
-def _timed_post(img: Image.Image, caption: str, max_side: int) -> tuple[str, float, float]:
+def _timed_post(
+    img: Image.Image, caption: str, max_side: int
+) -> tuple[str, float, float]:
     """One verbose POST to the already-booted server → (raw, prefill_ms, decode_ms).
 
     Mirrors `backends._llama_server_chat` (verbatim GROUNDING_PROMPT, greedy,
@@ -276,17 +286,36 @@ def _timed_post(img: Image.Image, caption: str, max_side: int) -> tuple[str, flo
     with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as tmp:
         img.save(tmp.name)
         b64 = base64.b64encode(open(tmp.name, "rb").read()).decode()
-    payload = json.dumps({
-        "model": "vlm",
-        "messages": [{"role": "user", "content": [
-            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}},
-            {"type": "text", "text": GROUNDING_PROMPT.format(target=caption)},
-        ]}],
-        "max_tokens": MAX_NEW_TOKENS, "temperature": 0.0,
-        "cache_prompt": False, "__verbose": True,
-    }).encode()
-    req = urllib.request.Request(f"{_BACKEND._base}/v1/chat/completions", data=payload,
-                                 headers={"Content-Type": "application/json"}, method="POST")
+    payload = json.dumps(
+        {
+            "model": "vlm",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/png;base64,{b64}"},
+                        },
+                        {
+                            "type": "text",
+                            "text": GROUNDING_PROMPT.format(target=caption),
+                        },
+                    ],
+                }
+            ],
+            "max_tokens": MAX_NEW_TOKENS,
+            "temperature": 0.0,
+            "cache_prompt": False,
+            "__verbose": True,
+        }
+    ).encode()
+    req = urllib.request.Request(
+        f"{_BACKEND._base}/v1/chat/completions",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
     t0 = time.perf_counter()
     with urllib.request.urlopen(req, timeout=300) as resp:
         data = json.loads(resp.read().decode())
@@ -310,9 +339,11 @@ class _Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):  # noqa: N802
         if self.path in ("/", "/index.html"):
-            page = (_PAGE.replace("__EXAMPLES__", _examples_html())
-                    .replace("__MARGIN__", f"{_ROI_MARGIN:g}")
-                    .replace("__OUTRES__", str(_ROI_OUT_RES)))
+            page = (
+                _PAGE.replace("__EXAMPLES__", _examples_html())
+                .replace("__MARGIN__", f"{_ROI_MARGIN:g}")
+                .replace("__OUTRES__", str(_ROI_OUT_RES))
+            )
             self._send(200, "text/html; charset=utf-8", page.encode())
         elif self.path.startswith("/examples/"):
             fn = os.path.basename(self.path)  # basename: no path traversal
@@ -328,14 +359,20 @@ class _Handler(BaseHTTPRequestHandler):
                 return
             with open(os.path.join(_EXAMPLES_DIR, fn), "rb") as f:
                 b64 = base64.b64encode(f.read()).decode()
-            self._send(200, "application/json",
-                       json.dumps({"image": "data:image/jpeg;base64," + b64}).encode())
+            self._send(
+                200,
+                "application/json",
+                json.dumps({"image": "data:image/jpeg;base64," + b64}).encode(),
+            )
         else:
             self._send(404, "text/plain", b"not found")
 
     def do_POST(self):  # noqa: N802
-        handler = {"/infer": self._infer, "/track": self._track,
-                   "/compare": self._compare}.get(self.path)
+        handler = {
+            "/infer": self._infer,
+            "/track": self._track,
+            "/compare": self._compare,
+        }.get(self.path)
         if handler is None:
             self._send(404, "text/plain", b"not found")
             return
@@ -358,7 +395,11 @@ class _Handler(BaseHTTPRequestHandler):
         if box is None:
             return {"error": f"unparseable output: {raw!r}"}
         annotated = base64.b64encode(_annotate(png_bytes, box, caption)).decode()
-        return {"box": box, "raw": raw, "annotated": "data:image/png;base64," + annotated}
+        return {
+            "box": box,
+            "raw": raw,
+            "annotated": "data:image/png;base64," + annotated,
+        }
 
     def _compare(self, req: dict) -> dict:
         """ROI re-anchor vs full-frame, side by side, on one uploaded image.
@@ -383,7 +424,7 @@ class _Handler(BaseHTTPRequestHandler):
         # 2) ROI re-anchor — crop around the acquired box, upscale to the budget.
         win = roi_window(box_f, img.width, img.height, _ROI_MARGIN)
         crop = crop_resize(img, win, _ROI_OUT_RES)
-        raw_r, pr_ms, dr_ms = _timed_post(crop, caption, 10 ** 9)  # crop is pre-sized
+        raw_r, pr_ms, dr_ms = _timed_post(crop, caption, 10**9)  # crop is pre-sized
         box_r = parse_bbox(raw_r)
         if box_r is None:
             return {"error": f"ROI pass unparseable: {raw_r!r}"}
@@ -393,10 +434,20 @@ class _Handler(BaseHTTPRequestHandler):
         ann_r = _annotate(png_bytes, box_roi, caption, color=(26, 158, 58), window=win)
         speedup = pf_ms / pr_ms if pr_ms else 0.0
         return {
-            "full": {"annotated": "data:image/png;base64," + base64.b64encode(ann_f).decode(),
-                     "prefill_ms": round(pf_ms), "decode_ms": round(df_ms), "box": box_f},
-            "roi": {"annotated": "data:image/png;base64," + base64.b64encode(ann_r).decode(),
-                    "prefill_ms": round(pr_ms), "decode_ms": round(dr_ms), "box": box_roi},
+            "full": {
+                "annotated": "data:image/png;base64,"
+                + base64.b64encode(ann_f).decode(),
+                "prefill_ms": round(pf_ms),
+                "decode_ms": round(df_ms),
+                "box": box_f,
+            },
+            "roi": {
+                "annotated": "data:image/png;base64,"
+                + base64.b64encode(ann_r).decode(),
+                "prefill_ms": round(pr_ms),
+                "decode_ms": round(dr_ms),
+                "box": box_roi,
+            },
             "speedup": round(speedup, 2),
         }
 
@@ -414,13 +465,17 @@ class _Handler(BaseHTTPRequestHandler):
             vf.write(vid_bytes)
             vf.close()
             of.close()
-            _render_track(vf.name, caption, of.name, _BACKEND, stride=stride, track=True)
+            _render_track(
+                vf.name, caption, of.name, _BACKEND, stride=stride, track=True
+            )
             mp4_b64 = base64.b64encode(open(of.name, "rb").read()).decode()
         finally:
             os.unlink(vf.name)
             os.unlink(of.name)
-        return {"video": "data:video/mp4;base64," + mp4_b64,
-                "note": "done — terse anchor + ROI re-anchor + CSRT coast"}
+        return {
+            "video": "data:video/mp4;base64," + mp4_b64,
+            "note": "done — terse anchor + ROI re-anchor + CSRT coast",
+        }
 
     def log_message(self, *_):  # quiet the per-request stderr spam
         pass
@@ -441,11 +496,14 @@ def main(argv: list[str] | None = None) -> int:
     remote_mmproj = f"{args.remote_dir}/{_REMOTE_MMPROJ}"
 
     print(f"[gui] booting Jetson {args.quant} server (a few seconds)...", flush=True)
-    _BACKEND = JetsonBackend(remote_model, remote_mmproj,
-                             ssh_host=args.ssh_host, max_side=args.max_side)
+    _BACKEND = JetsonBackend(
+        remote_model, remote_mmproj, ssh_host=args.ssh_host, max_side=args.max_side
+    )
     try:
         httpd = ThreadingHTTPServer((args.host, args.port), _Handler)
-        print(f"[gui] open http://{args.host}:{args.port}  (Ctrl-C to stop)", flush=True)
+        print(
+            f"[gui] open http://{args.host}:{args.port}  (Ctrl-C to stop)", flush=True
+        )
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
