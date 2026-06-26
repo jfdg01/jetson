@@ -5,6 +5,7 @@ smolvlm_ft/
 smolvlm_ft3/
 smolvlm_ft4/
 __pycache__/
+.hist/
 *.pyc
 .pytest_cache/
 
