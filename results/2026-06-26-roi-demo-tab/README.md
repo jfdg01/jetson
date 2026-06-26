@@ -63,10 +63,32 @@ experiment's 964 ms because the deploy uses the *terse* output format — the tw
 stacking, as intended.) This is a qualitative on-device confirm of the *latency* lever; the
 quantified on-device **IoU@0.25** (RefDrone via the GGUF backend) remains the open follow-up.
 
+## Anchor cadence re-measure (2026-06-26, terse Q8_0, 15 W, incl. ssh)
+
+The "your video" tracking demo schedules fresh anchors at a fixed period
+(`grounding/deploy/video.py:ANCHOR_PERIOD_S`). That constant was the stale T0/T4 **2.26 s**
+(old JSON full-frame anchor @512, server-side). Re-measured the *actual* wall the demo
+blocks on per anchor, on the deployed terse Q8_0, via `measure_cadence.py` (5 example
+images × 2 reps, `video._anchor_box` — the exact GUI path, ssh + transfer included):
+
+| anchor mode | wall (median) | min–max | n |
+|---|---|---|---|
+| full-frame **cold acquire** (@1024) | **4814 ms** | 3829–4941 | 10 |
+| **ROI re-anchor** (@512 crop) | **2021 ms** | 1694–2081 | 10 |
+
+**Honest reading — not a clean 3×:** the steady-state cadence is the ROI re-anchor at
+**~2.0 s**, *barely below* the old 2.26 s. The 2.7× ROI win is real but it's **vs the deploy
+full-frame @1024 (4.8 → 2.0 s = 2.4×)**, not vs the 2.26 s figure — that was 512 long-edge,
+and a 512×512 ROI crop carries ~the same pixel count, so its prefill lands near the old
+number. The genuinely wrong part was the GUI's **cold acquire**: it runs full-frame @1024
+(~4.8 s), so the 2.26 s constant under-reported the real acquire by ~2×. `ANCHOR_PERIOD_S`
+is now **2.0 s** (re-anchor), with the ~4.8 s one-time acquire documented in the comment.
+
 ## Files
 
 - `grounding/deploy/gui.py` — tab HTML/JS + `_compare` handler + `_timed_post` (verbose
   POST for the prefill/decode split) + `_annotate` gains `color`/`window`.
+- `measure_cadence.py` — on-Orin anchor-wall timing that set `ANCHOR_PERIOD_S` (above).
 - Reuses `grounding/roi.py` (the validated crop/map helpers) and `grounding/contract.py`
   (scale-agnostic — works at the terse `COORD_SCALE`).
 

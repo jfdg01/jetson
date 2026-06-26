@@ -119,8 +119,9 @@ _PAGE = """<!doctype html>
 <p class="muted">The <b>whole deployed system</b> on <b>your own</b> clip: upload a short aerial
 video and type a phrase. The <span class="g">terse anchor</span> (bare 0–100 ints,
 −45% decode) acquires the target full-frame, then re-anchors on a <b>ROI crop</b>
-(2.7× cheaper prefill + super-res) at the on-Orin cadence (~2.26&nbsp;s) while the CSRT
-tracker <span class="c">coasts</span> between anchors; a lost lock re-acquires full-frame.
+(2.7× cheaper prefill + super-res) at the measured on-Orin cadence (~2&nbsp;s re-anchor;
+the one-time full-frame acquire is ~4.8&nbsp;s) while the CSRT tracker
+<span class="c">coasts</span> between anchors; a lost lock re-acquires full-frame.
 A <b>real</b> run on the Orin, so a 5&nbsp;s clip takes ~15-30&nbsp;s (a few VLM passes
 over ssh).</p>
 <div class="row"><input type="file" id="vid" accept="video/*"></div>

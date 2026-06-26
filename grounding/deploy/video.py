@@ -46,7 +46,12 @@ _REMOTE_MODELS = {"q8_0": "phase3-terse100eos-1024-q8_0.gguf",
                   "f16": "phase3-terse100eos-1024-f16.gguf"}
 _REMOTE_MMPROJ = "mmproj-phase3-terse100eos-1024-f16.gguf"
 _TRAIN_MAX_SIDE = 1024
-ANCHOR_PERIOD_S = 2.26  # measured on-Orin anchor period (T0/T4); the cadence we sample at
+# Re-measured on-Orin 2026-06-26 (terse Q8_0, 15 W, incl. ssh transfer — the wall the demo
+# blocks on per anchor; see results/2026-06-26-roi-demo-tab/measure_cadence.py). The
+# repeating cadence is the ROI re-anchor (~2.0 s); the one-time cold acquire / post-loss
+# re-acquire is full-frame and ~2.4× slower (~4.8 s). The old T0/T4 2.26 s was JSON @512
+# server-side — it under-reported the GUI's real 1024 full-frame acquire by ~2×.
+ANCHOR_PERIOD_S = 2.0    # ROI re-anchor wall — the steady-state cadence we sample at
 
 # ROI re-anchor (results/2026-06-25-roi-crop-anchor): while the lock holds, re-anchor on a
 # tight crop around the last box, upscaled to OUT_RES — 2.7× cheaper prefill AND +22.6 pp
