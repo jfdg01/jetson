@@ -43,11 +43,13 @@ _TRACK_MAX_S = 6        # seconds of the upload to use (≈3 anchors at the on-O
 _TRACK_W = 720          # extract/render width — small enough for a light mp4, big enough to ground
 _TRACK_MAX_BYTES = 80 * 1024 * 1024
 
+# terse iter-2b anchor (2026-06-26): bare 0–100 ints, Orin Q8_0 63.1% (> JSON 62.6%),
+# decode −45%. Must match the terse GROUNDING_PROMPT in contract.py.
 _REMOTE_MODELS = {
-    "q8_0": "phase3-refdrone-1024-q8_0.gguf",
-    "f16": "phase3-refdrone-1024-f16.gguf",
+    "q8_0": "phase3-terse100eos-1024-q8_0.gguf",
+    "f16": "phase3-terse100eos-1024-f16.gguf",
 }
-_REMOTE_MMPROJ = "mmproj-phase3-refdrone-1024-f16.gguf"
+_REMOTE_MMPROJ = "mmproj-phase3-terse100eos-1024-f16.gguf"
 _TRAIN_MAX_SIDE = 1024
 
 _BACKEND: JetsonBackend | None = None  # booted once in main(), reused per request
