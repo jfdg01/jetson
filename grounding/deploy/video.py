@@ -37,6 +37,7 @@ from PIL import Image, ImageDraw, ImageFont
 from grounding.contract import parse_bbox, COORD_SCALE
 from grounding.deploy.serve import _DEFAULT_REMOTE_DIR
 from grounding.eval.backends import JetsonBackend
+from grounding.roi import roi_window, crop_resize, map_to_full
 
 # terse iter-2b anchor (2026-06-26): bare 0–100 ints, Orin Q8_0 63.1% (> JSON 62.6%),
 # decode −45%. Must match the terse GROUNDING_PROMPT in contract.py — see
@@ -46,6 +47,12 @@ _REMOTE_MODELS = {"q8_0": "phase3-terse100eos-1024-q8_0.gguf",
 _REMOTE_MMPROJ = "mmproj-phase3-terse100eos-1024-f16.gguf"
 _TRAIN_MAX_SIDE = 1024
 ANCHOR_PERIOD_S = 2.26  # measured on-Orin anchor period (T0/T4); the cadence we sample at
+
+# ROI re-anchor (results/2026-06-25-roi-crop-anchor): while the lock holds, re-anchor on a
+# tight crop around the last box, upscaled to OUT_RES — 2.7× cheaper prefill AND +22.6 pp
+# (super-resolution on the target). Cold acquire / re-acquire after a loss stays full-frame.
+ROI_MARGIN = 2.0
+ROI_OUT_RES = 512
 
 GREEN, ORANGE, CYAN, RED = (40, 190, 70), (240, 150, 40), (60, 180, 240), (230, 60, 60)
 
@@ -60,9 +67,17 @@ def _make_tracker():
 
 
 def _norm_to_xywh(box_norm, w, h):
-    x1, y1, x2, y2 = (box_norm[0] / COORD_SCALE * w, box_norm[1] / COORD_SCALE * h,
-                      box_norm[2] / COORD_SCALE * w, box_norm[3] / COORD_SCALE * h)
-    return (float(x1), float(y1), float(max(1.0, x2 - x1)), float(max(1.0, y2 - y1)))
+    """Normalized 0–COORD_SCALE box → pixel (x,y,bw,bh), clamped inside the frame with a
+    ≥1px size. CSRT resizes the init patch, so an empty / out-of-frame ROI makes OpenCV
+    assert (`!ssize.empty()`); the model can emit a box on the border, so clamp here. Also
+    orders the corners in case the box comes back reversed."""
+    xs = sorted((box_norm[0], box_norm[2]))
+    ys = sorted((box_norm[1], box_norm[3]))
+    x1 = min(max(xs[0] / COORD_SCALE * w, 0.0), w - 1.0)
+    y1 = min(max(ys[0] / COORD_SCALE * h, 0.0), h - 1.0)
+    x2 = min(max(xs[1] / COORD_SCALE * w, x1 + 1.0), float(w))
+    y2 = min(max(ys[1] / COORD_SCALE * h, y1 + 1.0), float(h))
+    return (float(x1), float(y1), float(x2 - x1), float(y2 - y1))
 
 
 def _xywh_to_norm(xywh, w, h):
@@ -130,11 +145,39 @@ def _read_frames(path, fps_default=30.0):
     return frames, fps
 
 
+def _generate_pil(backend, img, caption):
+    """Run one VLM pass on a PIL image via a temp PNG. The backend long-edge-resizes to
+    its max_side, but that is downscale-only, so a pre-sized ROI crop (≤ OUT_RES) is sent
+    as-is — exactly the deploy path."""
+    tf = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+    try:
+        img.save(tf.name)
+        tf.close()
+        return backend.generate(tf.name, caption)
+    finally:
+        os.unlink(tf.name)
+
+
+def _anchor_box(backend, img, caption, prior, use_roi):
+    """One anchor pass → new box (or `prior` on parse-fail). With `use_roi` and a `prior`,
+    crops a ROI_MARGIN window around it, upscales to ROI_OUT_RES (cheaper prefill +
+    super-res), and maps the prediction back — the deployed re-anchor path. Otherwise a
+    full-frame acquire."""
+    if use_roi and prior is not None:
+        win = roi_window(prior, img.width, img.height, ROI_MARGIN)
+        crop = crop_resize(img, win, ROI_OUT_RES)
+        b = parse_bbox(_generate_pil(backend, crop, caption))
+        return map_to_full(b, win, img.width, img.height) if b else prior
+    return parse_bbox(_generate_pil(backend, img, caption)) or prior
+
+
 def render(video_path, caption, out_path, backend, stride=3, period_s=ANCHOR_PERIOD_S,
-           track=False):
+           track=False, roi=True):
     """Anchor the VLM at the on-Orin cadence; between anchors either hold the box stale
     (Level 1) or, if `track`, let a fast visual tracker hold the lock (Level 2 — the real
-    two-tier architecture: VLM seeds, tracker coasts, next VLM regrounds)."""
+    two-tier architecture: VLM seeds, tracker coasts, next VLM regrounds). With `roi` (the
+    whole deployed system), re-anchors while locked crop to the last box (cheaper prefill +
+    super-res); cold acquire and post-loss re-acquire stay full-frame."""
     frames_bgr, fps = _read_frames(video_path)
     n = len(frames_bgr)
     if n == 0:
@@ -142,6 +185,7 @@ def render(video_path, caption, out_path, backend, stride=3, period_s=ANCHOR_PER
 
     played, anchors = anchor_schedule(n, fps, period_s, stride)
     box = None
+    lost = False  # tracker dropped the lock → next anchor must re-acquire full-frame
     last_anchor_t = 0.0
     tracker = tracker_name = None
     out_frames = []
@@ -151,26 +195,33 @@ def render(video_path, caption, out_path, backend, stride=3, period_s=ANCHOR_PER
         h, w = bgr.shape[:2]
         fresh = fi in anchors
         if fresh:
-            tf = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-            try:
-                Image.fromarray(rgb).save(tf.name)
-                tf.close()
-                box = parse_bbox(backend.generate(tf.name, caption)) or box
-            finally:
-                os.unlink(tf.name)
+            # ROI re-anchor only while a lock is held; cold acquire & post-loss re-acquire
+            # are full-frame (a crop can't re-find a target that left the window).
+            use_roi = roi and box is not None and not lost
+            box = _anchor_box(backend, Image.fromarray(rgb), caption, box, use_roi)
+            lost = False
             last_anchor_t = fi / fps
-            print(f"  anchor @ frame {fi} (t={fi/fps:.2f}s) box={box}", flush=True)
+            mode = "ROI re-anchor" if use_roi else "full-frame acquire"
+            print(f"  anchor @ frame {fi} (t={fi/fps:.2f}s) [{mode}] box={box}", flush=True)
             if track and box is not None:
                 tracker, tracker_name = _make_tracker()
-                tracker.init(bgr, tuple(map(int, _norm_to_xywh(box, w, h))))
-            tag, col = f"ANCHOR — fresh VLM box ({tracker_name})" if track else "ANCHOR — fresh VLM box", GREEN
+                try:  # box is clamped, but guard CSRT against any remaining edge ROI
+                    tracker.init(bgr, tuple(map(int, _norm_to_xywh(box, w, h))))
+                except cv2.error:
+                    tracker = None  # couldn't seed → fall back to stale-hold until next anchor
+            label = f"ANCHOR — {mode} ({tracker_name})" if track else f"ANCHOR — {mode}"
+            tag, col = label, GREEN
         elif track and tracker is not None:
             # ponytail: tracker updates on played (strided) frames only; feed every frame if drift shows.
-            ok, xywh = tracker.update(bgr)
+            try:
+                ok, xywh = tracker.update(bgr)
+            except cv2.error:
+                ok = False
             if ok:
                 box = _xywh_to_norm(xywh, w, h)
                 tag, col = f"tracking ({tracker_name})  +{fi/fps - last_anchor_t:.1f}s since VLM", CYAN
             else:
+                lost = True
                 tag, col = f"LOST — awaiting re-anchor  +{fi/fps - last_anchor_t:.1f}s", RED
         else:
             tag = f"held stale +{fi/fps - last_anchor_t:.1f}s (no new VLM yet)"
@@ -217,11 +268,35 @@ def _selfcheck():
     # fps fallback / tiny clip must not divide-by-zero or drop the first anchor
     p2, a2 = anchor_schedule(1, 0.0, 2.26, stride=3)
     assert a2 == {0} and p2 == [0], (p2, a2)
-    # coord round-trip: norm -> pixel xywh -> norm is identity
-    rt = _xywh_to_norm(_norm_to_xywh([100, 200, 300, 500], 640, 480), 640, 480)
-    assert max(abs(a - b) for a, b in zip(rt, [100, 200, 300, 500])) < 1e-6, rt
+    # coord round-trip: an in-frame norm box (0–COORD_SCALE) -> pixel xywh -> norm is identity
+    box0 = [10, 20, 30, 40]
+    rt = _xywh_to_norm(_norm_to_xywh(box0, 640, 480), 640, 480)
+    assert max(abs(a - b) for a, b in zip(rt, box0)) < 1e-6, rt
+    # border / reversed boxes must clamp to a valid in-frame ROI (never empty → CSRT-safe)
+    for bad in ([0, 0, 0, 0], [COORD_SCALE, COORD_SCALE, COORD_SCALE, COORD_SCALE],
+                [80, 80, 20, 20]):  # zero-area, full-corner, reversed
+        x, y, bw, bh = _norm_to_xywh(bad, 640, 480)
+        assert bw >= 1 and bh >= 1 and x >= 0 and y >= 0 and x + bw <= 640 and y + bh <= 480, (bad, (x, y, bw, bh))
     name = _make_tracker()[1]
     assert name in ("CSRT", "MIL"), name
+    # _anchor_box: full-frame acquire sees the whole image; ROI re-anchor sees an OUT_RES
+    # crop and maps the box back into the prior's window (no real model needed).
+    class _Stub:
+        def __init__(self, raw):
+            self.raw, self.seen = raw, None
+        def generate(self, path, _cap):
+            self.seen = Image.open(path).size
+            return self.raw
+    img = Image.new("RGB", (640, 480))
+    s0 = _Stub("10 20 30 40")
+    assert _anchor_box(s0, img, "x", None, True) == [10, 20, 30, 40]
+    assert s0.seen == (640, 480), s0.seen          # acquire = full frame
+    s1 = _Stub("50 50 60 60")
+    b = _anchor_box(s1, img, "x", [10, 20, 30, 40], True)
+    assert max(s1.seen) == ROI_OUT_RES, s1.seen    # re-anchor sees the upscaled crop
+    assert b is not None and all(0 <= v <= COORD_SCALE for v in b), b
+    s2 = _Stub("garbage")                           # parse-fail keeps the prior box
+    assert _anchor_box(s2, img, "x", [10, 20, 30, 40], True) == [10, 20, 30, 40]
     # mp4 writer: 3 odd-sized frames must pad+encode to a non-empty file
     mf = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
     mf.close()
@@ -242,6 +317,9 @@ def main(argv=None) -> int:
     ap.add_argument("--track", action="store_true",
                     help="Level 2: seed a fast tracker from each VLM anchor and coast between "
                          "anchors (vs the default Level-1 stale-hold)")
+    ap.add_argument("--no-roi", action="store_true",
+                    help="force every re-anchor full-frame (default: ROI-crop re-anchor while "
+                         "locked — the deployed prefill lever)")
     ap.add_argument("--period", type=float, default=ANCHOR_PERIOD_S,
                     help="anchor cadence in seconds (default = measured on-Orin period)")
     ap.add_argument("--quant", choices=list(_REMOTE_MODELS), default="q8_0")
@@ -263,7 +341,8 @@ def main(argv=None) -> int:
     print(f"[video] booting Jetson {args.quant} server...", flush=True)
     with JetsonBackend(remote_model, remote_mmproj,
                        ssh_host=args.ssh_host, max_side=args.max_side) as be:
-        render(args.video, args.caption, args.out, be, args.stride, args.period, args.track)
+        render(args.video, args.caption, args.out, be, args.stride, args.period,
+               args.track, roi=not args.no_roi)
     return 0
 
 

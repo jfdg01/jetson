@@ -3,12 +3,10 @@
 Tabs:
   1. **Manual grounding** — the VLM in isolation. Upload/preset image + phrase → one
      box, live on the deployed Qwen2-VL-2B Q8_0 over `ssh jetson`.
-  2. **Tracking on video** — the two-tier architecture (VLM anchor seeds a fast tracker
-     that coasts between anchors) on real VisDrone footage, served as pre-rendered
-     `results/2026-06-25-system-demo/clips/*.mp4` (built by `grounding/deploy/video.py
-     --track`). Static files, no live model needed for this tab.
-  3. **Live tracking (your video)** — the same two-tier pipeline on an uploaded clip.
-  4. **Re-anchor speedup** — full-frame anchor vs ROI-crop re-anchor, side by side, with
+  2. **Live tracking (your video)** — the whole deployed system on an uploaded clip: the
+     terse anchor acquires full-frame, re-anchors on a ROI crop while the CSRT tracker
+     coasts between anchors, and re-acquires full-frame after a loss (both latency levers).
+  3. **Re-anchor speedup** — full-frame anchor vs ROI-crop re-anchor, side by side, with
      the prefill/decode split for each (the prefill latency lever; see
      `results/2026-06-26-roi-demo-tab/` + `results/2026-06-25-roi-crop-anchor/`).
 
@@ -65,15 +63,6 @@ _TRAIN_MAX_SIDE = 1024
 
 _BACKEND: JetsonBackend | None = None  # booted once in main(), reused per request
 
-# Pre-rendered Level-2 clips (VLM anchors + tracker coast on real VisDrone footage).
-_CLIPS_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..",
-                                           "results", "2026-06-25-system-demo", "clips"))
-_CLIPS = [  # (file, caption)
-    ("black-suv.mp4", "the black SUV in the middle of the road"),
-    ("green-bus.mp4", "the green bus"),
-    ("yellow-taxi.mp4", "the yellow taxi"),
-]
-
 # Manual-tab example images: thumbnails to click; clicking loads the image, NOT a caption.
 _EXAMPLES_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..",
                                               "examples", "images"))
@@ -82,15 +71,6 @@ _EXAMPLES = sorted(f for f in os.listdir(_EXAMPLES_DIR) if f.endswith(".jpg"))
 def _examples_html() -> str:
     return "".join(f'<img src="/examples/{fn}" title="{fn}" onclick="pick(\'{fn}\')">'
                    for fn in _EXAMPLES)
-
-
-def _clips_html() -> str:
-    panels = []
-    for fn, cap in _CLIPS:
-        panels.append(
-            f'<figure><video src="/clips/{fn}" controls autoplay loop muted playsinline></video>'
-            f'<figcaption>“{cap}”</figcaption></figure>')
-    return "\n".join(panels)
 
 
 _PAGE = """<!doctype html>
@@ -123,7 +103,6 @@ _PAGE = """<!doctype html>
 <h1>Orin VLM</h1>
 <nav>
  <button data-tab="manual" class="on">Manual grounding</button>
- <button data-tab="video">Tracking on video</button>
  <button data-tab="live">Live tracking (your video)</button>
  <button data-tab="compare">Re-anchor speedup</button>
 </nav>
@@ -136,24 +115,17 @@ _PAGE = """<!doctype html>
 <div id="out"></div><div class="row"><span id="raw"></span></div>
 </section>
 
-<section id="video">
-<p class="muted">The two-tier architecture on real aerial video: a <span class="g">fresh VLM
-anchor</span> (~every 2.26&nbsp;s, the on-Orin cadence) seeds a fast tracker that
-<span class="c">coasts</span> between anchors; the next anchor regrounds. Pre-rendered —
-real Orin VLM passes on VisDrone-VID footage.</p>
-__CLIPS__
-<p class="legend"><span class="g">green</span> = fresh VLM box · <span class="c">cyan</span>
-= tracker coasting · <span class="o">orange/red</span> = stale / lost between anchors</p>
-</section>
-
 <section id="live">
-<p class="muted">Run the two-tier pipeline on <b>your own</b> clip: upload a short aerial
-video and type a phrase. It samples the VLM at the on-Orin cadence (~2.26&nbsp;s) and
-lets the CSRT tracker coast between anchors — a <b>real</b> run on the Orin, so a 5&nbsp;s
-clip takes ~15-30&nbsp;s (a few VLM passes over ssh).</p>
+<p class="muted">The <b>whole deployed system</b> on <b>your own</b> clip: upload a short aerial
+video and type a phrase. The <span class="g">terse anchor</span> (bare 0–100 ints,
+−45% decode) acquires the target full-frame, then re-anchors on a <b>ROI crop</b>
+(2.7× cheaper prefill + super-res) at the on-Orin cadence (~2.26&nbsp;s) while the CSRT
+tracker <span class="c">coasts</span> between anchors; a lost lock re-acquires full-frame.
+A <b>real</b> run on the Orin, so a 5&nbsp;s clip takes ~15-30&nbsp;s (a few VLM passes
+over ssh).</p>
 <div class="row"><input type="file" id="vid" accept="video/*"></div>
 <div class="row"><input type="text" id="vcap" placeholder="the white car near the building"></div>
-<div class="row">play every <input type="text" id="vstride" value="3" style="width:3rem">th frame
+<div class="row">play every <input type="number" id="vstride" value="3" min="1" style="width:3.5rem"> frames
  <button onclick="track()">Run tracking</button> <span id="vstatus" class="muted"></span></div>
 <div id="vout"></div>
 <p class="legend"><span class="g">green</span> = fresh VLM box · <span class="c">cyan</span>
@@ -337,18 +309,10 @@ class _Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):  # noqa: N802
         if self.path in ("/", "/index.html"):
-            page = (_PAGE.replace("__CLIPS__", _clips_html())
-                    .replace("__EXAMPLES__", _examples_html())
+            page = (_PAGE.replace("__EXAMPLES__", _examples_html())
                     .replace("__MARGIN__", f"{_ROI_MARGIN:g}")
                     .replace("__OUTRES__", str(_ROI_OUT_RES)))
             self._send(200, "text/html; charset=utf-8", page.encode())
-        elif self.path.startswith("/clips/"):
-            fn = os.path.basename(self.path)  # basename: no path traversal
-            if fn not in {c[0] for c in _CLIPS}:
-                self._send(404, "text/plain", b"unknown clip")
-                return
-            with open(os.path.join(_CLIPS_DIR, fn), "rb") as f:
-                self._send(200, "video/mp4", f.read())
         elif self.path.startswith("/examples/"):
             fn = os.path.basename(self.path)  # basename: no path traversal
             if fn not in _EXAMPLES:
@@ -436,9 +400,9 @@ class _Handler(BaseHTTPRequestHandler):
         }
 
     def _track(self, req: dict) -> dict:
-        """Level-2 two-tier run on an uploaded clip → annotated mp4 (full-res h264, one
-        box/frame — no GIF compositing). Real Orin VLM anchors + CSRT coasting; slow
-        (a few ssh VLM passes), single-user demo only."""
+        """Whole-system run on an uploaded clip → annotated mp4 (full-res h264, one
+        box/frame). Terse anchor (full-frame acquire → ROI-crop re-anchor) + CSRT
+        coasting; slow (a few ssh VLM passes), single-user demo only."""
         caption = req["caption"]
         stride = max(1, int(req.get("stride", 3)))
         _, b64 = req["video"].split(",", 1)
@@ -454,7 +418,8 @@ class _Handler(BaseHTTPRequestHandler):
         finally:
             os.unlink(vf.name)
             os.unlink(of.name)
-        return {"video": "data:video/mp4;base64," + mp4_b64, "note": "done — CSRT tracker"}
+        return {"video": "data:video/mp4;base64," + mp4_b64,
+                "note": "done — terse anchor + ROI re-anchor + CSRT coast"}
 
     def log_message(self, *_):  # quiet the per-request stderr spam
         pass
