@@ -1,11 +1,13 @@
 """Level-1 real-video test of the anchor tier — the deployed VLM on genuine footage.
 
 Runs the Phase-4 Qwen2-VL-2B Q8_0 grounding skill over a real aerial video, but ONLY
-at the VLM's true on-Orin cadence (~1 anchor every ANCHOR_PERIOD_S ≈ 2.26 s, the T0/T4
-measured period). Between anchors the last box is *held stale* and drawn on every played
-frame, so the demo makes the cadence constraint visible: a fresh green box at each
-anchor, then an orange held box the target visibly drifts away from until the next VLM
-pass lands.
+at the VLM's true on-Orin cadence — and that cadence is *two-tier*: the one-time
+full-frame acquire is ~ACQUIRE_PERIOD_S (≈ 4.8 s wall), each subsequent ROI re-anchor is
+~ANCHOR_PERIOD_S (≈ 2.0 s, the cheaper prefill lever). The schedule spaces the first
+anchor by the slow acquire gap and the rest by the fast re-anchor gap. Between anchors the
+last box is *held stale* and drawn on every played frame, so the demo makes the cadence
+constraint visible: a fresh green box at each anchor, then an orange held box the target
+visibly drifts away from until the next VLM pass lands.
 
 This is the honest "anchor on real video" — no tracker, no oracle, no permanence. The
 20 Hz fast tier (which would hold the lock between anchors) is Level 2 (see
@@ -47,11 +49,13 @@ _REMOTE_MODELS = {"q8_0": "phase3-terse100eos-1024-q8_0.gguf",
 _REMOTE_MMPROJ = "mmproj-phase3-terse100eos-1024-f16.gguf"
 _TRAIN_MAX_SIDE = 1024
 # Re-measured on-Orin 2026-06-26 (terse Q8_0, 15 W, incl. ssh transfer — the wall the demo
-# blocks on per anchor; see results/2026-06-26-roi-demo-tab/measure_cadence.py). The
-# repeating cadence is the ROI re-anchor (~2.0 s); the one-time cold acquire / post-loss
-# re-acquire is full-frame and ~2.4× slower (~4.8 s). The old T0/T4 2.26 s was JSON @512
+# blocks on per anchor; see results/2026-06-26-roi-demo-tab/measure_cadence.py). Two-tier:
+# the steady-state cadence is the ROI re-anchor (~2.0 s); the one-time cold acquire / post-loss
+# re-acquire is full-frame and ~2.4× slower (~4.8 s). The schedule spaces the first anchor by
+# the slow acquire gap, the rest by the fast re-anchor gap. The old T0/T4 2.26 s was JSON @512
 # server-side — it under-reported the GUI's real 1024 full-frame acquire by ~2×.
-ANCHOR_PERIOD_S = 2.0    # ROI re-anchor wall — the steady-state cadence we sample at
+ANCHOR_PERIOD_S = 2.0     # ROI re-anchor wall — the repeating steady-state cadence
+ACQUIRE_PERIOD_S = 4.8    # full-frame acquire wall — first anchor (and post-loss re-acquire)
 
 # ROI re-anchor (results/2026-06-25-roi-crop-anchor): while the lock holds, re-anchor on a
 # tight crop around the last box, upscaled to OUT_RES — 2.7× cheaper prefill AND +22.6 pp
@@ -91,15 +95,30 @@ def _xywh_to_norm(xywh, w, h):
             (x + bw) / w * COORD_SCALE, (y + bh) / h * COORD_SCALE]
 
 
-def anchor_schedule(n_frames: int, fps: float, period_s: float, stride: int):
+def anchor_schedule(n_frames: int, fps: float, acquire_s: float, reanchor_s: float, stride: int):
     """(played_indices, anchor_set): which frames to draw, and which trigger a VLM pass.
 
-    Anchors land every `period_s` of *video time*; played frames are every `stride`-th
-    frame (the GIF). Every anchor is forced into the played set so a fresh box is never
-    skipped. Pure function — the one piece worth a self-check.
+    Two-tier cadence: the FIRST anchor is a full-frame acquire and opens an `acquire_s` gap
+    (the slow ~4.8 s wall); every later anchor is a ROI re-anchor and opens the shorter
+    `reanchor_s` gap (~2.0 s). Anchors land in *video time*; played frames are every
+    `stride`-th, with every anchor forced played so a fresh box is never skipped. Pure
+    function — the one piece worth a self-check.
+    ponytail: assumes the lock holds — a mid-clip loss makes its re-acquire full-frame but
+    keeps the reanchor_s gap; re-timing a dynamic loss isn't worth it for a demo GIF.
     """
-    anchor_every = max(1, round(period_s * max(fps, 1e-6)))
-    anchors = set(range(0, n_frames, anchor_every))
+    dur = n_frames / max(fps, 1e-6)
+    anchors, t, first, last = [], 0.0, True, -1
+    while t < dur:
+        fi = round(t * fps)
+        if fi >= n_frames:
+            break
+        if fi <= last:  # fps≈0 / sub-frame period: schedule can't advance, clip is one frame
+            break
+        anchors.append(fi)
+        last = fi
+        t = fi / max(fps, 1e-6) + (acquire_s if first else reanchor_s)
+        first = False
+    anchors = set(anchors or [0])  # always at least the first anchor
     played = sorted(set(range(0, n_frames, max(1, stride))) | anchors)
     return played, anchors
 
@@ -177,18 +196,20 @@ def _anchor_box(backend, img, caption, prior, use_roi):
 
 
 def render(video_path, caption, out_path, backend, stride=3, period_s=ANCHOR_PERIOD_S,
-           track=False, roi=True):
+           acquire_s=ACQUIRE_PERIOD_S, track=False, roi=True):
     """Anchor the VLM at the on-Orin cadence; between anchors either hold the box stale
     (Level 1) or, if `track`, let a fast visual tracker hold the lock (Level 2 — the real
     two-tier architecture: VLM seeds, tracker coasts, next VLM regrounds). With `roi` (the
     whole deployed system), re-anchors while locked crop to the last box (cheaper prefill +
-    super-res); cold acquire and post-loss re-acquire stay full-frame."""
+    super-res); cold acquire and post-loss re-acquire stay full-frame. Cadence is two-tier
+    too: the first anchor is spaced by `acquire_s` (slow full-frame), the rest by `period_s`
+    (fast ROI re-anchor)."""
     frames_bgr, fps = _read_frames(video_path)
     n = len(frames_bgr)
     if n == 0:
         raise RuntimeError(f"no frames decoded from {video_path}")
 
-    played, anchors = anchor_schedule(n, fps, period_s, stride)
+    played, anchors = anchor_schedule(n, fps, acquire_s, period_s, stride)
     box = None
     lost = False  # tracker dropped the lock → next anchor must re-acquire full-frame
     last_anchor_t = 0.0
@@ -265,13 +286,16 @@ def _save(frames, out_path, out_fps):
 
 
 def _selfcheck():
-    # 300 frames @ 30 fps = 10 s; 2.26 s period -> anchor every 68 frames -> 5 anchors.
-    played, anchors = anchor_schedule(300, 30.0, 2.26, stride=3)
-    assert sorted(anchors) == [0, 68, 136, 204, 272], sorted(anchors)
+    # 300 frames @ 30 fps = 10 s; first gap = 4.8 s acquire (144 frames), then 2.0 s
+    # re-anchors (60 frames each): 0, 144, 204, 264 -> the two-tier cadence.
+    played, anchors = anchor_schedule(300, 30.0, 4.8, 2.0, stride=3)
+    assert sorted(anchors) == [0, 144, 204, 264], sorted(anchors)
+    assert (sorted(anchors)[1] - sorted(anchors)[0]) > (sorted(anchors)[2] - sorted(anchors)[1]), \
+        "first (acquire) gap must exceed the re-anchor gap"
     assert anchors <= set(played), "every anchor must be played"
     assert all(p % 3 == 0 or p in anchors for p in played)
     # fps fallback / tiny clip must not divide-by-zero or drop the first anchor
-    p2, a2 = anchor_schedule(1, 0.0, 2.26, stride=3)
+    p2, a2 = anchor_schedule(1, 0.0, 4.8, 2.0, stride=3)
     assert a2 == {0} and p2 == [0], (p2, a2)
     # coord round-trip: an in-frame norm box (0–COORD_SCALE) -> pixel xywh -> norm is identity
     box0 = [10, 20, 30, 40]
@@ -326,7 +350,11 @@ def main(argv=None) -> int:
                     help="force every re-anchor full-frame (default: ROI-crop re-anchor while "
                          "locked — the deployed prefill lever)")
     ap.add_argument("--period", type=float, default=ANCHOR_PERIOD_S,
-                    help="anchor cadence in seconds (default = measured on-Orin period)")
+                    help="ROI re-anchor cadence in seconds (steady state; default = measured "
+                         "on-Orin period)")
+    ap.add_argument("--acquire-period", type=float, default=ACQUIRE_PERIOD_S,
+                    help="full-frame acquire cadence in seconds (first anchor / post-loss "
+                         "re-acquire; default = measured on-Orin period)")
     ap.add_argument("--quant", choices=list(_REMOTE_MODELS), default="q8_0")
     ap.add_argument("--remote-dir", default=_DEFAULT_REMOTE_DIR)
     ap.add_argument("--ssh-host", default="jetson")
@@ -347,7 +375,7 @@ def main(argv=None) -> int:
     with JetsonBackend(remote_model, remote_mmproj,
                        ssh_host=args.ssh_host, max_side=args.max_side) as be:
         render(args.video, args.caption, args.out, be, args.stride, args.period,
-               args.track, roi=not args.no_roi)
+               args.acquire_period, args.track, roi=not args.no_roi)
     return 0
 
 

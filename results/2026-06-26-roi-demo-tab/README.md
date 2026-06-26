@@ -84,6 +84,18 @@ number. The genuinely wrong part was the GUI's **cold acquire**: it runs full-fr
 (~4.8 s), so the 2.26 s constant under-reported the real acquire by ~2×. `ANCHOR_PERIOD_S`
 is now **2.0 s** (re-anchor), with the ~4.8 s one-time acquire documented in the comment.
 
+**Schedule is two-tier (2026-06-26 follow-up).** `anchor_schedule` originally spaced *every*
+anchor by one period, so the slow first full-frame acquire was drawn at the same 2.0 s cadence
+as the cheap ROI re-anchors. Fixed: the first anchor (and any post-loss re-acquire) opens an
+`ACQUIRE_PERIOD_S` (≈ 4.8 s) gap, every steady-state ROI re-anchor the shorter `ANCHOR_PERIOD_S`
+(≈ 2.0 s) gap. The GIF now shows the target drifting ~2.4× further during the cold acquire than
+between re-anchors — the honest cadence. (A mid-clip tracker loss makes its re-acquire full-frame
+but keeps the 2.0 s gap; re-timing a dynamic loss isn't worth it for a demo GIF — `ponytail:`.)
+Note the two numbers measure different layers: the **compare tab** reports server-side
+`prefill+decode` (e.g. 3706+544 = 4250 ms full-frame, 1387+532 = 1919 ms ROI), while the
+**cadence constants** are full wall-clock incl. the ssh upload — ROI matches (~1.9 ≈ 2.0 s);
+full-frame is ~0.5 s higher because the acquire ships the whole uncropped frame, not a 512 crop.
+
 ## Files
 
 - `grounding/deploy/gui.py` — tab HTML/JS + `_compare` handler + `_timed_post` (verbose
