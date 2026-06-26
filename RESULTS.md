@@ -537,3 +537,27 @@ LoRA/quant held identical to the 62.6% deploy. Writeup:
 −16% total). On-Orin Q8_0 decode wall-time (Phase-4 export + re-deploy) still TODO — the
 token saving is the irreducible 8 JSON-scaffolding tokens, measured but not yet confirmed
 as wall-time on the device.
+
+---
+
+### 2026-06-26 — ROI-crop anchor: cut prefill AND beat the resolution ceiling (GATE PASS)
+
+Part III latency lever #2 (sibling of terse output; attacks **prefill**, the other half of the
+2.27s anchor). Feed the deployed Qwen2-VL-2B anchor a crop around the tracker's box (simulated
+by inflating the RefDrone GT box by margin M) instead of the full frame. Inference-time only —
+**no retraining**. Writeup:
+[`results/2026-06-25-roi-crop-anchor/`](results/2026-06-25-roi-crop-anchor/README.md).
+
+| config (M=2.0) | prefill ms (Orin Q8_0, 15W) | decode ms | IoU@0.25 (HF n=439) | vs full-frame |
+|---|---|---|---|---|
+| full-frame @1024 (deploy baseline) | 3691 | 966 | 62.6%¹ | — |
+| **ROI crop @512** ⟵ **deploy** | **1374** | 964 | **85.2%** | **2.7× prefill · +22.6 pp** |
+| ROI crop @384 (max-speed) | 885 | 964 | 82.5% | 4.2× prefill · +19.9 pp |
+| full-frame **downscaled to 512** | — | — | **15.9%** | the resolution ceiling, laid bare |
+
+¹deployed Q8_0@1024 on Jetson; HF full-frame-native control here = 64.0% (agrees). **Drift
+(RQ4):** flat 82–85% up to 0.5·box prior drift; 74.3% (M=2.0) / 79.7% (M=3.0) even at a full-box
+drift — all above baseline. **GATE PASS** — a tight upscaled crop is *both* faster *and* more
+accurate (super-resolution beats Part II constraint #2). Open follow-up: on-device Q8_0 ROI
+accuracy confirm. Decode unchanged (~964 ms) — orthogonal to the terse decode lever; the two
+stack toward the sub-1s anchor.

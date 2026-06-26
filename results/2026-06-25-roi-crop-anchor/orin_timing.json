@@ -1,0 +1,26 @@
+{
+  "full": {
+    "kind": "full",
+    "n": 10,
+    "prefill_ms_median": 3691.3824999999997,
+    "decode_ms_median": 966.4485,
+    "wall_ms_median": 4629.977514501661,
+    "prompt_toks_median": 836.0
+  },
+  "crop512": {
+    "kind": "crop512",
+    "n": 10,
+    "prefill_ms_median": 1374.4455,
+    "decode_ms_median": 963.586,
+    "wall_ms_median": 2326.628618502582,
+    "prompt_toks_median": 383.0
+  },
+  "crop384": {
+    "kind": "crop384",
+    "n": 10,
+    "prefill_ms_median": 884.948,
+    "decode_ms_median": 963.5805,
+    "wall_ms_median": 1870.4191485012416,
+    "prompt_toks_median": 255.0
+  }
+}

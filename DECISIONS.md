@@ -17,6 +17,44 @@ legacy scripts now live under `experiments/legacy/`).
 
 <!-- v3 decisions are appended here, most recent first. -->
 
+### 2026-06-26T02:30 — adopt ROI-crop re-anchor (M=2.0 @512): cut prefill AND beat the resolution ceiling
+
+- **Decision:** Adopt **ROI-crop re-anchoring** for the Part III follow loop: while the lock
+  holds, feed the VLM anchor a square crop around the tracker's last box (inflated by margin
+  **M=2.0**) **upscaled to out_res=512**, instead of the full frame. Inference-time only, **no
+  retraining**. Cold-acquire / re-acquire stay full-frame (two-mode). Code lives in
+  `grounding/roi.py`; deploy wiring is a T2/T4 follow-up.
+- **Alternatives considered:** (a) full-frame anchor always (the status quo — 3691 ms prefill,
+  62.6%); (b) ROI crop fed at **native** crop size (cheapest prefill but no upscale → 39% @ M=2
+  — loses the accuracy, the upscale is the point); (c) **M=2.0 @384** (4.2× prefill, 82.5% —
+  the max-speed alternative, kept as the tighter-budget option); (d) looser **M=3.0** (≈2 pp
+  lower peak but better extreme-drift tolerance — the safer margin if drift is large); (e)
+  shrink the anchor model (sacrifices the Part II accuracy headline — declined in T0).
+- **Reasoning:** measured, both axes win at once. On-Orin (Q8_0, 15 W, n=10): ROI @512 prefill
+  **1374 ms vs 3691 ms full-frame = 2.7× cheaper**; decode unchanged (~964 ms, RQ1 verified).
+  Accuracy (HF, RefDrone val n=439): **M=2.0 @512 = 85.2% vs 62.6% deploy = +22.6 pp**. The
+  mechanism is Part II constraint #2 (the resolution ceiling), now measured directly: the
+  full frame *downscaled* to 512 collapses to **15.9%**, while a tight crop *upscaled* to 512
+  is super-resolution on the target. Robust to realistic drift (RQ4): flat 82–85% to 0.5·box
+  prior offset; 74.3% (M=2.0) / 79.7% (M=3.0) even at a full-box offset — all above baseline,
+  so the gain is genuine localization, not a center-bias artifact.
+- **Tradeoff / cost accepted:** (1) re-anchor-only — a crop can't re-find an object that left
+  the ROI; cold/re-acquire stay full-frame (the T2 re-ID case is unaffected, not helped). (2)
+  Accuracy is HF bf16 (3090); latency is Q8_0 (Orin) — the HF↔Q8_0 gap is ≈±3 pp (Q8_0 was
+  *slightly higher* in Part II), dwarfed by the +20 pp headroom, but an **on-device Q8_0 ROI
+  accuracy confirm** is the one open follow-up before flipping the deploy default. (3) Tighter
+  M trades extreme-drift tolerance for peak accuracy (M=2.0 vs M=3.0).
+- **Process note / contamination caught:** the sibling terse experiment edited the *shared*
+  `grounding/contract.py` (COORD_SCALE 1000→100) after the accuracy sweep; the first RQ4 run
+  inherited it → `/100` coord-mapping on a 0–1000-emitting model → bogus 0.0%. Diagnosed,
+  proved the sweep ran at 1000 (control reproduced 84.7%), borrowed the contract back to 1000
+  for these evals only, restored the terse copy. Exactly the shared-working-tree collision
+  flagged at setup — handle the two experiments' commits by explicit path, never `git add -A`.
+- **Revisit when:** the on-device Q8_0 ROI accuracy comes back below ~75% (then re-weigh vs the
+  fidelity gap), or T2 integration shows the tracker box drifts beyond 1·box between anchors
+  (then widen M or fall back to full-frame more often). See
+  `results/2026-06-25-roi-crop-anchor/`.
+
 ### 2026-06-26T22:30 — terse output format (4 space-separated ints) replaces JSON in the contract
 
 - **Decision:** Change the grounding contract's output format from `{"bbox": [x1,y1,x2,y2]}`

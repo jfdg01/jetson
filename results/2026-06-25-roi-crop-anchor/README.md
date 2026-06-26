@@ -1,7 +1,7 @@
 # ROI-crop anchor: cut prefill (and maybe beat the resolution ceiling) — Part II/III
 
-**Status:** pre-registered, NOT started. Sibling of `../2026-06-25-terse-output-retrain/`.
-**Date opened:** 2026-06-25 · **Branch:** `v3/object-permanence`.
+**Status:** ✅ COMPLETE — GATE PASS (2026-06-26). Sibling of `../2026-06-25-terse-output-retrain/`.
+**Date opened:** 2026-06-25 · **Closed:** 2026-06-26 · **Branch:** `v3/object-permanence`.
 **Phase:** Part III latency budget (lever #2, `IDEAS.md` §VLM speed). Inference-time only —
 **no retraining**, unlike the terse-output experiment.
 
@@ -110,3 +110,98 @@ doesn't help it. Sub-1-sec anchor = this (prefill ↓) + terse output (decode �
 - Same gate rule: nothing ships without `results/` + `RESULTS.md` + `DECISIONS.md` same turn.
 - Accuracy sweep under `.venv-ft` via the `Makefile`; Orin latency via the device path.
   llama.cpp stays pinned. No new dependency — this is crop + resize + a coordinate transform.
+
+---
+
+# RESULTS (2026-06-26) — GATE PASS
+
+**TL;DR.** A tight ROI crop fed at the 512 budget is **both ~2.7× cheaper on prefill AND
++22.6 pp more accurate** than the full-frame anchor — the resolution ceiling (Part II
+constraint #2) was the dominant accuracy lever all along, and cropping+upscaling around the
+tracker's box beats it for free (no retraining). Robust to realistic tracker drift.
+**Deploy config: M=2.0, out_res=512** (re-anchor mode).
+
+Code: `grounding/roi.py` (`--selfcheck` for the crop-math regression). Orchestrators:
+`run_sweep.py` (accuracy), `time_orin.py` (device latency), `perturb.py` (drift). Machine
+results: `sweep_summary.json`, `orin_timing.json`, `perturb_summary.json`. Per-combo
+manifests under `runs/<id>/`.
+
+## RQ2 — accuracy (HF bf16, 3090, RefDrone val n=439, IoU@0.25)
+
+| margin M ↓ \ out_res → | native (no zoom) | 384 | **512** |
+|---|---|---|---|
+| **1.5×** | 26.0% | 79.5% | **83.8%** |
+| **2.0×** | 39.4% | 82.5% | **85.2%** |
+| **3.0×** | 54.4% | 78.1% | 82.7% |
+| **5.0×** | 67.0% | 67.2% | 78.6% |
+| **∞ (full-frame)** | **64.0%** | 10.0%¹ | 15.9% |
+
+¹broad n=150 (dropped from the full re-run as a non-survivor). Deployed baseline (Qwen2-VL-2B
+**Q8_0** @ max_side=1024, on Jetson) = **62.6%**; the HF **full-frame-native** control here
+(no resize cap) = **64.0%** — they agree, so the control is sound.
+
+**Two findings, one mechanism (the resolution ceiling):**
+- **The ceiling, laid bare.** Downscaling the *full frame* to 512 long-edge collapses accuracy
+  **64.0% → 15.9%** — the 1024-trained anchor's tiny aerial objects (RefDrone natives are
+  1360×765 / 960×540 / 1920×1080) disintegrate at 512. This *is* Part II constraint #2, measured
+  directly here for the first time.
+- **Cropping reverses and beats it.** A tight crop **upscaled** to 512 is super-resolution on
+  the target: **M=2.0 → 85.2%** (+22.6 pp over deploy), M=1.5 → 83.8%. The win is large and
+  monotone in tightness up to M≈2 (then context loss for the referring phrase starts to bite:
+  M=5 @512 = 78.6%). Native crops (no upscale) lose — confirming it's the *upscale*, not the
+  crop, that buys the accuracy.
+
+## RQ1 / RQ3 — on-Orin latency & the tradeoff (Jetson, Q8_0, 15 W, n=10 median, M=2.0)
+
+| config | prefill ms | decode ms | prompt toks | wall ms | accuracy | prefill speedup |
+|---|---|---|---|---|---|---|
+| **full-frame @1024** (baseline) | 3691 | 966 | 836 | 4630 | 62.6% | 1.0× |
+| **crop @512** | **1374** | 964 | 383 | 2327 | **85.2%** | **2.7×** |
+| **crop @384** | **885** | 964 | 255 | 1870 | 82.5% | **4.2×** |
+
+Prefill ≈ linear in prompt tokens (≈ image area), as predicted; decode is **unchanged**
+(~964 ms — same output format, RQ1 verified). There is a point that is **both faster AND more
+accurate** than full-frame — RQ3 answered, and emphatically: crop@512 wins on *both* axes
+simultaneously, not a tradeoff. (full@1024 prefill is 3691 ms here vs 5111 ms in T0a because
+RefDrone is 16:9 → 836 toks vs T0a's 4:3 1024×768 → 1063 toks; same linear regime.)
+
+## RQ4 — robustness to a drifted (non-oracle) prior (HF, n=439, @512, IoU@0.25)
+
+The sweep used a GT-centered crop. Real re-anchor uses the tracker's last box, which drifts.
+Offsetting the crop center by `shift · box_size` (random direction, seeded):
+
+| shift (·box) | M=2.0 @512 | M=3.0 @512 |
+|---|---|---|
+| 0 (oracle) | 85.2% | 82.7% |
+| 0.25 | 82.5% | 83.1% |
+| 0.5 | 83.6% | 83.6% |
+| 1.0 | 74.3% | 79.7% |
+
+**Flat (82–85%) up to half-a-box drift; even a full-box drift stays well above the 62.6%
+baseline** (M=2.0 → 74.3%, the looser M=3.0 → 79.7%). The win is genuine localization, not a
+center-bias artifact (a center-predicting model would collapse under shift — it doesn't). The
+looser M=3.0 trades ~2 pp of peak accuracy for materially better extreme-drift tolerance.
+
+## Gate / decision
+
+**GATE PASS.** Adopt ROI-crop re-anchor. **Deploy config = M=2.0, out_res=512**: +22.6 pp
+accuracy and 2.7× cheaper prefill vs full-frame, robust to ≤0.5·box tracker drift. For a
+tighter latency budget, **M=2.0 @384** gives 4.2× prefill at 82.5% (+19.9 pp). If the tracker
+is expected to drift hard, **M=3.0** is the safer margin. Deploy shape is unchanged from
+pre-registration: two-mode (full-frame for cold/re-acquire, ROI-crop for re-anchor while the
+lock holds). Combined with the terse-output decode lever, the sub-1s anchor is now in reach.
+
+## Caveats / honesty
+
+- **Accuracy is HF bf16 (3090); latency is Q8_0 (Orin).** Part II measured the HF↔Q8_0
+  fidelity gap at ≈±3 pp (Q8_0 was *slightly higher*: 59.5% HF vs 62.6% Q8_0 @1024). The +20 pp
+  ROI headroom dwarfs that, so the conclusion is robust — but an on-device **Q8_0 ROI accuracy**
+  confirmation is the one open follow-up before flipping the deploy default.
+- **Cross-experiment contamination caught.** The sibling terse experiment edited the *shared*
+  `grounding/contract.py` (COORD_SCALE 1000→100, prompt "0 to 1000"→"0 to 100") after the
+  accuracy sweep ran. The first RQ4 run picked up COORD_SCALE=100 and the 0–1000-emitting
+  phase3 model → `/100` mapping → bogus **0.0%**. Diagnosed (the model emits 0–1000 regardless
+  of the prompt), proved the sweep itself ran at 1000 (its 00:05 inf/native=64.0% is impossible
+  under 100), borrowed the contract back to 1000 only for these evals (control reproduced
+  84.7%), and restored the terse working copy. Exactly the shared-working-tree collision risk
+  flagged at setup — logged so it doesn't recur.

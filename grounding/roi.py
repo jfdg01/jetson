@@ -258,7 +258,10 @@ def _selfcheck() -> None:
     # M→inf is the full frame.
     assert roi_window([400, 400, 600, 600], 640, 480, float("inf")) == (0, 0, 640, 480)
     # A predicted box equal to the GT (expressed in crop coords) must map back to ~GT.
-    gt = [300, 200, 400, 280]  # normalized 0–1000 in a 640×480 image
+    # Coords expressed as fractions of COORD_SCALE so the check is scale-agnostic
+    # (the shared contract's COORD_SCALE may differ between sibling experiments).
+    S = COORD_SCALE
+    gt = [round(0.30 * S), round(0.20 * S), round(0.40 * S), round(0.28 * S)]
     for M in (1.5, 2.0, 3.0, 5.0):
         win = roi_window(gt, 640, 480, M)
         x0, y0, x1, y1 = win
