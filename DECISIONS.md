@@ -1,7 +1,10 @@
 # DECISIONS — project-wide decision log
 
+> **Frozen archive.** Parts I–III are complete. New decisions go in the relevant
+> `results/<campaign>/README.md` under a `## Decisions` heading, not here.
+
 Cross-cutting decisions and their rationale, most recent first. Campaign-specific
-decisions live in the relevant `results/*.md`. Format defined in `CLAUDE.md`.
+decisions live in the relevant `results/*.md`.
 
 The log is split into three parts. **Part III — Persistent tracking / object
 permanence (v3)** holds decisions from the `v3/object-permanence` branch onward
