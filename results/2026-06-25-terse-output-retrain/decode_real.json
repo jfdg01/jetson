@@ -1,0 +1,30 @@
+{
+  "JSON-deploy": {
+    "decode_tok_median": 21.0,
+    "decode_tok_mean": 20.3,
+    "decode_ms_median": 967.0319999999999,
+    "wall_ms_median": 1807.4926425033482,
+    "parse_rate": 1.0,
+    "sample_outputs": [
+      "(286, 439, 371, 575)",
+      "(34,944,74,999)",
+      "[514, 204, 541, 260]",
+      "[344, 544, 361, 610]",
+      "[514, 474, 526, 510]"
+    ]
+  },
+  "terse-iter2b": {
+    "decode_tok_median": 12.0,
+    "decode_tok_mean": 11.75,
+    "decode_ms_median": 531.3235,
+    "wall_ms_median": 1371.8811974977143,
+    "parse_rate": 1.0,
+    "sample_outputs": [
+      "28 44 36 59",
+      "33 26 34 29",
+      "47 3 49 7",
+      "19 62 21 68",
+      "22 53 24 59"
+    ]
+  }
+}

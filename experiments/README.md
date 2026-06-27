@@ -47,7 +47,7 @@ Frontmatter `status:` is the **single source of truth** for orchestration. The b
 the unit executable from a cold start: objective, preconditions, exact commands, the
 **output contract**, done criteria, failure handling, and **guardrails**.
 
-Cards for a campaign live in `campaigns/<campaign>/runcards/`, named `NN-<slug>.md` so they
+Cards for a campaign live in `campaigns/<campaign>/`, named `NN-<slug>.md` so they
 sort into run order.
 
 ### 3. Bootstrap + launcher — spawn the cold session
@@ -64,7 +64,7 @@ sort into run order.
 
 ```bash
 # one unit, fresh session:
-experiments/run-unit.sh experiments/campaigns/2026-06-13-model-capability-sweep/runcards/01-qwen2.5-0.5b-instruct.md
+experiments/run-unit.sh experiments/campaigns/2026-06-13-model-capability-sweep01-qwen2.5-0.5b-instruct.md
 
 # whole campaign, sequential, resumable (skips DONE, stops on FAILED/BLOCKED):
 experiments/run-campaign.sh experiments/campaigns/2026-06-13-model-capability-sweep
@@ -86,7 +86,7 @@ allowlist instead. Never point this at an untrusted repo or device.
 
 1. Pre-register the design in `results/<date>-<campaign>.md` (RQs, controlled variables,
    metrics) — the *what/why*.
-2. Create `campaigns/<campaign>/runcards/` and write one card per unit from
+2. Create `campaigns/<campaign>/` and write one card per unit from
    `_template.runcard.md` — the *how*, concretized (exact commands, exact model, exact
    output paths). Keep one variable changing across cards.
 3. Run with `run-campaign.sh`. Each card's session appends its result to `RESULTS.md` and a

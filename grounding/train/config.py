@@ -55,5 +55,5 @@ class TrainConfig:
     seed: int = SEED
     eval_n: int = 200
     save_every: int = 0                      # mid-epoch adapter save (0 = epoch-end only)
-    output_dir: str = "./runs/v2"
+    output_dir: str = "./experiments/runs/v2"
     lora: LoRAConfig = field(default_factory=LoRAConfig)

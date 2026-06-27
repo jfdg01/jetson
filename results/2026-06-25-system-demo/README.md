@@ -5,8 +5,7 @@
 2-tab `grounding/deploy/gui.py`**.
 
 ```bash
-source .venv-ft/bin/activate
-python -m grounding.deploy.gui            # boots the Orin server, serves http://127.0.0.1:8000
+source .venv-ft/bin/activate && python -m grounding.deploy.gui            # boots the Orin server, serves http://127.0.0.1:8000
 ```
 
 ## The three tabs

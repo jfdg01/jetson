@@ -1,0 +1,361 @@
+[roi] loading RefDrone 'val' well-posed (n=150)...
+[roi] 150 samples; loading ./runs/v2/phase3-refdrone-1024 (HF, bfloat16)...
+The tokenizer you are loading from './runs/v2/phase3-refdrone-1024' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+`torch_dtype` is deprecated! Use `dtype` instead!
+[roi] === M=1.5 out_res=native ===
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+  [roi M=1.5 r=None] 15/150  parsed=14  gate_hits=4
+  [roi M=1.5 r=None] 30/150  parsed=29  gate_hits=6
+  [roi M=1.5 r=None] 45/150  parsed=44  gate_hits=14
+  [roi M=1.5 r=None] 60/150  parsed=59  gate_hits=22
+  [roi M=1.5 r=None] 75/150  parsed=74  gate_hits=25
+  [roi M=1.5 r=None] 90/150  parsed=89  gate_hits=29
+  [roi M=1.5 r=None] 105/150  parsed=104  gate_hits=34
+  [roi M=1.5 r=None] 120/150  parsed=119  gate_hits=43
+  [roi M=1.5 r=None] 135/150  parsed=134  gate_hits=50
+  [roi M=1.5 r=None] 150/150  parsed=149  gate_hits=51
+[roi] M=1.5 out_res=native  parse=99.3%  iou@0.25=34.0%  mean_iou=0.305  center_std=236.3
+[roi] === M=1.5 out_res=384 ===
+  [roi M=1.5 r=384] 15/150  parsed=15  gate_hits=11
+  [roi M=1.5 r=384] 30/150  parsed=30  gate_hits=25
+  [roi M=1.5 r=384] 45/150  parsed=45  gate_hits=36
+  [roi M=1.5 r=384] 60/150  parsed=60  gate_hits=49
+  [roi M=1.5 r=384] 75/150  parsed=75  gate_hits=59
+  [roi M=1.5 r=384] 90/150  parsed=90  gate_hits=72
+  [roi M=1.5 r=384] 105/150  parsed=105  gate_hits=84
+  [roi M=1.5 r=384] 120/150  parsed=119  gate_hits=97
+  [roi M=1.5 r=384] 135/150  parsed=133  gate_hits=110
+  [roi M=1.5 r=384] 150/150  parsed=148  gate_hits=117
+[roi] M=1.5 out_res=384  parse=98.7%  iou@0.25=78.0%  mean_iou=0.578  center_std=236.4
+[roi] === M=1.5 out_res=512 ===
+  [roi M=1.5 r=512] 15/150  parsed=15  gate_hits=12
+  [roi M=1.5 r=512] 30/150  parsed=30  gate_hits=26
+  [roi M=1.5 r=512] 45/150  parsed=45  gate_hits=39
+  [roi M=1.5 r=512] 60/150  parsed=60  gate_hits=53
+  [roi M=1.5 r=512] 75/150  parsed=75  gate_hits=64
+  [roi M=1.5 r=512] 90/150  parsed=89  gate_hits=75
+  [roi M=1.5 r=512] 105/150  parsed=104  gate_hits=87
+  [roi M=1.5 r=512] 120/150  parsed=118  gate_hits=99
+  [roi M=1.5 r=512] 135/150  parsed=133  gate_hits=114
+  [roi M=1.5 r=512] 150/150  parsed=148  gate_hits=124
+[roi] M=1.5 out_res=512  parse=98.7%  iou@0.25=82.7%  mean_iou=0.686  center_std=235.3
+[roi] === M=2.0 out_res=native ===
+  [roi M=2.0 r=None] 15/150  parsed=15  gate_hits=5
+  [roi M=2.0 r=None] 30/150  parsed=30  gate_hits=10
+  [roi M=2.0 r=None] 45/150  parsed=45  gate_hits=20
+  [roi M=2.0 r=None] 60/150  parsed=59  gate_hits=29
+  [roi M=2.0 r=None] 75/150  parsed=74  gate_hits=34
+  [roi M=2.0 r=None] 90/150  parsed=88  gate_hits=39
+  [roi M=2.0 r=None] 105/150  parsed=103  gate_hits=45
+  [roi M=2.0 r=None] 120/150  parsed=118  gate_hits=57
+  [roi M=2.0 r=None] 135/150  parsed=133  gate_hits=69
+  [roi M=2.0 r=None] 150/150  parsed=147  gate_hits=69
+[roi] M=2.0 out_res=native  parse=98.0%  iou@0.25=46.0%  mean_iou=0.388  center_std=235.7
+[roi] === M=2.0 out_res=384 ===
+  [roi M=2.0 r=384] 15/150  parsed=15  gate_hits=12
+  [roi M=2.0 r=384] 30/150  parsed=30  gate_hits=24
+  [roi M=2.0 r=384] 45/150  parsed=45  gate_hits=36
+  [roi M=2.0 r=384] 60/150  parsed=60  gate_hits=49
+  [roi M=2.0 r=384] 75/150  parsed=75  gate_hits=60
+  [roi M=2.0 r=384] 90/150  parsed=90  gate_hits=73
+  [roi M=2.0 r=384] 105/150  parsed=105  gate_hits=84
+  [roi M=2.0 r=384] 120/150  parsed=120  gate_hits=97
+  [roi M=2.0 r=384] 135/150  parsed=135  gate_hits=110
+  [roi M=2.0 r=384] 150/150  parsed=150  gate_hits=118
+[roi] M=2.0 out_res=384  parse=100.0%  iou@0.25=78.7%  mean_iou=0.548  center_std=236.0
+[roi] === M=2.0 out_res=512 ===
+  [roi M=2.0 r=512] 15/150  parsed=15  gate_hits=12
+  [roi M=2.0 r=512] 30/150  parsed=30  gate_hits=26
+  [roi M=2.0 r=512] 45/150  parsed=45  gate_hits=39
+  [roi M=2.0 r=512] 60/150  parsed=60  gate_hits=53
+  [roi M=2.0 r=512] 75/150  parsed=75  gate_hits=66
+  [roi M=2.0 r=512] 90/150  parsed=90  gate_hits=79
+  [roi M=2.0 r=512] 105/150  parsed=105  gate_hits=91
+  [roi M=2.0 r=512] 120/150  parsed=120  gate_hits=103
+  [roi M=2.0 r=512] 135/150  parsed=135  gate_hits=118
+  [roi M=2.0 r=512] 150/150  parsed=150  gate_hits=127
+[roi] M=2.0 out_res=512  parse=100.0%  iou@0.25=84.7%  mean_iou=0.657  center_std=235.8
+[roi] === M=3.0 out_res=native ===
+  [roi M=3.0 r=None] 15/150  parsed=15  gate_hits=7
+  [roi M=3.0 r=None] 30/150  parsed=30  gate_hits=15
+  [roi M=3.0 r=None] 45/150  parsed=45  gate_hits=26
+  [roi M=3.0 r=None] 60/150  parsed=60  gate_hits=38
+  [roi M=3.0 r=None] 75/150  parsed=75  gate_hits=45
+  [roi M=3.0 r=None] 90/150  parsed=89  gate_hits=52
+  [roi M=3.0 r=None] 105/150  parsed=104  gate_hits=60
+  [roi M=3.0 r=None] 120/150  parsed=119  gate_hits=73
+  [roi M=3.0 r=None] 135/150  parsed=134  gate_hits=86
+  [roi M=3.0 r=None] 150/150  parsed=149  gate_hits=92
+[roi] M=3.0 out_res=native  parse=99.3%  iou@0.25=61.3%  mean_iou=0.529  center_std=235.8
+[roi] === M=3.0 out_res=384 ===
+  [roi M=3.0 r=384] 15/150  parsed=15  gate_hits=12
+  [roi M=3.0 r=384] 30/150  parsed=30  gate_hits=23
+  [roi M=3.0 r=384] 45/150  parsed=45  gate_hits=35
+  [roi M=3.0 r=384] 60/150  parsed=59  gate_hits=46
+  [roi M=3.0 r=384] 75/150  parsed=74  gate_hits=59
+  [roi M=3.0 r=384] 90/150  parsed=89  gate_hits=72
+  [roi M=3.0 r=384] 105/150  parsed=104  gate_hits=84
+  [roi M=3.0 r=384] 120/150  parsed=119  gate_hits=97
+  [roi M=3.0 r=384] 135/150  parsed=134  gate_hits=111
+  [roi M=3.0 r=384] 150/150  parsed=149  gate_hits=120
+[roi] M=3.0 out_res=384  parse=99.3%  iou@0.25=80.0%  mean_iou=0.516  center_std=233.0
+[roi] === M=3.0 out_res=512 ===
+  [roi M=3.0 r=512] 15/150  parsed=15  gate_hits=13
+  [roi M=3.0 r=512] 30/150  parsed=30  gate_hits=26
+  [roi M=3.0 r=512] 45/150  parsed=45  gate_hits=38
+  [roi M=3.0 r=512] 60/150  parsed=59  gate_hits=49
+  [roi M=3.0 r=512] 75/150  parsed=74  gate_hits=60
+  [roi M=3.0 r=512] 90/150  parsed=89  gate_hits=73
+  [roi M=3.0 r=512] 105/150  parsed=104  gate_hits=85
+  [roi M=3.0 r=512] 120/150  parsed=119  gate_hits=98
+  [roi M=3.0 r=512] 135/150  parsed=134  gate_hits=112
+  [roi M=3.0 r=512] 150/150  parsed=149  gate_hits=121
+[roi] M=3.0 out_res=512  parse=99.3%  iou@0.25=80.7%  mean_iou=0.623  center_std=235.4
+[roi] === M=5.0 out_res=native ===
+  [roi M=5.0 r=None] 15/150  parsed=15  gate_hits=10
+  [roi M=5.0 r=None] 30/150  parsed=30  gate_hits=20
+  [roi M=5.0 r=None] 45/150  parsed=45  gate_hits=32
+  [roi M=5.0 r=None] 60/150  parsed=59  gate_hits=42
+  [roi M=5.0 r=None] 75/150  parsed=74  gate_hits=52
+  [roi M=5.0 r=None] 90/150  parsed=89  gate_hits=62
+  [roi M=5.0 r=None] 105/150  parsed=104  gate_hits=74
+  [roi M=5.0 r=None] 120/150  parsed=119  gate_hits=87
+  [roi M=5.0 r=None] 135/150  parsed=134  gate_hits=99
+  [roi M=5.0 r=None] 150/150  parsed=149  gate_hits=109
+[roi] M=5.0 out_res=native  parse=99.3%  iou@0.25=72.7%  mean_iou=0.617  center_std=237.4
+[roi] === M=5.0 out_res=384 ===
+  [roi M=5.0 r=384] 15/150  parsed=14  gate_hits=10
+  [roi M=5.0 r=384] 30/150  parsed=29  gate_hits=19
+  [roi M=5.0 r=384] 45/150  parsed=44  gate_hits=29
+  [roi M=5.0 r=384] 60/150  parsed=59  gate_hits=41
+  [roi M=5.0 r=384] 75/150  parsed=74  gate_hits=52
+  [roi M=5.0 r=384] 90/150  parsed=89  gate_hits=61
+  [roi M=5.0 r=384] 105/150  parsed=104  gate_hits=71
+  [roi M=5.0 r=384] 120/150  parsed=119  gate_hits=82
+  [roi M=5.0 r=384] 135/150  parsed=134  gate_hits=95
+  [roi M=5.0 r=384] 150/150  parsed=149  gate_hits=103
+[roi] M=5.0 out_res=384  parse=99.3%  iou@0.25=68.7%  mean_iou=0.413  center_std=236.4
+[roi] === M=5.0 out_res=512 ===
+  [roi M=5.0 r=512] 15/150  parsed=15  gate_hits=12
+  [roi M=5.0 r=512] 30/150  parsed=30  gate_hits=21
+  [roi M=5.0 r=512] 45/150  parsed=45  gate_hits=34
+  [roi M=5.0 r=512] 60/150  parsed=60  gate_hits=46
+  [roi M=5.0 r=512] 75/150  parsed=75  gate_hits=56
+  [roi M=5.0 r=512] 90/150  parsed=90  gate_hits=67
+  [roi M=5.0 r=512] 105/150  parsed=105  gate_hits=80
+  [roi M=5.0 r=512] 120/150  parsed=120  gate_hits=92
+  [roi M=5.0 r=512] 135/150  parsed=135  gate_hits=105
+  [roi M=5.0 r=512] 150/150  parsed=150  gate_hits=114
+[roi] M=5.0 out_res=512  parse=100.0%  iou@0.25=76.0%  mean_iou=0.515  center_std=235.2
+[roi] === M=inf out_res=native ===
+  [roi M=inf r=None] 15/150  parsed=15  gate_hits=10
+  [roi M=inf r=None] 30/150  parsed=30  gate_hits=19
+  [roi M=inf r=None] 45/150  parsed=45  gate_hits=29
+  [roi M=inf r=None] 60/150  parsed=59  gate_hits=39
+  [roi M=inf r=None] 75/150  parsed=74  gate_hits=48
+  [roi M=inf r=None] 90/150  parsed=89  gate_hits=60
+  [roi M=inf r=None] 105/150  parsed=104  gate_hits=68
+  [roi M=inf r=None] 120/150  parsed=119  gate_hits=79
+  [roi M=inf r=None] 135/150  parsed=134  gate_hits=92
+  [roi M=inf r=None] 150/150  parsed=149  gate_hits=99
+[roi] M=inf out_res=native  parse=99.3%  iou@0.25=66.0%  mean_iou=0.558  center_std=226.4
+[roi] === M=inf out_res=384 ===
+  [roi M=inf r=384] 15/150  parsed=15  gate_hits=2
+  [roi M=inf r=384] 30/150  parsed=30  gate_hits=4
+  [roi M=inf r=384] 45/150  parsed=45  gate_hits=7
+  [roi M=inf r=384] 60/150  parsed=60  gate_hits=7
+  [roi M=inf r=384] 75/150  parsed=75  gate_hits=7
+  [roi M=inf r=384] 90/150  parsed=89  gate_hits=9
+  [roi M=inf r=384] 105/150  parsed=103  gate_hits=9
+  [roi M=inf r=384] 120/150  parsed=118  gate_hits=12
+  [roi M=inf r=384] 135/150  parsed=132  gate_hits=15
+  [roi M=inf r=384] 150/150  parsed=146  gate_hits=15
+[roi] M=inf out_res=384  parse=97.3%  iou@0.25=10.0%  mean_iou=0.076  center_std=203.6
+[roi] === M=inf out_res=512 ===
+  [roi M=inf r=512] 15/150  parsed=15  gate_hits=4
+  [roi M=inf r=512] 30/150  parsed=30  gate_hits=8
+  [roi M=inf r=512] 45/150  parsed=45  gate_hits=11
+  [roi M=inf r=512] 60/150  parsed=59  gate_hits=13
+  [roi M=inf r=512] 75/150  parsed=74  gate_hits=13
+  [roi M=inf r=512] 90/150  parsed=88  gate_hits=17
+  [roi M=inf r=512] 105/150  parsed=103  gate_hits=18
+  [roi M=inf r=512] 120/150  parsed=118  gate_hits=23
+  [roi M=inf r=512] 135/150  parsed=133  gate_hits=27
+  [roi M=inf r=512] 150/150  parsed=148  gate_hits=28
+[roi] M=inf out_res=512  parse=98.7%  iou@0.25=18.7%  mean_iou=0.119  center_std=191.5
+
+[sweep] full-frame@512 baseline (n=150) = 18.7%; survivor cutoff = 16.7%
+[sweep] survivors: [(1.5, 'native'), (1.5, 384), (1.5, 512), (2.0, 'native'), (2.0, 384), (2.0, 512), (3.0, 'native'), (3.0, 384), (3.0, 512), (5.0, 'native'), (5.0, 384), (5.0, 512), ('inf', 'native')]
+[roi] loading RefDrone 'val' well-posed (n=all)...
+[roi] 439 samples; loading ./runs/v2/phase3-refdrone-1024 (HF, bfloat16)...
+The tokenizer you are loading from './runs/v2/phase3-refdrone-1024' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+[roi] === M=inf out_res=512 ===
+  [roi M=inf r=512] 43/439  parsed=43  gate_hits=11
+  [roi M=inf r=512] 86/439  parsed=84  gate_hits=16
+  [roi M=inf r=512] 129/439  parsed=127  gate_hits=24
+  [roi M=inf r=512] 172/439  parsed=169  gate_hits=33
+  [roi M=inf r=512] 215/439  parsed=211  gate_hits=42
+  [roi M=inf r=512] 258/439  parsed=254  gate_hits=45
+  [roi M=inf r=512] 301/439  parsed=296  gate_hits=48
+  [roi M=inf r=512] 344/439  parsed=339  gate_hits=55
+  [roi M=inf r=512] 387/439  parsed=382  gate_hits=59
+  [roi M=inf r=512] 430/439  parsed=425  gate_hits=69
+[roi] M=inf out_res=512  parse=98.9%  iou@0.25=15.9%  mean_iou=0.094  center_std=196.9
+[roi] === M=1.5 out_res=native ===
+  [roi M=1.5 r=None] 43/439  parsed=42  gate_hits=14
+  [roi M=1.5 r=None] 86/439  parsed=85  gate_hits=28
+  [roi M=1.5 r=None] 129/439  parsed=128  gate_hits=46
+  [roi M=1.5 r=None] 172/439  parsed=170  gate_hits=56
+  [roi M=1.5 r=None] 215/439  parsed=211  gate_hits=65
+  [roi M=1.5 r=None] 258/439  parsed=251  gate_hits=74
+  [roi M=1.5 r=None] 301/439  parsed=293  gate_hits=81
+  [roi M=1.5 r=None] 344/439  parsed=335  gate_hits=94
+  [roi M=1.5 r=None] 387/439  parsed=378  gate_hits=101
+  [roi M=1.5 r=None] 430/439  parsed=419  gate_hits=113
+[roi] M=1.5 out_res=native  parse=97.3%  iou@0.25=26.0%  mean_iou=0.236  center_std=229.6
+[roi] === M=1.5 out_res=384 ===
+  [roi M=1.5 r=384] 43/439  parsed=43  gate_hits=35
+  [roi M=1.5 r=384] 86/439  parsed=86  gate_hits=68
+  [roi M=1.5 r=384] 129/439  parsed=127  gate_hits=104
+  [roi M=1.5 r=384] 172/439  parsed=170  gate_hits=135
+  [roi M=1.5 r=384] 215/439  parsed=213  gate_hits=171
+  [roi M=1.5 r=384] 258/439  parsed=254  gate_hits=211
+  [roi M=1.5 r=384] 301/439  parsed=297  gate_hits=246
+  [roi M=1.5 r=384] 344/439  parsed=339  gate_hits=275
+  [roi M=1.5 r=384] 387/439  parsed=380  gate_hits=309
+  [roi M=1.5 r=384] 430/439  parsed=423  gate_hits=343
+[roi] M=1.5 out_res=384  parse=98.2%  iou@0.25=79.5%  mean_iou=0.586  center_std=229.6
+[roi] === M=1.5 out_res=512 ===
+  [roi M=1.5 r=512] 43/439  parsed=43  gate_hits=38
+  [roi M=1.5 r=512] 86/439  parsed=85  gate_hits=72
+  [roi M=1.5 r=512] 129/439  parsed=127  gate_hits=108
+  [roi M=1.5 r=512] 172/439  parsed=170  gate_hits=142
+  [roi M=1.5 r=512] 215/439  parsed=213  gate_hits=181
+  [roi M=1.5 r=512] 258/439  parsed=256  gate_hits=218
+  [roi M=1.5 r=512] 301/439  parsed=299  gate_hits=254
+  [roi M=1.5 r=512] 344/439  parsed=342  gate_hits=288
+  [roi M=1.5 r=512] 387/439  parsed=384  gate_hits=324
+  [roi M=1.5 r=512] 430/439  parsed=427  gate_hits=362
+[roi] M=1.5 out_res=512  parse=99.1%  iou@0.25=83.8%  mean_iou=0.677  center_std=229.3
+[roi] === M=2.0 out_res=native ===
+  [roi M=2.0 r=None] 43/439  parsed=43  gate_hits=20
+  [roi M=2.0 r=None] 86/439  parsed=84  gate_hits=38
+  [roi M=2.0 r=None] 129/439  parsed=127  gate_hits=63
+  [roi M=2.0 r=None] 172/439  parsed=169  gate_hits=79
+  [roi M=2.0 r=None] 215/439  parsed=211  gate_hits=94
+  [roi M=2.0 r=None] 258/439  parsed=252  gate_hits=110
+  [roi M=2.0 r=None] 301/439  parsed=295  gate_hits=122
+  [roi M=2.0 r=None] 344/439  parsed=336  gate_hits=138
+  [roi M=2.0 r=None] 387/439  parsed=379  gate_hits=155
+  [roi M=2.0 r=None] 430/439  parsed=422  gate_hits=171
+[roi] M=2.0 out_res=native  parse=97.9%  iou@0.25=39.4%  mean_iou=0.339  center_std=230.3
+[roi] === M=2.0 out_res=384 ===
+  [roi M=2.0 r=384] 43/439  parsed=43  gate_hits=35
+  [roi M=2.0 r=384] 86/439  parsed=86  gate_hits=69
+  [roi M=2.0 r=384] 129/439  parsed=129  gate_hits=104
+  [roi M=2.0 r=384] 172/439  parsed=172  gate_hits=135
+  [roi M=2.0 r=384] 215/439  parsed=215  gate_hits=172
+  [roi M=2.0 r=384] 258/439  parsed=258  gate_hits=212
+  [roi M=2.0 r=384] 301/439  parsed=301  gate_hits=248
+  [roi M=2.0 r=384] 344/439  parsed=344  gate_hits=282
+  [roi M=2.0 r=384] 387/439  parsed=387  gate_hits=319
+  [roi M=2.0 r=384] 430/439  parsed=430  gate_hits=356
+[roi] M=2.0 out_res=384  parse=99.8%  iou@0.25=82.5%  mean_iou=0.571  center_std=229.4
+[roi] === M=2.0 out_res=512 ===
+  [roi M=2.0 r=512] 43/439  parsed=43  gate_hits=38
+  [roi M=2.0 r=512] 86/439  parsed=86  gate_hits=75
+  [roi M=2.0 r=512] 129/439  parsed=129  gate_hits=112
+  [roi M=2.0 r=512] 172/439  parsed=172  gate_hits=145
+  [roi M=2.0 r=512] 215/439  parsed=215  gate_hits=184
+  [roi M=2.0 r=512] 258/439  parsed=258  gate_hits=224
+  [roi M=2.0 r=512] 301/439  parsed=301  gate_hits=260
+  [roi M=2.0 r=512] 344/439  parsed=344  gate_hits=293
+  [roi M=2.0 r=512] 387/439  parsed=387  gate_hits=331
+  [roi M=2.0 r=512] 430/439  parsed=430  gate_hits=369
+[roi] M=2.0 out_res=512  parse=100.0%  iou@0.25=85.2%  mean_iou=0.674  center_std=229.7
+[roi] === M=3.0 out_res=native ===
+  [roi M=3.0 r=None] 43/439  parsed=43  gate_hits=26
+  [roi M=3.0 r=None] 86/439  parsed=85  gate_hits=51
+  [roi M=3.0 r=None] 129/439  parsed=128  gate_hits=80
+  [roi M=3.0 r=None] 172/439  parsed=171  gate_hits=107
+  [roi M=3.0 r=None] 215/439  parsed=214  gate_hits=130
+  [roi M=3.0 r=None] 258/439  parsed=256  gate_hits=149
+  [roi M=3.0 r=None] 301/439  parsed=299  gate_hits=167
+  [roi M=3.0 r=None] 344/439  parsed=341  gate_hits=189
+  [roi M=3.0 r=None] 387/439  parsed=384  gate_hits=212
+  [roi M=3.0 r=None] 430/439  parsed=426  gate_hits=236
+[roi] M=3.0 out_res=native  parse=98.9%  iou@0.25=54.4%  mean_iou=0.465  center_std=229.6
+[roi] === M=3.0 out_res=384 ===
+  [roi M=3.0 r=384] 43/439  parsed=43  gate_hits=34
+  [roi M=3.0 r=384] 86/439  parsed=85  gate_hits=68
+  [roi M=3.0 r=384] 129/439  parsed=128  gate_hits=105
+  [roi M=3.0 r=384] 172/439  parsed=171  gate_hits=136
+  [roi M=3.0 r=384] 215/439  parsed=214  gate_hits=173
+  [roi M=3.0 r=384] 258/439  parsed=257  gate_hits=205
+  [roi M=3.0 r=384] 301/439  parsed=300  gate_hits=239
+  [roi M=3.0 r=384] 344/439  parsed=343  gate_hits=267
+  [roi M=3.0 r=384] 387/439  parsed=386  gate_hits=303
+  [roi M=3.0 r=384] 430/439  parsed=429  gate_hits=337
+[roi] M=3.0 out_res=384  parse=99.8%  iou@0.25=78.1%  mean_iou=0.507  center_std=228.8
+[roi] === M=3.0 out_res=512 ===
+  [roi M=3.0 r=512] 43/439  parsed=43  gate_hits=37
+  [roi M=3.0 r=512] 86/439  parsed=85  gate_hits=69
+  [roi M=3.0 r=512] 129/439  parsed=128  gate_hits=106
+  [roi M=3.0 r=512] 172/439  parsed=171  gate_hits=140
+  [roi M=3.0 r=512] 215/439  parsed=214  gate_hits=181
+  [roi M=3.0 r=512] 258/439  parsed=257  gate_hits=217
+  [roi M=3.0 r=512] 301/439  parsed=300  gate_hits=251
+  [roi M=3.0 r=512] 344/439  parsed=343  gate_hits=284
+  [roi M=3.0 r=512] 387/439  parsed=386  gate_hits=321
+  [roi M=3.0 r=512] 430/439  parsed=429  gate_hits=358
+[roi] M=3.0 out_res=512  parse=99.5%  iou@0.25=82.7%  mean_iou=0.629  center_std=228.9
+[roi] === M=5.0 out_res=native ===
+  [roi M=5.0 r=None] 43/439  parsed=43  gate_hits=31
+  [roi M=5.0 r=None] 86/439  parsed=85  gate_hits=59
+  [roi M=5.0 r=None] 129/439  parsed=128  gate_hits=94
+  [roi M=5.0 r=None] 172/439  parsed=171  gate_hits=125
+  [roi M=5.0 r=None] 215/439  parsed=214  gate_hits=156
+  [roi M=5.0 r=None] 258/439  parsed=257  gate_hits=180
+  [roi M=5.0 r=None] 301/439  parsed=300  gate_hits=205
+  [roi M=5.0 r=None] 344/439  parsed=343  gate_hits=231
+  [roi M=5.0 r=None] 387/439  parsed=386  gate_hits=263
+  [roi M=5.0 r=None] 430/439  parsed=429  gate_hits=290
+[roi] M=5.0 out_res=native  parse=99.5%  iou@0.25=67.0%  mean_iou=0.555  center_std=229.8
+[roi] === M=5.0 out_res=384 ===
+  [roi M=5.0 r=384] 43/439  parsed=42  gate_hits=28
+  [roi M=5.0 r=384] 86/439  parsed=85  gate_hits=58
+  [roi M=5.0 r=384] 129/439  parsed=128  gate_hits=89
+  [roi M=5.0 r=384] 172/439  parsed=171  gate_hits=120
+  [roi M=5.0 r=384] 215/439  parsed=213  gate_hits=150
+  [roi M=5.0 r=384] 258/439  parsed=255  gate_hits=178
+  [roi M=5.0 r=384] 301/439  parsed=297  gate_hits=204
+  [roi M=5.0 r=384] 344/439  parsed=340  gate_hits=230
+  [roi M=5.0 r=384] 387/439  parsed=383  gate_hits=261
+  [roi M=5.0 r=384] 430/439  parsed=426  gate_hits=291
+[roi] M=5.0 out_res=384  parse=99.1%  iou@0.25=67.2%  mean_iou=0.403  center_std=227.5
+[roi] === M=5.0 out_res=512 ===
+  [roi M=5.0 r=512] 43/439  parsed=43  gate_hits=33
+  [roi M=5.0 r=512] 86/439  parsed=86  gate_hits=63
+  [roi M=5.0 r=512] 129/439  parsed=129  gate_hits=99
+  [roi M=5.0 r=512] 172/439  parsed=172  gate_hits=130
+  [roi M=5.0 r=512] 215/439  parsed=214  gate_hits=164
+  [roi M=5.0 r=512] 258/439  parsed=257  gate_hits=199
+  [roi M=5.0 r=512] 301/439  parsed=299  gate_hits=235
+  [roi M=5.0 r=512] 344/439  parsed=342  gate_hits=267
+  [roi M=5.0 r=512] 387/439  parsed=385  gate_hits=302
+  [roi M=5.0 r=512] 430/439  parsed=428  gate_hits=338
+[roi] M=5.0 out_res=512  parse=99.5%  iou@0.25=78.6%  mean_iou=0.524  center_std=227.1
+[roi] === M=inf out_res=native ===
+  [roi M=inf r=None] 43/439  parsed=43  gate_hits=28
+  [roi M=inf r=None] 86/439  parsed=85  gate_hits=57
+  [roi M=inf r=None] 129/439  parsed=128  gate_hits=86
+  [roi M=inf r=None] 172/439  parsed=171  gate_hits=115
+  [roi M=inf r=None] 215/439  parsed=214  gate_hits=146
+  [roi M=inf r=None] 258/439  parsed=257  gate_hits=175
+  [roi M=inf r=None] 301/439  parsed=300  gate_hits=203
+  [roi M=inf r=None] 344/439  parsed=342  gate_hits=227
+  [roi M=inf r=None] 387/439  parsed=385  gate_hits=251
+  [roi M=inf r=None] 430/439  parsed=428  gate_hits=278
+[roi] M=inf out_res=native  parse=99.5%  iou@0.25=64.0%  mean_iou=0.533  center_std=221.5
+
+[sweep] DONE — summary -> /home/gara/jetson/results/2026-06-25-roi-crop-anchor/sweep_summary.json

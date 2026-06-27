@@ -1,7 +1,7 @@
 """Phase-0 eval runner — score one backend over a RefCOCO subset, write a manifest.
 
 This is the thin CLI over the Phase-0 spine (`backends` + `harness`) used for the
-backend-fidelity work. Every invocation emits a per-run manifest under `runs/<id>/`
+backend-fidelity work. Every invocation emits a per-run manifest under `experiments/runs/<id>/`
 (git SHA, pinned llama.cpp commit, lock sha256, config) plus the contract metrics,
 so any number is traceable to exact code + deps + data.
 

@@ -30,11 +30,13 @@ from grounding.deploy.serve import _DEFAULT_REMOTE_DIR
 from grounding.eval.backends import JetsonBackend
 
 # Phase-4 deployed artifact names on the device (see results/2026-06-18-phase4-*).
+# terse iter-2b anchor (2026-06-26): bare 0–100 ints, Orin Q8_0 63.1% (> JSON 62.6%),
+# decode −45%. Must match the terse GROUNDING_PROMPT in contract.py.
 _REMOTE_MODELS = {
-    "q8_0": "phase3-refdrone-1024-q8_0.gguf",
-    "f16": "phase3-refdrone-1024-f16.gguf",
+    "q8_0": "phase3-terse100eos-1024-q8_0.gguf",
+    "f16": "phase3-terse100eos-1024-f16.gguf",
 }
-_REMOTE_MMPROJ = "mmproj-phase3-refdrone-1024-f16.gguf"  # bit-equiv to base; serves both
+_REMOTE_MMPROJ = "mmproj-phase3-terse100eos-1024-f16.gguf"  # bit-equiv to base; serves both
 _TRAIN_MAX_SIDE = 1024  # the resolution the Phase-3 checkpoint was trained/evaluated under
 
 # Demo presets — real RefDrone val (image, caption) pairs spanning target sizes, so a

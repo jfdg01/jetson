@@ -27,7 +27,7 @@ changes for v2:
      legacy full accelerate-state mid-epoch resume is dropped.
 
 Every run writes a `kind="train"` manifest (git SHA, lockfile sha, config, results)
-under `runs/<id>/` via `grounding.manifest`.
+under `experiments/runs/<id>/` via `grounding.manifest`.
 
 Run:  source .venv-ft/bin/activate && python -m grounding.train.trainer [opts]
 """
@@ -35,7 +35,6 @@ Run:  source .venv-ft/bin/activate && python -m grounding.train.trainer [opts]
 from __future__ import annotations
 
 import csv
-import json
 import time
 from dataclasses import asdict
 from pathlib import Path
@@ -90,10 +89,12 @@ class _GroundingDataset:
         s = self.samples[idx]
         img = Image.open(s.image_path).convert("RGB")
         img = _resize_keep_aspect(img, self.image_size)
+        x1, y1, x2, y2 = s.bbox
         return {
             "image": img,
             "prompt": GROUNDING_PROMPT.format(target=s.caption),
-            "target_json": json.dumps({"bbox": s.bbox}),
+            # terse contract: four space-separated ints (no JSON) — see contract.py
+            "target_json": f"{x1} {y1} {x2} {y2}",
         }
 
 
@@ -113,7 +114,11 @@ def _collate_fn(batch, processor):
         for p in prompts
     ]
     texts = [processor.apply_chat_template(m, add_generation_prompt=True) for m in messages]
-    full_texts = [t + tj for t, tj in zip(texts, target_jsons)]
+    # Append the turn-end token so the model is SUPERVISED to stop (Qwen eos=<|im_end|>).
+    # Without it, only formats whose closing char (}/]) the pretrained prior already ends
+    # a turn on will stop; bare-int terse targets ramble to the token cap (2026-06-26 fix).
+    eos = processor.tokenizer.eos_token
+    full_texts = [t + tj + eos for t, tj in zip(texts, target_jsons)]
 
     inputs = processor(
         text=full_texts, images=images, return_tensors="pt",

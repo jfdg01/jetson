@@ -23,7 +23,11 @@ from typing import List, Optional, Sequence
 
 # ── constants ───────────────────────────────────────────────────────────────────
 IMAGE_SIZE     = 512      # resize long edge before model (coords are normalized, so safe)
-COORD_SCALE    = 1000     # normalized coordinate range [0, COORD_SCALE]
+# COORD_SCALE 1000 → 100 (2026-06-26 iter-2): Qwen2-VL tokenizes digit-level, so coord
+# *precision* is the dominant decode-token cost (12 digit-tokens at 0–1000 → 8 at 0–100).
+# Measured quantization cost: 0% of RefDrone-val boxes (incl. tiny aerial, n=93) drop below
+# the 0.25 IoU gate under 0–100 rounding. The dominant token lever, orthogonal to brackets.
+COORD_SCALE    = 100      # normalized coordinate range [0, COORD_SCALE]
 SEED           = 42
 MAX_NEW_TOKENS = 64       # response cap for grounding eval calls
 
@@ -36,10 +40,14 @@ MAX_NEW_TOKENS = 64       # response cap for grounding eval calls
 MODEL_ID       = "Qwen/Qwen2-VL-2B-Instruct"
 
 # UNIFIED prompt — must match every consumer (probe, train, export, Phase C) verbatim.
-# Lifted byte-identical from experiments/legacy/run_stage3_finetune.py.
+# TERSE format (2026-06-26 iter-2): four space-separated integers at 0–100 precision.
+# Iter-1 (bracketless @0–1000) saved only ~3 decode tokens on the Orin: the model reverted
+# to its pretrained bracketed-list prior ([x, y, x, y]) and only shed the {"bbox": …}
+# wrapper. Iter-2 attacks the dominant cost — digit count (coords now 2-digit) — and keeps
+# pushing the bracketless format. See results/2026-06-25-terse-output-retrain/.
 GROUNDING_PROMPT = (
-    'Locate "{target}". Return the bounding box as JSON '
-    '{{"bbox": [x1, y1, x2, y2]}} with integer coordinates normalized from 0 to 1000.'
+    'Locate "{target}". Return the bounding box as four space-separated integers '
+    'x1 y1 x2 y2, normalized from 0 to 100.'
 )
 
 # Standing primary gate for aerial grounding (Phase 3). Kept here so the trainer and
@@ -64,16 +72,16 @@ def normalize_bbox(bbox_xyxy: Sequence[float], img_w: float, img_h: float,
 # ── output parsing ───────────────────────────────────────────────────────────────
 
 def parse_bbox(text: str) -> Optional[List[int]]:
-    """Extract [x1,y1,x2,y2] from model output; return None if unparseable."""
-    m = re.search(r'\{[^{}]*"bbox"\s*:\s*\[([^\]]+)\][^{}]*\}', text)
-    if m:
-        try:
-            vals = [float(v.strip()) for v in m.group(1).split(",")]
-            if len(vals) == 4:
-                return [int(v) for v in vals]
-        except ValueError:
-            pass
-    return None
+    """Extract [x1,y1,x2,y2] from terse model output; return None if unparseable.
+
+    Terse format = four space-separated integers ("123 456 234 567"). Require *exactly*
+    four integers: with no brackets to anchor on, a dropped/extra coordinate would
+    otherwise be silent corruption — exactly-4 turns it into an honest parse-fail.
+    """
+    nums = re.findall(r"-?\d+", text)
+    if len(nums) != 4:
+        return None
+    return [int(n) for n in nums]
 
 
 # ── metrics ──────────────────────────────────────────────────────────────────────

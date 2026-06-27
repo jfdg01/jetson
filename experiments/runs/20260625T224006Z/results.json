@@ -1,0 +1,8 @@
+{
+  "backend": "hf",
+  "n": 150,
+  "parse_rate": 0.9933333333333333,
+  "iou_gate_pass_rate": 0.8,
+  "mean_iou": 0.5159784983570449,
+  "center_std": 233.04713026917454
+}

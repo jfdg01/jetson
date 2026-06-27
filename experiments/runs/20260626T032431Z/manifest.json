@@ -1,0 +1,50 @@
+{
+  "run_id": "20260626T032431Z",
+  "created_utc": "2026-06-26T03:24:31.941737+00:00",
+  "kind": "train",
+  "git_sha": "d806ed10e5a93b8951889cafeb39bae0ddcea03c",
+  "git_dirty": true,
+  "llamacpp_commit": "57fe1f07c3b6a1de3f4fff19098e2056a85275b7",
+  "lockfile_sha256": "c85c39dfe299fff25dd94b8a84ffa4ae2a65a3a79146e6efd38c8b51d02f9ad7",
+  "python_version": "3.12.10",
+  "platform": "Linux-6.17.0-35-generic-x86_64-with-glibc2.39",
+  "config": {
+    "model_id": "Qwen/Qwen2-VL-2B-Instruct",
+    "init_from": null,
+    "train_split": "refdrone:train",
+    "val_split": "refdrone:val",
+    "largest_box_aug": false,
+    "image_size": 1024,
+    "resolution_strategy": "resize1024",
+    "epochs": 3,
+    "lr": 0.0002,
+    "batch_size": 1,
+    "grad_accum": 16,
+    "precision": "bf16",
+    "seed": 42,
+    "eval_n": 200,
+    "save_every": 0,
+    "output_dir": "./runs/v2/phase3-terse100eos-1024",
+    "lora": {
+      "r": 16,
+      "alpha": 32,
+      "dropout": 0.05,
+      "bias": "none",
+      "target_modules": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj"
+      ],
+      "freeze_vision": true
+    }
+  },
+  "dataset_path": null,
+  "dataset_sha256": null,
+  "extra": {
+    "merged_checkpoint": "runs/v2/phase3-terse100eos-1024"
+  }
+}
