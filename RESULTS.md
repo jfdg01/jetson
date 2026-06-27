@@ -600,3 +600,16 @@ ROI prefill pinned at **~1375 ms** (fixed 512×512 → matches the offline 1374 
 scales with upload size. Boxes preserved/tightened → the lever transfers to the deployed model.
 Confirms the *latency* lever on-device; quantified on-device IoU@0.25 (RefDrone via GGUF) still
 the open follow-up.
+
+---
+
+### 2026-06-27 — ROI re-anchor shrink-and-drift death spiral (negative result + fix)
+
+Forcing a fast re-anchor cadence on the "Live tracking" tab collapsed the lock: the re-anchor
+crops `4·box` and feeds it native, so a shrinking box → smaller crop → fewer pixels/context →
+smaller box — unbounded positive feedback with no full-frame fallback (box 21px → crop 86px →
+64 tokens → degenerate `0×21px` box on the wrong car). Fix: floor the crop side (`roi_window`
+gains `min_side`; deploy `ROI_MIN_CROP = 384` px) so the crop pins constant below the threshold
+and the loop can't run away. Eval sweep unchanged (`min_side=0` default); self-checks + pytest
+green. Writeup: [`results/2026-06-27-roi-shrink-spiral/`](results/2026-06-27-roi-shrink-spiral/README.md).
+Open: on-Orin replay re-confirm.

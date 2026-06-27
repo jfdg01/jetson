@@ -22,7 +22,8 @@ _DEFAULT_LLAMACPP_BIN = "/tmp/llama.cpp-57fe1f0/build/bin"
 
 
 def _llama_server_chat(base_url: str, image_path: str, caption: str,
-                       max_side: int, *, timeout: int = 300) -> str:
+                       max_side: int, *, timeout: int = 300,
+                       stats: dict | None = None) -> str:
     """POST one (image, caption) to a llama.cpp `/v1/chat/completions` endpoint.
 
     Shared by `GGUFBackend` (local CPU server) and `JetsonBackend` (remote server
@@ -32,10 +33,18 @@ def _llama_server_chat(base_url: str, image_path: str, caption: str,
     user text; greedy (`temperature=0`), `cache_prompt=False`, `max_tokens` from the
     contract. Keeping this in one place means the only residual between local-GGUF
     and Jetson is the hardware, not the request.
+
+    If `stats` is given, it is filled in-place with a per-call breakdown: the fed
+    image dims, the request payload size (the bytes that cross the ssh tunnel), the
+    client round-trip wall, and the server-side prefill/decode token counts + ms
+    (from llama.cpp's `timings`). `transfer_ms` = wall − prefill − decode isolates
+    everything that is NOT Orin compute (tunnel transfer + JSON + queue) — the number
+    that answers "is ssh the bottleneck?".
     """
     import base64
     import json
     import tempfile
+    import time
     import urllib.request
 
     from PIL import Image
@@ -64,8 +73,24 @@ def _llama_server_chat(base_url: str, image_path: str, caption: str,
         f"{base_url}/v1/chat/completions", data=payload,
         headers={"Content-Type": "application/json"}, method="POST",
     )
+    t0 = time.perf_counter()
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         data = json.loads(resp.read().decode())
+    wall_ms = (time.perf_counter() - t0) * 1000.0
+    if stats is not None:
+        t = data.get("timings") or {}
+        prompt_ms = float(t.get("prompt_ms", 0.0))
+        predicted_ms = float(t.get("predicted_ms", 0.0))
+        stats.update({
+            "fed_w": img.width, "fed_h": img.height,
+            "fed_mpx": round(img.width * img.height / 1e6, 3),
+            "payload_kb": round(len(payload) / 1024, 1),
+            "wall_ms": round(wall_ms),
+            "prompt_n": t.get("prompt_n"), "prompt_ms": round(prompt_ms),
+            "predicted_n": t.get("predicted_n"), "predicted_ms": round(predicted_ms),
+            # everything not Orin compute: tunnel transfer + JSON + server queue
+            "transfer_ms": round(wall_ms - prompt_ms - predicted_ms),
+        })
     return data["choices"][0]["message"].get("content") or ""
 
 
@@ -389,6 +414,11 @@ class JetsonBackend:
 
     def generate(self, image_path: str, caption: str) -> str:
         return _llama_server_chat(self._base, image_path, caption, self.max_side)
+
+    def generate_stats(self, image_path: str, caption: str, stats: dict) -> str:
+        """Like `generate`, but fills `stats` with the per-call timing/size breakdown."""
+        return _llama_server_chat(self._base, image_path, caption, self.max_side,
+                                  stats=stats)
 
     def close(self) -> None:
         import subprocess

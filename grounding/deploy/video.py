@@ -67,6 +67,12 @@ ACQUIRE_PERIOD_S = (
 # (super-resolution on the target). Cold acquire / re-acquire after a loss stays full-frame.
 ROI_MARGIN = 4.0
 ROI_OUT_RES = 1024
+# Floor the ROI crop side (px). Without it, re-anchor crops margin·box every pass, so a
+# box that shrinks (small/drifted prediction, target receding) drives the next crop
+# smaller → zooms past all context → shrinks again: a death spiral that loses the lock
+# (box 21px → crop 86px → 64 tokens → garbage). The floor pins the crop once margin·box
+# drops below it, keeping enough surrounding context for the VLM to pull the box back.
+ROI_MIN_CROP = 384
 
 GREEN, ORANGE, CYAN, RED = (40, 190, 70), (240, 150, 40), (60, 180, 240), (230, 60, 60)
 
@@ -201,30 +207,68 @@ def _read_frames(path, fps_default=30.0, max_seconds=None):
     return frames, fps
 
 
-def _generate_pil(backend, img, caption):
+def _generate_pil(backend, img, caption, stats=None):
     """Run one VLM pass on a PIL image via a temp PNG. The backend long-edge-resizes to
     its max_side, but that is downscale-only, so a pre-sized ROI crop (≤ OUT_RES) is sent
-    as-is — exactly the deploy path."""
+    as-is — exactly the deploy path. `stats` (dict) gets the timing/size breakdown."""
     tf = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
     try:
         img.save(tf.name)
         tf.close()
+        if stats is not None and hasattr(backend, "generate_stats"):
+            return backend.generate_stats(tf.name, caption, stats)
         return backend.generate(tf.name, caption)
     finally:
         os.unlink(tf.name)
 
 
-def _anchor_box(backend, img, caption, prior, use_roi):
+def _anchor_box(backend, img, caption, prior, use_roi, stats=None):
     """One anchor pass → new box (or `prior` on parse-fail). With `use_roi` and a `prior`,
-    crops a ROI_MARGIN window around it, upscales to ROI_OUT_RES (cheaper prefill +
-    super-res), and maps the prediction back — the deployed re-anchor path. Otherwise a
-    full-frame acquire."""
+    crops a ROI_MARGIN window around it (downscale-only to ROI_OUT_RES) and maps the
+    prediction back — the deployed re-anchor path. Otherwise a full-frame acquire. Fills
+    `stats` (if given) and prints the per-call breakdown: what the VLM was actually fed
+    (the real cost driver — vision tokens scale with fed area, not box size)."""
+    if stats is None:
+        stats = {}
     if use_roi and prior is not None:
-        win = roi_window(prior, img.width, img.height, ROI_MARGIN)
-        crop = crop_resize(img, win, ROI_OUT_RES)
-        b = parse_bbox(_generate_pil(backend, crop, caption))
+        win = roi_window(prior, img.width, img.height, ROI_MARGIN, min_side=ROI_MIN_CROP)
+        crop = crop_resize(img, win, ROI_OUT_RES, upscale=False)
+        raw = _generate_pil(backend, crop, caption, stats)
+        stats["mode"] = "ROI re-anchor"
+        stats["roi_win"] = win
+        stats["crop_px"] = f"{win[2] - win[0]}x{win[3] - win[1]}"
+        stats["box_px"] = _box_px(prior, img)
+        _print_anchor_stats("ROI", stats, win=win, box_px=stats["box_px"])
+        b = parse_bbox(raw)
         return map_to_full(b, win, img.width, img.height) if b else prior
-    return parse_bbox(_generate_pil(backend, img, caption)) or prior
+    raw = _generate_pil(backend, img, caption, stats)
+    stats["mode"] = "full-frame acquire"
+    stats["crop_px"] = f"{img.width}x{img.height}"
+    _print_anchor_stats("full-frame", stats, win=(0, 0, img.width, img.height))
+    return parse_bbox(raw) or prior
+
+
+def _box_px(box_norm, img):
+    """Box w×h in pixels of the full frame (the 'bbox size' the demo asks to see)."""
+    bw = abs(box_norm[2] - box_norm[0]) / COORD_SCALE * img.width
+    bh = abs(box_norm[3] - box_norm[1]) / COORD_SCALE * img.height
+    return f"{bw:.0f}x{bh:.0f}px"
+
+
+def _print_anchor_stats(mode, stats, *, win, box_px=None):
+    """One line: fed size + payload + token counts + prefill/decode/transfer split — so
+    'why is the smaller image slower?' is answerable (it's fed *area*, not box size:
+    a ROI upscaled to a square OUT_RES can carry MORE pixels than a letterboxed frame)."""
+    if "wall_ms" not in stats:  # stub / backend without generate_stats — nothing to report
+        return
+    ww, wh = win[2] - win[0], win[3] - win[1]
+    crop = f"crop {ww}x{wh}px" + (f" box {box_px}" if box_px else "")
+    fed = (f"fed {stats.get('fed_w')}x{stats.get('fed_h')} "
+           f"({stats.get('fed_mpx')}Mpx, {stats.get('payload_kb')}KB)")
+    tok = f"prompt_n={stats.get('prompt_n')} pred_n={stats.get('predicted_n')}"
+    timing = (f"prefill={stats.get('prompt_ms')}ms decode={stats.get('predicted_ms')}ms "
+              f"transfer/queue={stats.get('transfer_ms')}ms wall={stats.get('wall_ms')}ms")
+    print(f"    [{mode}] {crop} -> {fed} | {tok} | {timing}", flush=True)
 
 
 def render(
@@ -277,16 +321,19 @@ def render(
                 _fed = (
                     crop_resize(
                         img_pil,
-                        roi_window(box, img_pil.width, img_pil.height, ROI_MARGIN),
+                        roi_window(box, img_pil.width, img_pil.height, ROI_MARGIN,
+                                   min_side=ROI_MIN_CROP),
                         ROI_OUT_RES,
+                        upscale=False,
                     )
                     if use_roi
                     else img_pil
                 )
             _t0 = time.perf_counter()
-            box = _anchor_box(backend, img_pil, caption, box, use_roi)
+            _stats = {}
+            box = _anchor_box(backend, img_pil, caption, box, use_roi, _stats)
             if on_anchor is not None:
-                on_anchor(fi, _fed, box, img_pil, time.perf_counter() - _t0)
+                on_anchor(fi, _fed, box, img_pil, time.perf_counter() - _t0, _stats)
             lost = False
             last_anchor_t = fi / fps
             mode = "ROI re-anchor" if use_roi else "full-frame acquire"
@@ -441,7 +488,10 @@ def _selfcheck():
     assert s0.seen == (640, 480), s0.seen  # acquire = full frame
     s1 = _Stub("50 50 60 60")
     b = _anchor_box(s1, img, "x", [10, 20, 30, 40], True)
-    assert max(s1.seen) == ROI_OUT_RES, s1.seen  # re-anchor sees the upscaled crop
+    # re-anchor is downscale-only now: a crop already ≤ OUT_RES is fed native (no
+    # upscale), so the fed long edge never EXCEEDS OUT_RES and isn't grown past the crop.
+    assert max(s1.seen) <= ROI_OUT_RES, s1.seen
+    assert s1.seen == (384, 400), s1.seen  # native crop window, not upscaled
     assert b is not None and all(0 <= v <= COORD_SCALE for v in b), b
     s2 = _Stub("garbage")  # parse-fail keeps the prior box
     assert _anchor_box(s2, img, "x", [10, 20, 30, 40], True) == [10, 20, 30, 40]

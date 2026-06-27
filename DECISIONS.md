@@ -17,6 +17,37 @@ legacy scripts now live under `experiments/legacy/`).
 
 <!-- v3 decisions are appended here, most recent first. -->
 
+### 2026-06-27T00:00 — floor the ROI re-anchor crop to stop a shrink-and-drift death spiral
+
+- **Decision:** Add an optional `min_side` floor to `roi_window` (`grounding/roi.py`) and set
+  `ROI_MIN_CROP = 384` px in the deploy re-anchor path (`grounding/deploy/video.py`). The eval
+  default stays `min_side=0`, so the single-frame RefDrone sweep
+  (`results/2026-06-25-roi-crop-anchor`) is byte-for-byte unchanged. Experiment doc:
+  `results/2026-06-27-roi-shrink-spiral/`.
+- **Context:** The deployed re-anchor crops `ROI_MARGIN (4×)·box` around the *previous* box and
+  feeds it native (`upscale=False`, for prefill parity). Crop size ∝ box size with no floor, so a
+  shrinking/drifting box drives a smaller crop → fewer pixels + less context → a smaller box:
+  unbounded positive feedback. Forcing a fast cadence on the GUI made it visible (box 21px → crop
+  86px → 64 tokens → degenerate `0×21px` box latched onto the wrong car); no fast-tracker loss is
+  declared on the slow drift, so it never re-acquires full-frame.
+- **Alternatives considered:** (a) re-enable `upscale=True` for small crops — adds back vision
+  tokens (re-anchor prefill > full-frame acquire, the reason `upscale=False` exists) and still
+  shows only 86px of scene, so it doesn't fix the context loss; (b) divergence check (box near
+  crop edge / large jump) → force full-frame re-acquire — robust but needs an on-device threshold,
+  deferred; (c) cap per-step shrink rate — stateful and still collapses slowly. The floor is the
+  minimal change that removes the *unbounded* part of the feedback.
+- **Reasoning:** Below the threshold the crop side is constant regardless of box size, so the loop
+  cannot run away; the VLM always keeps enough surrounding context to pull the box back. One
+  kwarg (default-off for eval), one deploy constant. Latency lever preserved — a 384px crop fed
+  native is well under the 1024 full-frame budget.
+- **Tradeoff / cost accepted:** a receding target eventually sits inside a fixed 384px crop fed
+  native → back to the Part II resolution ceiling for that target, but no longer *worse* than
+  full-frame and no longer drifting onto a wrong object. `384` is a hand-set heuristic tuned to
+  the 1080-wide demo frames, not swept.
+- **Revisit when:** the floor alone still drifts on fast/erratic targets on-Orin → add the
+  divergence-triggered full-frame re-acquire (alt b). Re-tune `384` if deploy frame resolution
+  changes.
+
 ### 2026-06-26T09:00 — add a "Re-anchor speedup" demo tab (ROI vs full-frame, live on Orin)
 
 - **Decision:** Add a fourth tab to the deploy GUI (`grounding/deploy/gui.py`) that runs the

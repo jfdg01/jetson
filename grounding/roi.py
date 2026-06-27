@@ -45,7 +45,7 @@ Window = Tuple[int, int, int, int]  # pixel XYXY crop window in the ORIGINAL ima
 
 
 def roi_window(bbox_norm: Sequence[int], img_w: int, img_h: int, margin: float,
-               *, shift: float = 0.0, scale: float = 1.0,
+               *, shift: float = 0.0, scale: float = 1.0, min_side: float = 0.0,
                rng: Optional[random.Random] = None) -> Window:
     """Square, inflated, clamped crop window (pixel XYXY) around a normalized box.
 
@@ -54,6 +54,13 @@ def roi_window(bbox_norm: Sequence[int], img_w: int, img_h: int, margin: float,
     frame) returns the whole frame — the full-frame control point. Perturbation:
     `scale` multiplies the box size before inflation and `shift` offsets the center
     by `shift · box_size` in a random direction (proxy for a stale/drifted prior).
+
+    `min_side` floors the square side (pixels). Without it, a re-anchor loop crops
+    `margin · box` every pass, so a box that shrinks (small/drifted prediction) drives
+    the next crop smaller, which zooms in past all context and shrinks again — a
+    death spiral (observed: box 21px → crop 86px → fed at 64 tokens → garbage box).
+    The floor makes the crop size constant once `margin · box < min_side`, breaking
+    that positive feedback. Default 0 keeps the single-frame eval sweep unchanged.
     """
     x1, y1, x2, y2 = (c / COORD_SCALE for c in bbox_norm)
     bw = max(1.0, (x2 - x1) * img_w) * scale
@@ -69,7 +76,7 @@ def roi_window(bbox_norm: Sequence[int], img_w: int, img_h: int, margin: float,
 
     if not math.isfinite(margin):
         return (0, 0, img_w, img_h)
-    half = margin * max(bw, bh) / 2.0
+    half = max(margin * max(bw, bh), min_side) / 2.0
     x0 = int(round(cx - half)); y0 = int(round(cy - half))
     x3 = int(round(cx + half)); y3 = int(round(cy + half))
     # Clamp to frame (edges go non-square at the border — accepted, realistic).
@@ -90,12 +97,17 @@ def map_to_full(pred_norm: Sequence[int], win: Window,
     return normalize_bbox(px, img_w, img_h)
 
 
-def crop_resize(img, win: Window, out_res: Optional[int]):
+def crop_resize(img, win: Window, out_res: Optional[int], *, upscale: bool = True):
     """Crop `win` and resize its long edge to `out_res` (up OR down).
 
     `out_res=None` → native (no resize). Unlike `resolution._resize_keep_aspect`
     (downscale-only), this **upscales** a small crop to the budget — that upscale is
-    the super-resolution intervention RQ2 is about.
+    the super-resolution intervention RQ2 is about (keep `upscale=True` for the
+    RefDrone sweep). With `upscale=False` the long edge is *capped* at `out_res` but
+    never grown: the deploy re-anchor path uses this so the fed crop can't end up
+    with MORE pixels (vision tokens) than the letterboxed full frame would — a square
+    OUT_RES upscale of a small crop was actually making re-anchor prefill *slower*
+    than the full-frame acquire.
     """
     from PIL import Image
 
@@ -104,6 +116,8 @@ def crop_resize(img, win: Window, out_res: Optional[int]):
         return crop
     w, h = crop.size
     s = out_res / max(w, h)
+    if not upscale and s >= 1.0:
+        return crop  # downscale-only: a crop already ≤ out_res is fed native
     return crop.resize((max(1, round(w * s)), max(1, round(h * s))), Image.LANCZOS)
 
 
@@ -284,6 +298,14 @@ def _selfcheck() -> None:
     base = roi_window(gt, 640, 480, 2.0)
     drift = roi_window(gt, 640, 480, 2.0, shift=1.5, rng=random.Random(1))
     assert base != drift
+    # min_side floors the crop: a tiny centered box that would crop small gets the floor.
+    c = round(0.5 * S)
+    tiny = [c - round(0.005 * S), c - round(0.005 * S),
+            c + round(0.005 * S), c + round(0.005 * S)]  # ~1% box, crops tiny at margin 4
+    uf = roi_window(tiny, 640, 480, 4.0)
+    assert max(uf[2] - uf[0], uf[3] - uf[1]) < 256  # unfloored: collapses small
+    fl = roi_window(tiny, 640, 480, 4.0, min_side=256)
+    assert max(fl[2] - fl[0], fl[3] - fl[1]) >= 256, fl  # floored crop is ≥ min_side
     print("roi self-check passed")
 
 

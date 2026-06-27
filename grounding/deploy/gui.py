@@ -65,12 +65,29 @@ _EXAMPLES_DIR = os.path.normpath(
 )
 _EXAMPLES = sorted(f for f in os.listdir(_EXAMPLES_DIR) if f.endswith(".jpg"))
 
+_VIDEO_EXAMPLES_DIR = os.path.normpath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "examples")
+)
+_VIDEO_EXAMPLES = sorted(f for f in os.listdir(_VIDEO_EXAMPLES_DIR) if f.endswith(".mp4"))
+
 
 def _examples_html(picker: str = "pick") -> str:
     return "".join(
         f'<img src="/examples/{fn}" title="{fn}" onclick="{picker}(\'{fn}\')">'
         for fn in _EXAMPLES
     )
+
+
+def _video_examples_html() -> str:
+    rows = []
+    for fn in _VIDEO_EXAMPLES:
+        stem = os.path.splitext(fn)[0].replace("-", " ")
+        rows.append(
+            f'<div class="vex" onclick="vpick(\'{fn}\')" title="{stem}">'
+            f'<video src="/video-examples/{fn}" preload="metadata" muted></video>'
+            f'<span>{stem}</span></div>'
+        )
+    return "".join(rows)
 
 
 _PAGE = """<!doctype html>
@@ -92,16 +109,22 @@ _PAGE = """<!doctype html>
  figcaption{color:#555;font-size:.9rem;margin-top:.3rem}
  .legend{font-size:.85rem;color:#666;margin:.4rem 0 0}
  .g{color:#1a9e3a;font-weight:600} .c{color:#2a86c8;font-weight:600} .o{color:#d97a16;font-weight:600}
- #examples img,#cexamples img{height:72px;border:2px solid #ccc;border-radius:4px;margin:0 .4rem .4rem 0;cursor:pointer;vertical-align:top}
+ #examples,#cexamples,#vexamples{display:flex;flex-wrap:nowrap;gap:.4rem;overflow-x:auto;padding-bottom:.3rem}
+ #examples img,#cexamples img{height:72px;flex:0 0 auto;border:2px solid #ccc;border-radius:4px;cursor:pointer;vertical-align:top}
  #examples img:hover,#cexamples img:hover{border-color:#2a7}
+ .vex{flex:0 0 auto;text-align:center;cursor:pointer;border:2px solid #ccc;border-radius:4px;padding:.2rem;width:130px;vertical-align:top}
+ .vex:hover{border-color:#2a7} .vex.sel{border-color:#2a7;background:#f2faf4}
+ .vex video{width:126px;height:71px;object-fit:cover;display:block;border-radius:2px;pointer-events:none}
+ .vex span{font-size:.72rem;color:#555;display:block;margin-top:.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:126px}
  .cmp{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.8rem}
  .cmp figure{flex:1;min-width:280px;margin:0}
  .cmp img{width:100%;border:1px solid #ccc}
  .cmp .stat{font-family:monospace;font-size:.85rem;margin-top:.3rem}
  .banner{font-size:1.05rem;margin:.6rem 0;padding:.5rem .7rem;background:#f2faf4;border-left:4px solid #2a7;border-radius:3px}
- .anchors{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.8rem;margin-top:.8rem}
- .anchor-pair p{margin:0 0 .2rem;font-family:monospace;font-size:.78rem;color:#666}
- .anchor-pair img{width:100%;border:1px solid #ccc;display:block;margin-bottom:.3rem}
+ .anchors{display:flex;flex-direction:column;gap:1rem;margin-top:.8rem}
+ .anchor-pair .astat{margin:0 0 .4rem;font-family:monospace;font-size:.78rem;color:#444;line-height:1.4}
+ .anchor-imgs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem}
+ .anchor-imgs img{width:100%;border:1px solid #ccc;display:block}
 </style></head><body>
 <h1>Orin VLM</h1>
 <nav>
@@ -119,9 +142,10 @@ _PAGE = """<!doctype html>
 </section>
 
 <section id="live">
+<div class="row" id="vexamples">__VEXAMPLES__</div>
 <div class="row"><input type="file" id="vid" accept="video/*"></div>
 <div class="row"><input type="text" id="vcap" placeholder="the white car near the building"></div>
-<div class="row">play every <input type="number" id="vstride" value="1" min="1" style="width:3.5rem"> frames
+<div class="row">acquire <input type="number" id="vacquire" value="4" min="0.1" step="0.1" style="width:4rem"> s &nbsp;·&nbsp; re-anchor <input type="number" id="vanchor" value="2" min="0.1" step="0.1" style="width:4rem"> s
  <button onclick="track()">Run tracking</button> <span id="vstatus" class="muted"></span></div>
 <div id="vout"></div>
 <p class="legend"><span class="g">green</span> = VLM · <span class="c">cyan</span>
@@ -171,24 +195,48 @@ async function run(){
   }catch(err){s.textContent='error'; document.getElementById('raw').textContent=err;}
 }
 let vidFile=null;
-document.getElementById('vid').onchange=e=>{vidFile=e.target.files[0]||null;};
+async function vpick(fn){
+  document.querySelectorAll('.vex').forEach(x=>x.classList.remove('sel'));
+  event.currentTarget.classList.add('sel');
+  const s=document.getElementById('vstatus'); s.textContent='loading '+fn+'...';
+  const blob=await(await fetch('/video-examples/'+encodeURIComponent(fn))).blob();
+  vidFile=new File([blob],fn,{type:'video/mp4'});
+  document.getElementById('vcap').value=fn.replace(/\\.mp4$/,'').replace(/-/g,' ');
+  s.textContent='';
+}
+document.getElementById('vid').onchange=e=>{
+  document.querySelectorAll('.vex').forEach(x=>x.classList.remove('sel'));
+  vidFile=e.target.files[0]||null;
+};
 async function track(){
   const cap=document.getElementById('vcap').value.trim();
-  const stride=parseInt(document.getElementById('vstride').value)||3;
+  const acquire=parseFloat(document.getElementById('vacquire').value)||4;
+  const anchor=parseFloat(document.getElementById('vanchor').value)||2;
   if(!vidFile){alert('pick a video first');return;}
   if(!cap){alert('type a phrase first');return;}
   const s=document.getElementById('vstatus'); s.textContent='uploading + running on the Orin (this takes a bit)...';
   document.getElementById('vout').innerHTML='';
   try{
     // raw bytes in the body — base64-in-JSON overflows the browser string allocator on big files
-    const url='/track?caption='+encodeURIComponent(cap)+'&stride='+stride;
+    const url='/track?caption='+encodeURIComponent(cap)+'&acquire='+acquire+'&anchor='+anchor;
     const resp=await fetch(url,{method:'POST',body:vidFile});
     const j=await resp.json();
     if(j.error){s.textContent='error: '+j.error; return;}
     let vhtml='<video src="'+j.video+'" controls autoplay loop muted playsinline style="max-width:100%;border:1px solid #ccc;margin-top:.8rem"></video>';
     if(j.anchors&&j.anchors.length){
       vhtml+='<h4 style="margin:.8rem 0 .3rem;font-size:.9rem">Anchor passes ('+j.anchors.length+')</h4><div class="anchors">';
-      j.anchors.forEach(a=>{vhtml+='<div class="anchor-pair"><p>frame '+a.fi+' — '+a.elapsed_s+'s</p><img src="'+a.fed+'" title="fed to VLM"><p style="margin-top:.2rem">VLM result</p><img src="'+a.annotated+'"></div>';});
+      j.anchors.forEach(a=>{
+        const s=a.stats||{};
+        const line=(s.mode?s.mode+' · ':'')
+          +'fed '+(s.fed_w||'?')+'x'+(s.fed_h||'?')+' ('+(s.fed_mpx||'?')+'Mpx, '+(s.payload_kb||'?')+'KB)'
+          +(s.crop_px?' · crop '+s.crop_px+'px':'')+(s.box_px?' · box '+s.box_px:'');
+        const tline='prefill <b>'+(s.prompt_ms||'?')+'ms</b> · decode '+(s.predicted_ms||'?')+'ms'
+          +' · transfer/queue '+(s.transfer_ms||'?')+'ms · wall '+(s.wall_ms||'?')+'ms'
+          +(s.prompt_n?'  ('+s.prompt_n+' prompt toks, '+(s.predicted_n||'?')+' decode)':'');
+        vhtml+='<div class="anchor-pair">'
+          +'<p class="astat"><b>frame '+a.fi+' — '+a.elapsed_s+'s</b> · '+line+'<br>'+tline+'</p>'
+          +'<div class="anchor-imgs"><img src="'+a.fed+'" title="crop fed to VLM"><img src="'+(a.annotated_crop||a.fed)+'" title="crop + VLM box"><img src="'+a.annotated+'" title="full frame + VLM box"></div>'
+          +'</div>';});
       vhtml+='</div>';}
     document.getElementById('vout').innerHTML=vhtml;
     s.textContent=j.note||'done';
@@ -344,6 +392,7 @@ class _Handler(BaseHTTPRequestHandler):
             page = (
                 _PAGE.replace("__EXAMPLES__", _examples_html())
                 .replace("__CEXAMPLES__", _examples_html("cpick"))
+                .replace("__VEXAMPLES__", _video_examples_html())
                 .replace("__MARGIN__", f"{_ROI_MARGIN:g}")
                 .replace("__OUTRES__", str(_ROI_OUT_RES))
             )
@@ -355,6 +404,13 @@ class _Handler(BaseHTTPRequestHandler):
                 return
             with open(os.path.join(_EXAMPLES_DIR, fn), "rb") as f:
                 self._send(200, "image/jpeg", f.read())
+        elif self.path.startswith("/video-examples/"):
+            fn = os.path.basename(self.path.split("?")[0])
+            if fn not in _VIDEO_EXAMPLES:
+                self._send(404, "text/plain", b"unknown video")
+                return
+            with open(os.path.join(_VIDEO_EXAMPLES_DIR, fn), "rb") as f:
+                self._send(200, "video/mp4", f.read())
         elif self.path.startswith("/example?"):
             fn = parse_qs(urlparse(self.path).query).get("name", [""])[0]
             if fn not in _EXAMPLES:
@@ -385,13 +441,14 @@ class _Handler(BaseHTTPRequestHandler):
             body = self.rfile.read(n)
             if parsed.path == "/track":
                 # /track POSTs the raw video bytes (no base64 — big files overflow the
-                # browser string allocator); caption + stride ride in the query string.
+                # browser string allocator); caption + timings ride in the query string.
                 q = parse_qs(parsed.query)
                 out = handler(
                     {
                         "video_bytes": body,
                         "caption": q.get("caption", [""])[0],
-                        "stride": q.get("stride", ["3"])[0],
+                        "acquire_s": q.get("acquire", ["4.0"])[0],
+                        "period_s": q.get("anchor", ["2.0"])[0],
                     }
                 )
             else:
@@ -440,7 +497,7 @@ class _Handler(BaseHTTPRequestHandler):
 
         # 2) ROI re-anchor — crop around the acquired box, upscale to the budget.
         win = roi_window(box_f, img.width, img.height, _ROI_MARGIN)
-        crop = crop_resize(img, win, _ROI_OUT_RES)
+        crop = crop_resize(img, win, _ROI_OUT_RES, upscale=False)
         raw_r, pr_ms, dr_ms = _timed_post(crop, caption, 10**9)  # crop is pre-sized
         box_r = parse_bbox(raw_r)
         if box_r is None:
@@ -473,11 +530,12 @@ class _Handler(BaseHTTPRequestHandler):
         box/frame). Terse anchor (full-frame acquire → ROI-crop re-anchor) + CSRT
         coasting; slow (a few ssh VLM passes), single-user demo only."""
         caption = req["caption"]
-        stride = max(1, int(req.get("stride", 3) or 3))
+        acquire_s = float(req.get("acquire_s", 4.0) or 4.0)
+        period_s = float(req.get("period_s", 2.0) or 2.0)
         vid_bytes = req["video_bytes"]
         anchors_out = []
 
-        def _on_anchor(fi, fed_pil, box, full_pil, elapsed_s):
+        def _on_anchor(fi, fed_pil, box, full_pil, elapsed_s, stats):
             def _b64png(img):
                 buf = io.BytesIO(); img.save(buf, "PNG")
                 return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
@@ -487,9 +545,31 @@ class _Handler(BaseHTTPRequestHandler):
                 ann_b64 = "data:image/png;base64," + base64.b64encode(
                     _annotate(buf.getvalue(), box, caption, color=(40, 190, 70))
                 ).decode()
+                buf2 = io.BytesIO(); fed_pil.save(buf2, "PNG")
+                win = stats.get("roi_win")
+                if win is not None:
+                    # box is in full-frame coords; invert map_to_full to get crop coords
+                    wx0, wy0, wx1, wy1 = win
+                    rw, rh = wx1 - wx0, wy1 - wy0
+                    fw, fh = full_pil.width, full_pil.height
+                    crop_box = [
+                        round((box[0] / COORD_SCALE * fw - wx0) / rw * COORD_SCALE),
+                        round((box[1] / COORD_SCALE * fh - wy0) / rh * COORD_SCALE),
+                        round((box[2] / COORD_SCALE * fw - wx0) / rw * COORD_SCALE),
+                        round((box[3] / COORD_SCALE * fh - wy0) / rh * COORD_SCALE),
+                    ]
+                else:
+                    crop_box = box  # full-frame anchor: fed_pil IS the full frame
+                ann_crop_b64 = "data:image/png;base64," + base64.b64encode(
+                    _annotate(buf2.getvalue(), crop_box, caption, color=(40, 190, 70))
+                ).decode()
             else:
                 ann_b64 = _b64png(full_pil)
-            anchors_out.append({"fi": fi, "fed": fed_b64, "annotated": ann_b64, "elapsed_s": round(elapsed_s, 2)})
+                ann_crop_b64 = fed_b64
+            anchors_out.append({
+                "fi": fi, "fed": fed_b64, "annotated_crop": ann_crop_b64,
+                "annotated": ann_b64, "elapsed_s": round(elapsed_s, 2), "stats": stats,
+            })
 
         vf = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
         of = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
@@ -502,7 +582,9 @@ class _Handler(BaseHTTPRequestHandler):
                 caption,
                 of.name,
                 _BACKEND,
-                stride=stride,
+                stride=1,
+                period_s=period_s,
+                acquire_s=acquire_s,
                 track=True,
                 max_seconds=_TRACK_MAX_S,
                 on_anchor=_on_anchor,
