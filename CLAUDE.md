@@ -27,7 +27,7 @@ not documented — record what was chosen, why, and what was given up.
 - `RESULTS.md` — running summary table across all experiments. Append, don't overwrite.
 - `experiments/` — Part-I automation scripts + SITL follow stack (`sitl/`).
 - `experiments/legacy/` — archived Part-I trainers/exporters. Superseded by `grounding/`.
-- `DECISIONS.md` — project-wide decision log (frozen; new decisions go in the relevant `results/` README).
+- `DECISIONS.md` — project-wide decision log. Add a one-line summary + link for each decision; full rationale, numbers, and alternatives go in `results/<campaign>/README.md`.
 
 ## Tooling
 
