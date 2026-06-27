@@ -16,10 +16,6 @@ __pycache__/
 # Datasets (COCO train2014, VisDrone, RefDrone cache) — tens of GB, not thesis source.
 # Anchored to repo root so it does NOT swallow the grounding/data/ package.
 /data/
-# Full VisDrone release (CC/DET/MOT/SOT/VID + toolkit, ~100 GB) and the raw aerial
-# source videos sampled for the demo — VisDrone-derived, not thesis source. The small
-# committed demo clips live under results/2026-06-25-system-demo/clips/ (not ignored).
-/VisDrone/
 /examples/
 
 # Run outputs: training checkpoints under runs/ are multi-GB binaries, but the
