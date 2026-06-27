@@ -14,7 +14,7 @@ The repo is a lab notebook in two parts:
 - **Part I — Exploratory** (`results/`, `experiments/`, `experiments/legacy/`,
   `archive/`): device benchmark campaigns + the VLM grounding fine-tune arc (Stages
   1–4). Complete and frozen as the historical record. Legacy per-stage trainers /
-  exporters live in `experiments/legacy/`; research prose in `archive/research/`.
+  exporters live in `experiments/legacy/`; research prose in `archive/`.
 - **Part II — Principled rebuild (v2)** (`grounding/` package, branch
   `v2/principled-rebuild`): a deliberate rebuild organised around one shared
   *contract* and a fidelity-before-GPU workflow. See `grounding/README.md`.
@@ -22,7 +22,7 @@ The repo is a lab notebook in two parts:
 ```
 grounding/        # v2 package: contract.py (shared truth) + data/ eval/ train/ export/ deploy/ resolution.py
 experiments/      # device-benchmark tooling (stdlib-only) + legacy/ (archived Part-I scripts)
-archive/research/ # archived research/handoff prose
+archive/ # archived research/handoff prose
 results/          # Part-I experiment writeups (one dir per campaign)
 DECISIONS.md      # decision log (Part II newest-first at top; Part I below)
 RESULTS.md        # results ledger (Part II appended at bottom)

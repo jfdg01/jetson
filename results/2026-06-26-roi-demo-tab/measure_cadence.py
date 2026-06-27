@@ -23,11 +23,11 @@ from grounding.eval.backends import JetsonBackend
 # 5 committed example images + a referring phrase keyed off the filename (box quality is
 # irrelevant to timing; we only need a parseable anchor to seed the ROI crop).
 CASES = [
-    ("examples/images/white-car.jpg", "the white car"),
-    ("examples/images/red-car.jpg", "the red car"),
-    ("examples/images/blue-car.jpg", "the blue car"),
-    ("examples/images/black-car-right.jpg", "the black car"),
-    ("examples/images/small-bus.jpg", "the bus"),
+    ("examples/white-car.jpg", "the white car"),
+    ("examples/red-car.jpg", "the red car"),
+    ("examples/blue-car.jpg", "the blue car"),
+    ("examples/black-car-right.jpg", "the black car"),
+    ("examples/small-bus.jpg", "the bus"),
 ]
 REPS = 2  # per image per mode → median over 10 samples
 

@@ -26,11 +26,11 @@ __pycache__/
 # per-run PROVENANCE (manifest.json / run-card.md / results.json — the v2
 # experiment-tracking record) must stay committed. Ignore everything in runs/
 # except those text artifacts.
-runs/**
-!runs/**/
-!runs/**/manifest.json
-!runs/**/run-card.md
-!runs/**/results.json
+experiments/runs/**
+!experiments/runs/**/
+!experiments/runs/**/manifest.json
+!experiments/runs/**/run-card.md
+!experiments/runs/**/results.json
 
 # Secrets
 .hugging-face-token

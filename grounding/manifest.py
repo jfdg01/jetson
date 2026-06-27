@@ -2,7 +2,7 @@
 
 We track experiments with **plain files**, not a tracking server: every run writes a
 `manifest.json` (machine-readable) plus a `run-card.md` (human-readable) into its own
-`runs/<run_id>/` directory. This matches the repo's lab-notebook ethos (greppable,
+`experiments/runs/<run_id>/` directory. This matches the repo's lab-notebook ethos (greppable,
 diffable, committable, survives into the thesis) and adds no daemon or cloud
 dependency. See DECISIONS.md (Part II) for why this over MLflow/W&B.
 
@@ -160,7 +160,7 @@ def write(
     runs_dir: str | Path = "runs",
     results: Optional[Dict[str, Any]] = None,
 ) -> Path:
-    """Write manifest.json (+ run-card.md, + results.json if given) under runs/<id>/.
+    """Write manifest.json (+ run-card.md, + results.json if given) under experiments/runs/<id>/.
 
     Returns the run directory. Idempotent per run_id (overwrites that run's files).
     """
