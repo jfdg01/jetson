@@ -3,7 +3,7 @@
 # added as their modules are filled in at each phase startup.
 #
 # Conventions:
-#   - .venv-ft is the GPU/eval/training env (cu124 torch); .venv is stdlib-only.
+#   - .venv-ft is the single venv (cu124 torch + pymavlink).
 #   - uv is user-local at ~/.local/bin/uv. `lock` regenerates the pinned set.
 
 UV := $(HOME)/.local/bin/uv
@@ -25,7 +25,7 @@ sync:  ## Reproduce the exact GPU env from the lock (uv pip sync)
 	$(UV) pip sync --python $(PY) requirements-ft.lock.txt
 
 dev:  ## Install dev/test tooling on top of .venv-ft
-	$(UV) pip install --python $(PY) -r requirements-dev.txt
+	$(UV) pip install --python $(PY) pytest==9.1.0
 
 lock:  ## Regenerate requirements-ft.lock.txt from the live .venv-ft
 	@echo "# regenerate after editing requirements-ft.txt + applying changes"

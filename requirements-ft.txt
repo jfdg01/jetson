@@ -1,4 +1,4 @@
-# Direct (human-level) deps for the GPU/eval/training env (.venv-ft).
+# Direct (human-level) deps for the single venv (.venv-ft).
 # This is the file you EDIT; the fully-pinned transitive set lives in
 # requirements-ft.lock.txt (regenerate with `uv pip freeze` after any change).
 # torch/torchvision are +cu124 wheels off PyTorch's CUDA index, not PyPI:
@@ -19,5 +19,6 @@ scipy==1.17.1
 sentencepiece==0.2.1
 torch==2.6.0+cu124
 torchvision==0.21.0+cu124
+pymavlink==2.4.49
 tqdm==4.68.2
 transformers==4.57.6

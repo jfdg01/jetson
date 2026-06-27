@@ -1,8 +1,0 @@
-# Minimal project config for the v2 `grounding/` package.
-# Deps are NOT managed here — they live in requirements-ft.txt (+ .lock) and are
-# installed with uv into .venv-ft (see DECISIONS.md Part II). This file exists only
-# to configure pytest and mark the repo root for imports.
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-q"

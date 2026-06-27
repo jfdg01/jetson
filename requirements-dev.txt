@@ -1,4 +1,0 @@
-# requirements-dev.txt — test/dev tooling layered on top of .venv-ft.
-# Kept OUT of requirements-ft.lock.txt so the runtime/training lock stays pure.
-# Install with: uv pip install -r requirements-dev.txt
-pytest==9.1.0

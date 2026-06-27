@@ -31,9 +31,7 @@ not documented — record what was chosen, why, and what was given up.
 
 ## Tooling
 
-Two venvs — keep them separate:
-- `.venv-ft` — torch + transformers + opencv-contrib. All GPU/eval/train/deploy work. Also any Part-III script using `numpy`/`scipy`/`PIL`.
-- `.venv` — stdlib + pymavlink only. SITL offboard (`offboard.py`) and Part-I device-benchmark tooling.
+Single venv: `.venv-ft` — torch + transformers + opencv-contrib + pymavlink. All work goes here.
 
 ```bash
 make help      # list all targets
