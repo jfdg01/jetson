@@ -90,6 +90,18 @@ Parse teacher bbox from raw output using the same `parse_bbox` from
 
 **Acceptance threshold: IoU ≥ 0.4**
 
+Chosen as a middle ground between two failure modes:
+- Too strict (≥ 0.5, COCO standard): rejects valid teacher outputs that are spatially
+  imprecise but correct — expected for a generative model predicting boxes from a
+  natural-language description, especially on small aerial objects.
+- Too loose (≤ 0.3): accepts outputs that are in the right region but wrong enough to
+  introduce noise into training.
+
+0.4 is a judgment call validated empirically by the yield gate (≥ 30%). If yield is
+too low, drop to 0.3 and note the change in the thesis. If yield is healthy at 0.4,
+it is defensible as stricter than the relaxed floor without demanding COCO-level
+precision from a teacher that was never trained as a detector.
+
 Below this the teacher has hallucinated or seriously mislocalised. Rejected pairs are
 logged (not silently dropped) so yield rate is reportable.
 
