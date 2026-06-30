@@ -11,11 +11,9 @@ and the date. Capture what works AND what doesn't — negative results are thesi
 No unverified claims; mark estimates as estimates. A decision without its rationale is
 not documented — record what was chosen, why, and what was given up.
 
-**Timestamp rule (docs only):** whenever you write a date into a doc (RESULTS,
-QUESTIONS, DECISIONS, experiment README, SOURCES — anything but a folder name),
-write it as `YYYY-MM-DDThh:mmZ` using the **Madrid wall-clock time** (the hour on
-the local clock, not converted to UTC), e.g. `2026-06-30T18:45Z`. Within 15
-minutes is close enough; never assume `00:00`. Folder names stay date-only.
+**Timestamp rule (docs only):** dates in docs use `YYYY-MM-DDThh:mmZ` in **Madrid
+wall-clock time** (local hour, not UTC-converted), e.g. `2026-06-30T18:45Z` — within
+15 min is fine, never a dummy hour. Folder names stay date-only.
 
 ## Project parts (I–III complete, IV in progress)
 
@@ -47,9 +45,18 @@ per-Part doc, never the root.
 
 ## Per-experiment workflow (definition of done)
 
+**Write a README *before* you run any experiment.** This file is the general context for the experiment as well as the drafting and intention of it. Pre-register
+`experiments/<campaign>/README.md` *before launching*: the exact command, software versions, power
+mode, start date, the context/restrictions, the decisions and their rationale, and your up-front
+estimates (expected runtime, expected numbers — mark them as estimates). Leave a clearly-labelled
+placeholder section (e.g. `## Results (TBD)`) with the table headers / shape you expect to fill in.
+Drafting the record first forces the setup to be coherent before you spend the time, and it's
+doubly important for multi-day or overnight runs that span sessions. Then fill it in when the run
+finishes; record estimate-vs-actual where they diverge — a wrong estimate is content.
+
 A campaign isn't done until:
 
-1. `experiments/<campaign>/README.md` written — command, software versions, power mode, date; what worked **and** what didn't.
+1. `experiments/<campaign>/README.md` completed — pre-registered fields above, now filled with what worked **and** what didn't.
 2. **RESULTS** row(s) appended under the run's Part.
 3. **QUESTIONS** entry (RQ/`Q-*` id + one-line verdict) appended under the run's Part.
 4. **DECISIONS** entry appended under the run's Part — only if a non-trivial choice was made (what / why / what was given up).
