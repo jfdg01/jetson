@@ -1,7 +1,5 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 This repo is the working record for a **master's thesis** on running local LLMs on
 edge hardware (Jetson Orin Nano 8 GB). The numbers and notes here go into the
 thesis, so **documentation is a first-class deliverable, not an afterthought.**
@@ -27,7 +25,10 @@ not documented — record what was chosen, why, and what was given up.
 - `RESULTS.md` — running summary table across all experiments. Append, don't overwrite.
 - `experiments/` — Part-I automation scripts + SITL follow stack (`sitl/`).
 - `experiments/legacy/` — archived Part-I trainers/exporters. Superseded by `grounding/`.
-- `DECISIONS.md` — project-wide decision log. Add a one-line summary + link for each decision; full rationale, numbers, and alternatives go in `results/<campaign>/README.md`.
+- `QUESTIONS.md` — thin index of every experiment's research question; full verdicts split per Part in `docs/questions/part{1,2,3}-*.md`. Load only the Part you're writing.
+- `DECISIONS.md` — thin index; decisions split per Part in `docs/decisions/part{1,2,3}-*.md`. **Append to TOP** — prepend each new decision above the most recent in its Part file (newest first). One-line summary + link per decision; full rationale, numbers, and alternatives go in `results/<campaign>/README.md`.
+- `docs/` — per-Part `questions/` + `decisions/` detail files, plus generated/exported reports (`INFORME_PROGRESO`, `MODEL_REPORT`, `.md`+`.pdf`).
+- `SOURCES.md` — every external paper, model, or dataset we cite or use. **Whenever you pull in a paper/model/dataset, add an entry: the link + what we used it for** (for future thesis citations). Append, don't overwrite.
 
 ## Tooling
 
