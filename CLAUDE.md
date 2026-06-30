@@ -11,6 +11,12 @@ and the date. Capture what works AND what doesn't — negative results are thesi
 No unverified claims; mark estimates as estimates. A decision without its rationale is
 not documented — record what was chosen, why, and what was given up.
 
+**Timestamp rule (docs only):** whenever you write a date into a doc (RESULTS,
+QUESTIONS, DECISIONS, experiment README, SOURCES — anything but a folder name),
+write it as `YYYY-MM-DDThh:mmZ` using the **Madrid wall-clock time** (the hour on
+the local clock, not converted to UTC), e.g. `2026-06-30T18:45Z`. Within 15
+minutes is close enough; never assume `00:00`. Folder names stay date-only.
+
 ## Project parts (I–III complete, IV in progress)
 
 - **Part I — Exploratory:** device benchmark campaigns + VLM grounding fine-tune (Stages 1–4). Frozen.
