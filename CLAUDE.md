@@ -45,14 +45,17 @@ per-Part doc, never the root.
 
 ## Per-experiment workflow (definition of done)
 
-**Write a README *before* you run any experiment.** This file is the general context for the experiment as well as the drafting and intention of it. Pre-register
-`experiments/<campaign>/README.md` *before launching*: the exact command, software versions, power
-mode, start date, the context/restrictions, the decisions and their rationale, and your up-front
-estimates (expected runtime, expected numbers — mark them as estimates). Leave a clearly-labelled
-placeholder section (e.g. `## Results (TBD)`) with the table headers / shape you expect to fill in.
-Drafting the record first forces the setup to be coherent before you spend the time, and it's
-doubly important for multi-day or overnight runs that span sessions. Then fill it in when the run
-finishes; record estimate-vs-actual where they diverge — a wrong estimate is content.
+**Write a README *before* you run any experiment.** Treat `experiments/<campaign>/README.md` as a
+self-contained handoff: a fresh conversation with no prior context should be able to open this one
+file and have everything it needs to **start, continue, document, or complete** the experiment.
+Pre-register it *before launching*: the exact command, software versions, power mode, start date,
+the context/restrictions, the decisions and their rationale, and your up-front estimates (expected
+runtime, expected numbers — mark them as estimates). Leave a clearly-labelled placeholder section
+(e.g. `## Results (TBD)`) with the table headers / shape you expect to fill in, and note current
+status / next step so a later session knows where to pick up. Drafting the record first forces the
+setup to be coherent before you spend the time, and it's doubly important for multi-day or overnight
+runs that span sessions. Then fill it in when the run finishes; record estimate-vs-actual where they
+diverge — a wrong estimate is content.
 
 A campaign isn't done until:
 
@@ -82,6 +85,7 @@ make test      # run pytest contract + manifest + audit suite
 - Device: `ssh jetson` (user `jfdg`). `sudo nvpmodel` and `sudo jetson_clocks` are **NOPASSWD** (run non-interactively over SSH); `apt install`, firmware flashing, etc. still need an interactive password.
 - `nvcc`: `/usr/local/cuda/bin/nvcc` (not on default `$PATH`).
 - HF token for gated models: `.hugging-face-token` at repo root (gitignored).
+- Don't use emojis
 
 ## Working agreement
 
