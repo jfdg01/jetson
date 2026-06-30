@@ -29,7 +29,7 @@ point back to it; never duplicate content across files — link.
 
 | Path | Role | Update rule |
 |---|---|---|
-| `experiments/<campaign>/README.md` | **source of truth** — the full per-experiment record (command, versions, power mode, date, rationale). Raw logs in `experiments/raw/`. | one dir per campaign |
+| `experiments/<campaign>/README.md` | **source of truth** — the full per-experiment record (command, versions, power mode, date, rationale). Raw logs in `experiments/<campaign>/raw/` (legacy Part-I/`runners` logs live in the shared `experiments/raw/`). | one dir per campaign |
 | `RESULTS.md` → `docs/results/part{1-n}-*.md` | ledger: metric tables, one row per run | **append** under the run's Part |
 | `QUESTIONS.md` → `docs/questions/part{1-n}-*.md` | ledger: research question + one-line verdict per run. Root is a pure redirect (Part table only) — **append to the per-Part doc, not the root** | **append** under the run's Part |
 | `DECISIONS.md` → `docs/decisions/part{1-n}-*.md` | ledger: cross-cutting choices + rationale | **append** under the run's Part |

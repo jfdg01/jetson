@@ -30,3 +30,9 @@ the per-experiment README is the source of truth. Append; newest at the bottom.
 - **RefDrone** — `sunzc-sunny/RefDrone`
   https://huggingface.co/datasets/sunzc-sunny/RefDrone
   → Part II / Part III grounding eval
+
+- **AerialMind** (AAAI 2025) — `shawnliang0420/AerialMind` · arXiv 2511.21053
+  https://huggingface.co/datasets/shawnliang0420/AerialMind ·
+  https://github.com/shawnliang420/AerialMind
+  → [`docs/dataset-survey-refdrone.md`](docs/dataset-survey-refdrone.md) §4 — candidate
+  Part III/IV temporal (RMOT) dataset. Academic-only (VisDrone NC-SA chain).
