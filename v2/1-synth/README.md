@@ -61,7 +61,7 @@ For each VisDrone train image:
 - Filter: keep boxes where √(w·h) ≥ 10 px (below this the teacher cannot reliably
   localise; matches the aerial object-size floor from Phase 1 of v2)
 
-Output: `results/candidates.jsonl` — one line per `(image, object)` pair.
+Output: `experiments/candidates.jsonl` — one line per `(image, object)` pair.
 
 ### Step 2 — Teacher inference
 
@@ -81,7 +81,7 @@ Referring expression: <description>
 Bounding box: [x1, y1, x2, y2]
 ```
 
-Output: `results/raw_teacher_output.jsonl`
+Output: `experiments/raw_teacher_output.jsonl`
 
 ### Step 3 — Parse and filter
 
@@ -105,14 +105,14 @@ precision from a teacher that was never trained as a detector.
 Below this the teacher has hallucinated or seriously mislocalised. Rejected pairs are
 logged (not silently dropped) so yield rate is reportable.
 
-Output: `results/accepted.jsonl`, `results/rejected.jsonl`
+Output: `experiments/accepted.jsonl`, `experiments/rejected.jsonl`
 
 ### Step 4 — Merge with RefDrone
 
 Convert accepted pairs to the same format as RefDrone well-posed train (MDETR JSON
 schema). Merge with the 4101 RefDrone samples. Record final corpus size and composition.
 
-Output: `results/train_corpus.jsonl` — the canonical training corpus for `benchmark/`.
+Output: `experiments/train_corpus.jsonl` — the canonical training corpus for `benchmark/`.
 
 ---
 
@@ -130,10 +130,10 @@ Output: `results/train_corpus.jsonl` — the canonical training corpus for `benc
 
 | Step | File | Status |
 |---|---|---|
-| Candidate extraction | `results/step1-candidates.md` | pending |
-| Teacher inference | `results/step2-inference.md` | pending |
-| Filter + yield | `results/step3-filter.md` | pending |
-| Final corpus | `results/step4-corpus.md` | pending |
+| Candidate extraction | `experiments/step1-candidates.md` | pending |
+| Teacher inference | `experiments/step2-inference.md` | pending |
+| Filter + yield | `experiments/step3-filter.md` | pending |
+| Final corpus | `experiments/step4-corpus.md` | pending |
 
 ---
 

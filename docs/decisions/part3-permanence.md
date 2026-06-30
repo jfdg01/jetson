@@ -1,14 +1,14 @@
 # DECISIONS — Part III (v3 Object Permanence)
 
 > Decision log for persistent tracking / object permanence (v3). Index: [`../../DECISIONS.md`](../../DECISIONS.md).
-> Per-experiment decisions also live in `results/<campaign>/README.md`. ★ = headline decision.
+> Per-experiment decisions also live in `experiments/<campaign>/README.md`. ★ = headline decision.
 > **Append** — add each new decision at the **bottom** (chronological, oldest first; matches RESULTS/QUESTIONS).
 
 ---
 
 ### 2026-06-18 — Open Part III on branch `v3/object-permanence`
 
-- **Chosen:** Persistent single-object tracking under language conditioning. Reuse Part-I SITL stack + Part-II Qwen2-VL-2B Q8_0 anchor. Pre-register constraints + gated plan T0–T4 in `results/2026-06-18-part3-charter/README.md` before any code or GPU.
+- **Chosen:** Persistent single-object tracking under language conditioning. Reuse Part-I SITL stack + Part-II Qwen2-VL-2B Q8_0 anchor. Pre-register constraints + gated plan T0–T4 in `experiments/2026-06-18-part3-charter/README.md` before any code or GPU.
 - **Two binding constraints:** #1 detection-cadence vs target-dynamics budget; #2 identity-through-absence (object permanence). Forced architecture: sparse VLM anchor + 20 Hz fast tracker.
 - **Why charter-first:** Phase C proved the naive loop fails; pre-register before spending GPU — same discipline as v2.
 </content>
@@ -28,13 +28,13 @@
 
 ### 2026-06-24T00:00 — T2 PASS: appearance-memory re-ID with SNR/range knob ★
 
-- **Chosen:** Stored appearance descriptor behind refuse-to-lock gate (`experiments/sitl/reid_policy.py`). Scalar appearance model; observation noise scales with crop size → `snr` knob = separability-vs-range frontier.
+- **Chosen:** Stored appearance descriptor behind refuse-to-lock gate (`runners/sitl/reid_policy.py`). Scalar appearance model; observation noise scales with crop size → `snr` knob = separability-vs-range frontier.
 - **Results (snr ≳ 1):** identity purity 0.725→1.000, ID switches 1→0, failed re-acq 1→0, coverage 0.575→0.695, following error 67.7→0.13 px. Below knee: degrades to baseline.
 - **Trade-off:** Win conditional on separability. Scalar+noise isolates mechanism from encoder — RGB rendering and real embeddings deferred to T3/T4.
 
 ### 2026-06-24T12:00 — T3 PASS: closed-loop A/B ★
 
-- **Setup:** New runner `experiments/run_t3.py` (reuses oracle_bbox + bytetrack + cascade_pid + offboard + T2 `_observe`). Distractor crosses + briefly occludes target at t=29–31 s, then veers away. One fresh flight per policy (shared flight gives 2.8% re-ID vs 71.5% on fresh takeoff — start conditions matter).
+- **Setup:** New runner `runners/run_t3.py` (reuses oracle_bbox + bytetrack + cascade_pid + offboard + T2 `_observe`). Distractor crosses + briefly occludes target at t=29–31 s, then veers away. One fresh flight per policy (shared flight gives 2.8% re-ID vs 71.5% on fresh takeoff — start conditions matter).
 - **Results:** Phase-C ≈ 0% → re-ID **97.6% / 71.5%** (kinematic/live SITL) true-target coverage vs memoryless **49.2% / 53.7%**. Live margin < kinematic due to PID-lag/inertia; direction + mechanism hold.
 - **SITL gotchas:** GUIDED before takeoff; `--uartA=tcp:5760` (lockstep clock); drain `LOCAL_POSITION_NED` to freshest; hard-reap arducopter between flights; run foreground.
 
@@ -45,7 +45,7 @@
 
 ### 2026-06-25T00:00 — Whole-system demo = static HTML folder, not live tool
 
-- **Chosen:** Static `results/2026-06-25-system-demo/index.html` + 3 GIFs, opened from `file://`. Stage-4 closed-loop added via `experiments/sitl/closedloop_viz.py` (`on_frame` hook on `run_t3.run_loop`, no new control code).
+- **Chosen:** Static `experiments/2026-06-25-system-demo/index.html` + 3 GIFs, opened from `file://`. Stage-4 closed-loop added via `runners/sitl/closedloop_viz.py` (`on_frame` hook on `run_t3.run_loop`, no new control code).
 - **Why:** User explicit: *"static so I can simply show it."* No `ssh jetson` needed mid-talk. Pre-rendered anchor GIF = 3 genuine VLM passes. Self-check asserts re-ID coverage > baseline and ≥ 80%.
 - **Trade-off:** No live "type-a-phrase" interactivity (live GUI remains separate). Demo shows three honest stages with a stated seam, never a faked end-to-end.
 
@@ -58,7 +58,7 @@
 ### 2026-06-25T13:00 — Demo rebuilt as 2-tab live gui.py; old static 4-tab page retired
 
 - **Chosen:** `grounding/deploy/gui.py`: tab 1 = manual grounding (live Orin VLM), tab 2 = Level-2 tracking (3 short VisDrone clips as mp4). Heavy GIFs (~40 MB) deleted; mp4 ~0.6 MB each.
-- **Why:** User's ask — keep only manual VLM test + Level-2. Permanence/closed-loop panels dropped ("for now I only need …") — still documented in `results/` and GIFs in git history.
+- **Why:** User's ask — keep only manual VLM test + Level-2. Permanence/closed-loop panels dropped ("for now I only need …") — still documented in `experiments/` and GIFs in git history.
 - **Trade-off:** Tab 1 needs `ssh jetson` live; tab 2 does not.
 
 ### 2026-06-25T15:00 — Replace opencv-python with opencv-contrib-python (CSRT)
@@ -108,5 +108,5 @@
 
 ### 2026-06-30 — ROI lever stays LANCZOS; learned SR (Swin2SR) rejected
 
-- Swin2SR x4 loses to free bicubic/lanczos on grounding IoU (78.6% vs 80.9% IoU@0.25) and costs ~1.3 s/crop — most of the anchor budget. Full writeup: [`results/2026-06-30-roi-sr-upscale/`](../../results/2026-06-30-roi-sr-upscale/README.md).
+- Swin2SR x4 loses to free bicubic/lanczos on grounding IoU (78.6% vs 80.9% IoU@0.25) and costs ~1.3 s/crop — most of the anchor budget. Full writeup: [`experiments/2026-06-30-roi-sr-upscale/`](../../experiments/2026-06-30-roi-sr-upscale/README.md).
 

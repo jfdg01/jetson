@@ -4,7 +4,7 @@
 > **Append** — add each new decision at the **bottom** of its Part file (chronological, oldest first;
 > same rule as RESULTS and QUESTIONS).
 > Add a one-line summary + link for each decision; full rationale, numbers, and alternatives go in
-> `results/<campaign>/README.md`. ★ marks headline decisions. Compressed archive of original: `archive/DECISIONS.md`.
+> `experiments/<campaign>/README.md`. ★ marks headline decisions. Compressed archive of original: `archive/DECISIONS.md`.
 
 | Part | File | Scope |
 |---|---|---|

@@ -1,7 +1,7 @@
 # RESULTS — Part IV · End-to-end workflow refinement (v4)
 
 Index: [`../../RESULTS.md`](../../RESULTS.md) · Companion: [`../questions/`](../questions/) (research questions) · [`../decisions/`](../decisions/) (what was chosen & why).
-Per-campaign detail lives in `results/<campaign>/README.md`. Append, never overwrite.
+Per-campaign detail lives in `experiments/<campaign>/README.md`. Append, never overwrite.
 
 ---
 

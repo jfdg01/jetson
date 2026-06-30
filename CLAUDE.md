@@ -25,7 +25,7 @@ point back to it; never duplicate content across files — link.
 
 | Path | Role | Update rule |
 |---|---|---|
-| `results/<campaign>/README.md` | **source of truth** — the full per-experiment record (command, versions, power mode, date, rationale). Raw logs in `results/raw/`. | one dir per campaign |
+| `experiments/<campaign>/README.md` | **source of truth** — the full per-experiment record (command, versions, power mode, date, rationale). Raw logs in `experiments/raw/`. | one dir per campaign |
 | `RESULTS.md` → `docs/results/part{1-n}-*.md` | ledger: metric tables, one row per run | **append** under the run's Part |
 | `QUESTIONS.md` → `docs/questions/part{1-n}-*.md` | ledger: research question + one-line verdict per run. Root is a pure redirect (Part table only) — **append to the per-Part doc, not the root** | **append** under the run's Part |
 | `DECISIONS.md` → `docs/decisions/part{1-n}-*.md` | ledger: cross-cutting choices + rationale | **append** under the run's Part |
@@ -33,7 +33,7 @@ point back to it; never duplicate content across files — link.
 | `README.md` | reference: hardware/platform survey + this map | edit when the platform changes |
 | `docs/` | the per-Part ledger detail files above | — |
 | `grounding/` | v2/v3 Python package (`contract.py`, `data/`, `eval/`, `train/`, `export/`, `deploy/`, `resolution.py`, `roi.py`) | — |
-| `experiments/` | Part-I automation + SITL follow stack (`sitl/`); `legacy/` = archived, superseded by `grounding/` | — |
+| `runners/` | Part-I automation + SITL follow stack (`sitl/`); `legacy/` = archived, superseded by `grounding/` | — |
 
 The three ledger root files are **thin redirects** (a Part table) — open only the Part you're
 writing, so a session doesn't drag all other chapters into context. Per-run entries go in the
@@ -43,7 +43,7 @@ per-Part doc, never the root.
 
 A campaign isn't done until:
 
-1. `results/<campaign>/README.md` written — command, software versions, power mode, date; what worked **and** what didn't.
+1. `experiments/<campaign>/README.md` written — command, software versions, power mode, date; what worked **and** what didn't.
 2. **RESULTS** row(s) appended under the run's Part.
 3. **QUESTIONS** entry (RQ/`Q-*` id + one-line verdict) appended under the run's Part.
 4. **DECISIONS** entry appended under the run's Part — only if a non-trivial choice was made (what / why / what was given up).
@@ -73,4 +73,4 @@ make test      # run pytest contract + manifest + audit suite
 ## Working agreement
 
 - Don't leave findings only in chat — land them via the workflow above before the session ends.
-- If a tool is missing (`ffmpeg`, `cmake`, a Python package), say what's needed and why — don't work around it. Document installs in the relevant `results/` README.
+- If a tool is missing (`ffmpeg`, `cmake`, a Python package), say what's needed and why — don't work around it. Document installs in the relevant `experiments/` README.

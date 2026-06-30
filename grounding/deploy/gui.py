@@ -8,7 +8,7 @@ Tabs:
      coasts between anchors, and re-acquires full-frame after a loss (both latency levers).
   3. **Re-anchor speedup** — full-frame anchor vs ROI-crop re-anchor, side by side, with
      the prefill/decode split for each (the prefill latency lever; see
-     `results/2026-06-26-roi-demo-tab/` + `results/2026-06-25-roi-crop-anchor/`).
+     `experiments/2026-06-26-roi-demo-tab/` + `experiments/2026-06-25-roi-crop-anchor/`).
 
 Stdlib-only (no Flask/Gradio — keeps the lock-pinned `.venv-ft` untouched; PIL is
 already present for drawing). Boots the Jetson GGUF server ONCE at startup and
@@ -483,7 +483,7 @@ class _Handler(BaseHTTPRequestHandler):
         following loop would actually run. Returns both annotated images + the prefill/
         decode split for each, so the speed *and* the super-resolution tightening are
         both visible. (Live, on the deployed Q8_0 — a qualitative on-device check of the
-        results/2026-06-25-roi-crop-anchor finding, which was quantified on HF bf16.)"""
+        experiments/2026-06-25-roi-crop-anchor finding, which was quantified on HF bf16.)"""
         caption = req["caption"]
         _, b64 = req["image"].split(",", 1)
         png_bytes = base64.b64decode(b64)

@@ -1,7 +1,7 @@
 # DECISIONS — Part I (Exploratory)
 
 > Decision log for the exploratory device campaigns + grounding Stages 1–4. Index: [`../../DECISIONS.md`](../../DECISIONS.md).
-> Per-experiment decisions also live in `results/<campaign>/README.md`. ★ = headline decision.
+> Per-experiment decisions also live in `experiments/<campaign>/README.md`. ★ = headline decision.
 > **Append** — add each new decision at the **bottom** (chronological, oldest first; matches RESULTS/QUESTIONS).
 
 ---
@@ -96,7 +96,7 @@
 
 ### 2026-06-15T13:00 — Toy NL-command demo: honest zero-shot baseline, aerial imagery only
 
-- **Chosen:** `experiments/demo_nlcommand.py`. Three verbs: FOLLOW/ZOOM → VLM grounding; TURN → heuristic yaw. Tested on VisDrone nadir frames. Grounding failures reported honestly. Latency: 534 ms / 2046 ms (single calls, not campaign-grade).
+- **Chosen:** `runners/demo_nlcommand.py`. Three verbs: FOLLOW/ZOOM → VLM grounding; TURN → heuristic yaw. Tested on VisDrone nadir frames. Grounding failures reported honestly. Latency: 534 ms / 2046 ms (single calls, not campaign-grade).
 - **Why:** Establishes zero-shot baseline before fine-tuning. TURN demonstrates pipeline working; FOLLOW/ZOOM demonstrate VLM path firing with honest negative result.
 
 ### 2026-06-15T17:30 — Phase C: async slot architecture + track-loss definition

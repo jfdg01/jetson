@@ -11,7 +11,7 @@ visibly drifts away from until the next VLM pass lands.
 
 This is the honest "anchor on real video" — no tracker, no oracle, no permanence. The
 20 Hz fast tier (which would hold the lock between anchors) is Level 2 (see
-results/2026-06-25-system-demo/PLANNING-history.md); closed-loop following on
+experiments/2026-06-25-system-demo/PLANNING-history.md); closed-loop following on
 pre-recorded video is impossible (no actuation) and stays sim-only.
 
     source .venv-ft/bin/activate
@@ -44,7 +44,7 @@ from grounding.roi import crop_resize, map_to_full, roi_window
 
 # terse iter-2b anchor (2026-06-26): bare 0–100 ints, Orin Q8_0 63.1% (> JSON 62.6%),
 # decode −45%. Must match the terse GROUNDING_PROMPT in contract.py — see
-# results/2026-06-25-terse-output-retrain/.
+# experiments/2026-06-25-terse-output-retrain/.
 _REMOTE_MODELS = {
     "q8_0": "phase3-terse100eos-1024-q8_0.gguf",
     "f16": "phase3-terse100eos-1024-f16.gguf",
@@ -52,7 +52,7 @@ _REMOTE_MODELS = {
 _REMOTE_MMPROJ = "mmproj-phase3-terse100eos-1024-f16.gguf"
 _TRAIN_MAX_SIDE = 1024
 # Re-measured on-Orin 2026-06-26 (terse Q8_0, 15 W, incl. ssh transfer — the wall the demo
-# blocks on per anchor; see results/2026-06-26-roi-demo-tab/measure_cadence.py). Two-tier:
+# blocks on per anchor; see experiments/2026-06-26-roi-demo-tab/measure_cadence.py). Two-tier:
 # the steady-state cadence is the ROI re-anchor (~2.0 s); the one-time cold acquire / post-loss
 # re-acquire is full-frame and ~2.4× slower (~4.8 s). The schedule spaces the first anchor by
 # the slow acquire gap, the rest by the fast re-anchor gap. The old T0/T4 2.26 s was JSON @512
@@ -62,7 +62,7 @@ ACQUIRE_PERIOD_S = (
     2.0  # full-frame acquire wall — first anchor (and post-loss re-acquire)
 )
 
-# ROI re-anchor (results/2026-06-25-roi-crop-anchor): while the lock holds, re-anchor on a
+# ROI re-anchor (experiments/2026-06-25-roi-crop-anchor): while the lock holds, re-anchor on a
 # tight crop around the last box, upscaled to OUT_RES — 2.7× cheaper prefill AND +22.6 pp
 # (super-resolution on the target). Cold acquire / re-acquire after a loss stays full-frame.
 ROI_MARGIN = 4.0

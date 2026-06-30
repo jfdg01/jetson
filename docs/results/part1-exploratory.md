@@ -1,7 +1,7 @@
 # RESULTS — Part I · Exploratory (device benchmarks + grounding Stages 1–4)
 
 Index: [`../../RESULTS.md`](../../RESULTS.md) · Companion: [`../questions/`](../questions/) (research questions) · [`../decisions/`](../decisions/) (what was chosen & why).
-Per-campaign detail lives in `results/<campaign>/README.md`. Append, never overwrite.
+Per-campaign detail lives in `experiments/<campaign>/README.md`. Append, never overwrite.
 
 **Global config (all llama.cpp runs):** Jetson Orin Nano 8 GB · 15 W locked (`nvpmodel -m 0` + `jetson_clocks`) · llama.cpp `57fe1f0` CUDA sm_87 · Q4_K_M · ngl=99 · n_ctx=4096 · pp512/tg128 · 5 reps each.
 **Idle baseline:** ~5.2 W · ~1820 MB RAM · ~11–50 MB swap (zram; "swap hit" = growth >50 MB over idle).
@@ -11,7 +11,7 @@ Per-campaign detail lives in `results/<campaign>/README.md`. Append, never overw
 ## Part I — Exploratory
 
 ### Campaign: llamacpp-upper-bound (2026-06-13)
-Full writeup: [`results/2026-06-13-llamacpp-upper-bound/`](../../results/2026-06-13-llamacpp-upper-bound/README.md)
+Full writeup: [`experiments/2026-06-13-llamacpp-upper-bound/`](../../experiments/2026-06-13-llamacpp-upper-bound/README.md)
 
 | Model / quant | Params | pp512 tok/s | tg128 tok/s | Peak RAM | Mean/Peak W | tok/s·W⁻¹ | J/tok | Peak °C |
 |---|---|---|---|---|---|---|---|---|
@@ -22,7 +22,7 @@ Full writeup: [`results/2026-06-13-llamacpp-upper-bound/`](../../results/2026-06
 ---
 
 ### Campaign: model-capability-sweep (2026-06-14)
-Full writeup: [`results/2026-06-13-model-capability-sweep/`](../../results/2026-06-13-model-capability-sweep/README.md)
+Full writeup: [`experiments/2026-06-13-model-capability-sweep/`](../../experiments/2026-06-13-model-capability-sweep/README.md)
 
 | # | Model / quant | Params | pp512 tok/s | tg128 tok/s | tg512 tok/s | TTFT ms | Peak RAM MB | Idle/Mean/Peak W | tok/s·W⁻¹ | J/tok | Peak °C | Swap peak MB |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -37,12 +37,12 @@ Full writeup: [`results/2026-06-13-model-capability-sweep/`](../../results/2026-
 | 09 | Qwen2.5-7B-Instruct Q4_K_M | 7.6 B | 266 ± 1 | 7.89 ± 0.00 | 7.86 | 202 | 5465 | 5.23/11.92/13.80 | 0.92 | 1.749 | 67.1 | — |
 | 10 | Meta-Llama-3.1-8B-Instruct Q4_K_M | 8.0 B | 245 ± 0 | 7.75 ± 0.00 | 7.72 | 204 | 5953 | 5.25/12.04/13.92 | 0.89 | 1.795 | 67.4 | 460 |
 
-¹ Gemma-2-2B anomalously exceeds Mistral-7B — large KV cache + CUDA workspace at 4096 ctx. Swap "—" rows = growth not separately extracted; raw tegrastats in `results/raw/`.  
+¹ Gemma-2-2B anomalously exceeds Mistral-7B — large KV cache + CUDA workspace at 4096 ctx. Swap "—" rows = growth not separately extracted; raw tegrastats in `experiments/raw/`.  
 Cross-run consistency (unit 06 = baseline model): tg128 14.53 → 14.60 tok/s (+0.5%) ✓
 
 #### Gemma-family sweep (2026-06-14)
 RAM = tegrastats mmap lower bound; swap = growth over idle (corrected from false-positive "swap > 0" test).
-Full writeup: [`results/2026-06-14-gemma-family-sweep/README.md`](../../results/2026-06-14-gemma-family-sweep/README.md)
+Full writeup: [`experiments/2026-06-14-gemma-family-sweep/README.md`](../../experiments/2026-06-14-gemma-family-sweep/README.md)
 
 | Unit | Model + quant | Params | pp512 | tg128 | Peak W | tok/s·W | J/tok | °C | Peak RAM | Swap |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -69,13 +69,13 @@ Note: tegrastats under-counts mmap'd weights; `--no-mmap` residents: G2 4632 MiB
 ---
 
 ### Campaign: toy-nl-demo (2026-06-15)
-Full writeup: [`results/2026-06-15-toy-demo/README.md`](../../results/2026-06-15-toy-demo/README.md)  
+Full writeup: [`experiments/2026-06-15-toy-demo/README.md`](../../experiments/2026-06-15-toy-demo/README.md)  
 TURN: closed heuristic, <1 ms, no model. FOLLOW/ZOOM: zero-shot SmolVLM-500M Q8_0, both failed (format echo / full-frame bbox). Pre-registered expected outcome — pipeline mechanics work, grounding needs fine-tuning.
 
 ---
 
 ### Campaign: phase-b-sitl (2026-06-15)
-Full writeup: [`results/2026-06-14-stage1-baseline/phase-b-sitl.md`](../../results/2026-06-14-stage1-baseline/phase-b-sitl.md)  
+Full writeup: [`experiments/2026-06-14-stage1-baseline/phase-b-sitl.md`](../../experiments/2026-06-14-stage1-baseline/phase-b-sitl.md)  
 x86_64 SITL (not Jetson). Oracle bbox → ByteTrack → cascade PID → pymavlink offboard.
 
 | Trials | Loop Hz | Mean pixel err | Coverage | Track losses | Result |
@@ -87,7 +87,7 @@ Zero variance is real: programmatic rover trajectory, P-controller converges to 
 ---
 
 ### Campaign: phase-c-vlm (2026-06-15)
-Full writeup: [`results/2026-06-14-stage1-baseline/phase-c-vlm.md`](../../results/2026-06-14-stage1-baseline/phase-c-vlm.md)
+Full writeup: [`experiments/2026-06-14-stage1-baseline/phase-c-vlm.md`](../../experiments/2026-06-14-stage1-baseline/phase-c-vlm.md)
 
 | Mode | Platform | Key metrics | Result |
 |---|---|---|---|
@@ -97,7 +97,7 @@ Full writeup: [`results/2026-06-14-stage1-baseline/phase-c-vlm.md`](../../result
 ---
 
 ### Stage 2: SmolVLM fine-tune (2026-06-16)
-Full writeup: [`results/stage2-finetune/train-log.md`](../../results/stage2-finetune/train-log.md)  
+Full writeup: [`experiments/stage2-finetune/train-log.md`](../../experiments/stage2-finetune/train-log.md)  
 1 epoch · 23,437 steps · 32,723 s · mean loss 0.8341.
 
 | Epoch | Parse rate | IoU@0.25 | Result |
@@ -109,7 +109,7 @@ Full writeup: [`results/stage2-finetune/train-log.md`](../../results/stage2-fine
 ---
 
 ### Stage 3: RefCOCO fine-tune (2026-06-16–17)
-Full writeup: [`results/stage3-refcoco-finetune/train-log.md`](../../results/stage3-refcoco-finetune/train-log.md)  
+Full writeup: [`experiments/stage3-refcoco-finetune/train-log.md`](../../experiments/stage3-refcoco-finetune/train-log.md)  
 Fix: well-posed RefCOCO targets + normalized 0–1000 coords + attn+MLP LoRA.
 
 | Run | Date | Outcome |
@@ -122,7 +122,7 @@ Export parity (HF bf16 vs GGUF, RefCOCO val n=100, seed-42): HF 85.0% → F16 62
 ---
 
 ### Stage 4: RefCOCO→RefDrone curriculum (2026-06-17)
-Full writeup: [`results/stage4-refdrone-curriculum/train-log.md`](../../results/stage4-refdrone-curriculum/train-log.md)  
+Full writeup: [`experiments/stage4-refdrone-curriculum/train-log.md`](../../experiments/stage4-refdrone-curriculum/train-log.md)  
 Init from Stage 3 merged weights, LoRA on well-posed RefDrone subset (4101 train / 439 val), 3 epochs.
 
 | Epoch | mean_loss | parse_rate | IoU@0.25 | mean_iou | center_std |

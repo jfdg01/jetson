@@ -1,14 +1,14 @@
 # DECISIONS — Part II (v2 Principled Rebuild)
 
 > Decision log for the v2 principled rebuild. Index: [`../../DECISIONS.md`](../../DECISIONS.md).
-> Per-experiment decisions also live in `results/<campaign>/README.md`. ★ = headline decision.
+> Per-experiment decisions also live in `experiments/<campaign>/README.md`. ★ = headline decision.
 > **Append** — add each new decision at the **bottom** (chronological, oldest first; matches RESULTS/QUESTIONS).
 
 ---
 
 ### 2026-06-17T00:00 — Principled rebuild: branch `v2/principled-rebuild`, shared contract, fidelity-before-GPU
 
-- **Chosen:** (a) Consolidated Part I onto `main`, branched `v2/principled-rebuild`. (b) Archive not delete: legacy trainers/exporters → `experiments/legacy/`. (c) Importable `grounding/` package; `contract.py` as single source of truth. (d) Phase arc 0–4.
+- **Chosen:** (a) Consolidated Part I onto `main`, branched `v2/principled-rebuild`. (b) Archive not delete: legacy trainers/exporters → `runners/legacy/`. (c) Importable `grounding/` package; `contract.py` as single source of truth. (d) Phase arc 0–4.
 - **Root causes addressed:** (1) −23 pp runtime + −7 pp quant (Idefics3 preprocessing) discovered after training → Phase-0 fidelity gate before GPU. (2) Tiny-object 512 resolution ceiling → Phase-2 as explicit pre-registered variable.
 </content>
 ### 2026-06-17T12:00 — v2 operational toolchain

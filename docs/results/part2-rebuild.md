@@ -1,14 +1,14 @@
 # RESULTS — Part II · Principled rebuild (v2, Phases 0–4)
 
 Index: [`../../RESULTS.md`](../../RESULTS.md) · Companion: [`../questions/`](../questions/) (research questions) · [`../decisions/`](../decisions/) (what was chosen & why).
-Per-campaign detail lives in `results/<campaign>/README.md`. Append, never overwrite.
+Per-campaign detail lives in `experiments/<campaign>/README.md`. Append, never overwrite.
 
 ---
 
 ## Part II — Principled rebuild (v2)
 
 ### Phase 0 — Backend-fidelity harness (2026-06-17)
-Full writeup: [`results/2026-06-17-phase0-backend-fidelity/`](../../results/2026-06-17-phase0-backend-fidelity/README.md)  
+Full writeup: [`experiments/2026-06-17-phase0-backend-fidelity/`](../../experiments/2026-06-17-phase0-backend-fidelity/README.md)  
 RefCOCO val, seed-42, n=100. Local RTX 3090.
 
 | Step | Backend | Model | IoU@0.25 | parse | mean_iou | center_std | Manifest |
@@ -26,7 +26,7 @@ RefCOCO val, seed-42, n=100. Local RTX 3090.
 ---
 
 ### Phase 1 — Dataset audit gate (2026-06-17)
-Full writeup: [`results/2026-06-17-phase1-dataset-audit/`](../../results/2026-06-17-phase1-dataset-audit/README.md)
+Full writeup: [`experiments/2026-06-17-phase1-dataset-audit/`](../../experiments/2026-06-17-phase1-dataset-audit/README.md)
 
 **Well-posedness (box-per-caption):**
 
@@ -49,7 +49,7 @@ Full writeup: [`results/2026-06-17-phase1-dataset-audit/`](../../results/2026-06
 ---
 
 ### Phase 2 — Resolution strategy (2026-06-17)
-Full writeup: [`results/2026-06-17-phase2-resolution/`](../../results/2026-06-17-phase2-resolution/README.md)  
+Full writeup: [`experiments/2026-06-17-phase2-resolution/`](../../experiments/2026-06-17-phase2-resolution/README.md)  
 No-training ladder · RefDrone well-posed val (n=439) · Qwen2-VL-2B base · HF bf16 greedy.
 
 | Arm | max_side | parse | IoU@0.25 | mean_iou | center_std | Manifest |
@@ -64,7 +64,7 @@ No-training ladder · RefDrone well-posed val (n=439) · Qwen2-VL-2B base · HF 
 ---
 
 ### Phase 3 — LoRA fine-tune (2026-06-17/18)
-Full writeup: [`results/2026-06-17-phase3-train/`](../../results/2026-06-17-phase3-train/README.md)  
+Full writeup: [`experiments/2026-06-17-phase3-train/`](../../experiments/2026-06-17-phase3-train/README.md)  
 Qwen2-VL-2B + RefDrone well-posed (4101/439) + max_side=1024 · LoRA r16/α32 attn+MLP (vision frozen, 18.5 M trainable = 0.83%) · lr 2e-4 · 3 epochs · batch 16.
 
 | Model | max_side | n | parse | IoU@0.25 | mean_iou | center_std | Manifest |
@@ -78,7 +78,7 @@ Qwen2-VL-2B + RefDrone well-posed (4101/439) + max_side=1024 · LoRA r16/α32 at
 ---
 
 ### Phase 4 — Export & deploy (2026-06-18)
-Full writeup: [`results/2026-06-18-phase4-export-deploy/`](../../results/2026-06-18-phase4-export-deploy/README.md)  
+Full writeup: [`experiments/2026-06-18-phase4-export-deploy/`](../../experiments/2026-06-18-phase4-export-deploy/README.md)  
 GGUF export + Jetson eval (n=439, same contract, CUDA full-offload, 15 W, clocks locked, pinned llama.cpp `57fe1f07`).
 
 | Backend | Size | n | parse | IoU@0.25 | mean_iou | center_std | Manifest |

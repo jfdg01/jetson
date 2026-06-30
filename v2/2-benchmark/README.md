@@ -120,13 +120,13 @@ document the gap and its implications for the thesis.
 
 | Phase | File | Status |
 |---|---|---|
-| 0-A Smoke tests | `results/phase0-smoke-tests.md` | pending |
-| 0-B RAM test (model B) | `results/phase0-ram-test-7b.md` | pending |
-| 0-C Dataset audit | `results/phase0-dataset.md` | pending |
-| 1 Zero-shot sweep | `results/phase1-zero-shot.md` | pending |
-| 2 Fine-tuning runs | `results/phase2-finetune/` | pending |
-| 3 Post-finetune eval | `results/phase3-post-finetune.md` | pending |
-| 4 Winner + deployment | `results/phase4-winner.md` | pending |
+| 0-A Smoke tests | `experiments/phase0-smoke-tests.md` | pending |
+| 0-B RAM test (model B) | `experiments/phase0-ram-test-7b.md` | pending |
+| 0-C Dataset audit | `experiments/phase0-dataset.md` | pending |
+| 1 Zero-shot sweep | `experiments/phase1-zero-shot.md` | pending |
+| 2 Fine-tuning runs | `experiments/phase2-finetune/` | pending |
+| 3 Post-finetune eval | `experiments/phase3-post-finetune.md` | pending |
+| 4 Winner + deployment | `experiments/phase4-winner.md` | pending |
 
 ---
 
@@ -134,7 +134,7 @@ document the gap and its implications for the thesis.
 
 | Metric | v2/v3 value | Source |
 |---|---|---|
-| IoU@0.25 (deployed, Jetson) | **85.2%** | `results/2026-06-25-roi-crop-anchor` |
+| IoU@0.25 (deployed, Jetson) | **85.2%** | `experiments/2026-06-25-roi-crop-anchor` |
 | Spine | Qwen2-VL-2B Q8_0 | Phase 4 deploy |
 | llama.cpp commit | `57fe1f07` | v2/v3 pinned |
 | Train data | RefDrone well-posed, n=4101 | Phase 3 |

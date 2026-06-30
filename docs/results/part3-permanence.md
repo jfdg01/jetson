@@ -1,19 +1,19 @@
 # RESULTS — Part III · Persistent tracking / object permanence (v3, T0–T4 + levers)
 
 Index: [`../../RESULTS.md`](../../RESULTS.md) · Companion: [`../questions/`](../questions/) (research questions) · [`../decisions/`](../decisions/) (what was chosen & why).
-Per-campaign detail lives in `results/<campaign>/README.md`. Append, never overwrite.
+Per-campaign detail lives in `experiments/<campaign>/README.md`. Append, never overwrite.
 
 ---
 
 ## Part III — Persistent tracking / object permanence (v3)
 
 Branch `v3/object-permanence`. Problem: keep a lock on a moving target across occlusion/scale change. Headline metrics: temporal (SOT success-precision, ID switches, re-acq time, oracle coverage). Single-frame IoU@0.25 retained as per-anchor sanity check.  
-Charter: [`results/2026-06-18-part3-charter/README.md`](../../results/2026-06-18-part3-charter/README.md)
+Charter: [`experiments/2026-06-18-part3-charter/README.md`](../../experiments/2026-06-18-part3-charter/README.md)
 
 ---
 
 ### T0 — Cadence & dynamics harness (2026-06-18) ✅
-Full writeup: [`results/2026-06-18-t0-cadence/`](../../results/2026-06-18-t0-cadence/README.md)  
+Full writeup: [`experiments/2026-06-18-t0-cadence/`](../../experiments/2026-06-18-t0-cadence/README.md)  
 On-Orin anchor-cadence sweep + tracker cost + dynamics analysis. Anchor = Qwen2-VL-2B Q8_0 `phase3-refdrone-1024-q8_0`.
 
 | Probe | Metric | Value |
@@ -32,7 +32,7 @@ On-Orin anchor-cadence sweep + tracker cost + dynamics analysis. Anchor = Qwen2-
 ---
 
 ### T1 — Data & temporal contract (2026-06-18) ✅
-Full writeup: [`results/2026-06-18-t1-temporal-contract/`](../../results/2026-06-18-t1-temporal-contract/README.md)  
+Full writeup: [`experiments/2026-06-18-t1-temporal-contract/`](../../experiments/2026-06-18-t1-temporal-contract/README.md)  
 Temporal-metric suite added to `grounding/contract.py` (SOT success/precision, ID switches, purity, reacq time, oracle coverage, following error). Memoryless-ByteTrack baseline established.
 
 | Clip | SOT succ | coverage | ID sw | purity | reacq fail | follow px |
@@ -45,7 +45,7 @@ Temporal-metric suite added to `grounding/contract.py` (SOT success/precision, I
 ---
 
 ### T2 — Permanence mechanism (2026-06-24) ✅
-Full writeup: [`results/2026-06-24-t2-permanence/`](../../results/2026-06-24-t2-permanence/README.md)  
+Full writeup: [`experiments/2026-06-24-t2-permanence/`](../../experiments/2026-06-24-t2-permanence/README.md)  
 Appearance memory: store target descriptor at acquisition, re-acquire by min descriptor distance + refuse-to-lock gate. EMA refinement while locked. Pixels not rendered (T1 decision); appearance = per-instance scalar with noise scaling by crop size.
 
 | Policy | ID sw | purity | reacq fail | coverage | SOT succ | follow px |
@@ -59,7 +59,7 @@ Appearance memory: store target descriptor at acquisition, re-acquire by min des
 ---
 
 ### T3 — Closed-loop integration in SITL (2026-06-24) ✅
-Full writeup: [`results/2026-06-24-t3-closed-loop/`](../../results/2026-06-24-t3-closed-loop/README.md)  
+Full writeup: [`experiments/2026-06-24-t3-closed-loop/`](../../experiments/2026-06-24-t3-closed-loop/README.md)  
 Lock drives the camera (cascade-PID → body velocity → copter → re-projection). 20 Hz control / 1 Hz detect, 10 m alt. Distractor crosses + briefly occludes at t=29–31 s.
 
 | Policy | Kinematic A/B coverage | Live ArduCopter SITL coverage | Occlusion frames |
@@ -72,7 +72,7 @@ Lock drives the camera (cascade-PID → body velocity → copter → re-projecti
 ---
 
 ### T4 — On-Orin deployment + sim-to-device (2026-06-24) ✅
-Full writeup: [`results/2026-06-24-t4-deployment/`](../../results/2026-06-24-t4-deployment/README.md)  
+Full writeup: [`experiments/2026-06-24-t4-deployment/`](../../experiments/2026-06-24-t4-deployment/README.md)  
 Integrated two-tier loop on actual Orin Nano 8 GB (15 W). One file (`bytetrack.py`) pushed to device.
 
 | Tier | Dev box / T0a | Orin (T4) | Sim-to-device |
@@ -85,7 +85,7 @@ Integrated two-tier loop on actual Orin Nano 8 GB (15 W). One file (`bytetrack.p
 ---
 
 ### 2026-06-26 — Terse output re-LoRA
-Full writeup: [`results/2026-06-25-terse-output-retrain/`](../../results/2026-06-25-terse-output-retrain/README.md)
+Full writeup: [`experiments/2026-06-25-terse-output-retrain/`](../../experiments/2026-06-25-terse-output-retrain/README.md)
 
 Retrain anchor to emit 4 space-separated integers instead of `{"bbox": [...]}`. One variable changed; base/data/resolution/LoRA/quant identical to 62.6% deploy.
 
@@ -104,7 +104,7 @@ Retrain anchor to emit 4 space-separated integers instead of `{"bbox": [...]}`. 
 ---
 
 ### 2026-06-26 — ROI-crop anchor (GATE PASS)
-Full writeup: [`results/2026-06-25-roi-crop-anchor/`](../../results/2026-06-25-roi-crop-anchor/README.md)  
+Full writeup: [`experiments/2026-06-25-roi-crop-anchor/`](../../experiments/2026-06-25-roi-crop-anchor/README.md)  
 Inference-time only — no retraining. Feed anchor a crop around tracker's box (GT box × margin M) instead of full frame.
 
 | Config (M=2.0) | Prefill ms (Orin Q8_0, 15W) | Decode ms | IoU@0.25 (HF n=439) | vs full-frame |
@@ -119,7 +119,7 @@ Drift (RQ4): flat 82–85% up to 0.5·box prior drift; 74–80% even at full-box
 ---
 
 ### 2026-06-26 — ROI re-anchor demo tab + live on-device confirm
-Full writeup: [`results/2026-06-26-roi-demo-tab/`](../../results/2026-06-26-roi-demo-tab/README.md)  
+Full writeup: [`experiments/2026-06-26-roi-demo-tab/`](../../experiments/2026-06-26-roi-demo-tab/README.md)  
 ROI lever wired into deploy GUI ("Re-anchor speedup" tab). Live on deployed terse Q8_0 model.
 
 | Upload | Full-frame prefill | ROI re-anchor prefill | Speedup |
@@ -133,13 +133,13 @@ ROI prefill pinned at ~1375 ms (fixed 512×512, matches offline 1374 ms). Boxes 
 ---
 
 ### 2026-06-27 — ROI re-anchor shrink-and-drift death spiral (negative + fix)
-Full writeup: [`results/2026-06-27-roi-shrink-spiral/`](../../results/2026-06-27-roi-shrink-spiral/README.md)  
+Full writeup: [`experiments/2026-06-27-roi-shrink-spiral/`](../../experiments/2026-06-27-roi-shrink-spiral/README.md)  
 Fast re-anchor cadence on "Live tracking" tab collapsed lock: re-anchor crops 4·box natively → shrinking box → smaller crop → fewer pixels → smaller box (unbounded positive feedback). Fix: floor crop side (`roi_window` gains `min_side`; deploy `ROI_MIN_CROP=384 px`). Eval sweep unchanged (`min_side=0` default). On-Orin replay re-confirm open.
 
 ---
 
 ### 2026-06-30 — ROI super-resolution: learned SR (Swin2SR) loses to classical upscale (negative)
-Full writeup: [`results/2026-06-30-roi-sr-upscale/`](../../results/2026-06-30-roi-sr-upscale/README.md)  
+Full writeup: [`experiments/2026-06-30-roi-sr-upscale/`](../../experiments/2026-06-30-roi-sr-upscale/README.md)  
 Does a learned upscaler beat LANCZOS/bicubic on the ROI lever? Oracle 400² crops upscaled to a 1024 feed (Qwen `max_pixels` confound defused), n=429, RTX 3090 HF bf16, spine `phase3-terse100eos-1024`.
 
 | method | parse% | IoU@0.25 | mean IoU | med SR ms | med VLM ms |

@@ -15,7 +15,7 @@ Append; don't overwrite. Newest at the bottom of each section.
   IoU on tiny aerial targets. Chosen because it targets **compressed-JPEG** SR (matches
   VisDrone's degradation) and the PSNR weight is conservative (less hallucination than a
   GAN-SR), which matters for localization. ONNX export exists for an eventual Jetson path.
-  *Outcome (2026-06-30, [`results/2026-06-30-roi-sr-upscale/`](results/2026-06-30-roi-sr-upscale/README.md)):*
+  *Outcome (2026-06-30, [`experiments/2026-06-30-roi-sr-upscale/`](experiments/2026-06-30-roi-sr-upscale/README.md)):*
   **rejected** — on oracle 400² crops it was the worst of three upscalers
   (78.6% IoU@0.25, below even no-upscale 78.8%) and cost +1331 ms/crop; classical
   bicubic/lanczos win for free. Kept as a negative thesis result.
