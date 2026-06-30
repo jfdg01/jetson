@@ -7,7 +7,7 @@ Part I these were copy-pasted across five scripts (`run_stage2/3/4_finetune.py`,
 construction.
 
 Definitions below are lifted **verbatim** from the validated Part-I trainer
-`experiments/legacy/run_stage3_finetune.py` (the run that produced the G2-PASS
+`runners/legacy/run_stage3_finetune.py` (the run that produced the G2-PASS
 RefCOCO checkpoint). Do not retype `GROUNDING_PROMPT` — keep it byte-identical so the
 fine-tuned model sees exactly the prompt it was trained on.
 
@@ -44,7 +44,7 @@ MODEL_ID       = "Qwen/Qwen2-VL-2B-Instruct"
 # Iter-1 (bracketless @0–1000) saved only ~3 decode tokens on the Orin: the model reverted
 # to its pretrained bracketed-list prior ([x, y, x, y]) and only shed the {"bbox": …}
 # wrapper. Iter-2 attacks the dominant cost — digit count (coords now 2-digit) — and keeps
-# pushing the bracketless format. See results/2026-06-25-terse-output-retrain/.
+# pushing the bracketless format. See experiments/2026-06-25-terse-output-retrain/.
 GROUNDING_PROMPT = (
     'Locate "{target}". Return the bounding box as four space-separated integers '
     'x1 y1 x2 y2, normalized from 0 to 100.'
@@ -118,7 +118,7 @@ def center_std(bboxes: Sequence[Sequence[float]]) -> float:
 #
 # The single-frame metrics above (iou / center_std) answer "where is it in THIS frame".
 # Part III scores a *stream*: keep a lock on a moving target across time. These
-# primitives are the §6 charter suite (results/2026-06-18-part3-charter §6) lifted into
+# primitives are the §6 charter suite (experiments/2026-06-18-part3-charter §6) lifted into
 # the one contract so anchor/tracker/eval can never disagree on what "success" means.
 #
 # Data model — a clip of N frames, each described by parallel per-frame lists:

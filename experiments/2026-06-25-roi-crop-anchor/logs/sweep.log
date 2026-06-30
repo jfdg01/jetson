@@ -1,0 +1,9 @@
+[overnight] 2026-06-25T21:01:49Z waiting for training PID 902674 to exit...
+[overnight] 2026-06-25T22:28:19Z training exited; waiting for GPU to drop <6GB...
+[overnight] GPU used=600 MiB
+[overnight] 2026-06-25T22:28:19Z starting sweep
+Traceback (most recent call last):
+  File "/home/gara/jetson/experiments/2026-06-25-roi-crop-anchor/run_sweep.py", line 20, in <module>
+    from grounding.roi import cross, run_grid
+ModuleNotFoundError: No module named 'grounding'
+[overnight] 2026-06-25T22:28:19Z sweep exit code=1

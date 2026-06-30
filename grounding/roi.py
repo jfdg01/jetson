@@ -21,7 +21,7 @@ the prior) proxies real tracker drift.
 
 Usage:
   source .venv-ft/bin/activate
-  python -m grounding.roi --model ./experiments/runs/v2/phase3-refdrone-1024 \
+  python -m grounding.roi --model ./runners/runs/v2/phase3-refdrone-1024 \
       --split val --margins 1.5,2,3,5,inf --out-res native,384,512 --n 150
 
 Self-check (no model load):  python -m grounding.roi --selfcheck
@@ -313,7 +313,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--selfcheck", action="store_true", help="run crop-math asserts, exit")
-    p.add_argument("--model", default="./experiments/runs/v2/phase3-refdrone-1024",
+    p.add_argument("--model", default="./runners/runs/v2/phase3-refdrone-1024",
                    help="HF id or checkpoint path (default = Phase-3 merged deploy)")
     p.add_argument("--split", default="val")
     p.add_argument("--margins", default="1.5,2,3,5,inf",

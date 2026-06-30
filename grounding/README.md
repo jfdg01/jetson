@@ -64,7 +64,7 @@ Fill order follows the gated phases (see the APPENDIX in `DECISIONS.md` / the pl
 | **4** Export & deploy | `export/`, `deploy/` | deployed IoU within Phase-0 fidelity budget of HF |
 
 Each phase is a lab-notebook unit: do not start the next until the prior gate is
-green **and documented** in `results/` + `RESULTS.md` + `DECISIONS.md` in the same
+green **and documented** in `experiments/` + `RESULTS.md` + `DECISIONS.md` in the same
 turn.
 
 ## Toolchain & reproducibility

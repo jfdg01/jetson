@@ -27,7 +27,7 @@ changes for v2:
      legacy full accelerate-state mid-epoch resume is dropped.
 
 Every run writes a `kind="train"` manifest (git SHA, lockfile sha, config, results)
-under `experiments/runs/<id>/` via `grounding.manifest`.
+under `runners/runs/<id>/` via `grounding.manifest`.
 
 Run:  source .venv-ft/bin/activate && python -m grounding.train.trainer [opts]
 """

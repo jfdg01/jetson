@@ -8,7 +8,7 @@ it against the known Part-I gap on `smolvlm_ft3` (−23pp runtime, −7pp quant)
 uses it to pick the v2 spine BY THE NUMBERS.
 
 Design follows the project's manifest-per-run rule: each backend is scored by a
-separate `grounding.eval.run` invocation (its own manifest under `experiments/runs/<id>/`), and
+separate `grounding.eval.run` invocation (its own manifest under `runners/runs/<id>/`), and
 this module *composes* those `EvalReport`s into a fidelity table. It does not
 re-run inference, so every number in the table is traceable to a committed manifest.
 
@@ -16,7 +16,7 @@ CLI — build the table from finished run dirs:
 
     python -m grounding.eval.parity \\
       --checkpoint smolvlm_ft3 \\
-      --hf experiments/runs/<id>/ --f16 experiments/runs/<id>/ --q8 experiments/runs/<id>/
+      --hf runners/runs/<id>/ --f16 runners/runs/<id>/ --q8 runners/runs/<id>/
 """
 
 from __future__ import annotations

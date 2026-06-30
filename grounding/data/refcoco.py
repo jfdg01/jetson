@@ -8,7 +8,7 @@ checkpoint from it). This adapter loads the HF dataset `jxu124/refcoco`
 
 Read-only / inference-only. The flatten + deterministic seed-42 shuffle + cap
 logic is lifted **verbatim in behaviour** from the validated Part-I trainer
-`experiments/legacy/run_stage3_finetune.py::RefCOCODataset` so that
+`runners/legacy/run_stage3_finetune.py::RefCOCODataset` so that
 `load_refcoco("validation", max_samples=N)` yields the *same* subset that
 produced the Part-I in-domain numbers — this is what lets the Phase-0 harness
 self-check reproduce ~82.5% IoU@0.25 on `smolvlm_ft3`.

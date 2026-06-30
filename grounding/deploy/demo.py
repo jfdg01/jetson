@@ -29,7 +29,7 @@ from grounding.contract import parse_bbox, COORD_SCALE
 from grounding.deploy.serve import _DEFAULT_REMOTE_DIR
 from grounding.eval.backends import JetsonBackend
 
-# Phase-4 deployed artifact names on the device (see results/2026-06-18-phase4-*).
+# Phase-4 deployed artifact names on the device (see experiments/2026-06-18-phase4-*).
 # terse iter-2b anchor (2026-06-26): bare 0–100 ints, Orin Q8_0 63.1% (> JSON 62.6%),
 # decode −45%. Must match the terse GROUNDING_PROMPT in contract.py.
 _REMOTE_MODELS = {

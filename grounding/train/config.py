@@ -40,7 +40,7 @@ class TrainConfig:
     val_split: str = "refdrone:val"
     # Phase-1 lever: expand the budget to the largest-box-per-caption referent
     # (4101 well-posed -> ~12339 samples). Off by default; flip if the well-posed
-    # run misses the gate. See results/2026-06-16-phase1-dataset-audit.
+    # run misses the gate. See experiments/2026-06-16-phase1-dataset-audit.
     largest_box_aug: bool = False
     # Phase-2 lever: input long-edge resize. Set to the resolution chosen by the
     # Phase-2 ladder; both the collate transform and the in-loop eval use it.
@@ -55,5 +55,5 @@ class TrainConfig:
     seed: int = SEED
     eval_n: int = 200
     save_every: int = 0                      # mid-epoch adapter save (0 = epoch-end only)
-    output_dir: str = "./experiments/runs/v2"
+    output_dir: str = "./runners/runs/v2"
     lora: LoRAConfig = field(default_factory=LoRAConfig)
