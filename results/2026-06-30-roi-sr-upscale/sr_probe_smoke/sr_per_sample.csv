@@ -1,0 +1,21 @@
+idx,name,caption,method,crop_w,crop_h,box_px,feed,parsed,iou,gate,sr_ms,vlm_ms,raw
+0,0000335_05097_d_0000069,The black cars at the intersection.,native,400,400,130.1,1024,1,0.7778,1,0.0,1481.5,36 33 64 67
+0,0000335_05097_d_0000069,The black cars at the intersection.,bicubic,400,400,130.1,1024,1,1.0,1,0.0,659.7,37 33 63 67
+0,0000335_05097_d_0000069,The black cars at the intersection.,lanczos,400,400,130.1,1024,1,1.0,1,0.0,641.1,37 33 63 67
+0,0000335_05097_d_0000069,The black cars at the intersection.,swin2sr,400,400,130.1,1024,1,1.0,1,1543.4,615.9,37 33 63 67
+1,0000244_01000_d_0000003,The blue cars on the left side of the street.,native,400,400,19.2,1024,1,0.4286,1,0.0,309.8,49 35 53 40
+1,0000244_01000_d_0000003,The blue cars on the left side of the street.,bicubic,400,400,19.2,1024,1,0.2857,1,0.0,622.0,49 36 53 40
+1,0000244_01000_d_0000003,The blue cars on the left side of the street.,lanczos,400,400,19.2,1024,1,0.5,1,0.0,625.3,48 36 53 40
+1,0000244_01000_d_0000003,The blue cars on the left side of the street.,swin2sr,400,400,19.2,1024,1,0.2857,1,1340.4,626.7,49 36 53 40
+2,0000271_03801_d_0000391,The red vehicles on the street.,native,400,400,22.9,1024,1,0.0,0,0.0,307.7,50 19 53 25
+2,0000271_03801_d_0000391,The red vehicles on the street.,bicubic,400,400,22.9,1024,1,1.0,1,0.0,629.6,48 19 52 25
+2,0000271_03801_d_0000391,The red vehicles on the street.,lanczos,400,400,22.9,1024,1,1.0,1,0.0,651.3,48 19 52 25
+2,0000271_03801_d_0000391,The red vehicles on the street.,swin2sr,400,400,22.9,1024,1,1.0,1,1348.8,644.5,48 19 52 25
+3,0000081_00000_d_0000001,The green-clad pedestrians and bicycles are interspersed among the courts.,native,400,400,27.0,1024,1,0.0,0,0.0,323.8,29 54 31 60
+3,0000081_00000_d_0000001,The green-clad pedestrians and bicycles are interspersed among the courts.,bicubic,400,400,27.0,1024,1,0.0,0,0.0,632.9,31 54 33 60
+3,0000081_00000_d_0000001,The green-clad pedestrians and bicycles are interspersed among the courts.,lanczos,400,400,27.0,1024,1,0.0,0,0.0,625.5,30 53 32 60
+3,0000081_00000_d_0000001,The green-clad pedestrians and bicycles are interspersed among the courts.,swin2sr,400,400,27.0,1024,1,0.0,0,1364.6,633.6,34 42 36 46
+4,0000242_04116_d_0000013,The white motorbike is near the right side of the road.,native,400,400,21.6,1024,1,0.6,1,0.0,307.1,50 27 52 32
+4,0000242_04116_d_0000013,The white motorbike is near the right side of the road.,bicubic,400,400,21.6,1024,1,0.0,0,0.0,631.6,62 90 64 93
+4,0000242_04116_d_0000013,The white motorbike is near the right side of the road.,lanczos,400,400,21.6,1024,1,0.0,0,0.0,639.3,61 90 62 92
+4,0000242_04116_d_0000013,The white motorbike is near the right side of the road.,swin2sr,400,400,21.6,1024,1,0.0,0,1351.5,634.5,62 90 65 92
