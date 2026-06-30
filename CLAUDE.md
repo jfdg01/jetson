@@ -14,9 +14,9 @@ not documented — record what was chosen, why, and what was given up.
 ## Project parts (I–III complete, IV in progress)
 
 - **Part I — Exploratory:** device benchmark campaigns + VLM grounding fine-tune (Stages 1–4). Frozen.
-- **Part II — v2 principled rebuild:** single-frame grounding on `v2/principled-rebuild`. Qwen2-VL-2B Q8_0, RefDrone IoU@0.25 = 62.6%, Phases 0–4 all done.
-- **Part III — v3 object permanence:** persistent moving-target tracking on `v3/object-permanence`. T0–T4 all done, demo built, terse+ROI latency levers deployed (anchor ≈2.0 s ROI re-anchor, 85.2% IoU@0.25).
-- **Part IV — v4 end-to-end workflow refinement (IN PROGRESS):** the two-tier follow loop passed T0–T4 in isolation but the integrated NL→ground→track→fly pipeline doesn't hold up end-to-end; Part IV hardens it. No dedicated branch yet (work continues on the current branch).
+- **Part II — v2 principled rebuild:** single-frame grounding. Qwen2-VL-2B Q8_0, RefDrone IoU@0.25 = 62.6%, Phases 0–4 all done.
+- **Part III — v3 object permanence:** persistent moving-target tracking. T0–T4 all done, demo built, terse+ROI latency levers deployed (anchor ≈2.0 s ROI re-anchor, 85.2% IoU@0.25).
+- **Part IV — v4 end-to-end workflow refinement (IN PROGRESS):** the two-tier follow loop passed T0–T4 in isolation but the integrated NL→ground→track→fly pipeline doesn't hold up end-to-end; Part IV hardens it.
 
 ## Repository map
 
@@ -27,7 +27,7 @@ point back to it; never duplicate content across files — link.
 |---|---|---|
 | `results/<campaign>/README.md` | **source of truth** — the full per-experiment record (command, versions, power mode, date, rationale). Raw logs in `results/raw/`. | one dir per campaign |
 | `RESULTS.md` → `docs/results/part{1-4}-*.md` | ledger: metric tables, one row per run | **append** under the run's Part |
-| `QUESTIONS.md` → `docs/questions/part{1-4}-*.md` | ledger: research question + one-line verdict per run | **append** under the run's Part |
+| `QUESTIONS.md` → `docs/questions/part{1-4}-*.md` | ledger: research question + one-line verdict per run. Root is a pure redirect (Part table only) — **append to the per-Part doc, not the root** | **append** under the run's Part |
 | `DECISIONS.md` → `docs/decisions/part{1-4}-*.md` | ledger: cross-cutting choices + rationale | **append** under the run's Part |
 | `SOURCES.md` | reference: every external paper/model/dataset (link + what for) | **append** when you pull one in |
 | `README.md` | reference: hardware/platform survey + this map | edit when the platform changes |
@@ -35,8 +35,9 @@ point back to it; never duplicate content across files — link.
 | `grounding/` | v2/v3 Python package (`contract.py`, `data/`, `eval/`, `train/`, `export/`, `deploy/`, `resolution.py`, `roi.py`) | — |
 | `experiments/` | Part-I automation + SITL follow stack (`sitl/`); `legacy/` = archived, superseded by `grounding/` | — |
 
-The three ledger root files are **thin indexes** (catalog + Part table) — open only the Part you're
-writing, so a session doesn't drag all four chapters into context.
+The three ledger root files are **thin redirects** (a Part table; `RESULTS.md` also keeps a coarse
+campaign catalog) — open only the Part you're writing, so a session doesn't drag all four chapters
+into context. Per-run entries go in the per-Part doc, never the root.
 
 ## Per-experiment workflow (definition of done)
 
