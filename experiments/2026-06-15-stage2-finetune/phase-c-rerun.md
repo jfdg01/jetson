@@ -3,7 +3,7 @@
 **Campaign:** Stage 2 — post-fine-tuning drone control evaluation  
 **Date:** TBD (2026-06-16)  
 **Script:** `runners/run_phase_c.py --vlm-model /home/jfdg/models/smolvlm_ft_q8_0.gguf`  
-**Raw output:** `experiments/stage2-finetune/raw/phase_c_rerun_stdout.log` (to be captured)
+**Raw output:** `experiments/2026-06-15-stage2-finetune/raw/phase_c_rerun_stdout.log` (to be captured)
 
 ---
 

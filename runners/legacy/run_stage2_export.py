@@ -31,7 +31,7 @@ JETSON_LLAMA_CLI  = "/home/jfdg/llama.cpp/build/bin/llama-cli"
 
 REFDRONE_VAL_JSON = Path.home() / ".cache/huggingface/hub/datasets--sunzc-sunny--RefDrone/snapshots"
 VISDRONE_VAL_IMAGES = Path("/home/gara/jetson/data/VisDrone2019-DET/images/val")
-STAGE2_RESULTS_DIR = Path(__file__).parent.parent / "experiments/stage2-finetune"
+STAGE2_RESULTS_DIR = Path(__file__).parent.parent / "experiments/2026-06-15-stage2-finetune"
 
 
 def run(cmd, check=True, capture=False, **kw):

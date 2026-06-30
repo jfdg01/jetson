@@ -4,7 +4,7 @@
 **Date:** 2026-06-15 (started) / 2026-06-16 (completed)  
 **Device:** Local GPU (training host, not Jetson)  
 **Script:** `runners/run_stage2_finetune.py`  
-**Raw log:** `experiments/stage2-finetune/raw/train_stdout.log`
+**Raw log:** `experiments/2026-06-15-stage2-finetune/raw/train_stdout.log`
 
 ---
 
@@ -48,8 +48,8 @@ Steps logged every 50 steps. Loss column is per-step (not smoothed).
 | 22400 | 0.6721 | 9.56e-07 | 31263s |
 | 23400 | 0.7053 | 9.20e-10 | 32673s |
 
-Full step-by-step log: `experiments/stage2-finetune/raw/train_stdout.log`  
-Full step loss CSV: `experiments/stage2-finetune/raw/train_loss.csv`
+Full step-by-step log: `experiments/2026-06-15-stage2-finetune/raw/train_stdout.log`  
+Full step loss CSV: `experiments/2026-06-15-stage2-finetune/raw/train_loss.csv`
 
 ## Final training metrics
 
@@ -61,7 +61,7 @@ Full step loss CSV: `experiments/stage2-finetune/raw/train_loss.csv`
 | Total wall time | 32,723s (~9.1 hours) |
 | Steps completed | 23,437 / 23,437 (100%) |
 | Training exit code | 0 (clean) |
-| CSV output bug | CSVs written to `data/VisDrone2019-DET/results/…` instead of `experiments/stage2-finetune/raw/`; moved post-hoc (path resolved relative to visdrone_dir instead of repo root — bug in `iou_csv_path = Path("experiments/…")` when cwd was different) |
+| CSV output bug | CSVs written to `data/VisDrone2019-DET/results/…` instead of `experiments/2026-06-15-stage2-finetune/raw/`; moved post-hoc (path resolved relative to visdrone_dir instead of repo root — bug in `iou_csv_path = Path("experiments/…")` when cwd was different) |
 
 ## Epoch 1 evaluation (end-of-epoch eval on 200 val samples)
 
@@ -71,7 +71,7 @@ Full step loss CSV: `experiments/stage2-finetune/raw/train_loss.csv`
 | IoU@0.25 rate | **1.0%** | G2: ≥ 20% | **FAIL** |
 | Mean IoU | **0.008** | — | near-zero |
 
-Eval CSV: `experiments/stage2-finetune/raw/eval_iou.csv`
+Eval CSV: `experiments/2026-06-15-stage2-finetune/raw/eval_iou.csv`
 
 ## Decision gates (from pre-registration)
 

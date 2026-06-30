@@ -133,11 +133,11 @@ This format was chosen to match the JSON parse path already implemented in
 
 | File | Contents |
 |------|----------|
-| `experiments/stage2-finetune/train-log.md` | Per-epoch loss + eval IoU, training time, GPU memory |
-| `experiments/stage2-finetune/phase-a-rerun.md` | Phase A grounding probe results with FT model |
-| `experiments/stage2-finetune/phase-c-rerun.md` | Phase C Branch-2 re-run with FT model |
-| `experiments/stage2-finetune/raw/train_loss.csv` | Raw loss curve |
-| `experiments/stage2-finetune/raw/eval_iou.csv` | Per-sample IoU on val set |
+| `experiments/2026-06-15-stage2-finetune/train-log.md` | Per-epoch loss + eval IoU, training time, GPU memory |
+| `experiments/2026-06-15-stage2-finetune/phase-a-rerun.md` | Phase A grounding probe results with FT model |
+| `experiments/2026-06-15-stage2-finetune/phase-c-rerun.md` | Phase C Branch-2 re-run with FT model |
+| `experiments/2026-06-15-stage2-finetune/raw/train_loss.csv` | Raw loss curve |
+| `experiments/2026-06-15-stage2-finetune/raw/eval_iou.csv` | Per-sample IoU on val set |
 | `RESULTS.md` | Appended rows: Phase A FT, Phase C FT |
 
 ---

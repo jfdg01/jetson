@@ -114,65 +114,65 @@
 ### RQ-S2.1 — Does LoRA fine-tuning SmolVLM-500M on RefDrone+VisDrone reach IoU@0.25 ≥ 30% on the Phase A probe?   [Part I · Stage 2 fine-tune]
 - **Answer:** No (FAIL) — IoU@0.25 = 1.0% (mean IoU 0.008) via mode collapse: the model emits a near-constant center box (~[223,111,229,120]) regardless of image/caption.
 - **Why it matters:** A diagnosed negative (ill-posed one-caption→many-boxes target + frozen vision + tiny objects) that reframes the Stage-3 methodological fix.
-- **More:** `experiments/stage2-finetune/`
+- **More:** `experiments/2026-06-15-stage2-finetune/`
 
 ### RQ-S2.2 — Does the fine-tuned model emit a valid bounding box in ≥ 50% of calls?   [Part I · Stage 2 fine-tune]
 - **Answer:** Yes — parse rate 100.0%; the text backbone learned the output format perfectly, so the failure is spatial, not syntactic.
 - **Why it matters:** Isolates the Stage 2 failure to localization (not the pipeline/format), pinpointing the fix needed in Stage 3.
-- **More:** `experiments/stage2-finetune/`
+- **More:** `experiments/2026-06-15-stage2-finetune/`
 
 ### RQ-S2.3 — Does the fine-tune survive GGUF Q8_0 quantization (ΔIoU@0.25 ≤ 5pp)?   [Part I · Stage 2 fine-tune]
 - **Answer:** Not measured — deferred because gate G2 (IoU) failed; quantization parity was instead measured in Stage 3.
 - **Why it matters:** Parity testing is only meaningful on a model with real skill, which Stage 2 lacked.
-- **More:** `experiments/stage2-finetune/`
+- **More:** `experiments/2026-06-15-stage2-finetune/`
 
 ### RQ-S2.4 — Does the fine-tuned model raise Phase C valid_rate to ≥ 30% AND px_err < 100?   [Part I · Stage 2 fine-tune]
 - **Answer:** Not measured — deferred (G2 failed before closed-loop re-run).
 - **Why it matters:** No usable grounding meant no point re-flying the closed loop.
-- **More:** `experiments/stage2-finetune/`
+- **More:** `experiments/2026-06-15-stage2-finetune/`
 
 ### RQ-S2.5 — Does inference stay within 0.5–2 Hz on the Jetson after fine-tuning?   [Part I · Stage 2 fine-tune]
 - **Answer:** Not measured — deferred (G2 failed); LoRA only adds an adapter, so speed was not in question.
 - **Why it matters:** Throughput was never the Stage 2 risk; accuracy was.
-- **More:** `experiments/stage2-finetune/`
+- **More:** `experiments/2026-06-15-stage2-finetune/`
 
 ### RQ-S3.1 — Does a well-posed objective (RefCOCO + normalized 0–1000 coords + attn+MLP LoRA) avoid the Stage 2 mode collapse?   [Part I · Stage 3 RefCOCO]
 - **Answer:** Yes (PASS) — RefCOCO val IoU@0.25 = 82.5% (2.75× the 30% bar) with non-degenerate center_std = 200.5; boxes vary with input.
 - **Why it matters:** Proves the machinery and objective are sound and the Stage 2 collapse was an ill-posed-target artifact, not a model-capacity wall.
-- **More:** `experiments/stage3-refcoco-finetune/`
+- **More:** `experiments/2026-06-16-stage3-refcoco-finetune/`
 
 ### RQ-S3.2 — Does the fine-tuned model emit a valid JSON bbox in ≥ 90% of calls?   [Part I · Stage 3 RefCOCO]
 - **Answer:** Yes — parse rate 100.0% on RefCOCO val.
 - **Why it matters:** Confirms reliable structured output, a prerequisite for the deployment contract shared with the probe and Phase C.
-- **More:** `experiments/stage3-refcoco-finetune/`
+- **More:** `experiments/2026-06-16-stage3-refcoco-finetune/`
 
 ### RQ-S3.3 — Does the grounding skill survive GGUF Q8_0 export (ΔIoU@0.25 ≤ 5pp)?   [Part I · Stage 3 RefCOCO]
 - **Answer:** Functionally yes but gate FAIL — in-domain RefCOCO IoU@0.25 drops 85.0% (HF bf16) → 55.0% (GGUF Q8_0), a 30 pp penalty; an F16 arm attributes ~23 pp to the llama.cpp Idefics3 image-preprocessing path and only ~7 pp to Q8_0 quantization.
 - **Why it matters:** The dominant edge-deployment cost for an Idefics3-family grounding VLM is runtime preprocessing divergence, not weight quantization — a key thesis finding that drives the Part-II spine reselection.
-- **More:** `experiments/stage3-refcoco-finetune/`
+- **More:** `experiments/2026-06-16-stage3-refcoco-finetune/`
 
 ### RQ-S3.4 — How large is the COCO→aerial domain-shift penalty?   [Part I · Stage 3 RefCOCO]
 - **Answer:** Large (expected negative) — IoU@0.25 collapses from 82.5% in-domain (RefCOCO) to 2.0% on aerial VisDrone (at the random-guess floor), with parse rate still 100%.
 - **Why it matters:** Quantifies the domain gap that mandates aerial-specific data and sets the 2.0% floor that Stage 4 must beat.
-- **More:** `experiments/stage3-refcoco-finetune/`
+- **More:** `experiments/2026-06-16-stage3-refcoco-finetune/`
 
 ### RQ-S3.5 — Does the fine-tuned model change Phase C Branch-2 valid_rate / px_err vs the zero-shot baseline?   [Part I · Stage 3 RefCOCO]
 - **Answer:** Blocked (honest defer) — Gazebo Harmonic + ardupilot_gazebo SITL is not installed on the Jetson; also mooted because the aerial domain sits at the 2.0% floor (RQ-S3.4).
 - **Why it matters:** A documented blocked result rather than a silent skip; closed-loop gains await an aerial-trained model plus an on-device SITL stack.
-- **More:** `experiments/stage3-refcoco-finetune/`
+- **More:** `experiments/2026-06-16-stage3-refcoco-finetune/`
 
 ### RQ-S4.1 — Does a well-posed one-box subset + curriculum warm-start avoid mode collapse and reach IoU@0.25 ≥ 20% on aerial RefDrone?   [Part I · Stage 4 curriculum]
 - **Answer:** Narrow miss — IoU@0.25 = 19.5% (−0.5pp), but a ~10× lift over the 2.0% RefCOCO-init floor and ~20× over Stage 2's ~1%, still rising monotonically at epoch 3 with center_std 211.5 (no collapse).
 - **Why it matters:** Shows the Stage 2 root cause is eliminated and real aerial grounding skill exists on a 500M model with frozen SigLIP; the miss is a training-budget/capacity boundary — the motivation for Part II.
-- **More:** `experiments/stage4-refdrone-curriculum/`
+- **More:** `experiments/2026-06-17-stage4-refdrone-curriculum/`
 
 ### RQ-S4.2 — Does the model emit a valid JSON bbox in ≥ 90% of calls?   [Part I · Stage 4 curriculum]
 - **Answer:** Yes — parse rate 100.0% on the RefDrone well-posed val set across all 3 epochs.
 - **Why it matters:** Confirms format competence holds in the aerial domain, isolating the remaining gap to localization accuracy.
-- **More:** `experiments/stage4-refdrone-curriculum/`
+- **More:** `experiments/2026-06-17-stage4-refdrone-curriculum/`
 
 ### RQ-S4.3 — How much does curriculum init (from Stage 3 ft3) beat from-scratch on the same subset?   [Part I · Stage 4 curriculum]
 - **Answer:** Not separately reported — the optional from-scratch control arm was gated to run only if the primary clearly passed; the primary curriculum arm reached 19.5% IoU@0.25.
 - **Why it matters:** Leaves the precise warm-start contribution unquantified, though the 19.5% vs 2.0% RefCOCO-init floor strongly implies positive transfer.
-- **More:** `experiments/stage4-refdrone-curriculum/`
+- **More:** `experiments/2026-06-17-stage4-refdrone-curriculum/`
 </content>
