@@ -150,3 +150,18 @@ Does a learned upscaler beat LANCZOS/bicubic on the ROI lever? Oracle 400² crop
 | swin2sr | 100.0% | 78.6% | 0.682 | **1331** | 635 |
 
 Swin2SR is the worst upscaler (below native on IoU@0.25) and adds ~1.3 s/crop. **Decision: reject SR, keep deployed LANCZOS.** Upscaling helps box tightness (mean IoU +0.04) but the *method* doesn't matter; learned high-freq detail buys nothing a 2B VLM can use for localization.
+
+---
+
+### 2026-06-30 — Whole-frame resolution sweep: 1024 is the on-device knee, 1536/1920 are duplicates
+Full writeup: [`experiments/2026-06-30-whole-frame-resolution/`](../../experiments/2026-06-30-whole-frame-resolution/README.md)  
+Does feeding the *whole frame* at higher resolution beat the deployed 512 baseline, and at what latency? Jetson Orin Nano 15 W, Q8_0 terse spine, RefDrone well-posed val n=439, parse 100% all arms.
+
+| max_side | IoU@0.25 | mean IoU | prefill | wall |
+|---|---|---|---|---|
+| 512 | 31.4% | 0.187 | 241 tok / 816 ms | 1424 ms |
+| **1024** | **63.1%** | 0.477 | 837 tok / 3712 ms | 4400 ms |
+| 1536 | 65.4% | 0.519 | 1383 tok / 7929 ms | 8686 ms |
+| 1920 | 65.1% | 0.514 | 1383 tok / 7938 ms | 8689 ms |
+
+512→1024 doubles IoU@0.25 (+31.7pp); 1024→1536 buys only +2.3pp for ~2× wall; 1536≈1920 is a literal duplicate (downscale-only clamp to native ~1360px for ~70% of val). Decode flat (~545 ms) — cost is all prefill. **Whole-frame 1024 @ 4.4 s is too slow for the ~2 s anchor budget; this is the baseline that justifies the ROI-crop lever (85.2% @ ≈2.0 s, beats even 1920 whole-frame).** Caveat: the run's per-sample CSV was lost when the results→experiments rename landed mid-run (aggregates intact in `run.log`).

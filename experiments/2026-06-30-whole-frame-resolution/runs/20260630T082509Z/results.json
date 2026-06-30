@@ -1,0 +1,15 @@
+{
+  "max_side": 512,
+  "n": 439,
+  "parse_pct": 100.0,
+  "iou25_pct": 31.4,
+  "mean_iou": 0.187,
+  "med_box_px_fed": 28.8,
+  "med_fed_mpx": 0.15,
+  "med_prompt_n": 241,
+  "med_prompt_ms": 816,
+  "med_predicted_n": 12,
+  "med_predicted_ms": 543,
+  "med_wall_ms": 1424,
+  "med_transfer_ms": 64
+}

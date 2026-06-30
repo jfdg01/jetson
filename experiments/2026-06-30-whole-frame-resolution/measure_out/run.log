@@ -1,0 +1,57 @@
+[measure] 439 val samples; sides=[512, 1024, 1536, 1920]; quant=q8_0
+[measure] === max_side=512 ===
+  43/439
+  86/439
+  129/439
+  172/439
+  215/439
+  258/439
+  301/439
+  344/439
+  387/439
+  430/439
+[measure] side=512  parse=100.0%  IoU@.25=31.4%  mean_iou=0.187  prefill=241tok/816ms  decode=12tok/543ms  wall=1424ms  (641s)
+[measure] === max_side=1024 ===
+  43/439
+  86/439
+  129/439
+  172/439
+  215/439
+  258/439
+  301/439
+  344/439
+  387/439
+  430/439
+[measure] side=1024  parse=100.0%  IoU@.25=63.1%  mean_iou=0.477  prefill=837tok/3712ms  decode=12tok/547ms  wall=4400ms  (1917s)
+[measure] === max_side=1536 ===
+  43/439
+  86/439
+  129/439
+  172/439
+  215/439
+  258/439
+  301/439
+  344/439
+  387/439
+  430/439
+[measure] side=1536  parse=100.0%  IoU@.25=65.4%  mean_iou=0.519  prefill=1383tok/7929ms  decode=12tok/550ms  wall=8686ms  (3423s)
+[measure] === max_side=1920 ===
+  43/439
+  86/439
+  129/439
+  172/439
+  215/439
+  258/439
+  301/439
+  344/439
+  387/439
+  430/439
+[measure] side=1920  parse=100.0%  IoU@.25=65.1%  mean_iou=0.514  prefill=1383tok/7938ms  decode=12tok/550ms  wall=8689ms  (3569s)
+Traceback (most recent call last):
+  File "/home/gara/jetson/results/2026-06-30-whole-frame-resolution/measure.py", line 243, in <module>
+  File "/home/gara/jetson/results/2026-06-30-whole-frame-resolution/measure.py", line 239, in main
+  File "/home/gara/jetson/results/2026-06-30-whole-frame-resolution/measure.py", line 186, in run
+  File "/home/gara/.pyenv/versions/3.12.10/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/gara/jetson/results/2026-06-30-whole-frame-resolution/measure_out/per_sample.csv'

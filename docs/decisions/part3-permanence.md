@@ -110,3 +110,7 @@
 
 - Swin2SR x4 loses to free bicubic/lanczos on grounding IoU (78.6% vs 80.9% IoU@0.25) and costs ~1.3 s/crop — most of the anchor budget. Full writeup: [`experiments/2026-06-30-roi-sr-upscale/`](../../experiments/2026-06-30-roi-sr-upscale/README.md).
 
+
+### 2026-06-30 — Whole-frame hi-res rejected for deployment; ROI-crop lever justified
+
+- On-device sweep (Orin 15 W Q8_0, n=439): whole-frame 1024 is the accuracy/latency knee (63.1% IoU@0.25 @ 4.4 s) but too slow for the ~2 s anchor budget; 1536/1920 add latency for ≤2.3pp and 1920 duplicates 1536 (downscale-only native clamp). The ROI-crop lever reaches 85.2% @ ≈2.0 s, so whole-frame hi-res stays a reference baseline, not a deployment mode. Full writeup: [`experiments/2026-06-30-whole-frame-resolution/`](../../experiments/2026-06-30-whole-frame-resolution/README.md).

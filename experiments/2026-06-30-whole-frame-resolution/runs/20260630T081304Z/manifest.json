@@ -1,0 +1,26 @@
+{
+  "run_id": "20260630T081304Z",
+  "created_utc": "2026-06-30T08:13:04.280507+00:00",
+  "kind": "eval",
+  "git_sha": "4d0a015feecf8d45b63baaaf5b63a34886d628db",
+  "git_dirty": true,
+  "llamacpp_commit": "57fe1f07c3b6a1de3f4fff19098e2056a85275b7",
+  "lockfile_sha256": "c85c39dfe299fff25dd94b8a84ffa4ae2a65a3a79146e6efd38c8b51d02f9ad7",
+  "python_version": "3.12.10",
+  "platform": "Linux-6.17.0-35-generic-x86_64-with-glibc2.39",
+  "config": {
+    "phase": "whole-frame",
+    "experiment": "resolution-sweep",
+    "backend": "jetson",
+    "quant": "q8_0",
+    "dataset": "refdrone",
+    "split": "val",
+    "n": 6,
+    "resolution_max_side": 512,
+    "power_mode": "15W",
+    "note": ""
+  },
+  "dataset_path": null,
+  "dataset_sha256": null,
+  "extra": {}
+}

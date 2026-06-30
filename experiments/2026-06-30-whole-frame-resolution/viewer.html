@@ -1,0 +1,263 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Whole-frame resolution sweep — viewer</title>
+<style>
+  :root { --bg:#14171c; --fg:#e6e8eb; --mut:#9aa3ad; --line:#2a2f37; --hit:#3fb950; --miss:#f85149; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+         font:14px/1.45 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  header { padding:14px 20px; border-bottom:1px solid var(--line); display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+  h1 { font-size:16px; margin:0; font-weight:600; }
+  .mut { color:var(--mut); }
+  main { padding:18px 20px 60px; max-width:1280px; }
+  section { margin-bottom:30px; }
+  h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut); margin:0 0 10px; }
+  table { border-collapse:collapse; width:100%; font-variant-numeric:tabular-nums; }
+  th,td { padding:5px 9px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }
+  th:first-child,td:first-child,td.l,th.l { text-align:left; }
+  th { cursor:pointer; color:var(--mut); font-weight:600; user-select:none; position:sticky; top:0; background:var(--bg); }
+  th:hover { color:var(--fg); }
+  tr:hover td { background:#1b1f26; }
+  .cards { display:flex; gap:14px; flex-wrap:wrap; }
+  .card { border:1px solid var(--line); border-radius:8px; padding:12px 16px; min-width:150px; }
+  .card .arm { font-size:12px; color:var(--mut); }
+  .card .big { font-size:24px; font-weight:600; margin:2px 0; }
+  .card .sub { font-size:12px; color:var(--mut); }
+  .hit { color:var(--hit); } .miss { color:var(--miss); }
+  .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+  select,input,button { background:#1b1f26; color:var(--fg); border:1px solid var(--line);
+                        border-radius:6px; padding:5px 9px; font:inherit; }
+  .scroll { max-height:520px; overflow:auto; border:1px solid var(--line); border-radius:8px; }
+  .cap { max-width:340px; overflow:hidden; text-overflow:ellipsis; }
+  svg { background:#1b1f26; border:1px solid var(--line); border-radius:8px; }
+  .legend span { display:inline-flex; align-items:center; gap:5px; margin-right:14px; font-size:12px; color:var(--mut); }
+  .dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+  #drop { color:var(--mut); }
+</style>
+
+<header>
+  <h1>Whole-frame resolution sweep</h1>
+  <span class="mut" id="meta">no data loaded</span>
+  <span style="flex:1"></span>
+  <label class="mut">load CSV <input type="file" id="file" accept=".csv"></label>
+</header>
+
+<main>
+  <div id="drop">Loading <code>measure_out/per_sample.csv</code>… if nothing appears, pick the file above
+    (double-clicked files can't auto-fetch; run <code>python -m http.server</code> in this folder to auto-load).</div>
+
+  <section id="cardsSec" hidden><h2>Per-arm summary</h2><div class="cards" id="cards"></div></section>
+
+  <section id="plotsSec" hidden>
+    <h2>Accuracy vs latency &nbsp;·&nbsp; box size vs IoU</h2>
+    <div style="display:flex; gap:18px; flex-wrap:wrap">
+      <div>
+        <div id="tradeoff"></div>
+        <div class="mut" style="font-size:12px; margin-top:4px">x = median wall ms · y = IoU@0.25 % · one point per arm</div>
+      </div>
+      <div>
+        <div id="scatter"></div>
+        <div class="legend" id="legend" style="margin-top:4px"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tableSec" hidden>
+    <h2>Per-sample</h2>
+    <div class="controls">
+      <label>arm <select id="armFilter"><option value="">all</option></select></label>
+      <label>show <select id="rowFilter">
+        <option value="all">all</option>
+        <option value="parsed">parsed only</option>
+        <option value="noparse">no-parse only</option>
+        <option value="hit">IoU≥0.25</option>
+        <option value="miss">IoU&lt;0.25 (parsed)</option>
+      </select></label>
+      <input id="search" placeholder="filter caption / name…" size="24">
+      <span class="mut" id="count"></span>
+    </div>
+    <div class="scroll"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+  </section>
+</main>
+
+<script>
+const ARMS = {}; // color cache per max_side
+const PALETTE = ["#58a6ff","#3fb950","#d29922","#f85149","#bc8cff","#39c5cf"];
+function armColor(side){ if(!(side in ARMS)) ARMS[side]=PALETTE[Object.keys(ARMS).length%PALETTE.length]; return ARMS[side]; }
+
+// --- RFC4180-ish CSV parser (handles quoted fields w/ commas, quotes, newlines) ---
+function parseCSV(text){
+  const rows=[]; let row=[], field="", q=false, i=0;
+  while(i<text.length){
+    const c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){field+='"';i++;} else q=false; }
+      else field+=c;
+    } else {
+      if(c==='"') q=true;
+      else if(c===',') { row.push(field); field=""; }
+      else if(c==='\n'){ row.push(field); rows.push(row); row=[]; field=""; }
+      else if(c==='\r'){}
+      else field+=c;
+    }
+    i++;
+  }
+  if(field.length||row.length){ row.push(field); rows.push(row); }
+  const head=rows.shift();
+  return rows.filter(r=>r.length>1).map(r=>Object.fromEntries(head.map((h,j)=>[h,r[j]])));
+}
+
+const NUM = ["max_side","img_w","img_h","box_px_orig","box_px_fed","box_area_pct","iou",
+             "fed_w","fed_h","fed_mpx","payload_kb","prompt_n","prompt_ms","predicted_n",
+             "predicted_ms","wall_ms","transfer_ms"];
+function coerce(rows){
+  for(const r of rows){ for(const k of NUM) if(r[k]!==undefined&&r[k]!=="") r[k]=+r[k];
+    r.parsed = r.parsed==="1"||r.parsed==="True"||r.parsed==="true";
+    r.gate   = r.gate==="1"||r.gate==="True"||r.gate==="true"; }
+  return rows;
+}
+
+const median = a => { if(!a.length) return NaN; const s=[...a].sort((x,y)=>x-y), m=s.length>>1;
+                      return s.length%2 ? s[m] : (s[m-1]+s[m])/2; };
+const fmt = (v,d=0) => (v==null||Number.isNaN(v)) ? "–" : (+v).toFixed(d);
+
+let ROWS=[];
+
+function summarize(rows){
+  const bySide={};
+  for(const r of rows){ (bySide[r.max_side]??=[]).push(r); }
+  return Object.entries(bySide).map(([side,rs])=>{
+    const parsed=rs.filter(r=>r.parsed);
+    const hits=rs.filter(r=>r.iou>=0.25);
+    const iou=parsed.map(r=>r.iou);
+    return { side:+side, n:rs.length,
+      parse_pct:100*parsed.length/rs.length,
+      iou25_pct:100*hits.length/rs.length,
+      mean_iou: iou.length? iou.reduce((a,b)=>a+b,0)/iou.length : NaN,
+      m_box: median(rs.map(r=>r.box_px_fed).filter(Number.isFinite)),
+      m_mpx: median(rs.map(r=>r.fed_mpx).filter(Number.isFinite)),
+      m_prefill: median(rs.map(r=>r.prompt_ms).filter(Number.isFinite)),
+      m_decode: median(rs.map(r=>r.predicted_ms).filter(Number.isFinite)),
+      m_wall: median(rs.map(r=>r.wall_ms).filter(Number.isFinite)),
+    };
+  }).sort((a,b)=>a.side-b.side);
+}
+
+function renderCards(sum){
+  cards.innerHTML="";
+  for(const s of sum){
+    const c=document.createElement("div"); c.className="card";
+    c.style.borderLeft=`4px solid ${armColor(s.side)}`;
+    c.innerHTML=`<div class="arm">max_side ${s.side} · n=${s.n}</div>
+      <div class="big">${fmt(s.iou25_pct,1)}%</div>
+      <div class="sub">IoU@0.25 · mean ${fmt(s.mean_iou,3)} · parse ${fmt(s.parse_pct,0)}%</div>
+      <div class="sub" style="margin-top:6px">box ${fmt(s.m_box)}px · ${fmt(s.m_mpx,2)} Mpx</div>
+      <div class="sub">prefill ${fmt(s.m_prefill)}ms · decode ${fmt(s.m_decode)}ms · wall ${fmt(s.m_wall)}ms</div>`;
+    cards.appendChild(c);
+  }
+}
+
+// --- tiny SVG scatter helper ---
+function svgScatter(W,H,pts,opt={}){
+  const pad={l:46,r:12,t:12,b:34};
+  const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
+  const xlog=opt.xlog;
+  const tx=v=> xlog?Math.log10(Math.max(v,1)):v;
+  const xmin=Math.min(...xs.map(tx)), xmax=Math.max(...xs.map(tx));
+  const ymin=opt.ymin??Math.min(...ys), ymax=opt.ymax??Math.max(...ys);
+  const X=v=> pad.l + (tx(v)-xmin)/((xmax-xmin)||1)*(W-pad.l-pad.r);
+  const Y=v=> H-pad.b - (v-ymin)/((ymax-ymin)||1)*(H-pad.t-pad.b);
+  let s=`<svg width="${W}" height="${H}">`;
+  // axes
+  s+=`<line x1="${pad.l}" y1="${H-pad.b}" x2="${W-pad.r}" y2="${H-pad.b}" stroke="#3a4048"/>`;
+  s+=`<line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${H-pad.b}" stroke="#3a4048"/>`;
+  for(let g=0;g<=4;g++){ const yv=ymin+(ymax-ymin)*g/4;
+    s+=`<text x="${pad.l-6}" y="${Y(yv)+4}" fill="#9aa3ad" font-size="11" text-anchor="end">${fmt(yv,opt.ydec??0)}</text>`;
+    s+=`<line x1="${pad.l}" y1="${Y(yv)}" x2="${W-pad.r}" y2="${Y(yv)}" stroke="#23282f"/>`; }
+  if(opt.line){ const sp=[...pts].sort((a,b)=>a.x-b.x);
+    s+=`<polyline fill="none" stroke="#444b54" stroke-width="1.5" points="${sp.map(p=>`${X(p.x)},${Y(p.y)}`).join(" ")}"/>`; }
+  for(const p of pts){ s+=`<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="${p.r??4}" fill="${p.c}" fill-opacity="${p.o??0.85}"/>`;
+    if(p.label) s+=`<text x="${X(p.x)+8}" y="${Y(p.y)+4}" fill="#e6e8eb" font-size="11">${p.label}</text>`; }
+  s+=`<text x="${(W+pad.l)/2}" y="${H-6}" fill="#9aa3ad" font-size="11" text-anchor="middle">${opt.xlabel||""}</text>`;
+  return s+"</svg>";
+}
+
+function renderPlots(rows,sum){
+  tradeoff.innerHTML = svgScatter(420,300,
+    sum.map(s=>({x:s.m_wall,y:s.iou25_pct,c:armColor(s.side),r:6,label:`${s.side}`})),
+    {line:true, ymin:0, ymax:100, xlabel:"median wall ms", ydec:0});
+  const pr=rows.filter(r=>r.parsed&&Number.isFinite(r.box_px_fed));
+  scatter.innerHTML = svgScatter(520,300,
+    pr.map(r=>({x:r.box_px_fed,y:r.iou,c:armColor(r.max_side),r:2.5,o:0.5})),
+    {xlog:true, ymin:0, ymax:1, ydec:1, xlabel:"fed box long-edge px (log)"});
+  legend.innerHTML = sum.map(s=>`<span><i class="dot" style="background:${armColor(s.side)}"></i>${s.side}</span>`).join("");
+}
+
+// --- per-sample table ---
+const COLS=[
+  ["name","name",0,"l"],["caption","caption",0,"l cap"],["max_side","arm",0],
+  ["box_px_fed","box px",0],["box_area_pct","area %",2],["fed_mpx","Mpx",2],
+  ["prompt_n","pre tok",0],["prompt_ms","pre ms",0],["predicted_ms","dec ms",0],
+  ["wall_ms","wall ms",0],["transfer_ms","xfer ms",0],["iou","IoU",2],["raw","raw",0,"l"],
+];
+let sortKey="iou", sortDir=1;
+function renderTable(){
+  const thead=tbl.tHead, tb=tbl.tBodies[0];
+  thead.innerHTML="<tr>"+COLS.map(([k,lbl,,cls])=>
+    `<th class="${cls||''}" data-k="${k}">${lbl}${k===sortKey?(sortDir<0?" ▼":" ▲"):""}</th>`).join("")+"</tr>";
+  thead.querySelectorAll("th").forEach(th=>th.onclick=()=>{
+    const k=th.dataset.k; if(k===sortKey) sortDir*=-1; else {sortKey=k; sortDir=1;} renderTable();});
+
+  const arm=armFilter.value, mode=rowFilter.value, q=search.value.toLowerCase();
+  let rows=ROWS.filter(r=>{
+    if(arm && r.max_side!=+arm) return false;
+    if(mode==="parsed"&&!r.parsed) return false;
+    if(mode==="noparse"&&r.parsed) return false;
+    if(mode==="hit"&&!(r.iou>=0.25)) return false;
+    if(mode==="miss"&&!(r.parsed&&r.iou<0.25)) return false;
+    if(q && !(`${r.name} ${r.caption}`.toLowerCase().includes(q))) return false;
+    return true;
+  });
+  rows.sort((a,b)=>{ let x=a[sortKey],y=b[sortKey];
+    if(typeof x==="string"){return sortDir*x.localeCompare(y);}
+    x=Number.isFinite(x)?x:-Infinity; y=Number.isFinite(y)?y:-Infinity; return sortDir*(x-y); });
+  count.textContent=`${rows.length} rows`;
+  tb.innerHTML=rows.map(r=>"<tr>"+COLS.map(([k,,d,cls])=>{
+    let v=r[k];
+    if(k==="iou") v = r.parsed? `<span class="${r.iou>=0.25?'hit':'miss'}">${fmt(r.iou,2)}</span>` : '<span class="miss">no parse</span>';
+    else if(k==="max_side") v=`<span style="color:${armColor(r.max_side)}">${r.max_side}</span>`;
+    else if(typeof v==="number") v=fmt(v,d);
+    else v=(v??"").toString().slice(0,80);
+    return `<td class="${cls||''}">${v}</td>`;
+  }).join("")+"</tr>").join("");
+}
+
+function load(rows){
+  ROWS=coerce(rows);
+  const sum=summarize(ROWS);
+  meta.textContent=`${ROWS.length} samples · arms ${sum.map(s=>s.side).join(", ")}`;
+  drop.hidden=true; cardsSec.hidden=plotsSec.hidden=tableSec.hidden=false;
+  armFilter.innerHTML='<option value="">all</option>'+sum.map(s=>`<option>${s.side}</option>`).join("");
+  renderCards(sum); renderPlots(ROWS,sum); renderTable();
+}
+
+file.onchange=e=>{ const f=e.target.files[0]; if(!f) return;
+  f.text().then(t=>load(parseCSV(t))); };
+[armFilter,rowFilter].forEach(el=>el.onchange=renderTable);
+search.oninput=renderTable;
+
+// self-check: parser must survive quoted commas + embedded quotes
+(function selftest(){
+  const t='a,b,iou\n"x,y","he said ""hi""",0.5\nz,w,0.1\n';
+  const r=parseCSV(t);
+  console.assert(r.length===2 && r[0].a==="x,y" && r[0].b==='he said "hi"' && r[1].iou==="0.1",
+    "CSV self-check FAILED", r);
+  console.log("viewer CSV self-check passed");
+})();
+
+// auto-load when served over http(s)
+if(location.protocol.startsWith("http")){
+  fetch("measure_out/per_sample.csv").then(r=>r.ok?r.text():Promise.reject())
+    .then(t=>load(parseCSV(t)))
+    .catch(()=>{ drop.textContent="auto-load failed — pick measure_out/per_sample.csv with the file input above."; });
+}
+</script>
