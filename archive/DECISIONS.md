@@ -2,6 +2,13 @@
 
 > **Frozen archive.** Parts I–III are complete. New decisions go in the relevant
 > `results/<campaign>/README.md` under a `## Decisions` heading, not here.
+>
+> **Dead links are expected.** The `results/...` paths below predate two
+> reorganizations: `results/` was renamed to `experiments/` (commit `c23fc63`),
+> and the per-stage dirs gained date prefixes (e.g. `stage2-finetune` →
+> `2026-06-15-stage2-finetune`). Live equivalents are under
+> `experiments/2026-06-1X-stageN-*/`. Links are left as-written on purpose — this
+> snapshot records the layout at archival time. Current log: `DECISIONS.md` → `docs/decisions/`.
 
 Cross-cutting decisions and their rationale, most recent first. Campaign-specific
 decisions live in the relevant `results/*.md`.

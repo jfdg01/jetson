@@ -3,7 +3,7 @@
 **Pre-registered:** 2026-06-16
 **Campaign status:** SETUP → TRAINING
 **Script:** `runners/run_stage3_finetune.py`
-**Supersedes:** Stage 2 (`experiments/stage2-finetune/`), which FAILED gate G2 (IoU@0.25 = 1%, mode collapse).
+**Supersedes:** Stage 2 (`experiments/2026-06-15-stage2-finetune/`), which FAILED gate G2 (IoU@0.25 = 1%, mode collapse).
 
 ---
 
@@ -152,7 +152,7 @@ python runners/run_stage3_finetune.py --eval-only ./smolvlm_ft3   # re-eval merg
 ```
 
 Outputs: merged checkpoint `./smolvlm_ft3/` (+ `epoch1/` adapter), incremental CSVs
-`experiments/stage3-refcoco-finetune/raw/{train_loss,eval_iou}.csv`.
+`experiments/2026-06-16-stage3-refcoco-finetune/raw/{train_loss,eval_iou}.csv`.
 
 ---
 

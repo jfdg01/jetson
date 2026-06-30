@@ -3,7 +3,7 @@
 **Pre-registered:** 2026-06-17
 **Campaign status:** SETUP → TRAINING
 **Script:** `runners/run_stage4_finetune.py`
-**Builds on:** Stage 3 (`experiments/stage3-refcoco-finetune/`), which PASSED gate G2
+**Builds on:** Stage 3 (`experiments/2026-06-16-stage3-refcoco-finetune/`), which PASSED gate G2
 (RefCOCO IoU@0.25 = 82.5%) but is *ground-level* — aerial transfer measured at 2.0% (RQ-S3.4).
 
 ---
@@ -139,7 +139,7 @@ python runners/run_stage4_finetune.py --eval-only ./smolvlm_ft4      # re-eval m
 ```
 
 Outputs: merged checkpoint `./smolvlm_ft4/` (+ `epoch{N}/` adapters), incremental CSVs
-`experiments/stage4-refdrone-curriculum/raw/{train_loss,eval_iou}.csv`.
+`experiments/2026-06-17-stage4-refdrone-curriculum/raw/{train_loss,eval_iou}.csv`.
 
 ---
 

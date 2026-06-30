@@ -97,7 +97,7 @@ Full writeup: [`experiments/2026-06-14-stage1-baseline/phase-c-vlm.md`](../../ex
 ---
 
 ### Stage 2: SmolVLM fine-tune (2026-06-16)
-Full writeup: [`experiments/stage2-finetune/train-log.md`](../../experiments/stage2-finetune/train-log.md)  
+Full writeup: [`experiments/2026-06-15-stage2-finetune/train-log.md`](../../experiments/2026-06-15-stage2-finetune/train-log.md)  
 1 epoch · 23,437 steps · 32,723 s · mean loss 0.8341.
 
 | Epoch | Parse rate | IoU@0.25 | Result |
@@ -109,7 +109,7 @@ Full writeup: [`experiments/stage2-finetune/train-log.md`](../../experiments/sta
 ---
 
 ### Stage 3: RefCOCO fine-tune (2026-06-16–17)
-Full writeup: [`experiments/stage3-refcoco-finetune/train-log.md`](../../experiments/stage3-refcoco-finetune/train-log.md)  
+Full writeup: [`experiments/2026-06-16-stage3-refcoco-finetune/train-log.md`](../../experiments/2026-06-16-stage3-refcoco-finetune/train-log.md)  
 Fix: well-posed RefCOCO targets + normalized 0–1000 coords + attn+MLP LoRA.
 
 | Run | Date | Outcome |
@@ -122,7 +122,7 @@ Export parity (HF bf16 vs GGUF, RefCOCO val n=100, seed-42): HF 85.0% → F16 62
 ---
 
 ### Stage 4: RefCOCO→RefDrone curriculum (2026-06-17)
-Full writeup: [`experiments/stage4-refdrone-curriculum/train-log.md`](../../experiments/stage4-refdrone-curriculum/train-log.md)  
+Full writeup: [`experiments/2026-06-17-stage4-refdrone-curriculum/train-log.md`](../../experiments/2026-06-17-stage4-refdrone-curriculum/train-log.md)  
 Init from Stage 3 merged weights, LoRA on well-posed RefDrone subset (4101 train / 439 val), 3 epochs.
 
 | Epoch | mean_loss | parse_rate | IoU@0.25 | mean_iou | center_std |

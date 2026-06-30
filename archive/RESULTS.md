@@ -1,5 +1,13 @@
 # RESULTS — Jetson Orin Nano Edge-LLM Benchmarks
 
+> **Frozen snapshot — dead links are expected.** This file is a point-in-time
+> archive. Its `results/...` links predate two reorganizations: `results/` was
+> renamed to `experiments/` (commit `c23fc63`), and the per-stage dirs gained
+> date prefixes (e.g. `stage2-finetune` → `2026-06-15-stage2-finetune`). The live
+> equivalents now live under `experiments/2026-06-1X-stageN-*/`. Links are left
+> as-written on purpose — the archive is not re-pointed, it records the layout at
+> archival time. The current ledger is `RESULTS.md` → `docs/results/`.
+
 Running ledger across all experiment campaigns. Append, never overwrite.
 Each row links to the detailed writeup in `results/`. See `CLAUDE.md` for the
 fields every run must capture.

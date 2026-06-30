@@ -83,7 +83,7 @@ from run_stage3_finetune import (  # noqa: E402
 # ── Stage 4 specifics ──────────────────────────────────────────────────────────
 DEFAULT_INIT_FROM = "./smolvlm_ft3"     # Stage 3 RefCOCO merged checkpoint (curriculum base)
 DEFAULT_OUTPUT    = "./smolvlm_ft4"
-STAGE4_RAW        = Path("experiments/stage4-refdrone-curriculum/raw")
+STAGE4_RAW        = Path("experiments/2026-06-17-stage4-refdrone-curriculum/raw")
 HF_REFDRONE_GLOB  = ("/home/gara/.cache/huggingface/hub/"
                      "datasets--sunzc-sunny--RefDrone/snapshots/*/RefDrone_{split}_mdetr.json")
 # mdetr split name → VisDrone image subdirectory

@@ -2,7 +2,7 @@
 Stage 3 fine-tuning: SmolVLM-500M-Instruct on RefCOCO referring-expression grounding.
 
 This is the *corrected* fine-tuning run after Stage 2 (RefDrone) failed with mode
-collapse (IoU@0.25 = 1%). See experiments/stage3-refcoco-finetune/README.md for the
+collapse (IoU@0.25 = 1%). See experiments/2026-06-16-stage3-refcoco-finetune/README.md for the
 full diagnosis and rationale. Key changes vs Stage 2:
 
   1. Dataset: RefCOCO (single-instance referring expressions, large objects) instead
@@ -377,8 +377,8 @@ def train(args):
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    loss_csv_path = Path("experiments/stage3-refcoco-finetune/raw/train_loss.csv")
-    iou_csv_path  = Path("experiments/stage3-refcoco-finetune/raw/eval_iou.csv")
+    loss_csv_path = Path("experiments/2026-06-16-stage3-refcoco-finetune/raw/train_loss.csv")
+    iou_csv_path  = Path("experiments/2026-06-16-stage3-refcoco-finetune/raw/eval_iou.csv")
     loss_csv_path.parent.mkdir(parents=True, exist_ok=True)
 
     loss_rows = [["epoch", "step", "loss", "lr", "elapsed_s"]]

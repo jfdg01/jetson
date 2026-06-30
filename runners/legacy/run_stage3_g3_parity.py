@@ -1,7 +1,7 @@
 """
 Stage 3 G3 / RQ-S3.3 — GGUF Q8_0 export-parity check (HF bf16 vs GGUF Q8_0).
 
-Pre-registration (experiments/stage3-refcoco-finetune/README.md): "Does the grounding
+Pre-registration (experiments/2026-06-16-stage3-refcoco-finetune/README.md): "Does the grounding
 skill survive GGUF Q8_0 export?  ΔIoU@0.25 ≤ 5pp HF vs GGUF Q8_0."
 
 Why this script exists
@@ -57,7 +57,7 @@ from run_stage3_finetune import RefCOCODataset, _parse_bbox, _iou, evaluate  # n
 JETSON_GGUF_PATH   = "/home/jfdg/models/smolvlm_ft3_q8_0.gguf"
 JETSON_MMPROJ_PATH = "/home/jfdg/models/mmproj-SmolVLM-500M-Instruct-f16.gguf"
 GATE_PP            = 5.0   # ΔIoU@0.25 ≤ 5 percentage points = PASS
-STAGE3_RAW = Path(__file__).parent.parent / "experiments/stage3-refcoco-finetune/raw"
+STAGE3_RAW = Path(__file__).parent.parent / "experiments/2026-06-16-stage3-refcoco-finetune/raw"
 
 
 def gguf_arm(val_ds, n: int, dry_run: bool, gguf_path: str = JETSON_GGUF_PATH,

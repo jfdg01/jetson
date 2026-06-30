@@ -121,4 +121,4 @@ python runners/run_stage4_finetune.py --eval-only ./smolvlm_ft4
 ```
 
 Outputs: merged checkpoint `smolvlm_ft4/` (+ `epoch{1,2,3}/` adapters), incremental CSVs
-`experiments/stage4-refdrone-curriculum/raw/{train_loss,eval_iou}.csv`.
+`experiments/2026-06-17-stage4-refdrone-curriculum/raw/{train_loss,eval_iou}.csv`.

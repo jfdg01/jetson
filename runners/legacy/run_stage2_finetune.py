@@ -408,8 +408,8 @@ def train(args):
     # ── logging ───────────────────────────────────────────────────────────────
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    loss_csv_path = Path("experiments/stage2-finetune/raw/train_loss.csv")
-    iou_csv_path  = Path("experiments/stage2-finetune/raw/eval_iou.csv")
+    loss_csv_path = Path("experiments/2026-06-15-stage2-finetune/raw/train_loss.csv")
+    iou_csv_path  = Path("experiments/2026-06-15-stage2-finetune/raw/eval_iou.csv")
     loss_csv_path.parent.mkdir(parents=True, exist_ok=True)
 
     loss_rows = [["epoch", "step", "loss", "lr", "elapsed_s"]]
