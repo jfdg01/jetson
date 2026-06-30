@@ -21,9 +21,29 @@ from grounding.contract import IMAGE_SIZE
 _DEFAULT_LLAMACPP_BIN = "/tmp/llama.cpp-57fe1f0/build/bin"
 
 
+def _encode_image(img, img_format: str = "png"):
+    """PIL image → (bytes, mime) for the chat payload.
+
+    'png' = lossless (the HF-parity default — identical pixels to the HF arm).
+    'jpegNN' / 'jpgNN' = JPEG at quality NN (default 90): far fewer bytes over the
+    ssh tunnel, at a fidelity cost the format experiment measures. The mime is
+    returned so the data-URL matches what was actually encoded.
+    """
+    import io
+
+    buf = io.BytesIO()
+    f = img_format.lower()
+    if f.startswith(("jpeg", "jpg")):
+        q = "".join(c for c in f if c.isdigit())
+        img.save(buf, format="JPEG", quality=int(q) if q else 90)
+        return buf.getvalue(), "jpeg"
+    img.save(buf, format="PNG")
+    return buf.getvalue(), "png"
+
+
 def _llama_server_chat(base_url: str, image_path: str, caption: str,
                        max_side: int, *, timeout: int = 300,
-                       stats: dict | None = None) -> str:
+                       stats: dict | None = None, img_format: str = "png") -> str:
     """POST one (image, caption) to a llama.cpp `/v1/chat/completions` endpoint.
 
     Shared by `GGUFBackend` (local CPU server) and `JetsonBackend` (remote server
@@ -43,7 +63,6 @@ def _llama_server_chat(base_url: str, image_path: str, caption: str,
     """
     import base64
     import json
-    import tempfile
     import time
     import urllib.request
 
@@ -55,14 +74,13 @@ def _llama_server_chat(base_url: str, image_path: str, caption: str,
     img = _resize_keep_aspect(img, max_side)
     prompt = GROUNDING_PROMPT.format(target=caption)
 
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as tmp:
-        img.save(tmp.name)  # lossless PNG — identical pixels to the HF arm
-        b64 = base64.b64encode(open(tmp.name, "rb").read()).decode()
+    img_bytes, mime = _encode_image(img, img_format)
+    b64 = base64.b64encode(img_bytes).decode()
 
     payload = json.dumps({
         "model": "vlm",
         "messages": [{"role": "user", "content": [
-            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}},
+            {"type": "image_url", "image_url": {"url": f"data:image/{mime};base64,{b64}"}},
             {"type": "text", "text": prompt},
         ]}],
         "max_tokens": MAX_NEW_TOKENS,
@@ -82,6 +100,7 @@ def _llama_server_chat(base_url: str, image_path: str, caption: str,
         prompt_ms = float(t.get("prompt_ms", 0.0))
         predicted_ms = float(t.get("predicted_ms", 0.0))
         stats.update({
+            "img_format": img_format,
             "fed_w": img.width, "fed_h": img.height,
             "fed_mpx": round(img.width * img.height / 1e6, 3),
             "payload_kb": round(len(payload) / 1024, 1),
@@ -355,6 +374,7 @@ class JetsonBackend:
         self.remote_mmproj_path = remote_mmproj_path
         self.remote_port = remote_port
         self.max_side = max_side
+        self.img_format = "png"  # 'png' (parity default) | 'jpegNN'; see _encode_image
         self._remote_pid: int | None = None
         self._tunnel: subprocess.Popen | None = None
 
@@ -413,12 +433,13 @@ class JetsonBackend:
         self._base = base
 
     def generate(self, image_path: str, caption: str) -> str:
-        return _llama_server_chat(self._base, image_path, caption, self.max_side)
+        return _llama_server_chat(self._base, image_path, caption, self.max_side,
+                                  img_format=self.img_format)
 
     def generate_stats(self, image_path: str, caption: str, stats: dict) -> str:
         """Like `generate`, but fills `stats` with the per-call timing/size breakdown."""
         return _llama_server_chat(self._base, image_path, caption, self.max_side,
-                                  stats=stats)
+                                  stats=stats, img_format=self.img_format)
 
     def close(self) -> None:
         import subprocess
