@@ -11,24 +11,45 @@ and the date. Capture what works AND what doesn't — negative results are thesi
 No unverified claims; mark estimates as estimates. A decision without its rationale is
 not documented — record what was chosen, why, and what was given up.
 
-## Project parts (all complete)
+## Project parts (I–III complete, IV in progress)
 
 - **Part I — Exploratory:** device benchmark campaigns + VLM grounding fine-tune (Stages 1–4). Frozen.
 - **Part II — v2 principled rebuild:** single-frame grounding on `v2/principled-rebuild`. Qwen2-VL-2B Q8_0, RefDrone IoU@0.25 = 62.6%, Phases 0–4 all done.
 - **Part III — v3 object permanence:** persistent moving-target tracking on `v3/object-permanence`. T0–T4 all done, demo built, terse+ROI latency levers deployed (anchor ≈2.0 s ROI re-anchor, 85.2% IoU@0.25).
+- **Part IV — v4 end-to-end workflow refinement (IN PROGRESS):** the two-tier follow loop passed T0–T4 in isolation but the integrated NL→ground→track→fly pipeline doesn't hold up end-to-end; Part IV hardens it. No dedicated branch yet (work continues on the current branch).
 
-## Where things go
+## Repository map
 
-- `README.md` — hardware/platform survey + project-layout map.
-- `grounding/` — v2 Python package (`contract.py`, `data/`, `eval/`, `train/`, `export/`, `deploy/`, `resolution.py`, `roi.py`).
-- `results/` — one directory per experiment campaign. Raw logs in `results/raw/`.
-- `RESULTS.md` — running summary table across all experiments. Append, don't overwrite.
-- `experiments/` — Part-I automation scripts + SITL follow stack (`sitl/`).
-- `experiments/legacy/` — archived Part-I trainers/exporters. Superseded by `grounding/`.
-- `QUESTIONS.md` — thin index of every experiment's research question; full verdicts split per Part in `docs/questions/part{1,2,3}-*.md`. Load only the Part you're writing.
-- `DECISIONS.md` — thin index; decisions split per Part in `docs/decisions/part{1,2,3}-*.md`. **Append to TOP** — prepend each new decision above the most recent in its Part file (newest first). One-line summary + link per decision; full rationale, numbers, and alternatives go in `results/<campaign>/README.md`.
-- `docs/` — per-Part `questions/` + `decisions/` detail files, plus generated/exported reports (`INFORME_PROGRESO`, `MODEL_REPORT`, `.md`+`.pdf`).
-- `SOURCES.md` — every external paper, model, or dataset we cite or use. **Whenever you pull in a paper/model/dataset, add an entry: the link + what we used it for** (for future thesis citations). Append, don't overwrite.
+Three roles. The per-experiment record is the source of truth; the ledgers are rollups that
+point back to it; never duplicate content across files — link.
+
+| Path | Role | Update rule |
+|---|---|---|
+| `results/<campaign>/README.md` | **source of truth** — the full per-experiment record (command, versions, power mode, date, rationale). Raw logs in `results/raw/`. | one dir per campaign |
+| `RESULTS.md` → `docs/results/part{1-4}-*.md` | ledger: metric tables, one row per run | **append** under the run's Part |
+| `QUESTIONS.md` → `docs/questions/part{1-4}-*.md` | ledger: research question + one-line verdict per run | **append** under the run's Part |
+| `DECISIONS.md` → `docs/decisions/part{1-4}-*.md` | ledger: cross-cutting choices + rationale | **append** under the run's Part |
+| `SOURCES.md` | reference: every external paper/model/dataset (link + what for) | **append** when you pull one in |
+| `README.md` | reference: hardware/platform survey + this map | edit when the platform changes |
+| `docs/` | the per-Part ledger detail files above | — |
+| `grounding/` | v2/v3 Python package (`contract.py`, `data/`, `eval/`, `train/`, `export/`, `deploy/`, `resolution.py`, `roi.py`) | — |
+| `experiments/` | Part-I automation + SITL follow stack (`sitl/`); `legacy/` = archived, superseded by `grounding/` | — |
+
+The three ledger root files are **thin indexes** (catalog + Part table) — open only the Part you're
+writing, so a session doesn't drag all four chapters into context.
+
+## Per-experiment workflow (definition of done)
+
+A campaign isn't done until:
+
+1. `results/<campaign>/README.md` written — command, software versions, power mode, date; what worked **and** what didn't.
+2. **RESULTS** row(s) appended under the run's Part.
+3. **QUESTIONS** entry (RQ/`Q-*` id + one-line verdict) appended under the run's Part.
+4. **DECISIONS** entry appended under the run's Part — only if a non-trivial choice was made (what / why / what was given up).
+5. **SOURCES** appended if a new paper/model/dataset was used.
+6. New Part? add a row to each of the three ledger root indexes and create `docs/{results,questions,decisions}/partN-*.md`.
+
+Every number carries its config (power mode, flags, ctx). Negative/unexpected results are content — record them plainly.
 
 ## Tooling
 
@@ -44,13 +65,11 @@ make test      # run pytest contract + manifest + audit suite
 
 ## Environment
 
-- Device: `ssh jetson` (user `jfdg`). `sudo` needs a password — power-mode changes, `jetson_clocks`, `apt install` must be run interactively.
+- Device: `ssh jetson` (user `jfdg`). `sudo nvpmodel` and `sudo jetson_clocks` are **NOPASSWD** (run non-interactively over SSH); `apt install`, firmware flashing, etc. still need an interactive password.
 - `nvcc`: `/usr/local/cuda/bin/nvcc` (not on default `$PATH`).
 - HF token for gated models: `.hugging-face-token` at repo root (gitignored).
 
 ## Working agreement
 
-- Write results into `results/` and update `RESULTS.md` before the session ends — don't leave findings only in chat.
-- Surface negative/unexpected results plainly.
-- Always report the config (power mode, flags, ctx) next to any number.
+- Don't leave findings only in chat — land them via the workflow above before the session ends.
 - If a tool is missing (`ffmpeg`, `cmake`, a Python package), say what's needed and why — don't work around it. Document installs in the relevant `results/` README.

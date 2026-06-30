@@ -13,6 +13,7 @@
 | I | [`docs/questions/part1-exploratory.md`](docs/questions/part1-exploratory.md) | device benchmarks + grounding Stages 1–4 (24 RQs) |
 | II | [`docs/questions/part2-rebuild.md`](docs/questions/part2-rebuild.md) | v2 single-frame grounding, Phases 0–4 (15 RQs) |
 | III | [`docs/questions/part3-permanence.md`](docs/questions/part3-permanence.md) | v3 persistent tracking, T0–T4 + latency levers (24 RQs) |
+| IV | [`docs/questions/part4-end-to-end.md`](docs/questions/part4-end-to-end.md) | **in progress** — end-to-end workflow refinement (0 RQs yet) |
 
 ---
 
@@ -103,3 +104,7 @@
 - **Q-spiral-1** — is ROI re-anchor stable when cadence is pushed fast?
 - **Q-srupscale-1** — does learned super-resolution beat interpolation for tiny targets? *(preliminary)*
 - **Q-wholeframe-1** — accuracy-vs-latency of whole frame at higher max_side? *(in progress)*
+
+## Part IV — End-to-end workflow refinement → [`docs/questions/part4-end-to-end.md`](docs/questions/part4-end-to-end.md)
+
+- _No research questions recorded yet — the integrated NL→ground→track→fly pipeline doesn't hold up end-to-end; RQs land here as the hardening work is pre-registered._
