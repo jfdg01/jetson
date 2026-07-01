@@ -37,7 +37,12 @@ from PIL import Image, ImageDraw, ImageFont
 
 from grounding.contract import COORD_SCALE, parse_bbox
 from grounding.deploy.serve import _DEFAULT_REMOTE_DIR
-from grounding.deploy.video import ROI_MARGIN as _ROI_MARGIN, ROI_OUT_RES as _ROI_OUT_RES, render as _render_track
+from grounding.deploy.video import (ACQUIRE_PERIOD_S as _ACQUIRE_PERIOD_S,
+                                    ANCHOR_PERIOD_S as _ANCHOR_PERIOD_S,
+                                    ROI_MARGIN as _ROI_MARGIN,
+                                    ROI_MIN_CROP as _ROI_MIN_CROP,
+                                    ROI_OUT_RES as _ROI_OUT_RES,
+                                    render as _render_track)
 from grounding.eval.backends import JetsonBackend
 from grounding.roi import crop_resize, map_to_full, roi_window
 
@@ -496,8 +501,9 @@ class _Handler(BaseHTTPRequestHandler):
             return {"error": f"full-frame pass unparseable: {raw_f!r}"}
 
         # 2) ROI re-anchor — crop around the acquired box, upscale to the budget.
-        win = roi_window(box_f, img.width, img.height, _ROI_MARGIN)
-        crop = crop_resize(img, win, _ROI_OUT_RES, upscale=False)
+        win = roi_window(box_f, img.width, img.height, _ROI_MARGIN,
+                         min_side=_ROI_MIN_CROP)
+        crop = crop_resize(img, win, _ROI_OUT_RES)  # upscale=True: the super-res lever
         raw_r, pr_ms, dr_ms = _timed_post(crop, caption, 10**9)  # crop is pre-sized
         box_r = parse_bbox(raw_r)
         if box_r is None:
@@ -530,8 +536,8 @@ class _Handler(BaseHTTPRequestHandler):
         box/frame). Terse anchor (full-frame acquire → ROI-crop re-anchor) + CSRT
         coasting; slow (a few ssh VLM passes), single-user demo only."""
         caption = req["caption"]
-        acquire_s = float(req.get("acquire_s", 4.0) or 4.0)
-        period_s = float(req.get("period_s", 2.0) or 2.0)
+        acquire_s = float(req.get("acquire_s") or _ACQUIRE_PERIOD_S)
+        period_s = float(req.get("period_s") or _ANCHOR_PERIOD_S)
         vid_bytes = req["video_bytes"]
         anchors_out = []
 

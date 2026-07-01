@@ -59,14 +59,19 @@ _TRAIN_MAX_SIDE = 1024
 # server-side — it under-reported the GUI's real 1024 full-frame acquire by ~2×.
 ANCHOR_PERIOD_S = 2.0  # ROI re-anchor wall — the repeating steady-state cadence
 ACQUIRE_PERIOD_S = (
-    2.0  # full-frame acquire wall — first anchor (and post-loss re-acquire)
+    4.8  # full-frame acquire wall — first anchor (and post-loss re-acquire)
 )
 
 # ROI re-anchor (experiments/2026-06-25-roi-crop-anchor): while the lock holds, re-anchor on a
 # tight crop around the last box, upscaled to OUT_RES — 2.7× cheaper prefill AND +22.6 pp
 # (super-resolution on the target). Cold acquire / re-acquire after a loss stays full-frame.
-ROI_MARGIN = 4.0
-ROI_OUT_RES = 1024
+# GATED CONFIG — M=2.0 @512 upscaled = 85.2% IoU@0.25; do not tweak without re-measuring
+# (an undocumented M=4.0 @1024 no-upscale drift matched no measured number; see
+# docs/decisions/part4-end-to-end.md 2026-07-02). Upscaling to 512 keeps fed pixels
+# (≤512²) BELOW the 1024 letterboxed full frame, so it is cheaper AND more accurate;
+# only upscaling to 1024² inverts the cost — that is the trap the drift fell into.
+ROI_MARGIN = 2.0
+ROI_OUT_RES = 512
 # Floor the ROI crop side (px). Without it, re-anchor crops margin·box every pass, so a
 # box that shrinks (small/drifted prediction, target receding) drives the next crop
 # smaller → zooms past all context → shrinks again: a death spiral that loses the lock
@@ -232,7 +237,7 @@ def _anchor_box(backend, img, caption, prior, use_roi, stats=None):
         stats = {}
     if use_roi and prior is not None:
         win = roi_window(prior, img.width, img.height, ROI_MARGIN, min_side=ROI_MIN_CROP)
-        crop = crop_resize(img, win, ROI_OUT_RES, upscale=False)
+        crop = crop_resize(img, win, ROI_OUT_RES)  # upscale=True: the super-res lever
         raw = _generate_pil(backend, crop, caption, stats)
         stats["mode"] = "ROI re-anchor"
         stats["roi_win"] = win
@@ -324,7 +329,6 @@ def render(
                         roi_window(box, img_pil.width, img_pil.height, ROI_MARGIN,
                                    min_side=ROI_MIN_CROP),
                         ROI_OUT_RES,
-                        upscale=False,
                     )
                     if use_roi
                     else img_pil
@@ -488,10 +492,10 @@ def _selfcheck():
     assert s0.seen == (640, 480), s0.seen  # acquire = full frame
     s1 = _Stub("50 50 60 60")
     b = _anchor_box(s1, img, "x", [10, 20, 30, 40], True)
-    # re-anchor is downscale-only now: a crop already ≤ OUT_RES is fed native (no
-    # upscale), so the fed long edge never EXCEEDS OUT_RES and isn't grown past the crop.
-    assert max(s1.seen) <= ROI_OUT_RES, s1.seen
-    assert s1.seen == (384, 400), s1.seen  # native crop window, not upscaled
+    # re-anchor upscales the crop to OUT_RES (the gated super-res lever): the fed
+    # long edge is exactly OUT_RES, grown from the min_side-floored crop window.
+    assert max(s1.seen) == ROI_OUT_RES, s1.seen
+    assert s1.seen == (488, 512), s1.seen  # 320x336 floored window upscaled to 512
     assert b is not None and all(0 <= v <= COORD_SCALE for v in b), b
     s2 = _Stub("garbage")  # parse-fail keeps the prior box
     assert _anchor_box(s2, img, "x", [10, 20, 30, 40], True) == [10, 20, 30, 40]

@@ -102,12 +102,13 @@ def crop_resize(img, win: Window, out_res: Optional[int], *, upscale: bool = Tru
 
     `out_res=None` → native (no resize). Unlike `resolution._resize_keep_aspect`
     (downscale-only), this **upscales** a small crop to the budget — that upscale is
-    the super-resolution intervention RQ2 is about (keep `upscale=True` for the
-    RefDrone sweep). With `upscale=False` the long edge is *capped* at `out_res` but
-    never grown: the deploy re-anchor path uses this so the fed crop can't end up
-    with MORE pixels (vision tokens) than the letterboxed full frame would — a square
-    OUT_RES upscale of a small crop was actually making re-anchor prefill *slower*
-    than the full-frame acquire.
+    the super-resolution intervention RQ2 is about, and the deploy re-anchor uses it
+    too (gated M=2.0 @512: fed ≤512² stays well under the 1024 letterboxed full
+    frame, so it is cheaper AND +22.6 pp). `upscale=False` caps the long edge at
+    `out_res` but never grows it — only needed if out_res is pushed toward the
+    full-frame budget, where a square upscale would exceed full-frame pixel count
+    and invert the prefill saving (the 2026-07 deploy-drift trap; see
+    docs/decisions/part4-end-to-end.md).
     """
     from PIL import Image
 
