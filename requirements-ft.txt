@@ -25,3 +25,4 @@ transformers==4.57.6
 num2words  # SmolVLM (arm E) processor hard-dep
 einops  # Florence-2 (arm D) remote modeling code
 timm  # Florence-2 (arm D) DaViT vision tower
+sam2  # SAM2.1 memory-carry tracker (temporal-acquire-carry Phase 0)

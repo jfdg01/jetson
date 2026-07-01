@@ -1,11 +1,11 @@
 # Temporal follow — acquire-once + memory-carry ("follow the white car")
 
-**Date:** 2026-07-01T15:05Z (pre-registration) · **Branch:** `experiment/vlm-sweep` (doc only; work will branch off `main`)
-**Status:** **DRAFT / pre-registered** — nothing run. Design + gate + estimates frozen here *before* any code or GPU/Jetson time is spent; phases filled as they land.
+**Date:** 2026-07-01T15:05Z (pre-registration) · **Branch:** `experiment/temporal-carry` (off `main` @ `a2fd695`)
+**Status:** **Phase 0 RUNNING** (launched 2026-07-02T13:05Z) — loader self-checked, zero-shot SAM2.1-tiny carry sweeping all 93 sequences. Phases 1–3 pending.
 **Train box (reserved lever only):** local RTX 3090 24 GB, `.venv-ft`, python 3.12.10, torch 2.6.0+cu124, transformers 4.57.6, peft 0.19.1 (git_sha `6d9d3a2` at draft).
 **Deploy / latency box:** Jetson Orin Nano 8 GB @ **15 W** (`nvpmodel -m 0` + `jetson_clocks`).
 **Stack-native runtime:** llama.cpp `57fe1f0` CUDA sm_87 (`llama-server`, Q8_0, ngl=99) for the acquire VLM. Memory-carry runtime = TensorRT/ONNX (off-stack, same export path as the bake-off's arms C/D — recorded per phase).
-**New tracker deps:** `sam2` (+ variant weights) — **version TBD, pinned at Phase 0 launch** into `.venv-ft`, added to `requirements-ft.txt`, `make lock`.
+**New tracker deps:** `sam2==1.1.0` pinned into `.venv-ft` (`requirements-ft.txt` + lock refreshed 2026-07-02); weights `facebook/sam2.1-hiera-tiny` via HF hub. (The `sam2._C` CUDA-ext warning at import is expected — hole-filling post-processing only, results unaffected per upstream INSTALL.md.)
 **Data:** AerialMind (RMOT: referring expr + track-IDs + frames), **pulled local** `data/AerialMind/` (gitignored) — **93 sequences** confirmed on disk (`expression/`, `image_02/`, `labels_with_ids/`). RefDrone (single-frame) for the acquire VLM — unchanged from v2/v3.
 
 ## Goal (the north star this experiment serves)
@@ -157,9 +157,19 @@ carry zero-shot or trained; SAM2 or SOT), with what was given up.
 - **2026-07-01T15:05Z — pre-registered, nothing run.** Design + phases + gate + estimates frozen above.
   The bake-off (`experiments/2026-06-30-vlm-backbone-bakeoff/`) still owns the 3090 and Jetson; this
   campaign's **Phases 0–1 are CPU-only and can start immediately without contending** for either.
-- **Next step:** build Phase 0 — the AerialMind loader + temporal eval harness — and run zero-shot
-  SAM2-tiny/EdgeTAM carry to answer RQ-T.1 (the make-or-break for whether this needs training).
-  Pin the `sam2` dep at launch. Phase 2 waits on the sweep freeing the Jetson.
+- **2026-07-02T13:05Z — Phase 0 launched.** Bake-off early-stopped (see its README), so the 3090 is
+  free — **deviation from pre-reg: Phase 0 runs on the 3090, not CPU** (the "CPU-only" constraint
+  existed only because the sweep owned the GPU; zero-shot inference numbers are box-independent,
+  Jetson FPS stays a Phase 2 question). Exact command:
+  `TQDM_DISABLE=1 nohup .venv-ft/bin/python experiments/2026-07-01-temporal-acquire-carry/carry_eval.py --cap 300 > raw/phase0-zeroshot-carry.log 2>&1 &`
+  Scope: 93 seqs × 2 tracks (`pick_eval_tracks`: longest + longest-with-gap; 82 picked tracks have
+  ≥3-frame occlusion gaps), window ≤300 frames/track (RAM bound: fp32@1024² ≈ 12.6 MB/frame, max seq
+  1859 frames ≈ 23 GB > free RAM — symlinked `/dev/shm` window instead). Smoke (1 seq, cap 100):
+  ~28 it/s propagation, ~19 FPS wall on the 3090; est. full run **~45–90 min** (ESTIMATE).
+  Outputs → `runs/phase0-zeroshot-carry/{per_track.csv,results.json,<manifest>}`, log → `raw/`.
+- **Next step:** when the run finishes, score RQ-T.1 against the gate (carry holds vs pull the
+  training lever), fill Results row Phase 0, append ledgers. Then Phase 1 (SITL oracle-follow slice).
+  Phase 2 no longer waits on the sweep — Jetson is free too.
 - **Open decisions still pending:** (1) SAM2 variant — SAM2.1-tiny vs EdgeTAM vs EfficientTAM (decide
   on Jetson FPS, Phase 2); (2) TensorRT vs ONNX for the carry export (shared with the bake-off's C/D
   question); (3) Part assignment — this seeds the "v5 temporal" line but is left under Part IV
