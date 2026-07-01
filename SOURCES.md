@@ -11,6 +11,26 @@ the per-experiment README is the source of truth. Append; newest at the bottom.
   https://arxiv.org/abs/2209.11345
   → [`experiments/2026-06-30-roi-sr-upscale/`](experiments/2026-06-30-roi-sr-upscale/README.md)
 
+- **InternVL3-2B** — `OpenGVLab/InternVL3-2B-hf`
+  https://huggingface.co/OpenGVLab/InternVL3-2B-hf
+  → [`experiments/2026-06-30-vlm-backbone-bakeoff/`](experiments/2026-06-30-vlm-backbone-bakeoff/README.md) arm A
+
+- **Qwen2.5-VL-3B-Instruct** — `Qwen/Qwen2.5-VL-3B-Instruct`
+  https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct
+  → [`experiments/2026-06-30-vlm-backbone-bakeoff/`](experiments/2026-06-30-vlm-backbone-bakeoff/README.md) arm B
+
+- **PaliGemma2-3B (pt-448)** — `google/paligemma2-3b-pt-448`
+  https://huggingface.co/google/paligemma2-3b-pt-448
+  → [`experiments/2026-06-30-vlm-backbone-bakeoff/`](experiments/2026-06-30-vlm-backbone-bakeoff/README.md) arm C
+
+- **Florence-2-large** — `microsoft/Florence-2-large`
+  https://huggingface.co/microsoft/Florence-2-large
+  → [`experiments/2026-06-30-vlm-backbone-bakeoff/`](experiments/2026-06-30-vlm-backbone-bakeoff/README.md) arm D (cancelled un-run)
+
+- **SmolVLM2-500M-Video-Instruct** — `HuggingFaceTB/SmolVLM2-500M-Video-Instruct`
+  https://huggingface.co/HuggingFaceTB/SmolVLM2-500M-Video-Instruct
+  → [`experiments/2026-06-30-vlm-backbone-bakeoff/`](experiments/2026-06-30-vlm-backbone-bakeoff/README.md) arm E
+
 ## Papers / surveys
 
 - **Advancing Image Super-resolution Techniques in Remote Sensing: A Comprehensive Survey**

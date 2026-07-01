@@ -1,7 +1,7 @@
 # VLM backbone bake-off — is Qwen2-VL-2B still the right spine?
 
 **Date:** 2026-06-30T14:03Z (pre-registration) · **Branch:** `experiment/vlm-sweep`
-**Status:** **DRAFT / pre-registered** — suite + config frozen here *before* GPU hours are spent; Results/Findings/Decision filled as runs land.
+**Status:** **CLOSED — early-stopped 2026-07-02T00:21Z** (arms A/B/C/E measured, D cancelled un-run; Decision: **keep Qwen2-VL-2B**). Pre-registered 2026-06-30 before any GPU hours.
 **Train box:** local RTX 3090 24 GB, `.venv-ft`, python 3.12.10, torch 2.6.0+cu124, transformers 4.57.6, peft 0.19.1 (git_sha `7eb03a8` at draft).
 **Deploy / latency box:** Jetson Orin Nano 8 GB @ **15 W** (`nvpmodel -m 0` + `jetson_clocks`).
 **Stack-native runtime:** llama.cpp `57fe1f0` CUDA sm_87, `llama-server`, Q8_0, ngl=99. Off-stack models (see suite) measured via TensorRT/ONNX — runtime recorded per arm.
@@ -171,7 +171,8 @@ flag divergence (`Δ vs est.`):
 | **B** Qwen2.5-VL-3B | whole-frame 1024 (Jetson Q8_0, n=439) | 100% | **53.1%** (est 66–73% → **−13 to −20pp**; HF n=200 = 58.0%, Q8_0 −4.9pp) | 0.399 | 21.6 | 837 tok / 5002 ms | 12 tok / 842 ms | 5990 ms (baseline WF 4400) | n/m | ~3.4 h/leg (est 2.5–3h) |
 | **B** Qwen2.5-VL-3B | ROI re-anchor M=2.0@512 (Jetson Q8_0, n=439) | 100% | **33.0%** (est 85–89% → **−52 to −56pp; ROI COLLAPSE**) | 0.170 | 22.9 | 385 tok / 1916 ms | 12 tok / 838 ms | 2817 ms (est ~2–3s → in range) | n/m | — |
 | **C** PaliGemma2-3B@448 | whole-frame @448 (HF local, n=200) | 100% | **56.0%** (in-loop best 57.0%; est 60–72% → **−4 to −16pp**; vs 62.6% incumbent −6.6pp) | 0.391 | 22.1 | — | — | TBD — Jetson export (TensorRT/ONNX) pending | — | ~2.6 h/leg (est ~2–2.5h → in range) |
-| D–E | … | | | | | | | | | |
+| **E** SmolVLM2-500M | whole-frame @512 (in-loop val, lr=1e-4 leg) | 100% | **5.5%** (est 40–65% → **−35 to −60pp; CAPACITY COLLAPSE**) | 0.038 | 12.7–18.6 (< GT 22.9) | — | — | N/A — eliminated at leg 1, never deployed | — | ~2.8 h/leg (est 0.5–1 h *total* → ~8× under-est) |
+| **D** Florence-2-large | — | — | **CANCELLED un-run — campaign early-stopped 2026-07-02** (see Findings) | — | — | — | — | — | — | — |
 
 (Baseline rows from `2026-06-30-whole-frame-resolution` + the deployed ROI lever — the curve the
 suite is measured against.)
@@ -214,9 +215,34 @@ _Partial — arms A, B, C in; E training, D queued (see Status)._
   TensorRT/ONNX, like A), but on accuracy alone it is not a spine upgrade. The pattern across A/B/C is
   consistent: **more params ≠ more aerial grounding accuracy here; none of the larger backbones clears the incumbent.**
 
+- **Arm E (SmolVLM2-500M) collapsed — RQ-B.3 answered in the negative.** lr=1e-4 leg:
+  E1/E2/E3 = 5.0/5.0/5.5% IoU@0.25 (parse=100%, mean_iou 0.02–0.04, center_std 12.7–18.6 < GT 22.9 —
+  near-constant box guesses while the loss trains fine). The pre-registered capacity-collapse risk
+  played out: aggressive pixel-shuffle token compression does not learn aerial boxes at 500M. Leg 2
+  (lr=2e-4) was killed mid-E1 at the early-stop; an arm-A-sized lr rescue (+10pp across the swept
+  range) would still leave it ~50pp under the incumbent — no lr outcome could change its verdict.
+- **Campaign early-stopped 2026-07-02T00:21Z (user-authorized); arm D cancelled un-run.** With A/B/C
+  all below the incumbent on accuracy and E collapsed, no remaining run could change the adoption
+  decision: even a strong Florence-2 number would sit on an off-stack runtime (TensorRT/ONNX
+  integration cost), carry arm B's demonstrated ROI-transfer risk, and optimize a criterion (anchor
+  speed) that the acquire-once re-layer (`experiments/2026-07-01-temporal-acquire-carry/`) demotes to
+  a once-per-acquire cost. Given up, recorded as not-measured (not estimates): Florence-2's
+  "speed-ceiling" datapoint, arm E legs 2–3, and Jetson latency for A/C/D. The CPU-validated arm-D
+  driver (`run_florence.py`, `florence_loc.py`) stays in the tree, un-run, should the datapoint ever
+  be wanted.
+
 ## Decision
 
-TBD — which spine replaces Qwen2-VL-2B (or whether it stays), with what was given up.
+**Keep Qwen2-VL-2B as the spine (2026-07-02).** No arm reached the incumbent's accuracy, let alone
+the RQ-B.2 double bar: A 48.5% (and GGUF-blocked at the pinned toolchain), B 53.1% WF / **33.0% ROI
+collapse** + slower on both paths, C 56.0% (best challenger, still −6.6pp), E 5.5% (collapse);
+D cancelled at the early-stop. The deployed ROI lever (85.2%) is backbone-specific — arm B proved it
+does not transfer — so the spine and the lever are a matched pair; swapping the spine forfeits the
+lever. **Given up:** Florence-2's speed datapoint; the vision-tower-unfreeze follow-up
+(`experiment/vlm-vision-unfreeze` stays a parked pre-draft — anchor-speed optimization is moot under
+the acquire-once pivot); A/C/D latency numbers. **Context:** the temporal re-layer moves the VLM off
+the hot path, inverting criterion 1 (speed) into a minor cost — which *strengthens* the incumbent:
+it wins the now-binding accuracy axis outright.
 
 ## Risks / honest caveats (pre-registered)
 
@@ -494,15 +520,16 @@ TBD — which spine replaces Qwen2-VL-2B (or whether it stays), with what was gi
     requirements; `6a465e9` bake-off drivers + provenance + raw logs + README; `a5d2fe0` temporal
     experiment pre-registration). The gitignore whitelist keeps per-run provenance
     (manifest/run-card/results.json/CSVs) committed while ignoring the ~66 GB of checkpoints.
-- **Next step:** arm E sweep finishing (~8h) → then launch arm D via `launch_arm.sh florence2-large run_florence.py`
-  and watch epoch 1 live (first GPU exercise of generate/parse). Off-stack (C/D/A) Jetson latency via
-  TensorRT/ONNX still to be scoped. Ledger rollups (RESULTS/QUESTIONS/DECISIONS/SOURCES) written once the
-  campaign completes (all 5 arms).
-- **Open decisions still pending:** (1) arm A InternVL — accept the documented stack-native blocker
-  (above) vs invest in format surgery — leaning **accept** (loser arm); (2) TensorRT vs ONNX for arms C/D.
-  (arm D native-loc-vs-terse contract — **RESOLVED above**.)
-- **Done when:** all 5 arms have both Results rows filled (actual + Δ-vs-est.), Findings written,
-  Decision recorded, and the ledger entries appended (see below).
+- **2026-07-02T00:21Z — CAMPAIGN EARLY-STOPPED (user-authorized) and CLOSED.** Arm E leg 1 finished
+  collapsed (5.0/5.0/5.5%); killed the leg-2 (lr=2e-4) trainer mid-E1 (step ~1550/2051) and its
+  auto-restart launcher; arm D cancelled un-run. Rationale in Findings (no remaining outcome could
+  change the adoption decision); Decision recorded above. Ledger rollups written: RESULTS/QUESTIONS/
+  DECISIONS Part IV + SOURCES model cards. The 3090 and Jetson are freed for the temporal campaign
+  (`experiments/2026-07-01-temporal-acquire-carry/`, Phase 0 next).
+- **Open decisions — resolved by the early-stop:** (1) arm A blocker → **accepted** (loser arm, moot);
+  (2) TensorRT vs ONNX for C/D → **moot** (latency cancelled).
+- **Done when:** ~~all 5 arms filled~~ → closed early-stopped; unfilled cells are recorded as
+  cancelled-by-decision, not missing.
 
 ## Ledger follow-through (per CLAUDE.md definition-of-done)
 

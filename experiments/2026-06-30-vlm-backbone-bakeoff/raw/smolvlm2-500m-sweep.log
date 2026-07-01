@@ -191,3 +191,12 @@ trainable params: 9,568,256 || all params: 517,050,560 || trainable%: 1.8505
   E1 step 1050/2051  loss=1.0199  lr=1.86e-04  1513s
   E1 step 1100/2051  loss=1.1338  lr=1.85e-04  1585s
   E1 step 1150/2051  loss=1.2200  lr=1.83e-04  1660s
+  E1 step 1200/2051  loss=0.9999  lr=1.82e-04  1733s
+  E1 step 1250/2051  loss=1.0981  lr=1.80e-04  1806s
+  E1 step 1300/2051  loss=1.0155  lr=1.79e-04  1881s
+  E1 step 1350/2051  loss=1.0707  lr=1.77e-04  1955s
+  E1 step 1400/2051  loss=0.8959  lr=1.76e-04  2029s
+  E1 step 1450/2051  loss=1.2574  lr=1.74e-04  2105s
+  E1 step 1500/2051  loss=1.3045  lr=1.72e-04  2182s
+  E1 step 1550/2051  loss=0.9622  lr=1.70e-04  2255s
+  E1 step 1600/2051  loss=0.9897  lr=1.68e-04  2327s
