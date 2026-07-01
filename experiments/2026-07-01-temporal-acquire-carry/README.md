@@ -1,0 +1,181 @@
+# Temporal follow — acquire-once + memory-carry ("follow the white car")
+
+**Date:** 2026-07-01T15:05Z (pre-registration) · **Branch:** `experiment/vlm-sweep` (doc only; work will branch off `main`)
+**Status:** **DRAFT / pre-registered** — nothing run. Design + gate + estimates frozen here *before* any code or GPU/Jetson time is spent; phases filled as they land.
+**Train box (reserved lever only):** local RTX 3090 24 GB, `.venv-ft`, python 3.12.10, torch 2.6.0+cu124, transformers 4.57.6, peft 0.19.1 (git_sha `6d9d3a2` at draft).
+**Deploy / latency box:** Jetson Orin Nano 8 GB @ **15 W** (`nvpmodel -m 0` + `jetson_clocks`).
+**Stack-native runtime:** llama.cpp `57fe1f0` CUDA sm_87 (`llama-server`, Q8_0, ngl=99) for the acquire VLM. Memory-carry runtime = TensorRT/ONNX (off-stack, same export path as the bake-off's arms C/D — recorded per phase).
+**New tracker deps:** `sam2` (+ variant weights) — **version TBD, pinned at Phase 0 launch** into `.venv-ft`, added to `requirements-ft.txt`, `make lock`.
+**Data:** AerialMind (RMOT: referring expr + track-IDs + frames), **pulled local** `data/AerialMind/` (gitignored) — **93 sequences** confirmed on disk (`expression/`, `image_02/`, `labels_with_ids/`). RefDrone (single-frame) for the acquire VLM — unchanged from v2/v3.
+
+## Goal (the north star this experiment serves)
+
+Tell a drone **"follow the white car"** and have it comply. Everything below is scoped to that
+one sentence: a single, appearance-named, physical target the drone acquires once and follows.
+
+## Question
+
+The whole v2/v3 line runs a **single-frame VLM on the hot path every frame** and fakes persistence
+with ByteTrack + a ~2 s ROI re-anchor. That is (a) slow — per-frame grounding runs sub-1 FPS, so
+the control loop can't keep a moving car framed — and (b) has no temporal representation: "object
+permanence" is a heuristic patch over independent per-frame decisions. The architecture is sound
+enough to have taught us the levers (ROI crop, terse output), but it is the wrong shape for a
+moving target.
+
+**Does re-layering to acquire-once + memory-carry — demote the VLM to a one-shot acquirer, carry
+the target with a stateful memory tracker (SAM2-family), re-invoke language only on lock-loss —
+give a temporally-resilient "follow the white car" loop that keeps the target framed and survives
+occlusion, ideally with no new trained temporal model?**
+
+## Design rationale (the decisions, pre-registered with what's given up)
+
+- **★ Acquire-time identity — referring binds ONCE, tracking is pure appearance thereafter.**
+  "The white car" names one physical object; the drone follows *that* car even if a second white
+  car appears. *Why:* it is the matched semantics for the goal and it is the cheapest — no per-frame
+  language. *Given up:* continuous semantic re-binding (expressions like "whoever is now nearest the
+  building" are out of scope; those force the heavier RMOT paradigm, explicitly not chosen).
+- **★ Zero-shot memory-carry FIRST; temporal fine-tuning is the reserved lever.** Test off-the-shelf
+  SAM2-tiny/EdgeTAM carry before building anything trainable. *Why:* SAM2 is class-agnostic and
+  strong zero-shot; if it holds on aerial, the "rewrite" collapses to integration + eval. *Given up:*
+  possibly better in-domain carry — pulled only if Phase 0 shows zero-shot fails (same discipline as
+  the bake-off's reserved vision-tower unfreeze).
+- **Memory-carry (SAM2-family) over a plain visual SOT.** *Why:* a memory bank re-associates after
+  occlusion / frame-exit — the actual object-permanence mechanism, not a heuristic. *Given up:* SOT
+  is cheaper; it is held as the fallback if SAM2 won't hit the FPS gate on-device (Phase 2).
+- **AerialMind for EVAL, not training (initially).** *Why:* it supervises the one thing v2/v3 could
+  never measure — ID-consistency of the *right* track through occlusion. Training use is gated behind
+  a zero-shot failure.
+- **Reuse the acquire stack whole.** The fine-tuned VLM + `grounding/` (`contract.py`, `roi.py`,
+  `deploy/serve.py`, `eval/backends.py`) become the one-shot acquire step unchanged. *Why:* the
+  grounding model isn't the flaw; its position on the hot path is. This is a re-layer, not a rebuild.
+
+## Pre-registration
+
+### Research questions
+
+- **RQ-T.1 (zero-shot carry — make-or-break):** Does off-the-shelf SAM2-tiny/EdgeTAM carry a
+  first-frame-boxed aerial target across an AerialMind sequence *without temporal fine-tuning*?
+  Measured by track-IoU and ID-consistency through occlusion vs the ground-truth track-ID.
+- **RQ-T.2 (loop rate — the real win):** Does acquire-once + memory-carry hit **≥ 5 FPS** control-loop
+  rate on the Jetson @ 15 W, vs the sub-1 FPS per-frame-grounding baseline?
+- **RQ-T.3 (fit):** Do the acquire VLM (~4.6 GB Q8_0) and the carry tracker co-reside in 8 GB, or is
+  load-on-demand forced — and if so, what is the re-ground reload cost?
+- **RQ-T.4 (permanence):** Does memory re-association recover the target after full occlusion /
+  frame-exit, where the v3 heuristic must re-ground blind?
+- **RQ-T.5 (end-to-end):** In SITL, does "follow the white car" keep the car in frame across a
+  trajectory with an occlusion event, closed-loop?
+
+### Phases (gated; a later phase runs only if the earlier gate holds)
+
+| Phase | What | Box | Contends with sweep? | Gate |
+|---|---|---|---|---|
+| **0** | AerialMind loader + temporal eval harness; zero-shot SAM2-tiny/EdgeTAM carry scored (track-IoU, ID-consistency, occlusion recovery) | CPU (local) | **No** — buildable now | RQ-T.1: carry holds; else pull the training lever |
+| **1** | SITL oracle-follow control slice — perception-free (`oracle_bbox`), control keeps a moving white car framed, re-ground trigger fires on synthetic loss | CPU / SITL | **No** | RQ-T.5 skeleton: target stays framed with a perfect box |
+| **2** | Jetson feasibility — SAM2 variant FPS + VLM co-residency in 8 GB (`tegrastats` peak RAM) | **Jetson** | **Yes** (queues behind sweep) | RQ-T.2 (≥5 FPS) + RQ-T.3 (fit) |
+| **3** | Integrated — swap oracle→SAM2 carry→VLM acquire, SITL then on-device; full "follow the white car" | SITL + Jetson | **Yes** | RQ-T.4 + RQ-T.5 end-to-end |
+
+### Success criterion (gate)
+
+The experiment **succeeds** if a fully-integrated loop (Phase 3) keeps "the white car" in frame
+across a SITL trajectory *with* an occlusion event, at ≥5 FPS control rate on-device, using the
+acquire VLM only at start + on lock-loss. A **documented negative** — e.g. zero-shot carry collapses
+on aerial (RQ-T.1), or the tracker can't hit 5 FPS on the Orin Nano (RQ-T.2) — is thesis content,
+not a failure of the campaign: it names the reserved lever (temporal training) or the fallback
+(visual SOT) to pull next.
+
+## Method (entry points — mostly reuse; new pieces flagged)
+
+1. **Acquire (reuse):** `grounding/deploy/serve.py` + `eval/backends.py` — VLM grounds the expression
+   once → box. ROI crop (`roi.py`) may sharpen the acquire box before handoff.
+2. **Carry (NEW):** SAM2-tiny / EdgeTAM, box-prompted on the acquire frame, memory-propagated per
+   frame → mask → box (bbox of mask). Stateful — holds a memory bank across frames, unlike the
+   stateless llama-server request/response.
+3. **Orchestrator (NEW — the backbone):** a streaming loop owning the `ACQUIRE → CARRY → REGROUND`
+   state machine, the frame pump, the tracker session, and the box→control handoff. This replaces
+   the request/response *shape*, not any single model.
+4. **Re-ground trigger (NEW — small):** threshold SAM2's per-frame object/occlusion score over N
+   frames → re-invoke the VLM with the same expression. Threshold + hysteresis calibrated on
+   AerialMind occlusion clips.
+5. **Control (reuse):** mask centroid + area → `cascade_pid.py` → `offboard.py` (pymavlink offboard).
+6. **Eval (NEW, CPU):** AerialMind loader (expr + track-IDs + frames) → run carry → score
+   track-IoU / ID-consistency / occlusion-recovery.
+
+## Estimates (up-front priors — mark as ESTIMATE, record actual-vs-estimate in Results)
+
+Weak priors, stated so a wrong one becomes content.
+
+| Quantity | Estimate | Confidence | Note |
+|---|---|---|---|
+| SAM2-tiny / EdgeTAM FPS, Orin Nano 8 GB @ 15 W | ~5–15 FPS (TensorRT) | **low** | EdgeTAM claims ~16 FPS on iPhone; Orin Nano unverified — the load-bearing number |
+| Co-resident RAM (VLM Q8_0 + tiny tracker) | ~4.6 + ~0.3–0.5 GB ≈ 5–5.5 GB | medium | fits 8 GB but tight with KV cache; co-residency vs load-on-demand TBD |
+| Zero-shot carry track-IoU on AerialMind | **honestly unknown** (aerial is OOD for SAM2) | **very low** | RQ-T.1 is exactly this question — no credible prior |
+| New trained temporal model needed? | **probably not** (bet: zero-shot suffices) | low | the whole lazy hypothesis; Phase 0 decides |
+| Control-loop rate, integrated | ≥5 FPS target vs sub-1 FPS baseline | medium | the win is the order-of-magnitude gap, not the exact number |
+
+**Est. effort:** Phase 0 ~1–2 days (loader + harness + zero-shot run, CPU). Phase 1 ~1–2 days (SITL
+control slice). Phases 2–3 gated on the sweep freeing the Jetson + on Phase 0/1 holding. Plan as a
+**multi-session** campaign; Phases 0–1 can start immediately with zero sweep contention.
+
+## Results (TBD)
+
+Fill per phase; record **actual** next to the estimate above and flag divergence.
+
+| Phase | RQ | metric | result (Δ vs est.) | verdict |
+|---|---|---|---|---|
+| 0 | RQ-T.1 | track-IoU / ID-consistency / occ-recovery, zero-shot | _pending_ | _pending_ |
+| 1 | RQ-T.5 (skeleton) | target-in-frame fraction, oracle box | _pending_ | _pending_ |
+| 2 | RQ-T.2 / T.3 | FPS @ 15 W; peak RAM co-resident | _pending_ | _pending_ |
+| 3 | RQ-T.4 / T.5 | occlusion recovery; in-frame fraction, integrated | _pending_ | _pending_ |
+
+## Findings
+
+_None yet — pre-registration only._
+
+## Decision
+
+TBD — does acquire-once + memory-carry replace the per-frame v2/v3 pipeline (and if so, is the
+carry zero-shot or trained; SAM2 or SOT), with what was given up.
+
+## Risks / honest caveats (pre-registered)
+
+- **FPS is unverified and load-bearing.** If SAM2-tiny can't clear ~5 FPS on the Orin Nano, Phase 2
+  fails the gate and the design degrades to the visual-SOT fallback. This is the single biggest risk.
+- **Zero-shot carry on aerial is a genuine unknown.** SAM2 is trained on natural video; small,
+  top-down/oblique aerial targets are OOD. RQ-T.1 could collapse — then the training lever is pulled.
+- **Off-stack edge export (SAM2 → TensorRT/ONNX)** is integration time, same class of work as the
+  bake-off's arms C/D. Budgeted, not free.
+- **Co-residency in 8 GB is tight.** VLM + tracker + KV cache + frame buffers may force load-on-demand,
+  adding a ~2 s reload to every re-ground.
+- **AerialMind license chain:** derives from VisDrone (CC BY-NC-SA 3.0, academic-only) + UAVDT —
+  fine for the thesis, not for non-academic use (identical to RefDrone; see `docs/dataset-survey-refdrone.md` §5.1).
+- **Acquire ambiguity:** "the white car" with three white cars → acquire highest-confidence match,
+  document the limitation. Twin white cars mid-track → ID-switch risk (AerialMind ID-consistency
+  measures it; reserved mitigation = appearance-embedding gate).
+
+## Status & next step (where a cold session picks up)
+
+- **2026-07-01T15:05Z — pre-registered, nothing run.** Design + phases + gate + estimates frozen above.
+  The bake-off (`experiments/2026-06-30-vlm-backbone-bakeoff/`) still owns the 3090 and Jetson; this
+  campaign's **Phases 0–1 are CPU-only and can start immediately without contending** for either.
+- **Next step:** build Phase 0 — the AerialMind loader + temporal eval harness — and run zero-shot
+  SAM2-tiny/EdgeTAM carry to answer RQ-T.1 (the make-or-break for whether this needs training).
+  Pin the `sam2` dep at launch. Phase 2 waits on the sweep freeing the Jetson.
+- **Open decisions still pending:** (1) SAM2 variant — SAM2.1-tiny vs EdgeTAM vs EfficientTAM (decide
+  on Jetson FPS, Phase 2); (2) TensorRT vs ONNX for the carry export (shared with the bake-off's C/D
+  question); (3) Part assignment — this seeds the "v5 temporal" line but is left under Part IV
+  (end-to-end) until it produces results (see Ledger follow-through).
+
+## Files
+
+- `README.md` — this pre-registration (source of truth + handoff).
+- `configs/` — carry/orchestrator config(s), one per variant (created at Phase 0/2).
+- `raw/` — verbatim run/eval logs for this campaign (created when a phase runs).
+- `runs/` — per-run provenance manifests (git_sha, lockfile, config) — created when a phase runs.
+
+## Ledger follow-through (per CLAUDE.md definition-of-done)
+
+Held until results exist (these append a *verdict*, not a plan): **RESULTS** — per-phase metric rows ·
+**QUESTIONS** — RQ-T.1…T.5 one-line verdicts · **DECISIONS** — the spine choice (acquire+carry vs
+per-frame; zero-shot vs trained; SAM2 vs SOT) + what was given up · **SOURCES** — SAM2 / EdgeTAM /
+AerialMind cards. **Part assignment** (IV vs a new v5 line) is decided when Phase 0/3 land, since a
+new Part requires the three ledger-root index rows + `docs/{results,questions,decisions}/partN-*.md`.
