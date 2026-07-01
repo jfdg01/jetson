@@ -176,6 +176,12 @@ flag divergence (`Δ vs est.`):
 (Baseline rows from `2026-06-30-whole-frame-resolution` + the deployed ROI lever — the curve the
 suite is measured against.)
 
+**Two incumbent numbers, used deliberately:** **63.1%** is the baseline-row WF figure from the
+`2026-06-30-whole-frame-resolution` re-measurement (n=439, same harness as arm B's Jetson bench);
+**62.6%** is the Phase-4 deployed Q8_0 figure (the number the thesis quotes as "what's running").
+They are the same model/config measured in two campaigns; deltas quote whichever the comparison is
+actually against (Jetson-harness rows → 63.1%, "vs deployed incumbent" verdicts → 62.6%).
+
 ## Findings
 
 _Partial — arms A, B, C in; E training, D queued (see Status)._
@@ -469,6 +475,25 @@ TBD — which spine replaces Qwen2-VL-2B (or whether it stays), with what was gi
     CPU dry-run gets past load / LoRA-scoping / collate / into the forward cleanly (bf16 CPU forward is just
     slow); **final live validation is GPU-gated behind arm E.** `launch_arm.sh` now takes an optional driver
     arg (`run_florence.py`) so arm D reuses the same 8-retry restart + epoch-resume wrapper.
+- **2026-07-02T00:11Z — arm D generate bug caught + fixed on CPU (zero GPU burned); arm E leg 1 collapsed.**
+  - **Florence generate crash found by CPU smoke, fixed with `use_cache=False`.** A CPU smoke of the one
+    path the dry-run didn't cover (`PeftModel.generate` → decode → `florence_loc.parse_bbox` → terse ints)
+    hit `AttributeError: 'NoneType' object has no attribute 'shape'` at Florence's remote
+    `prepare_inputs_for_generation` (line 2197 indexes the **legacy tuple KV-cache**,
+    `past_key_values[0][0].shape`, which transformers 4.57's Cache API no longer provides). Without the
+    smoke this would have burned a full GPU epoch (~1 h) before dying at arm D's first in-loop eval. Fix:
+    `use_cache=False` in `FlorenceBackend.generate` — uncached decode of ≤64 tokens on a ~300M decoder is
+    a non-cost. Re-smoke PASS: generate → `'1 1 99 99'` → `contract.parse_bbox` OK (untrained LoRA, box
+    quality irrelevant; the contract is "terse ints or empty"). Process note: the first smoke *reported*
+    exit 0 because the output was piped through `tail` — the traceback in the log was the truth; the
+    re-run used no pipe.
+  - **Arm E leg 1 (lr=1e-4) finished COLLAPSED: E1/E2/E3 = 5.0/5.0/5.5% IoU@0.25**, parse 100%,
+    mean_iou 0.02–0.04, center_std 12.7–18.5 — the pre-registered capacity-collapse risk playing out
+    (loss trains fine, boxes are near-constant guesses). Leg 2 (lr=2e-4) mid-E1, on pace ~3 h/leg.
+  - **Uncommitted work landed in three clean commits** (`c77309f` grounding infra + gitignore +
+    requirements; `6a465e9` bake-off drivers + provenance + raw logs + README; `a5d2fe0` temporal
+    experiment pre-registration). The gitignore whitelist keeps per-run provenance
+    (manifest/run-card/results.json/CSVs) committed while ignoring the ~66 GB of checkpoints.
 - **Next step:** arm E sweep finishing (~8h) → then launch arm D via `launch_arm.sh florence2-large run_florence.py`
   and watch epoch 1 live (first GPU exercise of generate/parse). Off-stack (C/D/A) Jetson latency via
   TensorRT/ONNX still to be scoped. Ledger rollups (RESULTS/QUESTIONS/DECISIONS/SOURCES) written once the
