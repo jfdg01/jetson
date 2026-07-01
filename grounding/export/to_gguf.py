@@ -187,7 +187,9 @@ def _write_export_manifest(checkpoint: str, results: List[ExportResult],
     res = {r.quant: {"gguf_path": r.gguf_path,
                      "iou_gate_pass_rate": r.iou_gate_pass_rate,
                      "drop_vs_hf_pp": r.drop_vs_hf_pp} for r in results}
-    run_dir = manifest.write(m, results=res)
+    # Co-locate with the checkpoint it exported; cwd-independent (a bare "runs"
+    # default leaks a stray runs/ into the launch dir).
+    run_dir = manifest.write(m, runs_dir=Path(checkpoint), results=res)
     print(f"[export] manifest -> {run_dir}", flush=True)
 
 

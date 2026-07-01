@@ -98,7 +98,14 @@ class _GroundingDataset:
         }
 
 
-def _collate_fn(batch, processor):
+def _images_arg(processor, images):
+    """SmolVLM/Idefics3 want images nested per-text ([[img],...]); others take a flat list."""
+    if type(processor).__name__.startswith(("SmolVLM", "Idefics")):
+        return [[im] for im in images]
+    return images
+
+
+def _collate_fn(batch, processor, max_seq_len: int = 1280):
     """Tokenize a batch: image + prompt → input_ids/pixel_values/labels.
 
     Lifted from `run_stage3_finetune._collate_fn`: build the full (prompt+target)
@@ -108,6 +115,16 @@ def _collate_fn(batch, processor):
     prompts = [b["prompt"] for b in batch]
     images = [b["image"] for b in batch]
     target_jsons = [b["target_json"] for b in batch]
+
+    # PaliGemma-style processors have no chat template: the prompt is plain text and
+    # the target goes in `suffix=`, which makes the processor build `labels` itself
+    # (prefix+image masked -100, suffix supervised, <eos> appended). Fixed 448 res ->
+    # fixed token count well under max_seq_len, so no truncation needed here.
+    if getattr(processor, "chat_template", None) is None:
+        return processor(
+            text=prompts, images=images, suffix=target_jsons,
+            return_tensors="pt", padding="longest",
+        )
 
     messages = [
         [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": p}]}]
@@ -120,13 +137,17 @@ def _collate_fn(batch, processor):
     eos = processor.tokenizer.eos_token
     full_texts = [t + tj + eos for t, tj in zip(texts, target_jsons)]
 
+    # SmolVLM/Idefics3 processors want images grouped per-text (list-of-lists), one
+    # sublist per prompt; Qwen2-VL (arm B) takes a flat list. Branch on processor type
+    # so the fix for arm E doesn't touch the arms that already passed.
+    imgs = _images_arg(processor, images)
     inputs = processor(
-        text=full_texts, images=images, return_tensors="pt",
-        padding=True, truncation=True, max_length=1280,
+        text=full_texts, images=imgs, return_tensors="pt",
+        padding=True, truncation=True, max_length=max_seq_len,
     )
     prompt_inputs = processor(
-        text=texts, images=images, return_tensors="pt",
-        padding="longest", truncation=True, max_length=1280,
+        text=texts, images=imgs, return_tensors="pt",
+        padding="longest", truncation=True, max_length=max_seq_len,
     )
     labels = inputs["input_ids"].clone()
     prompt_len = prompt_inputs["input_ids"].shape[1]
@@ -165,15 +186,52 @@ class _LiveBackend:
         img = Image.open(image_path).convert("RGB")
         img = _resize_keep_aspect(img, self.max_side)
         prompt = GROUNDING_PROMPT.format(target=caption)
-        messages = [{"role": "user", "content": [
-            {"type": "image"}, {"type": "text", "text": prompt},
-        ]}]
-        text = self.processor.apply_chat_template(messages, add_generation_prompt=True)
-        inputs = self.processor(text=[text], images=[img], return_tensors="pt").to(self.device)
+        if getattr(self.processor, "chat_template", None) is None:
+            # PaliGemma-style: plain prompt, processor auto-prepends <image>+<bos>.
+            inputs = self.processor(text=[prompt], images=[img], return_tensors="pt").to(self.device)
+        else:
+            messages = [{"role": "user", "content": [
+                {"type": "image"}, {"type": "text", "text": prompt},
+            ]}]
+            text = self.processor.apply_chat_template(messages, add_generation_prompt=True)
+            inputs = self.processor(
+                text=[text], images=_images_arg(self.processor, [img]),
+                return_tensors="pt").to(self.device)
         with torch.no_grad():
             out = self.model.generate(**inputs, max_new_tokens=MAX_NEW_TOKENS, do_sample=False)
         new_tokens = out[0, inputs["input_ids"].shape[1]:]
         return self.processor.decode(new_tokens, skip_special_tokens=True)
+
+
+# ── crash-resistance helpers ─────────────────────────────────────────────────
+
+def _append_csv(path: Path, row, header=None):
+    """Append one row, writing the header only on first create. Append-mode (not
+    full rewrite) so a crash can't truncate the history already on disk."""
+    new = not path.exists()
+    with open(path, "a", newline="") as f:
+        w = csv.writer(f)
+        if new and header is not None:
+            w.writerow(header)
+        if row is not None:
+            w.writerow(row)
+
+
+def _atomic_save_adapter(model, processor, dst: Path):
+    """Save adapter (+processor) to a tmp dir, then atomically swap into place, so
+    a crash mid-write leaves the previous good checkpoint intact, never a partial one."""
+    import os
+    import shutil
+
+    tmp = dst.with_name(dst.name + ".tmp")
+    if tmp.exists():
+        shutil.rmtree(tmp)
+    model.save_pretrained(tmp)
+    if processor is not None:
+        processor.save_pretrained(tmp)
+    if dst.exists():
+        shutil.rmtree(dst)
+    os.replace(tmp, dst)        # atomic dir rename within the same filesystem
 
 
 # ── training loop ──────────────────────────────────────────────────────────────
@@ -217,8 +275,34 @@ def train(config: TrainConfig, *, dry_run: bool = False) -> str:
         bias=config.lora.bias,
         task_type=TaskType.CAUSAL_LM,
     )
-    model = get_peft_model(model, lora_cfg)
+    # ── crash-resume: warm-start from the latest saved epoch adapter ───────────
+    # A run writes per-epoch adapters (epochN/) + a mid-epoch latest/. On restart
+    # we resume from the highest completed epoch so a crash costs <1 epoch, not the
+    # whole run. (Optimizer/scheduler restart fresh for the remaining epochs —
+    # ponytail: epoch-granular resume; finer step-resume only if a crash mid-epoch
+    # proves expensive enough to matter.)
+    out_dir = Path(config.output_dir)
+    done_epochs = sorted(int(p.name[5:]) for p in out_dir.glob("epoch*")
+                         if p.name[5:].isdigit()) if out_dir.exists() else []
+    resume_epoch = done_epochs[-1] if done_epochs else 0
+    if resume_epoch:
+        from peft import PeftModel
+        adapter = out_dir / f"epoch{resume_epoch}"
+        print(f"[train] RESUME: found epoch{resume_epoch} adapter -> warm-start, "
+              f"continuing from epoch {resume_epoch + 1}", flush=True)
+        model = PeftModel.from_pretrained(model, adapter, is_trainable=True)
+    else:
+        model = get_peft_model(model, lora_cfg)
     model.print_trainable_parameters()
+
+    if config.gradient_checkpointing:
+        # recompute activations in backward to fit long vision-token sequences.
+        # use_cache must be off; enable_input_require_grads so checkpointing's
+        # detached inputs still backprop into the LoRA adapters.
+        model.config.use_cache = False
+        model.gradient_checkpointing_enable()
+        model.enable_input_require_grads()
+        print("[train] gradient checkpointing ON", flush=True)
 
     # ── data ─────────────────────────────────────────────────────────────────
     print(f"[train] loading data: {config.train_split} / {config.val_split}", flush=True)
@@ -231,7 +315,7 @@ def train(config: TrainConfig, *, dry_run: bool = False) -> str:
     train_ds = _GroundingDataset(train_samples, config.image_size)
 
     def collate(b):
-        return _collate_fn(b, processor)
+        return _collate_fn(b, processor, config.max_seq_len)
 
     if dry_run:
         print("[dry-run] building 1 real batch + 1 forward pass...", flush=True)
@@ -250,7 +334,10 @@ def train(config: TrainConfig, *, dry_run: bool = False) -> str:
         filter(lambda p: p.requires_grad, model.parameters()),
         lr=config.lr, weight_decay=0.01,
     )
-    total_steps = max(1, len(train_loader) * config.epochs // config.grad_accum)
+    # scheduler spans only the *remaining* epochs on resume (cosine restarts over
+    # what's left — a small LR discontinuity at the resume boundary, acceptable for LoRA).
+    remaining_epochs = config.epochs - resume_epoch
+    total_steps = max(1, len(train_loader) * remaining_epochs // config.grad_accum)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=total_steps)
 
     model, optimizer, train_loader, scheduler = accelerator.prepare(
@@ -260,13 +347,14 @@ def train(config: TrainConfig, *, dry_run: bool = False) -> str:
     output_dir.mkdir(parents=True, exist_ok=True)
     loss_csv = output_dir / "train_loss.csv"
     iou_csv = output_dir / "eval_iou.csv"
-    loss_rows = [["epoch", "global_step", "loss", "lr", "elapsed_s"]]
-    iou_rows = [["epoch", "parse_rate", "iou@0.25", "mean_iou", "center_std"]]
+    _append_csv(loss_csv, None, ["epoch", "global_step", "loss", "lr", "elapsed_s"])
+    _append_csv(iou_csv, None, ["epoch", "parse_rate", "iou@0.25", "mean_iou", "center_std"])
     eval_history: List[dict] = []
+    save_every = config.save_every or 300   # mid-epoch safety save cadence (steps)
 
     t0 = time.time()
     global_step = 0
-    for epoch in range(1, config.epochs + 1):
+    for epoch in range(resume_epoch + 1, config.epochs + 1):
         model.train()
         epoch_loss = 0.0
         n_batches = 0
@@ -290,13 +378,12 @@ def train(config: TrainConfig, *, dry_run: bool = False) -> str:
                 lr_now = scheduler.get_last_lr()[0]
                 print(f"  E{epoch} step {step}/{len(train_loader)}  "
                       f"loss={loss_val:.4f}  lr={lr_now:.2e}  {elapsed:.0f}s", flush=True)
-                loss_rows.append([epoch, global_step, f"{loss_val:.6f}",
-                                  f"{lr_now:.2e}", f"{elapsed:.1f}"])
-                with open(loss_csv, "w", newline="") as f:
-                    csv.writer(f).writerows(loss_rows)
-            if config.save_every and step > 0 and (step + 1) % config.save_every == 0:
-                if accelerator.is_main_process:
-                    accelerator.unwrap_model(model).save_pretrained(output_dir / "latest")
+                _append_csv(loss_csv, [epoch, global_step, f"{loss_val:.6f}",
+                                       f"{lr_now:.2e}", f"{elapsed:.1f}"])
+            # frequent mid-epoch adapter save so a crash loses minutes, not an epoch
+            if step > 0 and step % save_every == 0 and accelerator.is_main_process:
+                _atomic_save_adapter(accelerator.unwrap_model(model), None,
+                                     output_dir / "latest")
 
         mean_loss = epoch_loss / max(n_batches, 1)
         print(f"[epoch {epoch}] mean_loss={mean_loss:.4f}  ({time.time()-t0:.0f}s)", flush=True)
@@ -312,16 +399,14 @@ def train(config: TrainConfig, *, dry_run: bool = False) -> str:
                   f"iou@0.25={report.iou_gate_pass_rate:.1%}  "
                   f"mean_iou={report.mean_iou:.3f}  "
                   f"center_std={report.center_std:.1f}", flush=True)
-            iou_rows.append([epoch, f"{report.parse_rate:.4f}",
-                             f"{report.iou_gate_pass_rate:.4f}", f"{report.mean_iou:.4f}",
-                             f"{report.center_std:.2f}"])
-            with open(iou_csv, "w", newline="") as f:
-                csv.writer(f).writerows(iou_rows)
+            _append_csv(iou_csv, [epoch, f"{report.parse_rate:.4f}",
+                                  f"{report.iou_gate_pass_rate:.4f}", f"{report.mean_iou:.4f}",
+                                  f"{report.center_std:.2f}"])
             eval_history.append({"epoch": epoch, **asdict(report)})
 
+            # atomic so a crash mid-save can't corrupt the resume source
             ckpt = output_dir / f"epoch{epoch}"
-            eval_model.save_pretrained(ckpt)
-            processor.save_pretrained(ckpt)
+            _atomic_save_adapter(eval_model, processor, ckpt)
             print(f"[train] epoch {epoch} adapter -> {ckpt}", flush=True)
 
     merged_path = ""
@@ -330,12 +415,16 @@ def train(config: TrainConfig, *, dry_run: bool = False) -> str:
         merged = accelerator.unwrap_model(model).merge_and_unload()
         merged.save_pretrained(output_dir)
         processor.save_pretrained(output_dir)
+        (output_dir / "DONE").write_text("merged\n")   # sweep-resume sentinel
         merged_path = str(output_dir)
         print(f"[train] merged checkpoint -> {merged_path}", flush=True)
 
         final = eval_history[-1] if eval_history else {}
         m = manifest.capture("train", config, extra={"merged_checkpoint": merged_path})
-        run_dir = manifest.write(m, results={
+        # Co-locate provenance with the checkpoint it describes. Absolute-ish
+        # (config-derived) path, so it does NOT depend on cwd — a bare "runs"
+        # default leaks a stray runs/ into wherever the driver was launched.
+        run_dir = manifest.write(m, runs_dir=output_dir, results={
             "eval_history": eval_history,
             "final": final,
             "train_n": len(train_samples),

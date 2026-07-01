@@ -28,6 +28,22 @@ runners/runs/**
 !runners/runs/**/run-card.md
 !runners/runs/**/results.json
 
+# Same rule for per-experiment runs/ (bake-off arms write merged checkpoints of
+# 1-6 GB per lr leg — 66 GB for one campaign). Provenance text + the per-epoch
+# metric CSVs (train_loss.csv / eval_iou.csv, thesis content) stay committed.
+# (Already-tracked files, e.g. whole-frame-resolution's runs/, are unaffected.)
+experiments/*/runs/**
+!experiments/*/runs/**/
+!experiments/*/runs/**/manifest.json
+!experiments/*/runs/**/run-card.md
+!experiments/*/runs/**/results.json
+!experiments/*/runs/**/*.csv
+
+# Stray root runs/ — provenance belongs under runners/runs/ or experiments/*/runs/
+# (co-located with its artifact). A bare /runs/ at repo root is always a cwd-relative
+# manifest.write() leak from a driver launched here; never commit it. See manifest.write.
+/runs/
+
 # Secrets
 .hugging-face-token
 
@@ -36,6 +52,9 @@ runners/runs/**
 # (G4/G5 footprint files are plain text at ~100-150 KB and are fine to commit.)
 experiments/2026-06-14-gemma-family-sweep/raw/2026-06-14_gsweepG2_footprint.txt
 experiments/2026-06-14-gemma-family-sweep/raw/2026-06-14_gsweepG3_footprint.txt
+
+# Launcher runtime state (PID files) — noise next to the raw logs, never content
+experiments/*/raw/*.pid
 
 # OS / editor noise
 .DS_Store

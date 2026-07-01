@@ -213,11 +213,17 @@ class HFBackend:
         img = _resize_keep_aspect(img, self.max_side)
 
         prompt = GROUNDING_PROMPT.format(target=caption)
-        messages = [{"role": "user", "content": [
-            {"type": "image"}, {"type": "text", "text": prompt},
-        ]}]
-        text = self.processor.apply_chat_template(messages, add_generation_prompt=True)
-        inputs = self.processor(text=[text], images=[img], return_tensors="pt").to(self.device)
+        if getattr(self.processor, "chat_template", None) is None:
+            # PaliGemma-style: plain prompt, processor auto-prepends <image>+<bos>.
+            inputs = self.processor(text=[prompt], images=[img], return_tensors="pt").to(self.device)
+        else:
+            messages = [{"role": "user", "content": [
+                {"type": "image"}, {"type": "text", "text": prompt},
+            ]}]
+            text = self.processor.apply_chat_template(messages, add_generation_prompt=True)
+            # SmolVLM/Idefics3 want images nested per-text ([[img]]); others take a flat list.
+            imgs = [[img]] if type(self.processor).__name__.startswith(("SmolVLM", "Idefics")) else [img]
+            inputs = self.processor(text=[text], images=imgs, return_tensors="pt").to(self.device)
         with torch.no_grad():
             out = self.model.generate(**inputs, max_new_tokens=MAX_NEW_TOKENS, do_sample=False)
         new_tokens = out[0, inputs["input_ids"].shape[1]:]

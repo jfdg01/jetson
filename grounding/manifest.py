@@ -160,7 +160,12 @@ def write(
     runs_dir: str | Path = "runs",
     results: Optional[Dict[str, Any]] = None,
 ) -> Path:
-    """Write manifest.json (+ run-card.md, + results.json if given) under runners/runs/<id>/.
+    """Write manifest.json (+ run-card.md, + results.json if given) under <runs_dir>/<id>/.
+
+    Pass an absolute-ish `runs_dir` (co-located with the run's checkpoint/export)
+    so provenance lands beside its artifact. The bare "runs" default is
+    cwd-relative and will leak a stray runs/ into wherever the driver launched —
+    callers that run from repo root MUST pass runs_dir explicitly.
 
     Returns the run directory. Idempotent per run_id (overwrites that run's files).
     """

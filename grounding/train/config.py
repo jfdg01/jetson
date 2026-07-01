@@ -51,6 +51,14 @@ class TrainConfig:
     lr: float = 2e-4
     batch_size: int = 2
     grad_accum: int = 8
+    # collate truncation cap. 1280 fits Qwen2-VL @1024 (~837 vision tokens); arms
+    # whose processor emits more tokens (InternVL dynamic-tiling -> ~2-3k) must raise
+    # this or the image-token span is truncated and alignment breaks. Per-arm knob.
+    max_seq_len: int = 1280
+    # trade compute for memory: recompute activations in backward. Off keeps the
+    # Qwen2-VL-2B baseline byte-identical; arms with long vision-token sequences
+    # (InternVL) need it to fit the 3090's 24 GB at batch>=1.
+    gradient_checkpointing: bool = False
     precision: str = "bf16"
     seed: int = SEED
     eval_n: int = 200

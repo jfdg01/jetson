@@ -22,3 +22,6 @@ torchvision==0.21.0+cu124
 pymavlink==2.4.49
 tqdm==4.68.2
 transformers==4.57.6
+num2words  # SmolVLM (arm E) processor hard-dep
+einops  # Florence-2 (arm D) remote modeling code
+timm  # Florence-2 (arm D) DaViT vision tower
