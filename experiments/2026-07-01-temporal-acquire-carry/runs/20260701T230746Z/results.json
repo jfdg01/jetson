@@ -1,0 +1,41 @@
+{
+  "seq": "M0205",
+  "caption": "Commercial truck",
+  "frames": [
+    395,
+    620
+  ],
+  "backend": "jetson",
+  "events": [
+    {
+      "event": "ACQUIRE",
+      "frame": 395,
+      "wall_s": 4.54,
+      "box": [
+        686.08,
+        345.6,
+        1024.0,
+        540.0
+      ],
+      "iou_vs_gt": 0.947
+    },
+    {
+      "event": "RETARGET",
+      "frame": 500,
+      "wall_s": 4.1,
+      "box": [
+        696.32,
+        86.4,
+        778.24,
+        135.0
+      ],
+      "caption": "the black car",
+      "iou_vs_gt": 0.721
+    }
+  ],
+  "carry_fps": 16.9,
+  "mean_iou_vs_gt": 0.887,
+  "iou_at_25": 1.0,
+  "pred_absent_frac": 0.0,
+  "out": "/home/gara/jetson/experiments/2026-07-01-temporal-acquire-carry/raw/demo-retarget.mp4"
+}

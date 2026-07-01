@@ -167,9 +167,25 @@ carry zero-shot or trained; SAM2 or SOT), with what was given up.
   1859 frames ≈ 23 GB > free RAM — symlinked `/dev/shm` window instead). Smoke (1 seq, cap 100):
   ~28 it/s propagation, ~19 FPS wall on the 3090; est. full run **~45–90 min** (ESTIMATE).
   Outputs → `runs/phase0-zeroshot-carry/{per_track.csv,results.json,<manifest>}`, log → `raw/`.
+- **2026-07-02T16:25Z — Phase 0 first run KILLED at seq 42/93: GT decode bug.** While building the
+  demo (`follow_demo.py`), an oracle smoke returned mean IoU 0.021 against a perfect acquire box;
+  frame renders showed **every** GT box shifted up-left by half its size. Root cause: AerialMind's
+  `labels_with_ids` stores `x y w h` with `x,y` = box **top-left**, not the JDE center convention
+  the loader assumed (verified visually: with top-left decoding all boxes sit exactly on their
+  vehicles, e.g. M0205 frame 414). The earlier out-of-bounds boxes that motivated clamping at parse
+  time were the same bug — real top-left boxes are in-bounds. Every number in the first run
+  (log archived as `raw/phase0-zeroshot-carry.INVALID-gt-decode-bug.log`) is an artifact — the
+  "iou25 0.05–0.13, occasional 0.7" spread was SAM2 tracking correctly against displaced GT.
+  Fixed in `aerialmind.py`, selfcheck re-passed, **relaunched 2026-07-02T16:30Z** (same command).
+  Also: first-run pace was ~40 s/seq → full run ≈ **65 min**, not the 45–90 min upper band feared.
 - **Next step:** when the run finishes, score RQ-T.1 against the gate (carry holds vs pull the
   training lever), fill Results row Phase 0, append ledgers. Then Phase 1 (SITL oracle-follow slice).
   Phase 2 no longer waits on the sweep — Jetson is free too.
+- **In parallel: demo (`follow_demo.py`).** ACQUIRE (Jetson VLM) → CARRY (SAM2) → REGROUND-on-loss,
+  plus **RETARGET** (mid-video caption switch = fresh acquire + `predictor.reset_state`, cached
+  frames kept). Two M0205 clips: occlusion demo (`"Commercial truck"` tid 25, frames 395–646,
+  40-frame gap @562) and retarget demo (`"Black car invading other lanes"` tid 22 → @220
+  `"The parked taxi"` tid 4, frames 1–440; both single-target expressions).
 - **Open decisions still pending:** (1) SAM2 variant — SAM2.1-tiny vs EdgeTAM vs EfficientTAM (decide
   on Jetson FPS, Phase 2); (2) TensorRT vs ONNX for the carry export (shared with the bake-off's C/D
   question); (3) Part assignment — this seeds the "v5 temporal" line but is left under Part IV

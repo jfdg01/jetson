@@ -1,0 +1,41 @@
+{
+  "seq": "M0205",
+  "caption": "Black car invading other lanes",
+  "frames": [
+    1,
+    440
+  ],
+  "backend": "jetson",
+  "events": [
+    {
+      "event": "ACQUIRE",
+      "frame": 1,
+      "wall_s": 4.5,
+      "box": [
+        737.28,
+        307.79999999999995,
+        901.12,
+        432.0
+      ],
+      "iou_vs_gt": 0.0
+    },
+    {
+      "event": "RETARGET",
+      "frame": 220,
+      "wall_s": 4.08,
+      "box": [
+        450.56,
+        351.0,
+        593.92,
+        464.4
+      ],
+      "caption": "The parked taxi",
+      "iou_vs_gt": 0.0
+    }
+  ],
+  "carry_fps": 15.4,
+  "mean_iou_vs_gt": 0.0,
+  "iou_at_25": 0.0,
+  "pred_absent_frac": 0.161,
+  "out": "/home/gara/jetson/experiments/2026-07-01-temporal-acquire-carry/raw/demo-retarget.mp4"
+}

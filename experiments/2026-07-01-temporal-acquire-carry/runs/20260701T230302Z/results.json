@@ -1,0 +1,41 @@
+{
+  "seq": "M0205",
+  "caption": "Black car invading other lanes",
+  "frames": [
+    1,
+    440
+  ],
+  "backend": "oracle",
+  "events": [
+    {
+      "event": "ACQUIRE",
+      "frame": 1,
+      "wall_s": 0.05,
+      "box": [
+        312.000512,
+        84.99978,
+        365.00070400000004,
+        132.99984
+      ],
+      "iou_vs_gt": 1.0
+    },
+    {
+      "event": "RETARGET",
+      "frame": 220,
+      "wall_s": 0.05,
+      "box": [
+        24.000512,
+        165.99978,
+        125.000704,
+        223.99956
+      ],
+      "caption": "The parked taxi",
+      "iou_vs_gt": 1.0
+    }
+  ],
+  "carry_fps": 16.1,
+  "mean_iou_vs_gt": 0.828,
+  "iou_at_25": 1.0,
+  "pred_absent_frac": 0.0,
+  "out": "/tmp/claude-1000/-home-gara-jetson/b0b3bca2-23f9-4ec3-b7a6-6a0656758fa0/scratchpad/smoke-retarget.mp4"
+}

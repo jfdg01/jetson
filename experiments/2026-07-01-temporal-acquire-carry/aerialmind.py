@@ -3,7 +3,8 @@
 On-disk layout (data/AerialMind/, gitignored, 93 sequences):
   image_02/<seq>/NNNNNNN.jpg          frames (integer names; some seqs also carry
                                       stray .txt beside the jpgs -- ignored)
-  labels_with_ids/<seq>/NNNNNNN.txt   JDE lines: class tid cx cy w h  (normalized)
+  labels_with_ids/<seq>/NNNNNNN.txt   lines: class tid x y w h  (normalized,
+                                      x,y = TOP-LEFT -- not the JDE center convention)
   expression/<seq>/<text>.json        {"label": {"<frame>": [tid, ...]}}
 
 Everything is exposed in *pixel* xyxy at native frame resolution -- SAM2 is
@@ -80,13 +81,16 @@ class Sequence:
                 if len(p) < 6:
                     continue
                 tid = int(p[1])
-                cx, cy, w, h = (float(v) for v in p[2:6])
+                # NOT the JDE center convention: x,y is the box TOP-LEFT
+                # (verified visually 2026-07-02 -- center decoding shifts every
+                # box up-left by half its size; see campaign README)
+                x, y, w, h = (float(v) for v in p[2:6])
                 # labels extend past the frame for half-out-of-view targets; clamp
                 box = (
-                    max(0.0, (cx - w / 2) * self.width),
-                    max(0.0, (cy - h / 2) * self.height),
-                    min(float(self.width), (cx + w / 2) * self.width),
-                    min(float(self.height), (cy + h / 2) * self.height),
+                    max(0.0, x * self.width),
+                    max(0.0, y * self.height),
+                    min(float(self.width), (x + w) * self.width),
+                    min(float(self.height), (y + h) * self.height),
                 )
                 if box[0] < box[2] and box[1] < box[3]:  # drop fully-outside boxes
                     self._tracks.setdefault(tid, Track(tid, {})).boxes[frame] = box

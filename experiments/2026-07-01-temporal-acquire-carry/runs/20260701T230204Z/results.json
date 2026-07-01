@@ -1,0 +1,28 @@
+{
+  "seq": "M0205",
+  "caption": "Commercial truck",
+  "frames": [
+    395,
+    646
+  ],
+  "backend": "oracle",
+  "events": [
+    {
+      "event": "ACQUIRE",
+      "frame": 395,
+      "wall_s": 0.05,
+      "box": [
+        689.999872,
+        348.99984,
+        1020.9996799999999,
+        536.99976
+      ],
+      "iou_vs_gt": 1.0
+    }
+  ],
+  "carry_fps": 18.6,
+  "mean_iou_vs_gt": 0.886,
+  "iou_at_25": 1.0,
+  "pred_absent_frac": 0.0,
+  "out": "/tmp/claude-1000/-home-gara-jetson/b0b3bca2-23f9-4ec3-b7a6-6a0656758fa0/scratchpad/smoke-occl.mp4"
+}
