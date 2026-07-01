@@ -1,0 +1,30 @@
+[bench] qwen2.5-vl-3b: RefDrone 'val' n=439 max_side=1024 n_ctx=4096
+[deploy] reuse remote lr0.0002-q8_0.gguf (3.29 GB, sizes match)
+[deploy] reuse remote mmproj-lr0.0002-f16.gguf (1.34 GB, sizes match)
+channel 2: open failed: connect failed: Connection refused
+[bench] served lr0.0002-q8_0.gguf on Jetson (ngl=99)
+[bench] === whole-frame path ===
+  [43/439] parsed=43 gate_hits=20 wall_med=5994ms
+  [86/439] parsed=86 gate_hits=43 wall_med=5996ms
+  [129/439] parsed=129 gate_hits=74 wall_med=5998ms
+  [172/439] parsed=172 gate_hits=99 wall_med=5996ms
+  [215/439] parsed=215 gate_hits=125 wall_med=5994ms
+  [258/439] parsed=258 gate_hits=150 wall_med=5994ms
+  [301/439] parsed=301 gate_hits=163 wall_med=5992ms
+  [344/439] parsed=344 gate_hits=183 wall_med=5992ms
+  [387/439] parsed=387 gate_hits=206 wall_med=5991ms
+  [430/439] parsed=430 gate_hits=231 wall_med=5990ms
+[bench] WF: {"n": 439, "parse_rate": 1.0, "iou@0.25": 0.5308, "mean_iou": 0.399, "center_std": 21.59, "prefill_tok": 837, "prefill_ms": 5002, "decode_tok": 12, "decode_ms": 842, "wall_ms": 5990}
+[bench] === ROI re-anchor path (M=2.0 @512) ===
+  [43/439] parsed=43 gate_hits=8 wall_med=2806ms
+  [86/439] parsed=86 gate_hits=24 wall_med=2815ms
+  [129/439] parsed=129 gate_hits=36 wall_med=2815ms
+  [172/439] parsed=172 gate_hits=50 wall_med=2818ms
+  [215/439] parsed=215 gate_hits=66 wall_med=2817ms
+  [258/439] parsed=258 gate_hits=76 wall_med=2817ms
+  [301/439] parsed=301 gate_hits=91 wall_med=2818ms
+  [344/439] parsed=344 gate_hits=102 wall_med=2817ms
+  [387/439] parsed=387 gate_hits=120 wall_med=2817ms
+  [430/439] parsed=430 gate_hits=142 wall_med=2817ms
+[bench] ROI: {"n": 439, "parse_rate": 1.0, "iou@0.25": 0.3303, "mean_iou": 0.1701, "center_std": 22.88, "prefill_tok": 385, "prefill_ms": 1916, "decode_tok": 12, "decode_ms": 838, "wall_ms": 2817, "margin": 2.0, "res": 512}
+[bench] wrote experiments/2026-06-30-vlm-backbone-bakeoff/raw/qwen2.5-vl-3b-jetson.json

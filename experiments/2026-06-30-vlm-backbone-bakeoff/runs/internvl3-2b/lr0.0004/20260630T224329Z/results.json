@@ -1,0 +1,44 @@
+{
+  "eval_history": [
+    {
+      "epoch": 1,
+      "backend": "hf",
+      "n": 200,
+      "parse_rate": 1.0,
+      "iou_gate_pass_rate": 0.3,
+      "mean_iou": 0.15363486938613363,
+      "center_std": 22.086691594316157
+    },
+    {
+      "epoch": 2,
+      "backend": "hf",
+      "n": 200,
+      "parse_rate": 1.0,
+      "iou_gate_pass_rate": 0.435,
+      "mean_iou": 0.25371888010578286,
+      "center_std": 23.231517589458516
+    },
+    {
+      "epoch": 3,
+      "backend": "hf",
+      "n": 200,
+      "parse_rate": 1.0,
+      "iou_gate_pass_rate": 0.475,
+      "mean_iou": 0.296649517680116,
+      "center_std": 22.36979802638953
+    }
+  ],
+  "final": {
+    "epoch": 3,
+    "backend": "hf",
+    "n": 200,
+    "parse_rate": 1.0,
+    "iou_gate_pass_rate": 0.475,
+    "mean_iou": 0.296649517680116,
+    "center_std": 22.36979802638953
+  },
+  "train_n": 4101,
+  "val_n": 439,
+  "epochs": 3,
+  "effective_batch": 16
+}

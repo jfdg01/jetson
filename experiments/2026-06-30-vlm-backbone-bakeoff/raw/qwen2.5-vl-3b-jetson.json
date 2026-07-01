@@ -1,0 +1,32 @@
+{
+  "arm": "qwen2.5-vl-3b",
+  "gguf": "lr0.0002-q8_0.gguf",
+  "max_side": 1024,
+  "n_ctx": 4096,
+  "whole_frame": {
+    "n": 439,
+    "parse_rate": 1.0,
+    "iou@0.25": 0.5308,
+    "mean_iou": 0.399,
+    "center_std": 21.59,
+    "prefill_tok": 837,
+    "prefill_ms": 5002,
+    "decode_tok": 12,
+    "decode_ms": 842,
+    "wall_ms": 5990
+  },
+  "roi": {
+    "n": 439,
+    "parse_rate": 1.0,
+    "iou@0.25": 0.3303,
+    "mean_iou": 0.1701,
+    "center_std": 22.88,
+    "prefill_tok": 385,
+    "prefill_ms": 1916,
+    "decode_tok": 12,
+    "decode_ms": 838,
+    "wall_ms": 2817,
+    "margin": 2.0,
+    "res": 512
+  }
+}

@@ -1,0 +1,834 @@
+=== launch attempt 1/8 2026-06-30T22:48:30Z ===
+
+===== arm qwen2.5-vl-3b  lr=0.0001  ->  experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0001 =====
+[train] device=cuda  effective_batch=16  model=Qwen/Qwen2.5-VL-3B-Instruct  res=1024
+[train] loading processor + model...
+The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00, 28.02it/s]
+trainable params: 37,152,768 || all params: 3,791,775,744 || trainable%: 0.9798
+[train] loading data: refdrone:train / refdrone:val
+[train] 4101 train / 439 val samples
+Traceback (most recent call last):
+  File "/home/gara/jetson/experiments/2026-06-30-vlm-backbone-bakeoff/run_arm.py", line 112, in <module>
+    main()
+  File "/home/gara/jetson/experiments/2026-06-30-vlm-backbone-bakeoff/run_arm.py", line 83, in main
+    merged = trainer.train(cfg)
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/grounding/train/trainer.py", line 336, in train
+    out = model(**batch)
+          ^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/peft/peft_model.py", line 1993, in forward
+    return self.base_model(
+           ^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/peft/tuners/tuners_utils.py", line 330, in forward
+    return self.model.forward(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/utils/generic.py", line 918, in wrapper
+    output = func(self, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 1476, in forward
+    outputs = self.model(
+              ^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 1257, in forward
+    image_embeds = self.get_image_features(pixel_values, image_grid_thw)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 1170, in get_image_features
+    image_embeds = self.visual(pixel_values, grid_thw=image_grid_thw)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 453, in forward
+    hidden_states = blk(
+                    ^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/modeling_layers.py", line 94, in __call__
+    return super().__call__(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 288, in forward
+    hidden_states = hidden_states + self.mlp(self.norm2(hidden_states))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 64, in forward
+    return self.down_proj(self.act_fn(self.gate_proj(hidden_state)) * self.up_proj(hidden_state))
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/peft/tuners/lora/layer.py", line 969, in forward
+    result = result + lora_B(lora_A(dropout(x))) * scaling
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 94.00 MiB. GPU 0 has a total capacity of 23.54 GiB of which 23.00 MiB is free. Including non-PyTorch memory, this process has 23.34 GiB memory in use. Of the allocated memory 22.11 GiB is allocated by PyTorch, and 949.84 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+=== exited rc=1 (attempt 1) 2026-06-30T22:48:42Z ===
+=== launch attempt 2/8 2026-06-30T22:48:57Z ===
+
+===== arm qwen2.5-vl-3b  lr=0.0001  ->  experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0001 =====
+[train] device=cuda  effective_batch=16  model=Qwen/Qwen2.5-VL-3B-Instruct  res=1024
+[train] loading processor + model...
+The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00, 27.90it/s]
+trainable params: 37,152,768 || all params: 3,791,775,744 || trainable%: 0.9798
+[train] loading data: refdrone:train / refdrone:val
+[train] 4101 train / 439 val samples
+Traceback (most recent call last):
+  File "/home/gara/jetson/experiments/2026-06-30-vlm-backbone-bakeoff/run_arm.py", line 112, in <module>
+    main()
+  File "/home/gara/jetson/experiments/2026-06-30-vlm-backbone-bakeoff/run_arm.py", line 83, in main
+    merged = trainer.train(cfg)
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/grounding/train/trainer.py", line 336, in train
+    out = model(**batch)
+          ^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/peft/peft_model.py", line 1993, in forward
+    return self.base_model(
+           ^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/peft/tuners/tuners_utils.py", line 330, in forward
+    return self.model.forward(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/utils/generic.py", line 918, in wrapper
+    output = func(self, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 1476, in forward
+    outputs = self.model(
+              ^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 1305, in forward
+    outputs = self.language_model(
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 891, in forward
+    layer_outputs = decoder_layer(
+                    ^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/modeling_layers.py", line 94, in __call__
+    return super().__call__(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/utils/deprecation.py", line 172, in wrapped_func
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 757, in forward
+    hidden_states = self.mlp(hidden_states)
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 541, in forward
+    down_proj = self.down_proj(self.act_fn(self.gate_proj(x)) * self.up_proj(x))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/peft/tuners/lora/layer.py", line 969, in forward
+    result = result + lora_B(lora_A(dropout(x))) * scaling
+                                    ^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/dropout.py", line 70, in forward
+    return F.dropout(input, self.p, self.training, self.inplace)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/functional.py", line 1425, in dropout
+    _VF.dropout_(input, p, training) if inplace else _VF.dropout(input, p, training)
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 72.00 MiB. GPU 0 has a total capacity of 23.54 GiB of which 79.00 MiB is free. Including non-PyTorch memory, this process has 23.29 GiB memory in use. Of the allocated memory 22.13 GiB is allocated by PyTorch, and 865.30 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+=== exited rc=1 (attempt 2) 2026-06-30T22:49:10Z ===
+=== launch attempt 3/8 2026-06-30T22:49:25Z ===
+
+===== arm qwen2.5-vl-3b  lr=0.0001  ->  experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0001 =====
+[train] device=cuda  effective_batch=16  model=Qwen/Qwen2.5-VL-3B-Instruct  res=1024
+[train] loading processor + model...
+The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00, 27.48it/s]
+trainable params: 37,152,768 || all params: 3,791,775,744 || trainable%: 0.9798
+[train] loading data: refdrone:train / refdrone:val
+[train] 4101 train / 439 val samples
+Traceback (most recent call last):
+  File "/home/gara/jetson/experiments/2026-06-30-vlm-backbone-bakeoff/run_arm.py", line 112, in <module>
+    main()
+  File "/home/gara/jetson/experiments/2026-06-30-vlm-backbone-bakeoff/run_arm.py", line 83, in main
+    merged = trainer.train(cfg)
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/grounding/train/trainer.py", line 336, in train
+    out = model(**batch)
+          ^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/peft/peft_model.py", line 1993, in forward
+    return self.base_model(
+           ^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/peft/tuners/tuners_utils.py", line 330, in forward
+    return self.model.forward(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/utils/generic.py", line 918, in wrapper
+    output = func(self, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 1476, in forward
+    outputs = self.model(
+              ^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 1257, in forward
+    image_embeds = self.get_image_features(pixel_values, image_grid_thw)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 1170, in get_image_features
+    image_embeds = self.visual(pixel_values, grid_thw=image_grid_thw)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 453, in forward
+    hidden_states = blk(
+                    ^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/modeling_layers.py", line 94, in __call__
+    return super().__call__(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 288, in forward
+    hidden_states = hidden_states + self.mlp(self.norm2(hidden_states))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 64, in forward
+    return self.down_proj(self.act_fn(self.gate_proj(hidden_state)) * self.up_proj(hidden_state))
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/peft/tuners/lora/layer.py", line 969, in forward
+    result = result + lora_B(lora_A(dropout(x))) * scaling
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/nn/modules/linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 94.00 MiB. GPU 0 has a total capacity of 23.54 GiB of which 23.00 MiB is free. Including non-PyTorch memory, this process has 23.34 GiB memory in use. Of the allocated memory 22.11 GiB is allocated by PyTorch, and 949.86 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+=== exited rc=1 (attempt 3) 2026-06-30T22:49:37Z ===
+=== launch attempt 1/8 2026-06-30T22:50:12Z ===
+
+===== arm qwen2.5-vl-3b  lr=0.0001  ->  experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0001 =====
+[train] device=cuda  effective_batch=16  model=Qwen/Qwen2.5-VL-3B-Instruct  res=1024
+[train] loading processor + model...
+The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00, 27.88it/s]
+trainable params: 37,152,768 || all params: 3,791,775,744 || trainable%: 0.9798
+[train] gradient checkpointing ON
+[train] loading data: refdrone:train / refdrone:val
+[train] 4101 train / 439 val samples
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/utils/checkpoint.py:87: UserWarning: None of the inputs have requires_grad=True. Gradients will be None
+  warnings.warn(
+  E1 step 0/2051  loss=3.5032  lr=1.00e-04  2s
+  E1 step 50/2051  loss=1.5360  lr=1.00e-04  95s
+  E1 step 100/2051  loss=1.0633  lr=9.99e-05  186s
+  E1 step 150/2051  loss=1.0284  lr=9.99e-05  282s
+  E1 step 200/2051  loss=0.6758  lr=9.97e-05  377s
+  E1 step 250/2051  loss=1.2349  lr=9.96e-05  472s
+  E1 step 300/2051  loss=1.2261  lr=9.94e-05  568s
+  E1 step 350/2051  loss=0.5423  lr=9.92e-05  662s
+  E1 step 400/2051  loss=0.7648  lr=9.90e-05  759s
+  E1 step 450/2051  loss=0.7248  lr=9.87e-05  855s
+  E1 step 500/2051  loss=0.6995  lr=9.84e-05  952s
+  E1 step 550/2051  loss=0.6148  lr=9.81e-05  1049s
+  E1 step 600/2051  loss=0.5801  lr=9.77e-05  1143s
+  E1 step 650/2051  loss=1.1822  lr=9.73e-05  1238s
+  E1 step 700/2051  loss=1.2596  lr=9.69e-05  1333s
+  E1 step 750/2051  loss=0.7481  lr=9.64e-05  1430s
+  E1 step 800/2051  loss=0.7395  lr=9.59e-05  1527s
+  E1 step 850/2051  loss=0.6462  lr=9.54e-05  1623s
+  E1 step 900/2051  loss=1.0400  lr=9.49e-05  1717s
+  E1 step 950/2051  loss=0.5783  lr=9.43e-05  1814s
+  E1 step 1000/2051  loss=0.4291  lr=9.36e-05  1911s
+  E1 step 1050/2051  loss=0.7265  lr=9.30e-05  2007s
+  E1 step 1100/2051  loss=0.8020  lr=9.24e-05  2101s
+  E1 step 1150/2051  loss=0.6104  lr=9.17e-05  2197s
+  E1 step 1200/2051  loss=0.5077  lr=9.09e-05  2292s
+  E1 step 1250/2051  loss=1.0047  lr=9.02e-05  2386s
+  E1 step 1300/2051  loss=0.4933  lr=8.94e-05  2484s
+  E1 step 1350/2051  loss=0.3111  lr=8.87e-05  2580s
+  E1 step 1400/2051  loss=0.4917  lr=8.78e-05  2677s
+  E1 step 1450/2051  loss=0.6744  lr=8.69e-05  2774s
+  E1 step 1500/2051  loss=0.5706  lr=8.61e-05  2871s
+  E1 step 1550/2051  loss=0.7148  lr=8.52e-05  2966s
+  E1 step 1600/2051  loss=0.7851  lr=8.42e-05  3064s
+  E1 step 1650/2051  loss=0.6648  lr=8.33e-05  3158s
+  E1 step 1700/2051  loss=0.6675  lr=8.24e-05  3254s
+  E1 step 1750/2051  loss=0.4350  lr=8.14e-05  3350s
+  E1 step 1800/2051  loss=0.5394  lr=8.03e-05  3445s
+  E1 step 1850/2051  loss=0.2756  lr=7.93e-05  3540s
+  E1 step 1900/2051  loss=0.2682  lr=7.83e-05  3637s
+  E1 step 1950/2051  loss=0.3040  lr=7.73e-05  3733s
+  E1 step 2000/2051  loss=0.5506  lr=7.61e-05  3830s
+  E1 step 2050/2051  loss=0.6785  lr=7.49e-05  3927s
+[epoch 1] mean_loss=0.7223  (3927s)
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+  [hf] 40/200  parsed=40  gate_hits=19
+  [hf] 80/200  parsed=80  gate_hits=41
+  [hf] 120/200  parsed=120  gate_hits=63
+  [hf] 160/200  parsed=160  gate_hits=87
+  [hf] 200/200  parsed=200  gate_hits=112
+[eval E1] n=200  parse=100.0%  iou@0.25=56.0%  mean_iou=0.352  center_std=21.6
+[train] epoch 1 adapter -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0001/epoch1
+  E2 step 0/2051  loss=0.5595  lr=7.49e-05  4124s
+  E2 step 50/2051  loss=0.4106  lr=7.38e-05  4221s
+  E2 step 100/2051  loss=0.4266  lr=7.27e-05  4317s
+  E2 step 150/2051  loss=0.2890  lr=7.16e-05  4413s
+  E2 step 200/2051  loss=0.2799  lr=7.03e-05  4508s
+  E2 step 250/2051  loss=0.5184  lr=6.92e-05  4603s
+  E2 step 300/2051  loss=0.1083  lr=6.81e-05  4697s
+  E2 step 350/2051  loss=0.4069  lr=6.69e-05  4792s
+  E2 step 400/2051  loss=0.4171  lr=6.56e-05  4886s
+  E2 step 450/2051  loss=0.2959  lr=6.44e-05  4981s
+  E2 step 500/2051  loss=0.2384  lr=6.32e-05  5074s
+  E2 step 550/2051  loss=0.4798  lr=6.20e-05  5171s
+  E2 step 600/2051  loss=0.4617  lr=6.06e-05  5268s
+  E2 step 650/2051  loss=0.2985  lr=5.94e-05  5362s
+  E2 step 700/2051  loss=0.3864  lr=5.82e-05  5458s
+  E2 step 750/2051  loss=0.4184  lr=5.70e-05  5554s
+  E2 step 800/2051  loss=0.4090  lr=5.56e-05  5650s
+  E2 step 850/2051  loss=0.4953  lr=5.44e-05  5745s
+  E2 step 900/2051  loss=0.1808  lr=5.32e-05  5841s
+  E2 step 950/2051  loss=0.3116  lr=5.19e-05  5937s
+  E2 step 1000/2051  loss=0.4698  lr=5.05e-05  6034s
+  E2 step 1050/2051  loss=0.6093  lr=4.93e-05  6130s
+  E2 step 1100/2051  loss=0.5032  lr=4.81e-05  6225s
+  E2 step 1150/2051  loss=0.2534  lr=4.68e-05  6322s
+  E2 step 1200/2051  loss=0.4380  lr=4.54e-05  6417s
+  E2 step 1250/2051  loss=0.4015  lr=4.42e-05  6512s
+  E2 step 1300/2051  loss=0.7458  lr=4.30e-05  6607s
+  E2 step 1350/2051  loss=0.2952  lr=4.18e-05  6703s
+  E2 step 1400/2051  loss=0.9508  lr=4.04e-05  6797s
+  E2 step 1450/2051  loss=0.9484  lr=3.92e-05  6893s
+  E2 step 1500/2051  loss=0.5821  lr=3.80e-05  6987s
+  E2 step 1550/2051  loss=0.4447  lr=3.68e-05  7084s
+  E2 step 1600/2051  loss=0.6184  lr=3.54e-05  7181s
+  E2 step 1650/2051  loss=0.4522  lr=3.42e-05  7276s
+  E2 step 1700/2051  loss=0.5786  lr=3.31e-05  7373s
+  E2 step 1750/2051  loss=0.4657  lr=3.19e-05  7467s
+  E2 step 1800/2051  loss=0.1845  lr=3.06e-05  7562s
+  E2 step 1850/2051  loss=0.6458  lr=2.95e-05  7659s
+  E2 step 1900/2051  loss=0.4294  lr=2.84e-05  7756s
+  E2 step 1950/2051  loss=0.5074  lr=2.73e-05  7851s
+  E2 step 2000/2051  loss=0.6799  lr=2.60e-05  7945s
+  E2 step 2050/2051  loss=1.1283  lr=2.48e-05  8038s
+[epoch 2] mean_loss=0.4672  (8038s)
+  [hf] 40/200  parsed=40  gate_hits=16
+  [hf] 80/200  parsed=80  gate_hits=41
+  [hf] 120/200  parsed=120  gate_hits=64
+  [hf] 160/200  parsed=160  gate_hits=86
+  [hf] 200/200  parsed=200  gate_hits=110
+[eval E2] n=200  parse=100.0%  iou@0.25=55.0%  mean_iou=0.384  center_std=22.3
+[train] epoch 2 adapter -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0001/epoch2
+  E3 step 0/2051  loss=0.3771  lr=2.48e-05  8234s
+  E3 step 50/2051  loss=0.7609  lr=2.37e-05  8330s
+  E3 step 100/2051  loss=0.3901  lr=2.27e-05  8426s
+  E3 step 150/2051  loss=0.2693  lr=2.17e-05  8523s
+  E3 step 200/2051  loss=0.3697  lr=2.05e-05  8618s
+  E3 step 250/2051  loss=0.1707  lr=1.95e-05  8714s
+  E3 step 300/2051  loss=0.3433  lr=1.86e-05  8808s
+  E3 step 350/2051  loss=0.2799  lr=1.76e-05  8905s
+  E3 step 400/2051  loss=0.0680  lr=1.65e-05  9002s
+  E3 step 450/2051  loss=0.2994  lr=1.56e-05  9096s
+  E3 step 500/2051  loss=0.5157  lr=1.48e-05  9190s
+  E3 step 550/2051  loss=0.2315  lr=1.39e-05  9285s
+  E3 step 600/2051  loss=1.3848  lr=1.29e-05  9381s
+  E3 step 650/2051  loss=0.3016  lr=1.21e-05  9475s
+  E3 step 700/2051  loss=0.6335  lr=1.13e-05  9572s
+  E3 step 750/2051  loss=0.2217  lr=1.06e-05  9667s
+  E3 step 800/2051  loss=0.4000  lr=9.69e-06  9765s
+  E3 step 850/2051  loss=0.4260  lr=8.98e-06  9861s
+  E3 step 900/2051  loss=0.2340  lr=8.29e-06  9957s
+  E3 step 950/2051  loss=0.1645  lr=7.63e-06  10052s
+  E3 step 1000/2051  loss=0.2243  lr=6.89e-06  10147s
+  E3 step 1050/2051  loss=0.2817  lr=6.28e-06  10242s
+  E3 step 1100/2051  loss=0.1890  lr=5.70e-06  10338s
+  E3 step 1150/2051  loss=0.2012  lr=5.14e-06  10433s
+  E3 step 1200/2051  loss=0.0977  lr=4.53e-06  10529s
+  E3 step 1250/2051  loss=0.4247  lr=4.03e-06  10625s
+  E3 step 1300/2051  loss=0.3490  lr=3.57e-06  10721s
+  E3 step 1350/2051  loss=0.1516  lr=3.12e-06  10815s
+  E3 step 1400/2051  loss=0.1624  lr=2.65e-06  10911s
+  E3 step 1450/2051  loss=0.5787  lr=2.27e-06  11006s
+  E3 step 1500/2051  loss=0.3373  lr=1.92e-06  11102s
+  E3 step 1550/2051  loss=0.1101  lr=1.60e-06  11198s
+  E3 step 1600/2051  loss=0.2955  lr=1.26e-06  11293s
+  E3 step 1650/2051  loss=0.1410  lr=9.98e-07  11390s
+  E3 step 1700/2051  loss=0.2421  lr=7.69e-07  11487s
+  E3 step 1750/2051  loss=0.4315  lr=5.70e-07  11581s
+  E3 step 1800/2051  loss=0.2106  lr=3.75e-07  11675s
+  E3 step 1850/2051  loss=0.2732  lr=2.40e-07  11770s
+  E3 step 1900/2051  loss=0.2009  lr=1.35e-07  11865s
+  E3 step 1950/2051  loss=1.1890  lr=6.01e-08  11962s
+  E3 step 2000/2051  loss=0.2654  lr=1.04e-08  12057s
+  E3 step 2050/2051  loss=0.2097  lr=1.67e-09  12151s
+[epoch 3] mean_loss=0.3682  (12151s)
+  [hf] 40/200  parsed=40  gate_hits=16
+  [hf] 80/200  parsed=80  gate_hits=41
+  [hf] 120/200  parsed=120  gate_hits=64
+  [hf] 160/200  parsed=160  gate_hits=88
+  [hf] 200/200  parsed=200  gate_hits=111
+[eval E3] n=200  parse=100.0%  iou@0.25=55.5%  mean_iou=0.413  center_std=22.2
+[train] epoch 3 adapter -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0001/epoch3
+[train] merging LoRA adapter into base weights...
+[train] merged checkpoint -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0001
+[train] manifest -> runs/20260701T021628Z
+[run_arm] lr=0.0001  best in-loop IoU@0.25=56.0%
+
+===== arm qwen2.5-vl-3b  lr=0.0002  ->  experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0002 =====
+[train] device=cuda  effective_batch=16  model=Qwen/Qwen2.5-VL-3B-Instruct  res=1024
+[train] loading processor + model...
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00, 27.82it/s]
+trainable params: 37,152,768 || all params: 3,791,775,744 || trainable%: 0.9798
+[train] gradient checkpointing ON
+[train] loading data: refdrone:train / refdrone:val
+[train] 4101 train / 439 val samples
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/utils/checkpoint.py:87: UserWarning: None of the inputs have requires_grad=True. Gradients will be None
+  warnings.warn(
+  E1 step 0/2051  loss=3.0463  lr=2.00e-04  2s
+  E1 step 50/2051  loss=1.2280  lr=2.00e-04  98s
+  E1 step 100/2051  loss=0.8327  lr=2.00e-04  194s
+  E1 step 150/2051  loss=0.9279  lr=2.00e-04  290s
+  E1 step 200/2051  loss=1.3272  lr=1.99e-04  386s
+  E1 step 250/2051  loss=0.6434  lr=1.99e-04  481s
+  E1 step 300/2051  loss=0.9757  lr=1.99e-04  577s
+  E1 step 350/2051  loss=0.9665  lr=1.98e-04  671s
+  E1 step 400/2051  loss=0.6274  lr=1.98e-04  768s
+  E1 step 450/2051  loss=0.8794  lr=1.97e-04  863s
+  E1 step 500/2051  loss=0.9609  lr=1.97e-04  957s
+  E1 step 550/2051  loss=1.1858  lr=1.96e-04  1052s
+  E1 step 600/2051  loss=0.6147  lr=1.95e-04  1146s
+  E1 step 650/2051  loss=0.6922  lr=1.95e-04  1240s
+  E1 step 700/2051  loss=0.6801  lr=1.94e-04  1336s
+  E1 step 750/2051  loss=0.5442  lr=1.93e-04  1431s
+  E1 step 800/2051  loss=0.5608  lr=1.92e-04  1526s
+  E1 step 850/2051  loss=0.5006  lr=1.91e-04  1620s
+  E1 step 900/2051  loss=0.5755  lr=1.90e-04  1714s
+  E1 step 950/2051  loss=0.6328  lr=1.89e-04  1812s
+  E1 step 1000/2051  loss=0.7228  lr=1.87e-04  1908s
+  E1 step 1050/2051  loss=0.3171  lr=1.86e-04  2002s
+  E1 step 1100/2051  loss=0.4537  lr=1.85e-04  2100s
+  E1 step 1150/2051  loss=0.4827  lr=1.83e-04  2197s
+  E1 step 1200/2051  loss=0.7987  lr=1.82e-04  2292s
+  E1 step 1250/2051  loss=0.6609  lr=1.80e-04  2387s
+  E1 step 1300/2051  loss=0.6431  lr=1.79e-04  2481s
+  E1 step 1350/2051  loss=0.5057  lr=1.77e-04  2576s
+  E1 step 1400/2051  loss=1.7389  lr=1.76e-04  2668s
+  E1 step 1450/2051  loss=0.4670  lr=1.74e-04  2764s
+  E1 step 1500/2051  loss=0.4147  lr=1.72e-04  2860s
+  E1 step 1550/2051  loss=0.3266  lr=1.70e-04  2956s
+  E1 step 1600/2051  loss=1.0044  lr=1.68e-04  3053s
+  E1 step 1650/2051  loss=0.3703  lr=1.67e-04  3149s
+  E1 step 1700/2051  loss=0.2772  lr=1.65e-04  3245s
+  E1 step 1750/2051  loss=0.3234  lr=1.63e-04  3342s
+  E1 step 1800/2051  loss=0.4054  lr=1.61e-04  3439s
+  E1 step 1850/2051  loss=0.1974  lr=1.59e-04  3535s
+  E1 step 1900/2051  loss=0.3058  lr=1.57e-04  3629s
+  E1 step 1950/2051  loss=0.7742  lr=1.55e-04  3724s
+  E1 step 2000/2051  loss=0.6470  lr=1.52e-04  3820s
+  E1 step 2050/2051  loss=0.7576  lr=1.50e-04  3915s
+[epoch 1] mean_loss=0.6640  (3915s)
+  [hf] 40/200  parsed=40  gate_hits=19
+  [hf] 80/200  parsed=80  gate_hits=37
+  [hf] 120/200  parsed=120  gate_hits=56
+  [hf] 160/200  parsed=160  gate_hits=74
+  [hf] 200/200  parsed=200  gate_hits=96
+[eval E1] n=200  parse=100.0%  iou@0.25=48.0%  mean_iou=0.312  center_std=22.2
+[train] epoch 1 adapter -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0002/epoch1
+  E2 step 0/2051  loss=0.5302  lr=1.50e-04  4113s
+  E2 step 50/2051  loss=0.1998  lr=1.48e-04  4210s
+  E2 step 100/2051  loss=0.3251  lr=1.45e-04  4304s
+  E2 step 150/2051  loss=0.3252  lr=1.43e-04  4402s
+  E2 step 200/2051  loss=0.5850  lr=1.41e-04  4498s
+  E2 step 250/2051  loss=0.3631  lr=1.38e-04  4593s
+  E2 step 300/2051  loss=0.2548  lr=1.36e-04  4690s
+  E2 step 350/2051  loss=0.7742  lr=1.34e-04  4786s
+  E2 step 400/2051  loss=0.3071  lr=1.31e-04  4882s
+  E2 step 450/2051  loss=0.7868  lr=1.29e-04  4974s
+  E2 step 500/2051  loss=0.6513  lr=1.26e-04  5069s
+  E2 step 550/2051  loss=0.3437  lr=1.24e-04  5165s
+  E2 step 600/2051  loss=0.2582  lr=1.21e-04  5260s
+  E2 step 650/2051  loss=0.4305  lr=1.19e-04  5357s
+  E2 step 700/2051  loss=0.3265  lr=1.16e-04  5452s
+  E2 step 750/2051  loss=0.3668  lr=1.14e-04  5548s
+  E2 step 800/2051  loss=0.5362  lr=1.11e-04  5644s
+  E2 step 850/2051  loss=0.1960  lr=1.09e-04  5740s
+  E2 step 900/2051  loss=0.2878  lr=1.06e-04  5837s
+  E2 step 950/2051  loss=0.3019  lr=1.04e-04  5934s
+  E2 step 1000/2051  loss=0.1185  lr=1.01e-04  6032s
+  E2 step 1050/2051  loss=0.1812  lr=9.86e-05  6127s
+  E2 step 1100/2051  loss=0.2688  lr=9.61e-05  6222s
+  E2 step 1150/2051  loss=0.2400  lr=9.37e-05  6316s
+  E2 step 1200/2051  loss=0.3940  lr=9.08e-05  6412s
+  E2 step 1250/2051  loss=0.3708  lr=8.84e-05  6509s
+  E2 step 1300/2051  loss=0.3052  lr=8.60e-05  6604s
+  E2 step 1350/2051  loss=0.3217  lr=8.35e-05  6701s
+  E2 step 1400/2051  loss=0.3443  lr=8.07e-05  6796s
+  E2 step 1450/2051  loss=0.4111  lr=7.83e-05  6892s
+  E2 step 1500/2051  loss=0.1525  lr=7.59e-05  6988s
+  E2 step 1550/2051  loss=0.4748  lr=7.36e-05  7084s
+  E2 step 1600/2051  loss=1.5511  lr=7.08e-05  7176s
+  E2 step 1650/2051  loss=0.2701  lr=6.85e-05  7273s
+  E2 step 1700/2051  loss=0.1073  lr=6.62e-05  7370s
+  E2 step 1750/2051  loss=0.6343  lr=6.39e-05  7465s
+  E2 step 1800/2051  loss=0.1632  lr=6.12e-05  7562s
+  E2 step 1850/2051  loss=0.3539  lr=5.90e-05  7657s
+  E2 step 1900/2051  loss=0.4339  lr=5.67e-05  7750s
+  E2 step 1950/2051  loss=0.4783  lr=5.45e-05  7845s
+  E2 step 2000/2051  loss=0.2707  lr=5.20e-05  7940s
+  E2 step 2050/2051  loss=0.1563  lr=4.95e-05  8032s
+[epoch 2] mean_loss=0.4160  (8032s)
+  [hf] 40/200  parsed=40  gate_hits=18
+  [hf] 80/200  parsed=80  gate_hits=42
+  [hf] 120/200  parsed=120  gate_hits=67
+  [hf] 160/200  parsed=160  gate_hits=92
+  [hf] 200/200  parsed=200  gate_hits=121
+[eval E2] n=200  parse=100.0%  iou@0.25=60.5%  mean_iou=0.444  center_std=22.0
+[train] epoch 2 adapter -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0002/epoch2
+  E3 step 0/2051  loss=0.1341  lr=4.95e-05  8230s
+  E3 step 50/2051  loss=0.1530  lr=4.74e-05  8327s
+  E3 step 100/2051  loss=0.1853  lr=4.54e-05  8422s
+  E3 step 150/2051  loss=0.3608  lr=4.33e-05  8518s
+  E3 step 200/2051  loss=0.5940  lr=4.10e-05  8613s
+  E3 step 250/2051  loss=0.1991  lr=3.90e-05  8708s
+  E3 step 300/2051  loss=0.4122  lr=3.71e-05  8802s
+  E3 step 350/2051  loss=0.7839  lr=3.52e-05  8899s
+  E3 step 400/2051  loss=0.1144  lr=3.31e-05  8994s
+  E3 step 450/2051  loss=0.1281  lr=3.13e-05  9089s
+  E3 step 500/2051  loss=0.3221  lr=2.95e-05  9184s
+  E3 step 550/2051  loss=0.3256  lr=2.78e-05  9277s
+  E3 step 600/2051  loss=0.0457  lr=2.58e-05  9372s
+  E3 step 650/2051  loss=1.2345  lr=2.42e-05  9470s
+  E3 step 700/2051  loss=0.3698  lr=2.26e-05  9565s
+  E3 step 750/2051  loss=0.1613  lr=2.11e-05  9659s
+  E3 step 800/2051  loss=0.2105  lr=1.94e-05  9754s
+  E3 step 850/2051  loss=0.1701  lr=1.80e-05  9849s
+  E3 step 900/2051  loss=0.5447  lr=1.66e-05  9944s
+  E3 step 950/2051  loss=0.0873  lr=1.53e-05  10038s
+  E3 step 1000/2051  loss=0.1350  lr=1.38e-05  10134s
+  E3 step 1050/2051  loss=0.2740  lr=1.26e-05  10228s
+  E3 step 1100/2051  loss=0.3986  lr=1.14e-05  10323s
+  E3 step 1150/2051  loss=0.1333  lr=1.03e-05  10418s
+  E3 step 1200/2051  loss=0.2276  lr=9.06e-06  10513s
+  E3 step 1250/2051  loss=0.3962  lr=8.07e-06  10610s
+  E3 step 1300/2051  loss=0.2157  lr=7.13e-06  10705s
+  E3 step 1350/2051  loss=0.4240  lr=6.25e-06  10800s
+  E3 step 1400/2051  loss=0.4328  lr=5.29e-06  10896s
+  E3 step 1450/2051  loss=0.1014  lr=4.53e-06  10991s
+  E3 step 1500/2051  loss=0.5527  lr=3.83e-06  11086s
+  E3 step 1550/2051  loss=0.2928  lr=3.19e-06  11182s
+  E3 step 1600/2051  loss=0.5921  lr=2.51e-06  11276s
+  E3 step 1650/2051  loss=0.2813  lr=2.00e-06  11371s
+  E3 step 1700/2051  loss=0.1612  lr=1.54e-06  11468s
+  E3 step 1750/2051  loss=0.2849  lr=1.14e-06  11564s
+  E3 step 1800/2051  loss=0.3191  lr=7.50e-07  11659s
+  E3 step 1850/2051  loss=0.1340  lr=4.80e-07  11755s
+  E3 step 1900/2051  loss=0.1701  lr=2.70e-07  11850s
+  E3 step 1950/2051  loss=0.1042  lr=1.20e-07  11945s
+  E3 step 2000/2051  loss=0.5340  lr=2.09e-08  12040s
+  E3 step 2050/2051  loss=0.1383  lr=3.34e-09  12135s
+[epoch 3] mean_loss=0.2992  (12135s)
+  [hf] 40/200  parsed=40  gate_hits=18
+  [hf] 80/200  parsed=80  gate_hits=42
+  [hf] 120/200  parsed=120  gate_hits=68
+  [hf] 160/200  parsed=160  gate_hits=92
+  [hf] 200/200  parsed=200  gate_hits=118
+[eval E3] n=200  parse=100.0%  iou@0.25=59.0%  mean_iou=0.453  center_std=22.2
+[train] epoch 3 adapter -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0002/epoch3
+[train] merging LoRA adapter into base weights...
+[train] merged checkpoint -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0002
+[train] manifest -> runs/20260701T054224Z
+[run_arm] lr=0.0002  best in-loop IoU@0.25=60.5%
+
+===== arm qwen2.5-vl-3b  lr=0.0004  ->  experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0004 =====
+[train] device=cuda  effective_batch=16  model=Qwen/Qwen2.5-VL-3B-Instruct  res=1024
+[train] loading processor + model...
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00, 25.77it/s]
+trainable params: 37,152,768 || all params: 3,791,775,744 || trainable%: 0.9798
+[train] gradient checkpointing ON
+[train] loading data: refdrone:train / refdrone:val
+[train] 4101 train / 439 val samples
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/utils/checkpoint.py:87: UserWarning: None of the inputs have requires_grad=True. Gradients will be None
+  warnings.warn(
+  E1 step 0/2051  loss=2.9082  lr=4.00e-04  2s
+  E1 step 50/2051  loss=0.9013  lr=4.00e-04  99s
+  E1 step 100/2051  loss=1.4334  lr=4.00e-04  192s
+  E1 step 150/2051  loss=1.1245  lr=3.99e-04  288s
+  E1 step 200/2051  loss=0.8883  lr=3.99e-04  384s
+  E1 step 250/2051  loss=0.8862  lr=3.98e-04  478s
+  E1 step 300/2051  loss=1.3045  lr=3.98e-04  574s
+  E1 step 350/2051  loss=0.6280  lr=3.97e-04  671s
+  E1 step 400/2051  loss=0.9224  lr=3.96e-04  768s
+  E1 step 450/2051  loss=0.7718  lr=3.95e-04  865s
+  E1 step 500/2051  loss=0.7017  lr=3.94e-04  959s
+  E1 step 550/2051  loss=0.7666  lr=3.92e-04  1056s
+  E1 step 600/2051  loss=0.5455  lr=3.91e-04  1152s
+  E1 step 650/2051  loss=0.3434  lr=3.89e-04  1248s
+  E1 step 700/2051  loss=0.7957  lr=3.88e-04  1343s
+  E1 step 750/2051  loss=0.5959  lr=3.86e-04  1440s
+  E1 step 800/2051  loss=0.7668  lr=3.84e-04  1536s
+  E1 step 850/2051  loss=0.9181  lr=3.82e-04  1630s
+  E1 step 900/2051  loss=0.5609  lr=3.79e-04  1726s
+  E1 step 950/2051  loss=0.8453  lr=3.77e-04  1824s
+  E1 step 1000/2051  loss=0.8820  lr=3.74e-04  1919s
+  E1 step 1050/2051  loss=0.4811  lr=3.72e-04  2015s
+  E1 step 1100/2051  loss=0.5440  lr=3.69e-04  2110s
+  E1 step 1150/2051  loss=0.7076  lr=3.67e-04  2205s
+  E1 step 1200/2051  loss=1.1313  lr=3.64e-04  2300s
+  E1 step 1250/2051  loss=0.2709  lr=3.61e-04  2398s
+  E1 step 1300/2051  loss=0.3313  lr=3.58e-04  2495s
+  E1 step 1350/2051  loss=0.9617  lr=3.55e-04  2589s
+  E1 step 1400/2051  loss=0.3298  lr=3.51e-04  2681s
+  E1 step 1450/2051  loss=0.6391  lr=3.48e-04  2775s
+  E1 step 1500/2051  loss=0.6807  lr=3.44e-04  2872s
+  E1 step 1550/2051  loss=0.5505  lr=3.41e-04  2968s
+  E1 step 1600/2051  loss=0.3812  lr=3.37e-04  3064s
+  E1 step 1650/2051  loss=0.3507  lr=3.33e-04  3161s
+  E1 step 1700/2051  loss=0.3382  lr=3.30e-04  3259s
+  E1 step 1750/2051  loss=0.9217  lr=3.26e-04  3353s
+  E1 step 1800/2051  loss=1.5233  lr=3.21e-04  3449s
+  E1 step 1850/2051  loss=0.4819  lr=3.17e-04  3547s
+  E1 step 1900/2051  loss=0.2906  lr=3.13e-04  3643s
+  E1 step 1950/2051  loss=0.5385  lr=3.09e-04  3739s
+  E1 step 2000/2051  loss=0.3740  lr=3.04e-04  3835s
+  E1 step 2050/2051  loss=0.7713  lr=3.00e-04  3931s
+[epoch 1] mean_loss=0.6756  (3931s)
+  [hf] 40/200  parsed=40  gate_hits=14
+  [hf] 80/200  parsed=80  gate_hits=38
+  [hf] 120/200  parsed=120  gate_hits=59
+  [hf] 160/200  parsed=160  gate_hits=77
+  [hf] 200/200  parsed=200  gate_hits=99
+[eval E1] n=200  parse=100.0%  iou@0.25=49.5%  mean_iou=0.350  center_std=20.7
+[train] epoch 1 adapter -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0004/epoch1
+  E2 step 0/2051  loss=0.4120  lr=3.00e-04  4129s
+  E2 step 50/2051  loss=0.8617  lr=2.95e-04  4227s
+  E2 step 100/2051  loss=0.2437  lr=2.91e-04  4322s
+  E2 step 150/2051  loss=0.8231  lr=2.87e-04  4420s
+  E2 step 200/2051  loss=0.7826  lr=2.81e-04  4516s
+  E2 step 250/2051  loss=0.6138  lr=2.77e-04  4612s
+  E2 step 300/2051  loss=0.3577  lr=2.72e-04  4710s
+  E2 step 350/2051  loss=0.2561  lr=2.68e-04  4807s
+  E2 step 400/2051  loss=0.6929  lr=2.62e-04  4904s
+  E2 step 450/2051  loss=0.7469  lr=2.58e-04  4998s
+  E2 step 500/2051  loss=0.3693  lr=2.53e-04  5095s
+  E2 step 550/2051  loss=0.1695  lr=2.48e-04  5191s
+  E2 step 600/2051  loss=0.2606  lr=2.43e-04  5289s
+  E2 step 650/2051  loss=0.2190  lr=2.38e-04  5388s
+  E2 step 700/2051  loss=0.1313  lr=2.33e-04  5484s
+  E2 step 750/2051  loss=0.5456  lr=2.28e-04  5580s
+  E2 step 800/2051  loss=0.4370  lr=2.22e-04  5677s
+  E2 step 850/2051  loss=0.3344  lr=2.18e-04  5774s
+  E2 step 900/2051  loss=0.9089  lr=2.13e-04  5869s
+  E2 step 950/2051  loss=0.4409  lr=2.08e-04  5965s
+  E2 step 1000/2051  loss=0.3230  lr=2.02e-04  6063s
+  E2 step 1050/2051  loss=0.3411  lr=1.97e-04  6160s
+  E2 step 1100/2051  loss=0.5679  lr=1.92e-04  6257s
+  E2 step 1150/2051  loss=0.3482  lr=1.87e-04  6353s
+  E2 step 1200/2051  loss=0.4968  lr=1.82e-04  6448s
+  E2 step 1250/2051  loss=0.3275  lr=1.77e-04  6545s
+  E2 step 1300/2051  loss=0.2014  lr=1.72e-04  6642s
+  E2 step 1350/2051  loss=0.3697  lr=1.67e-04  6737s
+  E2 step 1400/2051  loss=0.1882  lr=1.61e-04  6833s
+  E2 step 1450/2051  loss=0.4739  lr=1.57e-04  6928s
+  E2 step 1500/2051  loss=0.1744  lr=1.52e-04  7026s
+  E2 step 1550/2051  loss=0.6766  lr=1.47e-04  7122s
+  E2 step 1600/2051  loss=0.2084  lr=1.42e-04  7217s
+  E2 step 1650/2051  loss=0.3386  lr=1.37e-04  7313s
+  E2 step 1700/2051  loss=0.2582  lr=1.32e-04  7409s
+  E2 step 1750/2051  loss=0.6703  lr=1.28e-04  7504s
+  E2 step 1800/2051  loss=0.6210  lr=1.22e-04  7599s
+  E2 step 1850/2051  loss=0.4533  lr=1.18e-04  7695s
+  E2 step 1900/2051  loss=0.9341  lr=1.13e-04  7791s
+  E2 step 1950/2051  loss=0.4555  lr=1.09e-04  7888s
+  E2 step 2000/2051  loss=0.2709  lr=1.04e-04  7984s
+  E2 step 2050/2051  loss=0.1771  lr=9.91e-05  8080s
+[epoch 2] mean_loss=0.4130  (8080s)
+  [hf] 40/200  parsed=40  gate_hits=18
+  [hf] 80/200  parsed=80  gate_hits=44
+  [hf] 120/200  parsed=120  gate_hits=69
+  [hf] 160/200  parsed=160  gate_hits=92
+  [hf] 200/200  parsed=200  gate_hits=117
+[eval E2] n=200  parse=100.0%  iou@0.25=58.5%  mean_iou=0.437  center_std=22.1
+[train] epoch 2 adapter -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0004/epoch2
+  E3 step 0/2051  loss=0.7462  lr=9.91e-05  8278s
+  E3 step 50/2051  loss=0.0622  lr=9.49e-05  8373s
+  E3 step 100/2051  loss=0.2246  lr=9.07e-05  8468s
+  E3 step 150/2051  loss=0.0776  lr=8.66e-05  8565s
+  E3 step 200/2051  loss=0.1594  lr=8.20e-05  8661s
+  E3 step 250/2051  loss=0.0802  lr=7.81e-05  8757s
+  E3 step 300/2051  loss=0.2987  lr=7.42e-05  8852s
+  E3 step 350/2051  loss=0.2330  lr=7.04e-05  8950s
+  E3 step 400/2051  loss=0.0837  lr=6.61e-05  9047s
+  E3 step 450/2051  loss=0.4291  lr=6.25e-05  9144s
+  E3 step 500/2051  loss=0.1448  lr=5.90e-05  9241s
+  E3 step 550/2051  loss=0.1718  lr=5.56e-05  9338s
+  E3 step 600/2051  loss=0.3082  lr=5.17e-05  9434s
+  E3 step 650/2051  loss=0.1620  lr=4.84e-05  9530s
+  E3 step 700/2051  loss=0.1668  lr=4.53e-05  9627s
+  E3 step 750/2051  loss=0.0253  lr=4.22e-05  9722s
+  E3 step 800/2051  loss=0.0839  lr=3.88e-05  9816s
+  E3 step 850/2051  loss=1.0844  lr=3.59e-05  9911s
+  E3 step 900/2051  loss=0.8517  lr=3.32e-05  10006s
+  E3 step 950/2051  loss=0.2144  lr=3.05e-05  10103s
+  E3 step 1000/2051  loss=0.0481  lr=2.75e-05  10198s
+  E3 step 1050/2051  loss=0.3731  lr=2.51e-05  10294s
+  E3 step 1100/2051  loss=0.0722  lr=2.28e-05  10390s
+  E3 step 1150/2051  loss=0.0423  lr=2.06e-05  10487s
+  E3 step 1200/2051  loss=0.1717  lr=1.81e-05  10585s
+  E3 step 1250/2051  loss=0.1516  lr=1.61e-05  10683s
+  E3 step 1300/2051  loss=0.1802  lr=1.43e-05  10778s
+  E3 step 1350/2051  loss=0.0730  lr=1.25e-05  10870s
+  E3 step 1400/2051  loss=0.3553  lr=1.06e-05  10964s
+  E3 step 1450/2051  loss=0.1195  lr=9.07e-06  11059s
+  E3 step 1500/2051  loss=0.0353  lr=7.67e-06  11154s
+  E3 step 1550/2051  loss=0.0907  lr=6.38e-06  11249s
+  E3 step 1600/2051  loss=0.1793  lr=5.03e-06  11346s
+  E3 step 1650/2051  loss=0.0121  lr=3.99e-06  11440s
+  E3 step 1700/2051  loss=0.3840  lr=3.08e-06  11535s
+  E3 step 1750/2051  loss=0.1659  lr=2.28e-06  11630s
+  E3 step 1800/2051  loss=0.1215  lr=1.50e-06  11726s
+  E3 step 1850/2051  loss=0.1033  lr=9.61e-07  11819s
+  E3 step 1900/2051  loss=0.1240  lr=5.41e-07  11915s
+  E3 step 1950/2051  loss=0.4449  lr=2.40e-07  12021s
+  E3 step 2000/2051  loss=0.1224  lr=4.17e-08  12115s
+  E3 step 2050/2051  loss=0.4201  lr=6.68e-09  12209s
+[epoch 3] mean_loss=0.2632  (12209s)
+  [hf] 40/200  parsed=40  gate_hits=20
+  [hf] 80/200  parsed=80  gate_hits=45
+  [hf] 120/200  parsed=120  gate_hits=71
+  [hf] 160/200  parsed=160  gate_hits=95
+  [hf] 200/200  parsed=200  gate_hits=119
+[eval E3] n=200  parse=100.0%  iou@0.25=59.5%  mean_iou=0.489  center_std=21.9
+[train] epoch 3 adapter -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0004/epoch3
+[train] merging LoRA adapter into base weights...
+[train] merged checkpoint -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0004
+[train] manifest -> runs/20260701T090941Z
+[run_arm] lr=0.0004  best in-loop IoU@0.25=59.5%
+
+[run_arm] sweep winner: lr=0.0002  IoU@0.25=60.5%  ckpt=experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0002
+
+[run_arm] whole-frame accuracy re-score: experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0002
+The tokenizer you are loading from 'experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0002' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:05<00:05,  5.08s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:05<00:00,  2.18s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:05<00:00,  2.61s/it]
+  [hf] 40/200  parsed=40  gate_hits=18
+  [hf] 80/200  parsed=80  gate_hits=42
+  [hf] 120/200  parsed=120  gate_hits=67
+  [hf] 160/200  parsed=160  gate_hits=91
+  [hf] 200/200  parsed=200  gate_hits=116
+[eval-only] experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0002  n=200  parse=100.0%  iou@0.25=58.0%  mean_iou=0.447  center_std=22.1
+=== exited rc=0 (attempt 1) 2026-07-01T09:12:11Z ===
+=== arm qwen2.5-vl-3b COMPLETE ===

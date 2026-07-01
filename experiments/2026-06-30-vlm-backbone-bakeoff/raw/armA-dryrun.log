@@ -1,0 +1,26 @@
+[train] device=cuda  effective_batch=16  model=OpenGVLab/InternVL3-2B-hf  res=1024
+[train] loading processor + model...
+`torch_dtype` is deprecated! Use `dtype` instead!
+trainable params: 20,824,064 || all params: 2,109,781,504 || trainable%: 0.9870
+[train] loading data: refdrone:train / refdrone:val
+[train] 4101 train / 439 val samples
+[dry-run] building 1 real batch + 1 forward pass...
+Traceback (most recent call last):
+  File "/home/gara/jetson/experiments/2026-06-30-vlm-backbone-bakeoff/run_arm.py", line 103, in <module>
+    main()
+  File "/home/gara/jetson/experiments/2026-06-30-vlm-backbone-bakeoff/run_arm.py", line 64, in main
+    trainer.train(replace(base, lr=lrs[0]), dry_run=True)
+  File "/home/gara/jetson/grounding/train/trainer.py", line 238, in train
+    batch = collate([train_ds[i] for i in range(min(config.batch_size, len(train_ds)))])
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/grounding/train/trainer.py", line 234, in collate
+    return _collate_fn(b, processor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gara/jetson/grounding/train/trainer.py", line 123, in _collate_fn
+    inputs = processor(
+             ^^^^^^^^^^
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/models/internvl/processing_internvl.py", line 267, in __call__
+    self._check_special_mm_tokens(text, text_inputs, modalities=["image"])
+  File "/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/transformers/processing_utils.py", line 1772, in _check_special_mm_tokens
+    raise ValueError(
+ValueError: Mismatch in `image` token count between text and `input_ids`. Got ids=[1276, 768] and text=[3328, 768]. Likely due to `truncation='max_length'`. Please disable truncation or increase `max_length`.

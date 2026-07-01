@@ -1,0 +1,193 @@
+=== launch attempt 1/8 2026-07-01T18:45:35Z ===
+
+===== arm smolvlm2-500m  lr=0.0001  ->  experiments/2026-06-30-vlm-backbone-bakeoff/runs/smolvlm2-500m/lr0.0001 =====
+[train] device=cuda  effective_batch=16  model=HuggingFaceTB/SmolVLM2-500M-Video-Instruct  res=512
+[train] loading processor + model...
+trainable params: 9,568,256 || all params: 517,050,560 || trainable%: 1.8505
+[train] loading data: refdrone:train / refdrone:val
+[train] 4101 train / 439 val samples
+  E1 step 0/2051  loss=2.1218  lr=1.00e-04  3s
+  E1 step 50/2051  loss=2.0180  lr=1.00e-04  82s
+  E1 step 100/2051  loss=1.3822  lr=9.99e-05  162s
+  E1 step 150/2051  loss=1.4115  lr=9.99e-05  242s
+  E1 step 200/2051  loss=1.4218  lr=9.97e-05  325s
+  E1 step 250/2051  loss=1.3351  lr=9.96e-05  406s
+  E1 step 300/2051  loss=1.1243  lr=9.94e-05  490s
+  E1 step 350/2051  loss=1.1901  lr=9.92e-05  573s
+  E1 step 400/2051  loss=1.1693  lr=9.90e-05  655s
+  E1 step 450/2051  loss=1.4276  lr=9.87e-05  739s
+  E1 step 500/2051  loss=1.2485  lr=9.84e-05  821s
+  E1 step 550/2051  loss=1.3270  lr=9.81e-05  902s
+  E1 step 600/2051  loss=1.0187  lr=9.77e-05  983s
+  E1 step 650/2051  loss=1.2523  lr=9.73e-05  1065s
+  E1 step 700/2051  loss=1.1145  lr=9.69e-05  1146s
+  E1 step 750/2051  loss=1.2712  lr=9.64e-05  1227s
+  E1 step 800/2051  loss=1.1995  lr=9.59e-05  1308s
+  E1 step 850/2051  loss=1.2271  lr=9.54e-05  1389s
+  E1 step 900/2051  loss=1.0465  lr=9.49e-05  1470s
+  E1 step 950/2051  loss=1.2509  lr=9.43e-05  1551s
+  E1 step 1000/2051  loss=1.1226  lr=9.36e-05  1633s
+  E1 step 1050/2051  loss=1.3309  lr=9.30e-05  1714s
+  E1 step 1100/2051  loss=1.3818  lr=9.24e-05  1794s
+  E1 step 1150/2051  loss=1.0826  lr=9.17e-05  1875s
+  E1 step 1200/2051  loss=0.9072  lr=9.09e-05  1956s
+  E1 step 1250/2051  loss=1.0843  lr=9.02e-05  2037s
+  E1 step 1300/2051  loss=1.2294  lr=8.94e-05  2118s
+  E1 step 1350/2051  loss=1.1291  lr=8.87e-05  2198s
+  E1 step 1400/2051  loss=1.1731  lr=8.78e-05  2279s
+  E1 step 1450/2051  loss=1.2015  lr=8.69e-05  2360s
+  E1 step 1500/2051  loss=1.1407  lr=8.61e-05  2441s
+  E1 step 1550/2051  loss=1.1866  lr=8.52e-05  2522s
+  E1 step 1600/2051  loss=0.9979  lr=8.42e-05  2602s
+  E1 step 1650/2051  loss=1.0461  lr=8.33e-05  2683s
+  E1 step 1700/2051  loss=1.3053  lr=8.24e-05  2764s
+  E1 step 1750/2051  loss=0.9851  lr=8.14e-05  2845s
+  E1 step 1800/2051  loss=1.4750  lr=8.03e-05  2926s
+  E1 step 1850/2051  loss=1.1806  lr=7.93e-05  3007s
+  E1 step 1900/2051  loss=0.8691  lr=7.83e-05  3088s
+  E1 step 1950/2051  loss=0.9870  lr=7.73e-05  3168s
+  E1 step 2000/2051  loss=1.1008  lr=7.61e-05  3249s
+  E1 step 2050/2051  loss=1.1052  lr=7.49e-05  3328s
+[epoch 1] mean_loss=1.1865  (3328s)
+  [hf] 40/200  parsed=40  gate_hits=1
+  [hf] 80/200  parsed=80  gate_hits=3
+  [hf] 120/200  parsed=120  gate_hits=6
+  [hf] 160/200  parsed=160  gate_hits=7
+  [hf] 200/200  parsed=200  gate_hits=10
+[eval E1] n=200  parse=100.0%  iou@0.25=5.0%  mean_iou=0.022  center_std=12.7
+[train] epoch 1 adapter -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/smolvlm2-500m/lr0.0001/epoch1
+  E2 step 0/2051  loss=0.9523  lr=7.49e-05  3515s
+  E2 step 50/2051  loss=0.9414  lr=7.38e-05  3597s
+  E2 step 100/2051  loss=0.7417  lr=7.27e-05  3679s
+  E2 step 150/2051  loss=1.1663  lr=7.16e-05  3760s
+  E2 step 200/2051  loss=0.8582  lr=7.03e-05  3841s
+  E2 step 250/2051  loss=1.0473  lr=6.92e-05  3923s
+  E2 step 300/2051  loss=1.0876  lr=6.81e-05  4004s
+  E2 step 350/2051  loss=0.9855  lr=6.69e-05  4086s
+  E2 step 400/2051  loss=0.9165  lr=6.56e-05  4168s
+  E2 step 450/2051  loss=1.0124  lr=6.44e-05  4249s
+  E2 step 500/2051  loss=1.0523  lr=6.32e-05  4330s
+  E2 step 550/2051  loss=1.5812  lr=6.20e-05  4412s
+  E2 step 600/2051  loss=0.9542  lr=6.06e-05  4493s
+  E2 step 650/2051  loss=1.0856  lr=5.94e-05  4575s
+  E2 step 700/2051  loss=1.0019  lr=5.82e-05  4657s
+  E2 step 750/2051  loss=0.9997  lr=5.70e-05  4738s
+  E2 step 800/2051  loss=0.9825  lr=5.56e-05  4820s
+  E2 step 850/2051  loss=0.9925  lr=5.44e-05  4902s
+  E2 step 900/2051  loss=1.0801  lr=5.32e-05  4983s
+  E2 step 950/2051  loss=0.9089  lr=5.19e-05  5065s
+  E2 step 1000/2051  loss=0.9790  lr=5.05e-05  5146s
+  E2 step 1050/2051  loss=0.9006  lr=4.93e-05  5227s
+  E2 step 1100/2051  loss=0.9930  lr=4.81e-05  5308s
+  E2 step 1150/2051  loss=0.9830  lr=4.68e-05  5389s
+  E2 step 1200/2051  loss=1.1549  lr=4.54e-05  5470s
+  E2 step 1250/2051  loss=0.9841  lr=4.42e-05  5552s
+  E2 step 1300/2051  loss=0.9085  lr=4.30e-05  5634s
+  E2 step 1350/2051  loss=1.0142  lr=4.18e-05  5715s
+  E2 step 1400/2051  loss=0.9265  lr=4.04e-05  5797s
+  E2 step 1450/2051  loss=0.9447  lr=3.92e-05  5879s
+  E2 step 1500/2051  loss=0.9287  lr=3.80e-05  5960s
+  E2 step 1550/2051  loss=1.0176  lr=3.68e-05  6042s
+  E2 step 1600/2051  loss=0.7600  lr=3.54e-05  6123s
+  E2 step 1650/2051  loss=0.9786  lr=3.42e-05  6205s
+  E2 step 1700/2051  loss=0.8513  lr=3.31e-05  6286s
+  E2 step 1750/2051  loss=0.9465  lr=3.19e-05  6367s
+  E2 step 1800/2051  loss=0.9632  lr=3.06e-05  6449s
+  E2 step 1850/2051  loss=1.0722  lr=2.95e-05  6530s
+  E2 step 1900/2051  loss=0.8504  lr=2.84e-05  6612s
+  E2 step 1950/2051  loss=0.9022  lr=2.73e-05  6693s
+  E2 step 2000/2051  loss=0.9593  lr=2.60e-05  6774s
+  E2 step 2050/2051  loss=0.7460  lr=2.48e-05  6854s
+[epoch 2] mean_loss=1.0075  (6854s)
+  [hf] 40/200  parsed=40  gate_hits=1
+  [hf] 80/200  parsed=80  gate_hits=3
+  [hf] 120/200  parsed=120  gate_hits=7
+  [hf] 160/200  parsed=160  gate_hits=8
+  [hf] 200/200  parsed=200  gate_hits=10
+[eval E2] n=200  parse=100.0%  iou@0.25=5.0%  mean_iou=0.035  center_std=18.6
+[train] epoch 2 adapter -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/smolvlm2-500m/lr0.0001/epoch2
+  E3 step 0/2051  loss=0.7950  lr=2.48e-05  7039s
+  E3 step 50/2051  loss=0.8706  lr=2.37e-05  7120s
+  E3 step 100/2051  loss=0.8277  lr=2.27e-05  7202s
+  E3 step 150/2051  loss=0.8368  lr=2.17e-05  7283s
+  E3 step 200/2051  loss=0.8503  lr=2.05e-05  7365s
+  E3 step 250/2051  loss=1.0316  lr=1.95e-05  7446s
+  E3 step 300/2051  loss=1.0230  lr=1.86e-05  7528s
+  E3 step 350/2051  loss=0.9160  lr=1.76e-05  7610s
+  E3 step 400/2051  loss=0.9349  lr=1.65e-05  7691s
+  E3 step 450/2051  loss=1.1593  lr=1.56e-05  7772s
+  E3 step 500/2051  loss=0.8952  lr=1.48e-05  7853s
+  E3 step 550/2051  loss=1.1209  lr=1.39e-05  7934s
+  E3 step 600/2051  loss=1.2219  lr=1.29e-05  8015s
+  E3 step 650/2051  loss=0.9733  lr=1.21e-05  8096s
+  E3 step 700/2051  loss=1.2185  lr=1.13e-05  8177s
+  E3 step 750/2051  loss=0.9419  lr=1.06e-05  8258s
+  E3 step 800/2051  loss=0.7136  lr=9.69e-06  8339s
+  E3 step 850/2051  loss=0.9449  lr=8.98e-06  8420s
+  E3 step 900/2051  loss=0.9799  lr=8.29e-06  8501s
+  E3 step 950/2051  loss=1.0553  lr=7.63e-06  8583s
+  E3 step 1000/2051  loss=1.0386  lr=6.89e-06  8664s
+  E3 step 1050/2051  loss=0.8756  lr=6.28e-06  8745s
+  E3 step 1100/2051  loss=0.9610  lr=5.70e-06  8826s
+  E3 step 1150/2051  loss=0.7291  lr=5.14e-06  8907s
+  E3 step 1200/2051  loss=1.0048  lr=4.53e-06  8988s
+  E3 step 1250/2051  loss=0.9454  lr=4.03e-06  9070s
+  E3 step 1300/2051  loss=1.0000  lr=3.57e-06  9151s
+  E3 step 1350/2051  loss=0.8888  lr=3.12e-06  9232s
+  E3 step 1400/2051  loss=1.1770  lr=2.65e-06  9314s
+  E3 step 1450/2051  loss=0.9869  lr=2.27e-06  9395s
+  E3 step 1500/2051  loss=0.9031  lr=1.92e-06  9476s
+  E3 step 1550/2051  loss=0.9475  lr=1.60e-06  9558s
+  E3 step 1600/2051  loss=0.7904  lr=1.26e-06  9639s
+  E3 step 1650/2051  loss=0.8826  lr=9.98e-07  9720s
+  E3 step 1700/2051  loss=0.7386  lr=7.69e-07  9802s
+  E3 step 1750/2051  loss=1.1864  lr=5.70e-07  9883s
+  E3 step 1800/2051  loss=1.1240  lr=3.75e-07  9965s
+  E3 step 1850/2051  loss=1.1945  lr=2.40e-07  10047s
+  E3 step 1900/2051  loss=0.9735  lr=1.35e-07  10128s
+  E3 step 1950/2051  loss=0.9515  lr=6.01e-08  10209s
+  E3 step 2000/2051  loss=0.7825  lr=1.04e-08  10290s
+  E3 step 2050/2051  loss=0.9031  lr=1.67e-09  10370s
+[epoch 3] mean_loss=0.9491  (10370s)
+  [hf] 40/200  parsed=40  gate_hits=1
+  [hf] 80/200  parsed=80  gate_hits=3
+  [hf] 120/200  parsed=120  gate_hits=8
+  [hf] 160/200  parsed=160  gate_hits=9
+  [hf] 200/200  parsed=200  gate_hits=11
+[eval E3] n=200  parse=100.0%  iou@0.25=5.5%  mean_iou=0.038  center_std=18.5
+[train] epoch 3 adapter -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/smolvlm2-500m/lr0.0001/epoch3
+[train] merging LoRA adapter into base weights...
+[train] merged checkpoint -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/smolvlm2-500m/lr0.0001
+[train] manifest -> experiments/2026-06-30-vlm-backbone-bakeoff/runs/smolvlm2-500m/lr0.0001/20260701T214139Z
+[run_arm] lr=0.0001  best in-loop IoU@0.25=5.5%
+
+===== arm smolvlm2-500m  lr=0.0002  ->  experiments/2026-06-30-vlm-backbone-bakeoff/runs/smolvlm2-500m/lr0.0002 =====
+[train] device=cuda  effective_batch=16  model=HuggingFaceTB/SmolVLM2-500M-Video-Instruct  res=512
+[train] loading processor + model...
+trainable params: 9,568,256 || all params: 517,050,560 || trainable%: 1.8505
+[train] loading data: refdrone:train / refdrone:val
+[train] 4101 train / 439 val samples
+  E1 step 0/2051  loss=2.9473  lr=2.00e-04  2s
+  E1 step 50/2051  loss=1.6078  lr=2.00e-04  74s
+  E1 step 100/2051  loss=1.4180  lr=2.00e-04  145s
+  E1 step 150/2051  loss=1.8557  lr=2.00e-04  217s
+  E1 step 200/2051  loss=1.2753  lr=1.99e-04  288s
+  E1 step 250/2051  loss=1.2151  lr=1.99e-04  360s
+  E1 step 300/2051  loss=1.4172  lr=1.99e-04  431s
+  E1 step 350/2051  loss=1.1653  lr=1.98e-04  503s
+  E1 step 400/2051  loss=1.1093  lr=1.98e-04  574s
+  E1 step 450/2051  loss=1.2392  lr=1.97e-04  645s
+  E1 step 500/2051  loss=1.2189  lr=1.97e-04  716s
+  E1 step 550/2051  loss=1.0736  lr=1.96e-04  788s
+  E1 step 600/2051  loss=1.0883  lr=1.95e-04  859s
+  E1 step 650/2051  loss=1.1964  lr=1.95e-04  932s
+  E1 step 700/2051  loss=1.1117  lr=1.94e-04  1005s
+  E1 step 750/2051  loss=1.0979  lr=1.93e-04  1077s
+  E1 step 800/2051  loss=1.1891  lr=1.92e-04  1148s
+  E1 step 850/2051  loss=1.1172  lr=1.91e-04  1221s
+  E1 step 900/2051  loss=1.0100  lr=1.90e-04  1295s
+  E1 step 950/2051  loss=0.8748  lr=1.89e-04  1367s
+  E1 step 1000/2051  loss=1.0122  lr=1.87e-04  1439s
+  E1 step 1050/2051  loss=1.0199  lr=1.86e-04  1513s
+  E1 step 1100/2051  loss=1.1338  lr=1.85e-04  1585s
+  E1 step 1150/2051  loss=1.2200  lr=1.83e-04  1660s

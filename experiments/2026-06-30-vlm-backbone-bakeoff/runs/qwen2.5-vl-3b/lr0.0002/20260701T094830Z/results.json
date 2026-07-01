@@ -1,0 +1,12 @@
+{
+  "F16": {
+    "gguf_path": "experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0002/gguf/lr0.0002-f16.gguf",
+    "iou_gate_pass_rate": NaN,
+    "drop_vs_hf_pp": NaN
+  },
+  "Q8_0": {
+    "gguf_path": "experiments/2026-06-30-vlm-backbone-bakeoff/runs/qwen2.5-vl-3b/lr0.0002/gguf/lr0.0002-q8_0.gguf",
+    "iou_gate_pass_rate": NaN,
+    "drop_vs_hf_pp": NaN
+  }
+}

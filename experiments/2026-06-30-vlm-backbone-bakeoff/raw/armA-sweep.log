@@ -1,0 +1,16 @@
+
+===== arm internvl3-2b  lr=0.0001  ->  experiments/2026-06-30-vlm-backbone-bakeoff/runs/internvl3-2b/lr0.0001 =====
+[train] device=cuda  effective_batch=16  model=OpenGVLab/InternVL3-2B-hf  res=1024
+[train] loading processor + model...
+`torch_dtype` is deprecated! Use `dtype` instead!
+trainable params: 20,824,064 || all params: 2,109,781,504 || trainable%: 0.9870
+[train] gradient checkpointing ON
+[train] loading data: refdrone:train / refdrone:val
+[train] 4101 train / 439 val samples
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/torch/utils/checkpoint.py:87: UserWarning: None of the inputs have requires_grad=True. Gradients will be None
+  warnings.warn(
+`use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`.
+  E1 step 0/4101  loss=2.2051  lr=1.00e-04  1s
+  E1 step 50/4101  loss=1.5337  lr=1.00e-04  52s
+  E1 step 100/4101  loss=1.4810  lr=1.00e-04  103s
+  E1 step 150/4101  loss=1.1329  lr=1.00e-04  149s
