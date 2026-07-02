@@ -65,3 +65,12 @@
   (1.000, mean IoU marginally higher). Resolves parent open decisions #1 (keep SAM2.1-tiny, EdgeTAM
   not needed) and #2 (export path = TensorRT). This clears the parent campaign's only marginal-FAIL
   leg (3b carry-phase 4.1 < 5 FPS at OP=768) — 3b re-run at OP=768 with the TRT encoder is next.
+
+### 2026-07-02 — Phase 3b re-run with E1 TRT encoder ([`experiments/2026-07-01-temporal-acquire-carry/`](../../experiments/2026-07-01-temporal-acquire-carry/README.md))
+
+- **RQ-T.5 (end-to-end follow @0.25 m/s, on-device, revisited):** now **fully PASS**. Re-ran the 3b
+  SITL harness at OP=768 with the E1 TRT encoder wired into the carry service — carry-phase rate
+  4.1 → **5.0 FPS**, clearing the ≥5 gate (behavioral legs unchanged: in-FOV 1.000, recovered after
+  occlusion). The rate leg that was one TensorRT export short is now met; the parent campaign's
+  criterion is fully satisfied. Margin is thin (5.0 exactly): the solo E1 bench was 6.15 FPS but the
+  integrated loop pays ~1.15 FPS in per-frame JPEG + ssh-tunnel wire transfer.

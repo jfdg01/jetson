@@ -338,6 +338,8 @@ def main() -> None:
     ap.add_argument("--image-size", type=int, default=1024)
     ap.add_argument("--remote-carry", action="store_true",
                     help="3b: run CARRY on the Jetson via jetson_carry_service")
+    ap.add_argument("--trt-encoder", default=None,
+                    help="3b: TensorRT .plan on the Jetson (e.g. enc768.plan); E1 speedup")
     args = ap.parse_args()
     if args.selfcheck:
         selfcheck()
@@ -377,7 +379,9 @@ def main() -> None:
              # ponytail: ';' not '&&' -- with '&&' the '&' backgrounds a subshell that
              # still holds sshd's stdout pipe while waiting on python, so ssh never returns
              f"cd ~/sam2-bench; nohup .venv/bin/python jetson_carry_service.py "
-             f"--image-size {args.image_size} > /tmp/carry_svc.log 2>&1 < /dev/null & echo $!"],
+             f"--image-size {args.image_size}"
+             f"{f' --trt-encoder {args.trt_encoder}' if args.trt_encoder else ''}"
+             f" > /tmp/carry_svc.log 2>&1 < /dev/null & echo $!"],
             capture_output=True, text=True, timeout=60)
         svc_pid = int(out.stdout.strip().split()[-1])
         with socket.socket() as s:

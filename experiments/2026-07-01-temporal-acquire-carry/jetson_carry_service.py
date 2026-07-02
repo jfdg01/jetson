@@ -28,11 +28,17 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--image-size", type=int, default=640)
     ap.add_argument("--port", type=int, default=18081)
+    ap.add_argument("--trt-encoder", default=None,
+                    help="path to TensorRT .plan; swaps forward_image (E1, 768 op)")
     args = ap.parse_args()
 
     over = [f"++model.image_size={args.image_size}"] if args.image_size != 1024 else []
     predictor = SAM2VideoPredictor.from_pretrained(MODEL, hydra_overrides_extra=over)
-    print(f"[carry-svc] ready 127.0.0.1:{args.port} image_size={args.image_size}", flush=True)
+    if args.trt_encoder:
+        from jetson_carry_bench import make_trt_forward_image
+        predictor.forward_image = make_trt_forward_image(predictor, args.trt_encoder)
+    print(f"[carry-svc] ready 127.0.0.1:{args.port} image_size={args.image_size}"
+          f" trt={bool(args.trt_encoder)}", flush=True)
 
     with Listener(("127.0.0.1", args.port), authkey=b"carry") as srv:
         while True:

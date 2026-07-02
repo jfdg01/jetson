@@ -103,3 +103,20 @@ fp16 vs eager: IoU@0.25 Δ 0.00 pp, mean IoU +0.006 (fp16 does not degrade — m
 saving ~42 ms not the estimated ~75 ms (retained memory-attention + TRT stream sync); co-residency
 cost 0 FPS (confirms parent RQ-T.3). EdgeTAM fallback not needed. Raw:
 `experiments/2026-07-02-carry-trt-export/{raw,runs}/`.
+
+### 2026-07-02 — Phase 3b re-run with E1 TRT encoder ([`experiments/2026-07-01-temporal-acquire-carry/`](../../experiments/2026-07-01-temporal-acquire-carry/README.md))
+
+Same 3b SITL harness (`phase3_sitl.py --remote-carry --image-size 768`, gate = `carry_fps`), now
+booting the carry service with `--trt-encoder enc768.plan` so the E1 fp16 encoder patches
+`forward_image` for every streamed frame. VLM Q8_0 co-resident. 15 W + jetson_clocks, 0.25 m/s.
+
+| Run | carry | in-FOV | first lock | acq (rej) | relock wall | px-err | carry rate | verdict |
+|---|---|---|---|---|---|---|---|---|
+| 3b eager (above) | Jetson @768 | 1.000 | 3.02 s | 7 (5) | 14.35 s | 22.5 | 4.1 FPS | rate leg marginal FAIL |
+| 3b + E1 TRT | **Jetson @768 + TRT enc** | **1.000** | 5.43 s | 8 (6) | 14.17 s | 23.0 | **5.0 FPS** | behavioral legs **PASS**; rate leg **5.0 ≥ 5 PASS** → **gate PASS** |
+
+Eager→TRT lifts carry-phase rate 4.1→5.0 FPS, clearing the ≥5 gate exactly. Margin is thin: the
+solo E1 bench measured 6.15 FPS, but the integrated loop pays ~1.15 FPS in per-frame JPEG
+encode/decode + ssh-tunnel wire transfer that the solo bench doesn't. Behavioral legs unchanged
+(in-FOV 1.000, recovered after occlusion, relock 14.17 s). Closes the parent campaign's only
+marginal-FAIL leg. Raw: `experiments/2026-07-01-temporal-acquire-carry/runs/phase3b-sitl/`.
