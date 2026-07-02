@@ -116,8 +116,12 @@ Open a new terminal running the executor session yourself (same mechanism as
 `/open-terminal`):
 
 ```bash
-DISPLAY=${DISPLAY:-:0} gnome-terminal -- bash -c "cd <repo-root> && claude --remote-control --dangerously-skip-permissions --model opus '<handoff message>'; exec bash" &
+DISPLAY=${DISPLAY:-:0} gnome-terminal -- bash -c ": NEXTEXP-LOOP-WIN; cd <repo-root> && claude --remote-control --dangerously-skip-permissions --model opus '<handoff message>'; exec bash" &
 ```
+
+The leading `: NEXTEXP-LOOP-WIN;` no-op tags the window so `relaunch.sh` can reap stale
+loop terminals at the next cycle (each spawn closes the previous cycle's windows; the
+last pair is closed by `relaunch.sh cleanup` in the morning). Do not omit it.
 
 - Fallback if `gnome-terminal` is missing, in order: `xterm`, `konsole`, `kitty`,
   `alacritty`. Report which was used.
