@@ -407,6 +407,50 @@ carry zero-shot or trained; SAM2 or SOT), with what was given up.
   residual noted in run 1. Artifacts: `raw/phase3a-sitl/` (CSV, mp4, SITL log),
   `raw/phase3a-sitl-run2.log`, `runs/phase3a-sitl/results.json`. **RQ-T.5 @ 0.25 m/s: PASS.**
   Remaining for the campaign criterion: 3b on-device (Jetson loop at the Phase 2 operating point).
+- **2026-07-02T10:55Z — Phase 2 addendum: the knee is now a decision table, not a judgment call.**
+  Jetson 768/640 FPS spot-checks already ran (`raw/phase2-jetson/bench_solo{640,768}.json`):
+  **768 = 4.89 FPS (misses the ≥5 gate), 640 = 7.25 FPS (clears it)**. So the 768 accuracy verdict
+  alone cannot produce a fully-passing operating point; a **640 accuracy eval** joins the queue
+  (same protocol: `carry_eval.py --cap 300 --image-size 640`, out `runs/phase2-carry-640/`, log
+  `raw/phase2-carry-640.log`, launch when the 768 eval frees the 3090). Operating-point (OP) rule,
+  frozen now so the verdict is mechanical — with ACC_PASS(S) := IoU@0.25(S) ≥ **0.799** (within
+  5 pp of 1024's 0.849):
+  **OP = 640 if ACC_PASS(640); elif 768 if ACC_PASS(768) (4.89 FPS = marginal gate FAIL, recorded
+  honestly, TensorRT campaign must buy the ~3%); else 1024 (gate FAIL, TensorRT campaign mandatory
+  before the criterion can be met).** After picking OP: one Jetson co-residency spot-check at OP
+  (`jetson_carry_bench.py --image-size <OP> --tag cores-<OP>` with the llama-server boot line from
+  the Phase 2 config paragraph above) — @1024 co-residency cost 0 FPS, expect the same.
+  ESTIMATE: 768 accuracy ≈ 0.80–0.84 (between the 512/1024 points, closer to 1024 — the drop
+  512→1024 is likely knee-shaped, small targets die at 512); 640 ≈ 0.77–0.82 — genuinely uncertain
+  whether 640 clears 0.799; that uncertainty is exactly why both evals run.
+- **2026-07-02T10:55Z — Phase 3b build spec (frozen; executor implements verbatim).** Architecture:
+  **perception on the Jetson, control stays host-side** — SITL, the renderer, and MAVLink are
+  host processes by nature; the PID math is microseconds. The on-device claim covers the binding
+  resource (per-frame perception). Record this framing honestly in the Decision. Two pieces:
+  - `jetson_percept.py` (NEW, runs on Jetson in `~/sam2-bench/.venv`; needs `stream_carry.py`
+    scp'd next to it): a single-client TCP server, **JSON-lines protocol** (one JSON object per
+    line, jpeg as base64 — 640×480 q=80 ≈ 40 KB ≈ 53 KB b64, trivial on LAN; no new deps).
+    Requests: `{"op":"acquire","caption":str,"jpeg_b64":str}` → VLM call to the **Jetson-local**
+    llama-server (lift the `acquire()` prompt+parse from `phase3_sitl.py` verbatim; server boot
+    line = Phase 2 config paragraph) then `StreamCarry` re-init on that frame+box (reground = same
+    op; server does `reset_state` internally); `{"op":"step","jpeg_b64":str}` → carry one frame.
+    Responses: `{"box":[x0,y0,x1,y1]|null, "wall_ms":float}` (+`"raw":str` on acquire).
+    Offline selfcheck on the Jetson before any SITL flight: acquire + 100 steps on the M0205
+    bench clip (`~/sam2-bench/clip/`), assert all boxes non-empty and step p50 consistent with
+    the Phase 2 bench at OP.
+  - `phase3_sitl.py --remote <jetson-host:5606>` (small patch): a ~40-line socket client class
+    replacing the local VLM call + local StreamCarry when the flag is set; renderer, PID,
+    size-prior validation, dead-reckoning, LossGate, metrics all unchanged. Control rate = host
+    loop Hz (bound by the round-trip); carry FPS = server-side `wall_ms` p50.
+  - **Gate (= campaign success criterion): @0.25 m/s, control rate ≥ 5 Hz, in-FOV ≥ 0.90,
+    occlusion relock.** Run at OP; watch `tegrastats` (co-resident RAM @1024 was 6963/7607 MB;
+    smaller OP only helps). ESTIMATE: at OP=640, carry ~7 FPS + ~10 ms LAN round-trip → control
+    ~6–6.5 Hz, PASS; at OP=768 expect ~4.5–4.8 Hz, marginal FAIL on the rate leg → the TensorRT
+    campaign closes it. Est. effort 2–3 h.
+- **2026-07-02T10:55Z — executor handoff written.** `RUNBOOK.md` (this dir) sequences everything
+  above plus the three follow-on campaigns, each pre-registered in its own experiment folder:
+  `2026-07-02-carry-trt-export/` (E1), `2026-07-02-follow-speed-ceiling/` (E2),
+  `2026-07-02-twin-distractor/` (E3). All decision points are frozen as numeric IF/THEN rules.
 - **Open decisions still pending:** (1) SAM2 variant — SAM2.1-tiny vs EdgeTAM vs EfficientTAM (decide
   on Jetson FPS, Phase 2); (2) TensorRT vs ONNX for the carry export (shared with the bake-off's C/D
   question); (3) Part assignment — this seeds the "v5 temporal" line but is left under Part IV
