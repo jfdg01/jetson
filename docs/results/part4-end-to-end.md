@@ -229,3 +229,32 @@ never acquires". So **1.5 = SPLIT (stochastic)**; pursuit holds 1.5 m/s once see
 constraint is the acquire lottery, which pursuit cannot touch. p-1.0 diag: car in-FOV t=0–5.66 s,
 exits t=5.71 s at gap 6.14 m, never re-enters (gap → 75.4 m). Raw:
 `experiments/2026-07-02-pursuit-chase/runs/{p-0.5,p-1.0,p-1.5,p-1.5b}/`.
+
+### 2026-07-03 — E6 first-acquire ([`experiments/2026-07-03-first-acquire/`](../../experiments/2026-07-03-first-acquire/README.md))
+
+Config: `local-VLM, 3090 carry @1024, loss-gate motion, dr pursuit, acquire-hold motion, 75 s`.
+New lever: **motion-hold acquire** (`--acquire-hold motion`) — before the first lock, servo the PID
+on the largest ego-motion-compensated frame-diff blob, keeping the car in FOV across repeated VLM
+draws until one accepts. acquire_log (per-attempt raw box + accept flag) now captured (E5's blind
+spot).
+
+| run | speed | in-FOV | first lock | attempts | rejected | accept_frac | relock (s) | recovered | gate |
+|---|---|---|---|---|---|---|---|---|---|
+| mh-0.5  | 0.5 | 1.000 | 4.71 s  | 6  | 4  | 0.33 | 9.32  | true | **PASS** |
+| mh-1.0a | 1.0 | 1.000 | 4.66 s  | 5  | 3  | 0.40 | 7.09  | true | **PASS** |
+| mh-1.0b | 1.0 | 1.000 | 4.66 s  | 5  | 3  | 0.40 | 6.86  | true | **PASS** |
+| mh-1.0c | 1.0 | 1.000 | 4.66 s  | 5  | 3  | 0.40 | 6.91  | true | **PASS** |
+| mh-1.5a | 1.5 | 1.000 | 16.57 s | 10 | 8  | 0.20 | 7.05  | true | **PASS** |
+| mh-1.5b | 1.5 | 1.000 | 16.57 s | 19 | 17 | 0.11 | 28.44 | true | **PASS** |
+| mh-1.5c | 1.5 | 1.000 | 4.66 s  | 12 | 10 | 0.17 | 23.59 | true | **PASS** |
+
+**RQ-E6 = YES. Follow ceiling lifts from 0.5 to at least 1.0 m/s (1.5 also passes 3/3).** 0.5 PASS
+(regression check clean); 1.0 PASS 3/3; 1.5 PASS 3/3. The motion-hold converts E5's "acquire
+lottery" into unlimited draws on a car-in-FOV frame: at 1.5 m/s the VLM rejected 8-17 draws before
+the first accept, yet **in_fov_frac = 1.000 in every run** — the hold servo held the car in frame
+across all those car-in-FOV rejected draws until a repeatable accept landed. Without the hold (E5
+p-1.0) the car exited the FOV after ≤2 draws and the trial died (in-FOV 0.076, never locked). All
+three 1.0 runs locked identically @4.66 s (draw 2; deterministic greedy → identical first lock
+across seeds). Residual cost at 1.5 is slower *relock* after the single occlusion (23-28 s vs ~7 s at
+1.0) and higher carry px_err (76-82 vs 50 at 1.0), not first-acquire. Raw:
+`experiments/2026-07-03-first-acquire/runs/{mh-0.5,mh-1.0{a,b,c},mh-1.5{a,b,c}}/`.

@@ -68,6 +68,45 @@ def pursuit_vel(hist_last, v_est, t, copter_ne, kp=0.5, vmax=2.5):
     return vn, ve
 
 
+def _ground_affine(prev_ned, prev_yaw, cur_ned, cur_yaw):
+    """Pixel map prev frame -> cur frame for GROUND points. The nadir camera is
+    an affine map of the ground plane (sitl_cam), so three world anchors pin it
+    exactly; real hardware substitutes the EKF pose delta the same way."""
+    anchors = np.array([[cur_ned[0], cur_ned[1]],
+                        [cur_ned[0] + 5.0, cur_ned[1]],
+                        [cur_ned[0], cur_ned[1] + 5.0]])
+    src = world_to_px(anchors, prev_ned, prev_yaw).astype(np.float32)
+    dst = world_to_px(anchors, cur_ned, cur_yaw).astype(np.float32)
+    return cv2.getAffineTransform(src, dst)
+
+
+def motion_blob(cur_bgr, prev_bgr, M, min_area: int = 800):
+    """E6 motion-hold: ego-motion-compensated frame diff -> {cx,cy,w,h}|None.
+    The car is the scene's only mover, so after warping prev onto cur's pose
+    the diff is the car's swept region (ground texture cancels); the union
+    bbox of the diff components is a pixel target the PID can hold in FOV.
+    min_area 800 px^2: the 0.5 m/s / 0.35 s worst case sweeps ~4000 px^2
+    pre-morph -- 800 rejects warp-seam noise without rejecting the car."""
+    h, w = cur_bgr.shape[:2]
+    warped = cv2.warpAffine(prev_bgr, M, (w, h))
+    valid = cv2.warpAffine(np.full((h, w), 255, np.uint8), M, (w, h))
+    diff = cv2.absdiff(cv2.cvtColor(cur_bgr, cv2.COLOR_BGR2GRAY),
+                       cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY))
+    diff[valid < 255] = 0  # ponytail: drop partially-interpolated warp border
+    mask = cv2.morphologyEx((diff > 40).astype(np.uint8), cv2.MORPH_OPEN,
+                            np.ones((5, 5), np.uint8))
+    n, _, stats, _ = cv2.connectedComponentsWithStats(mask)
+    keep = [i for i in range(1, n) if stats[i, cv2.CC_STAT_AREA] >= min_area // 4]
+    if not keep or sum(int(stats[i, cv2.CC_STAT_AREA]) for i in keep) < min_area:
+        return None
+    x0 = min(stats[i, cv2.CC_STAT_LEFT] for i in keep)
+    y0 = min(stats[i, cv2.CC_STAT_TOP] for i in keep)
+    x1 = max(stats[i, cv2.CC_STAT_LEFT] + stats[i, cv2.CC_STAT_WIDTH] for i in keep)
+    y1 = max(stats[i, cv2.CC_STAT_TOP] + stats[i, cv2.CC_STAT_HEIGHT] for i in keep)
+    return {"cx": (x0 + x1) / 2.0, "cy": (y0 + y1) / 2.0,
+            "w": float(x1 - x0), "h": float(y1 - y0)}
+
+
 def gate_box(box, score, mode: str, tau: float, motion_stale: bool):
     """E4 loss gate: demote a carry box to None when it can't be trusted, so the
     existing LossGate/DR/REGROUND machinery fires on a confident-but-wrong box
@@ -103,6 +142,9 @@ class AcquireCarrySM:
         self._submit_frame, self._submit_t = None, None
         self.last_seen: float | None = None
         self.n_attempts = self.n_regrounds = self.n_rejected = 0
+        # E5 blind spot: rejected acquires were counted but never logged, so
+        # the lottery mechanism was invisible. (t, raw box, accepted) per resolve.
+        self.acquire_log: list = []
         self.first_lock_t: float | None = None
         self.relock_walls: list[float] = []
         self._reground_t: float | None = None
@@ -119,9 +161,14 @@ class AcquireCarrySM:
             elif self.fut.done():
                 box, _ = self.fut.result()
                 self.fut = None
+                raw = box
                 if box is not None and self.validate and not self.validate(box):
                     self.n_rejected += 1
                     box = None  # implausible acquire -> treat as failed, relaunch
+                self.acquire_log.append(
+                    (round(t, 2),
+                     [round(v, 1) for v in raw] if raw is not None else None,
+                     box is not None))
                 if box is not None:
                     self.carry = self.make_carry(self._submit_frame, box,
                                                  self._submit_t)
@@ -145,7 +192,7 @@ class AcquireCarrySM:
 def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
               carry_conn=None, twin: str | None = None,
               loss_gate: str = "none", score_tau: float = 0.0,
-              dr: str = "velocity") -> dict:
+              dr: str = "velocity", acquire_hold: str = "none") -> dict:
     """One 75 s follow trial at SPEED. Orchestration mirrors phase1_sitl.run_trial;
     the oracle box is kept for the in-FOV metric only -- control sees pixels.
     carry_conn set (3b): CARRY steps go to jetson_carry_service over the tunnel."""
@@ -326,7 +373,19 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                         motion_stale[0] = True
                 else:
                     stale_t0 = None
-            sp = pid.compute(out)
+            hold = None
+            if (acquire_hold == "motion" and out is None
+                    and sm.first_lock_t is None and acq_buf):
+                # E6 motion-hold: pre-first-lock the copter hovers while the VLM
+                # draws (~2.3 s/attempt) and a >=1.0 m/s car exits the FOV between
+                # draws (E5 acquire lottery: 31/32 rejects at 1.0). Servo on the
+                # frame-diff blob to keep the car in frame until a draw accepts;
+                # after first lock, replay/DR/pursuit own every blind phase.
+                base = next((e for e in reversed(acq_buf) if t - e[0] >= 0.35), None)
+                if base is not None:
+                    hold = motion_blob(frame, base[1], _ground_affine(
+                        base[2], base[3], copter_ned, attitude[2]))
+            sp = pid.compute(out if out is not None else hold)
             v_blind = hist_vel() if out is None else None
             if v_blind is not None:
                 # ponytail: blind -> dead-reckon at the last estimated target
@@ -403,6 +462,7 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
         "first_lock_s": round(sm.first_lock_t, 2) if sm.first_lock_t else None,
         "n_acquire_attempts": sm.n_attempts,
         "n_rejected_acquires": sm.n_rejected,
+        "acquire_log": sm.acquire_log,
         "n_regrounds": sm.n_regrounds,
         "relock_walls_s": sm.relock_walls,
         "carry_px_err_mean": round(sum(carry_errs) / len(carry_errs), 1) if carry_errs else None,
@@ -498,8 +558,26 @@ def selfcheck() -> None:
     assert v == (2.5, 0.0), v
     vn, ve = pursuit_vel((10.0, 5.0, 0.0), (1.0, 0.0), 12.0, (7.0, 2.0))
     assert vn == 1.0 and ve == -1.0, (vn, ve)
+    # E6: every resolved acquire attempt is logged (t, raw box, accepted) --
+    # ticks 2 (accept), 15 (too-small box, reject), 20 (accept)
+    assert [(tt, ok) for tt, _, ok in sm.acquire_log] == \
+        [(2.0, True), (15.0, False), (20.0, True)], sm.acquire_log
+    assert sm.acquire_log[1][1] == [0.0, 0.0, 3.0, 3.0], sm.acquire_log
+    # E6 motion_blob: two rendered poses (copter moved + yawed, car 0.5->1.5 m N)
+    # -> blob centered on the car's swept span; identical frames -> None
+    cam = NadirCam()
+    cop0, cop1 = (0.0, 0.0, -8.8), (0.3, 0.1, -8.8)
+    f0 = cam.render(cop0, 0.0, (0.5, 0.0, 0.0))
+    f1 = cam.render(cop1, 0.05, (1.5, 0.0, 0.0))
+    blob = motion_blob(f1, f0, _ground_affine(cop0, 0.0, cop1, 0.05))
+    assert blob is not None, "motion_blob missed a 1 m car displacement"
+    u, v = world_to_px((1.0, 0.0), cop1, 0.05)[0]  # swept-span midpoint
+    d = math.hypot(blob["cx"] - u, blob["cy"] - v)
+    assert d < 40, (blob, (u, v), d)
+    ident = np.float32([[1, 0, 0], [0, 1, 0]])
+    assert motion_blob(f1, f1, ident) is None, "static scene must yield no blob"
     print("selfcheck PASS  acquire->carry->gate->reground->relock + E4 submit-frame/gate_box"
-          " + E5 pursuit_vel")
+          " + E5 pursuit_vel + E6 acquire_log/motion_blob")
 
 
 def main() -> None:
@@ -523,6 +601,10 @@ def main() -> None:
                     help="E5: blind dead-reckoning mode -- velocity (E2/E4 "
                          "baseline: match estimated speed) or pursuit (also "
                          "close toward the dead-reckoned position, 2.5 m/s cap)")
+    ap.add_argument("--acquire-hold", choices=["none", "motion"], default="none",
+                    help="E6: pre-first-lock FOV hold -- servo on the ego-motion-"
+                         "compensated frame-diff blob so the target stays in "
+                         "frame across VLM draws (E5 acquire lottery)")
     args = ap.parse_args()
     if args.selfcheck:
         selfcheck()
@@ -601,7 +683,7 @@ def main() -> None:
         trial = run_trial(pb, ctrl, be, predictor, raw_dir, args.image_size,
                           carry_conn=carry_conn, twin=args.twin,
                           loss_gate=args.loss_gate, score_tau=args.score_tau,
-                          dr=args.dr)
+                          dr=args.dr, acquire_hold=args.acquire_hold)
         ctrl.land_and_disarm()
         ctrl.close()
     finally:
@@ -632,7 +714,8 @@ def main() -> None:
            "validate": "sizeprior-0.5-2.0", "deadreckon": True,
            "twin": args.twin,
            "loss_gate": args.loss_gate, "score_tau": args.score_tau,
-           "dr": args.dr, "catchup_replay": True,
+           "dr": args.dr, "acquire_hold": args.acquire_hold,
+           "catchup_replay": True,
            "carry": "jetson-remote" if args.remote_carry else "host-3090"}
     out_dir = HERE / "runs" / phase
     write_manifest(capture(f"{phase}-integrated", cfg),

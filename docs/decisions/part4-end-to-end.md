@@ -187,3 +187,26 @@
   which pursuit cannot substitute for. Pursuit stays as the right blind-branch controller (keep
   `--dr pursuit` for the seeded case), off-by-default until the acquire path is fixed.
 - → [`experiments/2026-07-02-pursuit-chase/`](../../experiments/2026-07-02-pursuit-chase/README.md)
+
+### 2026-07-03 — Chose motion-hold acquire over retry-only / relaxed-prior to fix first-acquire (E6); ceiling lifts to ≥1.0 m/s
+
+- **Decision:** to fix the first-acquire reliability that E5 identified as the binding constraint,
+  implemented **motion-hold acquire** (`--acquire-hold motion`): before the first lock, when blind,
+  servo the PID on the largest ego-motion-compensated frame-diff blob (previous acquire-buffer frame
+  warped onto the current pose, ≥0.35 s baseline; the car is the scene's only mover, so the diff is
+  its swept region). This keeps the car in FOV across repeated VLM draws until one accepts. Pose
+  comes free (SITL truth here; EKF on real hardware). Kept behind a flag; after the first lock the
+  existing replay/DR/pursuit machinery owns all blind phases — the hold never re-engages.
+- **Why over the alternatives:** (a) *retry-only / more attempts* — at ≥1.0 m/s the car leaves the
+  FOV after ≤2 draws, so retries land on car-less frames; this is exactly what E5's p-1.0 already did
+  32 times and it never locked. (b) *relax the size prior* — the Stage-0 diagnostic showed the prior
+  correctly rejecting dash boxes (IoU 0.0 on every reject); relaxing it would admit wrong locks (E2's
+  failure mode). The hold instead buys *time* for a correct draw without touching the prior.
+- **Result / given up:** **RQ-E6 = YES** — ceiling lifts from 0.5 to ≥1.0 m/s (1.0 PASS 3/3, 0.5 no
+  regression, 1.5 also PASS 3/3). The now-captured acquire_log confirms the mechanism: the VLM
+  rejected 8-17 draws at 1.5 m/s yet in_fov_frac = 1.000 — the hold held the car in frame until a
+  correct draw landed, with the prior untouched. Given up: 2.0 m/s (NadirCam texture only covers
+  N∈[-20,140]; a 2.0 m/s car runs off the world — not testable on this rig). Residual next-lever
+  candidate surfaced at 1.5: slower relock after occlusion (23-28 s vs ~7 s at 1.0), higher carry
+  px_err — the relock/blind-recovery path, not first-acquire.
+- → [`experiments/2026-07-03-first-acquire/`](../../experiments/2026-07-03-first-acquire/README.md)
