@@ -108,3 +108,23 @@
   the distractor-heavy quartile is marginally better (IoU@0.25 +0.011, ID-consistency +0.006), not
   the estimated 2-8 pp worse. The identity failure is specific to occlusion + a same-appearance
   in-lane decoy during REGROUND, not to crowding.
+
+### 2026-07-02 — E4 follow hardening ([`experiments/2026-07-02-follow-hardening/`](../../experiments/2026-07-02-follow-hardening/README.md))
+
+- **RQ-E4a (does a trust-aware loss gate make REGROUND fire under occlusion at 0.5 m/s, recovering
+  the follow?):** **YES the follow recovers (0.5 goes FAIL→PASS, in-FOV 1.000), but NOT via the
+  gate.** The operative fix was Fix B (always-on submit-frame carry init + gap replay): the `none`
+  control passed identically to `motion` (both in-FOV 1.000, relock ~9.3-9.4 s, `n_regrounds=1`),
+  so the loss gate was inert at 0.5 — Fix B landing the *initial* lock on the true car (not the ~2.5-5 s
+  stale VLM box) is what killed E2's confident-latch. The `score` gate actively *hurt*
+  (FAIL, `recovered=false`): SAM2 `object_score_logits` *does* separate occlusion cleanly (occluded
+  mean −3.23 vs clear +8.61) but its clear-frame tail dips to −3.94, so at tau=0 it over-fires on
+  clean-track noise and the relock is never confirmed. Chosen gate = `motion` by the mechanical rule
+  (only qualifying candidate), kept as a harmless backstop, not the fix.
+- **RQ-E4b (does submit-frame init + replay lift the ≥1.0 m/s trials off the E2 floor?):** **NO.**
+  1.0 in-FOV 0.073 (E2 0.076), 1.5 in-FOV 0.051 (E2 0.051) — both pinned to the floor. At 1.0 carry
+  *does* lock (5.01 s) and reground 4×, but the car escapes the FOV during the ~5 s **first-acquire
+  hover** — before any lock exists to seed the replay/DR — and the subsequent locks chase a target
+  already gone; 1.5 never locks at all. Replay only helps *after* a first lock, so it cannot fix the
+  initial hover. First-acquire hover (hold a guessed chase velocity from t=0) is the named remaining
+  ceiling, deliberately out of E4 scope. **New follow ceiling: 0.5 m/s** (E2 was `< 0.5`).

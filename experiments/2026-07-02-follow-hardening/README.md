@@ -2,8 +2,9 @@
 
 **Pre-registered:** 2026-07-02T21:05Z (design + patches by Fable; executor runs the matrix and
 fills Results only — the code is already written and committed, do NOT re-patch it).
-**Status:** READY TO RUN. Branch `experiment/follow-hardening`. Patches to `phase3_sitl.py` +
-`stream_carry.py` landed and selfcheck-verified; this campaign holds the record + run artifacts.
+**Status:** COMPLETE 2026-07-02T22:05Z. Branch `experiment/follow-hardening`. New ceiling **0.5 m/s**
+(E2 was `< 0.5`); RQ-E4a YES (via Fix B, not the gate), RQ-E4b NO (first-acquire hover unresolved).
+Results below; raw in `runs/`.
 
 ## Research question
 
@@ -135,29 +136,56 @@ predict, e.g. the score gate fires during clean tracking, or replay corrupts the
 speeds regress: reproduce once, record the CSV symptom, proceed on own judgment — the E2/E3
 precedent.)`
 
-## Results (TBD — executor fills)
+## Results (filled 2026-07-02T22:05Z)
 
-Run: `bash experiments/2026-07-02-follow-hardening/run_e4.sh` then fill both tables.
+Ran `bash run_e4.sh` (Stage 1) then `GATE=motion bash run_e4.sh --stage2`. All 5 trials, local-VLM
+path, 3090 carry @1024, 75 s each. Raw per-run in `runs/{s1-none,s1-score,s1-motion,ladder-1.0,ladder-1.5}/`.
 
 **Stage 1 — gate selection @ 0.5 m/s:**
 
-| gate | in_fov | n_regrounds | relock | recovered | verdict | notes |
+| gate | in_fov | n_regrounds | relock (s) | recovered | verdict | notes |
 |---|---|---|---|---|---|---|
-| none | TBD | TBD | TBD | TBD | TBD (expect FAIL, E2 repro) | |
-| score | TBD | TBD | TBD | TBD | TBD | carry_score read: TBD |
-| motion | TBD | TBD | TBD | TBD | TBD | |
+| none | 1.000 | 1 | [9.43] | true | **PASS** | control passed — Fix B alone recovered 0.5 (est. was FAIL/E2-repro; **wrong estimate**) |
+| score | 1.000 | 1 | [] | false | **FAIL** | over-fires: relock never confirmed. carry_score read below |
+| motion | 1.000 | 1 | [9.32] | true | **PASS** | behaves as `none` (first_lock 4.96 s, relock 9.32 s); gate inert here — honest-loss path already works |
 
-Chosen gate: **TBD** (per the mechanical rule above).
+**carry_score read (Stage 1 `score` run):** SAM2's `object_score_logits` *does* separate occlusion
+cleanly — occluded frames mean **−3.23** (n=53, range −3.48..−2.83) vs clear frames mean **+8.61**
+(n=472). So at tau=0 the gate correctly demotes during the bridge. It FAILs anyway because the
+clear-frame tail dips to **−3.94**: transient sub-tau dips during *clean* tracking demote good boxes
+and the relock is never confirmed (`relock=[]`, `recovered=false`) — the pre-registered over-fire
+risk. The signal is real but tau=0 is too trigger-happy on clean-track noise; a higher/hysteretic
+tau might fix it, but it isn't needed (see below).
 
-**Stage 2 — speed ladder, chosen gate:**
+Chosen gate: **motion** — mechanical rule: candidates are {score, motion}; score fails the
+`recovered==true` clause, motion qualifies (`none` is the control, not a candidate). Note both
+`none` and `motion` pass identically, so the loss gate was **not the operative fix at 0.5** — Fix B
+(always-on submit-frame init) was.
+
+**Stage 2 — speed ladder, motion gate:**
 
 | speed | in_fov | first_lock_s | n_regrounds | recovered | verdict | E2 was |
 |---|---|---|---|---|---|---|
-| 0.5 | (from Stage 1) | | | | TBD | FAIL 0.484 |
-| 1.0 | TBD | TBD | TBD | TBD | TBD | FAIL 0.076 |
-| 1.5 | TBD | TBD | TBD | TBD | TBD | FAIL 0.051 |
+| 0.5 | 1.000 | 4.96 | 1 | true | **PASS** | FAIL 0.484 |
+| 1.0 | 0.073 | 5.01 | 4 | true* | **FAIL** | FAIL 0.076 |
+| 1.5 | 0.051 | — (never locked) | 0 | false | **FAIL** | FAIL 0.051 |
 
-**New ceiling:** TBD (E2 was `< 0.5`). **RQ-E4a:** TBD. **RQ-E4b:** TBD.
+*1.0 does lock (5.01 s) and reground 4×, but `in_fov`=0.073 ≈ E2's 0.076 floor: the car escapes the
+FOV during the ~5 s **first-acquire hover** (before any lock exists to seed replay/DR), then the
+locks/regrounds chase a target already out of frame. Submit-frame init + replay only help *after* a
+first lock — they cannot fix the initial hover, exactly the out-of-scope lever the estimate named.
+1.5 never even locks (first acquire lands with the car already gone). Both stay on the E2 floor.
+
+**New ceiling:** **0.5 m/s** (E2 was `< 0.5`). **RQ-E4a: YES** — 0.5 recovers, but via Fix B, not
+the gate (`none` control passed too; `score` gate hurts). **RQ-E4b: NO** — 1.0/1.5 stay pinned to
+the E2 floor; the first-acquire hover, deliberately out of E4 scope, is the remaining ceiling.
+
+**Estimate-vs-actual:** 0.5/none wrong (est. FAIL, actual PASS — Fix B moved the control);
+0.5/motion correct (PASS); 0.5/score correct direction (FAIL via over-fire) with the added finding
+that the score signal *does* separate occlusion, it just over-fires on the clean tail; 1.0 correct
+(FAIL, first-acquire-hover mechanism as predicted); 1.5 correct (FAIL, never locks). Replay-stall
+watch item: max `loop_ms` ~0.56–0.62 s across runs — a bounded sub-1 s spike, well under the
+pre-registered ~4 s worst case; does not affect the pure-geometry in_fov metric.
 
 ## Definition of done
 

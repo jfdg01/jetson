@@ -168,3 +168,38 @@ rest (n=139, density 2.98) **0.846** / **0.890** — heavy is marginally *better
 NOT the estimated 2-8 pp worse. Scene density alone does not hurt zero-shot carry; the S2 failure
 needs occlusion + a same-appearance in-lane decoy during REGROUND. Raw:
 `experiments/2026-07-02-twin-distractor/runs/{s1-crossing,s2-decoy-run{1,2,3}}/`.
+
+### 2026-07-02 — E4 follow hardening: two E2 binding-mode fixes ([`experiments/2026-07-02-follow-hardening/`](../../experiments/2026-07-02-follow-hardening/README.md))
+
+Same rig as E2 (local-VLM path, 3090 carry @1024, gate = in-FOV ≥ 0.90 AND recovered). Two fixes
+vs E2: **Fix B** (always-on) inits carry on the acquire *submit* frame + replays the buffered gap;
+**Fix A** a trust-aware loss gate demoting an untrusted carry box to `None` so the existing
+REGROUND machinery fires (flag `--loss-gate {none,score,motion}`).
+
+**Stage 1 — gate selection @ 0.5 m/s (the E2 confident-latch speed):**
+
+| gate | in-FOV | n_regrounds | relock (s) | recovered | verdict |
+|---|---|---|---|---|---|
+| none | 1.000 | 1 | 9.43 | true | **PASS** — control; Fix B alone recovered 0.5 (E2 was FAIL 0.484) |
+| score | 1.000 | 1 | — | false | **FAIL** — over-fires, relock never confirmed |
+| motion | 1.000 | 1 | 9.32 | true | **PASS** — behaves as `none`, gate inert |
+
+`score` diagnostic: SAM2 `object_score_logits` separates occlusion cleanly (occluded mean −3.23 vs
+clear +8.61) but the clear tail dips to −3.94, so at tau=0 it demotes good boxes on clean-track
+noise → relock never confirmed. Signal real, threshold over-fires. Chosen gate (mechanical rule):
+**motion** — but note the loss gate was **not the operative fix at 0.5**; Fix B was (`none` passes).
+
+**Stage 2 — speed ladder, motion gate:**
+
+| speed (m/s) | in-FOV | first lock | n_regrounds | recovered | verdict | E2 was |
+|---|---|---|---|---|---|---|
+| 0.5 | 1.000 | 4.96 s | 1 | true | **PASS** | FAIL 0.484 |
+| 1.0 | 0.073 | 5.01 s | 4 | true | **FAIL** | FAIL 0.076 |
+| 1.5 | 0.051 | never | 0 | false | **FAIL** | FAIL 0.051 |
+
+**Ceiling: `< 0.5` (E2) → 0.5 (E4).** Fix B lifts 0.5 from FAIL to PASS by landing the initial lock
+on the true car instead of the stale box. 1.0/1.5 stay pinned to the E2 floor: 1.0 locks (5.01 s)
+and regrounds 4× but in-FOV 0.073 — the car escapes during the ~5 s **first-acquire hover** before
+any lock exists to seed the replay/DR; 1.5 never locks. First-acquire hover is the remaining
+ceiling, deliberately out of E4 scope. Replay-stall watch item bounded (max loop_ms ~0.6 s). Raw:
+`experiments/2026-07-02-follow-hardening/runs/{s1-none,s1-score,s1-motion,ladder-1.0,ladder-1.5}/`.

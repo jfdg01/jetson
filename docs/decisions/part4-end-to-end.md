@@ -143,3 +143,25 @@
   measurement-only). Also noted: the AerialMind leg shows density alone is not the problem, so a
   crowding-robustness effort would be misdirected — the target is occlusion + in-lane same-look decoy.
 - → [`experiments/2026-07-02-twin-distractor/`](../../experiments/2026-07-02-twin-distractor/README.md)
+
+### 2026-07-02 — Keep submit-frame carry init always-on; ship `motion` as a backstop; reject the `score` gate at tau=0
+
+- **Decision:** make **Fix B (submit-frame carry init + gap replay) the permanent, always-on
+  behavior** — it, not the loss gate, is what lifted the follow ceiling from `< 0.5` to 0.5 m/s
+  (E4: the `none` control passed identically to `motion`). Of the two trust-aware loss gates from
+  the E2 decision above, keep **`motion`** (geometry backstop) as an available but off-by-default
+  lever, and **do not ship `score` at tau=0**.
+- **Why:** E4 Stage 1 @0.5 showed `none` and `motion` both PASS with in-FOV 1.000 and identical
+  relock timing, so at this speed the gate never fired — Fix B already made the honest-loss REGROUND
+  path work by landing the *initial* lock on the true car instead of the 2.5-5 s stale VLM box, which
+  was E2's confident-latch. `score` FAILed (`recovered=false`): SAM2 `object_score_logits` *does*
+  separate occlusion (occluded mean −3.23 vs clear +8.61), but its clear-frame tail dips to −3.94,
+  so tau=0 over-fires on clean-track noise and the relock is never confirmed. `motion` can't be
+  fooled that way and costs nothing when inert, so it stays as cheap insurance for a future
+  confident-latch Fix B doesn't catch.
+- **Given up:** shipping `score` (a higher or hysteretic tau might rescue it, but it isn't needed —
+  the signal is redundant with Fix B here); closing the ≥1.0 m/s ceiling this session. **RQ-E4b is
+  NO** — 1.0/1.5 stay on the E2 floor because the car escapes during the ~5 s *first-acquire hover*
+  (no lock yet exists to seed replay/DR). Fixing that (hold a guessed chase velocity from t=0) is the
+  named next lever, deliberately out of E4 scope.
+- → [`experiments/2026-07-02-follow-hardening/`](../../experiments/2026-07-02-follow-hardening/README.md)
