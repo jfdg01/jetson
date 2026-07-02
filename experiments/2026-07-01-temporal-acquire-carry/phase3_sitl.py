@@ -50,6 +50,24 @@ DURATION_S = 75.0
 CONTROL_HZ = 20
 
 
+def pursuit_vel(hist_last, v_est, t, copter_ne, kp=0.5, vmax=2.5):
+    """E5 blind chase: command the estimated target velocity PLUS a
+    proportional pull toward the target's dead-reckoned position, so an
+    accrued deficit closes instead of freezing. Velocity-only DR (E2/E4)
+    matches speed at best: the ~5 s first-acquire hover deficit (5 m at
+    1.0 m/s) is carried forever and velocity-estimate errors compound
+    unchecked (E4 ladder-1.0: 0.39 m/s lateral error -> 11 m off-road)."""
+    tl, pn, pe = hist_last
+    vn, ve = v_est
+    en = pn + vn * (t - tl) - copter_ne[0]
+    ee = pe + ve * (t - tl) - copter_ne[1]
+    vn, ve = vn + kp * en, ve + kp * ee
+    m = math.hypot(vn, ve)
+    if m > vmax:
+        vn, ve = vn * vmax / m, ve * vmax / m
+    return vn, ve
+
+
 def gate_box(box, score, mode: str, tau: float, motion_stale: bool):
     """E4 loss gate: demote a carry box to None when it can't be trusted, so the
     existing LossGate/DR/REGROUND machinery fires on a confident-but-wrong box
@@ -126,7 +144,8 @@ class AcquireCarrySM:
 
 def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
               carry_conn=None, twin: str | None = None,
-              loss_gate: str = "none", score_tau: float = 0.0) -> dict:
+              loss_gate: str = "none", score_tau: float = 0.0,
+              dr: str = "velocity") -> dict:
     """One 75 s follow trial at SPEED. Orchestration mirrors phase1_sitl.run_trial;
     the oracle box is kept for the in-FOV metric only -- control sees pixels.
     carry_conn set (3b): CARRY steps go to jetson_carry_service over the tunnel."""
@@ -313,6 +332,9 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                 # ponytail: blind -> dead-reckon at the last estimated target
                 # velocity instead of hovering (Phase 1's identified lever)
                 vn, ve = v_blind
+                if dr == "pursuit":  # E5: also close the gap, don't just match speed
+                    vn, ve = pursuit_vel(hist[-1], (vn, ve), t,
+                                         (copter_ned[0], copter_ned[1]))
                 yc, ys = math.cos(attitude[2]), math.sin(attitude[2])
                 sp = {"vx": vn * yc + ve * ys, "vy": -vn * ys + ve * yc,
                       "vz": 0.0, "yaw_rate": 0.0}
@@ -468,7 +490,16 @@ def selfcheck() -> None:
     assert gate_box(b, None, "score", 0.0, False) is b      # remote path inert
     assert gate_box(b, 1.0, "motion", 0.0, True) is None    # stale flag -> loss
     assert gate_box(None, 5.0, "none", 0.0, False) is None
-    print("selfcheck PASS  acquire->carry->gate->reground->relock + E4 submit-frame/gate_box")
+    # E5 pursuit_vel truth table: copter ON the predicted position -> pure
+    # velocity match; 4 m deficit north -> vn = 1 + 0.5*4 = 3 -> clamped to
+    # 2.5 total; lateral error pulls back with the correct sign
+    assert pursuit_vel((10.0, 5.0, 0.0), (1.0, 0.0), 12.0, (7.0, 0.0)) == (1.0, 0.0)
+    v = pursuit_vel((10.0, 5.0, 0.0), (1.0, 0.0), 12.0, (3.0, 0.0))
+    assert v == (2.5, 0.0), v
+    vn, ve = pursuit_vel((10.0, 5.0, 0.0), (1.0, 0.0), 12.0, (7.0, 2.0))
+    assert vn == 1.0 and ve == -1.0, (vn, ve)
+    print("selfcheck PASS  acquire->carry->gate->reground->relock + E4 submit-frame/gate_box"
+          " + E5 pursuit_vel")
 
 
 def main() -> None:
@@ -488,6 +519,10 @@ def main() -> None:
                          "fires on a confident-but-wrong box (E2 occluder latch)")
     ap.add_argument("--score-tau", type=float, default=0.0,
                     help="E4: SAM2 object-score logit threshold (loss-gate=score)")
+    ap.add_argument("--dr", choices=["velocity", "pursuit"], default="velocity",
+                    help="E5: blind dead-reckoning mode -- velocity (E2/E4 "
+                         "baseline: match estimated speed) or pursuit (also "
+                         "close toward the dead-reckoned position, 2.5 m/s cap)")
     args = ap.parse_args()
     if args.selfcheck:
         selfcheck()
@@ -565,7 +600,8 @@ def main() -> None:
         ctrl.connect_and_takeoff(target_alt_m=pb.TAKEOFF_ALT_M)
         trial = run_trial(pb, ctrl, be, predictor, raw_dir, args.image_size,
                           carry_conn=carry_conn, twin=args.twin,
-                          loss_gate=args.loss_gate, score_tau=args.score_tau)
+                          loss_gate=args.loss_gate, score_tau=args.score_tau,
+                          dr=args.dr)
         ctrl.land_and_disarm()
         ctrl.close()
     finally:
@@ -596,7 +632,7 @@ def main() -> None:
            "validate": "sizeprior-0.5-2.0", "deadreckon": True,
            "twin": args.twin,
            "loss_gate": args.loss_gate, "score_tau": args.score_tau,
-           "catchup_replay": True,
+           "dr": args.dr, "catchup_replay": True,
            "carry": "jetson-remote" if args.remote_carry else "host-3090"}
     out_dir = HERE / "runs" / phase
     write_manifest(capture(f"{phase}-integrated", cfg),
