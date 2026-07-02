@@ -427,7 +427,12 @@ def main() -> None:
 
     gate = trial["in_fov_frac"] >= 0.90 and trial["recovered_after_occlusion"]
     if args.remote_carry:  # campaign criterion: >=5 Hz control with carry on-device
-        gate = gate and trial["achieved_hz"] >= 5.0
+        # ponytail: carry_fps, not achieved_hz -- whole-trial hz is inflated by the
+        # blind ACQUIRE/REGROUND phases (no perception in the loop); the criterion
+        # means the loop rate while actually tracking. The 2026-07-02 recorded run
+        # predates this fix (its results.json PASS line used achieved_hz; README
+        # records the honest per-leg verdict).
+        gate = gate and trial["carry_fps"] >= 5.0
     summary = {"trial": trial, "gate_speed_ms": SPEED,
                "gate": "PASS" if gate else "FAIL"}
     cfg = {"caption": CAPTION, "loss_s": LOSS_S, "occ": [OCC_START, OCC_DUR],

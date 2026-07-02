@@ -66,3 +66,24 @@
   the on-device carry degrading); EdgeTAM/EfficientTAM stay candidates for the *Jetson FPS* gate,
   not the accuracy gate.
 - → [`experiments/2026-07-01-temporal-acquire-carry/`](../../experiments/2026-07-01-temporal-acquire-carry/README.md)
+
+### 2026-07-02 — Acquire-carry replaces per-frame grounding; OP=768; perception-on-Jetson/control-host split
+
+- **What:** the temporal campaign closes with the two-tier architecture adopted for Part IV:
+  language-conditioned ACQUIRE/REGROUND/RETARGET (VLM, seconds-scale, **size-prior validated**)
+  + zero-shot SAM2.1-tiny memory-carry per frame, operating point **image_size 768** (frozen knee
+  rule: 640 missed the 0.799 accuracy bar by 1.2 pp; 768 = 0.830 acc / 4.89 FPS). In the
+  integrated loop, per-frame perception runs on the Jetson (carry service + co-resident VLM
+  server); SITL, renderer, PID and MAVLink stay host-side.
+- **Why:** carry matches the deployed v3 re-anchor loop's accuracy (0.830–0.849 vs 85.2%) with
+  zero per-frame VLM calls; validation is load-bearing (3a-1 falsified unvalidated reground);
+  the host keeps only what is host-bound by nature (sim + microsecond PID) — the on-device claim
+  covers the binding resource.
+- **Given up:** the fully-passing rate criterion today (carry-phase 4.1 vs ≥5 FPS at OP=768 —
+  eager PyTorch's ceiling; E1 TensorRT export is the budgeted fix); a fully-on-device binary;
+  fastest-possible relock (validated reground waits for the target to actually reappear).
+- Also recorded: Phase 3b transport deviation from the frozen `jetson_percept.py` spec
+  (stdlib `multiprocessing.connection` carry-only service; acquire stays host-side via the
+  existing JetsonBackend against the same Jetson llama-server) — compute placement identical,
+  deviation and rationale in the campaign README.
+- → [`experiments/2026-07-01-temporal-acquire-carry/`](../../experiments/2026-07-01-temporal-acquire-carry/README.md)

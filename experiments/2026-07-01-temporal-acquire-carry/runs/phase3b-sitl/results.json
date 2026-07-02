@@ -1,0 +1,22 @@
+{
+  "trial": {
+    "speed_ms": 0.25,
+    "image_size": 768,
+    "n_frames": 569,
+    "achieved_hz": 7.6,
+    "carry_fps": 4.1,
+    "in_fov_frac": 1.0,
+    "first_lock_s": 3.02,
+    "n_acquire_attempts": 7,
+    "n_rejected_acquires": 5,
+    "n_regrounds": 1,
+    "relock_walls_s": [
+      14.35
+    ],
+    "carry_px_err_mean": 22.5,
+    "carry_frames": 217,
+    "recovered_after_occlusion": true
+  },
+  "gate_speed_ms": 0.25,
+  "gate": "PASS"
+}

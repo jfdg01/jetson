@@ -44,3 +44,15 @@
 - **RQ-T.3 (VLM Q8_0 + SAM2 co-residency in 8 GB):** **PASS** — zero FPS cost at 1024/768/640,
   peak RAM 6963/7607 MB @1024 (6144 @640); no load-on-demand needed. The pre-registered
   "likely does not fit" estimate was wrong — recorded as such.
+
+### 2026-07-02 — Temporal acquire-carry, Phase 3 ([`experiments/2026-07-01-temporal-acquire-carry/`](../../experiments/2026-07-01-temporal-acquire-carry/README.md))
+
+- **RQ-T.4 (occlusion recovery, integrated):** **PASS** — LossGate → validated REGROUND relocks
+  after a real 5 s visual occlusion (relock wall ~14 s: the size prior correctly rejects 5
+  hallucinated/sliver boxes until the target actually clears the bridge). Run 3a-1 falsified
+  *unvalidated* reground: the VLM returns a plausible visible object (road dash) when the target
+  is hidden — the accept/reject step is load-bearing.
+- **RQ-T.5 (end-to-end follow @0.25 m/s, real perception):** **PASS on host carry (3a: in-FOV
+  1.000); on-device (3b @OP=768): behavioral legs PASS (in-FOV 1.000, relock), rate leg marginal
+  FAIL (carry-phase 4.1 vs ≥5 FPS)** — the campaign criterion is one TensorRT export short of
+  fully met; E1 (`2026-07-02-carry-trt-export`) is the named fix.

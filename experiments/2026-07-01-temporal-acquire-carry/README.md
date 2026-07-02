@@ -125,7 +125,7 @@ Fill per phase; record **actual** next to the estimate above and flag divergence
 | 0 | RQ-T.1 | track-IoU / ID-consistency / occ-recovery, zero-shot | mean IoU **0.602**, IoU@0.25 **0.849**, IoU@0.5 0.750, ID-consistency **0.891**, occ-recovery **0.329** (70 gaps), pred-absent 3.5%, 14.4 FPS on 3090; 186 tracks (93 seqs × 2, cap 300), 58.4 min wall (est. 45–90 min — inside band) | **PASS — carry holds zero-shot;** training lever stays unpulled. Occ-recovery 33% = REGROUND's job, not carry's |
 | 1 | RQ-T.5 (skeleton) | target-in-frame fraction, oracle box | 0.25 m/s: in-FOV **1.000**, lock @4.31 s, occlusion relock **4.46 s** after LossGate, px-err 16.1 (est. PASS — right); 0.5 m/s: in-FOV **1.000**, relock 4.21 s, px-err 32.0 (est. "marginal" — cleaner than feared); 1.0 m/s: in-FOV **0.482**, locked @4.36 s but target exits FOV during occlusion+reground blind window, 8 failed re-acquires, never recovers (est. "never locks" — FAIL as predicted, but the *mechanism* differed: first acquire succeeded, recovery is what breaks) | **PASS — gate holds at 0.25 m/s (and 0.5); 1.0 m/s is the documented speed ceiling** |
 | 2 | RQ-T.2 / T.3 | FPS @ 15 W; peak RAM co-resident | @1024: **2.68 FPS** (p50 373 ms, est. 1.5–4 — inside band, gate FAIL); @512: **12.13 FPS** (p50 82.5 ms, est. 4–10 — *above* band); co-resident @1024 with VLM Q8_0 server: **2.68 FPS unchanged, server survived, peak RAM 6963/7607 MB** (est. "likely does not fit" — **wrong**, fits with ~650 MB headroom); 100/100 masks non-empty in all passes. Knee sweep (full table below): 768 = 4.89 FPS / IoU@0.25 **0.830**; 640 = 7.24 FPS co-res / **0.787**; 512 acc 0.737 | RQ-T.2 **marginal FAIL — OP=768 by the frozen rule** (640 misses the 0.799 accuracy bar by 1.2 pp; 768 holds accuracy but misses ≥5 FPS by 2.2% — TensorRT campaign `2026-07-02-carry-trt-export` is the named fix); RQ-T.3 **PASS — co-residency holds at every size (zero FPS cost), no load-on-demand needed** |
-| 3 | RQ-T.4 / T.5 | occlusion recovery; in-frame fraction, integrated | _pending_ | _pending_ |
+| 3 | RQ-T.4 / T.5 | occlusion recovery; in-frame fraction, integrated | **3.0 parity:** stream-vs-batch mean IoU 0.9974 @1024 / 0.9968 @512 (gate ≥0.99). **3a (3090 carry + real Jetson acquire):** run 1 FAIL in-FOV 0.544 (VLM locked a road dash during occlusion + ingress lag — falsified *unvalidated* reground); run 2 with size-prior validation + dead-reckoning + 3 s loss gate: in-FOV **1.000**, 5/7 acquires rejected, relock 13.9 s, px_err 16.2, carry 13.6 FPS. **3b (carry on Jetson @768, VLM co-resident):** in-FOV **1.000**, relock 14.35 s, recovered, px_err 22.5, **carry-phase rate 4.1 FPS < 5** (whole-trial 7.6 Hz; est. 4.5–4.8 — wire overhead underestimated) | RQ-T.4/T.5 **PASS on both behavioral legs @0.25 m/s** (acquire→carry→validated-reground→relock works end-to-end, on-device); **campaign rate criterion marginal FAIL at OP=768 (4.1/5 FPS)** — E1 TensorRT is the named fix |
 
 Phase 0 config: SAM2.1-hiera-tiny (`sam2==1.1.0`), fp32 weights under bf16 autocast, box prompt =
 first GT frame, `offload_video_to_cpu=True`, /dev/shm symlink window; scored on labeled frames only.
@@ -194,6 +194,16 @@ LOCAL_POSITION_NED per trial. Injected costs: latency U(4.1, 4.6) s, parse-fail 
   gives more first-lock margin than the naive N-S half-footprint suggested). Levers if a faster
   ceiling is ever needed: shorter LossGate, search-pattern motion during REGROUND (climb = wider
   footprint), or velocity extrapolation during the blind window.
+- **Unvalidated reground is the architecture's real failure mode (Phase 3a run 1, kept as
+  content):** ask a VLM to find an occluded object and it returns the most plausible visible
+  match (a white road dash for "the white car"); the tracker then carries the wrong object
+  faithfully. The size-prior accept/reject on acquire is what flipped the integrated gate from
+  FAIL (in-FOV 0.544) to PASS (1.000) — 5 of 7 acquire attempts were correctly rejected in both
+  the 3a-2 and 3b passing runs.
+- **The knee is real and unkind (Phase 2):** accuracy holds to 768 (−1.9 pp) then falls off a
+  cliff (640: −6.2 pp, 512: −11.2 pp — small aerial targets die with resolution), while the ≥5
+  FPS gate on eager PyTorch needs ≤~700. No size passes both; the 2.2% shortfall at 768 is the
+  entire remaining gap to a fully-passing on-device loop (E1's job).
 - **Dataset gotcha (cost ~28 min GPU + a morning):** AerialMind `labels_with_ids` stores `x y w h`
   with `x,y` = box **top-left**, *not* the JDE center convention the filename layout implies. Center
   decoding shifts every box up-left by half its size — plausible-looking but wrong everywhere
@@ -201,8 +211,29 @@ LOCAL_POSITION_NED per trial. Injected costs: latency U(4.1, 4.6) s, parse-fail 
 
 ## Decision
 
-TBD — does acquire-once + memory-carry replace the per-frame v2/v3 pipeline (and if so, is the
-carry zero-shot or trained; SAM2 or SOT), with what was given up.
+**Acquire-once + memory-carry replaces the per-frame v2/v3 grounding pipeline.** The carry is
+**zero-shot SAM2.1-hiera-tiny** (no temporal fine-tune — RQ-T.1 resolved favorably, the training
+lever stays unpulled), operating point **image_size 768** (frozen knee rule; 640 missed the
+accuracy bar by 1.2 pp). Matched accuracy evidence: carry IoU@0.25 0.849 @1024 / 0.830 @768 vs
+the deployed v3 ROI re-anchor loop's 85.2% — equal accuracy **without any per-frame VLM call**,
+and the VLM is repurposed to what only it can do (language-conditioned ACQUIRE/REGROUND/RETARGET).
+
+Supporting decisions, each with what was given up:
+- **Validated reground (size prior [0.5, 2.0] on expected pixel size from altitude)** is
+  load-bearing, not optional — run 3a-1 falsified unvalidated reground (VLM hallucinates a
+  plausible box when the target is occluded). Given up: fastest-possible relock (rejections keep
+  polling until the target actually reappears; relock wall grows from ~2.4 s to ~14 s across a
+  real occlusion — the *correct* behavior).
+- **Dead-reckoning during blind windows** (command last estimated target velocity) — held the
+  copter-target gap constant (~2.2 m) through a 13.9 s blind window vs diverging under hover.
+  Given up: nothing measurable; it is a strict improvement at these speeds.
+- **Perception on the Jetson, control host-side** (SITL/renderer/MAVLink are host processes by
+  nature; PID is microseconds). The on-device claim covers the binding resource — per-frame
+  perception. Given up: a fully-on-device demo binary; honest framing recorded.
+- **Eager PyTorch at OP=768 leaves the rate criterion 4.1/5 FPS short.** Adopted anyway as the
+  Part IV operating point because both behavioral legs pass and the shortfall has a named,
+  budgeted fix (E1 TensorRT export, `experiments/2026-07-02-carry-trt-export/`). Given up:
+  declaring the campaign criterion fully met on this hardware today.
 
 ## Risks / honest caveats (pre-registered)
 
@@ -517,6 +548,21 @@ carry zero-shot or trained; SAM2 or SOT), with what was given up.
   runs at `--image-size 768`; expected control rate ~4.5–4.8 Hz = marginal FAIL on the rate leg
   only (pre-registered as the expected outcome for OP=768; the in-FOV and relock legs are the
   informative ones, E1 buys the rate).
+- **2026-07-02T11:49Z — Phase 3b flown at OP=768: in-FOV and relock legs PASS, rate leg marginal
+  FAIL exactly as pre-registered. CAMPAIGN PHASES COMPLETE.** Same scenario as 3a run 2, carry on
+  the Jetson (`--remote-carry --image-size 768`, VLM Q8_0 co-resident on the same Orin): in-FOV
+  **1.000**, first lock 3.02 s, 7 acquire attempts / 5 rejected by the size prior, 1 reground,
+  relock wall 14.35 s, **recovered after occlusion**, px_err mean 22.5 (vs 16.2 @1024 in 3a — the
+  768 accuracy cost + slower loop), 569 frames / 75 s. Rate: whole-trial 7.6 Hz, but that number
+  is inflated by the blind ACQUIRE/REGROUND phases (no perception in the loop); the honest
+  criterion number is the **carry-phase loop rate = 4.1 FPS < 5** (solo Jetson bench 4.89 −
+  JPEG-decode + tunnel round-trip ≈ 40 ms/frame; est. 4.5–4.8 — actual slightly below band, the
+  wire overhead was underestimated). The run's `results.json` prints `gate: PASS` because the
+  code gated on whole-trial hz; the gate is now fixed to `carry_fps` for the post-E1 re-run, and
+  the recorded verdict here is the honest one: **rate leg FAIL (4.1/5), both behavioral legs
+  PASS** — the runbook's expected outcome for OP=768; E1 (TensorRT export) must buy the ~20%.
+  Artifacts: `raw/phase3b-sitl/` (CSV, mp4, SITL log), `raw/phase3b-sitl.log`,
+  `runs/phase3b-sitl/`. RAM held (llama-server + SAM2@768 + service co-resident, no OOM).
 - **Open decisions still pending:** (1) SAM2 variant — SAM2.1-tiny vs EdgeTAM vs EfficientTAM (decide
   on Jetson FPS, Phase 2); (2) TensorRT vs ONNX for the carry export (shared with the bake-off's C/D
   question); (3) Part assignment — this seeds the "v5 temporal" line but is left under Part IV
