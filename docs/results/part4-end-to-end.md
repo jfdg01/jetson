@@ -203,3 +203,29 @@ and regrounds 4× but in-FOV 0.073 — the car escapes during the ~5 s **first-a
 any lock exists to seed the replay/DR; 1.5 never locks. First-acquire hover is the remaining
 ceiling, deliberately out of E4 scope. Replay-stall watch item bounded (max loop_ms ~0.6 s). Raw:
 `experiments/2026-07-02-follow-hardening/runs/{s1-none,s1-score,s1-motion,ladder-1.0,ladder-1.5}/`.
+
+### 2026-07-03 — E5 pursuit-chase ([`experiments/2026-07-02-pursuit-chase/`](../../experiments/2026-07-02-pursuit-chase/README.md))
+
+Config: `local-VLM, 3090 carry @1024, loss-gate motion, dr pursuit, 75 s`. Pursuit DR replaces
+velocity-matching with position-seeking (`v_est + 0.5·(dead-reckoned pos − copter pos)`, 2.5 m/s
+cap) on the blind branch. Baselines are the E4 Stage-2 `--dr velocity` rows above (not re-run).
+
+| run | speed | in-FOV | first lock | n_regrounds | relock (s) | recovered | verdict | E4 (velocity) was |
+|---|---|---|---|---|---|---|---|---|
+| p-0.5 | 0.5 | 1.000 | 5.06 s | 1 | 9.32 | true | **PASS** | PASS 1.000 |
+| p-1.0 | 1.0 | 0.076 | never | 0 | — | false | **FAIL** | FAIL 0.073 |
+| p-1.5 | 1.5 | 0.051 | never | 0 | — | false | **FAIL** | FAIL 0.051 |
+| p-1.5b | 1.5 | 0.927 | 4.66 s | 2 | 6.89, 6.92 | true | **PASS** | — |
+
+**RQ-E5 = NO. Ceiling unchanged at 0.5 m/s.** p-0.5 held 1.000 (pursuit near-inert at small
+deficit — not a regression). The high-speed failures were **acquire failures, not pursuit
+failures**: p-1.0 and p-1.5 both `first_lock = None` (32 attempts, 31 rejected, zero locks), so
+`hist` never seeded and pursuit never engaged (empty history → ACQUIRE hover). p-1.0 could not test
+pursuit at all this run because 1.0 happened to never lock (E4's 1.0 *did* lock @5.01 s) — the
+stochastic first-acquire rejection now biting at both high speeds. **p-1.5b is the one clean pursuit
+test and it PASSes**: identical config to p-1.5 but its t=0 submit-frame attempt was accepted (lock
+@4.66 s), and pursuit then held 0.927 in-FOV through 2 regrounds/relocks — overturning E4's "1.5
+never acquires". So **1.5 = SPLIT (stochastic)**; pursuit holds 1.5 m/s once seeded, but the binding
+constraint is the acquire lottery, which pursuit cannot touch. p-1.0 diag: car in-FOV t=0–5.66 s,
+exits t=5.71 s at gap 6.14 m, never re-enters (gap → 75.4 m). Raw:
+`experiments/2026-07-02-pursuit-chase/runs/{p-0.5,p-1.0,p-1.5,p-1.5b}/`.

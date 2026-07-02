@@ -121,19 +121,50 @@ Baselines are the E4 Stage 2 rows (`--dr velocity`, same gate) in
   already overturn E4's "1.5 never acquires". ESTIMATE.
 - **Runtime:** ~1 h total (4 trials @ ~75 s + SITL/VLM boot each). ESTIMATE.
 
-## Results (TBD — executor fills)
+## Results
+
+Ran 2026-07-03T00:11Z. Rig as pre-registered (local-VLM Jetson Q8_0, local 3090 carry @1024,
+75 s/trial, `--loss-gate motion --dr pursuit`). One operational note: the executor's background
+shell was torn down mid-boot of p-1.5 after p-0.5/p-1.0 had snapshotted; p-1.5 and p-1.5b were
+re-run identically (same command tail, same snapshot dirs) — no re-run of the two good rows.
 
 | run | speed | in_fov | first_lock_s | n_regrounds | relock_walls_s | recovered | verdict | E4 (velocity DR) was |
 |---|---|---|---|---|---|---|---|---|
-| p-0.5 | 0.5 | | | | | | | PASS 1.000 |
-| p-1.0 | 1.0 | | | | | | | FAIL 0.073 |
-| p-1.5 | 1.5 | | | | | | | FAIL 0.051 (never locked) |
-| p-1.5b | 1.5 | | | | | | | — |
+| p-0.5 | 0.5 | 1.000 | 5.06 | 1 | [9.32] | true | **PASS** | PASS 1.000 |
+| p-1.0 | 1.0 | 0.076 | None | 0 | [] | false | **FAIL** | FAIL 0.073 |
+| p-1.5 | 1.5 | 0.051 | None | 0 | [] | false | **FAIL** | FAIL 0.051 (never locked) |
+| p-1.5b | 1.5 | 0.927 | 4.66 | 2 | [6.89, 6.92] | true | **PASS** | — |
 
-- p-1.0 diagnostics (gap at FOV exit, re-entry wall): TBD
-- p-1.5/b first-attempt read: TBD
-- RQ-E5 verdict + new ceiling: TBD
-- Estimate-vs-actual: TBD
+**RQ-E5 = NO** (p-1.0 did not PASS). p-0.5 held at 1.000 — **not** the regression clause; pursuit
+is near-inert at 0.5 as estimated. **New ceiling = 0.5 m/s (unchanged from E4).**
+
+**The failures were not pursuit failures — they were acquire failures.** Both p-1.0 and p-1.5
+`first_lock_s = None`: 32 acquire attempts, **31 rejected**, zero locks. With `hist` never seeded,
+pursuit never engages (empty history → ACQUIRE hover), so the copter sat at the start point while
+the car drove off. Pursuit could not be tested at 1.0 this run because 1.0 happened to never lock —
+unlike E4, where 1.0 *did* lock @5.01s. This is the stochastic first-acquire rejection the audit
+flagged, now biting at both high speeds.
+
+**p-1.5b overturns E4's "1.5 never acquires" and is the one clean pursuit test.** Same config as
+p-1.5, but its t=0 submit-frame attempt was *accepted* (first CARRY @4.66s), and from there pursuit
+held the car at **0.927 in-FOV through 2 regrounds/relocks (6.89, 6.92 s)** — a PASS at 1.5 m/s.
+So when seeded, pursuit does hold a 1.5 m/s target; the binding constraint is the acquire lottery,
+which pursuit cannot touch.
+
+- **p-1.0 diagnostics:** car in-FOV t=0–5.66 s (initial dead-center framing), exits at t=5.71 s
+  with gap 6.14 m, **never re-enters** (gap → 75.4 m by end). No lock ever acquired → pursuit
+  never ran; the 0.076 in-FOV is entirely the pre-drive-off window, not recovery.
+- **p-1.5 / p-1.5b first-attempt read:** p-1.5 — t=0 attempt **rejected**, 0 CARRY rows, never
+  locked. p-1.5b — t=0 attempt **accepted**, first lock @4.66 s (the initial submit frame
+  resolving through the ~5 s VLM wall). Identical setup, opposite first-acquire outcome →
+  **1.5 = SPLIT (stochastic)**, confirming the audit flag; the ceiling excludes 1.5.
+- **Estimate-vs-actual:**
+  - p-0.5: est PASS ~85% → **PASS 1.000**. Right.
+  - p-1.0: est PASS ~55% via "closes the ~6 m deficit" → **FAIL 0.076, wrong mechanism**: it
+    never locked, so the deficit/wrong-relock scenario never arose. The estimate assumed a first
+    lock (as E4); the acquire lottery pre-empted it.
+  - p-1.5/b: est FAIL ~60–70% each → **SPLIT** (p-1.5 FAIL as predicted; p-1.5b PASS 0.927). The
+    pre-registered "at least one locking would overturn E4's 1.5-never-acquires" landed: p-1.5b did.
 
 ## Closeout checklist for the executor
 

@@ -128,3 +128,23 @@
   already gone; 1.5 never locks at all. Replay only helps *after* a first lock, so it cannot fix the
   initial hover. First-acquire hover (hold a guessed chase velocity from t=0) is the named remaining
   ceiling, deliberately out of E4 scope. **New follow ceiling: 0.5 m/s** (E2 was `< 0.5`).
+
+### 2026-07-03 — E5 pursuit-chase ([`experiments/2026-07-02-pursuit-chase/`](../../experiments/2026-07-02-pursuit-chase/README.md))
+
+- **RQ-E5 (does position-seeking pursuit DR — command = est. velocity + 0.5·(dead-reckoned position
+  − copter position), 2.5 m/s cap — lift the follow ceiling from 0.5 to ≥1.0 m/s without regressing
+  0.5?):** **NO. Ceiling stays 0.5 m/s.** p-0.5 held in-FOV 1.000 (no regression; pursuit near-inert
+  when the deficit is small). But p-1.0 FAILed 0.076 and p-1.5 FAILed 0.051 — **not** because
+  pursuit couldn't close the deficit, but because **neither run ever locked** (`first_lock = None`,
+  31/32 acquires rejected). With `hist` never seeded, pursuit never engages (empty history →
+  ACQUIRE hover), so it was never actually exercised at 1.0. The failure mode surfaced this run is
+  the **stochastic first-acquire rejection** (the E4 1.5 audit flag), not the deficit pursuit
+  targets. This overturns the E4-audit premise that at 1.0 "the first lock lands while the car is in
+  FOV" — that was an n=1 accident; here 1.0 patterned with 1.5's never-lock.
+- **RQ-E5 sub — does pursuit hold a target once seeded?** **YES, at 1.5 m/s.** p-1.5b (repeat of
+  p-1.5) had its t=0 submit-frame attempt *accepted* (lock @4.66 s) and pursuit then held the car at
+  in-FOV 0.927 through 2 regrounds/relocks (6.89, 6.92 s) — a PASS at 1.5 m/s. Identical config,
+  opposite first-acquire outcome to p-1.5 → **1.5 = SPLIT (stochastic)**, confirming the audit flag
+  and overturning E4's "1.5 never acquires" (at least one of two did). **The binding constraint is
+  now the acquire lottery, not the chase controller** → next lever is making the first acquire
+  reliable (e.g. retry/relaxed-validate on the t=0 submit frame), which pursuit cannot substitute for.

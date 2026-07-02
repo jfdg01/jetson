@@ -165,3 +165,25 @@
   (no lock yet exists to seed replay/DR). Fixing that (hold a guessed chase velocity from t=0) is the
   named next lever, deliberately out of E4 scope.
 - → [`experiments/2026-07-02-follow-hardening/`](../../experiments/2026-07-02-follow-hardening/README.md)
+
+### 2026-07-03 — Chose pursuit DR over acquire-latency reduction (E5); result reframes the ceiling as an acquire-reliability problem
+
+- **Decision:** to attack the ≥1.0 m/s follow ceiling, implemented **position-seeking pursuit DR**
+  (`--dr pursuit`: blind command = est. velocity + 0.5·(dead-reckoned position − copter position),
+  2.5 m/s cap) rather than trying to shrink the ~5 s VLM acquire latency. Kept behind a flag;
+  `--dr velocity` remains the bit-identical E2/E4 baseline.
+- **Why:** pursuit closes a deficit from *any* source (first-acquire hover, occlusion, estimate
+  drift) once a lock exists, whereas cutting latency is not actionable — the ~5 s wall on Jetson
+  Q8_0 is already characterized (E1/3b) with no cheap headroom, and it would only shrink, not
+  remove, the deficit. The E4-named "hold a guessed chase velocity from t=0" lever is ill-posed:
+  before the first lock there is no velocity estimate to hold.
+- **Given up / what E5 actually showed:** nothing shrinks the ~5 s VLM wall — pursuit sidesteps it
+  by chasing the extrapolated position. But **RQ-E5 = NO**: pursuit did not lift the ceiling (still
+  0.5 m/s), and crucially the 1.0/1.5 failures were **acquire failures, not chase failures** — both
+  never locked (31/32 rejected), so pursuit never engaged. The one high-speed run that *did* lock
+  (p-1.5b) PASSed at 1.5 m/s with pursuit holding 0.927 in-FOV — evidence pursuit works once seeded.
+  **This reframes the ceiling as an acquire-reliability problem**, not a controller problem: the
+  next lever is making the t=0 first acquire reliable (retry / relaxed-validate on the submit frame),
+  which pursuit cannot substitute for. Pursuit stays as the right blind-branch controller (keep
+  `--dr pursuit` for the seeded case), off-by-default until the acquire path is fixed.
+- → [`experiments/2026-07-02-pursuit-chase/`](../../experiments/2026-07-02-pursuit-chase/README.md)
