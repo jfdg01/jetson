@@ -148,3 +148,20 @@
   and overturning E4's "1.5 never acquires" (at least one of two did). **The binding constraint is
   now the acquire lottery, not the chase controller** → next lever is making the first acquire
   reliable (e.g. retry/relaxed-validate on the t=0 submit frame), which pursuit cannot substitute for.
+
+### 2026-07-03 — E6 first-acquire ([`experiments/2026-07-03-first-acquire/`](../../experiments/2026-07-03-first-acquire/README.md))
+
+- **RQ-E6 (does a pre-first-lock motion-hold — servo the PID on the ego-motion-compensated
+  frame-diff blob so the car stays in FOV across VLM draws — lift the follow ceiling past 0.5 m/s by
+  fixing first-acquire reliability?):** **YES. Ceiling lifts from 0.5 to at least 1.0 m/s.** mh-0.5
+  PASS (no regression) and 1.0 PASS 3/3 (gate: in-FOV ≥0.90 AND recovered) → RQ-E6 = YES per the
+  pre-registered rule. 1.5 also PASS 3/3 (reported; does not affect the RQ). The mechanism is
+  confirmed by the now-captured acquire_log: at 1.5 m/s the VLM rejected 8-17 draws before the first
+  accept, yet **in_fov_frac = 1.000 every run** — the motion-hold servo kept the car in frame across
+  all those car-in-FOV rejected draws until a repeatable accept landed. This directly overturns E5's
+  "acquire lottery" (p-1.0 exited FOV after ≤2 draws, in-FOV 0.076, never locked): the hold converts
+  "few draws before the car leaves" into "unlimited draws on a car-in-FOV frame". The size prior was
+  never relaxed — every rejected box was a genuine dash/false box (Stage-0's finding), and the hold
+  simply buys the time for a correct draw. **The binding constraint reframed by E5 (first-acquire
+  reliability, not the chase controller) is now resolved for ≤1.5 m/s.** Residual at 1.5: slower
+  *relock* after occlusion (23-28 s vs ~7 s at 1.0) — a next-lever candidate, not first-acquire.

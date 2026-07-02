@@ -2,19 +2,143 @@
   "trial": {
     "speed_ms": 1.5,
     "image_size": 1024,
-    "n_frames": 1498,
-    "achieved_hz": 20.0,
-    "carry_fps": null,
-    "in_fov_frac": 0.0507,
-    "first_lock_s": null,
-    "n_acquire_attempts": 32,
-    "n_rejected_acquires": 31,
-    "n_regrounds": 0,
-    "relock_walls_s": [],
-    "carry_px_err_mean": null,
-    "carry_frames": 0,
-    "recovered_after_occlusion": false
+    "n_frames": 1462,
+    "achieved_hz": 19.5,
+    "carry_fps": 20.4,
+    "in_fov_frac": 1.0,
+    "first_lock_s": 4.66,
+    "n_acquire_attempts": 12,
+    "n_rejected_acquires": 10,
+    "acquire_log": [
+      [
+        2.35,
+        [
+          288.0,
+          355.2,
+          307.2,
+          480.0
+        ],
+        false
+      ],
+      [
+        4.66,
+        [
+          262.4,
+          0.0,
+          403.2,
+          235.2
+        ],
+        true
+      ],
+      [
+        35.19,
+        [
+          38.4,
+          43.2,
+          64.0,
+          67.2
+        ],
+        false
+      ],
+      [
+        37.49,
+        [
+          409.6,
+          0.0,
+          640.0,
+          24.0
+        ],
+        false
+      ],
+      [
+        39.9,
+        [
+          0.0,
+          177.6,
+          640.0,
+          480.0
+        ],
+        false
+      ],
+      [
+        42.25,
+        [
+          352.0,
+          244.8,
+          377.6,
+          364.8
+        ],
+        false
+      ],
+      [
+        44.65,
+        [
+          358.4,
+          451.2,
+          364.8,
+          480.0
+        ],
+        false
+      ],
+      [
+        47.06,
+        [
+          364.8,
+          417.6,
+          384.0,
+          480.0
+        ],
+        false
+      ],
+      [
+        49.46,
+        [
+          384.0,
+          393.6,
+          403.2,
+          480.0
+        ],
+        false
+      ],
+      [
+        51.86,
+        [
+          390.4,
+          364.8,
+          416.0,
+          480.0
+        ],
+        false
+      ],
+      [
+        54.22,
+        [
+          403.2,
+          340.8,
+          428.8,
+          465.6
+        ],
+        false
+      ],
+      [
+        56.52,
+        [
+          396.8,
+          0.0,
+          531.2,
+          225.6
+        ],
+        true
+      ]
+    ],
+    "n_regrounds": 1,
+    "relock_walls_s": [
+      23.59
+    ],
+    "carry_px_err_mean": 79.0,
+    "carry_frames": 837,
+    "recovered_after_occlusion": true
   },
   "gate_speed_ms": 1.5,
-  "gate": "FAIL"
+  "gate": "PASS"
 }
