@@ -46,9 +46,11 @@ class NadirCam:
     def __init__(self, bridge_n: tuple[float, float] | None = None,
                  road_e: float = 0.0, seed: int = 0):
         self.bridge_n = bridge_n          # world-fixed N-extent (m) of the overpass
-        # world texture: N in [-20, 110], E in [-25, 25] covers all trial speeds
+        # world texture: N in [-20, 140], E in [-25, 25]. North bound covers the
+        # E2 1.5 m/s reach (ROVER_START_N 0.5 + 1.5*75 = 113 m) with margin; was
+        # [-20, 110] which the 1.5 m/s trailing follow ran off in its last ~2 s.
         self.n0, self.e0 = -20.0, -25.0
-        rows, cols = int(130 * PX_PER_M), int(50 * PX_PER_M)
+        rows, cols = int(160 * PX_PER_M), int(50 * PX_PER_M)
         rng = np.random.default_rng(seed)
         # grass: green base + noise + darker blotches so SAM2 has real background
         tex = np.full((rows, cols, 3), (60, 110, 75), np.uint8)

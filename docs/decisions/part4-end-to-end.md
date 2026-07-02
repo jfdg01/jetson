@@ -106,3 +106,21 @@
     known-hard part); a further ~30 ms that the retained torch memory-attention + default-stream
     TRT sync still cost (a dedicated CUDA stream could reclaim some, not pursued — gate already met).
 - → [`experiments/2026-07-02-carry-trt-export/`](../../experiments/2026-07-02-carry-trt-export/README.md)
+
+### 2026-07-02 — Stop tuning occlusion levers; attack the two binding failure modes instead
+
+- **Decision:** after E2 showed the levers-on ceiling is < 0.5 m/s (all speeds FAIL), do NOT run
+  more speed/lever-tuning trials on the current lever set. The next follow-hardening work targets
+  the two failure modes E2 named: (1) make the loss signal confidence/staleness-aware so a
+  confident-but-wrong carry box (occluder latch) still triggers REGROUND — today both DR and
+  REGROUND gate only on `box is None`; (2) velocity-extrapolate the stale acquire box before
+  prompting SAM2 (and/or hold the last chase velocity during first acquire) so a car moving ≥1 m/s
+  can be locked before it exits the FOV.
+- **Why:** the levers were built to widen the REGROUND blind window, but E2 proves the blind window
+  is never the binding constraint with real carry — confident-latch binds at 0.5, acquire-latency
+  binds at ≥1.0. Tuning the levers further cannot move a ceiling set by constraints they don't
+  touch. Phase 1's oracle-box ceiling (1.0 m/s) was optimistic because the oracle removed exactly
+  these two modes.
+- **Given up:** further speed trials with the current lever set (ceiling already sits below the
+  lowest test speed, so they'd add no information); a same-session fix (E2 is measurement-only).
+- → [`experiments/2026-07-02-follow-speed-ceiling/`](../../experiments/2026-07-02-follow-speed-ceiling/README.md)

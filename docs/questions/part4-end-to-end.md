@@ -74,3 +74,17 @@
   occlusion). The rate leg that was one TensorRT export short is now met; the parent campaign's
   criterion is fully satisfied. Margin is thin (5.0 exactly): the solo E1 bench was 6.15 FPS but the
   integrated loop pays ~1.15 FPS in per-frame JPEG + ssh-tunnel wire transfer.
+
+### 2026-07-02 — E2 speed ceiling with levers on ([`experiments/2026-07-02-follow-speed-ceiling/`](../../experiments/2026-07-02-follow-speed-ceiling/README.md))
+
+- **RQ-E2 (do the occlusion levers move the measured follow ceiling — from Phase 1's 1.0 m/s to
+  what?):** **NO — they move it *down*, to < 0.5 m/s.** All three levers-on trials FAIL (in-FOV
+  0.484 / 0.076 / 0.051 at 0.5 / 1.0 / 1.5). The levers (size-prior validation, dead-reckoning,
+  time-based LossGate) target the REGROUND blind window Phase 1 named, but with real (not oracle)
+  carry two earlier failure modes bind first and the levers touch neither: at 0.5 m/s SAM2
+  confident-latches the occluder and returns a non-`None` box, so the `box is None`-gated DR and
+  REGROUND never fire (copter parks, gap 3→24 m); at 1.0/1.5 m/s the copter never even acquires
+  (frozen at home, car leaves FOV at t≈6 s before the ~5 s acquire + stale-box init can lock,
+  31/32 re-acquires rejected). So Phase 1's oracle-box ceiling (1.0) overstates the integrated
+  real-pipeline ceiling. Both binding modes are fixable (confidence/staleness loss test;
+  velocity-extrapolated acquire box) — deferred, named in the campaign README.

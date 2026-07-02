@@ -225,8 +225,10 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                 # ponytail: blind -> dead-reckon at the last estimated target
                 # velocity instead of hovering (Phase 1's identified lever)
                 dt = hist[-1][0] - hist[0][0]
-                vn = max(-1.5, min(1.5, (hist[-1][1] - hist[0][1]) / dt))
-                ve = max(-1.5, min(1.5, (hist[-1][2] - hist[0][2]) / dt))
+                # was 1.5, saturated at the 1.5 m/s trial speed (E2); raised so DR
+                # can track the top test speed instead of clamping exactly when needed
+                vn = max(-2.5, min(2.5, (hist[-1][1] - hist[0][1]) / dt))
+                ve = max(-2.5, min(2.5, (hist[-1][2] - hist[0][2]) / dt))
                 yc, ys = math.cos(attitude[2]), math.sin(attitude[2])
                 sp = {"vx": vn * yc + ve * ys, "vy": -vn * ys + ve * yc,
                       "vz": 0.0, "yaw_rate": 0.0}
@@ -340,10 +342,14 @@ def main() -> None:
                     help="3b: run CARRY on the Jetson via jetson_carry_service")
     ap.add_argument("--trt-encoder", default=None,
                     help="3b: TensorRT .plan on the Jetson (e.g. enc768.plan); E1 speedup")
+    ap.add_argument("--speed", type=float, default=0.25,
+                    help="E2: rover north speed m/s (bridge auto-scales via the SPEED closure)")
     args = ap.parse_args()
     if args.selfcheck:
         selfcheck()
         return
+    global SPEED
+    SPEED = args.speed
 
     import run_phase_b as pb
     from sitl.offboard import OffboardController

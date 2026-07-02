@@ -120,3 +120,24 @@ solo E1 bench measured 6.15 FPS, but the integrated loop pays ~1.15 FPS in per-f
 encode/decode + ssh-tunnel wire transfer that the solo bench doesn't. Behavioral legs unchanged
 (in-FOV 1.000, recovered after occlusion, relock 14.17 s). Closes the parent campaign's only
 marginal-FAIL leg. Raw: `experiments/2026-07-01-temporal-acquire-carry/runs/phase3b-sitl/`.
+
+### 2026-07-02 — E2 speed ceiling with levers on ([`experiments/2026-07-02-follow-speed-ceiling/`](../../experiments/2026-07-02-follow-speed-ceiling/README.md))
+
+Integrated SITL follow, levers ON (size-prior validation, dead-reckoning, time-based LossGate),
+real carry (local 3090 SAM2 @1024, local-VLM acquire path), one trial per speed. Gate = in-FOV ≥
+0.90 AND recovered_after_occlusion. Levers-OFF Phase-1 baseline (oracle box) put the ceiling at
+1.0 m/s.
+
+| speed (m/s) | in-FOV | first lock | acq (rej) | regrounds | verdict | binding failure mode |
+|---|---|---|---|---|---|---|
+| 0.5 | 0.484 | 5.0 s | 2 (1) | 0 | **FAIL** | confident-latch: SAM2 tracks the occluder, returns non-`None`, None-gated levers never fire, copter parks |
+| 1.0 | 0.076 | never | 32 (31) | 0 | **FAIL** | acquire latency: copter frozen at home, car exits FOV at t≈6 s before the ~5 s acquire+stale-box init can lock |
+| 1.5 | 0.051 | never | 32 (31) | 0 | **FAIL** | same as 1.0 |
+
+**Ceiling: 1.0 (levers off, oracle) → < 0.5 (levers on, real carry).** The levers do not lift the
+ceiling and cannot, because at each speed the binding constraint is not the REGROUND blind window
+they target: 0.5 fails to a *confident* carry-loss (the levers only detect `box is None`), 1.0/1.5
+fail at *first acquire* (latency vs target speed). 0.5 reproduced trial-1 (in-FOV 0.486 → 0.484,
+deterministic). Both modes are fixable (confidence/staleness loss test; velocity-extrapolated
+acquire box) — deferred, named in the campaign README. Raw:
+`experiments/2026-07-02-follow-speed-ceiling/runs/speed-{0.5,1.0,1.5}/`.

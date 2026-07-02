@@ -1,9 +1,8 @@
 # E2 — Speed ceiling with levers on: 0.5 / 1.0 / 1.5 m/s
 
 **Pre-registered:** 2026-07-02T10:51Z (planning session; executor fills Results only).
-**Status:** NOT STARTED — trigger: Phase 3b of `../2026-07-01-temporal-acquire-carry/` closed
-(PASS, or rate-only marginal FAIL after the TRT campaign). Runs on the 3a/3b rig; do it while
-the rig is warm.
+**Status:** DONE 2026-07-02T19:40Z — all three speeds FAIL; levers-on ceiling < 0.5 m/s (below
+Phase 1's oracle levers-off 1.0). See Results. Ran on the 3a rig (local-VLM path, local 3090 carry).
 
 ## Research question
 
@@ -54,15 +53,55 @@ DR diverges at 0.5 m/s): "Speed trial at <v> m/s failed via <mechanism>, but the
 predicts the ceiling is set by the REGROUND blind window. Symptom: <paste>. Rig bug or real
 finding?"`
 
-## Results (TBD)
+## Results (2026-07-02T19:40Z)
 
-| speed (m/s) | in-FOV | relock | DR gap drift (m) | verdict |
-|---|---|---|---|---|
-| 0.5 | | | | |
-| 1.0 | | | | |
-| 1.5 | | | | |
+Ran on the local-VLM path (Jetson acquire not booted; `phase3_sitl.py --speed <v>`, no
+`--remote-carry`), local 3090 carry @1024, one trial each. Gate (local path) = in-FOV ≥ 0.90 AND
+recovered_after_occlusion. Sweep runner: `run_e2.sh`. Raw per speed in `runs/speed-<v>/`.
 
-Ceiling moved: 1.0 (levers off, Phase 1) → **TBD** (levers on).
+| speed (m/s) | in-FOV | relock | DR fired | verdict | failure mode |
+|---|---|---|---|---|---|
+| 0.5 | 0.484 | none (`n_regrounds=0`) | no | **FAIL** | confident-latch under occlusion |
+| 1.0 | 0.076 | never locked (`first_lock=None`) | no | **FAIL** | initial acquire, car outruns lock |
+| 1.5 | 0.051 | never locked (`first_lock=None`) | no | **FAIL** | initial acquire, car outruns lock |
+
+**Ceiling moved: 1.0 (levers off, Phase 1, oracle box) → < 0.5 (levers on, real carry).** The
+levers do NOT lift the ceiling — they *can't*, because at every tested speed the binding constraint
+is something they don't touch:
+
+- **0.5 m/s — confident-latch (reproduced: trial-1 in-FOV 0.486, re-run 0.484).** Acquires at 5.0 s
+  and chases fine, then at the occlusion SAM2 latches the stationary bridge and returns a *confident,
+  centered* box instead of `None`. Both levers are gated on `out is None` (`phase3_sitl.py` DR block
+  + the LossGate REGROUND, lines 96–103, 223–234), so neither fires; the copter parks over the
+  occluder (px_err→0) while the rover drives away (gap 3→24 m). Phase 1's oracle box could never
+  produce this — the oracle always knew the car's position, so "loss" was always an honest `None`.
+- **1.0 & 1.5 m/s — never acquires.** The copter never leaves home (`copter_n=0.0` the whole trial);
+  the car exits the FOV at t≈6 s, before the ~5 s async VLM acquire + stale-box SAM2 init can form a
+  lock. Every subsequent re-acquire then sees only background and is rejected by the size prior
+  (31/32 attempts rejected). in-FOV collapses to ~0.05–0.08. This is the *acquire-latency vs target
+  speed* limit, not occlusion.
+
+### Estimate vs actual (a wrong estimate is content)
+
+| speed | estimate | actual |
+|---|---|---|
+| 0.5 | PASS comfortably (in-FOV ≥ 0.98) | **FAIL** 0.484 — confident-latch, unmodeled |
+| 1.0 | ~60% PASS (DR error over blind window) | **FAIL** 0.076 — never locks; DR blind window never reached |
+| 1.5 | likely FAIL (relock on a sliver) | **FAIL** 0.051 — but via initial acquire, not relock |
+
+The estimates assumed the REGROUND blind window Phase 1 named was the binding constraint at every
+speed. It is not: with real (not oracle) carry, two earlier failure modes bind first — confident
+carry-latch at 0.5, acquire-latency at ≥1.0 — so the levers, which target the blind window, are
+never the thing that decides the trial.
+
+## Fixability (not attempted here — measurement only)
+
+Both modes are addressable and neither needs the levers redesigned away: (1) confident-latch → the
+loss signal must include a *confidence/staleness* test, not just `box is None`, so a low-confidence
+or non-moving carry box triggers REGROUND; (2) acquire-latency → velocity-extrapolate the stale
+acquire box before prompting SAM2 (the `phase3_sitl.py:85` ponytail note already flags this), and/or
+hold the copter's last commanded chase velocity during the first acquire instead of freezing at
+home. Left for a follow-up campaign; recorded as the named next step, not silently.
 
 ## Definition of done
 
