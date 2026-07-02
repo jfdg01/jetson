@@ -302,6 +302,111 @@ carry zero-shot or trained; SAM2 or SOT), with what was given up.
   mechanism (REGROUND blind window, not first acquire) is the phase's main content. Ledgers
   appended (Part IV). Next: Phase 2 verdict when the 512 accuracy re-eval lands, then Phase 3
   pre-registration (integrated oracle→SAM2→real VLM; image_size choice hangs on the 512 verdict).
+- **2026-07-02T10:15Z — Phase 3 pre-registered (integrated end-to-end; RQ-T.4 + RQ-T.5).** Three
+  gated steps; a later one runs only if the earlier gate holds:
+  - **3.0 — streaming carry (`stream_carry.py`, NEW, the load-bearing piece):** a closed loop needs
+    frame-at-a-time carry, but `sam2==1.1.0` only ships whole-directory `propagate_in_video`.
+    Wrapper: subclass `SAM2VideoPredictor`; init from frame 0 + acquire box; `step(frame)` appends
+    the normalized frame (same square-resize + ImageNet mean/std as `_load_img_as_tensor`) to a
+    growing list behind `state["images"]`, bumps `num_frames`, and runs the batch path's own inner
+    step (`_run_single_frame_inference` → `_get_orig_video_res_output`); prunes non-cond memory
+    older than 100 frames (model attends to `num_maskmem`=7 recents + ≤16 obj-ptr frames, so
+    pruning is safe; unbounded state is what the fork ecosystem exists to fix).
+    **Gate: parity** — per-frame mask-box IoU vs batch propagate ≥ 0.99 on the M0205 100-frame
+    window (3090; same code path ⇒ ESTIMATE near-exact).
+  - **3a — SITL-integrated, host GPU + real Jetson acquire:** renderer `sitl_cam.py` (NEW): 640×480
+    synthetic nadir frame from SITL state — ground texture + top-down car sprite placed by the same
+    Phase B projection the oracle uses; occlusion = a drawn bridge strip fixed in world coords that
+    the car drives under at ~t=30 s. Loop: frame → streaming SAM2 (3090) → mask box → CascadePID →
+    MAVLink; ACQUIRE/REGROUND = **real llama-server call to the Jetson** (tunnel, deployed terse
+    config) — acquire latency becomes real, not injected. Pre-flight smoke: the VLM must ground
+    "the white car" on one rendered frame (fallback if synthetic sprite fails: paste a real
+    aerial car crop). Gate: RQ-T.5 end-to-end @ 0.25 m/s — in-FOV ≥ 0.90 + occlusion relock.
+  - **3b — on-device:** the loop runs on the Jetson (SAM2 @512 pending the accuracy verdict, VLM
+    co-resident per RQ-T.3), frames streamed from a host bridge (TCP JPEG), setpoints back to
+    host MAVLink. Needs a 512 co-residency FPS spot-check (Phase 2 measured co-residency @1024
+    only). Gate = **campaign success criterion**: ≥ 5 FPS control rate on-device, car stays in
+    frame across the occlusion.
+  **Estimates (ESTIMATE):** 3.0 parity ≥ 0.99 (same code path); VLM grounds the rendered scene
+  first try with a photo sprite ~60% (the known failure mode is synthetic-looking imagery);
+  3a in-FOV ≈ 1.0 at 0.25 m/s (real acquire wall ≈ the injected 4.1–4.6 s prior, which Phase 1
+  already passed); 3b control rate 8–12 FPS co-resident @512 → PASS vs the 5 FPS gate. Est.
+  effort: 3.0 ~1 h, 3a ~2–4 h (renderer + smoke dominate), 3b ~2–3 h.
+- **2026-07-02T10:30Z — Phase 3.0 DONE, parity gate PASS.** `stream_carry.py` on the M0205
+  100-frame window, stream vs batch: mean IoU **0.9974** (min 0.9485) @1024, **0.9968**
+  (min 0.9353) @512 — ≥0.99 gate holds at both operating points (not bit-exact: the live path
+  normalizes in fp32 vs the loader's fp64 round-trip; irrelevant at gate scale). Stream FPS on
+  the 3090 *while the 512 re-eval co-runs*: 18.2 @1024, 38.8 @512. One fix en route: `init_state`'s
+  loader is jpg-only, so frame-0 goes in as a symlink (parity) or a one-off q=95 jpg encode (live).
+  Next: 3a renderer (`sitl_cam.py`) + VLM smoke on a rendered frame.
+- **2026-07-02T10:35Z — Phase 2 verdict lands: 512 accuracy FAILS; 768 sweep opened.** The full
+  512 re-eval (3090, same VisDrone-SOT protocol/tracks as Phase 0): IoU@0.25 **0.737** vs Phase 0's
+  **0.849** @1024 (−11.2 pp; mean IoU 0.506 vs 0.62, ID-consistency 0.823 vs 0.891) — the 12.13 FPS
+  Jetson operating point costs too much accuracy to adopt blind. Neither pre-benched point passes
+  both RQ-T.2 gates (1024: accurate / 2.68 FPS; 512: 12.13 FPS / −11 pp), so the obvious middle is
+  measured before the verdict is written: full 768 accuracy eval on the 3090
+  (`carry_eval.py --image-size 768`, log `raw/phase2-carry-768.log`, out `runs/phase2-carry-768/`)
+  + Jetson FPS spot-check (`jetson_carry_bench.py --image-size 768 --tag solo-768`, same M0205
+  window). ESTIMATE: 768 Jetson FPS ~5-7 (between 2.68 and 12.13, compute ~quadratic in side);
+  accuracy between 0.74 and 0.85 — adopt 768 for 3b if ≥5 FPS and accuracy within ~5 pp of 1024.
+- **2026-07-02T10:35Z — Phase 3a pre-flight DONE: renderer + VLM smoke PASS (first try).**
+  `sitl_cam.py` (NEW): world-anchored ground texture (grass noise + N-S asphalt road) warped to the
+  640x480 frame by the exact Phase B affine (level nadir ⇒ ground-plane homography degenerates to
+  affine; corners via `world_to_px`, same `_ned2body` optics as the oracle), white top-down car
+  polygon at the rover NED, bridge strip drawn *after* the car = real visual occlusion. Selfcheck
+  asserts car pixels present/absent inside the oracle box across visible/occluded/after/yawed
+  frames (`raw/phase3a-rendercheck/*.png`). Smoke: Jetson Q8_0 terse grounds **"the white car"** on
+  the rendered frames — IoU vs oracle box **0.860** (nadir), 0.794 (offset), 0.475 (yaw 0.6 rad —
+  axis-aligned box on a rotated car; still a valid SAM2 prompt). Acquire wall **2.3–2.7 s** on
+  these 640x480 synthetic frames vs 4.1–4.6 s on 1024x540 AerialMind frames — smaller image, fewer
+  vision tokens; the Phase 1 injected prior was *conservative*. The pre-registered photo-sprite
+  fallback was not needed (estimate said ~60% chance the synthetic sprite works — it did).
+- **2026-07-02T10:36Z — Phase 3a run 1: gate FAIL (in-FOV 0.544) — two real failure modes, both
+  thesis content.** Full integrated trial @ 0.25 m/s (SITL copter + rendered nadir camera + Jetson
+  Q8_0 acquire + StreamCarry @1024 on the 3090): first lock at t=2.7 s (wall 2.3 s — matches the
+  smoke estimate), 2 acquire attempts, 1 reground, relock wall 2.36 s, px_err p50 8.6, control
+  12.1 Hz, carry 12.0 FPS — every *component* number passes. The trial still fails because:
+  **(1) REGROUND fired during the occlusion and the VLM locked a white road dash** — with the car
+  fully hidden, "the white car" returns the most car-like visible object, a centreline dash
+  (world-stationary), SAM2 carries it faithfully, and the PID parks the copter over road markings
+  while the real car drives away (`raw/phase3a-sitl-run1/t37.3.png` = green box on the dash).
+  **(2) Partial-ingress lag:** at 0.25 m/s the car takes 16 s to slide under the bridge (nose in at
+  t≈14, fully hidden t≈30); SAM2 legitimately tracks the shrinking rear sliver, the box centroid
+  stays at the bridge edge, and the copter is 2.2 m behind the car when it goes fully blind.
+  Artifacts preserved: `raw/phase3a-sitl-run1/` (CSV, mp4, SITL log, diagnostic frames),
+  `runs/phase3a-sitl-run1/`. Verdict: the ACQUIRE→CARRY→REGROUND *mechanics* work end-to-end;
+  what run 1 falsifies is **unvalidated reground** — a VLM asked to find an occluded object
+  hallucinates a plausible box, so the architecture needs an accept/reject step on acquire.
+- **2026-07-02T10:36Z — Phase 3a run 2 pre-registration.** Three fixes, all levers already
+  identified in Phase 1, now implemented in `phase3_sitl.py` (selfcheck PASS incl. a
+  rejected-acquire case):
+  1. **Acquire validation (size prior):** reject a box whose width/height ratio vs the expected
+     pixel size from known altitude (`FOCAL_PX·TARGET_{WID,LEN}_M/alt`) falls outside [0.5, 2.0].
+     The run-1 dash box was ~3x too narrow — this rejects it and keeps REGROUND polling.
+  2. **Dead-reckoning while blind:** track the target's world position from the box's SOUTH edge
+     (the car rear stays visible through the 16 s ingress, so its motion is the true car velocity,
+     unlike the sliver centroid), keep a 48-sample (t, n, e) deque, and while blind command the
+     last estimated target velocity (clipped ±1.5 m/s) instead of hovering.
+  3. **Time-based loss gate:** `LOSS_S = 3.0 s` replaces the 60-frame gate (at the achieved
+     12.1 Hz that was ~5 s, misaligned with the Phase 1 3 s prior).
+  Same command (`.venv-ft/bin/python experiments/2026-07-01-temporal-acquire-carry/phase3_sitl.py`),
+  same seed/scenario, ~8 min wall. **ESTIMATE:** partial-egress rejections continue until the car
+  nose clears ~2 m past the bridge (~t≈45), dead-reckoning holds the copter within ~1 m of the car
+  through the blind window → in-FOV ≈ 0.95–1.0 and relock after occlusion → **PASS, but marginal**;
+  if it fails, expect the residual mode to be relock-on-sliver at partial egress.
+- **2026-07-02T10:41Z — Phase 3a run 2: gate PASS (in-FOV 1.000, recovered after occlusion).**
+  Same scenario, fixes in: lock @ t=2.65 s (wall 2.3 s), **7 acquire attempts / 5 rejected** by the
+  size prior (the run-1 dash and the partial-sliver boxes — the validation lever is what flipped the
+  verdict), 1 reground, relock wall 13.9 s (loss gate fired t=32.5, relock t=46.4 — right at the
+  pre-registered ~t≈45: rejections correctly continue until the car nose clears the bridge), px_err
+  mean 16.2 (up from run 1's 8.6 — the dead-reckon + relock transient), control 14.5 Hz, carry
+  13.6 FPS @1024 on the 3090 (768 accuracy eval co-running). CSV forensics: dead-reckoning held the
+  copter–car north-gap at **2.21 → 2.22 m (max 2.24 m)** across the whole 13.9 s blind window,
+  commanded velocity mean 0.25 m/s = the true car speed — the blind-creep estimate ("within ~1 m of
+  the *lag it entered with*") was right in mechanism, and the entry lag itself is the ingress-sliver
+  residual noted in run 1. Artifacts: `raw/phase3a-sitl/` (CSV, mp4, SITL log),
+  `raw/phase3a-sitl-run2.log`, `runs/phase3a-sitl/results.json`. **RQ-T.5 @ 0.25 m/s: PASS.**
+  Remaining for the campaign criterion: 3b on-device (Jetson loop at the Phase 2 operating point).
 - **Open decisions still pending:** (1) SAM2 variant — SAM2.1-tiny vs EdgeTAM vs EfficientTAM (decide
   on Jetson FPS, Phase 2); (2) TensorRT vs ONNX for the carry export (shared with the bake-off's C/D
   question); (3) Part assignment — this seeds the "v5 temporal" line but is left under Part IV
