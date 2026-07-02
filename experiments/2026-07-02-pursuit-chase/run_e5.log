@@ -1,0 +1,94 @@
+=========== E5 /home/gara/jetson/experiments/2026-07-02-pursuit-chase/runs/p-0.5  speed=0.5  --loss-gate motion --dr pursuit ===========
+[3] booting Jetson q8_0 server...
+[offboard] connecting to tcp:127.0.0.1:5760 ...
+[offboard] heartbeat  type=2  autopilot=3  target_sys=1
+[offboard] priming GCS link (3 heartbeats) ...
+[offboard] data stream requested
+[offboard] requesting mode GUIDED (id=4) ...
+[offboard] mode GUIDED confirmed
+[offboard] param ARMING_CHECK = 0
+[offboard] waiting for EKF position estimate ...
+[offboard] EKF ready  flags=0x33F  vel_horiz=0.00  pos_horiz=0.01
+[offboard] arming ...
+[offboard] arm ACK result=0
+[offboard] armed
+[offboard] climbing to 10.0 m ...
+[offboard] at altitude  z=-8.6 m NED
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 69.47it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 70.39it/s]
+[0.5 m/s] in_fov=1.000 lock@5.06s attempts=6 regrounds=1 relock=[9.32] px_err=29.7 hz=19.4 carry_fps=20.4
+[offboard] landing ...
+[offboard] requesting mode LAND (id=9) ...
+[offboard] mode LAND confirmed
+[offboard] disarmed — landed
+{
+  "trial": {
+    "speed_ms": 0.5,
+    "image_size": 1024,
+    "n_frames": 1457,
+    "achieved_hz": 19.4,
+    "carry_fps": 20.4,
+    "in_fov_frac": 1.0,
+    "first_lock_s": 5.06,
+    "n_acquire_attempts": 6,
+    "n_rejected_acquires": 4,
+    "n_regrounds": 1,
+    "relock_walls_s": [
+      9.32
+    ],
+    "carry_px_err_mean": 29.7,
+    "carry_frames": 1110,
+    "recovered_after_occlusion": true
+  },
+  "gate_speed_ms": 0.5,
+  "gate": "PASS"
+}
+--- snapshot -> /home/gara/jetson/experiments/2026-07-02-pursuit-chase/runs/p-0.5 ---
+=========== E5 /home/gara/jetson/experiments/2026-07-02-pursuit-chase/runs/p-1.0  speed=1.0  --loss-gate motion --dr pursuit ===========
+[3] booting Jetson q8_0 server...
+[offboard] connecting to tcp:127.0.0.1:5760 ...
+[offboard] heartbeat  type=2  autopilot=3  target_sys=1
+[offboard] priming GCS link (3 heartbeats) ...
+[offboard] data stream requested
+[offboard] requesting mode GUIDED (id=4) ...
+[offboard] mode GUIDED confirmed
+[offboard] param ARMING_CHECK = 0
+[offboard] waiting for EKF position estimate ...
+[offboard] EKF ready  flags=0x33F  vel_horiz=0.00  pos_horiz=0.01
+[offboard] arming ...
+[offboard] arm ACK result=0
+[offboard] armed
+[offboard] climbing to 10.0 m ...
+[offboard] at altitude  z=-8.6 m NED
+[1.0 m/s] in_fov=0.076 lock@Nones attempts=32 regrounds=0 relock=[] px_err=None hz=20.0 carry_fps=None
+[offboard] landing ...
+[offboard] requesting mode LAND (id=9) ...
+[offboard] mode LAND confirmed
+[offboard] disarmed — landed
+{
+  "trial": {
+    "speed_ms": 1.0,
+    "image_size": 1024,
+    "n_frames": 1498,
+    "achieved_hz": 20.0,
+    "carry_fps": null,
+    "in_fov_frac": 0.0761,
+    "first_lock_s": null,
+    "n_acquire_attempts": 32,
+    "n_rejected_acquires": 31,
+    "n_regrounds": 0,
+    "relock_walls_s": [],
+    "carry_px_err_mean": null,
+    "carry_frames": 0,
+    "recovered_after_occlusion": false
+  },
+  "gate_speed_ms": 1.0,
+  "gate": "FAIL"
+}
+--- snapshot -> /home/gara/jetson/experiments/2026-07-02-pursuit-chase/runs/p-1.0 ---
+=========== E5 /home/gara/jetson/experiments/2026-07-02-pursuit-chase/runs/p-1.5  speed=1.5  --loss-gate motion --dr pursuit ===========
+[3] booting Jetson q8_0 server...

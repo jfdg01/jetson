@@ -50,11 +50,47 @@ DURATION_S = 75.0
 CONTROL_HZ = 20
 
 
+def pursuit_vel(hist_last, v_est, t, copter_ne, kp=0.5, vmax=2.5):
+    """E5 blind chase: command the estimated target velocity PLUS a
+    proportional pull toward the target's dead-reckoned position, so an
+    accrued deficit closes instead of freezing. Velocity-only DR (E2/E4)
+    matches speed at best: the ~5 s first-acquire hover deficit (5 m at
+    1.0 m/s) is carried forever and velocity-estimate errors compound
+    unchecked (E4 ladder-1.0: 0.39 m/s lateral error -> 11 m off-road)."""
+    tl, pn, pe = hist_last
+    vn, ve = v_est
+    en = pn + vn * (t - tl) - copter_ne[0]
+    ee = pe + ve * (t - tl) - copter_ne[1]
+    vn, ve = vn + kp * en, ve + kp * ee
+    m = math.hypot(vn, ve)
+    if m > vmax:
+        vn, ve = vn * vmax / m, ve * vmax / m
+    return vn, ve
+
+
+def gate_box(box, score, mode: str, tau: float, motion_stale: bool):
+    """E4 loss gate: demote a carry box to None when it can't be trusted, so the
+    existing LossGate/DR/REGROUND machinery fires on a confident-but-wrong box
+    (E2's occluder latch) exactly as it does on an honest loss.
+
+    score: SAM2.1 object-score logit (None on the remote-carry path -> score
+    mode is inert there). motion_stale: loop-computed 'estimated target has
+    been static too long' flag (mode == motion)."""
+    if box is None:
+        return None
+    if mode == "score" and score is not None and score < tau:
+        return None
+    if mode == "motion" and motion_stale:
+        return None
+    return box
+
+
 class AcquireCarrySM:
     """ACQUIRE -> CARRY -> (loss gate) -> REGROUND over injected real components.
 
-    submit(frame_bgr) -> Future[(box|None, wall_s)]; make_carry(frame_bgr, box)
-    -> obj whose .step(frame_bgr) returns box|None; validate(box) -> bool rejects
+    submit(frame_bgr) -> Future[(box|None, wall_s)]; make_carry(submit_frame,
+    box, t_submit) -> obj whose .step(frame_bgr) returns box|None (the frame is
+    the one the box was computed on, E4); validate(box) -> bool rejects
     implausible acquire boxes (run 1: the VLM boxed a white road dash while the
     car was under the bridge). step() returns the box the controller may act on
     (None while blind).
@@ -64,6 +100,7 @@ class AcquireCarrySM:
         self.submit, self.make_carry, self.validate = submit, make_carry, validate
         self.loss_s = loss_s
         self.state, self.fut, self.carry = "ACQUIRE", None, None
+        self._submit_frame, self._submit_t = None, None
         self.last_seen: float | None = None
         self.n_attempts = self.n_regrounds = self.n_rejected = 0
         self.first_lock_t: float | None = None
@@ -74,6 +111,10 @@ class AcquireCarrySM:
         if self.state != "CARRY":
             if self.fut is None:
                 self.fut = self.submit(frame_bgr)
+                # keep the submitted frame: the VLM box is valid on THIS frame,
+                # so carry must be initialized on it, not on the ~2.5-5s-later
+                # frame where the box no longer overlaps a moving target (E4)
+                self._submit_frame, self._submit_t = frame_bgr.copy(), t
                 self.n_attempts += 1
             elif self.fut.done():
                 box, _ = self.fut.result()
@@ -82,10 +123,8 @@ class AcquireCarrySM:
                     self.n_rejected += 1
                     box = None  # implausible acquire -> treat as failed, relaunch
                 if box is not None:
-                    # ponytail: prompt SAM2 on the CURRENT frame with the ~2.5s-stale
-                    # acquire box (~35 px drift at 0.25 m/s); velocity-extrapolate the
-                    # box if faster gate speeds ever matter
-                    self.carry = self.make_carry(frame_bgr, box)
+                    self.carry = self.make_carry(self._submit_frame, box,
+                                                 self._submit_t)
                     self.last_seen = t
                     if self.first_lock_t is None:
                         self.first_lock_t = t
@@ -104,7 +143,9 @@ class AcquireCarrySM:
 
 
 def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
-              carry_conn=None, twin: str | None = None) -> dict:
+              carry_conn=None, twin: str | None = None,
+              loss_gate: str = "none", score_tau: float = 0.0,
+              dr: str = "velocity") -> dict:
     """One 75 s follow trial at SPEED. Orchestration mirrors phase1_sitl.run_trial;
     the oracle box is kept for the in-FOV metric only -- control sees pixels.
     carry_conn set (3b): CARRY steps go to jetson_carry_service over the tunnel."""
@@ -136,16 +177,34 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
             carry_conn.send({"cmd": "step", "jpg": jpg(f)})
             return carry_conn.recv()["box"]
 
-        def make_carry(frame_bgr, box):
+        def make_carry(frame_bgr, box, t_submit):
+            # ponytail: no catch-up replay / score gate on the 3b remote path --
+            # E4 runs the local rig; port both when 3b re-gates
             carry_conn.send({"cmd": "init", "jpg": jpg(frame_bgr), "box": list(box)})
             carry_conn.recv()
             return SimpleNamespace(step=_remote_step)
     else:
         from stream_carry import StreamCarry
 
-        def make_carry(frame_bgr, box):
+        def make_carry(frame_bgr, box, t_submit):
             sc = StreamCarry(predictor, rgb(frame_bgr), box)
-            return SimpleNamespace(step=lambda f: sc.step(rgb(f))[1])
+            # E4 catch-up: carry is initialized on the (stale) submit frame,
+            # where the VLM box is true; replay the frames buffered since, so
+            # the track is current when the loop resumes AND hist gets the
+            # target's gap trajectory (seeds DR with a real velocity, so a
+            # target that outran the FOV during acquire can be chased blind)
+            for tb, fb, cn, yawb in [e for e in acq_buf if e[0] > t_submit]:
+                b = sc.step(rgb(fb))[1]
+                if b is not None:
+                    hist.append((tb, *box_to_world(b, cn, yawb)))
+            motion_stale[0] = False
+
+            def step(f):
+                b = sc.step(rgb(f))[1]
+                score_cell[0] = sc.last_score
+                return gate_box(b, sc.last_score, loss_gate, score_tau,
+                                motion_stale[0])
+            return SimpleNamespace(step=step)
 
     def validate(box):
         # size prior from known altitude: reject acquire boxes that can't be the
@@ -155,6 +214,26 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
         rw = (box[2] - box[0]) / (FOCAL_PX * TARGET_WID_M / alt)
         rh = (box[3] - box[1]) / (FOCAL_PX * TARGET_LEN_M / alt)
         return 0.5 <= rw <= 2.0 and 0.5 <= rh <= 2.0
+
+    def box_to_world(box, cop_ned, yaw):
+        # target world position from the box's SOUTH edge (car rear): it stays
+        # visible during bridge ingress, so its velocity is the true car velocity
+        # even while the visible sliver shrinks (run-1 lag fix)
+        s = FOCAL_PX / max(1.0, -cop_ned[2])
+        a = ((box[0] + box[2]) / 2 - IMG_W / 2) / s
+        b = -(box[3] - IMG_H / 2) / s
+        yc, ys = math.cos(yaw), math.sin(yaw)
+        return cop_ned[0] + b * yc - a * ys, cop_ned[1] + a * yc + b * ys
+
+    def hist_vel():
+        if len(hist) < 2 or hist[-1][0] - hist[0][0] <= 0.5:
+            return None
+        dt = hist[-1][0] - hist[0][0]
+        # was 1.5, saturated at the 1.5 m/s trial speed (E2); raised so DR
+        # can track the top test speed instead of clamping exactly when needed
+        vn = max(-2.5, min(2.5, (hist[-1][1] - hist[0][1]) / dt))
+        ve = max(-2.5, min(2.5, (hist[-1][2] - hist[0][2]) / dt))
+        return vn, ve
 
     sm = AcquireCarrySM(submit, make_carry, validate)
 
@@ -196,12 +275,16 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
     w.writerow(["t_s", "state", "copter_n", "copter_e", "copter_d",
                 "rover_n", "rover_e", "in_fov", "occluded",
                 "bbox_cx", "bbox_cy", "px_err", "vx_cmd", "vy_cmd", "loop_ms",
-                "dist_n", "dist_e", "d_true_px", "d_dist_px"])
+                "dist_n", "dist_e", "d_true_px", "d_dist_px", "carry_score"])
     vid = cv2.VideoWriter(str(raw_dir / f"trial-{SPEED}ms.mp4"),
                           cv2.VideoWriter_fourcc(*"mp4v"), CONTROL_HZ, (IMG_W, IMG_H))
 
     from collections import deque
     hist: deque = deque(maxlen=48)  # (t, target_n, target_e) over ~2-4 s
+    acq_buf: deque = deque(maxlen=24)  # (t, frame, copter_ned, yaw) @0.5 s while not CARRY (E4 catch-up)
+    score_cell = [None]      # SAM2 object-score logit of the last carry step (local path)
+    motion_stale = [False]   # motion loss-gate latch; reset on each (re)lock
+    stale_t0 = None
     n_frames = in_fov_frames = 0
     carry_errs: list[float] = []
     carry_step_s: list[float] = []
@@ -216,6 +299,8 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
             dnd = distractor(t) if distractor else None
             copter_ned, attitude = pb._drain_telemetry(ctrl, copter_ned, attitude)
             frame = cam.render(copter_ned, attitude[2], rover_ned, dnd)
+            if sm.state != "CARRY" and n_frames % 10 == 0:  # E4: catch-up buffer
+                acq_buf.append((t, frame.copy(), copter_ned, attitude[2]))
 
             was_carry = sm.state == "CARRY"
             t_sm = time.monotonic()
@@ -227,24 +312,29 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
             if box is not None:
                 out = {"cx": (box[0] + box[2]) / 2, "cy": (box[1] + box[3]) / 2,
                        "w": box[2] - box[0], "h": box[3] - box[1]}
-                # target world position from the box's SOUTH edge (car rear): it
-                # stays visible during bridge ingress, so its velocity is the true
-                # car velocity even while the visible sliver shrinks (run-1 lag fix)
-                s = FOCAL_PX / max(1.0, -copter_ned[2])
-                a = (out["cx"] - IMG_W / 2) / s
-                b = -(box[3] - IMG_H / 2) / s
-                yc, ys = math.cos(attitude[2]), math.sin(attitude[2])
-                hist.append((t, copter_ned[0] + b * yc - a * ys,
-                             copter_ned[1] + a * yc + b * ys))
+                hist.append((t, *box_to_world(box, copter_ned, attitude[2])))
+            if loss_gate == "motion" and sm.state == "CARRY" and out is not None:
+                # E4 motion gate: we were tracking a mover; a box whose estimated
+                # world position sits still > 2 s is an occluder latch -> distrust
+                # it from the next step on (gate_box), LossGate/REGROUND take over.
+                # ponytail: a target that legitimately parks also trips this;
+                # REGROUND re-locks a visible parked car, cost = one reground
+                v = hist_vel()
+                if v is not None and math.hypot(*v) < 0.1:
+                    stale_t0 = t if stale_t0 is None else stale_t0
+                    if t - stale_t0 > 2.0:
+                        motion_stale[0] = True
+                else:
+                    stale_t0 = None
             sp = pid.compute(out)
-            if out is None and len(hist) >= 2 and hist[-1][0] - hist[0][0] > 0.5:
+            v_blind = hist_vel() if out is None else None
+            if v_blind is not None:
                 # ponytail: blind -> dead-reckon at the last estimated target
                 # velocity instead of hovering (Phase 1's identified lever)
-                dt = hist[-1][0] - hist[0][0]
-                # was 1.5, saturated at the 1.5 m/s trial speed (E2); raised so DR
-                # can track the top test speed instead of clamping exactly when needed
-                vn = max(-2.5, min(2.5, (hist[-1][1] - hist[0][1]) / dt))
-                ve = max(-2.5, min(2.5, (hist[-1][2] - hist[0][2]) / dt))
+                vn, ve = v_blind
+                if dr == "pursuit":  # E5: also close the gap, don't just match speed
+                    vn, ve = pursuit_vel(hist[-1], (vn, ve), t,
+                                         (copter_ned[0], copter_ned[1]))
                 yc, ys = math.cos(attitude[2]), math.sin(attitude[2])
                 sp = {"vx": vn * yc + ve * ys, "vy": -vn * ys + ve * yc,
                       "vz": 0.0, "yaw_rate": 0.0}
@@ -284,7 +374,9 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                         round(px_err, 1) if px_err is not None else "",
                         round(sp["vx"], 3), round(sp["vy"], 3), round(loop_ms, 1),
                         round(dnd[0], 2) if dnd else "", round(dnd[1], 2) if dnd else "",
-                        d_true_px, d_dist_px])
+                        d_true_px, d_dist_px,
+                        round(score_cell[0], 3)
+                        if was_carry and score_cell[0] is not None else ""])
             if box is not None:
                 cv2.rectangle(frame, (int(box[0]), int(box[1])),
                               (int(box[2]), int(box[3])), (40, 200, 80), 2)
@@ -364,21 +456,23 @@ def selfcheck() -> None:
         return fut
 
     lives = {"n": 0}
+    carried: list[int] = []  # pixel value of the frame handed to make_carry
 
-    def make_carry(_frame, _box):
+    def make_carry(frame, _box, _t):
         lives["n"] = 5
+        carried.append(int(frame[0, 0, 0]))
         return SimpleNamespace(step=lambda f: (100, 100, 200, 200)
                                if (lives.__setitem__("n", lives["n"] - 1) or lives["n"] >= 0)
                                else None)
 
     sm = AcquireCarrySM(submit, make_carry,
                         validate=lambda b: b[2] - b[0] > 5, loss_s=3.0)
-    frame = np.zeros((4, 4, 3), np.uint8)
     log = []
     for k in range(30):
         if pending and k in (2, 15, 20):      # acquire returns on these ticks
             box = (0, 0, 3, 3) if k == 15 else (0, 0, 10, 10)  # 15 = too small
             pending.pop(0).set_result((box, 2.5))
+        frame = np.full((4, 4, 3), k, np.uint8)  # tick-stamped: E4 identity check
         box = sm.step(float(k), frame)
         log.append((k, sm.state, box is not None))
     states = [s for _, s, _ in log]
@@ -387,7 +481,25 @@ def selfcheck() -> None:
     assert sm.n_rejected == 1, log           # bad box @15 rejected, resubmit
     assert sm.relock_walls == [10.0], log    # fired@10, relocked@20
     assert sm.n_regrounds == 2 and states[-1] == "REGROUND", log  # re-lost @28
-    print("selfcheck PASS  acquire->carry->gate->reground->relock")
+    # E4: carry must be initialized on the SUBMIT-tick frame (0, 16), not the
+    # resolve-tick frame (2, 20) -- the VLM box is only true on the former
+    assert carried == [0, 16], (carried, log)
+    b = (0, 0, 10, 10)
+    assert gate_box(b, -1.0, "score", 0.0, False) is None   # low score -> loss
+    assert gate_box(b, 1.0, "score", 0.0, False) is b
+    assert gate_box(b, None, "score", 0.0, False) is b      # remote path inert
+    assert gate_box(b, 1.0, "motion", 0.0, True) is None    # stale flag -> loss
+    assert gate_box(None, 5.0, "none", 0.0, False) is None
+    # E5 pursuit_vel truth table: copter ON the predicted position -> pure
+    # velocity match; 4 m deficit north -> vn = 1 + 0.5*4 = 3 -> clamped to
+    # 2.5 total; lateral error pulls back with the correct sign
+    assert pursuit_vel((10.0, 5.0, 0.0), (1.0, 0.0), 12.0, (7.0, 0.0)) == (1.0, 0.0)
+    v = pursuit_vel((10.0, 5.0, 0.0), (1.0, 0.0), 12.0, (3.0, 0.0))
+    assert v == (2.5, 0.0), v
+    vn, ve = pursuit_vel((10.0, 5.0, 0.0), (1.0, 0.0), 12.0, (7.0, 2.0))
+    assert vn == 1.0 and ve == -1.0, (vn, ve)
+    print("selfcheck PASS  acquire->carry->gate->reground->relock + E4 submit-frame/gate_box"
+          " + E5 pursuit_vel")
 
 
 def main() -> None:
@@ -402,6 +514,15 @@ def main() -> None:
                     help="E2: rover north speed m/s (bridge auto-scales via the SPEED closure)")
     ap.add_argument("--twin", choices=["crossing", "decoy"], default=None,
                     help="E3: add an identical distractor car (crossing | decoy)")
+    ap.add_argument("--loss-gate", choices=["none", "score", "motion"], default="none",
+                    help="E4: demote untrusted carry boxes to loss so REGROUND "
+                         "fires on a confident-but-wrong box (E2 occluder latch)")
+    ap.add_argument("--score-tau", type=float, default=0.0,
+                    help="E4: SAM2 object-score logit threshold (loss-gate=score)")
+    ap.add_argument("--dr", choices=["velocity", "pursuit"], default="velocity",
+                    help="E5: blind dead-reckoning mode -- velocity (E2/E4 "
+                         "baseline: match estimated speed) or pursuit (also "
+                         "close toward the dead-reckoned position, 2.5 m/s cap)")
     args = ap.parse_args()
     if args.selfcheck:
         selfcheck()
@@ -478,7 +599,9 @@ def main() -> None:
         ctrl = OffboardController(f"tcp:127.0.0.1:{pb.COPTER_PORT}")
         ctrl.connect_and_takeoff(target_alt_m=pb.TAKEOFF_ALT_M)
         trial = run_trial(pb, ctrl, be, predictor, raw_dir, args.image_size,
-                          carry_conn=carry_conn, twin=args.twin)
+                          carry_conn=carry_conn, twin=args.twin,
+                          loss_gate=args.loss_gate, score_tau=args.score_tau,
+                          dr=args.dr)
         ctrl.land_and_disarm()
         ctrl.close()
     finally:
@@ -508,6 +631,8 @@ def main() -> None:
            "image_size": args.image_size, "sam2": MODEL,
            "validate": "sizeprior-0.5-2.0", "deadreckon": True,
            "twin": args.twin,
+           "loss_gate": args.loss_gate, "score_tau": args.score_tau,
+           "dr": args.dr, "catchup_replay": True,
            "carry": "jetson-remote" if args.remote_carry else "host-3090"}
     out_dir = HERE / "runs" / phase
     write_manifest(capture(f"{phase}-integrated", cfg),

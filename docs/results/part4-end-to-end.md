@@ -168,3 +168,64 @@ rest (n=139, density 2.98) **0.846** / **0.890** — heavy is marginally *better
 NOT the estimated 2-8 pp worse. Scene density alone does not hurt zero-shot carry; the S2 failure
 needs occlusion + a same-appearance in-lane decoy during REGROUND. Raw:
 `experiments/2026-07-02-twin-distractor/runs/{s1-crossing,s2-decoy-run{1,2,3}}/`.
+
+### 2026-07-02 — E4 follow hardening: two E2 binding-mode fixes ([`experiments/2026-07-02-follow-hardening/`](../../experiments/2026-07-02-follow-hardening/README.md))
+
+Same rig as E2 (local-VLM path, 3090 carry @1024, gate = in-FOV ≥ 0.90 AND recovered). Two fixes
+vs E2: **Fix B** (always-on) inits carry on the acquire *submit* frame + replays the buffered gap;
+**Fix A** a trust-aware loss gate demoting an untrusted carry box to `None` so the existing
+REGROUND machinery fires (flag `--loss-gate {none,score,motion}`).
+
+**Stage 1 — gate selection @ 0.5 m/s (the E2 confident-latch speed):**
+
+| gate | in-FOV | n_regrounds | relock (s) | recovered | verdict |
+|---|---|---|---|---|---|
+| none | 1.000 | 1 | 9.43 | true | **PASS** — control; Fix B alone recovered 0.5 (E2 was FAIL 0.484) |
+| score | 1.000 | 1 | — | false | **FAIL** — over-fires, relock never confirmed |
+| motion | 1.000 | 1 | 9.32 | true | **PASS** — behaves as `none`, gate inert |
+
+`score` diagnostic: SAM2 `object_score_logits` separates occlusion cleanly (occluded mean −3.23 vs
+clear +8.61) but the clear tail dips to −3.94, so at tau=0 it demotes good boxes on clean-track
+noise → relock never confirmed. Signal real, threshold over-fires. Chosen gate (mechanical rule):
+**motion** — but note the loss gate was **not the operative fix at 0.5**; Fix B was (`none` passes).
+
+**Stage 2 — speed ladder, motion gate:**
+
+| speed (m/s) | in-FOV | first lock | n_regrounds | recovered | verdict | E2 was |
+|---|---|---|---|---|---|---|
+| 0.5 | 1.000 | 4.96 s | 1 | true | **PASS** | FAIL 0.484 |
+| 1.0 | 0.073 | 5.01 s | 4 | true | **FAIL** | FAIL 0.076 |
+| 1.5 | 0.051 | never | 0 | false | **FAIL** | FAIL 0.051 |
+
+**Ceiling: `< 0.5` (E2) → 0.5 (E4).** Fix B lifts 0.5 from FAIL to PASS by landing the initial lock
+on the true car instead of the stale box. 1.0/1.5 stay pinned to the E2 floor: 1.0 locks (5.01 s)
+and regrounds 4× but in-FOV 0.073 — the car escapes during the ~5 s **first-acquire hover** before
+any lock exists to seed the replay/DR; 1.5 never locks. First-acquire hover is the remaining
+ceiling, deliberately out of E4 scope. Replay-stall watch item bounded (max loop_ms ~0.6 s). Raw:
+`experiments/2026-07-02-follow-hardening/runs/{s1-none,s1-score,s1-motion,ladder-1.0,ladder-1.5}/`.
+
+### 2026-07-03 — E5 pursuit-chase ([`experiments/2026-07-02-pursuit-chase/`](../../experiments/2026-07-02-pursuit-chase/README.md))
+
+Config: `local-VLM, 3090 carry @1024, loss-gate motion, dr pursuit, 75 s`. Pursuit DR replaces
+velocity-matching with position-seeking (`v_est + 0.5·(dead-reckoned pos − copter pos)`, 2.5 m/s
+cap) on the blind branch. Baselines are the E4 Stage-2 `--dr velocity` rows above (not re-run).
+
+| run | speed | in-FOV | first lock | n_regrounds | relock (s) | recovered | verdict | E4 (velocity) was |
+|---|---|---|---|---|---|---|---|---|
+| p-0.5 | 0.5 | 1.000 | 5.06 s | 1 | 9.32 | true | **PASS** | PASS 1.000 |
+| p-1.0 | 1.0 | 0.076 | never | 0 | — | false | **FAIL** | FAIL 0.073 |
+| p-1.5 | 1.5 | 0.051 | never | 0 | — | false | **FAIL** | FAIL 0.051 |
+| p-1.5b | 1.5 | 0.927 | 4.66 s | 2 | 6.89, 6.92 | true | **PASS** | — |
+
+**RQ-E5 = NO. Ceiling unchanged at 0.5 m/s.** p-0.5 held 1.000 (pursuit near-inert at small
+deficit — not a regression). The high-speed failures were **acquire failures, not pursuit
+failures**: p-1.0 and p-1.5 both `first_lock = None` (32 attempts, 31 rejected, zero locks), so
+`hist` never seeded and pursuit never engaged (empty history → ACQUIRE hover). p-1.0 could not test
+pursuit at all this run because 1.0 happened to never lock (E4's 1.0 *did* lock @5.01 s) — the
+stochastic first-acquire rejection now biting at both high speeds. **p-1.5b is the one clean pursuit
+test and it PASSes**: identical config to p-1.5 but its t=0 submit-frame attempt was accepted (lock
+@4.66 s), and pursuit then held 0.927 in-FOV through 2 regrounds/relocks — overturning E4's "1.5
+never acquires". So **1.5 = SPLIT (stochastic)**; pursuit holds 1.5 m/s once seeded, but the binding
+constraint is the acquire lottery, which pursuit cannot touch. p-1.0 diag: car in-FOV t=0–5.66 s,
+exits t=5.71 s at gap 6.14 m, never re-enters (gap → 75.4 m). Raw:
+`experiments/2026-07-02-pursuit-chase/runs/{p-0.5,p-1.0,p-1.5,p-1.5b}/`.
