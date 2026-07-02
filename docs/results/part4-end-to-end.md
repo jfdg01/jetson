@@ -85,3 +85,21 @@ acquire, 5 s bridge occlusion @ t≈30 s, rover 0.25 m/s north, 75 s.
 3b rate: whole-trial 7.6 Hz is inflated by blind phases; carry-phase 4.1 FPS = Jetson 204.6 ms/step
 + ~40 ms JPEG/tunnel (est. 4.5–4.8 — wire overhead underestimated). Dead-reckoning held the
 copter-target gap at ~2.2 m across the 13.9 s blind window (3a-2 CSV forensics).
+
+### 2026-07-02 — E1 Carry TensorRT encoder export ([`experiments/2026-07-02-carry-trt-export/`](../../experiments/2026-07-02-carry-trt-export/README.md))
+
+SAM2.1-tiny image encoder → ONNX (opset 17, fixed 1×3×768×768) → TensorRT fp16 engine
+(`trtexec --fp16`, median GPU compute 65.1 ms). Memory attention + the two high-res 1×1 convs
+stay PyTorch; encoder swapped via one `forward_image` monkeypatch (`--trt-encoder`). Bench =
+M0205 100-frame window, box 496,69,577,110, Jetson 15 W + jetson_clocks.
+
+| Run | size | FPS solo | FPS co-res (VLM Q8_0) | p50 ms | RAM | IoU@0.25 / mean (M0205) | verdict |
+|---|---|---|---|---|---|---|---|
+| eager baseline | 768 | 4.89 | 4.89 | 204.6 | 612 MB | 1.000 / 0.821 | reference |
+| TRT fp16 encoder | 768 | 6.15 | **6.15** | 162.4 | 4980/7607 MB (w/ VLM) | **1.000 / 0.826** | **PASS (≥5)** |
+
+Host parity (fp32 ONNX vs eager): max-abs-diff 3.1e-04 (<1e-2), end-to-end mask IoU 1.000. On-device
+fp16 vs eager: IoU@0.25 Δ 0.00 pp, mean IoU +0.006 (fp16 does not degrade — marginally higher). Per-frame
+saving ~42 ms not the estimated ~75 ms (retained memory-attention + TRT stream sync); co-residency
+cost 0 FPS (confirms parent RQ-T.3). EdgeTAM fallback not needed. Raw:
+`experiments/2026-07-02-carry-trt-export/{raw,runs}/`.

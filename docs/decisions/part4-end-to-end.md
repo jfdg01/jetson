@@ -87,3 +87,22 @@
   existing JetsonBackend against the same Jetson llama-server) — compute placement identical,
   deviation and rationale in the campaign README.
 - → [`experiments/2026-07-01-temporal-acquire-carry/`](../../experiments/2026-07-01-temporal-acquire-carry/README.md)
+
+### 2026-07-02 — E1: carry tracker variant + encoder export path ([`experiments/2026-07-02-carry-trt-export/`](../../experiments/2026-07-02-carry-trt-export/README.md))
+
+- **Decision #1 (tracker variant): keep SAM2.1-hiera-tiny.** EdgeTAM fallback not needed — the
+  TensorRT fp16 encoder cleared the ≥5 FPS gate at OP=768 (6.15 co-resident), so the accuracy risk
+  of swapping trackers was not worth taking.
+- **Decision #2 (encoder export path): TensorRT fp16, encoder-only.** Export the ViT-Hiera image
+  encoder (per-frame dominant cost); memory attention + the two high-res 1×1 convs stay PyTorch.
+  - **Why:** encoder is ~2.3× faster in fp16 (65 ms vs ~150 ms), lifting 768 carry to 6.15 FPS
+    with no accuracy loss (IoU@0.25 1.000, mean IoU +0.006) and mask parity 1.000 — the lazy fix
+    that keeps the whole v3 accuracy story intact.
+  - **Runtime = TensorRT Python API + torch-tensor bindings, not ONNX Runtime** (frozen plan's
+    Plan A). Reasons found at execution: Jetson venv had neither ORT nor TRT; system TRT 10.3.0 was
+    already present (zero new deps); ORT numpy I/O forces a per-frame host round-trip that defeats
+    the latency goal. Documented deviation in the campaign README.
+  - **Given up:** end-to-end engine (more speedup, weeks of ONNX-ing the stateful memory bank — the
+    known-hard part); a further ~30 ms that the retained torch memory-attention + default-stream
+    TRT sync still cost (a dedicated CUDA stream could reclaim some, not pursued — gate already met).
+- → [`experiments/2026-07-02-carry-trt-export/`](../../experiments/2026-07-02-carry-trt-export/README.md)

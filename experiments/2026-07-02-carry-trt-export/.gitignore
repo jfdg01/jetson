@@ -1,0 +1,3 @@
+# build artifacts: regenerable from export_encoder.py (onnx) / trtexec on-device (plan)
+enc*.onnx
+*.plan
