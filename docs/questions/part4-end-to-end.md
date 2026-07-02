@@ -34,3 +34,13 @@
   0.5 m/s** (in-FOV 1.000, occlusion relock ~4.2–4.5 s). The ceiling is 1.0 m/s and it is set by
   the **REGROUND blind window** (LossGate 3 s + acquire ~4.3 s ≈ 7.3 s, target exits the 10 m-AGL
   footprint), not by first acquire or PID tracking. Full RQ-T.5 (real perception) is Phase 3.
+
+### 2026-07-02 — Temporal acquire-carry, Phase 2 ([`experiments/2026-07-01-temporal-acquire-carry/`](../../experiments/2026-07-01-temporal-acquire-carry/README.md))
+
+- **RQ-T.2 (SAM2 carry FPS on the Orin Nano @ 15 W, ≥5 FPS with ≤5 pp accuracy cost):**
+  **marginal FAIL at OP=768** — accuracy holds (IoU@0.25 0.830 vs 0.849 @1024) but 4.89 FPS
+  misses the ≥5 gate by 2.2%; 640 clears FPS (7.24 co-resident) but misses the accuracy bar by
+  1.2 pp (0.787). No eager-PyTorch size passes both; TensorRT campaign is the named fix.
+- **RQ-T.3 (VLM Q8_0 + SAM2 co-residency in 8 GB):** **PASS** — zero FPS cost at 1024/768/640,
+  peak RAM 6963/7607 MB @1024 (6144 @640); no load-on-demand needed. The pre-registered
+  "likely does not fit" estimate was wrong — recorded as such.

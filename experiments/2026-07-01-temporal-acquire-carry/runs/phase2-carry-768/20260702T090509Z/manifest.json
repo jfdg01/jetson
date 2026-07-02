@@ -1,0 +1,22 @@
+{
+  "run_id": "20260702T090509Z",
+  "created_utc": "2026-07-02T09:05:09.490258+00:00",
+  "kind": "sam2-zeroshot-carry",
+  "git_sha": "7295a06d64a3e5a13513b16cce10d359a4d92d09",
+  "git_dirty": true,
+  "llamacpp_commit": "57fe1f07c3b6a1de3f4fff19098e2056a85275b7",
+  "lockfile_sha256": "8766f2dbfc806e5f6938dbd1715e228180ac778a04f4f2bacc03abda422c2b7a",
+  "python_version": "3.12.10",
+  "platform": "Linux-6.17.0-35-generic-x86_64-with-glibc2.39",
+  "config": {
+    "model": "facebook/sam2.1-hiera-tiny",
+    "image_size": 768,
+    "cap": 300,
+    "smoke": false,
+    "gap_min_frames": 3,
+    "recovery_window": 5
+  },
+  "dataset_path": "/home/gara/jetson/data/AerialMind",
+  "dataset_sha256": null,
+  "extra": {}
+}

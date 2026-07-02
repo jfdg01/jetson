@@ -124,7 +124,7 @@ Fill per phase; record **actual** next to the estimate above and flag divergence
 |---|---|---|---|---|
 | 0 | RQ-T.1 | track-IoU / ID-consistency / occ-recovery, zero-shot | mean IoU **0.602**, IoU@0.25 **0.849**, IoU@0.5 0.750, ID-consistency **0.891**, occ-recovery **0.329** (70 gaps), pred-absent 3.5%, 14.4 FPS on 3090; 186 tracks (93 seqs × 2, cap 300), 58.4 min wall (est. 45–90 min — inside band) | **PASS — carry holds zero-shot;** training lever stays unpulled. Occ-recovery 33% = REGROUND's job, not carry's |
 | 1 | RQ-T.5 (skeleton) | target-in-frame fraction, oracle box | 0.25 m/s: in-FOV **1.000**, lock @4.31 s, occlusion relock **4.46 s** after LossGate, px-err 16.1 (est. PASS — right); 0.5 m/s: in-FOV **1.000**, relock 4.21 s, px-err 32.0 (est. "marginal" — cleaner than feared); 1.0 m/s: in-FOV **0.482**, locked @4.36 s but target exits FOV during occlusion+reground blind window, 8 failed re-acquires, never recovers (est. "never locks" — FAIL as predicted, but the *mechanism* differed: first acquire succeeded, recovery is what breaks) | **PASS — gate holds at 0.25 m/s (and 0.5); 1.0 m/s is the documented speed ceiling** |
-| 2 | RQ-T.2 / T.3 | FPS @ 15 W; peak RAM co-resident | @1024: **2.68 FPS** (p50 373 ms, est. 1.5–4 — inside band, gate FAIL); @512: **12.13 FPS** (p50 82.5 ms, est. 4–10 — *above* band); co-resident @1024 with VLM Q8_0 server: **2.68 FPS unchanged, server survived, peak RAM 6963/7607 MB** (est. "likely does not fit" — **wrong**, fits with ~650 MB headroom); 100/100 masks non-empty in all passes | RQ-T.2 **FAIL @1024, PASS @512** (accuracy re-eval at 512: _running on 3090_); RQ-T.3 **PASS — co-residency holds, no load-on-demand needed** |
+| 2 | RQ-T.2 / T.3 | FPS @ 15 W; peak RAM co-resident | @1024: **2.68 FPS** (p50 373 ms, est. 1.5–4 — inside band, gate FAIL); @512: **12.13 FPS** (p50 82.5 ms, est. 4–10 — *above* band); co-resident @1024 with VLM Q8_0 server: **2.68 FPS unchanged, server survived, peak RAM 6963/7607 MB** (est. "likely does not fit" — **wrong**, fits with ~650 MB headroom); 100/100 masks non-empty in all passes. Knee sweep (full table below): 768 = 4.89 FPS / IoU@0.25 **0.830**; 640 = 7.24 FPS co-res / **0.787**; 512 acc 0.737 | RQ-T.2 **marginal FAIL — OP=768 by the frozen rule** (640 misses the 0.799 accuracy bar by 1.2 pp; 768 holds accuracy but misses ≥5 FPS by 2.2% — TensorRT campaign `2026-07-02-carry-trt-export` is the named fix); RQ-T.3 **PASS — co-residency holds at every size (zero FPS cost), no load-on-demand needed** |
 | 3 | RQ-T.4 / T.5 | occlusion recovery; in-frame fraction, integrated | _pending_ | _pending_ |
 
 Phase 0 config: SAM2.1-hiera-tiny (`sam2==1.1.0`), fp32 weights under bf16 autocast, box prompt =
@@ -140,6 +140,22 @@ pass: the deployed `llama-server` boot line from `grounding/eval/backends.py` (Q
 mmproj, `-ngl 99 -c 4096 -np 1 --cache-ram 0 --no-cache-idle-slots`), healthy in 8 s, idle
 during propagation. Raw: `raw/phase2-jetson/` (bench JSONs + tegrastats logs); 512 accuracy
 re-eval → `runs/phase2-carry-512/`, log `raw/phase2-carry-512.log`.
+
+Phase 2 knee table (Jetson FPS = M0205 100-frame bench @ 15 W + jetson_clocks; accuracy = full
+186-track eval on the 3090, same protocol as Phase 0; ACC bar = 0.799 = 1024's 0.849 − 5 pp):
+
+| image_size | Jetson FPS solo | co-resident | IoU@0.25 | mean IoU | ID-cons | verdict |
+|---|---|---|---|---|---|---|
+| 1024 | 2.68 | 2.68 | **0.849** | 0.602 | 0.891 | accuracy reference; FPS FAIL |
+| **768 (OP)** | 4.89 | 4.89 | **0.830** (−1.9 pp) | 0.585 | 0.889 | acc PASS; FPS **marginal FAIL** (−2.2% vs ≥5) |
+| 640 | 7.25 | 7.24 | 0.787 (−6.2 pp) | 0.551 | 0.859 | FPS PASS; acc FAIL **by 1.2 pp** |
+| 512 | 12.13 | — | 0.737 (−11.2 pp) | 0.506 | 0.823 | FPS PASS; acc FAIL |
+
+768/640 evals: 42.0 / 37.4 min wall on the 3090 (est. 768 acc 0.80–0.84, 640 acc 0.77–0.82 —
+both inside band; 640 landed on the failing side of exactly the uncertainty the estimate named).
+Runs: `runs/phase2-carry-{768,640}/`, logs `raw/phase2-carry-{768,640}.log`; Jetson bench JSONs
++ tegrastats in `raw/phase2-jetson/` (solo 640/768, co-resident 640 RAM peak 6144/7607 MB,
+co-resident 768 spot-check 4.89 FPS — zero contention at every size).
 
 Phase 1 config: ArduCopter SITL (CMAC home, GUIDED, 10 m AGL, gimbal-level oracle, yaw PID off per
 Phase B), copter SITL only — rover programmatic north at trial speed, anchored to fresh
@@ -489,6 +505,18 @@ carry zero-shot or trained; SAM2 or SOT), with what was given up.
     is per-frame JPEG decode + wire). ESTIMATE for the flight: co-resident @640 cost 0 FPS in the
     Phase 2 bench, so control rate ~6 Hz -> clears the ≥5 Hz leg.
   - Flight blocked only on OP (Step A): 768 eval at 84/93, 640 eval auto-queued behind it.
+- **2026-07-02T11:45Z — Phase 2 DONE: RQ-T.2 marginal FAIL, OP=768 (frozen rule fired
+  mechanically).** 768 accuracy **0.830** (≥0.799 bar, est. band 0.80–0.84 — inside); 640
+  accuracy **0.787** (misses the bar by **1.2 pp**; est. band 0.77–0.82 — inside, on the failing
+  side, exactly the uncertainty the estimate named). No eager-PyTorch size passes both gates:
+  verdict per the frozen sentence — *"RQ-T.2 marginal FAIL at 768: accuracy holds (0.830) but
+  4.89 FPS misses the ≥5 gate by 2.2%; TensorRT campaign (2026-07-02-carry-trt-export) must
+  close it."* Step B co-residency spot-check at OP done pre-emptively while 640 evaluated:
+  **cores-768 = 4.89 FPS, identical to solo** (`raw/phase2-jetson/bench_cores768.json`) — zero
+  contention at 1024/768/640, RQ-T.3 settled. Knee table in Results. Consequence for 3b: flight
+  runs at `--image-size 768`; expected control rate ~4.5–4.8 Hz = marginal FAIL on the rate leg
+  only (pre-registered as the expected outcome for OP=768; the in-FOV and relock legs are the
+  informative ones, E1 buys the rate).
 - **Open decisions still pending:** (1) SAM2 variant — SAM2.1-tiny vs EdgeTAM vs EfficientTAM (decide
   on Jetson FPS, Phase 2); (2) TensorRT vs ONNX for the carry export (shared with the bake-off's C/D
   question); (3) Part assignment — this seeds the "v5 temporal" line but is left under Part IV

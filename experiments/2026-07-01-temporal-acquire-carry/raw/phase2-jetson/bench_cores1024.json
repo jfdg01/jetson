@@ -1,0 +1,1 @@
+{"tag": "coresident-1024", "model": "facebook/sam2.1-hiera-tiny", "image_size": 1024, "n_frames": 100, "n_mask_present": 100, "load_s": 2.83, "init_s": 5.73, "fps": 2.68, "ms_p50": 372.9, "ms_max": 373.5, "cuda_peak_mb": 725, "torch": "2.8.0"}

@@ -119,11 +119,14 @@ def main() -> None:
     ap.add_argument("--cap", type=int, default=300, help="max frames per track window")
     ap.add_argument("--smoke", action="store_true", help="one sequence only")
     ap.add_argument("--out", default=str(HERE / "runs" / "phase0-zeroshot-carry"))
+    ap.add_argument("--image-size", type=int, default=None,
+                    help="override model.image_size (Phase 2 Jetson-FPS lever; default 1024)")
     args = ap.parse_args()
 
     from sam2.sam2_video_predictor import SAM2VideoPredictor
 
-    predictor = SAM2VideoPredictor.from_pretrained(MODEL)
+    over = [f"++model.image_size={args.image_size}"] if args.image_size else []
+    predictor = SAM2VideoPredictor.from_pretrained(MODEL, hydra_overrides_extra=over)
     seqs = load_sequences(limit=1 if args.smoke else None)
 
     out_dir = Path(args.out)
@@ -151,6 +154,7 @@ def main() -> None:
     idc = [r["id_consistency"] for r in rows if r["id_consistency"] is not None]
     summary = {
         "model": MODEL,
+        "image_size": args.image_size or 1024,
         "cap": args.cap,
         "n_tracks": len(rows),
         "mean_iou": float(np.mean([r["mean_iou"] for r in rows])),
@@ -168,7 +172,8 @@ def main() -> None:
     (out_dir / "results.json").write_text(json.dumps(summary, indent=2))
     m = capture(
         "sam2-zeroshot-carry",
-        {"model": MODEL, "cap": args.cap, "smoke": args.smoke,
+        {"model": MODEL, "image_size": args.image_size or 1024,
+         "cap": args.cap, "smoke": args.smoke,
          "gap_min_frames": GAP_MIN_FRAMES, "recovery_window": RECOVERY_WINDOW},
         dataset_path=str(HERE.parents[1] / "data" / "AerialMind"),
     )

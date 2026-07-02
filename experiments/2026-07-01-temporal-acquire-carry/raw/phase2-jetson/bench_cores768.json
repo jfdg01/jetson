@@ -1,0 +1,1 @@
+{"tag": "cores-768", "model": "facebook/sam2.1-hiera-tiny", "image_size": 768, "n_frames": 100, "n_mask_present": 100, "load_s": 2.25, "init_s": 4.11, "fps": 4.89, "ms_p50": 204.6, "ms_max": 205.4, "cuda_peak_mb": 612, "torch": "2.8.0"}

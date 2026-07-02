@@ -1,0 +1,15 @@
+{
+  "model": "facebook/sam2.1-hiera-tiny",
+  "image_size": 512,
+  "cap": 300,
+  "n_tracks": 186,
+  "mean_iou": 0.5061577189965167,
+  "iou_at_25": 0.7374051051604356,
+  "iou_at_50": 0.610819177144582,
+  "id_consistency": 0.8228774808236454,
+  "pred_absent_frac": 0.04500840177580154,
+  "occlusion_recovery": 0.2857142857142857,
+  "n_gap_events": 70,
+  "mean_fps": 24.45575268817204,
+  "total_wall_min": 35.2
+}

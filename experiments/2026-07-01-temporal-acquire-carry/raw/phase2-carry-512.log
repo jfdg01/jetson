@@ -1,0 +1,205 @@
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[1/93] M0203 tid=51 iou25=1.000 mean=0.806 gaps=1 rec=1 fps=39.59
+[1/93] M0203 tid=35 iou25=1.000 mean=0.818 gaps=0 rec=0 fps=41.1
+[2/93] M0205 tid=20 iou25=1.000 mean=0.782 gaps=0 rec=0 fps=41.51
+[2/93] M0205 tid=6 iou25=0.996 mean=0.829 gaps=1 rec=1 fps=41.09
+[3/93] M0209 tid=46 iou25=1.000 mean=0.832 gaps=0 rec=0 fps=39.22
+[3/93] M0209 tid=20 iou25=1.000 mean=0.655 gaps=0 rec=0 fps=40.34
+[4/93] M0403 tid=3 iou25=1.000 mean=0.807 gaps=0 rec=0 fps=40.93
+[4/93] M0403 tid=43 iou25=0.962 mean=0.682 gaps=1 rec=1 fps=40.72
+[5/93] M0701 tid=7 iou25=1.000 mean=0.639 gaps=0 rec=0 fps=40.83
+[5/93] M0701 tid=3 iou25=0.703 mean=0.511 gaps=0 rec=0 fps=40.95
+[6/93] M0801 tid=7 iou25=0.960 mean=0.774 gaps=0 rec=0 fps=41.21
+[6/93] M0801 tid=22 iou25=0.944 mean=0.710 gaps=1 rec=1 fps=40.35
+[7/93] M1001 tid=55 iou25=0.990 mean=0.780 gaps=0 rec=0 fps=41.05
+[7/93] M1001 tid=16 iou25=1.000 mean=0.628 gaps=0 rec=0 fps=39.33
+[8/93] M1004 tid=35 iou25=0.379 mean=0.217 gaps=0 rec=0 fps=41.12
+[8/93] M1004 tid=36 iou25=0.019 mean=0.010 gaps=0 rec=0 fps=40.62
+[9/93] M1007 tid=8 iou25=1.000 mean=0.723 gaps=0 rec=0 fps=41.0
+[9/93] M1007 tid=35 iou25=1.000 mean=0.760 gaps=0 rec=0 fps=41.23
+[10/93] M1101 tid=13 iou25=1.000 mean=0.719 gaps=0 rec=0 fps=40.09
+[10/93] M1101 tid=39 iou25=0.938 mean=0.687 gaps=1 rec=1 fps=40.3
+[11/93] M1301 tid=15 iou25=0.120 mean=0.059 gaps=0 rec=0 fps=39.3
+[11/93] M1301 tid=98 iou25=0.013 mean=0.026 gaps=0 rec=0 fps=38.75
+[12/93] M1302 tid=18 iou25=0.957 mean=0.672 gaps=0 rec=0 fps=39.69
+[12/93] M1302 tid=19 iou25=0.568 mean=0.459 gaps=1 rec=1 fps=39.67
+[13/93] M1401 tid=62 iou25=1.000 mean=0.811 gaps=0 rec=0 fps=40.72
+[13/93] M1401 tid=21 iou25=1.000 mean=0.684 gaps=0 rec=0 fps=40.22
+[14/93] uav0000009_03358_v tid=29 iou25=0.871 mean=0.635 gaps=0 rec=0 fps=20.2
+[14/93] uav0000009_03358_v tid=77 iou25=0.983 mean=0.542 gaps=1 rec=0 fps=20.5
+[15/93] uav0000013_00000_v tid=0 iou25=1.000 mean=0.512 gaps=0 rec=0 fps=20.42
+[15/93] uav0000013_00000_v tid=23 iou25=0.981 mean=0.647 gaps=1 rec=0 fps=20.27
+[16/93] uav0000013_01073_v tid=0 iou25=1.000 mean=0.489 gaps=0 rec=0 fps=20.86
+[16/93] uav0000013_01073_v tid=8 iou25=1.000 mean=0.780 gaps=0 rec=0 fps=21.03
+[17/93] uav0000013_01392_v tid=2 iou25=1.000 mean=0.465 gaps=0 rec=0 fps=20.91
+[17/93] uav0000013_01392_v tid=21 iou25=1.000 mean=0.523 gaps=1 rec=1 fps=20.81
+[18/93] uav0000020_00406_v tid=9 iou25=1.000 mean=0.668 gaps=0 rec=0 fps=20.82
+[18/93] uav0000020_00406_v tid=36 iou25=1.000 mean=0.656 gaps=1 rec=1 fps=20.57
+[19/93] uav0000071_03240_v tid=9 iou25=0.983 mean=0.641 gaps=0 rec=0 fps=19.99
+[19/93] uav0000071_03240_v tid=11 iou25=0.994 mean=0.610 gaps=0 rec=0 fps=20.09
+[20/93] uav0000072_04488_v tid=1 iou25=0.459 mean=0.261 gaps=0 rec=0 fps=19.9
+[20/93] uav0000072_04488_v tid=0 iou25=1.000 mean=0.552 gaps=1 rec=1 fps=20.03
+[21/93] uav0000072_05448_v tid=92 iou25=1.000 mean=0.886 gaps=0 rec=0 fps=20.52
+[21/93] uav0000072_05448_v tid=122 iou25=0.852 mean=0.554 gaps=0 rec=0 fps=20.08
+[22/93] uav0000072_06432_v tid=22 iou25=0.753 mean=0.573 gaps=0 rec=0 fps=20.14
+[22/93] uav0000072_06432_v tid=117 iou25=0.082 mean=0.045 gaps=1 rec=0 fps=19.9
+[23/93] uav0000073_00600_v tid=2 iou25=0.147 mean=0.086 gaps=0 rec=0 fps=22.95
+[23/93] uav0000073_00600_v tid=48 iou25=0.024 mean=0.017 gaps=1 rec=0 fps=24.14
+[24/93] uav0000073_04464_v tid=0 iou25=0.303 mean=0.175 gaps=0 rec=0 fps=23.95
+[24/93] uav0000073_04464_v tid=1 iou25=0.133 mean=0.105 gaps=0 rec=0 fps=23.5
+[25/93] uav0000076_00720_v tid=22 iou25=0.807 mean=0.647 gaps=0 rec=0 fps=23.0
+[25/93] uav0000076_00720_v tid=54 iou25=0.375 mean=0.210 gaps=1 rec=0 fps=23.28
+[26/93] uav0000077_00720_v tid=46 iou25=0.993 mean=0.807 gaps=0 rec=0 fps=23.2
+[26/93] uav0000077_00720_v tid=43 iou25=1.000 mean=0.778 gaps=0 rec=0 fps=23.34
+[27/93] uav0000079_00480_v tid=15 iou25=0.057 mean=0.031 gaps=0 rec=0 fps=22.69
+[27/93] uav0000079_00480_v tid=10 iou25=0.877 mean=0.472 gaps=0 rec=0 fps=23.04
+[28/93] uav0000084_00000_v tid=27 iou25=0.920 mean=0.650 gaps=0 rec=0 fps=23.66
+[28/93] uav0000084_00000_v tid=59 iou25=0.148 mean=0.095 gaps=1 rec=0 fps=23.25
+[29/93] uav0000086_00000_v tid=11 iou25=0.780 mean=0.534 gaps=0 rec=0 fps=23.37
+[29/93] uav0000086_00000_v tid=55 iou25=0.453 mean=0.251 gaps=0 rec=0 fps=22.87
+[30/93] uav0000088_00290_v tid=0 iou25=0.980 mean=0.614 gaps=0 rec=0 fps=23.47
+[30/93] uav0000088_00290_v tid=92 iou25=0.558 mean=0.379 gaps=1 rec=0 fps=24.18
+[31/93] uav0000099_02109_v tid=9 iou25=1.000 mean=0.794 gaps=0 rec=0 fps=20.25
+[31/93] uav0000099_02109_v tid=4 iou25=0.290 mean=0.178 gaps=0 rec=0 fps=20.14
+[32/93] uav0000117_02622_v tid=0 iou25=0.267 mean=0.141 gaps=0 rec=0 fps=20.53
+[32/93] uav0000117_02622_v tid=21 iou25=0.993 mean=0.629 gaps=1 rec=1 fps=20.01
+[33/93] uav0000119_02301_v tid=0 iou25=0.531 mean=0.303 gaps=0 rec=0 fps=20.08
+[33/93] uav0000119_02301_v tid=38 iou25=0.973 mean=0.394 gaps=1 rec=0 fps=20.27
+[34/93] uav0000120_04775_v tid=274 iou25=0.077 mean=0.066 gaps=0 rec=0 fps=21.29
+[34/93] uav0000120_04775_v tid=136 iou25=0.189 mean=0.126 gaps=1 rec=0 fps=24.12
+[35/93] uav0000124_00944_v tid=0 iou25=1.000 mean=0.648 gaps=0 rec=0 fps=22.63
+[35/93] uav0000124_00944_v tid=41 iou25=0.000 mean=0.000 gaps=1 rec=0 fps=22.21
+[36/93] uav0000126_00001_v tid=8 iou25=0.000 mean=0.010 gaps=0 rec=0 fps=23.11
+[36/93] uav0000126_00001_v tid=62 iou25=0.345 mean=0.166 gaps=2 rec=0 fps=23.17
+[37/93] uav0000137_00458_v tid=13 iou25=1.000 mean=0.887 gaps=0 rec=0 fps=23.31
+[37/93] uav0000137_00458_v tid=107 iou25=0.019 mean=0.010 gaps=1 rec=0 fps=23.55
+[38/93] uav0000138_00000_v tid=1 iou25=1.000 mean=0.810 gaps=0 rec=0 fps=19.49
+[38/93] uav0000138_00000_v tid=24 iou25=0.660 mean=0.364 gaps=1 rec=1 fps=19.59
+[39/93] uav0000140_01590_v tid=25 iou25=0.301 mean=0.174 gaps=0 rec=0 fps=19.55
+[39/93] uav0000140_01590_v tid=61 iou25=0.327 mean=0.195 gaps=1 rec=0 fps=19.59
+[40/93] uav0000143_02250_v tid=1 iou25=1.000 mean=0.833 gaps=0 rec=0 fps=22.01
+[40/93] uav0000143_02250_v tid=93 iou25=0.179 mean=0.109 gaps=1 rec=0 fps=22.55
+[41/93] uav0000145_00000_v tid=15 iou25=0.080 mean=0.087 gaps=0 rec=0 fps=22.74
+[41/93] uav0000145_00000_v tid=17 iou25=0.303 mean=0.158 gaps=0 rec=0 fps=23.04
+[42/93] uav0000150_02310_v tid=9 iou25=0.047 mean=0.038 gaps=0 rec=0 fps=22.51
+[42/93] uav0000150_02310_v tid=103 iou25=0.034 mean=0.018 gaps=1 rec=0 fps=22.5
+[43/93] uav0000161_00000_v tid=0 iou25=1.000 mean=0.711 gaps=0 rec=0 fps=23.25
+[43/93] uav0000161_00000_v tid=211 iou25=0.941 mean=0.491 gaps=1 rec=0 fps=23.59
+[44/93] uav0000182_00000_v tid=127 iou25=0.990 mean=0.559 gaps=0 rec=0 fps=23.16
+[44/93] uav0000182_00000_v tid=113 iou25=1.000 mean=0.712 gaps=1 rec=1 fps=23.65
+[45/93] uav0000188_00000_v tid=3 iou25=1.000 mean=0.655 gaps=0 rec=0 fps=24.25
+[45/93] uav0000188_00000_v tid=68 iou25=0.400 mean=0.211 gaps=1 rec=0 fps=24.35
+[46/93] uav0000201_00000_v tid=1 iou25=0.217 mean=0.137 gaps=0 rec=0 fps=23.81
+[46/93] uav0000201_00000_v tid=73 iou25=0.027 mean=0.012 gaps=2 rec=0 fps=24.01
+[47/93] uav0000218_00001_v tid=14 iou25=1.000 mean=0.694 gaps=0 rec=0 fps=23.3
+[47/93] uav0000218_00001_v tid=13 iou25=0.978 mean=0.821 gaps=1 rec=1 fps=23.3
+[48/93] uav0000222_03150_v tid=30 iou25=0.953 mean=0.713 gaps=0 rec=0 fps=19.29
+[48/93] uav0000222_03150_v tid=26 iou25=0.881 mean=0.685 gaps=1 rec=0 fps=19.36
+[49/93] uav0000239_03720_v tid=71 iou25=1.000 mean=0.837 gaps=0 rec=0 fps=19.94
+[49/93] uav0000239_03720_v tid=75 iou25=1.000 mean=0.817 gaps=1 rec=0 fps=19.99
+[50/93] uav0000239_12336_v tid=72 iou25=1.000 mean=0.763 gaps=0 rec=0 fps=19.96
+[50/93] uav0000239_12336_v tid=87 iou25=0.189 mean=0.094 gaps=1 rec=0 fps=19.52
+[51/93] uav0000243_00001_v tid=25 iou25=1.000 mean=0.727 gaps=0 rec=0 fps=19.94
+[51/93] uav0000243_00001_v tid=158 iou25=0.860 mean=0.713 gaps=0 rec=0 fps=19.93
+[52/93] uav0000244_01440_v tid=125 iou25=1.000 mean=0.715 gaps=0 rec=0 fps=21.97
+[52/93] uav0000244_01440_v tid=100 iou25=1.000 mean=0.684 gaps=1 rec=0 fps=23.45
+[53/93] uav0000248_00001_v tid=2 iou25=1.000 mean=0.748 gaps=0 rec=0 fps=19.67
+[53/93] uav0000248_00001_v tid=91 iou25=1.000 mean=0.815 gaps=0 rec=0 fps=19.75
+[54/93] uav0000249_00001_v tid=145 iou25=0.997 mean=0.608 gaps=0 rec=0 fps=21.64
+[54/93] uav0000249_00001_v tid=125 iou25=0.384 mean=0.261 gaps=1 rec=0 fps=23.32
+[55/93] uav0000249_02688_v tid=13 iou25=1.000 mean=0.724 gaps=0 rec=0 fps=23.8
+[55/93] uav0000249_02688_v tid=14 iou25=0.995 mean=0.680 gaps=1 rec=1 fps=23.17
+[56/93] uav0000263_03289_v tid=37 iou25=0.960 mean=0.810 gaps=0 rec=0 fps=23.53
+[56/93] uav0000263_03289_v tid=17 iou25=1.000 mean=0.721 gaps=0 rec=0 fps=23.28
+[57/93] uav0000264_02760_v tid=4 iou25=0.977 mean=0.613 gaps=0 rec=0 fps=22.73
+[57/93] uav0000264_02760_v tid=39 iou25=0.000 mean=0.006 gaps=1 rec=0 fps=22.37
+[58/93] uav0000266_03598_v tid=13 iou25=1.000 mean=0.827 gaps=0 rec=0 fps=22.39
+[58/93] uav0000266_03598_v tid=18 iou25=0.050 mean=0.025 gaps=1 rec=0 fps=22.58
+[59/93] uav0000266_04830_v tid=0 iou25=0.647 mean=0.464 gaps=0 rec=0 fps=22.81
+[59/93] uav0000266_04830_v tid=3 iou25=1.000 mean=0.678 gaps=0 rec=0 fps=22.74
+[60/93] uav0000268_05773_v tid=8 iou25=1.000 mean=0.465 gaps=0 rec=0 fps=23.12
+[60/93] uav0000268_05773_v tid=31 iou25=0.000 mean=0.001 gaps=1 rec=0 fps=22.98
+[61/93] uav0000270_00001_v tid=9 iou25=1.000 mean=0.694 gaps=0 rec=0 fps=23.41
+[61/93] uav0000270_00001_v tid=35 iou25=1.000 mean=0.731 gaps=1 rec=1 fps=23.77
+[62/93] uav0000273_00001_v tid=35 iou25=0.030 mean=0.028 gaps=0 rec=0 fps=23.78
+[62/93] uav0000273_00001_v tid=18 iou25=0.946 mean=0.579 gaps=1 rec=0 fps=23.58
+[63/93] uav0000278_00001_v tid=203 iou25=0.263 mean=0.178 gaps=0 rec=0 fps=20.31
+[63/93] uav0000278_00001_v tid=184 iou25=1.000 mean=0.741 gaps=1 rec=1 fps=20.5
+[64/93] uav0000279_00001_v tid=22 iou25=0.070 mean=0.033 gaps=0 rec=0 fps=22.3
+[64/93] uav0000279_00001_v tid=167 iou25=0.835 mean=0.505 gaps=1 rec=0 fps=22.31
+[65/93] uav0000281_00460_v tid=10 iou25=1.000 mean=0.695 gaps=0 rec=0 fps=20.74
+[65/93] uav0000281_00460_v tid=76 iou25=1.000 mean=0.651 gaps=1 rec=1 fps=19.99
+[66/93] uav0000288_00001_v tid=32 iou25=1.000 mean=0.649 gaps=0 rec=0 fps=19.83
+[66/93] uav0000288_00001_v tid=29 iou25=0.710 mean=0.344 gaps=0 rec=0 fps=20.03
+[67/93] uav0000289_00001_v tid=25 iou25=0.706 mean=0.481 gaps=2 rec=1 fps=20.55
+[67/93] uav0000289_00001_v tid=61 iou25=0.060 mean=0.064 gaps=0 rec=0 fps=19.27
+[68/93] uav0000289_06922_v tid=73 iou25=0.696 mean=0.410 gaps=1 rec=0 fps=21.22
+[68/93] uav0000289_06922_v tid=40 iou25=0.486 mean=0.303 gaps=1 rec=0 fps=21.71
+[69/93] uav0000295_02300_v tid=407 iou25=1.000 mean=0.808 gaps=0 rec=0 fps=17.94
+[69/93] uav0000295_02300_v tid=509 iou25=0.674 mean=0.394 gaps=1 rec=0 fps=19.24
+[70/93] uav0000297_00000_v tid=1 iou25=1.000 mean=0.588 gaps=0 rec=0 fps=21.9
+[70/93] uav0000297_00000_v tid=189 iou25=0.870 mean=0.684 gaps=1 rec=0 fps=21.61
+[71/93] uav0000297_02761_v tid=33 iou25=1.000 mean=0.646 gaps=0 rec=0 fps=21.4
+[71/93] uav0000297_02761_v tid=113 iou25=1.000 mean=0.827 gaps=1 rec=0 fps=23.84
+[72/93] uav0000300_00000_v tid=33 iou25=0.687 mean=0.394 gaps=0 rec=0 fps=23.18
+[72/93] uav0000300_00000_v tid=125 iou25=0.253 mean=0.125 gaps=1 rec=0 fps=22.79
+[73/93] uav0000305_00000_v tid=21 iou25=1.000 mean=0.468 gaps=0 rec=0 fps=24.03
+[73/93] uav0000305_00000_v tid=69 iou25=0.994 mean=0.790 gaps=1 rec=0 fps=24.0
+[74/93] uav0000306_00230_v tid=72 iou25=0.970 mean=0.490 gaps=0 rec=0 fps=24.3
+[74/93] uav0000306_00230_v tid=99 iou25=1.000 mean=0.673 gaps=1 rec=0 fps=24.03
+[75/93] uav0000307_00000_v tid=48 iou25=0.960 mean=0.441 gaps=0 rec=0 fps=23.14
+[75/93] uav0000307_00000_v tid=4 iou25=1.000 mean=0.739 gaps=1 rec=0 fps=23.33
+[76/93] uav0000308_00000_v tid=2 iou25=0.022 mean=0.012 gaps=0 rec=0 fps=23.35
+[76/93] uav0000308_00000_v tid=25 iou25=1.000 mean=0.772 gaps=0 rec=0 fps=23.33
+[77/93] uav0000308_01380_v tid=8 iou25=1.000 mean=0.587 gaps=0 rec=0 fps=23.69
+[77/93] uav0000308_01380_v tid=32 iou25=0.543 mean=0.333 gaps=1 rec=0 fps=23.74
+[78/93] uav0000309_00000_v tid=24 iou25=0.900 mean=0.411 gaps=0 rec=0 fps=23.18
+[78/93] uav0000309_00000_v tid=191 iou25=0.988 mean=0.576 gaps=1 rec=0 fps=23.51
+[79/93] uav0000315_00000_v tid=124 iou25=0.983 mean=0.591 gaps=0 rec=0 fps=23.19
+[79/93] uav0000315_00000_v tid=123 iou25=0.424 mean=0.342 gaps=1 rec=0 fps=23.07
+[80/93] uav0000316_01288_v tid=3 iou25=1.000 mean=0.573 gaps=0 rec=0 fps=23.41
+[80/93] uav0000316_01288_v tid=4 iou25=1.000 mean=0.586 gaps=0 rec=0 fps=23.43
+[81/93] uav0000323_01173_v tid=38 iou25=1.000 mean=0.668 gaps=0 rec=0 fps=23.29
+[81/93] uav0000323_01173_v tid=9 iou25=0.684 mean=0.419 gaps=1 rec=0 fps=23.0
+[82/93] uav0000326_01035_v tid=32 iou25=1.000 mean=0.805 gaps=0 rec=0 fps=19.85
+[82/93] uav0000326_01035_v tid=16 iou25=0.140 mean=0.078 gaps=0 rec=0 fps=19.85
+[83/93] uav0000329_04715_v tid=11 iou25=1.000 mean=0.777 gaps=0 rec=0 fps=20.38
+[83/93] uav0000329_04715_v tid=14 iou25=1.000 mean=0.872 gaps=0 rec=0 fps=20.11
+[84/93] uav0000339_00001_v tid=4 iou25=0.804 mean=0.642 gaps=0 rec=0 fps=20.25
+[84/93] uav0000339_00001_v tid=49 iou25=0.908 mean=0.447 gaps=1 rec=0 fps=20.23
+[85/93] uav0000342_04692_v tid=2 iou25=0.773 mean=0.677 gaps=0 rec=0 fps=20.38
+[85/93] uav0000342_04692_v tid=0 iou25=0.952 mean=0.878 gaps=1 rec=1 fps=20.45
+[86/93] uav0000352_05980_v tid=9 iou25=0.929 mean=0.865 gaps=0 rec=0 fps=20.54
+[86/93] uav0000352_05980_v tid=47 iou25=0.204 mean=0.121 gaps=1 rec=0 fps=19.79
+[87/93] uav0000355_00001_v tid=46 iou25=0.207 mean=0.104 gaps=0 rec=0 fps=20.61
+[87/93] uav0000355_00001_v tid=58 iou25=0.917 mean=0.546 gaps=1 rec=0 fps=20.18
+[88/93] uav0000357_00920_v tid=99 iou25=1.000 mean=0.909 gaps=0 rec=0 fps=20.07
+[88/93] uav0000357_00920_v tid=156 iou25=0.989 mean=0.772 gaps=1 rec=0 fps=19.97
+[89/93] uav0000360_00001_v tid=89 iou25=0.943 mean=0.577 gaps=0 rec=0 fps=20.74
+[89/93] uav0000360_00001_v tid=102 iou25=1.000 mean=0.656 gaps=1 rec=1 fps=20.03
+[90/93] uav0000361_02323_v tid=4 iou25=0.900 mean=0.587 gaps=0 rec=0 fps=20.83
+[90/93] uav0000361_02323_v tid=48 iou25=0.760 mean=0.479 gaps=1 rec=0 fps=20.94
+[91/93] uav0000363_00001_v tid=23 iou25=0.863 mean=0.416 gaps=0 rec=0 fps=20.36
+[91/93] uav0000363_00001_v tid=40 iou25=1.000 mean=0.682 gaps=0 rec=0 fps=20.2
+[92/93] uav0000366_00001_v tid=0 iou25=1.000 mean=0.691 gaps=0 rec=0 fps=22.8
+[92/93] uav0000366_00001_v tid=39 iou25=0.879 mean=0.527 gaps=1 rec=0 fps=22.5
+[93/93] uav0000370_00001_v tid=0 iou25=0.404 mean=0.283 gaps=0 rec=0 fps=24.62
+[93/93] uav0000370_00001_v tid=4 iou25=0.713 mean=0.422 gaps=0 rec=0 fps=24.87
+{
+  "model": "facebook/sam2.1-hiera-tiny",
+  "image_size": 512,
+  "cap": 300,
+  "n_tracks": 186,
+  "mean_iou": 0.5061577189965167,
+  "iou_at_25": 0.7374051051604356,
+  "iou_at_50": 0.610819177144582,
+  "id_consistency": 0.8228774808236454,
+  "pred_absent_frac": 0.04500840177580154,
+  "occlusion_recovery": 0.2857142857142857,
+  "n_gap_events": 70,
+  "mean_fps": 24.45575268817204,
+  "total_wall_min": 35.2
+}

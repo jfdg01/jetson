@@ -1,0 +1,1 @@
+{"tag": "solo-512", "model": "facebook/sam2.1-hiera-tiny", "image_size": 512, "n_frames": 100, "n_mask_present": 100, "load_s": 2.02, "init_s": 2.34, "fps": 12.13, "ms_p50": 82.5, "ms_max": 83.1, "cuda_peak_mb": 443, "torch": "2.8.0"}
