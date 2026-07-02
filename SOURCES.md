@@ -56,3 +56,6 @@ the per-experiment README is the source of truth. Append; newest at the bottom.
   https://github.com/shawnliang420/AerialMind
   → [`docs/dataset-survey-refdrone.md`](docs/dataset-survey-refdrone.md) §4 — candidate
   Part III/IV temporal (RMOT) dataset. Academic-only (VisDrone NC-SA chain).
+- **SAM2.1 (hiera-tiny)** — `facebook/sam2.1-hiera-tiny` · `sam2==1.1.0` ·
+  https://github.com/facebookresearch/sam2 — zero-shot memory-carry tier of the temporal
+  acquire-carry campaign (video predictor: box prompt → per-frame mask propagation).

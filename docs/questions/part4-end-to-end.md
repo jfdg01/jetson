@@ -19,3 +19,11 @@
   backbone-specific, not architectural.
 - **RQ-B.4 (health):** parse=100% on every arm; center_std ≈ GT 22.9 for A/B/C (healthy);
   E's 12.7–18.6 flagged its collapse exactly as the gate was designed to.
+
+### 2026-07-02 — Temporal acquire-carry, Phase 0 ([`experiments/2026-07-01-temporal-acquire-carry/`](../../experiments/2026-07-01-temporal-acquire-carry/README.md))
+
+- **RQ-T.1 (zero-shot carry — make-or-break):** **PASS** — SAM2.1-tiny carries aerial targets
+  zero-shot: IoU@0.25 0.849, ID-consistency 0.891 over 186 AerialMind tracks; the temporal
+  training lever stays unpulled. Occlusion re-association is the weak tier (32.9% over 70 gap
+  events) — that budget belongs to the REGROUND trigger, whose mechanics (plus RETARGET) the
+  committed demo already exercises on real Jetson acquire.

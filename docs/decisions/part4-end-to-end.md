@@ -54,3 +54,15 @@
   measured walls) transfers; the loop code does not.
 - **Given up:** incremental upgrades to the v3 demo path (e.g. dynamic re-anchor cadence) — any such
   effort goes to the orchestrator instead.
+
+### 2026-07-02 — Carry tier stays zero-shot: SAM2.1-tiny adopted, temporal training lever unpulled
+
+- **What:** Phase 0 gate (RQ-T.1) passed — the ACQUIRE→CARRY→REGROUND orchestrator's carry tier is
+  off-the-shelf SAM2.1-hiera-tiny with no temporal fine-tuning. AerialMind stays eval-only.
+- **Why:** zero-shot carry already matches the deployed v3 loop's headline accuracy (IoU@0.25 0.849
+  vs 85.2%) with **zero** per-frame VLM calls; ID-consistency 0.891. Training could only buy back
+  the occlusion tier (32.9% recovery), which the REGROUND trigger owns more cheaply.
+- **Given up:** a temporally fine-tuned tracker (reserved lever — re-open only if Phase 2/3 shows
+  the on-device carry degrading); EdgeTAM/EfficientTAM stay candidates for the *Jetson FPS* gate,
+  not the accuracy gate.
+- → [`experiments/2026-07-01-temporal-acquire-carry/`](../../experiments/2026-07-01-temporal-acquire-carry/README.md)

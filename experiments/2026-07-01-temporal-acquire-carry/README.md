@@ -116,20 +116,44 @@ Weak priors, stated so a wrong one becomes content.
 control slice). Phases 2–3 gated on the sweep freeing the Jetson + on Phase 0/1 holding. Plan as a
 **multi-session** campaign; Phases 0–1 can start immediately with zero sweep contention.
 
-## Results (TBD)
+## Results
 
 Fill per phase; record **actual** next to the estimate above and flag divergence.
 
 | Phase | RQ | metric | result (Δ vs est.) | verdict |
 |---|---|---|---|---|
-| 0 | RQ-T.1 | track-IoU / ID-consistency / occ-recovery, zero-shot | _pending_ | _pending_ |
+| 0 | RQ-T.1 | track-IoU / ID-consistency / occ-recovery, zero-shot | mean IoU **0.602**, IoU@0.25 **0.849**, IoU@0.5 0.750, ID-consistency **0.891**, occ-recovery **0.329** (70 gaps), pred-absent 3.5%, 14.4 FPS on 3090; 186 tracks (93 seqs × 2, cap 300), 58.4 min wall (est. 45–90 min — inside band) | **PASS — carry holds zero-shot;** training lever stays unpulled. Occ-recovery 33% = REGROUND's job, not carry's |
 | 1 | RQ-T.5 (skeleton) | target-in-frame fraction, oracle box | _pending_ | _pending_ |
 | 2 | RQ-T.2 / T.3 | FPS @ 15 W; peak RAM co-resident | _pending_ | _pending_ |
 | 3 | RQ-T.4 / T.5 | occlusion recovery; in-frame fraction, integrated | _pending_ | _pending_ |
 
+Phase 0 config: SAM2.1-hiera-tiny (`sam2==1.1.0`), fp32 weights under bf16 autocast, box prompt =
+first GT frame, `offload_video_to_cpu=True`, /dev/shm symlink window; scored on labeled frames only.
+Run: `runs/phase0-zeroshot-carry/` (per_track.csv + results.json + manifest), log `raw/`.
+First launch was killed at 42/93 and invalidated by the GT decode bug (see Status 16:25Z entry).
+
 ## Findings
 
-_None yet — pre-registration only._
+- **RQ-T.1 PASS (the make-or-break):** zero-shot SAM2.1-tiny carries aerial targets from one box
+  prompt — IoU@0.25 0.849 / ID-consistency 0.891 across 186 tracks. The "aerial is OOD, honestly
+  unknown" prior resolved *favorably*; no temporal fine-tune needed. The carry tier matches the
+  deployed v3 re-anchor loop's accuracy (85.2%) **without any per-frame VLM calls**.
+- **Occlusion recovery is the weak tier, as designed:** after a ≥3-frame GT gap, memory re-associates
+  within 5 labeled frames only 32.9% of the time (70 events). This is precisely the REGROUND
+  trigger's job — the demo's LossGate (75-frame streak) covers it. Not a blocker; it defines the
+  REGROUND budget for Phase 1's latency-injection test.
+- **Demo (committed `ab6d6d7`, videos in `raw/`):** end-to-end ACQUIRE→CARRY on real Jetson VLM
+  acquire (4.1–4.6 s wall): occlusion clip mean IoU 0.886 through a 40-frame GT gap with zero
+  re-grounds; **RETARGET** (mid-video caption switch = fresh acquire + `reset_state`) works — truck
+  → "the black car" @500, retarget IoU 0.721, mean 0.887.
+- **Negative (kept):** AerialMind *behavioral* captions ("Black car invading other lanes", "The
+  parked taxi") ground at IoU 0.0 from a single frame — the VLM returns a plausible *appearance*
+  match; behavior is invisible in one frame. Single-frame acquire needs appearance-style captions;
+  behavioral referring expressions are themselves an argument for the temporal tier.
+- **Dataset gotcha (cost ~28 min GPU + a morning):** AerialMind `labels_with_ids` stores `x y w h`
+  with `x,y` = box **top-left**, *not* the JDE center convention the filename layout implies. Center
+  decoding shifts every box up-left by half its size — plausible-looking but wrong everywhere
+  (out-of-bounds "clamping" at parse was a symptom, not a fix). Verified visually before re-running.
 
 ## Decision
 
@@ -178,9 +202,12 @@ carry zero-shot or trained; SAM2 or SOT), with what was given up.
   "iou25 0.05–0.13, occasional 0.7" spread was SAM2 tracking correctly against displaced GT.
   Fixed in `aerialmind.py`, selfcheck re-passed, **relaunched 2026-07-02T16:30Z** (same command).
   Also: first-run pace was ~40 s/seq → full run ≈ **65 min**, not the 45–90 min upper band feared.
-- **Next step:** when the run finishes, score RQ-T.1 against the gate (carry holds vs pull the
-  training lever), fill Results row Phase 0, append ledgers. Then Phase 1 (SITL oracle-follow slice).
-  Phase 2 no longer waits on the sweep — Jetson is free too.
+- **2026-07-02T17:35Z — Phase 0 DONE, RQ-T.1 PASS.** 186/186 tracks, 58.4 min (inside the 45–90 min
+  estimate band). Results table + Findings filled above; ledgers appended (Part IV). Demo (occlusion
+  + retarget) built, run on real Jetson VLM, committed `ab6d6d7`, videos in `raw/`.
+- **Next step:** Phase 1 (SITL oracle-follow slice with injected VLM latency/parse-fail
+  distributions — the measured 4.1–4.6 s acquire walls and the behavioral-caption failure mode are
+  now the injection priors). Phase 2 (Jetson SAM2 FPS + co-residency) no longer waits — Jetson free.
 - **In parallel: demo (`follow_demo.py`).** ACQUIRE (Jetson VLM) → CARRY (SAM2) → REGROUND-on-loss,
   plus **RETARGET** (mid-video caption switch = fresh acquire + `predictor.reset_state`, cached
   frames kept). Two M0205 clips: occlusion demo (`"Commercial truck"` tid 25, frames 395–646,
