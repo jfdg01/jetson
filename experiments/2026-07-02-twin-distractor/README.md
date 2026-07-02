@@ -1,9 +1,10 @@
 # E3 — Identity robustness: twin-target / distractor test
 
 **Pre-registered:** 2026-07-02T10:51Z (planning session; executor fills Results only).
-**Status:** READY — E2 is done (all speeds FAIL, see `../2026-07-02-follow-speed-ceiling/`);
-handoff prepped 2026-07-02T20:30Z below. Executor: read Frozen design + Executor handoff,
-implement the two patches, run, fill Results.
+**Status:** DONE 2026-07-02T20:35Z. Patches landed in the parent campaign
+(`sitl_cam.py` distractor render + two-blob selfcheck; `phase3_sitl.py --twin`), all 4 SITL
+trials + AerialMind leg run, Results filled below. **RQ-E3a yes (CARRY holds a crossing),
+RQ-E3b yes (REGROUND wrong-locks the decoy 3/3).**
 
 ## Research question
 
@@ -114,14 +115,61 @@ boxes within 3× box diagonal) works in normalized coords; no image loading need
 **Definition of done is below** — ledger appends go to `docs/{results,questions}/part4-end-to-end.md`
 (per-Part docs, never the root files), Madrid wall-clock timestamps, no emojis.
 
-## Results (TBD)
+## Results (2026-07-02T20:35Z)
+
+Run: `bash experiments/2026-07-02-twin-distractor/run_e3.sh` (speed 0.25, levers on, local
+3090 carry @1024, local-VLM acquire). Snapshots in `runs/{s1-crossing,s2-decoy-run{1,2,3}}/`.
+All four trials PASS the base gate (in-FOV 1.000, recovered_after_occlusion). The twin verdict
+is a *separate* per-frame identity check (box-center distance to true car vs distractor).
 
 | scenario | runs | ID-switch / wrong-lock | recovered after re-emerge | verdict |
 |---|---|---|---|---|
-| S1 crossing | 1 | | | |
-| S2 decoy | 3 | | | |
+| S1 crossing | 1 | **ID-switch 0.0 s** (0.0% of boxed frames closer to distractor) | yes — bridge relock @13.9 s onto true car | **PASS** — CARRY held |
+| S2 decoy | 3 | **wrong-lock 3/3** (every REGROUND re-locked the decoy first) | no sustained recovery (see below) | **FAIL (expected)** |
 
-AerialMind: | quartile | n tracks | IoU@0.25 | ID-consistency | → TBD
+**S1 crossing — CARRY holds (RQ-E3a: yes).** The distractor was continuously in-frame through
+the pass (its pixel ~175-270 px from the tracked box, min ~175 px at t≈28 s, ~3 m lateral) and
+CARRY never once put the box closer to it (`id_switch_s = 0.0`, `frac_box_closer_distractor =
+0.0` over 968 boxed frames). Ends glued to the true car: final distance 0.27 m vs 25.94 m to the
+(southbound, departed) distractor. SAM2 memory (appearance + position) is not fooled by an
+identical twin passing at 3 m when the true target was never lost. Beats the < 10% estimate.
+
+**S2 decoy — REGROUND wrong-locks the twin (RQ-E3b: yes), then the follow collapses.** All three
+runs fired a real REGROUND during the occlusion (`n_regrounds = 1`, relock walls 14.0/18.5/13.9 s)
+— so the E2 confident-latch amendment does **not** apply; these are measurable. In every run the
+re-lock's *first* box landed on the decoy (t≈47 s, box-center closer to the decoy than to the
+still-hidden true car), and the copter surged toward it — the pre-registered wrong-lock, 3/3. The
+size-prior lever cannot reject it by construction (identical polygon → identical size). The tail
+is a compound failure worth recording: because the decoy parks *in the true car's lane*, the true
+car emerges from the bridge and drives through the decoy's position at t≈50 s, so the box
+transiently transfers to the true car as they coincide (t≈51-68 s, box-closer-to-true) — but the
+copter has already **static-latched** at N≈15.7 m (the E2 static/confident-latch mode reappearing
+post-reground: a near-centered box → ~zero velocity command → the copter holds → the box stays
+centered) and never resumes the follow. The true car escapes to N≈19.1 m while the copter sits
+between the two cars, ending marginally closer to the decoy (final d_true 3.5-3.9 m vs d_dist
+2.1-2.4 m). So the accidental same-lane crossing does *not* rescue the follow. `id_switch_s`
+4.3-5.6 s, `frac_box_closer_distractor` 0.09-0.20. This is the honest negative the campaign was
+built to produce — the size prior is identity-blind, so nothing in the current lever set can
+prevent a same-appearance decoy from capturing the REGROUND. Motivates the reserved mitigation
+(appearance-embedding gate on reground acceptance); E3b (CLIP cosine gate) not run this session.
+
+**AerialMind leg — density does NOT degrade Phase 0 carry (estimate wrong).**
+`distractor_density.py` over the 186 Phase 0 tracks, top-quartile split at density ≥ 6.96:
+
+| quartile | n tracks | density | IoU@0.25 | ID-consistency |
+|---|---|---|---|---|
+| distractor-heavy | 47 | 11.27 | 0.858 | 0.896 |
+| rest | 139 | 2.98 | 0.846 | 0.890 |
+
+The distractor-heavy quartile is marginally **better**, not worse: IoU@0.25 **+0.011**,
+ID-consistency **+0.006**. The estimate (heavy quartile loses 2-8 pp) was wrong — on AerialMind,
+scene density alone (same-size neighbours near the target) does not hurt zero-shot carry; the
+SITL S2 failure is driven specifically by *occlusion + a same-appearance decoy in-lane during
+REGROUND*, not by crowding per se. (Density here is a normalized-coord proxy, top-left encoded per
+the Phase 0 gotcha; anisotropic N/E normalization — a proxy, not metric.)
+
+**Advisor:** the S1-failure advisor clause did not trigger (S1 passed). Advisor tool was DOWN this
+session (as on the E2 / prep sessions); recorded, proceeded on own judgment per the E2 precedent.
 
 ## Definition of done
 

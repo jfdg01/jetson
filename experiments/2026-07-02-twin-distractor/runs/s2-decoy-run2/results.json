@@ -1,0 +1,31 @@
+{
+  "trial": {
+    "speed_ms": 0.25,
+    "image_size": 1024,
+    "n_frames": 1468,
+    "achieved_hz": 19.6,
+    "carry_fps": 20.4,
+    "in_fov_frac": 1.0,
+    "first_lock_s": 5.01,
+    "n_acquire_attempts": 10,
+    "n_rejected_acquires": 8,
+    "n_regrounds": 1,
+    "relock_walls_s": [
+      18.49
+    ],
+    "carry_px_err_mean": 16.2,
+    "carry_frames": 939,
+    "recovered_after_occlusion": true,
+    "twin": {
+      "mode": "decoy",
+      "id_switch_s": 4.31,
+      "frac_box_closer_distractor": 0.092,
+      "n_boxed_twin_frames": 939,
+      "final_d_true_m": 3.88,
+      "final_d_dist_m": 2.11,
+      "closest_at_end": "distractor"
+    }
+  },
+  "gate_speed_ms": 0.25,
+  "gate": "PASS"
+}

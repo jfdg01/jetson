@@ -80,16 +80,22 @@ class NadirCam:
         cv2.fillPoly(img, [px.astype(np.int32)], color)
         return px
 
-    def render(self, copter_ned, yaw: float, rover_ned) -> np.ndarray:
+    def render(self, copter_ned, yaw: float, rover_ned,
+               distractor_ned=None) -> np.ndarray:
         img = cv2.warpAffine(self.tex, self._tex_to_img(copter_ned, yaw),
                              (IMG_W, IMG_H), flags=cv2.INTER_LINEAR)
-        rn, re = rover_ned[0], rover_ned[1]
         hl, hw = TARGET_LEN_M / 2, TARGET_WID_M / 2
-        # white car body, heading north (front = +N), dark windshield near front
-        self._fill_world_rect(img, copter_ned, yaw, rn - hl, rn + hl,
-                              re - hw, re + hw, (245, 245, 245))
-        self._fill_world_rect(img, copter_ned, yaw, rn + 0.3 * hl, rn + 0.7 * hl,
-                              re - 0.8 * hw, re + 0.8 * hw, (60, 50, 40))
+        # white car body, heading north (front = +N), dark windshield near front.
+        # distractor (E3) is drawn with the IDENTICAL polygon/color -- that
+        # identity is the twin-target experiment; bridge stays drawn last.
+        for car in (rover_ned, distractor_ned):
+            if car is None:
+                continue
+            rn, re = car[0], car[1]
+            self._fill_world_rect(img, copter_ned, yaw, rn - hl, rn + hl,
+                                  re - hw, re + hw, (245, 245, 245))
+            self._fill_world_rect(img, copter_ned, yaw, rn + 0.3 * hl, rn + 0.7 * hl,
+                                  re - 0.8 * hw, re + 0.8 * hw, (60, 50, 40))
         if self.bridge_n is not None:
             b0, b1 = self.bridge_n
             self._fill_world_rect(img, copter_ned, yaw, b0, b1, -30, 30, (90, 90, 90))
@@ -122,7 +128,16 @@ def selfcheck() -> None:
         else:
             assert inside > 150, f"{name}: no car at oracle box (mean {inside:.0f})"
         cv2.imwrite(str(out / f"{name}.png"), img)
-    print(f"selfcheck PASS -- frames in {out}")
+
+    # E3 twin: an identical distractor 6 m east renders as two disjoint white blobs
+    img2 = cam.render((0.0, 0.0, -10.0), 0.0, (0.5, 0.0, 0.0),
+                      distractor_ned=(0.5, 6.0, 0.0))
+    mask = (img2 > 200).all(axis=2).astype(np.uint8)  # car bodies only (245); road dash is 200
+    n_lab, _, stats, _ = cv2.connectedComponentsWithStats(mask)
+    blobs = [i for i in range(1, n_lab) if stats[i, cv2.CC_STAT_AREA] > 50]
+    assert len(blobs) == 2, f"distractor: expected 2 car blobs, got {len(blobs)}"
+    cv2.imwrite(str(out / "distractor.png"), img2)
+    print(f"selfcheck PASS -- frames in {out} (incl. distractor two-blob)")
 
 
 if __name__ == "__main__":

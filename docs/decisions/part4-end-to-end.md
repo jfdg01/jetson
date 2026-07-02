@@ -124,3 +124,22 @@
 - **Given up:** further speed trials with the current lever set (ceiling already sits below the
   lowest test speed, so they'd add no information); a same-session fix (E2 is measurement-only).
 - → [`experiments/2026-07-02-follow-speed-ceiling/`](../../experiments/2026-07-02-follow-speed-ceiling/README.md)
+
+### 2026-07-02 — Defer twin-rejection to an appearance-embedding gate; don't extend the size prior
+
+- **Decision:** the fix for the E3 wrong-lock (REGROUND accepting an identical decoy, 3/3) is an
+  **appearance-embedding gate on reground acceptance** — embed the acquire crop (e.g. CLIP), keep
+  a reference from the confident pre-occlusion carry, and reject a re-lock whose cosine similarity
+  to the reference is below a threshold learned from true-car crops. Reserved as future work (E3b
+  scaffold exists in the campaign README); not implemented this session.
+- **Why:** E3 proves the current lever set is identity-blind. The size-prior validation rejects
+  boxes of implausible *size*; a same-appearance twin is identical in size by construction, so no
+  amount of size/geometry tuning can distinguish it. The only signal that separates true target
+  from decoy is *appearance*, which none of the deployed levers use. S1 also shows CARRY's own
+  memory already solves the non-occluded crossing, so the gap is specifically the REGROUND
+  re-acquisition path, which starts appearance-free.
+- **Given up:** extending the size/geometry prior further (cannot separate identical twins — wrong
+  tool); running E3b this session (out of scope unless asked); a same-session fix (E3 is
+  measurement-only). Also noted: the AerialMind leg shows density alone is not the problem, so a
+  crowding-robustness effort would be misdirected — the target is occlusion + in-lane same-look decoy.
+- → [`experiments/2026-07-02-twin-distractor/`](../../experiments/2026-07-02-twin-distractor/README.md)

@@ -141,3 +141,30 @@ fail at *first acquire* (latency vs target speed). 0.5 reproduced trial-1 (in-FO
 deterministic). Both modes are fixable (confidence/staleness loss test; velocity-extrapolated
 acquire box) — deferred, named in the campaign README. Raw:
 `experiments/2026-07-02-follow-speed-ceiling/runs/speed-{0.5,1.0,1.5}/`.
+
+### 2026-07-02 — E3 twin-distractor identity test ([`experiments/2026-07-02-twin-distractor/`](../../experiments/2026-07-02-twin-distractor/README.md))
+
+Integrated SITL follow at 0.25 m/s, levers ON, real carry (local 3090 SAM2 @1024), with an
+*identical* second white car. Two SITL scenarios + an AerialMind analysis leg. All 4 trials pass
+the base gate (in-FOV 1.000, recovered); the twin verdict is a separate per-frame box-center
+distance-to-true vs distance-to-distractor check.
+
+| scenario | runs | metric | verdict |
+|---|---|---|---|
+| S1 crossing (distractor passes at 3 m, in-frame) | 1 | ID-switch **0.0 s**, 0.0% frames closer-to-distractor; ends 0.27 m to true vs 25.94 m to distractor | **PASS** — CARRY holds |
+| S2 decoy (parked in-lane past bridge, seen during occlusion) | 3 | REGROUND wrong-locks the decoy **3/3** (`n_regrounds=1` each → measurable, not confident-latch); then static-latch park, true car escapes | **FAIL (expected)** |
+
+S2 detail: every REGROUND's first re-lock landed on the decoy (t≈47 s) — the size-prior lever is
+identity-blind and cannot reject an identical twin. Because the decoy parks in the true car's
+lane, the emerging true car drives through the decoy's position at t≈50 s and the box transiently
+transfers to the true car (t≈51-68 s), but the copter has already **static-latched** at N≈15.7 m
+(the E2 latch mode reappearing post-reground) and never resumes the follow; the true car escapes
+to N≈19.1 m (final d_true 3.5-3.9 m vs d_dist 2.1-2.4 m). The honest negative that motivates an
+appearance-embedding gate on reground acceptance.
+
+**AerialMind leg** (`distractor_density.py`, 186 Phase 0 tracks, top-quartile density split ≥6.96):
+distractor-heavy quartile (n=47, density 11.27) IoU@0.25 **0.858** / ID-consistency **0.896** vs
+rest (n=139, density 2.98) **0.846** / **0.890** — heavy is marginally *better* (+0.011 / +0.006),
+NOT the estimated 2-8 pp worse. Scene density alone does not hurt zero-shot carry; the S2 failure
+needs occlusion + a same-appearance in-lane decoy during REGROUND. Raw:
+`experiments/2026-07-02-twin-distractor/runs/{s1-crossing,s2-decoy-run{1,2,3}}/`.

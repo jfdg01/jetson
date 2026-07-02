@@ -88,3 +88,23 @@
   31/32 re-acquires rejected). So Phase 1's oracle-box ceiling (1.0) overstates the integrated
   real-pipeline ceiling. Both binding modes are fixable (confidence/staleness loss test;
   velocity-extrapolated acquire box) — deferred, named in the campaign README.
+
+### 2026-07-02 — E3 twin-distractor identity test ([`experiments/2026-07-02-twin-distractor/`](../../experiments/2026-07-02-twin-distractor/README.md))
+
+- **RQ-E3a (does CARRY hold the bound target through a same-appearance crossing?):** **YES.** One
+  SITL crossing run at 0.25 m/s with an identical white car passing at 3 m (continuously in-frame,
+  its pixel down to ~175 px from the tracked box): ID-switch **0.0 s**, 0.0% of 968 boxed frames
+  ever closer to the distractor, ends 0.27 m to true vs 25.94 m to the departed distractor. SAM2
+  memory (appearance + position) is not fooled by a twin when the true target was never lost.
+- **RQ-E3b (does REGROUND re-lock the wrong twin when the true car is occluded?):** **YES —
+  wrong-lock 3/3.** All three decoy runs fired a real REGROUND (`n_regrounds=1`, so the E2
+  confident-latch amendment does not apply — measurable), and every re-lock's first box landed on
+  the parked decoy: the size-prior lever is identity-blind and cannot reject an identical twin by
+  construction. The follow then collapses into a static-latch (E2 mode, post-reground) and the true
+  car escapes — the accidental same-lane crossing that briefly transfers the box back to the true
+  car does not rescue it. This is the pre-registered honest negative; it motivates the reserved
+  appearance-embedding gate on reground acceptance (E3b CLIP cosine gate — not run this session).
+- **AerialMind cross-check:** distractor *density* alone does not degrade Phase 0 zero-shot carry —
+  the distractor-heavy quartile is marginally better (IoU@0.25 +0.011, ID-consistency +0.006), not
+  the estimated 2-8 pp worse. The identity failure is specific to occlusion + a same-appearance
+  in-lane decoy during REGROUND, not to crowding.

@@ -40,7 +40,7 @@ sys.path.insert(0, str(HERE.parents[1]))
 sys.path.insert(0, str(HERE.parents[1] / "runners"))
 
 from follow_demo import vlm_acquire  # noqa: E402
-from sitl_cam import NadirCam  # noqa: E402
+from sitl_cam import NadirCam, world_to_px  # noqa: E402
 
 CAPTION = "the white car"
 LOSS_S = 3.0                     # seconds without a box before REGROUND (Phase 1 gate)
@@ -104,7 +104,7 @@ class AcquireCarrySM:
 
 
 def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
-              carry_conn=None) -> dict:
+              carry_conn=None, twin: str | None = None) -> dict:
     """One 75 s follow trial at SPEED. Orchestration mirrors phase1_sitl.run_trial;
     the oracle box is kept for the in-FOV metric only -- control sees pixels.
     carry_conn set (3b): CARRY steps go to jetson_carry_service over the tunnel."""
@@ -176,12 +176,27 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
     bridge = (c(OCC_START) - hl, c(OCC_START + OCC_DUR) + hl)
     cam = NadirCam(bridge_n=bridge, road_e=rover_home_e)
 
+    # E3 twin distractor: an identical white car. crossing = 12 m ahead in the
+    # +3 m lane driving south (opposing) at SPEED, passes ~t=24s; decoy = parked
+    # 2 m past the bridge north edge in the same lane (the only car REGROUND sees
+    # while the true car is occluded).
+    if twin == "crossing":
+        d0 = rover_home_n + pb.ROVER_START_N + 12.0
+        distractor = lambda t: (d0 - SPEED * t, rover_home_e + 3.0, 0.0)  # noqa: E731
+    elif twin == "decoy":
+        dn = bridge[1] + 2.0
+        distractor = lambda t: (dn, rover_home_e, 0.0)  # noqa: E731
+    else:
+        distractor = None
+    twin_rows: list[tuple[float, float, float]] = []  # (t, d_true_px, d_dist_px) when boxed
+
     csv_path = raw_dir / f"trial-{SPEED}ms.csv"
     f = open(csv_path, "w", newline="")
     w = csv.writer(f)
     w.writerow(["t_s", "state", "copter_n", "copter_e", "copter_d",
                 "rover_n", "rover_e", "in_fov", "occluded",
-                "bbox_cx", "bbox_cy", "px_err", "vx_cmd", "vy_cmd", "loop_ms"])
+                "bbox_cx", "bbox_cy", "px_err", "vx_cmd", "vy_cmd", "loop_ms",
+                "dist_n", "dist_e", "d_true_px", "d_dist_px"])
     vid = cv2.VideoWriter(str(raw_dir / f"trial-{SPEED}ms.mp4"),
                           cv2.VideoWriter_fourcc(*"mp4v"), CONTROL_HZ, (IMG_W, IMG_H))
 
@@ -198,8 +213,9 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
             t = t_now - t_start
 
             rover_ned = (c(t), rover_home_e, 0.0)
+            dnd = distractor(t) if distractor else None
             copter_ned, attitude = pb._drain_telemetry(ctrl, copter_ned, attitude)
-            frame = cam.render(copter_ned, attitude[2], rover_ned)
+            frame = cam.render(copter_ned, attitude[2], rover_ned, dnd)
 
             was_carry = sm.state == "CARRY"
             t_sm = time.monotonic()
@@ -248,6 +264,17 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                 px_err = math.hypot(out["cx"] - IMG_W / 2, out["cy"] - IMG_H / 2)
                 carry_errs.append(px_err)
 
+            # E3: box-center distance (px) to the true car vs the distractor
+            d_true_px = d_dist_px = ""
+            if dnd is not None:
+                true_uv = world_to_px((rover_ned[0], rover_ned[1]), copter_ned, attitude[2])[0]
+                dist_uv = world_to_px((dnd[0], dnd[1]), copter_ned, attitude[2])[0]
+                if out is not None:
+                    bc = np.array([out["cx"], out["cy"]])
+                    d_true_px = round(float(np.hypot(*(bc - true_uv))), 1)
+                    d_dist_px = round(float(np.hypot(*(bc - dist_uv))), 1)
+                    twin_rows.append((t, d_true_px, d_dist_px))
+
             loop_ms = (time.monotonic() - t_now) * 1000
             w.writerow([round(t, 2), sm.state,
                         round(copter_ned[0], 2), round(copter_ned[1], 2), round(copter_ned[2], 2),
@@ -255,7 +282,9 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                         int(bbox_geo is not None), int(occluded),
                         round(out["cx"], 1) if out else "", round(out["cy"], 1) if out else "",
                         round(px_err, 1) if px_err is not None else "",
-                        round(sp["vx"], 3), round(sp["vy"], 3), round(loop_ms, 1)])
+                        round(sp["vx"], 3), round(sp["vy"], 3), round(loop_ms, 1),
+                        round(dnd[0], 2) if dnd else "", round(dnd[1], 2) if dnd else "",
+                        d_true_px, d_dist_px])
             if box is not None:
                 cv2.rectangle(frame, (int(box[0]), int(box[1])),
                               (int(box[2]), int(box[3])), (40, 200, 80), 2)
@@ -288,6 +317,33 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
         "carry_frames": len(carry_errs),
         "recovered_after_occlusion": len(sm.relock_walls) >= 1,
     }
+    if twin:
+        # id_switch_s: longest continuous span the box sat closer to the distractor
+        # than to the true car (S1 FAIL if > 1 s). final following distance decides
+        # S2 wrong-lock, but only counts if a REGROUND actually fired (amendment).
+        best = 0.0
+        run_start = None
+        for tt, dtrue, ddist in twin_rows:
+            if ddist < dtrue:
+                run_start = tt if run_start is None else run_start
+                best = max(best, tt - run_start)
+            else:
+                run_start = None
+        rov_end = (c(t), rover_home_e)
+        d_end = distractor(t)
+        fd_true = math.hypot(copter_ned[0] - rov_end[0], copter_ned[1] - rov_end[1])
+        fd_dist = math.hypot(copter_ned[0] - d_end[0], copter_ned[1] - d_end[1])
+        m["twin"] = {
+            "mode": twin,
+            "id_switch_s": round(best, 2),
+            "frac_box_closer_distractor":
+                round(sum(dd < dt for _, dt, dd in twin_rows) / len(twin_rows), 3)
+                if twin_rows else None,
+            "n_boxed_twin_frames": len(twin_rows),
+            "final_d_true_m": round(fd_true, 2),
+            "final_d_dist_m": round(fd_dist, 2),
+            "closest_at_end": "distractor" if fd_dist < fd_true else "true",
+        }
     print(f"[{SPEED} m/s] in_fov={m['in_fov_frac']:.3f} lock@{m['first_lock_s']}s "
           f"attempts={m['n_acquire_attempts']} regrounds={m['n_regrounds']} "
           f"relock={m['relock_walls_s']} px_err={m['carry_px_err_mean']} "
@@ -344,6 +400,8 @@ def main() -> None:
                     help="3b: TensorRT .plan on the Jetson (e.g. enc768.plan); E1 speedup")
     ap.add_argument("--speed", type=float, default=0.25,
                     help="E2: rover north speed m/s (bridge auto-scales via the SPEED closure)")
+    ap.add_argument("--twin", choices=["crossing", "decoy"], default=None,
+                    help="E3: add an identical distractor car (crossing | decoy)")
     args = ap.parse_args()
     if args.selfcheck:
         selfcheck()
@@ -420,7 +478,7 @@ def main() -> None:
         ctrl = OffboardController(f"tcp:127.0.0.1:{pb.COPTER_PORT}")
         ctrl.connect_and_takeoff(target_alt_m=pb.TAKEOFF_ALT_M)
         trial = run_trial(pb, ctrl, be, predictor, raw_dir, args.image_size,
-                          carry_conn=carry_conn)
+                          carry_conn=carry_conn, twin=args.twin)
         ctrl.land_and_disarm()
         ctrl.close()
     finally:
@@ -449,6 +507,7 @@ def main() -> None:
            "speed": SPEED, "duration_s": DURATION_S, "hz": CONTROL_HZ,
            "image_size": args.image_size, "sam2": MODEL,
            "validate": "sizeprior-0.5-2.0", "deadreckon": True,
+           "twin": args.twin,
            "carry": "jetson-remote" if args.remote_carry else "host-3090"}
     out_dir = HERE / "runs" / phase
     write_manifest(capture(f"{phase}-integrated", cfg),
