@@ -69,6 +69,7 @@ class StreamCarry:
                  prune_after: int = PRUNE_AFTER):
         self.p = predictor
         self.prune_after = prune_after
+        self.last_score: float | None = None  # SAM2.1 object-score logit of the last step (E4 loss gate)
         # init_state via a one-frame temp dir: reuses the stock loader (jpg-only)
         # for frame 0. A path is symlinked (byte-identical to the batch reference);
         # a live ndarray is jpg-encoded once (q=95, no reference to diverge from).
@@ -114,6 +115,7 @@ class StreamCarry:
             run_mem_encoder=True,
         )
         out_dict["non_cond_frame_outputs"][idx] = current_out
+        self.last_score = float(current_out["object_score_logits"].reshape(-1)[0])
         st["frames_tracked_per_obj"][0][idx] = {"reverse": False}
         _, video_res_masks = self.p._get_orig_video_res_output(st, pred_masks)
         old = idx - self.prune_after
