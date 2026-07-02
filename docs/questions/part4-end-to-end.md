@@ -27,3 +27,10 @@
   training lever stays unpulled. Occlusion re-association is the weak tier (32.9% over 70 gap
   events) — that budget belongs to the REGROUND trigger, whose mechanics (plus RETARGET) the
   committed demo already exercises on real Jetson acquire.
+
+### 2026-07-02 — Temporal acquire-carry, Phase 1 ([`experiments/2026-07-01-temporal-acquire-carry/`](../../experiments/2026-07-01-temporal-acquire-carry/README.md))
+
+- **RQ-T.5 (skeleton — closed-loop follow under injected acquire cost):** **PASS at 0.25 and
+  0.5 m/s** (in-FOV 1.000, occlusion relock ~4.2–4.5 s). The ceiling is 1.0 m/s and it is set by
+  the **REGROUND blind window** (LossGate 3 s + acquire ~4.3 s ≈ 7.3 s, target exits the 10 m-AGL
+  footprint), not by first acquire or PID tracking. Full RQ-T.5 (real perception) is Phase 3.

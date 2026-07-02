@@ -1,0 +1,69 @@
+[offboard] connecting to tcp:127.0.0.1:5760 ...
+[offboard] heartbeat  type=2  autopilot=3  target_sys=1
+[offboard] priming GCS link (3 heartbeats) ...
+[offboard] data stream requested
+[offboard] requesting mode GUIDED (id=4) ...
+[offboard] mode GUIDED confirmed
+[offboard] param ARMING_CHECK = 0
+[offboard] waiting for EKF position estimate ...
+[offboard] EKF ready  flags=0x33F  vel_horiz=0.00  pos_horiz=0.01
+[offboard] arming ...
+[offboard] arm ACK result=0
+[offboard] armed
+[offboard] climbing to 10.0 m ...
+[offboard] at altitude  z=-8.6 m NED
+[0.25 m/s] in_fov=1.000 lock@4.31s attempts=2 regrounds=1 relock=[4.46] px_err=16.1
+[pause] 10 s hover between trials
+[0.5 m/s] in_fov=1.000 lock@4.26s attempts=2 regrounds=1 relock=[4.21] px_err=32.0
+[pause] 10 s hover between trials
+[1.0 m/s] in_fov=0.482 lock@4.36s attempts=10 regrounds=1 relock=[] px_err=66.2
+[offboard] landing ...
+[offboard] requesting mode LAND (id=9) ...
+[offboard] mode LAND confirmed
+[offboard] disarmed — landed
+{
+  "trials": [
+    {
+      "speed_ms": 0.25,
+      "n_frames": 1498,
+      "in_fov_frac": 1.0,
+      "first_lock_s": 4.31,
+      "n_acquire_attempts": 2,
+      "n_regrounds": 1,
+      "relock_walls_s": [
+        4.46
+      ],
+      "carry_px_err_mean": 16.1,
+      "carry_frames": 1264,
+      "recovered_after_occlusion": true
+    },
+    {
+      "speed_ms": 0.5,
+      "n_frames": 1498,
+      "in_fov_frac": 1.0,
+      "first_lock_s": 4.26,
+      "n_acquire_attempts": 2,
+      "n_regrounds": 1,
+      "relock_walls_s": [
+        4.21
+      ],
+      "carry_px_err_mean": 32.0,
+      "carry_frames": 1270,
+      "recovered_after_occlusion": true
+    },
+    {
+      "speed_ms": 1.0,
+      "n_frames": 1499,
+      "in_fov_frac": 0.4817,
+      "first_lock_s": 4.36,
+      "n_acquire_attempts": 10,
+      "n_regrounds": 1,
+      "relock_walls_s": [],
+      "carry_px_err_mean": 66.2,
+      "carry_frames": 513,
+      "recovered_after_occlusion": false
+    }
+  ],
+  "gate_speed_ms": 0.25,
+  "gate": "PASS"
+}

@@ -1,0 +1,34 @@
+{
+  "run_id": "20260702T080332Z",
+  "created_utc": "2026-07-02T08:03:32.787258+00:00",
+  "kind": "phase1-sitl-oracle",
+  "git_sha": "041caeb95eec8e36004c6b5745d781ecd80b29ca",
+  "git_dirty": true,
+  "llamacpp_commit": "57fe1f07c3b6a1de3f4fff19098e2056a85275b7",
+  "lockfile_sha256": "8766f2dbfc806e5f6938dbd1715e228180ac778a04f4f2bacc03abda422c2b7a",
+  "python_version": "3.12.10",
+  "platform": "Linux-6.17.0-35-generic-x86_64-with-glibc2.39",
+  "config": {
+    "lat_s": [
+      4.1,
+      4.6
+    ],
+    "p_parsefail": 0.007,
+    "loss_n": 60,
+    "occ": [
+      30.0,
+      5.0
+    ],
+    "speeds": [
+      0.25,
+      0.5,
+      1.0
+    ],
+    "duration_s": 75.0,
+    "hz": 20,
+    "seed": 7
+  },
+  "dataset_path": null,
+  "dataset_sha256": null,
+  "extra": {}
+}

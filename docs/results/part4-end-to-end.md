@@ -39,3 +39,16 @@ window, scored on labeled frames only. First launch invalidated at 42/93 by a GT
 Demo (real Jetson Q8_0 acquire, M0205): occlusion clip — acquire IoU 0.947 @4.54 s, carry 252 f
 through a 40-frame GT gap, mean IoU 0.886; retarget clip — mid-video caption switch truck→"the
 black car", retarget IoU 0.721 @4.1 s, mean IoU 0.887. Committed `ab6d6d7`.
+
+### 2026-07-02 — Temporal acquire-carry, Phase 1 SITL latency-injection ([`experiments/2026-07-01-temporal-acquire-carry/`](../../experiments/2026-07-01-temporal-acquire-carry/README.md))
+
+Oracle-box follow loop (perception perfect) with the temporal design's measured costs injected:
+acquire/reground latency U(4.1, 4.6) s, parse-fail p=0.007, 5 s synthetic occlusion @ t=30 s,
+LossGate 60 no-box frames (3 s @ 20 Hz). ArduCopter SITL, 10 m AGL, gimbal-level camera, rover
+programmatic north; 75 s/trial. `phase1_sitl.py`, raw CSVs in campaign `raw/phase1-sitl/`.
+
+| Rover speed | in-FOV frac | first lock | regrounds | occlusion relock wall | carry px-err | verdict |
+|---|---|---|---|---|---|---|
+| 0.25 m/s (gate) | **1.000** | 4.31 s | 1 | **4.46 s** | 16.1 px | **PASS** |
+| 0.5 m/s | **1.000** | 4.26 s | 1 | 4.21 s | 32.0 px | PASS |
+| 1.0 m/s | 0.482 | 4.36 s | 1 (8 failed re-acquires) | never | 66.2 px | FAIL — speed ceiling |
