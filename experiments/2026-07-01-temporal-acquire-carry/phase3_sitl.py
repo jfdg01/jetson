@@ -8,6 +8,14 @@ car physically drives under -- nothing is masked or injected.
 
     .venv-ft/bin/python experiments/2026-07-01-temporal-acquire-carry/phase3_sitl.py --selfcheck
     .venv-ft/bin/python experiments/2026-07-01-temporal-acquire-carry/phase3_sitl.py
+
+Phase 3b (--remote-carry): same loop, but CARRY runs on the Jetson itself --
+jetson_carry_service.py is booted over ssh (co-resident with the llama-server
+VLM) and frames stream to it as JPEG over an ssh-forwarded TCP port. The gate
+gains the campaign criterion: control rate >= 5 Hz with everything on-device.
+
+    .venv-ft/bin/python experiments/2026-07-01-temporal-acquire-carry/phase3_sitl.py \
+        --remote-carry --image-size 640
 """
 
 from __future__ import annotations
@@ -95,12 +103,13 @@ class AcquireCarrySM:
         return box
 
 
-def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int) -> dict:
+def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
+              carry_conn=None) -> dict:
     """One 75 s follow trial at SPEED. Orchestration mirrors phase1_sitl.run_trial;
-    the oracle box is kept for the in-FOV metric only -- control sees pixels."""
+    the oracle box is kept for the in-FOV metric only -- control sees pixels.
+    carry_conn set (3b): CARRY steps go to jetson_carry_service over the tunnel."""
     import torch
 
-    from stream_carry import StreamCarry
     from sitl.cascade_pid import CascadePID
     from sitl.oracle_bbox import (
         FOCAL_PX, IMG_H, IMG_W, TARGET_LEN_M, TARGET_WID_M,
@@ -109,6 +118,7 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int) -> dict:
     pid = CascadePID(kp_yaw=0.0)  # yaw disabled, per Phase B rationale
     executor = ThreadPoolExecutor(max_workers=1)
     rgb = lambda f: np.ascontiguousarray(f[:, :, ::-1])  # noqa: E731
+    jpg = lambda f: cv2.imencode(".jpg", f, [cv2.IMWRITE_JPEG_QUALITY, 90])[1].tobytes()  # noqa: E731
 
     def _acquire(path: str):
         try:
@@ -121,9 +131,21 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int) -> dict:
         cv2.imwrite(path, frame_bgr)
         return executor.submit(_acquire, path)
 
-    def make_carry(frame_bgr, box):
-        sc = StreamCarry(predictor, rgb(frame_bgr), box)
-        return SimpleNamespace(step=lambda f: sc.step(rgb(f))[1])
+    if carry_conn is not None:
+        def _remote_step(f):
+            carry_conn.send({"cmd": "step", "jpg": jpg(f)})
+            return carry_conn.recv()["box"]
+
+        def make_carry(frame_bgr, box):
+            carry_conn.send({"cmd": "init", "jpg": jpg(frame_bgr), "box": list(box)})
+            carry_conn.recv()
+            return SimpleNamespace(step=_remote_step)
+    else:
+        from stream_carry import StreamCarry
+
+        def make_carry(frame_bgr, box):
+            sc = StreamCarry(predictor, rgb(frame_bgr), box)
+            return SimpleNamespace(step=lambda f: sc.step(rgb(f))[1])
 
     def validate(box):
         # size prior from known altitude: reject acquire boxes that can't be the
@@ -314,6 +336,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--selfcheck", action="store_true")
     ap.add_argument("--image-size", type=int, default=1024)
+    ap.add_argument("--remote-carry", action="store_true",
+                    help="3b: run CARRY on the Jetson via jetson_carry_service")
     args = ap.parse_args()
     if args.selfcheck:
         selfcheck()
@@ -325,23 +349,58 @@ def main() -> None:
     from grounding.deploy.video import _REMOTE_MMPROJ, _REMOTE_MODELS
     from grounding.eval.backends import JetsonBackend
     from grounding.manifest import capture, write as write_manifest
-    from sam2.sam2_video_predictor import SAM2VideoPredictor
 
     from carry_eval import MODEL
 
-    raw_dir = HERE / "raw" / "phase3a-sitl"
+    phase = "phase3b-sitl" if args.remote_carry else "phase3a-sitl"
+    raw_dir = HERE / "raw" / phase
     raw_dir.mkdir(parents=True, exist_ok=True)
     pb.SITL_DIR.mkdir(parents=True, exist_ok=True)
     if not pb.ARDUCOPTER_BIN.exists():
         sys.exit(f"SITL binary missing: {pb.ARDUCOPTER_BIN}")
 
-    print("[3a] booting Jetson q8_0 server...", flush=True)
+    print("[3] booting Jetson q8_0 server...", flush=True)
     be = JetsonBackend(f"{_DEFAULT_REMOTE_DIR}/{_REMOTE_MODELS['q8_0']}",
                        f"{_DEFAULT_REMOTE_DIR}/{_REMOTE_MMPROJ}",
                        ssh_host="jetson", max_side=1024)
-    over = ([f"++model.image_size={args.image_size}"]
-            if args.image_size != 1024 else [])
-    predictor = SAM2VideoPredictor.from_pretrained(MODEL, hydra_overrides_extra=over)
+
+    predictor = carry_conn = svc_pid = tunnel = None
+    if args.remote_carry:
+        import socket
+        import subprocess
+        from multiprocessing import AuthenticationError
+        from multiprocessing.connection import Client
+
+        print("[3b] booting Jetson carry service...", flush=True)
+        out = subprocess.run(
+            ["ssh", "jetson",
+             # ponytail: ';' not '&&' -- with '&&' the '&' backgrounds a subshell that
+             # still holds sshd's stdout pipe while waiting on python, so ssh never returns
+             f"cd ~/sam2-bench; nohup .venv/bin/python jetson_carry_service.py "
+             f"--image-size {args.image_size} > /tmp/carry_svc.log 2>&1 < /dev/null & echo $!"],
+            capture_output=True, text=True, timeout=60)
+        svc_pid = int(out.stdout.strip().split()[-1])
+        with socket.socket() as s:
+            s.bind(("127.0.0.1", 0))
+            lport = s.getsockname()[1]
+        tunnel = subprocess.Popen(["ssh", "-N", "-o", "ExitOnForwardFailure=yes",
+                                   "-L", f"{lport}:127.0.0.1:18081", "jetson"])
+        deadline = time.monotonic() + 120  # model load ~15 s; generous
+        while True:
+            try:
+                carry_conn = Client(("127.0.0.1", lport), authkey=b"carry")
+                break
+            except (ConnectionError, OSError, EOFError, AuthenticationError):
+                # tunnel accepts locally, then the remote refusal surfaces
+                # mid-handshake as EOF/auth failure -> still "not up yet"
+                if time.monotonic() > deadline:
+                    raise RuntimeError("carry service not up after 120 s")
+                time.sleep(2.0)
+    else:
+        from sam2.sam2_video_predictor import SAM2VideoPredictor
+        over = ([f"++model.image_size={args.image_size}"]
+                if args.image_size != 1024 else [])
+        predictor = SAM2VideoPredictor.from_pretrained(MODEL, hydra_overrides_extra=over)
 
     copter_proc = None
     try:
@@ -350,23 +409,34 @@ def main() -> None:
         time.sleep(5.0)
         ctrl = OffboardController(f"tcp:127.0.0.1:{pb.COPTER_PORT}")
         ctrl.connect_and_takeoff(target_alt_m=pb.TAKEOFF_ALT_M)
-        trial = run_trial(pb, ctrl, be, predictor, raw_dir, args.image_size)
+        trial = run_trial(pb, ctrl, be, predictor, raw_dir, args.image_size,
+                          carry_conn=carry_conn)
         ctrl.land_and_disarm()
         ctrl.close()
     finally:
         be.close()
+        if carry_conn is not None:
+            carry_conn.close()
+        if svc_pid:
+            import subprocess
+            subprocess.run(["ssh", "jetson", f"kill {svc_pid}"], timeout=30)
+        if tunnel is not None:
+            tunnel.terminate()
         if copter_proc and copter_proc.poll() is None:
             copter_proc.terminate()
 
     gate = trial["in_fov_frac"] >= 0.90 and trial["recovered_after_occlusion"]
+    if args.remote_carry:  # campaign criterion: >=5 Hz control with carry on-device
+        gate = gate and trial["achieved_hz"] >= 5.0
     summary = {"trial": trial, "gate_speed_ms": SPEED,
                "gate": "PASS" if gate else "FAIL"}
     cfg = {"caption": CAPTION, "loss_s": LOSS_S, "occ": [OCC_START, OCC_DUR],
            "speed": SPEED, "duration_s": DURATION_S, "hz": CONTROL_HZ,
            "image_size": args.image_size, "sam2": MODEL,
-           "validate": "sizeprior-0.5-2.0", "deadreckon": True}
-    out_dir = HERE / "runs" / "phase3a-sitl"
-    write_manifest(capture("phase3a-sitl-integrated", cfg),
+           "validate": "sizeprior-0.5-2.0", "deadreckon": True,
+           "carry": "jetson-remote" if args.remote_carry else "host-3090"}
+    out_dir = HERE / "runs" / phase
+    write_manifest(capture(f"{phase}-integrated", cfg),
                    runs_dir=str(out_dir), results=summary)
     (out_dir / "results.json").write_text(json.dumps(summary, indent=2))
     print(json.dumps(summary, indent=2))

@@ -29,7 +29,17 @@ from PIL import Image
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from carry_eval import MODEL, iou, mask_to_box  # noqa: E402
+try:
+    from carry_eval import MODEL, iou, mask_to_box  # noqa: E402
+except ImportError:  # ponytail: Jetson copy is repo-less; only step() needs these
+    MODEL = "facebook/sam2.1-hiera-tiny"
+    iou = None  # parity main() is host-only
+
+    def mask_to_box(mask):
+        ys, xs = np.nonzero(mask)
+        if len(xs) == 0:
+            return None
+        return (float(xs.min()), float(ys.min()), float(xs.max()) + 1, float(ys.max()) + 1)
 
 IMG_MEAN = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
 IMG_STD = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)

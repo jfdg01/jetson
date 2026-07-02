@@ -451,6 +451,44 @@ carry zero-shot or trained; SAM2 or SOT), with what was given up.
   above plus the three follow-on campaigns, each pre-registered in its own experiment folder:
   `2026-07-02-carry-trt-export/` (E1), `2026-07-02-follow-speed-ceiling/` (E2),
   `2026-07-02-twin-distractor/` (E3). All decision points are frozen as numeric IF/THEN rules.
+- **2026-07-02T11:05Z — Phase 3b implemented + pre-flight smoke PASS; recorded DEVIATION from the
+  frozen build spec.** The bridge was built before the 10:55Z spec landed; it differs in transport
+  and acquire placement, and is kept because it is smoke-tested and the compute placement — the
+  thesis claim — is identical (all per-frame perception on the Jetson). Not a silent deviation;
+  what changed and what is given up:
+  - **`jetson_carry_service.py` (NEW, not `jetson_percept.py`):** carry-only service on the Jetson
+    (`~/sam2-bench/`, port **18081**, `--image-size <OP>`). Protocol is stdlib
+    `multiprocessing.connection` (authkey `b"carry"`, binary JPEG q90 — no hand-rolled JSON-lines,
+    no base64 inflation): `init(jpg,box)` re-inits `StreamCarry` (reground = same op),
+    `step(jpg)` -> box + wall ms. Host reaches it over `ssh -N -L` (service binds 127.0.0.1 only).
+  - **ACQUIRE stays host-side** via the existing `JetsonBackend` -> Jetson llama-server (boot line
+    = Phase 2 config paragraph). The VLM *inference* is on the Jetson either way; only prompt
+    construction/parsing (microseconds, like the PID) stays host-side, and the acquire call was
+    already async in the state machine — control rate is bound by the carry round-trip in both
+    designs. Given up: spec-verbatim conformance; a single service owning both ops (two Jetson
+    endpoints instead of one — acceptable, both boot from the host launcher in `phase3_sitl.py
+    --remote-carry`).
+  - `stream_carry.py` gained an ImportError fallback (MODEL/mask_to_box inline) so the Jetson copy
+    is repo-less; scp'd next to the service.
+  - **Jetson venv installs (documented per working agreement):** `opencv-python-headless==4.11.0.86`
+    (service-side JPEG decode) — first install let uv bump numpy 1.26.4 -> 2.2.6, which silently
+    breaks torch 2.8.0's tensor<->numpy interop (aarch64 wheel compiled against NumPy 1.x;
+    `torch.zeros(2).numpy()` raises) — re-pinned **`numpy==1.26.4`** in the same resolve; interop
+    re-verified. Lesson: pin numpy explicitly on every `uv pip install` into `~/sam2-bench/.venv`.
+  - Two ssh gotchas burned ~30 min, recorded for reuse: (1) `cd X && nohup Y >log & echo $!` never
+    returns — `&` backgrounds the whole `&&` list in a subshell that still holds sshd's stdout pipe
+    while waiting on Y; use `;` so `&` binds to the fully-redirected command (plus `< /dev/null`).
+    (2) `ssh jetson 'pkill -f jetson_carry_service'` kills its *own* remote bash wrapper (the
+    pattern matches the wrapper's command line) -> exit 255 and a dead session; use a
+    self-non-matching pattern (`pkill -f '[j]etson_carry_service'`).
+  - **Pre-flight smoke (replaces the spec's M0205 offline selfcheck — same check plus the tunnel):**
+    boot service @640 via ssh, tunnel, init from an oracle box on a rendered NadirCam frame, 20
+    steps with the car creeping north. Boxes track the motion; init round-trip 0.72 s; step
+    round-trip **p50 157 ms -> 6.4 FPS** (Jetson-side 154 ms, tunnel+JPEG ~4 ms) — solo (no
+    llama-server resident), consistent with the Phase 2 solo bench (7.25 FPS batch @640; the gap
+    is per-frame JPEG decode + wire). ESTIMATE for the flight: co-resident @640 cost 0 FPS in the
+    Phase 2 bench, so control rate ~6 Hz -> clears the ≥5 Hz leg.
+  - Flight blocked only on OP (Step A): 768 eval at 84/93, 640 eval auto-queued behind it.
 - **Open decisions still pending:** (1) SAM2 variant — SAM2.1-tiny vs EdgeTAM vs EfficientTAM (decide
   on Jetson FPS, Phase 2); (2) TensorRT vs ONNX for the carry export (shared with the bake-off's C/D
   question); (3) Part assignment — this seeds the "v5 temporal" line but is left under Part IV
