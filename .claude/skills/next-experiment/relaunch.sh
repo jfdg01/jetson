@@ -1,9 +1,20 @@
 #!/usr/bin/env bash
 # Relaunch guard for the next-experiment loop. The ONLY sanctioned way to spawn
 # the next /next-experiment terminal. Refuses (exit 1, reason on stdout+log)
-# unless every check passes. Usage: relaunch.sh [--dry-run]
+# unless every check passes. Usage: relaunch.sh [--dry-run|status]
 set -u
 cd "$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "REFUSED: not in a git repo"; exit 1; }
+
+if [ "${1:-}" = "status" ]; then
+  echo "== loop status =="
+  echo "branch: $(git branch --show-current)  dirty: $(git status --porcelain | wc -l) files"
+  echo "budget: $(cat .claude/loop-budget 2>/dev/null || echo '<none>')"
+  echo "-- timeline (.claude/loop.log, last 20) --"
+  tail -20 .claude/loop.log 2>/dev/null || echo "<no log yet>"
+  echo "-- experiment commits since yesterday --"
+  git log --oneline --since=yesterday --grep='^E[0-9]\|next-experiment\|Merge experiment' || true
+  exit 0
+fi
 
 STATE=.claude
 BUDGET=$STATE/loop-budget   # human seeds: echo N > .claude/loop-budget  (authorizes N cycles)

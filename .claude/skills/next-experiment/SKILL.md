@@ -35,6 +35,10 @@ the budget file is missing or 0, say the loop will stop after this cycle unless 
 
 ## Step 1 — Review status (read, don't guess)
 
+- First action, always: stamp the timeline —
+  `echo "$(date -Is) CYCLE-START fable on $(git branch --show-current)" >> .claude/loop.log`
+  (this is how a human debugs the loop next morning: every session leaves exactly one
+  start line; a SPAWNED with no following CYCLE-START means the spawned claude died).
 - `git log --oneline -15` and current branch.
 - The 2–3 or so most recent `experiments/*/README.md` (Status, Results, verdict sections).
 - The current Part's ledger docs: `docs/questions/part4-*.md`, `docs/results/part4-*.md`,
@@ -89,6 +93,8 @@ workflow (CLAUDE.md "definition of done"). Front-load ALL intelligence:
 - **Results (TBD):** empty table with the exact columns the executor fills.
 - **Closeout checklist for the executor** (copy this verbatim into the README — the
   executor works from the README alone, including the loop-back command):
+  0. First action on session start (before running anything):
+     `echo "$(date -Is) EXEC-START <slug>" >> .claude/loop.log`
   1. Fill Results here.
   2. Append RESULTS row(s), QUESTIONS verdict (per-Part doc, not root), DECISIONS entry if
      drafted here.
@@ -125,7 +131,8 @@ DISPLAY=${DISPLAY:-:0} gnome-terminal -- bash -c "cd <repo-root> && claude --rem
 
 Before launching, verify your own side is clean: pre-registration README and patches
 committed on `experiment/<slug>`, `git status` clean. You hand the executor a repo where
-the only remaining work is mechanical.
+the only remaining work is mechanical. Right after launching, stamp the timeline:
+`echo "$(date -Is) HANDOFF <slug> -> opus executor" >> .claude/loop.log`.
 
 Then end your session output with: the README path, the branch name, the one-line RQ, the
 exact handoff message passed, and a note that the executor session is accessible via
