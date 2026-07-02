@@ -66,3 +66,5 @@ eeprom.bin
 
 # Auto-continuation runtime state (logs, sentinels, locks) — mechanism in scripts/ is committed
 .auto-continue/
+.claude/loop*
+.claude/settings.local.json
