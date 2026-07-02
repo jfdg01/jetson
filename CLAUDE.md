@@ -90,4 +90,4 @@ make test      # run pytest contract + manifest + audit suite
 ## Working agreement
 
 - Don't leave findings only in chat — land them via the workflow above before the session ends.
-- If a tool is missing (`ffmpeg`, `cmake`, a Python package), say what's needed and why — don't work around it. Document installs in the relevant `experiments/` README.
+- **Install what you need.** If a tool or package is missing (`ffmpeg`, a Python package, a wheel on the Jetson), install it and move on — don't work around it or stall to ask. Installs go in a venv, never global. The only stops: anything needing an interactive password (Jetson `apt`) — ask the user to run it — and anything destructive. Document every install (what, version, why) in the relevant `experiments/` README.
