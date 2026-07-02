@@ -1,7 +1,9 @@
 # E3 — Identity robustness: twin-target / distractor test
 
 **Pre-registered:** 2026-07-02T10:51Z (planning session; executor fills Results only).
-**Status:** NOT STARTED — trigger: after E2 (`../2026-07-02-follow-speed-ceiling/`).
+**Status:** READY — E2 is done (all speeds FAIL, see `../2026-07-02-follow-speed-ceiling/`);
+handoff prepped 2026-07-02T20:30Z below. Executor: read Frozen design + Executor handoff,
+implement the two patches, run, fill Results.
 
 ## Research question
 
@@ -59,6 +61,58 @@ pandas, `distractor_density.py` in this dir, table into Results.
 `ADVISOR (only if S1 fails — that contradicts the Phase 0 ID-consistency 0.891 prior): "SITL
 crossing-twin made CARRY switch identity (<paste metrics>), but population ID-consistency was
 0.891. Render artifact, rig bug, or real SAM2 failure mode?"`
+(The advisor tool was DOWN on 2026-07-02 for both the E2 session and the prep session. If it is
+still down when the clause triggers, record that, reproduce the failure once, and proceed on own
+judgment — the E2 precedent.)
+
+## Executor handoff (prepped 2026-07-02T20:30Z, post-E2 — verified paths)
+
+**Rig:** same as E2 / 3a run 2 — local-VLM path (Jetson not needed; do NOT pass
+`--remote-carry`), local 3090 carry @1024. Speed is the default 0.25 (E2's `--speed` flag is
+committed; don't pass it). Invocation shape:
+
+```bash
+cd /home/gara/jetson && .venv-ft/bin/python \
+  experiments/2026-07-01-temporal-acquire-carry/phase3_sitl.py --twin crossing
+```
+
+**Files to patch** (both live in the parent campaign, not here):
+
+- `experiments/2026-07-01-temporal-acquire-carry/sitl_cam.py` — `SceneRenderer.render()` at
+  line 83 (add `distractor_ned=None`), `selfcheck()` at line 102 (add the two-blob assertion).
+- `experiments/2026-07-01-temporal-acquire-carry/phase3_sitl.py` — argparse at ~line 338 (add
+  `--twin {crossing,decoy}`); scenario constants near `SPEED` at line 48; E2 already raised the
+  DR clip to ±2.5 (line ~228), leave it.
+
+**Output plumbing (same gotcha E2 hit):** `phase3_sitl.py` overwrites
+`<parent>/raw/phase3a-sitl/trial-*.csv` and `<parent>/runs/phase3a-sitl/results.json` on every
+run. Snapshot after each run into this campaign's `runs/{s1-crossing,s2-decoy-run{1,2,3}}/` —
+copy the loop pattern from `../2026-07-02-follow-speed-ceiling/run_e2.sh`.
+
+**Metrics plumbing:** `results.json` already carries `n_regrounds`, `relock_walls_s`,
+`recovered_after_occlusion`. The per-frame trial CSV
+(`t_s,state,copter_n,...,rover_n,rover_e,in_fov,occluded,bbox_cx,bbox_cy,...`) has no distractor
+state — add per-frame distractor NED columns and the projected pixel centers of both cars (the
+renderer already does the NED→pixel projection), so box-center-distance to true car vs
+distractor is computable per frame.
+
+**S2 verdict amendment (pre-registered here, NOT after seeing data):** E2 found a
+*confident-latch* mode at 0.5 m/s — under the bridge occlusion SAM2 latched the occluder and
+returned a confident box, so `n_regrounds=0` and the levers never fired. 3a run 2 at 0.25 m/s
+got honest loss and a REGROUND, so S2 at 0.25 should be measurable — but verify per S2 run:
+if `n_regrounds == 0` (no REGROUND ever fired during the occlusion), the run is
+**"S2 not measurable — confident-latch reproduced at 0.25"**, a distinct recorded result, NOT
+"no wrong-lock = PASS". Wrong-lock rate is defined only over runs where REGROUND fired.
+
+**AerialMind leg paths:** `per_track.csv` at
+`experiments/2026-07-01-temporal-acquire-carry/runs/phase0-zeroshot-carry/per_track.csv`
+(cols: `seq,tid,n_frames,n_labeled,mean_iou,iou_at_25,...,id_consistency,...`); GT at
+`/home/gara/jetson/data/AerialMind/labels_with_ids/` — coordinates are **top-left encoded,
+normalized** (not JDE center; the documented Phase 0 gotcha). The density metric (same-size
+boxes within 3× box diagonal) works in normalized coords; no image loading needed.
+
+**Definition of done is below** — ledger appends go to `docs/{results,questions}/part4-end-to-end.md`
+(per-Part docs, never the root files), Madrid wall-clock timestamps, no emojis.
 
 ## Results (TBD)
 
