@@ -568,3 +568,32 @@ proves render identity, not SITL/VLM/pursuit timing identity across the code del
 RECORDED but NOT claimed (dd 2/3, ro 3/3) — un-attributable without a passing baseline. Est-vs-actual:
 runtime ~130 min (est 110–125); overall YES est ~25–35% → NOT-MEASURABLE (the anticipated reg-e14-FAIL
 halt branch). Raw: `experiments/2026-07-03-mask-hardening/runs/`.
+
+### E16 relock-rate (2026-07-03) — RQ-E16 QUALIFIED, r=6/8
+
+Fixed-code n=8 replication of E14's exact mask-gate config on current main (`8d6336e`, the E15
+merge; E15 knobs off by default, so the code under test = E14's gate). No harness patches. All legs:
+15W mode 0 + jetson_clocks, image-size 1024, app-tau 12, decoy-shade 215, `--reground-gate mask`
+(reps; ctl no gate), `--speed 0.25 --twin decoy --duration-s 150 --loss-gate motion --dr pursuit
+--acquire-hold motion`.
+
+| leg | verdict | n_regr | gate_rej | size_rej | relock_on | closest_end | d_true_m | in_fov | relock_t_s |
+|---|---|---|---|---|---|---|---|---|---|
+| ctl | REPRODUCES | 5 | 0 | 39 | distractor x4 | distractor | 26.71 | 0.448 | 55.68/65.39/85.33/117.33 |
+| rep-1 | FAIL wrong-end | 2 | 8 | 33 | true | distractor | 18.15 | 0.680 | 71.88 |
+| rep-2 | PASS | 1 | 12 | 9 | true | true | 0.21 | 1.000 | 81.30 |
+| rep-3 | PASS | 1 | 13 | 9 | true | true | 0.21 | 1.000 | 83.94 |
+| rep-4 | PASS | 1 | 13 | 8 | true | true | 0.21 | 1.000 | 81.46 |
+| rep-5 | FAIL no-relock | 1 | 11 | 40 | (empty) | true | 26.85 | 0.371 | (none) |
+| rep-6 | PASS | 1 | 12 | 9 | true | true | 0.12 | 1.000 | 81.52 |
+| rep-7 | PASS | 1 | 13 | 11 | true | true | 0.20 | 1.000 | 88.62 |
+| rep-8 | PASS | 1 | 12 | 31 | true | true | 0.21 | 1.000 | 133.90 |
+
+**Relock rate r = 6/8** valid reps (0 retries, 0 exclusions — every rep produced >=1 reground).
+**RQ-E16 = QUALIFIED (6/8)**: denom 8, denom-r=2 (not RELIABLE), 2r=12>8 (not FRAGILE). No
+GATE-BREACH (no rep relocked the decoy). ctl REPRODUCES -> rig valid. PASS accept-time spread
+81.30-133.90 s (five in the estimated 74-90 band; rep-8 late at 133.90). Est-vs-actual: modal
+prediction QUALIFIED r=5-6/8 hit exactly; ctl reproduce ~90% prior held; identity-breach <5% ->
+observed 0; runtime ~130 min (est 120-150). The two FAILs are win-path timing misses of different
+kinds (never-acquired vs acquired-too-early), both upstream of the gate. Raw:
+`experiments/2026-07-03-relock-rate/runs/`.

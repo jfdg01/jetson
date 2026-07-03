@@ -335,3 +335,20 @@
   outcomes (NOT claimed): dd 2/3 (dd-c verified-but-lost to decoy-2), ro 3/3. Next lever: re-run
   reg-e14 at n≥3 on E14's merged code (no E15 patch) to isolate whether the failure is the patch or
   the rig — before any further hardening or the 3b remote-carry port.
+
+- **RQ-E16 (2026-07-03) — Is E14's "identity hole closed 3/3" a reliable behaviour or a stochastic
+  win path? Re-run E14's byte-identical mask-gate config n=8 on current main (fixed code) and read
+  the relock-on-true rate: RELIABLE iff <=1 FAIL/8, QUALIFIED iff 5-6/8, FRAGILE iff <=4/8):**
+  **QUALIFIED (r=6/8).** Six of eight reps relocked the true car (final 0.12-0.21 m, in_fov 1.000,
+  accepts t=81.30-133.90 s); the two FAILs are DIFFERENT modes and neither is an identity breach —
+  rep-5 is the reg-e14 mode exactly (no-relock: gate rejects 11 + size rejects 40, the VLM never
+  offered a clean post-separation box, DR-coasted to 26.85 m staying closest=true), rep-1 relocked
+  the true car early at t=71.88 s before full separation then drifted to the decoy side (wrong-end,
+  closest=distractor 18.15 m). No rep ever relocked on the decoy (no GATE-BREACH). ctl (no gate)
+  REPRODUCES the wrong-lock (26.71 m, closest=distractor), so the rig is valid. **This settles the
+  E15 anomaly:** E15's reg-e14 FAIL was a genuine draw from a ~0.75 rate, NOT an E15 code regression;
+  E14's 3/3 was the favourable tail of a QUALIFIED behaviour. The gate's *rejection* of the blended
+  box is solid (0 identity breaches in 8), but the *reject-until-separated re-acquire* succeeds only
+  ~75% of the time — bounded by an upstream event (the VLM offering a clean box in the accept window),
+  not by the gate. Also corrects E15's README misstatement that E14 accepted "at t=86.25 in all
+  three" (actual E14 accepts were 76.55/81.38/86.25 — E14 already varied under fixed code).

@@ -1,7 +1,7 @@
 # E16 relock-rate — is E14's mask-gate win a reliable behavior or a lucky rate?
 
 - **Pre-registered:** 2026-07-03T19:35Z (Madrid wall-clock)
-- **Status:** PRE-REGISTERED, not yet run.
+- **Status:** COMPLETE 2026-07-03T22:05Z. RQ-E16 = **QUALIFIED (r=6/8)**, no gate-breach, ctl REPRODUCES.
 - **Roles:** design + audit by Fable (this README, `run_e16.py`; **no harness
   patches this cycle** — the config is expressed entirely with existing
   flags). Opus runs the matrix and fills **Results only** — do NOT re-patch
@@ -217,39 +217,62 @@ times = accepted entries after the first (the first is the initial ACQUIRE).
 
 ## Results (TBD — Opus fills this section only)
 
-| leg | verdict | n_regrounds | gate_rejects | size_rejects | relock_on | closest_at_end | final_d_true_m | in_fov_frac | accept_t_s |
+| leg | verdict | n_regrounds | gate_rejects | size_rejects | relock_on | closest_at_end | final_d_true_m | in_fov_frac | accept_t_s (relock) |
 |---|---|---|---|---|---|---|---|---|---|
-| ctl | | | | | | | | | |
-| rep-1 | | | | | | | | | |
-| rep-2 | | | | | | | | | |
-| rep-3 | | | | | | | | | |
-| rep-4 | | | | | | | | | |
-| rep-5 | | | | | | | | | |
-| rep-6 | | | | | | | | | |
-| rep-7 | | | | | | | | | |
-| rep-8 | | | | | | | | | |
+| ctl | REPRODUCES | 5 | 0 | 39 | distractor x4 | distractor | 26.71 | 0.448 | 55.68/65.39/85.33/117.33 |
+| rep-1 | FAIL wrong-end | 2 | 8 | 33 | true | distractor | 18.15 | 0.680 | 71.88 |
+| rep-2 | PASS | 1 | 12 | 9 | true | true | 0.21 | 1.000 | 81.30 |
+| rep-3 | PASS | 1 | 13 | 9 | true | true | 0.21 | 1.000 | 83.94 |
+| rep-4 | PASS | 1 | 13 | 8 | true | true | 0.21 | 1.000 | 81.46 |
+| rep-5 | FAIL no-relock | 1 | 11 | 40 | (empty) | true | 26.85 | 0.371 | (none) |
+| rep-6 | PASS | 1 | 12 | 9 | true | true | 0.12 | 1.000 | 81.52 |
+| rep-7 | PASS | 1 | 13 | 11 | true | true | 0.20 | 1.000 | 88.62 |
+| rep-8 | PASS | 1 | 12 | 31 | true | true | 0.21 | 1.000 | 133.90 |
 
-- **Relock rate r:** TBD / TBD valid reps (retries: TBD)
-- **RQ-E16 verdict:** TBD (RELIABLE / QUALIFIED / FRAGILE / NOT-MEASURABLE,
-  breach flag if any)
-- **Accept-time spread (PASS reps):** TBD
-- **Estimate vs actual:** TBD
-- **Deviations/surprises:** TBD
+Config for every row: 15W mode 0 + jetson_clocks, image-size 1024, app-tau 12,
+decoy-shade 215, `--reground-gate mask` (reps; ctl no gate), `--speed 0.25 --twin
+decoy --duration-s 150 --loss-gate motion --dr pursuit --acquire-hold motion`.
+
+- **Relock rate r:** 6 / 8 valid reps (retries: 0; exclusions: 0 — every rep
+  produced >=1 reground, so no NOT-MEASURABLE/INVALID retry fired).
+- **RQ-E16 verdict:** **QUALIFIED (6/8)** — denom 8, r 6, denom-r=2 (not <=1 ->
+  not RELIABLE), 2r=12 > 8 (not FRAGILE). No GATE-BREACH (no rep relocked on the
+  decoy; the two FAILs are wrong-end and no-relock, never an identity breach).
+  Runner print and README rule agree.
+- **Accept-time spread (PASS reps):** 81.30-133.90 s (six PASS: 81.30, 81.46,
+  81.52, 83.94, 88.62, 133.90). Estimate was ~74-90 s; five of six land in that
+  band, rep-8 relocked late at 133.90 s (still PASS, in_fov 1.0, d 0.21).
+- **Estimate vs actual:** modal prediction was **QUALIFIED r=5-6/8** -- hit
+  exactly (r=6). ctl REPRODUCES as predicted (~90% prior). Identity-breach
+  predicted <5% -- observed 0. Runtime: ~130 min actual (9 legs, 0 retries) vs
+  120-150 min estimate -- on target.
+- **Deviations/surprises:** none procedurally (0 retries, ctl clean, selfchecks
+  PASS). Scientific surprise: the two FAILs are **different modes** -- rep-5 is
+  the reg-e14 mode exactly (no-relock, gate rejects 11 + size rejects 40, the VLM
+  never offered a clean post-separation box, DR-coasted to 26.85 m, stayed
+  closest=true/in_fov 0.37), while rep-1 relocked the true car early (t=71.88,
+  before full separation) then drifted to the decoy's side by end (wrong-end,
+  closest=distractor 18.15 m). So the 2/8 failure budget splits into "never
+  re-acquired" and "re-acquired too early on a still-blended box" -- both are
+  win-path timing failures, neither is a gate identity breach. This confirms
+  E15's reg-e14 FAIL was a genuine draw from a ~0.75 rate, not an E15 code
+  regression: E14's 3/3 was the favourable tail of a QUALIFIED behaviour.
 
 ## Proof clips (Opus: 2-3, committed under `proof/`, mechanical picks)
 
 Copy (or ffmpeg-trim to roughly t 40-125 s) from `runs/<leg>/trial.mp4`;
 caption each with the leg's config and verdict:
 
-1. `proof/e16-ctl-wronglock.mp4` — the ctl leg: the no-gate baseline
-   wrong-locks the decoy (the hole, still open without the gate).
-2. `proof/e16-pass-relock.mp4` — the first PASS rep: reject-until-separated,
-   then relock on the true car.
-3. `proof/e16-fail-<subtype>.mp4` — the first FAIL rep (the rate's other
-   face). If there are no FAIL reps, substitute the PASS reps with the
-   earliest and latest `accept_t_s` (shows the window spread) and name them
-   `e16-pass-early.mp4` / `e16-pass-late.mp4`. If there are no PASS reps,
-   use the first two FAIL reps.
+1. `proof/e16-ctl-wronglock.mp4` — ctl leg (no gate): the no-gate baseline
+   wrong-locks the 215 decoy 4x, ends 26.71 m from true (closest=distractor).
+   The hole, still open without the gate.
+2. `proof/e16-pass-relock.mp4` — rep-2, the first PASS: gate rejects 12 blended
+   reground boxes, then at t=81.30 s (post-separation) accepts the clean true
+   box and relocks the true car (final 0.21 m, in_fov 1.000).
+3. `proof/e16-fail-wrong-end.mp4` — rep-1, the first FAIL (wrong-end): relocks
+   the true car early at t=71.88 s (before full separation), then drifts to the
+   decoy's side and ends closest=distractor at 18.15 m. The rate's other face —
+   a win-path timing miss, not a gate identity breach (relock_on=['true']).
 
 ## Ledger updates on completion (Opus)
 

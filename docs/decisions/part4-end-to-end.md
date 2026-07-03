@@ -462,3 +462,31 @@
     knobs are off by default; E2–E14 configs render bit-identically per selfcheck). The cost is one
     cycle that produced a limiting result rather than a robustness confirmation — but per the loop
     design that is thesis content, and the next-cycle audit inherits a sharp, well-scoped question.
+
+### E16 relock-rate (2026-07-03) — fixed-code replication over the git-worktree A/B
+
+- **Chosen:** measure E14's mask-gate relock rate by n=8 fixed-code replication of its byte-identical
+  config on **current main** (the E15 merge, knobs off), with a no-gate ctl rig-drift guard and a
+  mechanical rate verdict (RELIABLE/QUALIFIED/FRAGILE). Result: **QUALIFIED, r=6/8** — the gate's
+  rejection is solid (0/8 identity breaches) but the reject-until-separated re-acquire wins ~75%,
+  bounded by the VLM offering a clean post-separation box, not by the gate.
+- **Rejected — the git-worktree A/B E15 seeded** (re-run E14's config on E14 code vs E15 code to split
+  patch-vs-rig): Fable's cycle-4 audit already discriminated it — reg-e14's trajectory prefix is
+  byte-identical to two E14 replicates that PASSed, the E15 patch never touched the acquire/gate path,
+  and achieved_hz was identical (19.6-19.8), so there is no patch mechanism or signature. An n<=5/arm
+  A/B is also underpowered for a ~0.75 rate. The decision-relevant number is main's rate, which the
+  fixed-code run gives directly. Given up: a formal patch-vs-rig isolation — but the audit + the
+  matching rate make E15's reg-e14 FAIL a plain draw from this distribution, so the isolation is moot.
+- **Rejected — the E3b CLIP appearance-embedding theme:** stale. Crop-based cues (colour E13, and CLIP
+  crop similarity) structurally fail the two-car blend box for the same reason size/motion did — they
+  do not bind to the tracked instance; the mask-median gate is the structural fix and it holds. No new
+  lever belongs on an unmeasured foundation; measure the foundation first (this experiment).
+- **Rejected — re-attributing E15's stress families (dd/ro):** uninterpretable without a passing
+  baseline rate, which is exactly what this experiment establishes; revisit only if a future harder
+  scenario is worth its own pre-registration.
+- **Correction recorded:** E15's README/ledger stated E14 accepted "at t=86.25 in all three" mk-decoy
+  replicates. False — E14's accepts were 76.55/81.38/86.25 s with two distinct init boxes; E14 already
+  varied under fixed code. The "near-deterministic rig" assumption that made reg-e14's FAIL look like a
+  regression was stale. Lesson reaffirmed: an off-by-default patch's render-identity assert
+  (`np.array_equal`) is necessary but not sufficient — behaviour varies run-to-run under identical
+  code, so a rate (n>=3, independent process launches) is the only honest read of a stochastic win path.
