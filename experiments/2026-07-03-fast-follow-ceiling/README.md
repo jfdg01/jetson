@@ -2,7 +2,8 @@
 
 **Pre-registered:** 2026-07-03T12:26Z (Madrid wall-clock)
 design + patches by Fable; Opus runs the matrix and fills Results only — do NOT re-patch code.
-**Status:** PRE-REGISTERED, not yet run.
+**Status:** COMPLETE 2026-07-03T12:45Z — **RQ-E10 = YES**, measured ceiling **2.5 m/s**
+(reg-1.5 PASS; s2.0 3/3; s2.5 3/3; s3.0 0/2 never-locked = first-acquire). See Results.
 
 ## RQ-E10
 
@@ -143,22 +144,46 @@ The runner prints all of this; the rules it applies:
 - s3.0: expect FAIL (standing-start first-acquire physics above), verdict
   value = which binding mode is printed.
 
-## Results (TBD)
+## Results
+
+Ran 2026-07-03T12:45Z. Rig: host 3090 (SITL + SAM2 carry @1024) + Jetson Q8_0
+acquire, **15 W + jetson_clocks**. Full stack (`--vmax 4.0 --loss-gate motion
+--dr pursuit --acquire-hold motion`). Raw: `raw/matrix.log`, per-leg
+`runs/<label>/{results.json,trial.csv,trial.mp4}`.
 
 | leg | gate | in_fov_frac | recovered | first_lock_s | attempts | rejected | n_regrounds | relock_walls_s | carry_px_err_mean | binding mode (FAIL only) |
 |---|---|---|---|---|---|---|---|---|---|---|
-| reg-1.5 | | | | | | | | | | |
-| s2.0a | | | | | | | | | | |
-| s2.0b | | | | | | | | | | |
-| s2.0c | | | | | | | | | | |
-| s2.5a | | | | | | | | | | |
-| s2.5b | | | | | | | | | | |
-| s2.5c | | | | | | | | | | |
-| s3.0a | | | | | | | | | | |
-| s3.0b | | | | | | | | | | |
+| reg-1.5 | PASS | 1.000 | True | 16.57 | 18 | 16 | 1 | 25.89 | 80.2 | — |
+| s2.0a | PASS | 1.000 | True | 2.30 | 7 | 5 | 1 | 13.87 | 102.2 | — |
+| s2.0b | PASS | 1.000 | True | 2.30 | 7 | 5 | 1 | 13.82 | 102.1 | — |
+| s2.0c | PASS | 1.000 | True | 2.30 | 7 | 5 | 1 | 13.89 | 102.1 | — |
+| s2.5a | PASS | 1.000 | True | 2.30 | 4 | 2 | 1 | 6.76 | 127.4 | — |
+| s2.5b | PASS | 1.000 | True | 2.30 | 4 | 2 | 1 | 6.76 | 127.9 | — |
+| s2.5c | PASS | 1.000 | True | 2.30 | 4 | 2 | 1 | 6.76 | 128.9 | — |
+| s3.0a | FAIL | 0.052 | False | None | 32 | 31 | 0 | — | — | never-locked (first-acquire) |
+| s3.0b | FAIL | 0.052 | False | None | 32 | 31 | 0 | — | — | never-locked (first-acquire) |
 
-**RQ-E10 verdict (TBD):** —
-**Measured ceiling (TBD):** —
+**RQ-E10 verdict: YES** — reg-1.5 PASS **and** s2.0 3/3 PASS. The follow stack holds
+2.0 m/s (and 2.5) once the rig edge + caps are removed.
+**Measured ceiling: 2.5 m/s** (1.5 1/1, 2.0 3/3, 2.5 3/3, 3.0 0/2).
+
+### What this means (vs the theme: track faster objects)
+
+- **The old "ceiling" was rig, not physics.** E2's "< 0.5 m/s" and the untested
+  assumption behind E6's ">= 1.0" both fell to the same three artifacts E10 removed:
+  the 140 m world edge (car ran off-map) and the 2.5 m/s pursuit / ±2.5 hist_vel /
+  3.0 PID caps. With the caps parameterized (defaults bit-identical; reg-1.5 confirms
+  no <= 1.5 behavior change), the loop tracks to **2.5 m/s** — 5x the E2 figure.
+- **Above 2.5 the binding constraint is first-acquire, not tracking.** Both 3.0 legs
+  never locked (in_fov 0.052, 31/32 acquires rejected, first_lock None) — the
+  E5/E6 acquire-lottery: the standing-start copter cannot get a repeatable VLM draw
+  before a 3.0 m/s car crosses the FOV. Once locked (2.0/2.5), carry+pursuit hold
+  in_fov 1.000 to trial end. So the lever that raises the ceiling past 2.5 is
+  **first-acquire reliability at speed**, not the pursuit controller or carry FPS.
+- **Latency signature, secondary:** relock wall-time *falls* with speed (25.9 s @1.5
+  -> 13.9 @2.0 -> 6.8 @2.5) and carry pixel error rises modestly (80 -> 128 px) — a
+  faster car re-enters the acquire FOV sooner and trails slightly wider, both benign
+  while in_fov stays 1.000.
 
 ## Video deliverables (Opus fills in — DoD item 7)
 
@@ -167,17 +192,22 @@ that is all the footage the deliverables need. Cut 2–3 clips into `proof/`
 (curated thesis clips, **committed**), caption each here with what it shows
 and which run it came from:
 
-1. `proof/e10-s2.0-follow.mp4` — a passing 2.0 m/s leg (the RQ moment), ~20 s
-   around the bridge occlusion + relock. This is the "after"; the "before" is
-   E6's on-record given-up 2.0 (no footage exists — say so in the caption).
-   If no 2.0 leg passes, this clip becomes the proof-of-failure instead.
-2. `proof/e10-ceiling.mp4` — the highest passing speed, occlusion window.
-3. `proof/e10-first-fail.mp4` — the first failing speed, ~15 s around the
-   moment the binding-mode classifier flags.
+Cut 2026-07-03T13:01Z (from `runs/<label>/trial.mp4`, occlusion window t≈30-35 s,
+re-encoded libx264 for clean seeks):
 
-`ffmpeg -ss <t0> -t <dur> -i runs/<label>/trial.mp4 -c copy proof/<name>.mp4`
-(ffmpeg is on the host; re-encode with `-c:v libx264` if `-c copy` cuts on a
-bad keyframe).
+1. `proof/e10-s2.0-follow.mp4` — **the RQ moment (after).** `s2.0a` t=22-48 s: the
+   loop holding a 2.0 m/s follow through the occlusion window and relocking, in_fov
+   1.000. This is the "after"; the "before" is E6's on-record given-up 2.0 m/s —
+   **no footage of that exists** (E6 concluded 2.0 unreachable without running it at
+   the removed caps, so there is nothing to film).
+2. `proof/e10-ceiling.mp4` — **the measured ceiling.** `s2.5a` t=22-48 s: 2.5 m/s,
+   the highest passing speed, holding through the same occlusion window (in_fov 1.000,
+   relock 6.76 s).
+3. `proof/e10-first-fail.mp4` — **the first failing speed.** `s3.0a` t=10-36 s: 3.0 m/s
+   never locks — the acquire-lottery churn (31/32 draws rejected, first_lock None),
+   the car pulls away, in_fov 0.052. Binding mode = first-acquire, not tracking.
+
+`ffmpeg -ss <t0> -t <dur> -i runs/<label>/trial.mp4 -c:v libx264 -pix_fmt yuv420p proof/<name>.mp4`
 
 ## Closeout checklist (Opus)
 

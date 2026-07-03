@@ -362,3 +362,38 @@ Post-switch `switch_on`/`closest_at_end == "distractor"` and `id_switch_s` ~22.3
 *intended* values (the copter is supposed to move onto the escort), per the verdict sign
 flip. n=3 real (distinct md5s, n_frames 1378/1313/1319; deterministic switch wall 2.35).
 Raw: `experiments/2026-07-03-retarget-switch/runs/{color-smoke,ctl,rt-a,rt-b,rt-c}/`.
+
+### 2026-07-03 — E10 fast-follow-ceiling: where does the follow loop actually stop? ([`experiments/2026-07-03-fast-follow-ceiling/`](../../experiments/2026-07-03-fast-follow-ceiling/README.md))
+
+Full lever stack (`--vmax 4.0 --loss-gate motion --dr pursuit --acquire-hold motion`), real
+carry (local 3090 SAM2 @1024), Jetson Q8_0 acquire, 15 W + jetson_clocks. Speed ladder with
+the two rig artifacts removed: the 140 m world edge (world texture auto-extended per reach)
+and the three hard-coded caps parameterized (pursuit vmax 2.5, hist_vel clamp ±2.5, PID
+MAX_VX/VY 3.0 → all lifted via `--vmax 4.0`). Defaults bit-identical to E2-E9; reg-1.5
+confirms no ≤1.5 behavior change. Per-leg gate: PASS iff `in_fov_frac >= 0.90 AND
+recovered_after_occlusion`. Trials 75 s.
+
+| leg | speed (m/s) | gate | in_fov_frac | recovered | first_lock_s | attempts | rejected | n_regrounds | relock_walls_s | carry_px_err_mean | binding mode (FAIL) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| reg-1.5 | 1.5 | PASS | 1.000 | True | 16.57 | 18 | 16 | 1 | 25.89 | 80.2 | — |
+| s2.0a | 2.0 | PASS | 1.000 | True | 2.30 | 7 | 5 | 1 | 13.87 | 102.2 | — |
+| s2.0b | 2.0 | PASS | 1.000 | True | 2.30 | 7 | 5 | 1 | 13.82 | 102.1 | — |
+| s2.0c | 2.0 | PASS | 1.000 | True | 2.30 | 7 | 5 | 1 | 13.89 | 102.1 | — |
+| s2.5a | 2.5 | PASS | 1.000 | True | 2.30 | 4 | 2 | 1 | 6.76 | 127.4 | — |
+| s2.5b | 2.5 | PASS | 1.000 | True | 2.30 | 4 | 2 | 1 | 6.76 | 127.9 | — |
+| s2.5c | 2.5 | PASS | 1.000 | True | 2.30 | 4 | 2 | 1 | 6.76 | 128.9 | — |
+| s3.0a | 3.0 | FAIL | 0.052 | False | None | 32 | 31 | 0 | — | — | never-locked (first-acquire) |
+| s3.0b | 3.0 | FAIL | 0.052 | False | None | 32 | 31 | 0 | — | — | never-locked (first-acquire) |
+
+**RQ-E10 = YES** (reg-1.5 PASS **and** s2.0 3/3 PASS). **Measured ceiling = 2.5 m/s** (1.5
+1/1, 2.0 3/3, 2.5 3/3, 3.0 0/2). The follow stack holds 2.0 and 2.5 m/s once the rig edge +
+caps are removed — the old E2 "< 0.5 m/s" ceiling was a rig artifact (world edge + 2.5 caps),
+not physics; the loop tracks to **5x** the E2 figure. Above 2.5 the binding constraint flips
+to **first-acquire**, not tracking: both 3.0 legs never locked (in_fov 0.052, 31/32 acquires
+rejected, first_lock None — the E5/E6 acquire-lottery, a standing-start copter can't get a
+repeatable VLM draw before a 3.0 m/s car crosses the FOV); once locked (2.0/2.5) carry+pursuit
+hold in_fov 1.000 to trial end. Latency signature (secondary): relock wall-time *falls* with
+speed (25.9 s @1.5 → 13.9 @2.0 → 6.8 @2.5 — faster car re-enters the acquire FOV sooner) and
+carry pixel error rises modestly (80 → 128 px, benign while in_fov 1.000). So the next lever to
+raise the ceiling past 2.5 is first-acquire reliability at speed, not the pursuit controller or
+carry FPS. Raw: `experiments/2026-07-03-fast-follow-ceiling/runs/{reg-1.5,s2.0a-c,s2.5a-c,s3.0a-b}/`.

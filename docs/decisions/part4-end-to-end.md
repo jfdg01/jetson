@@ -277,3 +277,29 @@
   runs as non-comparable. **Given up:** nothing — the correction costs only edits.
 - **Standing rule:** this hardware has no MAXN_SUPER. All Jetson numbers are 15 W + jetson_clocks
   unless a future firmware flash adds a mode (would be a dated, explicit change).
+
+### 2026-07-03T12:45Z — E10: probe the follow ceiling by removing the rig, not by adding a lever
+
+- **What / why:** the follow "ceiling" was inherited as E2's "< 0.5 m/s", but the E10 audit
+  found it never isolated the controller from the rig: the 140 m SITL world edge (car ran
+  off-map) and three hard-coded caps (pursuit vmax 2.5, hist_vel clamp ±2.5, PID MAX_VX/VY
+  3.0) all bit before the tracker did. **Chosen:** parameterize the three caps (`--vmax`,
+  defaults bit-identical to E2-E9) + auto-extend the world texture per trial's reach, then run
+  a plain speed ladder {1.5, 2.0, 2.5, 3.0}. This is a *measurement fix*, not a new capability —
+  reg-1.5 confirms no ≤1.5 behavior change. Result: ceiling is **2.5 m/s**, 5x the E2 figure;
+  the E2 number was a rig artifact.
+- **Rejected alternatives (Fable named these; all deferred, not killed):** (1) **relock-latency
+  cut at 1.5** — optimizing relock wall-time; rejected because E10 showed relock time *falls*
+  with speed and in_fov stays 1.000 through occlusion, so relock latency is not the binding
+  constraint. (2) **VLM draw-latency work** — speeding the acquire draw itself; deferred, but
+  now *reframed*: E10 shows the constraint above 2.5 is first-acquire *reliability* (repeatable
+  draw before the car crosses FOV from a standing start), which draw-latency work plausibly
+  helps — this is the leading next candidate. (3) **on-device carry FPS** — moving SAM2 to the
+  Jetson for throughput; rejected because carry held in_fov 1.000 at every passing speed, so
+  carry FPS is not binding at ≤2.5 m/s.
+- **Given up:** the ceiling is measured only for a *co-moving* target the copter is chasing
+  from behind (the E2/E6 lineage scenario); crossing / counter-moving fast targets and the
+  first-acquire-at-speed lever are the named next probes. The 3.0 failure is diagnosed
+  (first-acquire) but not fixed — deliberately, as E10 was scoped to *locate* the ceiling, not
+  raise it past 2.5.
+- → [`experiments/2026-07-03-fast-follow-ceiling/`](../../experiments/2026-07-03-fast-follow-ceiling/README.md)

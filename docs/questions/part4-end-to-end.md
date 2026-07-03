@@ -216,3 +216,23 @@
   E6 follow ceiling. Post-switch the escort ("distractor" label) IS the commanded target, so
   the twin metrics' PASS values are the sign-flipped intended ones, and `id_switch_s` ~22.3 s
   is correctly ignored on rt legs. n=3 real (distinct md5s, n_frames 1378/1313/1319).
+
+### 2026-07-03 — E10 fast-follow-ceiling ([`experiments/2026-07-03-fast-follow-ceiling/`](../../experiments/2026-07-03-fast-follow-ceiling/README.md))
+
+- **RQ-E10 (does the deployed lever stack — Fix B + motion loss-gate + pursuit DR + motion
+  acquire-hold — hold a follow at 2.0 m/s once the two rig artifacts, the 140 m world edge and
+  the 2.5 m/s DR speed cap, are removed? Falsifiable: with `--vmax 4.0` + auto-extended world,
+  >= 2/3 legs at 2.0 m/s pass `in_fov_frac >= 0.90 AND recovered_after_occlusion`, AND the
+  1.5 m/s regression leg still passes):** **YES.** reg-1.5 PASS (in_fov 1.000, recovered,
+  first_lock 16.57 s — confirms no ≤1.5 behavior change from parameterizing the caps) and s2.0
+  3/3 PASS (in_fov 1.000, first_lock 2.30 s). **Measured ceiling = 2.5 m/s** (s2.5 3/3 PASS);
+  s3.0 0/2 FAIL. The old E2 "< 0.5 m/s" ceiling was a **rig artifact** (140 m world edge + the
+  pursuit 2.5 / hist_vel ±2.5 / PID 3.0 caps), not physics — the loop tracks to 5x that once
+  they are removed. **Above 2.5 the binding constraint flips to first-acquire, not tracking:**
+  both 3.0 legs never locked (in_fov 0.052, 31/32 acquires rejected, first_lock None — the
+  E5/E6 acquire-lottery, a standing-start copter can't get a repeatable VLM draw before a
+  3.0 m/s car crosses the FOV); once locked at 2.0/2.5, carry+pursuit hold in_fov 1.000 to
+  trial end. So the lever to raise the ceiling past 2.5 is first-acquire reliability at speed,
+  not the pursuit controller or carry FPS. Latency signature (secondary): relock wall-time
+  *falls* with speed (25.9→13.9→6.8 s) and carry px error rises modestly (80→128 px), both
+  benign while in_fov stays 1.000. n=3 at 2.0 and 2.5, n=2 at 3.0.
