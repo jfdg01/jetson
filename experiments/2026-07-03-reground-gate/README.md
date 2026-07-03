@@ -79,7 +79,8 @@ Same rig as E2–E6 (see `experiments/2026-07-03-first-acquire/README.md` for fu
 host 3090 runs SITL + SAM2 carry at image-size 1024; the script boots the Jetson q8_0
 llama-server over ssh itself — do **NOT** pass `--remote-carry`. Jetson power mode is
 irrelevant to the verdict (VLM latency is absorbed by the acquire loop) but runs at the
-deployed MAXN config. Trials are 75 s; E6 measured ~2.5 min wall per trial including
+deployed 15 W + jetson_clocks config (this board has no MAXN_SUPER — only 15W/7W; see
+`docs/decisions/part2-rebuild.md`). Trials are 75 s; E6 measured ~2.5 min wall per trial including
 boot/teardown. Deterministic greedy VLM -> per-frame answers deterministic.
 
 Camera geometry: 640x480, FOCAL_PX ~= 554, alt 8.8 m -> ~63 px/m. Decoy: parked 2 m past

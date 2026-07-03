@@ -82,7 +82,8 @@ Compiles clean (`python3 -m py_compile`); `--selfcheck` path untouched (does not
 Same rig as E2-E7 (see `experiments/2026-07-03-first-acquire/README.md` for full detail):
 host 3090 runs SITL + SAM2 carry at image-size 1024; the script boots the Jetson q8_0
 llama-server over ssh itself — do **NOT** pass `--remote-carry`. Jetson power mode
-irrelevant to the verdict, runs at the deployed MAXN config. Deterministic greedy VLM.
+irrelevant to the verdict, runs at the deployed 15 W + jetson_clocks config (this board
+has no MAXN_SUPER — only 15W/7W; see `docs/decisions/part2-rebuild.md`). Deterministic greedy VLM.
 
 Camera geometry unchanged: 640x480, FOCAL_PX ~= 554, alt 8.8 m -> ~63 px/m. Decoy: parked
 2 m past the bridge north edge, same lane (`--twin decoy`, unchanged from E3/E7). Trials

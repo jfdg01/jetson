@@ -322,7 +322,9 @@ durability caveat to E7's NO rather than reversing it. Raw:
 ### 2026-07-03 — E9 retarget-switch: mid-follow NL target switch ([`experiments/2026-07-03-retarget-switch/`](../../experiments/2026-07-03-retarget-switch/README.md))
 
 Deployed levers on all legs (`--loss-gate motion --dr pursuit --acquire-hold motion`), 0.5
-m/s, real carry (local 3090 SAM2 @1024), Jetson Q8_0 acquire, MAXN_SUPER + jetson_clocks.
+m/s, real carry (local 3090 SAM2 @1024), Jetson Q8_0 acquire, 15 W + jetson_clocks
+(corrected from "MAXN_SUPER": this board's firmware has no MAXN_SUPER, only 15W/7W — the
+runs were physically at 15W; see `docs/decisions/part2-rebuild.md`).
 New **escort twin** (`--twin escort`): a BLUE car (BGR 230,90,40) 2.5 m behind + 3 m east of
 the white rover, co-moving — NL-referable by construction, so the E3 identical-twin identity
 problem does not apply. **Retarget** (`--retarget-t 50`): at the first CARRY tick >= t=50 the

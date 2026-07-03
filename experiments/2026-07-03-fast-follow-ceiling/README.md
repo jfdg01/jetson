@@ -73,8 +73,12 @@ All three selfchecks pass post-patch (2026-07-03, host):
 
 ## Run matrix
 
-Rig: host 3090 (SITL + renderer + SAM2 carry + llama-server Qwen2-VL-2B Q8_0),
-same stack as E2–E9. No Jetson involvement. Power mode: n/a (host).
+Rig: host 3090 (SITL + renderer + SAM2 carry) + Jetson Orin Nano over `ssh jetson`
+(the script boots the Qwen2-VL-2B Q8_0 llama-server on the Jetson for ACQUIRE/REGROUND;
+verified in the run log: "[3] booting Jetson q8_0 server..."). Same stack as E2–E9.
+**Power mode: 15 W (mode 0) + jetson_clocks** on the Jetson — this board's firmware
+(L4T R36.5) has no MAXN_SUPER, only 15W/7W (see `docs/decisions/part2-rebuild.md`); the
+E2–E9 "MAXN_SUPER" labels were a mislabel now corrected, so E10 is directly comparable.
 SITL must be up per the E2–E9 procedure (ArduCopter SITL,
 `runners/run_phase_b.py` params: TAKEOFF_ALT_M 10.0, ROVER_START_N 0.5).
 

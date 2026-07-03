@@ -102,7 +102,7 @@ This format was chosen to match the JSON parse path already implemented in
 
 | Variable | Value |
 |----------|-------|
-| Jetson hardware | Orin Nano 8 GB, power mode MAXN_SUPER (25 W), jetson_clocks locked |
+| Jetson hardware | Orin Nano 8 GB, power mode 15 W (mode 0) + jetson_clocks locked (corrected from "MAXN_SUPER (25 W)": no MAXN on this board's firmware, only 15W/7W — runs were at 15W; see `docs/decisions/part2-rebuild.md`) |
 | llama.cpp commit | `57fe1f0` |
 | Quantization | Q8_0 |
 | Phase A probe set | Same VisDrone frames as Stage 1 (`experiments/2026-06-14-stage1-baseline/raw/grounding_probe_*.jpg`) |
