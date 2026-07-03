@@ -231,3 +231,26 @@
   same-appearance distractor is not solvable by geometry alone; it needs either identity
   (impossible here by construction) or a track-continuity/search behavior, not a filter.
 - → [`experiments/2026-07-03-reground-gate/`](../../experiments/2026-07-03-reground-gate/README.md)
+
+### 2026-07-03 — Chose the retarget path (E9) over a 1.5 m/s relock-latency fix and a wrong-lock search behavior; YES — the untested north-star verb works
+
+- **Chosen:** exercise the mid-follow NL target switch (a co-moving BLUE **escort** twin the
+  VLM can name by color + an `--retarget-t 50` state-machine swap that drops the carry and
+  re-acquires under the new caption via the whole not-CARRY path). This is a whole untested
+  verb of the north-star sentence ("switch to that blue truck"), it reuses the E3/E7/E8 twin
+  metrics with only a verdict sign flip (post-switch the "distractor" IS the commanded
+  target), and the SM change is small (swap the acquire closure, drop the carry). **Over:**
+  (a) a 1.5 m/s first-acquire relock-latency fix — a quality improvement on a config that
+  already PASSes (E5/E6), lower leverage; (b) a wrong-lock search behavior — a third run at
+  the E3/E7/E8 adversarial decoy corner that two experiments already say needs identity, which
+  the synthetic pixel-identical twin cannot provide (corner parked). The escort's *color* makes
+  it NL-referable by construction, side-stepping the E3 identity impossibility.
+- **Result / given up:** **RQ-E9 = YES** — smoke PASS (white 10/10, blue 10/10), ctl PASS,
+  rt-a/b/c all PASS 7/7: switch locks the blue escort in 2.35 s (<< 15 s bar) and follows to
+  trial end 3/3 at 0.5 m/s, in-FOV 1.000, ctl leg unbroken. The retarget verb works at the E6
+  follow ceiling; the first post-switch draw returned the escort directly (single draw). Given
+  up: the switch is only demonstrated at 0.5 m/s (E6 ceiling for the underlying relock path)
+  and against a benign co-moving escort — a retarget onto a *crossing* or *counter-moving*
+  target, and at higher speed, are the named next candidates. The VLM-draw non-cancellation
+  quirk (max_workers=1) never bit: the switch resolved in one draw, so no queue delay appeared.
+- → [`experiments/2026-07-03-retarget-switch/`](../../experiments/2026-07-03-retarget-switch/README.md)

@@ -318,3 +318,45 @@ loss-gate alone does not self-correct either, so attribution is unchanged from E
 the **geometry-only correction has a ceiling; search/identity required** outcome, adding a
 durability caveat to E7's NO rather than reversing it. Raw:
 `experiments/2026-07-03-reground-selfcorrect/runs/`.
+
+### 2026-07-03 — E9 retarget-switch: mid-follow NL target switch ([`experiments/2026-07-03-retarget-switch/`](../../experiments/2026-07-03-retarget-switch/README.md))
+
+Deployed levers on all legs (`--loss-gate motion --dr pursuit --acquire-hold motion`), 0.5
+m/s, real carry (local 3090 SAM2 @1024), Jetson Q8_0 acquire, MAXN_SUPER + jetson_clocks.
+New **escort twin** (`--twin escort`): a BLUE car (BGR 230,90,40) 2.5 m behind + 3 m east of
+the white rover, co-moving — NL-referable by construction, so the E3 identical-twin identity
+problem does not apply. **Retarget** (`--retarget-t 50`): at the first CARRY tick >= t=50 the
+SM swaps its submit caption white→"the blue car", drops the carry, and re-acquires via the
+whole not-CARRY path (E7 reground gate not consulted). Trials 75 s. Post-switch the escort
+("distractor" label) IS the commanded target, so the twin metrics' PASS sign is flipped.
+
+Precondition color smoke (10 poses x 2 captions, greedy decoding):
+
+| Caption | hits / 10 | verdict |
+|---|---|---|
+| the white car | 10 | PASS (>= 7) |
+| the blue car | 10 | PASS (>= 7) |
+
+Legs:
+
+| Leg | in_fov | switch_wall (s) | switch_on (last) | closest_at_end | final_d_dist (m) | frac_closer_dist_post | dist_in_fov_post | verdict |
+|---|---|---|---|---|---|---|---|---|
+| ctl  | 1.000 | — | — | true | — | — | — | **PASS** (escort alone does not break follow) |
+| rt-a | 1.000 | 2.35 | distractor | distractor | 0.41 | 1.00 | 1.00 | **PASS** (7/7) |
+| rt-b | 1.000 | 2.35 | distractor | distractor | 0.43 | 1.00 | 1.00 | **PASS** (7/7) |
+| rt-c | 1.000 | 2.35 | distractor | distractor | 0.43 | 1.00 | 1.00 | **PASS** (7/7) |
+
+**RQ-E9 = YES.** The two-tier loop executes a mid-follow natural-language target switch:
+commanded "the blue car" at t=50 s, it locks the new (escort) target in **2.35 s** (well
+under the 15 s bar) and follows it to trial end **3/3** at 0.5 m/s, whole-trial in-FOV
+1.000, without breaking the ctl leg (escort present, no retarget → follow held, in-FOV
+1.000, `closest_at_end == "true"`). The switch mechanically reuses the not-CARRY
+acquire/relock path already validated at 0.5 m/s; the first post-switch VLM draw returned
+the blue escort directly (single draw, no white-car false-accept). This closes the second
+half of the north-star sentence ("switch to that blue truck") — the retarget verb, untested
+in E1-E8, works at the E6 follow ceiling. Colour discrimination on synthetic top-down frames
+is not a bottleneck (smoke 10/10 both, the pre-registered blue open question did not bite).
+Post-switch `switch_on`/`closest_at_end == "distractor"` and `id_switch_s` ~22.3 s are the
+*intended* values (the copter is supposed to move onto the escort), per the verdict sign
+flip. n=3 real (distinct md5s, n_frames 1378/1313/1319; deterministic switch wall 2.35).
+Raw: `experiments/2026-07-03-retarget-switch/runs/{color-smoke,ctl,rt-a,rt-b,rt-c}/`.

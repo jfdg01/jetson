@@ -1,0 +1,598 @@
+=========== E9 color smoke (precondition) ===========
+booting Jetson q8_0 server...
+pose0 'the white car': hit=True d=5.4873446010098155
+pose0 'the blue car': hit=True d=17.126634726692412
+pose1 'the white car': hit=True d=6.576881894683926
+pose1 'the blue car': hit=True d=12.907552902523529
+pose2 'the white car': hit=True d=4.335916892625324
+pose2 'the blue car': hit=True d=9.441224735274963
+pose3 'the white car': hit=True d=8.93503513418508
+pose3 'the blue car': hit=True d=7.524188056767212
+pose4 'the white car': hit=True d=7.70828110214271
+pose4 'the blue car': hit=True d=8.795490944696748
+pose5 'the white car': hit=True d=6.953767105482972
+pose5 'the blue car': hit=True d=9.915869343817658
+pose6 'the white car': hit=True d=3.6079074428993754
+pose6 'the blue car': hit=True d=5.249970225058802
+pose7 'the white car': hit=True d=5.07507970571341
+pose7 'the blue car': hit=True d=10.022740942307815
+pose8 'the white car': hit=True d=6.08134463306017
+pose8 'the blue car': hit=True d=6.121703478742065
+pose9 'the white car': hit=True d=6.170878710706728
+pose9 'the blue car': hit=True d=9.18565630867624
+{
+  "hits_of_10": {
+    "the white car": 10,
+    "the blue car": 10
+  }
+}
+smoke PASS {'the white car': 10, 'the blue car': 10} -- running legs
+=========== E9 ctl  --speed 0.5 --twin escort --loss-gate motion --dr pursuit --acquire-hold motion ===========
+[3] booting Jetson q8_0 server...
+[offboard] connecting to tcp:127.0.0.1:5760 ...
+[offboard] heartbeat  type=2  autopilot=3  target_sys=1
+[offboard] priming GCS link (3 heartbeats) ...
+[offboard] data stream requested
+[offboard] requesting mode GUIDED (id=4) ...
+[offboard] mode GUIDED confirmed
+[offboard] param ARMING_CHECK = 0
+[offboard] waiting for EKF position estimate ...
+[offboard] EKF ready  flags=0x33F  vel_horiz=0.00  pos_horiz=0.01
+[offboard] arming ...
+[offboard] arm ACK result=0
+[offboard] armed
+[offboard] climbing to 10.0 m ...
+[offboard] at altitude  z=-8.6 m NED
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.15it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 70.76it/s]
+[0.5 m/s] in_fov=1.000 lock@2.3s attempts=5 regrounds=1 relock=[9.37] px_err=26.7 hz=19.3 carry_fps=20.3
+[offboard] landing ...
+[offboard] requesting mode LAND (id=9) ...
+[offboard] mode LAND confirmed
+[offboard] disarmed — landed
+{
+  "trial": {
+    "speed_ms": 0.5,
+    "image_size": 1024,
+    "n_frames": 1444,
+    "duration_s": 75.0,
+    "achieved_hz": 19.3,
+    "carry_fps": 20.3,
+    "in_fov_frac": 1.0,
+    "first_lock_s": 2.3,
+    "n_acquire_attempts": 5,
+    "n_rejected_acquires": 3,
+    "n_reground_gate_rejects": 0,
+    "acquire_log": [
+      [
+        2.3,
+        [
+          243.2,
+          72.0,
+          396.8,
+          336.0
+        ],
+        true,
+        ""
+      ],
+      [
+        35.13,
+        [
+          147.2,
+          292.8,
+          448.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        37.48,
+        [
+          294.4,
+          384.0,
+          313.6,
+          470.4
+        ],
+        false,
+        "size"
+      ],
+      [
+        39.79,
+        [
+          294.4,
+          0.0,
+          416.0,
+          72.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        42.09,
+        [
+          300.8,
+          0.0,
+          422.4,
+          134.4
+        ],
+        true,
+        ""
+      ]
+    ],
+    "n_regrounds": 1,
+    "relock_walls_s": [
+      9.37
+    ],
+    "carry_px_err_mean": 26.7,
+    "carry_frames": 1150,
+    "recovered_after_occlusion": true,
+    "twin": {
+      "mode": "escort",
+      "id_switch_s": 0.0,
+      "frac_box_closer_distractor": 0.0,
+      "n_boxed_twin_frames": 1150,
+      "final_d_true_m": 0.44,
+      "final_d_dist_m": 3.63,
+      "closest_at_end": "true",
+      "relock_on": [
+        "true"
+      ]
+    }
+  },
+  "gate_speed_ms": 0.5,
+  "gate": "PASS"
+}
+--- snapshot -> /home/gara/jetson/experiments/2026-07-03-retarget-switch/runs/ctl ---
+=========== E9 rt-a  --speed 0.5 --twin escort --loss-gate motion --dr pursuit --acquire-hold motion --retarget-t 50 ===========
+[3] booting Jetson q8_0 server...
+[offboard] connecting to tcp:127.0.0.1:5760 ...
+[offboard] heartbeat  type=2  autopilot=3  target_sys=1
+[offboard] priming GCS link (3 heartbeats) ...
+[offboard] data stream requested
+[offboard] requesting mode GUIDED (id=4) ...
+[offboard] mode GUIDED confirmed
+[offboard] param ARMING_CHECK = 0
+[offboard] waiting for EKF position estimate ...
+[offboard] EKF ready  flags=0x33F  vel_horiz=0.00  pos_horiz=0.01
+[offboard] arming ...
+[offboard] arm ACK result=0
+[offboard] armed
+[offboard] climbing to 10.0 m ...
+[offboard] at altitude  z=-8.6 m NED
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 69.34it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 59.70it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 57.84it/s]
+[0.5 m/s] in_fov=1.000 lock@2.3s attempts=6 regrounds=1 relock=[9.32, 2.35] px_err=32.6 hz=18.4 carry_fps=19.2
+[offboard] landing ...
+[offboard] requesting mode LAND (id=9) ...
+[offboard] mode LAND confirmed
+[offboard] disarmed — landed
+{
+  "trial": {
+    "speed_ms": 0.5,
+    "image_size": 1024,
+    "n_frames": 1378,
+    "duration_s": 75.0,
+    "achieved_hz": 18.4,
+    "carry_fps": 19.2,
+    "in_fov_frac": 1.0,
+    "first_lock_s": 2.3,
+    "n_acquire_attempts": 6,
+    "n_rejected_acquires": 3,
+    "n_reground_gate_rejects": 0,
+    "acquire_log": [
+      [
+        2.3,
+        [
+          243.2,
+          72.0,
+          396.8,
+          336.0
+        ],
+        true,
+        ""
+      ],
+      [
+        35.06,
+        [
+          243.2,
+          312.0,
+          262.4,
+          398.4
+        ],
+        false,
+        "size"
+      ],
+      [
+        37.41,
+        [
+          211.2,
+          379.2,
+          230.4,
+          465.6
+        ],
+        false,
+        "size"
+      ],
+      [
+        39.72,
+        [
+          198.4,
+          19.2,
+          307.2,
+          67.2
+        ],
+        false,
+        "size"
+      ],
+      [
+        42.02,
+        [
+          166.4,
+          0.0,
+          294.4,
+          134.4
+        ],
+        true,
+        ""
+      ],
+      [
+        52.38,
+        [
+          409.6,
+          249.6,
+          544.0,
+          480.0
+        ],
+        true,
+        ""
+      ]
+    ],
+    "n_regrounds": 1,
+    "relock_walls_s": [
+      9.32,
+      2.35
+    ],
+    "carry_px_err_mean": 32.6,
+    "carry_frames": 1038,
+    "recovered_after_occlusion": true,
+    "twin": {
+      "mode": "escort",
+      "id_switch_s": 22.28,
+      "frac_box_closer_distractor": 0.37,
+      "n_boxed_twin_frames": 1038,
+      "final_d_true_m": 4.18,
+      "final_d_dist_m": 0.41,
+      "closest_at_end": "distractor",
+      "relock_on": [
+        "true",
+        "distractor"
+      ]
+    },
+    "retarget": {
+      "commanded_t_s": 50.0,
+      "fired_t_s": 50.02,
+      "caption": "the blue car",
+      "switch_walls_s": [
+        2.35
+      ],
+      "switch_on": [
+        "distractor"
+      ],
+      "n_post_boxed_frames": 384,
+      "frac_box_closer_dist_post": 1.0,
+      "dist_in_fov_frac_post": 1.0
+    }
+  },
+  "gate_speed_ms": 0.5,
+  "gate": "PASS"
+}
+--- snapshot -> /home/gara/jetson/experiments/2026-07-03-retarget-switch/runs/rt-a ---
+=========== E9 rt-b  --speed 0.5 --twin escort --loss-gate motion --dr pursuit --acquire-hold motion --retarget-t 50 ===========
+[3] booting Jetson q8_0 server...
+[offboard] connecting to tcp:127.0.0.1:5760 ...
+[offboard] heartbeat  type=2  autopilot=3  target_sys=1
+[offboard] priming GCS link (3 heartbeats) ...
+[offboard] data stream requested
+[offboard] requesting mode GUIDED (id=4) ...
+[offboard] mode GUIDED confirmed
+[offboard] param ARMING_CHECK = 0
+[offboard] waiting for EKF position estimate ...
+[offboard] EKF ready  flags=0x33F  vel_horiz=0.00  pos_horiz=0.01
+[offboard] arming ...
+[offboard] arm ACK result=0
+[offboard] armed
+[offboard] climbing to 10.0 m ...
+[offboard] at altitude  z=-8.6 m NED
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 62.19it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 64.27it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 59.97it/s]
+[0.5 m/s] in_fov=1.000 lock@2.3s attempts=6 regrounds=1 relock=[9.38, 2.35] px_err=30.7 hz=17.5 carry_fps=18.1
+[offboard] landing ...
+[offboard] requesting mode LAND (id=9) ...
+[offboard] mode LAND confirmed
+[offboard] disarmed — landed
+{
+  "trial": {
+    "speed_ms": 0.5,
+    "image_size": 1024,
+    "n_frames": 1313,
+    "duration_s": 75.0,
+    "achieved_hz": 17.5,
+    "carry_fps": 18.1,
+    "in_fov_frac": 1.0,
+    "first_lock_s": 2.3,
+    "n_acquire_attempts": 6,
+    "n_rejected_acquires": 3,
+    "n_reground_gate_rejects": 0,
+    "acquire_log": [
+      [
+        2.3,
+        [
+          243.2,
+          72.0,
+          396.8,
+          336.0
+        ],
+        true,
+        ""
+      ],
+      [
+        35.1,
+        [
+          147.2,
+          292.8,
+          454.4,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        37.45,
+        [
+          300.8,
+          388.8,
+          320.0,
+          470.4
+        ],
+        false,
+        "size"
+      ],
+      [
+        39.75,
+        [
+          300.8,
+          19.2,
+          416.0,
+          76.8
+        ],
+        false,
+        "size"
+      ],
+      [
+        42.06,
+        [
+          300.8,
+          0.0,
+          428.8,
+          139.2
+        ],
+        true,
+        ""
+      ],
+      [
+        52.39,
+        [
+          403.2,
+          254.4,
+          544.0,
+          480.0
+        ],
+        true,
+        ""
+      ]
+    ],
+    "n_regrounds": 1,
+    "relock_walls_s": [
+      9.38,
+      2.35
+    ],
+    "carry_px_err_mean": 30.7,
+    "carry_frames": 979,
+    "recovered_after_occlusion": true,
+    "twin": {
+      "mode": "escort",
+      "id_switch_s": 22.32,
+      "frac_box_closer_distractor": 0.393,
+      "n_boxed_twin_frames": 979,
+      "final_d_true_m": 4.19,
+      "final_d_dist_m": 0.43,
+      "closest_at_end": "distractor",
+      "relock_on": [
+        "true",
+        "distractor"
+      ]
+    },
+    "retarget": {
+      "commanded_t_s": 50.0,
+      "fired_t_s": 50.04,
+      "caption": "the blue car",
+      "switch_walls_s": [
+        2.35
+      ],
+      "switch_on": [
+        "distractor"
+      ],
+      "n_post_boxed_frames": 385,
+      "frac_box_closer_dist_post": 1.0,
+      "dist_in_fov_frac_post": 1.0
+    }
+  },
+  "gate_speed_ms": 0.5,
+  "gate": "PASS"
+}
+--- snapshot -> /home/gara/jetson/experiments/2026-07-03-retarget-switch/runs/rt-b ---
+=========== E9 rt-c  --speed 0.5 --twin escort --loss-gate motion --dr pursuit --acquire-hold motion --retarget-t 50 ===========
+[3] booting Jetson q8_0 server...
+[offboard] connecting to tcp:127.0.0.1:5760 ...
+[offboard] heartbeat  type=2  autopilot=3  target_sys=1
+[offboard] priming GCS link (3 heartbeats) ...
+[offboard] data stream requested
+[offboard] requesting mode GUIDED (id=4) ...
+[offboard] mode GUIDED confirmed
+[offboard] param ARMING_CHECK = 0
+[offboard] waiting for EKF position estimate ...
+[offboard] EKF ready  flags=0x33F  vel_horiz=0.00  pos_horiz=0.01
+[offboard] arming ...
+[offboard] arm ACK result=0
+[offboard] armed
+[offboard] climbing to 10.0 m ...
+[offboard] at altitude  z=-8.6 m NED
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 59.22it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 59.29it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 57.20it/s]
+[0.5 m/s] in_fov=1.000 lock@2.3s attempts=6 regrounds=1 relock=[9.38, 2.35] px_err=30.9 hz=17.6 carry_fps=18.2
+[offboard] landing ...
+[offboard] requesting mode LAND (id=9) ...
+[offboard] mode LAND confirmed
+[offboard] disarmed — landed
+{
+  "trial": {
+    "speed_ms": 0.5,
+    "image_size": 1024,
+    "n_frames": 1319,
+    "duration_s": 75.0,
+    "achieved_hz": 17.6,
+    "carry_fps": 18.2,
+    "in_fov_frac": 1.0,
+    "first_lock_s": 2.3,
+    "n_acquire_attempts": 6,
+    "n_rejected_acquires": 3,
+    "n_reground_gate_rejects": 0,
+    "acquire_log": [
+      [
+        2.3,
+        [
+          243.2,
+          72.0,
+          396.8,
+          336.0
+        ],
+        true,
+        ""
+      ],
+      [
+        35.08,
+        [
+          147.2,
+          283.2,
+          448.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        37.43,
+        [
+          294.4,
+          379.2,
+          313.6,
+          465.6
+        ],
+        false,
+        "size"
+      ],
+      [
+        39.73,
+        [
+          294.4,
+          0.0,
+          409.6,
+          67.2
+        ],
+        false,
+        "size"
+      ],
+      [
+        42.04,
+        [
+          294.4,
+          0.0,
+          422.4,
+          134.4
+        ],
+        true,
+        ""
+      ],
+      [
+        52.36,
+        [
+          403.2,
+          254.4,
+          544.0,
+          480.0
+        ],
+        true,
+        ""
+      ]
+    ],
+    "n_regrounds": 1,
+    "relock_walls_s": [
+      9.38,
+      2.35
+    ],
+    "carry_px_err_mean": 30.9,
+    "carry_frames": 985,
+    "recovered_after_occlusion": true,
+    "twin": {
+      "mode": "escort",
+      "id_switch_s": 22.36,
+      "frac_box_closer_distractor": 0.395,
+      "n_boxed_twin_frames": 985,
+      "final_d_true_m": 4.19,
+      "final_d_dist_m": 0.43,
+      "closest_at_end": "distractor",
+      "relock_on": [
+        "true",
+        "distractor"
+      ]
+    },
+    "retarget": {
+      "commanded_t_s": 50.0,
+      "fired_t_s": 50.0,
+      "caption": "the blue car",
+      "switch_walls_s": [
+        2.35
+      ],
+      "switch_on": [
+        "distractor"
+      ],
+      "n_post_boxed_frames": 389,
+      "frac_box_closer_dist_post": 1.0,
+      "dist_in_fov_frac_post": 1.0
+    }
+  },
+  "gate_speed_ms": 0.5,
+  "gate": "PASS"
+}
+--- snapshot -> /home/gara/jetson/experiments/2026-07-03-retarget-switch/runs/rt-c ---
+=========== E9 MATRIX DONE ===========

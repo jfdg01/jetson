@@ -196,3 +196,23 @@
   E7. Adds a **durability caveat** to E7's NO (geometry-only correction has a ceiling; once the
   target leaves frame during the wrong-lock, more clock time alone can't recover it — confirms
   search/identity, E7's own named next lever, is required) rather than reversing it.
+
+### 2026-07-03 — E9 retarget-switch ([`experiments/2026-07-03-retarget-switch/`](../../experiments/2026-07-03-retarget-switch/README.md))
+
+- **RQ-E9 (with all deployed levers on, can the two-tier loop execute a mid-follow
+  natural-language target switch — CARRY on "the white car", then at t=50 s command "the blue
+  car" — locking the new target within 15 s and following it to trial end, 3/3 at 0.5 m/s,
+  without breaking the control leg?):** **YES.** Precondition color smoke PASS (white 10/10,
+  blue 10/10 — the deployed VLM color-discriminates on synthetic top-down frames; the
+  pre-registered blue open question did not bite). ctl PASS (escort present, no retarget →
+  in-FOV 1.000, `closest_at_end == "true"`; the blue car alone does not break the white-car
+  follow). rt-a/b/c all PASS all 7 criteria: switch wall **2.35 s** (<= 15), last
+  `switch_on == "distractor"`, `closest_at_end == "distractor"`, `final_d_dist` 0.41-0.43 m
+  (<= 2.0), `frac_box_closer_dist_post` 1.00 (>= 0.80), `dist_in_fov_frac_post` 1.00 (>= 0.90),
+  whole-trial in-FOV 1.000 (>= 0.90). The switch reuses the not-CARRY acquire/relock path
+  already validated at 0.5 m/s; the first post-switch VLM draw returned the blue escort
+  directly (single draw, no white-car false-accept). Closes the second half of the north-star
+  sentence ("switch to that blue truck") — the retarget verb, untested in E1-E8, works at the
+  E6 follow ceiling. Post-switch the escort ("distractor" label) IS the commanded target, so
+  the twin metrics' PASS values are the sign-flipped intended ones, and `id_switch_s` ~22.3 s
+  is correctly ignored on rt legs. n=3 real (distinct md5s, n_frames 1378/1313/1319).

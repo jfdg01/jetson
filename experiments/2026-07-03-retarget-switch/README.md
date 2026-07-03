@@ -2,7 +2,8 @@
 
 **Pre-registered:** 2026-07-03T11:55Z (Madrid wall-clock). Design + patches by Fable;
 the executor runs the matrix and fills Results only — **do NOT re-patch code**.
-**Status:** PRE-REGISTERED, not yet run.
+**Status:** COMPLETE 2026-07-03T12:04Z — **RQ-E9 = YES** (smoke PASS 10/10 both
+captions; ctl PASS; rt-a/b/c all PASS 7/7).
 
 ## Research question
 
@@ -142,25 +143,58 @@ All fields below are in the leg's snapshotted `results.json` under `trial`.
 
 ## Results (TBD — executor fills)
 
-Smoke (`runs/color-smoke/results.json`):
+Smoke (`runs/color-smoke/results.json`): greedy decoding, 10 poses x 2 captions,
+Jetson Q8_0, MAXN_SUPER + jetson_clocks.
 
 | Caption | hits / 10 | verdict |
 |---|---|---|
-| the white car | TBD | TBD |
-| the blue car | TBD | TBD |
+| the white car | 10 | PASS (>= 7) |
+| the blue car | 10 | PASS (>= 7) |
 
-Legs:
+Both captions 10/10 — the deployed VLM color-discriminates cleanly on the synthetic
+top-down frames. The pre-registered blue open question (training on real drone imagery
+might miss synthetic blue) did not bite: blue hit 10/10, exceeding the >= 9 estimate for
+white and the uncertain blue.
+
+Legs (config: 0.5 m/s, `--twin escort`, `--loss-gate motion --dr pursuit --acquire-hold motion`,
+`--retarget-t 50` on rt-*, Q8_0, MAXN_SUPER + jetson_clocks):
 
 | Leg | in_fov_frac | switch_wall_s (first) | switch_on (last) | closest_at_end | final_d_dist_m | frac_box_closer_dist_post | dist_in_fov_frac_post | PASS? |
 |---|---|---|---|---|---|---|---|---|
-| ctl | TBD | — | — | TBD | — | — | — | TBD |
-| rt-a | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| rt-b | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| rt-c | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| ctl | 1.000 | — | — | true | — | — | — | **PASS** |
+| rt-a | 1.000 | 2.35 | distractor | distractor | 0.41 | 1.00 | 1.00 | **PASS** |
+| rt-b | 1.000 | 2.35 | distractor | distractor | 0.43 | 1.00 | 1.00 | **PASS** |
+| rt-c | 1.000 | 2.35 | distractor | distractor | 0.43 | 1.00 | 1.00 | **PASS** |
 
-**RQ-E9 verdict:** TBD
+- **ctl PASS:** `in_fov_frac` 1.000 (>= 0.90) AND `closest_at_end == "true"` — the blue
+  escort alone does not break the white-car follow.
+- **rt-a/b/c all PASS all 7 criteria:** (1) switch_wall 2.35 s <= 15.0; (2) last
+  `switch_on == "distractor"`; (3) `closest_at_end == "distractor"`; (4) `final_d_dist_m`
+  0.41-0.43 <= 2.0; (5) `frac_box_closer_dist_post` 1.00 >= 0.80; (6) `dist_in_fov_frac_post`
+  1.00 >= 0.90; (7) `in_fov_frac` 1.000 >= 0.90.
 
-Estimate-vs-actual (fill where they diverge): TBD
+**RQ-E9 verdict:** **YES.** ctl PASS AND rt-a, rt-b, rt-c all PASS → the two-tier loop
+executes a mid-follow NL target switch, locking the new (blue) target within 2.35 s and
+following it to trial end 3/3 at 0.5 m/s, without breaking the control leg. The switch
+mechanically reuses the not-CARRY acquire/relock path that already works at 0.5 m/s
+(matching the pre-registered "moderately likely, given smoke PASS" expectation).
+
+Note on `switch_on == "distractor"` / `closest_at_end == "distractor"`: post-switch the
+commanded caption IS the escort (the "distractor" label), so these are the *intended* PASS
+values, not a wrong-lock — the verdict-rule sign flip. `twin.id_switch_s` (~22.3 s) is
+correctly ignored on rt legs per the README (post-switch the copter is *supposed* to sit
+on the escort). Escort ends near-center: `final_d_dist_m` ~0.42 m (copter on the blue car),
+`final_d_true_m` ~4.19 m (white car trails at the fixed co-moving offset, still in frame →
+whole-trial in_fov 1.000).
+
+Estimate-vs-actual: switch wall estimated 2.5-5 s (one-to-two VLM draws) — actual 2.35 s,
+a single draw, slightly faster than the low end; the first post-switch draw returned the
+blue escort directly (no white-car false-accept, so criterion 2 never had to catch one).
+Blue smoke estimated as the open question (possible < 7/10) — actual 10/10, comfortably
+clear. Total wall ~12 min (11:52-12:04), under the 20-25 min estimate. All three rt legs
+are near-identical (switch wall 2.35, distinct md5s via wall-clock VLM submit timing:
+n_frames 1378/1313/1319, fired_t 50.02/50.04/50.00) — real n=3, deterministic switch
+behavior.
 
 ## Closeout checklist (executor works from this README alone)
 
