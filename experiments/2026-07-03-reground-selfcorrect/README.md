@@ -2,7 +2,7 @@
 
 **Pre-registered:** 2026-07-03T11:00Z (design + patches by Fable; the executor runs the
 matrix and fills Results only — do NOT re-patch code).
-**Status:** PRE-REGISTERED, not yet run.
+**Status:** COMPLETE (RQ-E8 NO). Ran 2026-07-03T11:20Z, 4/4 clean; see Results.
 **Branch:** `experiment/reground-selfcorrect`. **Part:** IV (end-to-end workflow refinement).
 
 ## Research question
@@ -172,22 +172,59 @@ Read each run's snapshot `runs/<label>/results.json` -> `trial` object.
   reacquire VLM draw happens to land back on the true car by chance, `reground_gate=none`
   will accept it same as the decoy; this is a real possible outcome, not a bug.
 
-## Results (TBD)
+## Results
 
-Ran <fill: timestamp>, N/4 trials completed clean (exit 0, M INVALID). Log:
+Ran 2026-07-03T11:20Z, 4/4 trials completed clean (exit 0, 0 INVALID). Log:
 `raw/matrix.log`; snapshots in `runs/<label>/`.
 
 | label | speed | gate | n_regrounds | relock_on (all) | final_d_true_m | final_d_dist_m | closest_at_end | in_fov_frac | leg verdict |
 |---|---|---|---|---|---|---|---|---|---|
-| ctl-decoy-long | 0.25 | none | | | | | | | descriptive |
-| mg-decoy-a-long | 0.25 | motion | | | | | | | |
-| mg-decoy-b-long | 0.25 | motion | | | | | | | |
-| mg-decoy-c-long | 0.25 | motion | | | | | | | |
+| ctl-decoy-long | 0.25 | none | 5 | distractor, distractor, distractor, distractor | 26.67 | 1.96 | distractor | 0.4376 | descriptive |
+| mg-decoy-a-long | 0.25 | motion | 2 | distractor | 26.51 | 1.93 | distractor | 0.4954 | FAIL |
+| mg-decoy-b-long | 0.25 | motion | 2 | distractor | 26.61 | 1.93 | distractor | 0.4814 | FAIL |
+| mg-decoy-c-long | 0.25 | motion | 2 | distractor | 26.51 | 1.93 | distractor | 0.4927 | FAIL |
 
-<fill: narrative — which failure/success mode per leg, byte-identical check, control
-attribution note>
+**Narrative.** All three gated legs fail every PASS condition: last (only) `relock_on`
+entry is `"distractor"`, `closest_at_end == "distractor"`, `final_d_true_m` ~= 26.5 m
+(true car ended ~26.5 m downstream, far out of the ~2 m PASS band), and `in_fov_frac`
+~= 0.49 (< 0.90). The three `results.json` are **not** byte-identical (distinct md5s;
+distinct `relock_walls_s` 37.13 / 34.98 / 37.0 s and `id_switch_s` 4.37 / 4.53 / 4.48 s),
+so the n=3 claim holds.
 
-**RQ-E8 verdict: <fill: YES | NO>.**
+The failure is **not** the loss-gate-inert mode (`n_regrounds == 1`) flagged as a 15%
+risk in Estimates — the E4 stillness loss-gate clearly fired: gated legs regrounded once
+more after the wrong-lock (`n_regrounds == 2`) and the control regrounded four more times
+(`n_regrounds == 5`). Nor is the E7 motion reground-gate inert: it actively rejected the
+still-decoy proposals (`n_reground_gate_rejects` = 29 / 32 / 29 on the gated legs vs 0 on
+the ungated control). Both mechanisms worked as designed.
+
+The binding constraint is **upstream of both gates**: by the time the loss-gate demotes
+the wrong-lock and forces a reground (~67-69.5 s, the second accepted acquire in each
+gated leg), the true car has driven ~26.5 m downstream and mostly out of frame
+(`in_fov_frac` ~= 0.49), so the only near-camera salient car the VLM can propose is the
+parked decoy. Extra clock time cannot help because there is no true-car box left to
+reacquire — the reground-gate then correctly rejects everything for the remaining ~80 s
+but never sees a true-car proposal to accept. This is exactly the risk named in Context
+("the true car has driven out of frame/salience by the time the decoy is finally
+rejected") and is the **"geometry-only correction has a ceiling; search/identity is
+required after all"** outcome, not a process/gate failure.
+
+**Control attribution.** ctl-decoy-long (loss-gate on, no reground gate) also ends
+`closest_at_end == "distractor"` (`final_d_true_m` 26.67 m): the E4 loss-gate **alone
+does not self-correct** either — it re-locks the parked decoy on all four of its extra
+regrounds (`relock_on` = distractor x4), because with no reground gate every VLM proposal
+of the only salient (decoy) car is accepted. So the control does **not** shift credit to
+"loss-gate alone corrects" — neither mechanism corrects, and the attribution story from
+E7 is unchanged. Per the Ledger rules, this means **no new DECISIONS entry is required**
+(E8 is a duration/measurement extension of E7's existing decision, and the control did
+not change the loss-gate-vs-reground-gate attribution).
+
+**RQ-E8 verdict: NO.** A duration extension to 150 s (2x E7's 75 s) does not let the
+already-deployed E4 + E7 machinery self-correct off an E7 decoy wrong-lock. E7's "NO"
+gains a durability caveat, not a reversal: the gates fire and reject as designed, but
+geometry-only correction has a ceiling — once the true car has left the frame during the
+wrong-lock, more clock time alone cannot reacquire it, confirming search/identity (E7's
+own named next lever) is required.
 
 ## Ledger rows to append (executor)
 

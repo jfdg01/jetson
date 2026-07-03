@@ -1,0 +1,2366 @@
+=========== E8 /home/gara/jetson/experiments/2026-07-03-reground-selfcorrect/runs/ctl-decoy-long  speed=0.25  extra: --twin decoy ===========
+[3] booting Jetson q8_0 server...
+[offboard] connecting to tcp:127.0.0.1:5760 ...
+[offboard] heartbeat  type=2  autopilot=3  target_sys=1
+[offboard] priming GCS link (3 heartbeats) ...
+[offboard] data stream requested
+[offboard] requesting mode GUIDED (id=4) ...
+[offboard] mode GUIDED confirmed
+[offboard] param ARMING_CHECK = 0
+[offboard] waiting for EKF position estimate ...
+[offboard] EKF ready  flags=0x33F  vel_horiz=0.00  pos_horiz=0.01
+[offboard] arming ...
+[offboard] arm ACK result=0
+[offboard] armed
+[offboard] climbing to 10.0 m ...
+[offboard] at altitude  z=-8.6 m NED
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 68.74it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 59.21it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 65.20it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 65.82it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 64.03it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 64.84it/s]
+[0.25 m/s] in_fov=0.438 lock@2.3s attempts=43 regrounds=5 relock=[13.89, 2.31, 21.53, 43.15, 19.13] px_err=17.8 hz=19.2 carry_fps=18.8
+[offboard] landing ...
+[offboard] requesting mode LAND (id=9) ...
+[offboard] mode LAND confirmed
+[offboard] disarmed — landed
+{
+  "trial": {
+    "speed_ms": 0.25,
+    "image_size": 1024,
+    "n_frames": 2877,
+    "duration_s": 150.0,
+    "achieved_hz": 19.2,
+    "carry_fps": 18.8,
+    "in_fov_frac": 0.4376,
+    "first_lock_s": 2.3,
+    "n_acquire_attempts": 43,
+    "n_rejected_acquires": 37,
+    "n_reground_gate_rejects": 0,
+    "acquire_log": [
+      [
+        2.3,
+        [
+          243.2,
+          72.0,
+          396.8,
+          340.8
+        ],
+        true,
+        ""
+      ],
+      [
+        34.75,
+        [
+          294.4,
+          273.6,
+          313.6,
+          384.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        37.1,
+        [
+          294.4,
+          307.2,
+          320.0,
+          417.6
+        ],
+        false,
+        "size"
+      ],
+      [
+        39.35,
+        [
+          198.4,
+          0.0,
+          249.6,
+          19.2
+        ],
+        false,
+        "size"
+      ],
+      [
+        41.66,
+        [
+          288.0,
+          0.0,
+          409.6,
+          67.2
+        ],
+        false,
+        "size"
+      ],
+      [
+        43.96,
+        [
+          211.2,
+          0.0,
+          294.4,
+          76.8
+        ],
+        false,
+        "size"
+      ],
+      [
+        46.26,
+        [
+          288.0,
+          0.0,
+          422.4,
+          129.6
+        ],
+        true,
+        ""
+      ],
+      [
+        56.21,
+        [
+          249.6,
+          0.0,
+          396.8,
+          264.0
+        ],
+        true,
+        ""
+      ],
+      [
+        61.91,
+        [
+          0.0,
+          206.4,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        64.32,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        66.72,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        69.12,
+        [
+          0.0,
+          206.4,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        71.53,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        73.93,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        76.33,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        78.73,
+        [
+          0.0,
+          206.4,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        81.04,
+        [
+          236.8,
+          4.8,
+          377.6,
+          254.4
+        ],
+        true,
+        ""
+      ],
+      [
+        86.74,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        89.14,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        91.55,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        93.95,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        96.35,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        98.75,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        101.16,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        103.56,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        105.96,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        108.37,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        110.77,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        113.17,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        115.57,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        117.98,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        120.38,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        122.78,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        125.19,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        127.49,
+        [
+          243.2,
+          4.8,
+          390.4,
+          244.8
+        ],
+        true,
+        ""
+      ],
+      [
+        133.19,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        135.59,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        137.99,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        140.39,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        142.8,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        145.2,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        147.6,
+        [
+          0.0,
+          196.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        149.9,
+        [
+          243.2,
+          4.8,
+          390.4,
+          244.8
+        ],
+        true,
+        ""
+      ]
+    ],
+    "n_regrounds": 5,
+    "relock_walls_s": [
+      13.89,
+      2.31,
+      21.53,
+      43.15,
+      19.13
+    ],
+    "carry_px_err_mean": 17.8,
+    "carry_frames": 559,
+    "recovered_after_occlusion": true,
+    "twin": {
+      "mode": "decoy",
+      "id_switch_s": 81.18,
+      "frac_box_closer_distractor": 0.147,
+      "n_boxed_twin_frames": 559,
+      "final_d_true_m": 26.67,
+      "final_d_dist_m": 1.96,
+      "closest_at_end": "distractor",
+      "relock_on": [
+        "distractor",
+        "distractor",
+        "distractor",
+        "distractor"
+      ]
+    }
+  },
+  "gate_speed_ms": 0.25,
+  "gate": "FAIL"
+}
+--- snapshot -> /home/gara/jetson/experiments/2026-07-03-reground-selfcorrect/runs/ctl-decoy-long ---
+=========== E8 /home/gara/jetson/experiments/2026-07-03-reground-selfcorrect/runs/mg-decoy-a-long  speed=0.25  extra: --twin decoy --reground-gate motion ===========
+[3] booting Jetson q8_0 server...
+[offboard] connecting to tcp:127.0.0.1:5760 ...
+[offboard] heartbeat  type=2  autopilot=3  target_sys=1
+[offboard] priming GCS link (3 heartbeats) ...
+[offboard] data stream requested
+[offboard] requesting mode GUIDED (id=4) ...
+[offboard] mode GUIDED confirmed
+[offboard] param ARMING_CHECK = 0
+[offboard] waiting for EKF position estimate ...
+[offboard] EKF ready  flags=0x33F  vel_horiz=0.00  pos_horiz=0.01
+[offboard] arming ...
+[offboard] arm ACK result=0
+[offboard] armed
+[offboard] climbing to 10.0 m ...
+[offboard] at altitude  z=-8.6 m NED
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 68.16it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 63.82it/s]
+[0.25 m/s] in_fov=0.495 lock@4.71s attempts=50 regrounds=2 relock=[37.13] px_err=8.3 hz=19.4 carry_fps=18.8
+[offboard] landing ...
+[offboard] requesting mode LAND (id=9) ...
+[offboard] mode LAND confirmed
+[offboard] disarmed — landed
+{
+  "trial": {
+    "speed_ms": 0.25,
+    "image_size": 1024,
+    "n_frames": 2911,
+    "duration_s": 150.0,
+    "achieved_hz": 19.4,
+    "carry_fps": 18.8,
+    "in_fov_frac": 0.4954,
+    "first_lock_s": 4.71,
+    "n_acquire_attempts": 50,
+    "n_rejected_acquires": 18,
+    "n_reground_gate_rejects": 29,
+    "acquire_log": [
+      [
+        2.35,
+        [
+          288.0,
+          355.2,
+          307.2,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        4.71,
+        [
+          249.6,
+          96.0,
+          390.4,
+          345.6
+        ],
+        true,
+        ""
+      ],
+      [
+        34.87,
+        [
+          294.4,
+          273.6,
+          313.6,
+          384.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        37.22,
+        [
+          294.4,
+          307.2,
+          313.6,
+          417.6
+        ],
+        false,
+        "size"
+      ],
+      [
+        39.47,
+        [
+          294.4,
+          0.0,
+          409.6,
+          28.8
+        ],
+        false,
+        "size"
+      ],
+      [
+        41.78,
+        [
+          288.0,
+          0.0,
+          403.2,
+          67.2
+        ],
+        false,
+        "size"
+      ],
+      [
+        44.08,
+        [
+          288.0,
+          0.0,
+          409.6,
+          96.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        46.38,
+        [
+          204.8,
+          0.0,
+          492.8,
+          129.6
+        ],
+        false,
+        "size"
+      ],
+      [
+        48.68,
+        [
+          294.4,
+          0.0,
+          403.2,
+          163.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        50.99,
+        [
+          288.0,
+          0.0,
+          403.2,
+          196.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        53.39,
+        [
+          0.0,
+          177.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        55.69,
+        [
+          268.8,
+          0.0,
+          409.6,
+          264.0
+        ],
+        false,
+        "motion"
+      ],
+      [
+        57.99,
+        [
+          268.8,
+          0.0,
+          390.4,
+          292.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        60.3,
+        [
+          268.8,
+          0.0,
+          409.6,
+          321.6
+        ],
+        false,
+        "motion"
+      ],
+      [
+        62.6,
+        [
+          262.4,
+          0.0,
+          416.0,
+          350.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        64.9,
+        [
+          256.0,
+          0.0,
+          416.0,
+          384.0
+        ],
+        false,
+        "motion"
+      ],
+      [
+        67.21,
+        [
+          249.6,
+          0.0,
+          416.0,
+          412.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        69.51,
+        [
+          256.0,
+          0.0,
+          422.4,
+          446.4
+        ],
+        true,
+        ""
+      ],
+      [
+        79.54,
+        [
+          230.4,
+          72.0,
+          371.2,
+          312.0
+        ],
+        false,
+        "motion"
+      ],
+      [
+        81.84,
+        [
+          230.4,
+          14.4,
+          371.2,
+          259.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        84.14,
+        [
+          230.4,
+          14.4,
+          371.2,
+          259.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        86.55,
+        [
+          0.0,
+          211.2,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        88.85,
+        [
+          230.4,
+          14.4,
+          371.2,
+          259.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        91.15,
+        [
+          230.4,
+          14.4,
+          371.2,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        93.46,
+        [
+          230.4,
+          14.4,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        95.76,
+        [
+          230.4,
+          14.4,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        98.06,
+        [
+          230.4,
+          14.4,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        100.36,
+        [
+          230.4,
+          14.4,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        102.67,
+        [
+          230.4,
+          14.4,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        104.97,
+        [
+          230.4,
+          9.6,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        107.27,
+        [
+          230.4,
+          9.6,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        109.57,
+        [
+          230.4,
+          9.6,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        111.88,
+        [
+          230.4,
+          14.4,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        114.18,
+        [
+          236.8,
+          14.4,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        116.48,
+        [
+          230.4,
+          14.4,
+          364.8,
+          259.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        118.79,
+        [
+          236.8,
+          9.6,
+          358.4,
+          259.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        121.09,
+        [
+          230.4,
+          9.6,
+          358.4,
+          259.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        123.49,
+        [
+          0.0,
+          206.4,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        125.89,
+        [
+          0.0,
+          211.2,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        128.3,
+        [
+          0.0,
+          206.4,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        130.7,
+        [
+          0.0,
+          211.2,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        133.0,
+        [
+          224.0,
+          9.6,
+          364.8,
+          259.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        135.41,
+        [
+          0.0,
+          211.2,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        137.71,
+        [
+          217.6,
+          9.6,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        140.01,
+        [
+          224.0,
+          9.6,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        142.41,
+        [
+          0.0,
+          216.0,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        144.82,
+        [
+          0.0,
+          216.0,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        147.22,
+        [
+          0.0,
+          211.2,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        149.62,
+        [
+          0.0,
+          211.2,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ]
+    ],
+    "n_regrounds": 2,
+    "relock_walls_s": [
+      37.13
+    ],
+    "carry_px_err_mean": 8.3,
+    "carry_frames": 513,
+    "recovered_after_occlusion": true,
+    "twin": {
+      "mode": "decoy",
+      "id_switch_s": 4.37,
+      "frac_box_closer_distractor": 0.156,
+      "n_boxed_twin_frames": 513,
+      "final_d_true_m": 26.51,
+      "final_d_dist_m": 1.93,
+      "closest_at_end": "distractor",
+      "relock_on": [
+        "distractor"
+      ]
+    }
+  },
+  "gate_speed_ms": 0.25,
+  "gate": "FAIL"
+}
+--- snapshot -> /home/gara/jetson/experiments/2026-07-03-reground-selfcorrect/runs/mg-decoy-a-long ---
+=========== E8 /home/gara/jetson/experiments/2026-07-03-reground-selfcorrect/runs/mg-decoy-b-long  speed=0.25  extra: --twin decoy --reground-gate motion ===========
+[3] booting Jetson q8_0 server...
+[offboard] connecting to tcp:127.0.0.1:5760 ...
+[offboard] heartbeat  type=2  autopilot=3  target_sys=1
+[offboard] priming GCS link (3 heartbeats) ...
+[offboard] data stream requested
+[offboard] requesting mode GUIDED (id=4) ...
+[offboard] mode GUIDED confirmed
+[offboard] param ARMING_CHECK = 0
+[offboard] waiting for EKF position estimate ...
+[offboard] EKF ready  flags=0x33F  vel_horiz=0.00  pos_horiz=0.01
+[offboard] arming ...
+[offboard] arm ACK result=0
+[offboard] armed
+[offboard] climbing to 10.0 m ...
+[offboard] at altitude  z=-8.6 m NED
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 66.24it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 60.63it/s]
+[0.25 m/s] in_fov=0.481 lock@4.71s attempts=50 regrounds=2 relock=[34.98] px_err=8.9 hz=19.3 carry_fps=18.5
+[offboard] landing ...
+[offboard] requesting mode LAND (id=9) ...
+[offboard] mode LAND confirmed
+[offboard] disarmed — landed
+{
+  "trial": {
+    "speed_ms": 0.25,
+    "image_size": 1024,
+    "n_frames": 2900,
+    "duration_s": 150.0,
+    "achieved_hz": 19.3,
+    "carry_fps": 18.5,
+    "in_fov_frac": 0.4814,
+    "first_lock_s": 4.71,
+    "n_acquire_attempts": 50,
+    "n_rejected_acquires": 15,
+    "n_reground_gate_rejects": 32,
+    "acquire_log": [
+      [
+        2.35,
+        [
+          288.0,
+          355.2,
+          307.2,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        4.71,
+        [
+          249.6,
+          96.0,
+          390.4,
+          340.8
+        ],
+        true,
+        ""
+      ],
+      [
+        34.93,
+        [
+          294.4,
+          273.6,
+          313.6,
+          388.8
+        ],
+        false,
+        "size"
+      ],
+      [
+        37.28,
+        [
+          294.4,
+          307.2,
+          320.0,
+          422.4
+        ],
+        false,
+        "size"
+      ],
+      [
+        39.68,
+        [
+          147.2,
+          321.6,
+          454.4,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        41.99,
+        [
+          288.0,
+          0.0,
+          409.6,
+          72.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        44.29,
+        [
+          204.8,
+          0.0,
+          409.6,
+          100.8
+        ],
+        false,
+        "size"
+      ],
+      [
+        46.59,
+        [
+          204.8,
+          0.0,
+          492.8,
+          129.6
+        ],
+        false,
+        "size"
+      ],
+      [
+        48.9,
+        [
+          211.2,
+          0.0,
+          422.4,
+          168.0
+        ],
+        false,
+        "motion"
+      ],
+      [
+        51.2,
+        [
+          288.0,
+          0.0,
+          409.6,
+          196.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        53.6,
+        [
+          0.0,
+          177.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        55.9,
+        [
+          268.8,
+          0.0,
+          416.0,
+          264.0
+        ],
+        false,
+        "motion"
+      ],
+      [
+        58.21,
+        [
+          268.8,
+          0.0,
+          403.2,
+          292.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        60.51,
+        [
+          268.8,
+          0.0,
+          409.6,
+          321.6
+        ],
+        false,
+        "motion"
+      ],
+      [
+        62.81,
+        [
+          268.8,
+          0.0,
+          416.0,
+          355.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        65.12,
+        [
+          268.8,
+          0.0,
+          422.4,
+          384.0
+        ],
+        false,
+        "motion"
+      ],
+      [
+        67.42,
+        [
+          262.4,
+          0.0,
+          428.8,
+          412.8
+        ],
+        true,
+        ""
+      ],
+      [
+        77.57,
+        [
+          230.4,
+          57.6,
+          377.6,
+          297.6
+        ],
+        false,
+        "motion"
+      ],
+      [
+        79.88,
+        [
+          236.8,
+          9.6,
+          371.2,
+          249.6
+        ],
+        false,
+        "motion"
+      ],
+      [
+        82.18,
+        [
+          230.4,
+          9.6,
+          377.6,
+          244.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        84.58,
+        [
+          0.0,
+          206.4,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        86.89,
+        [
+          230.4,
+          4.8,
+          377.6,
+          244.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        89.19,
+        [
+          230.4,
+          4.8,
+          377.6,
+          244.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        91.49,
+        [
+          230.4,
+          4.8,
+          377.6,
+          244.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        93.79,
+        [
+          230.4,
+          4.8,
+          377.6,
+          244.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        96.1,
+        [
+          230.4,
+          4.8,
+          377.6,
+          244.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        98.4,
+        [
+          230.4,
+          4.8,
+          377.6,
+          244.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        100.7,
+        [
+          230.4,
+          4.8,
+          377.6,
+          244.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        103.0,
+        [
+          230.4,
+          4.8,
+          377.6,
+          244.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        105.31,
+        [
+          230.4,
+          4.8,
+          377.6,
+          240.0
+        ],
+        false,
+        "motion"
+      ],
+      [
+        107.61,
+        [
+          230.4,
+          4.8,
+          377.6,
+          249.6
+        ],
+        false,
+        "motion"
+      ],
+      [
+        109.91,
+        [
+          230.4,
+          4.8,
+          377.6,
+          249.6
+        ],
+        false,
+        "motion"
+      ],
+      [
+        112.22,
+        [
+          230.4,
+          4.8,
+          377.6,
+          244.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        114.52,
+        [
+          230.4,
+          4.8,
+          377.6,
+          249.6
+        ],
+        false,
+        "motion"
+      ],
+      [
+        116.82,
+        [
+          230.4,
+          4.8,
+          377.6,
+          244.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        119.12,
+        [
+          230.4,
+          4.8,
+          377.6,
+          244.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        121.43,
+        [
+          230.4,
+          4.8,
+          377.6,
+          249.6
+        ],
+        false,
+        "motion"
+      ],
+      [
+        123.83,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        126.13,
+        [
+          230.4,
+          4.8,
+          377.6,
+          244.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        128.44,
+        [
+          230.4,
+          4.8,
+          377.6,
+          244.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        130.84,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        133.24,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        135.64,
+        [
+          0.0,
+          206.4,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        137.95,
+        [
+          230.4,
+          9.6,
+          371.2,
+          244.8
+        ],
+        false,
+        "motion"
+      ],
+      [
+        140.35,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        142.65,
+        [
+          230.4,
+          9.6,
+          371.2,
+          249.6
+        ],
+        false,
+        "motion"
+      ],
+      [
+        145.05,
+        [
+          0.0,
+          201.6,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        147.36,
+        [
+          230.4,
+          9.6,
+          371.2,
+          249.6
+        ],
+        false,
+        "motion"
+      ],
+      [
+        149.66,
+        [
+          230.4,
+          9.6,
+          377.6,
+          249.6
+        ],
+        false,
+        "motion"
+      ]
+    ],
+    "n_regrounds": 2,
+    "relock_walls_s": [
+      34.98
+    ],
+    "carry_px_err_mean": 8.9,
+    "carry_frames": 510,
+    "recovered_after_occlusion": true,
+    "twin": {
+      "mode": "decoy",
+      "id_switch_s": 4.53,
+      "frac_box_closer_distractor": 0.151,
+      "n_boxed_twin_frames": 510,
+      "final_d_true_m": 26.61,
+      "final_d_dist_m": 1.93,
+      "closest_at_end": "distractor",
+      "relock_on": [
+        "distractor"
+      ]
+    }
+  },
+  "gate_speed_ms": 0.25,
+  "gate": "FAIL"
+}
+--- snapshot -> /home/gara/jetson/experiments/2026-07-03-reground-selfcorrect/runs/mg-decoy-b-long ---
+=========== E8 /home/gara/jetson/experiments/2026-07-03-reground-selfcorrect/runs/mg-decoy-c-long  speed=0.25  extra: --twin decoy --reground-gate motion ===========
+[3] booting Jetson q8_0 server...
+[offboard] connecting to tcp:127.0.0.1:5760 ...
+[offboard] heartbeat  type=2  autopilot=3  target_sys=1
+[offboard] priming GCS link (3 heartbeats) ...
+[offboard] data stream requested
+[offboard] requesting mode GUIDED (id=4) ...
+[offboard] mode GUIDED confirmed
+[offboard] param ARMING_CHECK = 0
+[offboard] waiting for EKF position estimate ...
+[offboard] EKF ready  flags=0x33F  vel_horiz=0.00  pos_horiz=0.01
+[offboard] arming ...
+[offboard] arm ACK result=0
+[offboard] armed
+[offboard] climbing to 10.0 m ...
+[offboard] at altitude  z=-8.6 m NED
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.31it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.82it/s]
+[0.25 m/s] in_fov=0.493 lock@4.71s attempts=50 regrounds=2 relock=[37.0] px_err=8.2 hz=19.3 carry_fps=18.4
+[offboard] landing ...
+[offboard] requesting mode LAND (id=9) ...
+[offboard] mode LAND confirmed
+[offboard] disarmed — landed
+{
+  "trial": {
+    "speed_ms": 0.25,
+    "image_size": 1024,
+    "n_frames": 2896,
+    "duration_s": 150.0,
+    "achieved_hz": 19.3,
+    "carry_fps": 18.4,
+    "in_fov_frac": 0.4927,
+    "first_lock_s": 4.71,
+    "n_acquire_attempts": 50,
+    "n_rejected_acquires": 18,
+    "n_reground_gate_rejects": 29,
+    "acquire_log": [
+      [
+        2.35,
+        [
+          288.0,
+          355.2,
+          307.2,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        4.71,
+        [
+          249.6,
+          96.0,
+          390.4,
+          345.6
+        ],
+        true,
+        ""
+      ],
+      [
+        34.78,
+        [
+          294.4,
+          273.6,
+          313.6,
+          384.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        37.13,
+        [
+          294.4,
+          307.2,
+          313.6,
+          417.6
+        ],
+        false,
+        "size"
+      ],
+      [
+        39.39,
+        [
+          288.0,
+          0.0,
+          409.6,
+          28.8
+        ],
+        false,
+        "size"
+      ],
+      [
+        41.69,
+        [
+          288.0,
+          0.0,
+          403.2,
+          67.2
+        ],
+        false,
+        "size"
+      ],
+      [
+        43.99,
+        [
+          281.6,
+          0.0,
+          403.2,
+          96.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        46.29,
+        [
+          288.0,
+          0.0,
+          409.6,
+          120.0
+        ],
+        false,
+        "motion"
+      ],
+      [
+        48.6,
+        [
+          281.6,
+          0.0,
+          409.6,
+          163.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        50.9,
+        [
+          198.4,
+          0.0,
+          435.2,
+          196.8
+        ],
+        false,
+        "size"
+      ],
+      [
+        53.2,
+        [
+          204.8,
+          0.0,
+          492.8,
+          225.6
+        ],
+        false,
+        "size"
+      ],
+      [
+        55.6,
+        [
+          0.0,
+          211.2,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        57.91,
+        [
+          268.8,
+          0.0,
+          396.8,
+          288.0
+        ],
+        false,
+        "motion"
+      ],
+      [
+        60.21,
+        [
+          262.4,
+          0.0,
+          390.4,
+          321.6
+        ],
+        false,
+        "motion"
+      ],
+      [
+        62.51,
+        [
+          262.4,
+          0.0,
+          403.2,
+          350.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        64.82,
+        [
+          256.0,
+          0.0,
+          416.0,
+          379.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        67.12,
+        [
+          256.0,
+          0.0,
+          422.4,
+          408.0
+        ],
+        false,
+        "motion"
+      ],
+      [
+        69.42,
+        [
+          256.0,
+          0.0,
+          416.0,
+          446.4
+        ],
+        true,
+        ""
+      ],
+      [
+        79.55,
+        [
+          230.4,
+          62.4,
+          371.2,
+          302.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        81.85,
+        [
+          230.4,
+          14.4,
+          371.2,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        84.15,
+        [
+          230.4,
+          9.6,
+          371.2,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        86.46,
+        [
+          236.8,
+          14.4,
+          371.2,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        88.76,
+        [
+          230.4,
+          9.6,
+          371.2,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        91.06,
+        [
+          230.4,
+          9.6,
+          371.2,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        93.37,
+        [
+          230.4,
+          9.6,
+          371.2,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        95.67,
+        [
+          230.4,
+          9.6,
+          371.2,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        97.97,
+        [
+          230.4,
+          9.6,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        100.27,
+        [
+          230.4,
+          9.6,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        102.58,
+        [
+          230.4,
+          9.6,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        104.88,
+        [
+          236.8,
+          9.6,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        107.18,
+        [
+          243.2,
+          9.6,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        109.49,
+        [
+          243.2,
+          9.6,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        111.79,
+        [
+          236.8,
+          9.6,
+          364.8,
+          259.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        114.09,
+        [
+          243.2,
+          9.6,
+          358.4,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        116.39,
+        [
+          236.8,
+          9.6,
+          364.8,
+          259.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        118.7,
+        [
+          236.8,
+          9.6,
+          364.8,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        121.0,
+        [
+          243.2,
+          9.6,
+          358.4,
+          254.4
+        ],
+        false,
+        "motion"
+      ],
+      [
+        123.3,
+        [
+          243.2,
+          9.6,
+          364.8,
+          259.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        125.6,
+        [
+          236.8,
+          9.6,
+          364.8,
+          259.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        127.91,
+        [
+          230.4,
+          9.6,
+          364.8,
+          259.2
+        ],
+        false,
+        "motion"
+      ],
+      [
+        130.31,
+        [
+          0.0,
+          216.0,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        132.71,
+        [
+          0.0,
+          216.0,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        135.12,
+        [
+          0.0,
+          211.2,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        137.52,
+        [
+          0.0,
+          216.0,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        139.92,
+        [
+          0.0,
+          216.0,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        142.32,
+        [
+          0.0,
+          216.0,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        144.73,
+        [
+          0.0,
+          216.0,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        147.13,
+        [
+          0.0,
+          211.2,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        149.53,
+        [
+          0.0,
+          211.2,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ]
+    ],
+    "n_regrounds": 2,
+    "relock_walls_s": [
+      37.0
+    ],
+    "carry_px_err_mean": 8.2,
+    "carry_frames": 502,
+    "recovered_after_occlusion": true,
+    "twin": {
+      "mode": "decoy",
+      "id_switch_s": 4.48,
+      "frac_box_closer_distractor": 0.159,
+      "n_boxed_twin_frames": 502,
+      "final_d_true_m": 26.51,
+      "final_d_dist_m": 1.93,
+      "closest_at_end": "distractor",
+      "relock_on": [
+        "distractor"
+      ]
+    }
+  },
+  "gate_speed_ms": 0.25,
+  "gate": "FAIL"
+}
+--- snapshot -> /home/gara/jetson/experiments/2026-07-03-reground-selfcorrect/runs/mg-decoy-c-long ---
+=========== E8 MATRIX DONE ===========
