@@ -43,9 +43,13 @@ def world_to_px(pts_ne: np.ndarray, copter_ned, yaw: float) -> np.ndarray:
 class NadirCam:
     """render(copter_ned, yaw, rover_ned) -> HxWx3 uint8 BGR frame."""
 
-    def __init__(self, bridge_n: tuple[float, float] | None = None,
+    def __init__(self, bridge_n: tuple[float, float] | list | None = None,
                  road_e: float = 0.0, seed: int = 0, n_max: float = 140.0):
-        self.bridge_n = bridge_n          # world-fixed N-extent (m) of the overpass
+        # E15: one span (tuple, the E2-E14 form) or several (list of tuples).
+        # Normalized to a list; a single span renders bit-identically to before.
+        if bridge_n is not None and not hasattr(bridge_n[0], "__len__"):
+            bridge_n = [tuple(bridge_n)]
+        self.bridge_n = bridge_n          # world-fixed N-extents (m) of the overpasses
         # world texture: N in [-20, n_max], E in [-25, 25]. Default n_max=140
         # covers the E2 1.5 m/s reach (ROVER_START_N 0.5 + 1.5*75 = 113 m) with
         # margin; was [-20, 110] which the 1.5 m/s trailing follow ran off in
@@ -84,7 +88,8 @@ class NadirCam:
 
     def render(self, copter_ned, yaw: float, rover_ned,
                distractor_ned=None,
-               distractor_color=(245, 245, 245)) -> np.ndarray:
+               distractor_color=(245, 245, 245),
+               extra_cars=None) -> np.ndarray:
         img = cv2.warpAffine(self.tex, self._tex_to_img(copter_ned, yaw),
                              (IMG_W, IMG_H), flags=cv2.INTER_LINEAR)
         hl, hw = TARGET_LEN_M / 2, TARGET_WID_M / 2
@@ -92,9 +97,11 @@ class NadirCam:
         # distractor (E3) defaults to the IDENTICAL polygon/color -- that
         # identity is the twin-target experiment; E9 passes distractor_color to
         # render a color-referable second car ("the blue car") for RETARGET.
-        # bridge stays drawn last.
-        for car, body in ((rover_ned, (245, 245, 245)),
-                          (distractor_ned, distractor_color)):
+        # E15: extra_cars = [(ned, color), ...] appends more parked cars, same
+        # polygon (None/[] = E2-E14 path, byte-identical). bridge stays drawn last.
+        for car, body in [(rover_ned, (245, 245, 245)),
+                          (distractor_ned, distractor_color),
+                          *(extra_cars or [])]:
             if car is None:
                 continue
             rn, re = car[0], car[1]
@@ -102,8 +109,7 @@ class NadirCam:
                                   re - hw, re + hw, body)
             self._fill_world_rect(img, copter_ned, yaw, rn + 0.3 * hl, rn + 0.7 * hl,
                                   re - 0.8 * hw, re + 0.8 * hw, (60, 50, 40))
-        if self.bridge_n is not None:
-            b0, b1 = self.bridge_n
+        for b0, b1 in (self.bridge_n or []):
             self._fill_world_rect(img, copter_ned, yaw, b0, b1, -30, 30, (90, 90, 90))
             for edge in (b0, b1):  # bridge parapet lines
                 self._fill_world_rect(img, copter_ned, yaw, edge - 0.15, edge + 0.15,
@@ -168,8 +174,32 @@ def selfcheck() -> None:
     x2, y2 = int(bb4["cx"] + bb4["w"] / 2), int(bb4["cy"] + bb4["h"] / 2)
     assert img4[y1:y2, x1:x2].mean() > 150, "no car at N=250 on extended world"
     cv2.imwrite(str(out / "extended-n250.png"), img4)
+
+    # E15: (i) a single-tuple bridge and its list-of-one form render identically,
+    # and extra_cars=None == extra_cars=[] -- the E2-E14 default path is
+    # unchanged; (ii) a second bridge span hides the car exactly like the first;
+    # (iii) extra_cars renders a third car without moving the other two.
+    img_a = NadirCam(bridge_n=(5.6, 11.6)).render((0.0, 0.0, -10.0), 0.0, (0.5, 0.0, 0.0))
+    img_b = NadirCam(bridge_n=[(5.6, 11.6)]).render((0.0, 0.0, -10.0), 0.0,
+                                                    (0.5, 0.0, 0.0), extra_cars=[])
+    assert np.array_equal(img_a, img_b), "E15 normalization changed the default render"
+    cam2b = NadirCam(bridge_n=[(5.6, 11.6), (19.0, 25.5)])
+    img5 = cam2b.render((22.0, 0.0, -10.0), 0.0, (22.0, 0.0, 0.0))
+    bb5 = oracle_project((22.0, 0.0, -10.0), (22.0, 0.0, 0.0), 0.0, 0.0, 0.0)
+    x1, y1 = int(bb5["cx"] - bb5["w"] / 2), int(bb5["cy"] - bb5["h"] / 2)
+    x2, y2 = int(bb5["cx"] + bb5["w"] / 2), int(bb5["cy"] + bb5["h"] / 2)
+    assert img5[y1:y2, x1:x2].mean() < 130, "car visible under the second bridge"
+    cv2.imwrite(str(out / "bridge2-occluded.png"), img5)
+    img6 = cam.render((0.0, 0.0, -10.0), 0.0, (0.5, 0.0, 0.0),
+                      distractor_ned=(0.5, 6.0, 0.0),
+                      extra_cars=[((0.5, -3.0, 0.0), (215, 215, 215))])
+    mask6 = (img6 > 200).all(axis=2).astype(np.uint8)
+    n6, _, st6, _ = cv2.connectedComponentsWithStats(mask6)
+    blobs6 = [i for i in range(1, n6) if st6[i, cv2.CC_STAT_AREA] > 50]
+    assert len(blobs6) == 3, f"E15 extra_cars: expected 3 car blobs, got {len(blobs6)}"
+    cv2.imwrite(str(out / "three-cars.png"), img6)
     print(f"selfcheck PASS -- frames in {out} (incl. distractor two-blob + escort "
-          f"color + E10 extended world)")
+          f"color + E10 extended world + E15 second bridge/extra cars)")
 
 
 if __name__ == "__main__":

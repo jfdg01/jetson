@@ -182,6 +182,17 @@ def mask_descriptor(frame_bgr, mask):
     return np.median(frame_bgr[mask.astype(bool)].astype(np.float64), axis=0)
 
 
+def closest_label(d_true, d_dist, d_d2=None):
+    """E3/E15 attribution: which car a box center / the copter end-position is
+    nearest -- "true", "distractor", or (E15, only when a second decoy exists)
+    "distractor2". d_d2=None reproduces the E3-E14 two-way rule bit-identically
+    (strict dd < dt, ties -> "true")."""
+    lab = "distractor" if d_dist < d_true else "true"
+    if d_d2 is not None and d_d2 < min(d_true, d_dist):
+        lab = "distractor2"
+    return lab
+
+
 def gate_box(box, score, mode: str, tau: float, motion_stale: bool):
     """E4 loss gate: demote a carry box to None when it can't be trusted, so the
     existing LossGate/DR/REGROUND machinery fires on a confident-but-wrong box
@@ -312,7 +323,8 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
               reground_gate: str = "none", duration_s: float = DURATION_S,
               retarget_t: float | None = None, vmax: float = 2.5,
               acquire_delay: float = 0.0, app_tau: float = 12.0,
-              decoy_shade: int = 245) -> dict:
+              decoy_shade: int = 245, decoy2_m: float | None = None,
+              occ2: tuple[float, float] | None = None) -> dict:
     """One `duration_s` s follow trial at SPEED (default 75 s). Orchestration mirrors phase1_sitl.run_trial;
     the oracle box is kept for the in-FOV metric only -- control sees pixels.
     carry_conn set (3b): CARRY steps go to jetson_carry_service over the tunnel."""
@@ -472,9 +484,15 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
     hl = TARGET_LEN_M / 2
     c = lambda t: rover_home_n + pb.ROVER_START_N + SPEED * t  # noqa: E731
     bridge = (c(OCC_START) - hl, c(OCC_START + OCC_DUR) + hl)
+    # E15: optional second full-occlusion window (--occ2 START DUR), a second
+    # world-fixed bridge sized by the same formula -- re-hides the car
+    # mid-separation to stress the E14 reject-until-separated win path.
+    # occ2=None keeps the E2-E14 single-bridge world bit-identical.
+    bridges = [bridge] + ([(c(occ2[0]) - hl, c(occ2[0] + occ2[1]) + hl)]
+                          if occ2 else [])
     # E10: extend the world texture north when the trial's reach needs it;
     # max() keeps every <=1.5 m/s run on the exact E2-E9 world (n_max=140)
-    cam = NadirCam(bridge_n=bridge, road_e=rover_home_e,
+    cam = NadirCam(bridge_n=bridges, road_e=rover_home_e,
                    n_max=max(140.0, c(duration_s) + 20.0))
 
     # E3 twin distractor: an identical white car. crossing = 12 m ahead in the
@@ -495,6 +513,12 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                                 rover_home_e + 3.0, 0.0)
     else:
         distractor = None
+    # E15: second parked decoy --decoy2 m north of the first, same lane, same
+    # shade -- the true car must clear two identity traps back-to-back, so the
+    # E14 clean-separation accept window between trap 1 and open road is gone.
+    # None (default) = E2-E14 single-distractor scene, bit-identical.
+    decoy2_ned = ((bridge[1] + 2.0 + decoy2_m, rover_home_e, 0.0)
+                  if (decoy2_m is not None and twin == "decoy") else None)
     # E13: non-escort distractor body shade (default 245 = E3's byte-identical
     # twin; 215 = the discriminable same-class "white-ish car" case)
     dist_color = ESCORT_COLOR if twin == "escort" else (decoy_shade,) * 3
@@ -534,7 +558,9 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
             dnd = distractor(t) if distractor else None
             copter_ned, attitude = pb._drain_telemetry(ctrl, copter_ned, attitude)
             frame = cam.render(copter_ned, attitude[2], rover_ned, dnd,
-                               distractor_color=dist_color)
+                               distractor_color=dist_color,
+                               extra_cars=([(decoy2_ned, dist_color)]
+                                           if decoy2_ned else None))
             if sm.state != "CARRY" and n_frames % 10 == 0:  # E4: catch-up buffer
                 acq_buf.append((t, frame.copy(), copter_ned, attitude[2]))
 
@@ -635,7 +661,8 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
 
             # metrics: in-FOV is pure geometry (ignores the bridge), as in Phase 1
             bbox_geo = oracle_project(copter_ned, rover_ned, 0.0, 0.0, attitude[2])
-            occluded = bridge[0] <= rover_ned[0] - hl and rover_ned[0] + hl <= bridge[1]
+            occluded = any(b0 <= rover_ned[0] - hl and rover_ned[0] + hl <= b1
+                           for b0, b1 in bridges)
             n_frames += 1
             in_fov_frames += bbox_geo is not None
             if sm.retarget_fired_t is not None and dnd is not None:
@@ -658,14 +685,19 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                     bc = np.array([out["cx"], out["cy"]])
                     d_true_px = round(float(np.hypot(*(bc - true_uv))), 1)
                     d_dist_px = round(float(np.hypot(*(bc - dist_uv))), 1)
+                    d_d2_px = None
+                    if decoy2_ned is not None:  # E15: 3-way attribution
+                        d2_uv = world_to_px((decoy2_ned[0], decoy2_ned[1]),
+                                            copter_ned, attitude[2])[0]
+                        d_d2_px = round(float(np.hypot(*(bc - d2_uv))), 1)
                     twin_rows.append((t, d_true_px, d_dist_px))
                     if len(sm.relock_walls) > len(relock_on):
                         # a relock happened since the last boxed frame: classify
                         # it by this (first) box; pad "?" keeps alignment if a
                         # relock somehow produced no boxed frame at all
                         relock_on += ["?"] * (len(sm.relock_walls) - len(relock_on) - 1)
-                        relock_on.append("distractor" if d_dist_px < d_true_px
-                                         else "true")
+                        relock_on.append(closest_label(d_true_px, d_dist_px,
+                                                       d_d2_px))
 
             loop_ms = (time.monotonic() - t_now) * 1000
             w.writerow([round(t, 2), sm.state,
@@ -732,6 +764,9 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
         d_end = distractor(t)
         fd_true = math.hypot(copter_ned[0] - rov_end[0], copter_ned[1] - rov_end[1])
         fd_dist = math.hypot(copter_ned[0] - d_end[0], copter_ned[1] - d_end[1])
+        fd_d2 = (math.hypot(copter_ned[0] - decoy2_ned[0],
+                            copter_ned[1] - decoy2_ned[1])
+                 if decoy2_ned is not None else None)
         m["twin"] = {
             "mode": twin,
             "id_switch_s": round(best, 2),
@@ -741,7 +776,8 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
             "n_boxed_twin_frames": len(twin_rows),
             "final_d_true_m": round(fd_true, 2),
             "final_d_dist_m": round(fd_dist, 2),
-            "closest_at_end": "distractor" if fd_dist < fd_true else "true",
+            "final_d_dist2_m": round(fd_d2, 2) if fd_d2 is not None else None,
+            "closest_at_end": closest_label(fd_true, fd_dist, fd_d2),
             "relock_on": relock_on,
         }
     if retarget_t is not None:
@@ -1002,10 +1038,21 @@ def selfcheck() -> None:
     dm_blue = mask_descriptor(fb, _region(fb, cop, 0.5 - hl2, 0.5 + hl2,
                                           3.0 - hw2, 3.0 + hw2))
     assert dm_blue[0] > 200.0 and dm_blue[0] - dm_blue[2] > 100.0, dm_blue
+
+    # E15 closest_label truth table: 2-way reproduces the E3-E14 rule
+    # (strict dd < dt, tie -> true); 3-way only when d_d2 is given
+    assert closest_label(5.0, 3.0) == "distractor"
+    assert closest_label(3.0, 5.0) == "true"
+    assert closest_label(3.0, 3.0) == "true"            # tie -> true, as E3-E14
+    assert closest_label(5.0, 3.0, 1.0) == "distractor2"
+    assert closest_label(3.0, 5.0, 4.0) == "true"
+    assert closest_label(5.0, 3.0, 4.0) == "distractor"
+
     print("selfcheck PASS  acquire->carry->gate->reground->relock + E4 submit-frame/gate_box"
           " + E5 pursuit_vel + E6 acquire_log/motion_blob + E7 reground gate"
           " + E9 retarget + E11 chase box + E12 acquire-delay"
-          " + E13 appearance descriptor + E14 mask descriptor")
+          " + E13 appearance descriptor + E14 mask descriptor"
+          " + E15 closest_label")
 
 
 def main() -> None:
@@ -1064,6 +1111,19 @@ def main() -> None:
                          "bit-identical to E2-E12; 215 = a discriminable "
                          "same-class 'white-ish car'. Keep >200 (road-dash "
                          "grey / sitl_cam selfcheck blob threshold).")
+    ap.add_argument("--decoy2", type=float, default=None, metavar="M",
+                    help="E15: park a SECOND decoy M meters north of the first "
+                         "(--twin decoy only; same lane, same --decoy-shade). "
+                         "The true car must clear two identity traps "
+                         "back-to-back. Default off = E2-E14 bit-identical.")
+    ap.add_argument("--occ2", type=float, nargs=2, default=None,
+                    metavar=("START_S", "DUR_S"),
+                    help="E15: second full-occlusion window -- a second "
+                         "world-fixed bridge sized by the same formula as the "
+                         "first (car fully hidden for DUR_S starting at "
+                         "START_S). Re-hides the car mid-separation to stress "
+                         "the E14 reject-until-separated win path. Default "
+                         "off = E2-E14 bit-identical.")
     ap.add_argument("--retarget-t", type=float, default=None,
                     help="E9: at this sim time (first CARRY tick at/after it), "
                          "swap the NL target to RETARGET_CAPTION and drop the "
@@ -1090,6 +1150,8 @@ def main() -> None:
         # E14 gate verifies with the HOST predictor (StreamCarry init mask);
         # the 3b remote path has no local predictor -- port when 3b re-gates
         sys.exit("--reground-gate mask is local-carry only (drop --remote-carry)")
+    if args.decoy2 is not None and args.twin != "decoy":
+        sys.exit("--decoy2 requires --twin decoy")
     global SPEED
     SPEED = args.speed
 
@@ -1169,7 +1231,9 @@ def main() -> None:
                           reground_gate=args.reground_gate,
                           duration_s=args.duration_s, vmax=args.vmax,
                           acquire_delay=args.acquire_delay,
-                          app_tau=args.app_tau, decoy_shade=args.decoy_shade)
+                          app_tau=args.app_tau, decoy_shade=args.decoy_shade,
+                          decoy2_m=args.decoy2,
+                          occ2=tuple(args.occ2) if args.occ2 else None)
         ctrl.land_and_disarm()
         ctrl.close()
     finally:
@@ -1204,6 +1268,7 @@ def main() -> None:
            "reground_gate": args.reground_gate, "vmax": args.vmax,
            "acquire_delay": args.acquire_delay,
            "app_tau": args.app_tau, "decoy_shade": args.decoy_shade,
+           "decoy2_m": args.decoy2, "occ2": args.occ2,
            "catchup_replay": True,
            "carry": "jetson-remote" if args.remote_carry else "host-3090"}
     out_dir = HERE / "runs" / phase

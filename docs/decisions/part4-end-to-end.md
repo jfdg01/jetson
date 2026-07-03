@@ -427,3 +427,38 @@
   distractors, and re-occlusion during separation are untested — the win path depends on the VLM
   producing a clean separated true box (reject-until-separated), which a persistent co-location
   would starve. That is the next lever if harder ambiguity breaks it.
+
+## E15 — geometry stress of the E14 gate; direction (a) over (b) (2026-07-03)
+
+- **Design choice (Fable):** harden the E14 gate against **win-path geometry** — a double-decoy
+  with no clean window (`--decoy2 7.0`) and a re-occlusion covering E14's accept window
+  (`--occ2 82 10`) — rather than (b) move to the next constraint. Rationale: E14's "identity hole
+  closed 3/3" is load-bearing for the thesis but the audit showed the 3/3 was three near-identical
+  replays of ONE favourable geometry, and the shade margin is *analytic* in this flat-shaded
+  renderer (mask median == body shade, zero variance → a shade sweep measures the constant tau), so
+  geometry is the only real untested axis. Rejected: (b) the 3b remote-carry port (right step only
+  AFTER robustness; a heavy multi-file port is the wrong shape for a zero-judgment executor), a
+  shade-convergence sweep (analytic), and pre-lock chase-reach >3.0 m/s (E12 parked that arc).
+- **Outcome: RQ-E15 = NOT-MEASURABLE** — and the finding is a *process* one that outranks the
+  designed question. The regression guard leg (reg-e14, E14's exact config under the E15 code)
+  FAILed with no-relock where E14 passed 3/3. The pre-registered rule correctly halted attribution.
+  What this buys the thesis, and the decision it forces on the next cycle:
+  - **E14's robustness is now an open question, not a settled claim.** The gate's *rejection* of
+    decoy/blend boxes is rock-solid (0 false accepts across every gated leg, controls wrong-lock
+    every time). The *reject-until-separated win path* — waiting for a clean true box to appear and
+    catching it — is what looks fragile: the easiest leg missed its accept window while 5/6 harder
+    legs caught theirs (t≈100–114). This is consistent with a narrow, stochastically-missable accept
+    window, which n=3 in E14 could not have exposed.
+  - **Decision for the next cycle (seed):** before any further hardening or the remote-carry port,
+    the highest-leverage move is a *determinism characterization* — re-run E14's exact mk-decoy
+    config at n≥3 on the **merged E14 code** (no E15 patch present) and, separately, on the E15 code,
+    to split "E15 patch perturbed the E14 path" from "E14's win is stochastic." Only one of those two
+    is a real E14 caveat; the other is an E15 instrument bug. The `np.array_equal` render-identity
+    selfcheck is necessary but insufficient — it proves the frame is identical, not that the
+    SITL/VLM/pursuit *timing* is bit-identical across the closest_label/multi-bridge/sitl_cam deltas.
+    Future off-by-default patches touching the shared harness should include a behavioral
+    baseline-parity leg in the *same* matrix, not just a render-identity assert.
+  - **What was given up by merging a NOT-MEASURABLE:** nothing on `main` behaves differently (the E15
+    knobs are off by default; E2–E14 configs render bit-identically per selfcheck). The cost is one
+    cycle that produced a limiting result rather than a robustness confirmation — but per the loop
+    design that is thesis content, and the next-cycle audit inherits a sharp, well-scoped question.
