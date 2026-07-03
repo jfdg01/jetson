@@ -22,7 +22,7 @@
 | Branch | Branch-2 (VLM grounding → drone command) |
 | Trials | 3 × 60s |
 | Device | Jetson Orin Nano 8GB (`ssh jetson`) |
-| Power mode | MAXN_SUPER (25W), `jetson_clocks` locked |
+| Power mode | 15 W (mode 0) + `jetson_clocks` locked (corrected from "MAXN_SUPER (25W)": no MAXN on this firmware; see `docs/decisions/part2-rebuild.md`) |
 | Baseline comparison | Stage 1 Phase C Branch-2 |
 
 ---

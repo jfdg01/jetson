@@ -80,7 +80,10 @@ Both selfchecks PASS on 2026-07-03T11:50Z:
 
 Rig: host 3090 (SAM2 carry + SITL) + Jetson Orin Nano over `ssh jetson`
 (llama-server Qwen2-VL-2B Q8_0, booted by the scripts; power mode as-is from E8 =
-MAXN_SUPER + jetson_clocks). One command runs everything, smoke first, snapshots
+15 W + jetson_clocks — this board's firmware (L4T R36.5) has **no MAXN_SUPER**, only
+modes 0=15W and 1=7W, see `docs/decisions/part2-rebuild.md`; earlier "MAXN_SUPER"
+labels here were a mislabel, the runs were physically at 15W). One command runs
+everything, smoke first, snapshots
 per leg into `runs/<label>/`:
 
 ```bash
@@ -144,7 +147,7 @@ All fields below are in the leg's snapshotted `results.json` under `trial`.
 ## Results (TBD — executor fills)
 
 Smoke (`runs/color-smoke/results.json`): greedy decoding, 10 poses x 2 captions,
-Jetson Q8_0, MAXN_SUPER + jetson_clocks.
+Jetson Q8_0, 15 W + jetson_clocks.
 
 | Caption | hits / 10 | verdict |
 |---|---|---|
@@ -157,7 +160,7 @@ might miss synthetic blue) did not bite: blue hit 10/10, exceeding the >= 9 esti
 white and the uncertain blue.
 
 Legs (config: 0.5 m/s, `--twin escort`, `--loss-gate motion --dr pursuit --acquire-hold motion`,
-`--retarget-t 50` on rt-*, Q8_0, MAXN_SUPER + jetson_clocks):
+`--retarget-t 50` on rt-*, Q8_0, 15 W + jetson_clocks):
 
 | Leg | in_fov_frac | switch_wall_s (first) | switch_on (last) | closest_at_end | final_d_dist_m | frac_box_closer_dist_post | dist_in_fov_frac_post | PASS? |
 |---|---|---|---|---|---|---|---|---|
@@ -205,7 +208,7 @@ behavior.
    `YYYY-MM-DDThh:mmZ`).
 2. Append the ledger rows:
    - `docs/results/part4-end-to-end.md`: one row per leg + the smoke row, each
-     with config (0.5 m/s, escort, levers, retarget-t 50, Q8_0, MAXN_SUPER).
+     with config (0.5 m/s, escort, levers, retarget-t 50, Q8_0, 15 W + jetson_clocks).
    - `docs/questions/part4-end-to-end.md`: `RQ-E9` + one-line verdict (per-Part
      doc, NOT the root QUESTIONS.md).
    - `docs/decisions/part4-end-to-end.md`: the E9 decision (retarget over

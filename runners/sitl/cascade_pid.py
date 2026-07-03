@@ -63,6 +63,8 @@ class CascadePID:
         a_ref:    float = A_REF_PX2,
         img_w:    int   = IMG_W,
         img_h:    int   = IMG_H,
+        max_vx:   float = MAX_VX,
+        max_vy:   float = MAX_VY,
     ):
         self.kp_yaw   = kp_yaw
         self.kp_lat   = kp_lat
@@ -70,6 +72,11 @@ class CascadePID:
         self.a_ref    = a_ref
         self.img_w    = img_w
         self.img_h    = img_h
+        # E10: velocity limits are per-instance so high-speed trials can raise
+        # them; defaults keep every existing caller (Phase B/C, T3, phase1/3)
+        # bit-identical to the module constants.
+        self.max_vx   = max_vx
+        self.max_vy   = max_vy
 
     def compute(self, bbox: dict | None) -> dict:
         """
@@ -93,8 +100,8 @@ class CascadePID:
         #   body_y → cam_x → image u (right)  : error_yaw drives vy
         #   body_x → cam_y = -body_x → image v: error_lat < 0 means target is NORTH
         #     → fly north (vx > 0) to centre it → vx = -Kp * error_lat
-        vy       = _clamp(self.kp_lat * error_yaw,   -MAX_VY,  MAX_VY)
-        vx       = _clamp(-self.kp_lat * error_lat,  -MAX_VX,  MAX_VX)
+        vy       = _clamp(self.kp_lat * error_yaw,   -self.max_vy, self.max_vy)
+        vx       = _clamp(-self.kp_lat * error_lat,  -self.max_vx, self.max_vx)
         yaw_rate = _clamp(self.kp_yaw * error_yaw,   -MAX_YAW, MAX_YAW)
 
         return {"vx": vx, "vy": vy, "vz": 0.0, "yaw_rate": yaw_rate}
@@ -162,7 +169,15 @@ def _test_clamp():
     bbox = {"cx": IMG_W / 2 + 10000, "cy": IMG_H / 2, "w": 100.0, "h": 100.0}
     sp = pid.compute(bbox)
     assert abs(sp["yaw_rate"]) <= MAX_YAW + 1e-9, f"yaw_rate not clamped: {sp['yaw_rate']}"
-    print(f"  clamp test PASS  yaw_rate clamped to {sp['yaw_rate']:.4f} (max={MAX_YAW})")
+    assert abs(sp["vy"]) <= MAX_VY + 1e-9, f"vy not clamped: {sp['vy']}"
+    # E10: per-instance limit overrides the module constant
+    pid_hi = CascadePID(max_vx=5.0, max_vy=5.0)
+    sp_hi = pid_hi.compute(bbox)
+    assert abs(sp_hi["vy"] - 5.0) < 1e-9, f"vy not clamped to instance max_vy: {sp_hi['vy']}"
+    bbox_lat = {"cx": IMG_W / 2, "cy": IMG_H / 2 - 10000, "w": 100.0, "h": 100.0}
+    assert abs(pid_hi.compute(bbox_lat)["vx"] - 5.0) < 1e-9, "vx not clamped to instance max_vx"
+    print(f"  clamp test PASS  yaw_rate clamped to {sp['yaw_rate']:.4f} (max={MAX_YAW}); "
+          f"default vy {sp['vy']:.1f} (max={MAX_VY}); instance vy {sp_hi['vy']:.1f} (max=5.0)")
 
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@
 | Quant | Q8_0 (text backbone) / f16 (vision) |
 | Eval set | RefDrone val × VisDrone val, n=50, seed=42 |
 | Device | Jetson Orin Nano 8GB (`ssh jetson`) |
-| Power mode | MAXN_SUPER (25W), `jetson_clocks` locked |
+| Power mode | 15 W (mode 0) + `jetson_clocks` locked (corrected from "MAXN_SUPER (25W)": no MAXN on this firmware; see `docs/decisions/part2-rebuild.md`) |
 | Baseline comparison | Stage 1 Phase A: SmolVLM-500M original Q8_0 |
 
 ---

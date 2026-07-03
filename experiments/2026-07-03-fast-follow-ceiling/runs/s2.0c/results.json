@@ -1,0 +1,103 @@
+{
+  "trial": {
+    "speed_ms": 2.0,
+    "image_size": 1024,
+    "n_frames": 1476,
+    "duration_s": 75.0,
+    "achieved_hz": 19.7,
+    "carry_fps": 20.9,
+    "in_fov_frac": 1.0,
+    "first_lock_s": 2.3,
+    "n_acquire_attempts": 7,
+    "n_rejected_acquires": 5,
+    "n_reground_gate_rejects": 0,
+    "acquire_log": [
+      [
+        2.3,
+        [
+          243.2,
+          76.8,
+          396.8,
+          340.8
+        ],
+        true,
+        ""
+      ],
+      [
+        35.14,
+        [
+          44.8,
+          43.2,
+          57.6,
+          48.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        37.39,
+        [
+          403.2,
+          0.0,
+          505.6,
+          28.8
+        ],
+        false,
+        "size"
+      ],
+      [
+        39.79,
+        [
+          0.0,
+          307.2,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        42.15,
+        [
+          358.4,
+          235.2,
+          384.0,
+          360.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        44.5,
+        [
+          217.6,
+          0.0,
+          563.2,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        46.8,
+        [
+          358.4,
+          0.0,
+          486.4,
+          235.2
+        ],
+        true,
+        ""
+      ]
+    ],
+    "n_regrounds": 1,
+    "relock_walls_s": [
+      13.89
+    ],
+    "carry_px_err_mean": 102.1,
+    "carry_frames": 1092,
+    "recovered_after_occlusion": true
+  },
+  "gate_speed_ms": 2.0,
+  "gate": "PASS"
+}

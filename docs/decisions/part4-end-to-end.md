@@ -254,3 +254,52 @@
   target, and at higher speed, are the named next candidates. The VLM-draw non-cancellation
   quirk (max_workers=1) never bit: the switch resolved in one draw, so no queue delay appeared.
 - → [`experiments/2026-07-03-retarget-switch/`](../../experiments/2026-07-03-retarget-switch/README.md)
+
+### 2026-07-03T12:30Z — Notebook correction: "MAXN_SUPER" power-mode label was wrong; every run was at 15 W
+
+- **What / why:** while pre-flighting E10 (fast-follow-ceiling) the Jetson power mode was
+  audited against the hardware. `nvpmodel.conf` on this board (Orin Nano Dev Kit, L4T R36.5)
+  defines **only** ID=0 **15 W** and ID=1 **7 W** — there is **no MAXN_SUPER / 25 W profile**.
+  Part I (`experiments/2026-06-13-llamacpp-upper-bound`) and Part II
+  (`docs/decisions/part2-rebuild.md`) had already established this, but several later records
+  copied a "MAXN_SUPER + jetson_clocks" label anyway: E9 (retarget-switch, 4 spots), E7
+  (reground-gate) and E8 (reground-selfcorrect) ("deployed MAXN config"), the Part-IV results
+  row for E9, and the Part-I/II `2026-06-15-stage2-finetune` records (3 spots).
+- **Impact — label only, zero numeric effect:** because 15 W was the *only* available mode,
+  every "MAXN_SUPER" run physically executed at 15 W + jetson_clocks. **No measurement is
+  invalidated and nothing is re-run.** The error was purely a mislabel.
+- **Chosen:** correct all wrong labels to `15 W (mode 0) + jetson_clocks`, each pointing to
+  `docs/decisions/part2-rebuild.md`, and note the correction inline. Left the already-correct
+  Part-I/II records untouched. E10 is labelled 15 W from birth. **Over:** leaving the labels
+  and adding a single global erratum note — rejected because the wrong label sits *in each
+  run's config line*, exactly where a future reader (or the loop's Fable audit) reads the
+  config to judge comparability, and would bias toward "match MAXN_SUPER" or treating 15 W
+  runs as non-comparable. **Given up:** nothing — the correction costs only edits.
+- **Standing rule:** this hardware has no MAXN_SUPER. All Jetson numbers are 15 W + jetson_clocks
+  unless a future firmware flash adds a mode (would be a dated, explicit change).
+
+### 2026-07-03T12:45Z — E10: probe the follow ceiling by removing the rig, not by adding a lever
+
+- **What / why:** the follow "ceiling" was inherited as E2's "< 0.5 m/s", but the E10 audit
+  found it never isolated the controller from the rig: the 140 m SITL world edge (car ran
+  off-map) and three hard-coded caps (pursuit vmax 2.5, hist_vel clamp ±2.5, PID MAX_VX/VY
+  3.0) all bit before the tracker did. **Chosen:** parameterize the three caps (`--vmax`,
+  defaults bit-identical to E2-E9) + auto-extend the world texture per trial's reach, then run
+  a plain speed ladder {1.5, 2.0, 2.5, 3.0}. This is a *measurement fix*, not a new capability —
+  reg-1.5 confirms no ≤1.5 behavior change. Result: ceiling is **2.5 m/s**, 5x the E2 figure;
+  the E2 number was a rig artifact.
+- **Rejected alternatives (Fable named these; all deferred, not killed):** (1) **relock-latency
+  cut at 1.5** — optimizing relock wall-time; rejected because E10 showed relock time *falls*
+  with speed and in_fov stays 1.000 through occlusion, so relock latency is not the binding
+  constraint. (2) **VLM draw-latency work** — speeding the acquire draw itself; deferred, but
+  now *reframed*: E10 shows the constraint above 2.5 is first-acquire *reliability* (repeatable
+  draw before the car crosses FOV from a standing start), which draw-latency work plausibly
+  helps — this is the leading next candidate. (3) **on-device carry FPS** — moving SAM2 to the
+  Jetson for throughput; rejected because carry held in_fov 1.000 at every passing speed, so
+  carry FPS is not binding at ≤2.5 m/s.
+- **Given up:** the ceiling is measured only for a *co-moving* target the copter is chasing
+  from behind (the E2/E6 lineage scenario); crossing / counter-moving fast targets and the
+  first-acquire-at-speed lever are the named next probes. The 3.0 failure is diagnosed
+  (first-acquire) but not fixed — deliberately, as E10 was scoped to *locate* the ceiling, not
+  raise it past 2.5.
+- → [`experiments/2026-07-03-fast-follow-ceiling/`](../../experiments/2026-07-03-fast-follow-ceiling/README.md)

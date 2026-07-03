@@ -248,7 +248,7 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
               loss_gate: str = "none", score_tau: float = 0.0,
               dr: str = "velocity", acquire_hold: str = "none",
               reground_gate: str = "none", duration_s: float = DURATION_S,
-              retarget_t: float | None = None) -> dict:
+              retarget_t: float | None = None, vmax: float = 2.5) -> dict:
     """One `duration_s` s follow trial at SPEED (default 75 s). Orchestration mirrors phase1_sitl.run_trial;
     the oracle box is kept for the in-FOV metric only -- control sees pixels.
     carry_conn set (3b): CARRY steps go to jetson_carry_service over the tunnel."""
@@ -259,7 +259,9 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
         FOCAL_PX, IMG_H, IMG_W, TARGET_LEN_M, TARGET_WID_M,
         project as oracle_project)
 
-    pid = CascadePID(kp_yaw=0.0)  # yaw disabled, per Phase B rationale
+    # yaw disabled, per Phase B rationale. E10: PID velocity limit follows
+    # --vmax (never below the historical 3.0, so default runs are bit-identical)
+    pid = CascadePID(kp_yaw=0.0, max_vx=max(3.0, vmax), max_vy=max(3.0, vmax))
     executor = ThreadPoolExecutor(max_workers=1)
     rgb = lambda f: np.ascontiguousarray(f[:, :, ::-1])  # noqa: E731
     jpg = lambda f: cv2.imencode(".jpg", f, [cv2.IMWRITE_JPEG_QUALITY, 90])[1].tobytes()  # noqa: E731
@@ -332,10 +334,11 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
         if len(hist) < 2 or hist[-1][0] - hist[0][0] <= 0.5:
             return None
         dt = hist[-1][0] - hist[0][0]
-        # was 1.5, saturated at the 1.5 m/s trial speed (E2); raised so DR
-        # can track the top test speed instead of clamping exactly when needed
-        vn = max(-2.5, min(2.5, (hist[-1][1] - hist[0][1]) / dt))
-        ve = max(-2.5, min(2.5, (hist[-1][2] - hist[0][2]) / dt))
+        # was 1.5, saturated at the 1.5 m/s trial speed (E2); raised to 2.5,
+        # then parameterized as vmax (E10) so DR can track the top test speed
+        # instead of clamping exactly when needed
+        vn = max(-vmax, min(vmax, (hist[-1][1] - hist[0][1]) / dt))
+        ve = max(-vmax, min(vmax, (hist[-1][2] - hist[0][2]) / dt))
         return vn, ve
 
     rg_gate = None
@@ -369,7 +372,10 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
     hl = TARGET_LEN_M / 2
     c = lambda t: rover_home_n + pb.ROVER_START_N + SPEED * t  # noqa: E731
     bridge = (c(OCC_START) - hl, c(OCC_START + OCC_DUR) + hl)
-    cam = NadirCam(bridge_n=bridge, road_e=rover_home_e)
+    # E10: extend the world texture north when the trial's reach needs it;
+    # max() keeps every <=1.5 m/s run on the exact E2-E9 world (n_max=140)
+    cam = NadirCam(bridge_n=bridge, road_e=rover_home_e,
+                   n_max=max(140.0, c(duration_s) + 20.0))
 
     # E3 twin distractor: an identical white car. crossing = 12 m ahead in the
     # +3 m lane driving south (opposing) at SPEED, passes ~t=24s; decoy = parked
@@ -482,7 +488,8 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                 vn, ve = v_blind
                 if dr == "pursuit":  # E5: also close the gap, don't just match speed
                     vn, ve = pursuit_vel(hist[-1], (vn, ve), t,
-                                         (copter_ned[0], copter_ned[1]))
+                                         (copter_ned[0], copter_ned[1]),
+                                         vmax=vmax)
                 yc, ys = math.cos(attitude[2]), math.sin(attitude[2])
                 sp = {"vx": vn * yc + ve * ys, "vy": -vn * ys + ve * yc,
                       "vz": 0.0, "yaw_rate": 0.0}
@@ -683,6 +690,9 @@ def selfcheck() -> None:
     assert v == (2.5, 0.0), v
     vn, ve = pursuit_vel((10.0, 5.0, 0.0), (1.0, 0.0), 12.0, (7.0, 2.0))
     assert vn == 1.0 and ve == -1.0, (vn, ve)
+    # E10: raised vmax lifts the clamp -- same 4 m deficit now yields 3.0
+    assert pursuit_vel((10.0, 5.0, 0.0), (1.0, 0.0), 12.0, (3.0, 0.0),
+                       vmax=4.0) == (3.0, 0.0)
     # E6: every resolved acquire attempt is logged (t, raw box, accepted,
     # reason) -- ticks 2 (accept), 15 (too-small box, reject), 20 (accept)
     assert [(tt, ok, rs) for tt, _, ok, rs in sm.acquire_log] == \
@@ -806,6 +816,10 @@ def main() -> None:
                     help="E9: at this sim time (first CARRY tick at/after it), "
                          "swap the NL target to RETARGET_CAPTION and drop the "
                          "carry -- mid-follow 'switch to the blue car'")
+    ap.add_argument("--vmax", type=float, default=2.5,
+                    help="E10: DR/pursuit speed cap (m/s); also raises the PID "
+                         "velocity limit to max(3.0, vmax). Default 2.5 = the "
+                         "E2-E9 behavior, bit-identical.")
     ap.add_argument("--duration-s", type=float, default=DURATION_S,
                     help="E8: trial length -- default 75s truncated the E7 decoy "
                          "legs before the E4 motion loss-gate (2s stillness + 3s "
@@ -891,7 +905,7 @@ def main() -> None:
                           loss_gate=args.loss_gate, score_tau=args.score_tau,
                           dr=args.dr, acquire_hold=args.acquire_hold,
                           reground_gate=args.reground_gate,
-                          duration_s=args.duration_s)
+                          duration_s=args.duration_s, vmax=args.vmax)
         ctrl.land_and_disarm()
         ctrl.close()
     finally:
@@ -923,7 +937,7 @@ def main() -> None:
            "twin": args.twin, "retarget_t": args.retarget_t,
            "loss_gate": args.loss_gate, "score_tau": args.score_tau,
            "dr": args.dr, "acquire_hold": args.acquire_hold,
-           "reground_gate": args.reground_gate,
+           "reground_gate": args.reground_gate, "vmax": args.vmax,
            "catchup_replay": True,
            "carry": "jetson-remote" if args.remote_carry else "host-3090"}
     out_dir = HERE / "runs" / phase
