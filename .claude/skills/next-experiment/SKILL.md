@@ -126,7 +126,9 @@ last pair is closed by `relaunch.py cleanup` in the morning). Do not omit it.
 - Fallback if `gnome-terminal` is missing, in order: `xterm`, `konsole`, `kitty`,
   `alacritty`. Report which was used.
 - `--remote-control --dangerously-skip-permissions` always; `--model opus` unless the
-  user asks for another executor model.
+  user asks for another executor model. Models are pinned on both sides of the loop:
+  executor = `--model opus` (this command), drafter = `--model fable` (hardcoded in
+  `relaunch.py`). Never spawn either side without an explicit `--model`.
 - The **handoff message** is a self-contained prompt (shell-quoted, single-quotes-safe):
   open `experiments/<dir>/README.md`, run the matrix, fill Results only, do NOT re-patch
   code, then complete the closeout checklist in that README **through step 5 (merge to

@@ -156,7 +156,7 @@ def main() -> None:
     # CYCLE-START (the 2026-07-03 01:17 stall left no trace at all).
     wincmd = (
         f": {MARKER}; cd {REPO} && "
-        "claude --remote-control --dangerously-skip-permissions '/next-experiment'; "
+        "claude --remote-control --dangerously-skip-permissions --model fable '/next-experiment'; "
         f'echo "$(date -Is) CLAUDE-EXIT rc=$? (spawned window)" >> {LOG}; exec bash'
     )
     if term == "gnome-terminal":
