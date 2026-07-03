@@ -210,3 +210,24 @@
   candidate surfaced at 1.5: slower relock after occlusion (23-28 s vs ~7 s at 1.0), higher carry
   px_err — the relock/blind-recovery path, not first-acquire.
 - → [`experiments/2026-07-03-first-acquire/`](../../experiments/2026-07-03-first-acquire/README.md)
+
+### 2026-07-03 — Chose motion-consistency reground gate over CLIP/DR-radius (E7); NO — defeated by drive-through co-location
+
+- **Chosen:** motion-consistency gate on REGROUND acceptance (accept a size-passing box only
+  if its center lands on the ego-compensated mover blob + 60 px pad), reusing the committed,
+  E6-validated `motion_blob`. **Over:** (a) a CLIP appearance gate — the SITL decoy is
+  rendered with the *identical* polygon and color, so an embedding cannot separate them even
+  in principle (rejected on validity, not cost); (b) a DR-position radius gate — needs a
+  pixel-to-world drift calibration and a radius tuned to DR error growth, which E5 showed
+  compounds during long blind phases (more machinery, weaker guarantee).
+- **Result / given up:** **RQ-E7 = NO.** The gate correctly rejects *standalone* parked-decoy
+  boxes (6-8 rejects/run vs 0 control) but the true car's drive-through past the parked decoy
+  transiently co-locates it with the mover blob, so a decoy box eventually passes and the
+  relock lands on the decoy 3/3 (`final_d_true` 4.05-4.32 m > 2.0). Regression legs held (no
+  plain-occlusion regression). **Known limit, now demonstrated:** motion consistency is
+  necessary but not sufficient against a same-appearance distractor sitting on the target's
+  own path — the "moving same-appearance distractor" out-of-scope note has a static-but-
+  co-located cousin the geometric gate also misses. Reground acceptance for an on-path
+  same-appearance distractor is not solvable by geometry alone; it needs either identity
+  (impossible here by construction) or a track-continuity/search behavior, not a filter.
+- → [`experiments/2026-07-03-reground-gate/`](../../experiments/2026-07-03-reground-gate/README.md)

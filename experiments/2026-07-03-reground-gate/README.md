@@ -2,7 +2,8 @@
 
 **Pre-registered:** 2026-07-03T10:28Z (design + patches by Fable; the executor runs the
 matrix and fills Results only — do NOT re-patch code).
-**Status:** PRE-REGISTERED, not yet run.
+**Status:** COMPLETE 2026-07-03T11:58Z. RQ-E7 = NO (gate defeated by drive-through
+co-location; regression legs held). Ledgers appended, merged to main, next cycle relaunched.
 **Branch:** `experiment/reground-gate`. **Part:** IV (end-to-end workflow refinement).
 
 ## Research question
@@ -146,19 +147,43 @@ Read each run's snapshot `runs/<label>/results.json` -> `trial` object.
 - Regression legs both PASS: ~85% (gate only adds rejects; risk is delayed relock pushing
   in_fov below 0.90 at 1.0).
 
-## Results (TBD — executor fills)
+## Results
+
+Ran 2026-07-03T11:58Z, 7/7 trials completed clean (exit 0, none INVALID). Log:
+`raw/matrix.log`; snapshots in `runs/<label>/`.
 
 | label | speed | gate | relock_on[0] | final_d_true_m | final_d_dist_m | in_fov_frac | recovered | relock_walls_s | n_gate_rejects | leg verdict |
 |---|---|---|---|---|---|---|---|---|---|---|
-| ctl-decoy | 0.25 | none | | | | | | | | |
-| mg-decoy-a | 0.25 | motion | | | | | | | | |
-| mg-decoy-b | 0.25 | motion | | | | | | | | |
-| mg-decoy-c | 0.25 | motion | | | | | | | | |
-| mg-reg-0.5 | 0.5 | motion | — | — | — | | | | | |
-| mg-reg-1.0 | 1.0 | motion | — | — | — | | | | | |
-| mg-reg-1.5 | 1.5 | motion | — | — | — | | | | | |
+| ctl-decoy | 0.25 | none | distractor | 7.91 | 1.93 | 0.903 | true | [23.38, 2.32] | 0 | CONTROL (wrong-lock reproduced) |
+| mg-decoy-a | 0.25 | motion | distractor | 4.32 | 1.68 | 1.000 | true | [36.91] | 8 | FAIL |
+| mg-decoy-b | 0.25 | motion | distractor | 4.05 | 1.94 | 1.000 | true | [37.10] | 7 | FAIL |
+| mg-decoy-c | 0.25 | motion | distractor | 4.07 | 1.93 | 1.000 | true | [37.12] | 6 | FAIL |
+| mg-reg-0.5 | 0.5 | motion | — | — | — | 1.000 | true | [9.32] | 0 | PASS |
+| mg-reg-1.0 | 1.0 | motion | — | — | — | 1.000 | true | [6.92] | 0 | PASS |
+| mg-reg-1.5 | 1.5 | motion | — | — | — | 1.000 | true | [6.78] | 0 | PASS |
 
-**RQ-E7 verdict (TBD):**
+- Control reproduced E3-S2: `ctl-decoy.closest_at_end == "distractor"` -> attribution
+  clean, no confound.
+- mg-decoy runs are **not** byte-identical (md5 dd4dcf1 / 3e7cdb2 / ab5eaa4; rejects 8/7/6,
+  relock 36.91/37.10/37.12 s) — the wall-clock VLM submit timing varied as expected, so
+  n=3 is a real n=3 here, unlike E6's mh-1.0.
+- **Failure mechanism (thesis content, not a process failure):** the gate fired hard — 6-8
+  REGROUND rejects per decoy run (reason `motion` in `acquire_log`), vs 0 in the control —
+  and delayed re-acquisition, but the relock still landed on the decoy 3/3
+  (`relock_on[0] == "distractor"`, final lock on decoy: `final_d_true` 4.05-4.32 m > 2.0,
+  `final_d_dist` ~1.7-1.9 m). This is **not** the never-relock mode (each run relocked, at
+  ~37 s). The gate filters *standalone* parked-decoy boxes but does not prevent wrong-lock:
+  the true car drives past the parked decoy, transiently co-locating the decoy with the
+  ego-compensated mover blob, so a decoy box eventually passes the gate. Motion consistency
+  is **necessary but not sufficient** against a same-appearance parked distractor sitting on
+  the target's own path — the "moving same-appearance distractor" limit named up front turns
+  out to have a static-but-co-located cousin the gate also misses.
+
+**RQ-E7 verdict: NO.** Gate did not convert the decoy wrong-lock into a true relock:
+mg-decoy-a/b/c all FAIL (`relock_on[0] == "distractor"`, `final_d_true > 2.0` on all three).
+Regression legs held cleanly (mg-reg-0.5, -1.0, -1.5 all PASS: `in_fov_frac == 1.0`,
+`recovered == true`), so the gate does not regress plain-occlusion relock — it is simply
+defeated by drive-through co-location on the same-lane parked decoy.
 
 ## Ledger rows to append (executor)
 
