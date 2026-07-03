@@ -117,7 +117,10 @@ The Fable design brief (put this in the subagent prompt, filled with the concret
 >   the branch. Mark the section "already committed — Opus: do NOT edit these files."
 > - **Run matrix:** exact copy-pasteable commands (full flags), power mode, versions, rig
 >   (which machine, whether the Jetson is needed), per-run snapshot dirs under `runs/`, and
->   known gotchas (e.g. outputs clobbered between runs — snapshot immediately).
+>   known gotchas (e.g. outputs clobbered between runs — snapshot immediately). Ensure the
+>   commands **record video** of the runs the deliverables need — the 2–3 before/after (or
+>   proof-of-failure) clips are part of the definition of done, and Opus can only clip footage
+>   the matrix actually captured. Say which runs to record and where the raw video lands.
 > - **Verdict rules (mechanical — Opus does not deliberate):** for every decision Opus could
 >   face, a rule like "PASS iff metric X >= N over all runs; if A and B both qualify, prefer
 >   A; if neither, record FAIL and stop." Include abort criteria (run hangs > T min, crash,
@@ -157,8 +160,13 @@ Work from `experiments/<dir>/README.md` alone. Stamp the start:
   a rule is ambiguous, that is a process failure (record it, stop, do not merge).
 - Append the RESULTS row(s), the QUESTIONS verdict (per-Part doc, not root), and the
   DECISIONS entry if one was drafted. Every number carries its config (power mode, flags, ctx).
-- Commit everything on `experiment/<slug>` with a one-line `E<n> <slug>: <verdict>` message.
-  `git status` clean after. A FAIL verdict is a normal result and still gets committed.
+- Cut the **2–3 video deliverables** (definition-of-done item 7) from the recorded footage —
+  before/after if positive, proof-of-failure if negative — into `experiments/<dir>/raw/` and
+  link + caption them in the README (what each shows, which run/config).
+- Commit everything on `experiment/<slug>` — Results, ledger rows, **and the video
+  deliverables** — with a one-line `E<n> <slug>: <verdict>` message. `git status` clean after
+  (the clips are checked in, not left untracked). A FAIL verdict is a normal result and still
+  gets committed.
 
 If the matrix crashes, a rig is missing, or a run hangs past the README's abort criteria,
 stop and record it plainly in the README Status line — do not paper over it, do not merge.

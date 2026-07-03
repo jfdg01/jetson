@@ -65,6 +65,7 @@ A campaign isn't done until:
 4. **DECISIONS** entry appended under the run's Part — only if a non-trivial choice was made (what / why / what was given up).
 5. **SOURCES** appended if a new paper/model/dataset was used.
 6. New Part? add a row to each of the three ledger root indexes and create `docs/{results,questions,decisions}/partN-*.md`.
+7. **2–3 video deliverables** saved under `experiments/<campaign>/raw/`, **committed** (checked into git alongside the run, same as existing clips), and linked from the README. A positive result shows before-and-after (the failing behaviour, then the fixed one); a negative result shows the proof it didn't work (the behaviour the fix failed to change). Thesis-facing evidence, not a debug dump — each clip is captioned in the README with what it shows and which run/config it came from.
 
 Every number carries its config (power mode, flags, ctx). Negative/unexpected results are content — record them plainly.
 
