@@ -149,6 +149,21 @@ A-buf. Jetson 15W + jetson_clocks before first VLM leg; log `nvpmodel -q` to
   BUF is expected higher-coverage but slower-converging; FLOW is the deployable
   one (no buffer requirement on the Orin).
 
+## Clips + captions (frozen — copied verbatim from E18's README, D3)
+
+E19 = E18's exact six clips, resolutions, and captions. No new clips, no caption
+edits (a caption that failed in E18 stays as-is). Data lives at
+`../2026-07-03-real-video-replay/data/` (not re-downloaded).
+
+| clip | frames | res | plain/distractor/occ | why chosen | caption |
+|---|---|---|---|---|---|
+| car3 | 1717 | 1280x720 | plain | single dominant vehicle, clean | the red car |
+| car9 | 1879 | 1280x720 | plain | single dominant vehicle | the white car |
+| car14 | 1327 | 1280x720 | plain, occ | 77 NaN GT gap (full occlusion) — exercises REGROUND for free | the red car |
+| car18 | 1207 | 1280x720 | plain | oblique test-track view, real scale change | the red car |
+| car7 | 1033 | 1280x720 | distractor, occ | 73 NaN gap + same-class cars beside target (~f520, ~f780) | the silver car |
+| car10 | 1405 | 1280x720 | distractor | van + white car beside target (~f700) | the red car |
+
 ## Results (TBD)
 
 | clip | leg | rep | t_lock | genuine | coverage | mean_iou | MC detail (ncc/applied or catchup_s) | verdict |
