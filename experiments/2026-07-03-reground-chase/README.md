@@ -1,7 +1,7 @@
 # E17 reground-chase — does extending E11's chase-hold to REGROUND lift the relock rate above E16's 6/8?
 
 - **Pre-registered:** 2026-07-03T21:45Z (Madrid wall-clock)
-- **Status:** PRE-REGISTERED, not yet run.
+- **Status:** COMPLETE 2026-07-04T00:35Z. RQ-E17 = **NO** (r=0/10, the lever REGRESSED E16's 6/8 to 0/10 via HOLD-MISS runaway); guards PASS (no 3.0 m/s ceiling regression), 0 identity breaches.
 - **Roles:** design + patches by Fable (this README, `run_e17.py`, and the
   `--reground-hold` patch to `phase3_sitl.py` — **already committed on this
   branch; Opus: do NOT edit these files**). Opus runs the matrix and fills
@@ -313,25 +313,25 @@ computes and prints it; `None` if the leg never entered REGROUND).
 
 ## Results (TBD — Opus fills this section only)
 
-| leg | verdict | n_regrounds | gate_rejects | size_rejects | relock_on | closest_at_end | final_d_true_m | in_fov_frac | rg_fov | accept_t_s (relock) |
+| leg | verdict | n_regr | gate_rej | size_rej | relock_on | closest_end | d_true_m | in_fov | rg_fov | relock_t_s |
 |---|---|---|---|---|---|---|---|---|---|---|
-| ctl | | | | | | | | | | |
-| rh-1 | | | | | | | | | | |
-| rh-2 | | | | | | | | | | |
-| rh-3 | | | | | | | | | | |
-| rh-4 | | | | | | | | | | |
-| rh-5 | | | | | | | | | | |
-| rh-6 | | | | | | | | | | |
-| rh-7 | | | | | | | | | | |
-| rh-8 | | | | | | | | | | |
-| rh-9 | | | | | | | | | | |
-| rh-10 | | | | | | | | | | |
+| ctl | REPRODUCES | 5 | 0 | 36 | true,dist x3 | distractor | 26.69 | 0.447 | n/a | 46.20/59.22/64.79/113.59 |
+| rh-1 | FAIL no-relock [HOLD-MISS] | 1 | 0 | 53 | (empty) | distractor | 82.88 | 0.231 | 0.026 | (none) |
+| rh-2 | FAIL no-relock [HOLD-MISS] | 1 | 0 | 52 | (empty) | distractor | 82.79 | 0.230 | 0.026 | (none) |
+| rh-3 | FAIL no-relock [HOLD-MISS] | 1 | 0 | 52 | (empty) | distractor | 83.50 | 0.230 | 0.025 | (none) |
+| rh-4 | FAIL no-relock [HOLD-MISS] | 1 | 0 | 53 | (empty) | distractor | 82.13 | 0.228 | 0.025 | (none) |
+| rh-5 | FAIL no-relock [HOLD-MISS] | 1 | 0 | 52 | (empty) | distractor | 83.62 | 0.230 | 0.025 | (none) |
+| rh-6 | FAIL no-relock [HOLD-MISS] | 1 | 0 | 52 | (empty) | distractor | 81.63 | 0.230 | 0.025 | (none) |
+| rh-7 | FAIL no-relock [HOLD-MISS] | 1 | 0 | 52 | (empty) | distractor | 82.34 | 0.228 | 0.025 | (none) |
+| rh-8 | FAIL no-relock [HOLD-MISS] | 1 | 0 | 52 | (empty) | distractor | 81.20 | 0.228 | 0.025 | (none) |
+| rh-9 | FAIL no-relock [HOLD-MISS] | 1 | 0 | 53 | (empty) | distractor | 83.27 | 0.230 | 0.025 | (none) |
+| rh-10 | FAIL no-relock [HOLD-MISS] | 1 | 0 | 52 | (empty) | distractor | 83.68 | 0.230 | 0.026 | (none) |
 
 | leg | verdict | in_fov_frac | recovered | first_lock_s | n_regrounds | rg_fov |
 |---|---|---|---|---|---|---|
-| guard-a | | | | | | |
-| guard-b | | | | | | |
-| guard-c (iff run) | | | | | | |
+| guard-a | PASS | 1.000 | True | 12.17 | 1 | 1.000 |
+| guard-b | PASS | 1.000 | True | 9.86 | 1 | 1.000 |
+| guard-c | not run (both a/b PASS) | — | — | — | — | — |
 
 Config for every rh/ctl row: 15W mode 0 + jetson_clocks, image-size 1024,
 app-tau 12, decoy-shade 215, `--speed 0.25 --twin decoy --duration-s 150
@@ -340,30 +340,64 @@ app-tau 12, decoy-shade 215, `--speed 0.25 --twin decoy --duration-s 150
 `--speed 3.0 --vmax 4.0 --loss-gate motion --dr pursuit --acquire-hold
 chase --acquire-delay 3.0 --reground-gate mask --reground-hold chase`.
 
-- **Relock rate r:** TBD / TBD valid reps (retries: TBD; exclusions: TBD)
-  — E16 baseline 6/8.
-- **Guard regression verdict:** TBD.
-- **RQ-E17 verdict:** TBD.
-- **rg_fov spread:** TBD (prediction: >= 0.95 all reps).
-- **Accept-time spread (PASS reps):** TBD.
-- **Estimate vs actual:** TBD.
-- **Deviations/surprises:** TBD.
+- **Relock rate r:** **0 / 10** valid reps (0 retries, 0 exclusions — every
+  rep produced exactly 1 reground). E16 baseline 6/8.
+- **Guard regression verdict:** NO-REGRESSION (guard-a + guard-b both PASS at
+  3.0 m/s, in_fov 1.000, recovered, rg_fov 1.000, first_lock 9.86-12.17 s).
+  The lever is safe at the honest follow ceiling.
+- **RQ-E17 verdict:** **NO** (0/10, >=2 FAILs -> NO-LIFT). No GATE-BREACH (no
+  rep relocked the decoy; every rep never re-acquired at all -> relock_on
+  empty). Guards PASS so no guard override. Runner print and README rule agree.
+- **rg_fov spread:** 0.025-0.026 across all 10 reps -- the OPPOSITE of the
+  predicted >=0.95. The lever did not keep the car in frame during REGROUND;
+  it drove the drone almost entirely off it.
+- **Accept-time spread (PASS reps):** n/a -- 0 PASS reps.
+- **Estimate vs actual:** the design predicted r=9-10/10 (LIFTS) on the
+  premise that a held FOV removes the rep-5 no-relock mode. **Inverted
+  completely: r=0/10.** ctl REPRODUCES as expected; guards PASS as expected
+  (~80% prior). The rg_fov prediction (>=0.95) was exactly backwards (0.025).
+  Runtime ~200 min (est 190-230) -- on target. A wrong estimate is content:
+  the mechanism assumption (chase = FOV-keeping) was false for this regime.
+- **Deviations/surprises:** the load-bearing surprise. The blob-chase that
+  HELPS pre-first-lock at 3.0 m/s (E11) is **actively harmful** when applied
+  to REGROUND at 0.25 m/s. During a REGROUND blind phase the pursuit servos
+  onto the nearest blob -- the 215 decoy, not the lost true car -- and drives
+  the drone ~82 m away (final_d_true 81.2-83.7 m, vs E16's DR-coast 26.85 m
+  worst case and 0.12-0.21 m on PASS). The true car leaves frame almost
+  immediately (rg_fov 0.025, in_fov 0.23), so the VLM never sees it, never
+  offers a clean box, the mask gate is never even consulted (gate_rejects 0,
+  size_rejects ~52 -- all off-target off-road boxes). E16's *passive*
+  DR-coast (hold last velocity) is strictly better here because it at least
+  keeps the drone near the true car's path; the *active* chase chases the
+  wrong thing. This is a clean directional negative: E11's chase-hold does
+  NOT transfer from pre-lock acquisition to post-loss re-acquisition -- the
+  failure mode inverts because pre-lock there is one blob (the target), but
+  in REGROUND the decoy is the dominant blob. The E16 6/8 stands as the best
+  REGROUND policy; `--reground-hold chase` is rejected.
 
 ## Proof clips (Opus: 2-3, committed under `proof/`, mechanical picks)
 
 Copy (or ffmpeg-trim to roughly t 40–125 s; guards full length) from
 `runs/<leg>/trial.mp4`; caption each with the leg's config and verdict:
 
-1. `proof/e17-hold-relock.mp4` — the PASS rh rep with the **latest**
-   accept time (the longest held reject window: chase keeps the car in
-   frame while the gate rejects blended boxes, then a clean post-separation
-   relock).
-2. `proof/e17-guard-ceiling.mp4` — guard-a if PASS, else the failing
-   guard: the full stack (chase acquire + mask gate + reground-chase) at
-   the 3.0 m/s honest ceiling.
-3. `proof/e17-fail.mp4` — the first rh FAIL if any (caption its
-   HOLD-MISS/PROPOSAL-MISS attribution); if zero FAILs, the ctl wrong-lock
-   instead (the hole, still open without gate+hold).
+Clip 1's pre-registered pick (latest-accept PASS rep) is unsatisfiable — there
+were **0 PASS reps**. Substituted the load-bearing negative (the runaway FAIL)
+and noted it here; the other two picks stand.
+
+1. `proof/e17-hold-runaway.mp4` — rh-1, the negative result: with
+   `--reground-hold chase` the REGROUND blob-chase servos onto the 215 decoy,
+   not the lost true car, and drives the drone ~82.9 m off (rg_fov 0.026, the
+   true car leaves frame at once, no relock, FAIL [HOLD-MISS]). This is the
+   lever backfiring — the proof it did not work. (Substitutes the unsatisfiable
+   "latest PASS" clip 1.)
+2. `proof/e17-guard-ceiling.mp4` — guard-a PASS: the full stack (chase acquire
+   + mask gate + reground-chase) at the 3.0 m/s honest ceiling, in_fov 1.000,
+   locks at 12.17 s — the lever is safe at follow speed, so the regression is
+   specific to the slow-mover REGROUND regime.
+3. `proof/e17-ctl-wronglock.mp4` — ctl (no gate, no hold): E16's baseline
+   regime, wrong-locks the decoy and ends 26.69 m from true. Contrast for the
+   runaway clip — passive DR-coast stays ~27 m off, the active chase goes ~83 m
+   off; both fail here but the lever makes it strictly worse.
 
 ## Ledger updates on completion (Opus)
 
