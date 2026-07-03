@@ -433,3 +433,30 @@ pre-lock control law — it reuses the already-validated DR/pursuit machinery, c
 about the VLM or carry, and is off by default. Est-vs-actual: chase over-performed (s3.0
 estimated 50-60% → 3/3; s3.5 estimated ~20% → 2/2; no garbage-blob DR runaway on any leg); the
 probe under-reached its own ceiling. Raw: `experiments/2026-07-03-chase-acquire/runs/{reg-2.5,s3.0a-c,s3.5a-b}/`.
+
+### 2026-07-03 — E12 late-command: hard-spawn validation of the E11 ceiling ([`experiments/2026-07-03-late-command/`](../../experiments/2026-07-03-late-command/README.md))
+
+Config: 15 W + jetson_clocks, Jetson Q8_0 acquire + host 3090 SAM2 carry @1024, full lever
+stack `--loss-gate motion --dr pursuit --acquire-hold chase --acquire-delay 3.0`. The
+`--acquire-delay 3.0` (E12 patch, default 0.0 = bit-identical) blocks any VLM lock before
+t=3 s, removing the t=0 "gift frame" that E11's s3.5 passes rode.
+
+| leg | speed (m/s) | vmax | gate | in_fov_frac | recovered | first_lock_s | attempts | rejected | n_regrounds | relock_walls_s | carry_px_err_mean | binding mode (FAIL) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| d3.0  | 3.0 | 4.0 | PASS | 1.000 | True  | 12.17 | 12 | 10 | 1 | 18.63 | 145.2 | — |
+| d3.5a | 3.5 | 5.0 | FAIL | 0.030 | False | None  | 31 | 30 | 0 | — | — | never-locked (first-acquire) |
+| d3.5b | 3.5 | 5.0 | FAIL | 0.029 | False | None  | 31 | 30 | 0 | — | — | never-locked (first-acquire) |
+| d3.5c | 3.5 | 5.0 | FAIL | 0.030 | False | None  | 31 | 30 | 0 | — | — | never-locked (first-acquire) |
+
+**RQ-E12 = NO** — with the gift frame removed, 3.5 m/s does **not** hold: d3.5 **0/3**
+never-locked (first_lock None, 30/31 draws rejected, in_fov ~0.03 — the 3.5 m/s car escapes
+the FOV and the pre-lock blind DR chase cannot re-close the gap before every post-t=3 draw sees
+empty road). The d3.0 control still PASSes (in_fov 1.000, recovered), locking at **12.17 s** —
+~3 s later than E11's gift-frame 9.2 s, i.e. the genuine blind-chase re-close costs the delay it
+was denied. **E11's ">= 3.5" was a draw-1 easy-spawn artifact** (s3.5a/b `acquire_log[0]` accepted
+at 2.30 s on the t=0 frame, but in_fov had already fallen 1→0 at t=2.25 s — the lock landed on a
+car no longer in frame, so the pre-lock chase was never actually exercised at 3.5). s3.0 were
+genuine (copter translated N 0→26 m through ACQUIRE). **Honest chase-validated follow ceiling =
+3.0 m/s** — still 6x the E2-era "< 0.5". Est-vs-actual: matched the pre-registration (d3.0 PASS
+expected, d3.5 expected to fail once the gift frame was removed). Raw:
+`experiments/2026-07-03-late-command/runs/{d3.0,d3.5a,d3.5b,d3.5c}/`.

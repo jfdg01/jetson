@@ -190,6 +190,11 @@ The runner prints all of this; the rules it applies:
 
 ## Results (TBD — Opus fills; one row per leg)
 
+> **Ceiling qualifier: see E12 (`../2026-07-03-late-command/`).** The ">= 3.5 m/s" below
+> was a draw-1 easy-spawn artifact — E12's hard-spawn re-run (`--acquire-delay 3.0`, gift
+> frame removed) fails 3.5 **0/3** and passes 3.0, so the **chase-validated ceiling is 3.0
+> m/s**, not 3.5. The reg-2.5 / s3.0 passes below stand; the s3.5 passes do not.
+
 Ran 2026-07-03T13:40Z. Rig: host 3090 (SITL + SAM2 carry @1024) + Jetson Q8_0
 acquire, **15 W + jetson_clocks**. Common flags `--loss-gate motion --dr pursuit
 --acquire-hold chase`; `--vmax` per leg. Raw: `raw/matrix.log`, per-leg

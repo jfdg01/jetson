@@ -256,3 +256,16 @@
   find it — the follow ceiling moved 2.5 → at least 3.5 m/s in one lever (7x the E2-era "< 0.5").
   Chase over-performed every estimate (s3.0 est 50-60% → 3/3, s3.5 est ~20% → 2/2; no
   garbage-blob DR runaway). n=1 reg, n=3 at 3.0, n=2 at 3.5.
+
+### 2026-07-03 — E12 late-command ([`experiments/2026-07-03-late-command/`](../../experiments/2026-07-03-late-command/README.md))
+
+- **RQ-E12 (does the E11 follow ceiling hold at 3.5 m/s once the t=0 "gift frame" is removed —
+  i.e. is the pre-lock chase itself, not an easy spawn, what carries 3.5?):** **NO.** With
+  `--acquire-delay 3.0` blocking any lock before t=3 s, d3.5 fails **0/3** (never-locked,
+  first_lock None, in_fov ~0.03) while the d3.0 control still PASSes (in_fov 1.000, locks 12.17 s
+  ≈3 s later than E11's gift-frame 9.2 s). E11's ">= 3.5" was a draw-1 easy-spawn artifact — the
+  s3.5 locks landed at 2.30 s on a car that had already left the FOV at 2.25 s, so the blind chase
+  was never exercised at 3.5; s3.0 were genuine. **Honest chase-validated follow ceiling = 3.0
+  m/s** (6x the E2-era "< 0.5"). Above 3.0 the binding mode is the pre-lock blind DR chase failing
+  to re-close on a target that outruns the FOV before the first legal draw — the next lever is
+  pre-lock chase reach (DR gain / faster first draw), not the tracker.

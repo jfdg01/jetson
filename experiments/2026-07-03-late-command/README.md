@@ -2,7 +2,10 @@
 
 **Pre-registered:** 2026-07-03T15:50Z (Madrid wall-clock)
 design + patches by Fable; Opus runs the matrix and fills Results only — do NOT re-patch code.
-**Status:** PRE-REGISTERED, not yet run.
+**Status:** COMPLETE 2026-07-03T16:20Z — **RQ-E12 = NO**. Hard-spawn (late command, gift
+frame removed) validation demotes E11's ">= 3.5": d3.0 control PASS (genuine chase re-close,
+locks 12.17 s) but d3.5 **0/3** never-locked. **Chase-validated follow ceiling = 3.0 m/s.**
+See Results.
 **Branch:** `experiment/late-command` (off main = 326863f)
 
 ## RQ-E12
@@ -185,22 +188,46 @@ The runner prints all of this; the rules it applies:
 
 ## Results (TBD — Opus fills; one row per leg)
 
-Ran (TBD). Rig: host 3090 (SITL + SAM2 carry @1024) + Jetson Q8_0 acquire,
+Ran 2026-07-03T16:20Z. Rig: host 3090 (SITL + SAM2 carry @1024) + Jetson Q8_0 acquire,
 **15 W + jetson_clocks**. Common flags `--loss-gate motion --dr pursuit
 --acquire-hold chase --acquire-delay 3.0`; `--vmax` per leg. Raw:
 `raw/matrix.log`, per-leg `runs/<label>/{results.json,trial.csv,trial.mp4}`.
 
 | leg | gate | in_fov_frac | recovered | first_lock_s | attempts | rejected | n_regrounds | relock_walls_s | carry_px_err_mean | binding mode (FAIL only) |
 |---|---|---|---|---|---|---|---|---|---|---|
-| d3.0 | | | | | | | | | | |
-| d3.5a | | | | | | | | | | |
-| d3.5b | | | | | | | | | | |
-| d3.5c | | | | | | | | | | |
+| d3.0 | PASS | 1.000 | True | 12.17 | 12 | 10 | 1 | 18.63 | 145.2 | — |
+| d3.5a | FAIL | 0.030 | False | None | 31 | 30 | 0 | — | — | never-locked (first-acquire) |
+| d3.5b | FAIL | 0.029 | False | None | 31 | 30 | 0 | — | — | never-locked (first-acquire) |
+| d3.5c | FAIL | 0.030 | False | None | 31 | 30 | 0 | — | — | never-locked (first-acquire) |
 
-**RQ-E12 verdict: TBD** (runner prints the mechanical application; copy the
-ceiling statement verbatim from Verdict rules per the outcome).
+**RQ-E12 verdict: NO** — d3.0 control PASS **and** d3.5 **0/3** PASS.
 
-**Estimate-vs-actual: TBD** (record divergences — a wrong estimate is content).
+**Ceiling statement (verbatim from Verdict rules, d3.0 PASS + d3.5 < 2/3 outcome):**
+*chase-validated ceiling = 3.0 m/s; E11's 3.5 passes were draw-1 easy-spawn artifacts —
+3.5 holds only when the first draw wins (~74%/leg).*
+
+**What this establishes:** The audit was correct. With the gift frame removed
+(`--acquire-delay 3.0`, modeling a late "follow that white car" command), the chase-hold
+still delivers a genuine hard-spawn first-acquire at **3.0 m/s** — d3.0 locked at 12.17 s
+(vs E11's gift-frame 9.2 s: the delay pushed the winning draw ~3 s later, 10/12 draws
+rejected, and the pre-lock blind DR chase re-closed the gap anyway, in_fov 1.000 to trial
+end). But at **3.5 m/s the pre-lock blind DR cannot re-close**: all three legs never locked
+(in_fov ~0.03, first_lock None, 30/31 draws rejected on empty road — the car exits the FOV
+by ~2.25 s, and blind pursuit at vmax 5.0 gives too little closing margin to bring a 3.5 m/s
+car back into the footprint before it is gone). E11's s3.5 2/2 was rescued entirely by the
+t=0 gift frame (E4 submit-frame carry init + post-lock pursuit), not by the chase mechanism
+the ceiling claim needed — E11's ">= 3.5" is **demoted to an easy-spawn artifact**. The
+honest, first-acquire-supported follow ceiling is **3.0 m/s** (still 6x the E2-era "< 0.5",
+and E11's chase-hold is what earns the 2.5 -> 3.0 gain under a hard spawn).
+
+**Estimate-vs-actual (diverged — the uncertain leg resolved to the low side):** Fable
+estimated d3.0 PASS ~85% (actual PASS, first_lock 12.17 s vs est 7-12 — slightly late but
+in family), and d3.5 >= 2/3 at ~40-50% (**actual 0/3** — the blind-DR re-close was weaker
+than the physics sketch's ~1.5 m/s margin suggested; the car never re-entered the footprint,
+so no draw after t=3 ever saw the car). No chase-runaway fired on any leg; the FAIL mode was
+uniformly the estimated "DR shortfall → never-locked", not the escape-window or runaway
+branches. The negative result is the point: it converts E11's unpinned/optimistic ">= 3.5"
+into a defensible "3.0 m/s under a hard spawn".
 
 ## Video deliverables (Opus cuts — DoD item 7)
 
@@ -210,25 +237,24 @@ thesis clips, **committed**), caption each here with what it shows and which
 run it came from. Re-encode for clean seeks as E10/E11 did:
 `ffmpeg -ss <t0> -t <dur> -i <src> -c:v libx264 -pix_fmt yuv420p proof/<name>.mp4`
 
-Pre-registered plan (adjust time windows to the actual footage, keep the
-subjects):
+Cut 2026-07-03T16:06Z (re-encoded libx264 for clean seeks):
 
-1. `proof/e12-gift-frame.mp4` — **the artifact this campaign tests (before).**
-   Source: E11 `../2026-07-03-chase-acquire/runs/s3.5a/trial.mp4`, t=0–12 s:
-   at 3.5 m/s the car escapes the FOV at ~2.25 s while the VLM is still
-   resolving draw 1 on the easy t=0 frame; the lock lands at 2.30 s on a car
-   that is no longer in frame — first-acquire never stressed.
-2. `proof/e12-chase-lock.mp4` — **the RQ moment (after), if any d3.5 leg
-   passes.** Source: the first passing d3.5 leg, t=0 to ~5 s past first lock:
-   no draw allowed before 3.0 s, the car escapes, the blind blob-seeded chase
-   re-closes the gap, and the VLM locks on a chase-produced frame.
-   **If all d3.5 legs fail:** same window from d3.5a showing the binding mode
-   instead (DR shortfall / chase-runaway / escape window), captioned as the
-   proof the mechanism does not deliver at 3.5 — negative results are content.
-3. `proof/e12-control-3.0.mp4` — **the control.** Source: d3.0, t=0 to ~5 s
-   past first lock: the same 3-s late command at the chase-validated speed —
-   chase holds the car drawable and the lock lands normally (or, if d3.0
-   fails, the footage of the CONTROL-FAIL, captioned as such).
+1. `proof/e12-gift-frame.mp4` — **the artifact this campaign exposes.** Source:
+   E11 `../2026-07-03-chase-acquire/runs/s3.5a/trial.mp4`, t=0–12 s: at 3.5 m/s
+   the car escapes the FOV at ~2.25 s while the VLM is still resolving draw 1 on
+   the easy t=0 frame; the lock lands at 2.30 s on a car already out of frame —
+   first-acquire never actually stressed. This is why E11's ">= 3.5" needed E12.
+2. `proof/e12-3.5-neverlock.mp4` — **the negative result (d3.5 fails).** Source:
+   E12 `runs/d3.5a/trial.mp4`, t=0–22 s: with no draw allowed before t=3 s, the
+   3.5 m/s car escapes and the pre-lock blind blob-seeded DR chase cannot re-close
+   the gap — the car never re-enters the footprint, every post-t=3 draw sees empty
+   road (30/31 rejected), first_lock None, in_fov 0.03. The chase mechanism does
+   not deliver at 3.5 without the gift frame.
+3. `proof/e12-control-3.0.mp4` — **the control (chase-validated speed).** Source:
+   E12 `runs/d3.0/trial.mp4`, t=0–18 s: the same 3-s late command at 3.0 m/s —
+   the car escapes, the blind DR chase genuinely re-closes the gap (copter
+   translates N through ACQUIRE), and the VLM locks at 12.17 s on a chase-produced
+   frame, then follows in_fov 1.000. This is the real 3.0 m/s ceiling.
 
 ## Closeout checklist (Opus)
 

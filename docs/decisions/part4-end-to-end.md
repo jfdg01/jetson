@@ -335,3 +335,26 @@
   E11 leg, but it is an un-guarded edge, deliberately left as a design fact to revisit if it ever
   fires.
 - → [`experiments/2026-07-03-chase-acquire/`](../../experiments/2026-07-03-chase-acquire/README.md)
+
+### 2026-07-03T16:25Z — E12: validate the E11 ceiling by hard-spawn (remove the gift frame), not by probing upward
+
+- **What:** the E11 audit (Fable) flagged E11's ">= 3.5 m/s" as under-supported. The E11 s3.5
+  passes locked at `acquire_log[0]` = 2.30 s on the t=0 easy frame, but `in_fov` had already
+  fallen 1→0 at t=2.25 s — the lock landed on a car that had left the FOV, so the pre-lock blind
+  chase was never actually exercised at 3.5. E12 added `--acquire-delay 3.0` (default 0.0 =
+  bit-identical) to block any lock before t=3 s, forcing the chase to earn the lock, and re-ran a
+  d3.0 control (genuine at E11) + d3.5 ×3.
+- **Why this over the alternative — probing 4.0/4.5 upward:** a higher probe would have stacked a
+  new optimistic top rung on top of an unvalidated one; the honest move is to first pin whether
+  3.5 is even real. Removing the gift frame is the minimal, decisive test — it isolates the
+  pre-lock chase as the mechanism instead of the spawn geometry. Rejected the upward probe as
+  "measuring before validating."
+- **Result:** d3.5 **0/3** never-locked (blind DR can't re-close on a 3.5 m/s escaper before the
+  first legal draw), d3.0 PASS (locks 12.17 s, ≈3 s later than the gift-frame 9.2 s — the genuine
+  re-close costs the delay it was denied). **Chase-validated ceiling demoted 3.5 → 3.0 m/s.**
+- **Given up:** the optimistic ">= 3.5" number; the ceiling is now a defensible, pinned 3.0 m/s.
+  The next lever past 3.0 is pre-lock chase *reach* (DR gain, or a faster first draw so the target
+  is still near the footprint when the chase seeds), not the tracker or carry. Audit evidence:
+  s3.5a/b `acquire_log[0]` accept at 2.30 s with in_fov 1→0 at 2.25 s (gift frame); s3.0a copter
+  translated N 0→26 m through ACQUIRE (genuine chase).
+- → [`experiments/2026-07-03-late-command/`](../../experiments/2026-07-03-late-command/README.md)
