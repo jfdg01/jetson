@@ -25,7 +25,7 @@ merge conflict, incomplete closeout, crash — then the executor does NOT relaun
 branch unmerged, and writes what happened in the README Status line for a human.
 
 **Runaway protection:** every relaunch goes through
-`.claude/skills/next-experiment/relaunch.sh`, which refuses unless ALL hold: on `main`,
+`.claude/skills/next-experiment/relaunch.py`, which refuses unless ALL hold: on `main`,
 clean tree, `.claude/loop-budget` exists and > 0 (each spawn decrements it; the human
 authorizes N cycles with `echo N > .claude/loop-budget`), and >= 30 min since the last
 spawn (crash-loop breaker). Every decision is appended to `.claude/loop.log`. Budget
@@ -104,7 +104,7 @@ workflow (CLAUDE.md "definition of done"). Front-load ALL intelligence:
      the merge, note it in the README Status line, do NOT run step 5.
   5. Launch the next cycle — ONLY via the guard script, never by hand:
      ```bash
-     bash .claude/skills/next-experiment/relaunch.sh
+     python3 .claude/skills/next-experiment/relaunch.py
      ```
      If it prints `REFUSED: <reason>`, copy the reason into the README Status line and
      STOP — do not retry, do not spawn a terminal any other way.
@@ -119,9 +119,9 @@ Open a new terminal running the executor session yourself (same mechanism as
 DISPLAY=${DISPLAY:-:0} gnome-terminal -- bash -c ": NEXTEXP-LOOP-WIN; cd <repo-root> && claude --remote-control --dangerously-skip-permissions --model opus '<handoff message>'; exec bash" &
 ```
 
-The leading `: NEXTEXP-LOOP-WIN;` no-op tags the window so `relaunch.sh` can reap stale
+The leading `: NEXTEXP-LOOP-WIN;` no-op tags the window so `relaunch.py` can reap stale
 loop terminals at the next cycle (each spawn closes the previous cycle's windows; the
-last pair is closed by `relaunch.sh cleanup` in the morning). Do not omit it.
+last pair is closed by `relaunch.py cleanup` in the morning). Do not omit it.
 
 - Fallback if `gnome-terminal` is missing, in order: `xterm`, `konsole`, `kitty`,
   `alacritty`. Report which was used.
