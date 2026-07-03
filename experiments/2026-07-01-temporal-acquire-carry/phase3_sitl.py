@@ -320,6 +320,7 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
               carry_conn=None, twin: str | None = None,
               loss_gate: str = "none", score_tau: float = 0.0,
               dr: str = "velocity", acquire_hold: str = "none",
+              reground_hold: str = "none",
               reground_gate: str = "none", duration_s: float = DURATION_S,
               retarget_t: float | None = None, vmax: float = 2.5,
               acquire_delay: float = 0.0, app_tau: float = 12.0,
@@ -614,8 +615,24 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                 else:
                     stale_t0 = None
             hold = None
-            if (acquire_hold in ("motion", "chase") and out is None
-                    and sm.first_lock_t is None and acq_buf):
+            # E17 reground-hold: E11's chase, extended to REGROUND blind
+            # phases. E16's two FAILs (2/8) both died in a REGROUND where DR
+            # pursuit coasted on a corrupted hist -- rep-5 carried a spurious
+            # -0.18 m/s lateral bias out of the loss transient (24 m west of
+            # the road by t=137), rep-1's motion-stale loss left hist static
+            # (v~0, copter parked at n=20 while the car drove on) -- while the
+            # true car, the scene's ONLY mover (the decoy is parked), was
+            # still visible in FOV. The blob feed re-anchors hist onto the
+            # mover, exactly as validated pre-lock by E11. Control law only:
+            # the accept path (size prior + reground gate) is untouched, so
+            # identity is still judged by the E14 mask gate. REGROUND only,
+            # never RETARGET (post-switch the old mover is the WRONG target).
+            # Default "none" -> rg_hold always False -> the conditions below
+            # reduce to the E6/E11 originals, bit-identical to E2-E16.
+            rg_hold = reground_hold == "chase" and sm.state == "REGROUND"
+            if (out is None and acq_buf
+                    and ((acquire_hold in ("motion", "chase")
+                          and sm.first_lock_t is None) or rg_hold)):
                 # E6 motion-hold: pre-first-lock the copter hovers while the VLM
                 # draws (~2.3 s/attempt) and a >=1.0 m/s car exits the FOV between
                 # draws (E5 acquire lottery: 31/32 rejects at 1.0). Servo on the
@@ -625,7 +642,7 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                 if base is not None:
                     hold = motion_blob(frame, base[1], _ground_affine(
                         base[2], base[3], copter_ned, attitude[2]))
-                    if hold is not None and acquire_hold == "chase":
+                    if hold is not None and (acquire_hold == "chase" or rg_hold):
                         # E11 chase-hold: feed the blob's world track into hist
                         # so the existing hist_vel -> pursuit DR (a) closes on
                         # the mover with velocity feed-forward while the blob is
@@ -1085,6 +1102,18 @@ def main() -> None:
                          "pursuit DR chases the mover pre-lock (motion is a "
                          "positional servo only and hovers on blob loss -- at "
                          "3 m/s the car outruns the FOV and never returns)")
+    ap.add_argument("--reground-hold", choices=["none", "chase"],
+                    default="none",
+                    help="E17: extend the E11 chase-hold to REGROUND blind "
+                         "phases -- servo/chase on the ego-motion-compensated "
+                         "frame-diff blob (the true car is the scene's only "
+                         "mover; the decoy is parked) instead of DR-coasting "
+                         "on a possibly-corrupted hist. Cuts the E16 FAIL "
+                         "mode where the copter drifts and the car leaves the "
+                         "FOV before the VLM offers a clean box. Control law "
+                         "only; the accept path (size prior + reground gate) "
+                         "is untouched. REGROUND only, never RETARGET. "
+                         "Default none = E2-E16, bit-identical.")
     ap.add_argument("--reground-gate",
                     choices=["none", "motion", "appearance", "mask"],
                     default="none",
@@ -1228,6 +1257,7 @@ def main() -> None:
                           retarget_t=args.retarget_t,
                           loss_gate=args.loss_gate, score_tau=args.score_tau,
                           dr=args.dr, acquire_hold=args.acquire_hold,
+                          reground_hold=args.reground_hold,
                           reground_gate=args.reground_gate,
                           duration_s=args.duration_s, vmax=args.vmax,
                           acquire_delay=args.acquire_delay,
@@ -1265,6 +1295,7 @@ def main() -> None:
            "twin": args.twin, "retarget_t": args.retarget_t,
            "loss_gate": args.loss_gate, "score_tau": args.score_tau,
            "dr": args.dr, "acquire_hold": args.acquire_hold,
+           "reground_hold": args.reground_hold,
            "reground_gate": args.reground_gate, "vmax": args.vmax,
            "acquire_delay": args.acquire_delay,
            "app_tau": args.app_tau, "decoy_shade": args.decoy_shade,

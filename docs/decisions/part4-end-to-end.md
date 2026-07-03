@@ -490,3 +490,36 @@
   regression was stale. Lesson reaffirmed: an off-by-default patch's render-identity assert
   (`np.array_equal`) is necessary but not sufficient — behaviour varies run-to-run under identical
   code, so a rate (n>=3, independent process launches) is the only honest read of a stochastic win path.
+
+### E17 reground-chase (2026-07-03) — extend E11 chase-hold to REGROUND; rejected (regressed the rate)
+
+- **Chosen (as the final-cycle experiment):** test whether E11's validated pre-lock blob-chase,
+  extended to REGROUND blind phases (`--reground-hold chase`, off by default), lifts E16's 6/8
+  re-acquire rate. Rationale: E16's audit isolated both FAILs as FOV-loss during REGROUND (rg_fov
+  discriminates PASS 1.000 from FAIL 0.20-0.51 perfectly), and the failure looked like passive
+  DR-coast drifting off the mover — for which an *already-validated* fix (E11 chase-hold) existed,
+  gated pre-first-lock only. **Result: rejected — r=0/10, a hard regression from 6/8.**
+- **Why it backfired (the finding worth more than a PASS would have been):** the premise "chase =
+  keep the car in FOV" is false in REGROUND. Pre-first-lock (where E11 validated it) the scene has
+  one dominant blob — the target — so the chase servos toward it. In REGROUND the target is lost and
+  the *decoy* is the dominant blob, so the chase servos onto the decoy and drives the drone ~82 m off
+  (vs passive DR-coast's ~27 m worst). The lever's proximal metric inverted (rg_fov 0.025, not the
+  predicted >=0.95). A control law validated in one regime does NOT transfer to a superficially
+  similar one when the blob it locks onto changes identity. E16's passive DR-coast stands as the best
+  REGROUND policy.
+- **Guards (kept):** the 3.0 m/s honest-ceiling guard legs both PASS with the lever on, so the
+  regression is specific to slow-mover REGROUND, not a follow-ceiling break — worth recording that
+  the lever is *safe* at follow speed even though it is *useless* (harmful) for re-acquisition.
+- **Rejected alternatives (seeded by the audit):** the E3b CLIP appearance gate (stale — E16 proved
+  re-acquire is already identity-safe, 0 breaches in 8; discrimination is not the problem); an
+  accept-hysteresis / accept-window widener (would touch the accept path E16 showed is upstream-bound
+  by the VLM's clean-box offer, not by timing on our side); a 3.0 m/s decoy characterization (the
+  guards already confirm no ceiling regression); a longer-duration re-run baseline arm (E16 already
+  gives the 6/8 baseline). What was given up by picking the chase lever: a direct attempt at the
+  upstream bound (VLM box-offer reliability in the separation window) — but that needs a
+  grounding-side change out of this loop's scope, and is the clean next thread if the work resumes.
+- **Arc closed:** across E3/E7/E13 (identity cues, all NO) -> E14/E16 (mask gate, identity-safe at
+  ~0.75) -> E17 (pursuit lever, NO), the standing answer is the E14/E16 mask-median REGROUND gate:
+  it never wrong-locks the twin, and the residual ~25% miss is an upstream VLM limit that a
+  pursuit-side lever cannot touch. Next thread (out of loop): lift the VLM's clean-box offer rate in
+  the post-separation window.

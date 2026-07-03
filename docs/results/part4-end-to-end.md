@@ -597,3 +597,32 @@ prediction QUALIFIED r=5-6/8 hit exactly; ctl reproduce ~90% prior held; identit
 observed 0; runtime ~130 min (est 120-150). The two FAILs are win-path timing misses of different
 kinds (never-acquired vs acquired-too-early), both upstream of the gate. Raw:
 `experiments/2026-07-03-relock-rate/runs/`.
+
+### E17 reground-chase (2026-07-03) — RQ-E17 NO, r=0/10 (lever regressed E16's 6/8)
+
+One harness patch (`--reground-hold {none,chase}`, default none = bit-identical to E2-E16, selfcheck
+PASS). Extends E11's blob-chase to REGROUND blind phases (control law only; size prior + E14 mask gate
+untouched; REGROUND only, never RETARGET). Branch off main `ad2c009`. All rh/ctl legs: 15W mode 0 +
+jetson_clocks, image-size 1024, app-tau 12, decoy-shade 215, `--speed 0.25 --twin decoy --duration-s
+150 --loss-gate motion --dr pursuit --acquire-hold motion`; rh rows add `--reground-gate mask
+--reground-hold chase` (ctl neither). Guards: `--speed 3.0 --vmax 4.0 --loss-gate motion --dr pursuit
+--acquire-hold chase --acquire-delay 3.0 --reground-gate mask --reground-hold chase`.
+
+| leg | verdict | n_regr | gate_rej | size_rej | relock_on | closest_end | d_true_m | in_fov | rg_fov | relock_t_s |
+|---|---|---|---|---|---|---|---|---|---|---|
+| ctl | REPRODUCES | 5 | 0 | 36 | true,dist x3 | distractor | 26.69 | 0.447 | n/a | 46.20/59.22/64.79/113.59 |
+| rh-1..10 | FAIL no-relock [HOLD-MISS] (all 10) | 1 | 0 | 52-53 | (empty) | distractor | 81.2-83.7 | 0.228-0.231 | 0.025-0.026 | (none) |
+| guard-a | PASS | 1 | — | — | — | — | — | 1.000 | 1.000 | first_lock 12.17 |
+| guard-b | PASS | 1 | — | — | — | — | — | 1.000 | 1.000 | first_lock 9.86 |
+
+(Per-rep rh rows are near-identical; full values in `experiments/2026-07-03-reground-chase/README.md`.)
+
+**Relock rate r = 0/10** valid reps (0 retries, 0 exclusions). **RQ-E17 = NO** (>=2 FAILs -> NO-LIFT;
+the lever regressed E16's 6/8 to 0/10). No GATE-BREACH. **Guard verdict NO-REGRESSION** (both PASS at
+3.0 m/s) — the lever is safe at the honest follow ceiling; the harm is specific to slow-mover REGROUND.
+Mechanism: the REGROUND blob-chase servos onto the 215 decoy (dominant blob), driving the drone ~82 m
+off; the true car leaves frame (rg_fov 0.025), the VLM never offers a clean box, the mask gate is never
+consulted. E16's passive DR-coast is strictly better. Est-vs-actual: design predicted r=9-10/10 LIFTS
+(premise: held FOV removes the no-relock mode) — **inverted to 0/10**; the mechanism assumption
+(chase = FOV-keeping) was false for this regime, a wrong estimate that is itself the finding. Runtime
+~200 min (est 190-230). Raw: `experiments/2026-07-03-reground-chase/runs/`.

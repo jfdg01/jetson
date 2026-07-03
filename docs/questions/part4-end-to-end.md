@@ -352,3 +352,22 @@
   ~75% of the time — bounded by an upstream event (the VLM offering a clean box in the accept window),
   not by the gate. Also corrects E15's README misstatement that E14 accepted "at t=86.25 in all
   three" (actual E14 accepts were 76.55/81.38/86.25 — E14 already varied under fixed code).
+
+- **RQ-E17 (2026-07-03) — Does `--reground-hold chase` (E11's pre-lock blob-chase extended to
+  REGROUND blind phases) lift the mask-gate relock rate above E16's 6/8, with zero identity breaches
+  and no regression at the 3.0 m/s honest ceiling? (LIFTS/YES iff 0 FAILs over >=8 reps; PARTIAL/
+  QUALIFIED iff 1 FAIL; NO-LIFT/NO iff >=2):** **NO (r=0/10).** The lever REGRESSED the rate from
+  6/8 to 0/10 — every rep FAILed no-relock [HOLD-MISS], rg_fov 0.025 (predicted >=0.95, exactly
+  backwards). Mechanism: during a REGROUND blind phase the blob-chase servos onto the nearest blob,
+  which is the 215 decoy (not the lost true car), and drives the drone ~82 m off (final_d_true
+  81.2-83.7 m vs E16's worst DR-coast 26.85 m); the true car leaves frame at once (in_fov 0.23), the
+  VLM never offers a clean box, the mask gate is never consulted (gate_rejects 0, size_rejects ~52).
+  No GATE-BREACH (no rep relocked the decoy — it never re-acquired at all). Guards guard-a/b both
+  PASS at 3.0 m/s (in_fov 1.000, recovered, first_lock 9.86-12.17 s) -> NO-REGRESSION at the honest
+  follow ceiling; the harm is specific to the slow-mover REGROUND regime. **Directional finding:**
+  E11's chase-hold does NOT transfer from pre-first-lock acquisition (one blob = the target) to
+  post-loss REGROUND (the decoy is the dominant blob); the failure mode inverts. E16's *passive*
+  DR-coast (6/8) is strictly better than the *active* chase (0/10) for re-acquisition. Lever rejected;
+  `--reground-hold` stays off by default. This closes the identity arc: the mask gate (E14/E16) is
+  the standing answer — identity-safe (0 breaches) at a ~0.75 re-acquire rate bounded by the VLM's
+  clean-box offer, and that upstream bound is NOT fixable by a pursuit-side chase lever.
