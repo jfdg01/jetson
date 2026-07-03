@@ -107,6 +107,28 @@ def motion_blob(cur_bgr, prev_bgr, M, min_area: int = 800):
             "w": float(x1 - x0), "h": float(y1 - y0)}
 
 
+def reground_motion_ok(box, cur_bgr, base_bgr, M, pad: float = 60.0):
+    """E7 reground gate: accept a REGROUND box only if it sits on the scene's
+    mover. The size prior is identity-blind (E3-S2: a parked pixel-identical
+    decoy captured the reground 3/3), but motion is not -- the true target
+    moves, the decoy is parked. box is in base-frame pixels (the VLM drew it
+    on the submit frame; base is the buffered frame nearest the submit time),
+    M maps base -> cur ground pixels, so the ego-compensated diff sweep
+    contains the box center by construction when the box is on the mover.
+    blob None (nothing moves: target still occluded, or decoy-only scene)
+    -> reject and keep drawing. pad 60 px ~= 1 m at F/alt ~63 px/m: covers
+    the <=0.25 s base-vs-submit pose slack (<=0.6 m ~= 39 px at the 2.5 m/s
+    cap) + warp error, still well under the decoy's >=2 m offset."""
+    blob = motion_blob(cur_bgr, base_bgr, M)
+    if blob is None:
+        return False
+    cx, cy = (box[0] + box[2]) / 2.0, (box[1] + box[3]) / 2.0
+    u = M[0, 0] * cx + M[0, 1] * cy + M[0, 2]
+    v = M[1, 0] * cx + M[1, 1] * cy + M[1, 2]
+    return (abs(u - blob["cx"]) <= blob["w"] / 2 + pad
+            and abs(v - blob["cy"]) <= blob["h"] / 2 + pad)
+
+
 def gate_box(box, score, mode: str, tau: float, motion_stale: bool):
     """E4 loss gate: demote a carry box to None when it can't be trusted, so the
     existing LossGate/DR/REGROUND machinery fires on a confident-but-wrong box
@@ -135,15 +157,21 @@ class AcquireCarrySM:
     (None while blind).
     """
 
-    def __init__(self, submit, make_carry, validate=None, loss_s: float = LOSS_S):
+    def __init__(self, submit, make_carry, validate=None, loss_s: float = LOSS_S,
+                 reground_gate=None):
         self.submit, self.make_carry, self.validate = submit, make_carry, validate
         self.loss_s = loss_s
+        # E7: reground_gate(box, frame, t, t_submit) -> bool; consulted ONLY in
+        # REGROUND (first ACQUIRE has no prior mover to confirm against)
+        self.reground_gate = reground_gate
         self.state, self.fut, self.carry = "ACQUIRE", None, None
         self._submit_frame, self._submit_t = None, None
         self.last_seen: float | None = None
         self.n_attempts = self.n_regrounds = self.n_rejected = 0
+        self.n_gate_rejected = 0
         # E5 blind spot: rejected acquires were counted but never logged, so
-        # the lottery mechanism was invisible. (t, raw box, accepted) per resolve.
+        # the lottery mechanism was invisible. (t, raw box, accepted, reason)
+        # per resolve; reason in {"", "size", "motion"} (E7).
         self.acquire_log: list = []
         self.first_lock_t: float | None = None
         self.relock_walls: list[float] = []
@@ -161,14 +189,22 @@ class AcquireCarrySM:
             elif self.fut.done():
                 box, _ = self.fut.result()
                 self.fut = None
-                raw = box
+                raw, reason = box, ""
                 if box is not None and self.validate and not self.validate(box):
                     self.n_rejected += 1
-                    box = None  # implausible acquire -> treat as failed, relaunch
+                    reason, box = "size", None  # implausible acquire -> failed, relaunch
+                if (box is not None and self.reground_gate is not None
+                        and self.state == "REGROUND"
+                        and not self.reground_gate(box, frame_bgr, t,
+                                                   self._submit_t)):
+                    # E7: size prior passed but the box is not on the scene's
+                    # mover (parked decoy / target still occluded) -> keep drawing
+                    self.n_gate_rejected += 1
+                    reason, box = "motion", None
                 self.acquire_log.append(
                     (round(t, 2),
                      [round(v, 1) for v in raw] if raw is not None else None,
-                     box is not None))
+                     box is not None, reason))
                 if box is not None:
                     self.carry = self.make_carry(self._submit_frame, box,
                                                  self._submit_t)
@@ -192,7 +228,8 @@ class AcquireCarrySM:
 def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
               carry_conn=None, twin: str | None = None,
               loss_gate: str = "none", score_tau: float = 0.0,
-              dr: str = "velocity", acquire_hold: str = "none") -> dict:
+              dr: str = "velocity", acquire_hold: str = "none",
+              reground_gate: str = "none") -> dict:
     """One 75 s follow trial at SPEED. Orchestration mirrors phase1_sitl.run_trial;
     the oracle box is kept for the in-FOV metric only -- control sees pixels.
     carry_conn set (3b): CARRY steps go to jetson_carry_service over the tunnel."""
@@ -282,7 +319,20 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
         ve = max(-2.5, min(2.5, (hist[-1][2] - hist[0][2]) / dt))
         return vn, ve
 
-    sm = AcquireCarrySM(submit, make_carry, validate)
+    rg_gate = None
+    if reground_gate == "motion":
+        def rg_gate(box, frame_bgr, t, t_submit):
+            # E7: baseline = buffered frame NEAREST the submit time (the box is
+            # only valid on the submit frame), so the ego-compensated diff
+            # sweeps submit->now; acq_buf steps 0.5 s -> base within 0.25 s of
+            # submit, covered by reground_motion_ok's pad
+            base = min(acq_buf, key=lambda e: abs(e[0] - t_submit)) if acq_buf else None
+            if base is None or t - base[0] < 0.35:
+                return False  # no usable baseline -> cannot confirm a mover
+            return reground_motion_ok(box, frame_bgr, base[1], _ground_affine(
+                base[2], base[3], copter_ned, attitude[2]))
+
+    sm = AcquireCarrySM(submit, make_carry, validate, reground_gate=rg_gate)
 
     copter_ned = (0.0, 0.0, -pb.TAKEOFF_ALT_M)
     attitude = (0.0, 0.0, 0.0)
@@ -315,6 +365,8 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
     else:
         distractor = None
     twin_rows: list[tuple[float, float, float]] = []  # (t, d_true_px, d_dist_px) when boxed
+    relock_on: list[str] = []  # E7 verdict metric: per relock, first boxed twin
+    # frame is closer to "true" or "distractor" (aligned with relock_walls)
 
     csv_path = raw_dir / f"trial-{SPEED}ms.csv"
     f = open(csv_path, "w", newline="")
@@ -423,6 +475,13 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                     d_true_px = round(float(np.hypot(*(bc - true_uv))), 1)
                     d_dist_px = round(float(np.hypot(*(bc - dist_uv))), 1)
                     twin_rows.append((t, d_true_px, d_dist_px))
+                    if len(sm.relock_walls) > len(relock_on):
+                        # a relock happened since the last boxed frame: classify
+                        # it by this (first) box; pad "?" keeps alignment if a
+                        # relock somehow produced no boxed frame at all
+                        relock_on += ["?"] * (len(sm.relock_walls) - len(relock_on) - 1)
+                        relock_on.append("distractor" if d_dist_px < d_true_px
+                                         else "true")
 
             loop_ms = (time.monotonic() - t_now) * 1000
             w.writerow([round(t, 2), sm.state,
@@ -462,6 +521,7 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
         "first_lock_s": round(sm.first_lock_t, 2) if sm.first_lock_t else None,
         "n_acquire_attempts": sm.n_attempts,
         "n_rejected_acquires": sm.n_rejected,
+        "n_reground_gate_rejects": sm.n_gate_rejected,
         "acquire_log": sm.acquire_log,
         "n_regrounds": sm.n_regrounds,
         "relock_walls_s": sm.relock_walls,
@@ -495,6 +555,7 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
             "final_d_true_m": round(fd_true, 2),
             "final_d_dist_m": round(fd_dist, 2),
             "closest_at_end": "distractor" if fd_dist < fd_true else "true",
+            "relock_on": relock_on,
         }
     print(f"[{SPEED} m/s] in_fov={m['in_fov_frac']:.3f} lock@{m['first_lock_s']}s "
           f"attempts={m['n_acquire_attempts']} regrounds={m['n_regrounds']} "
@@ -558,11 +619,35 @@ def selfcheck() -> None:
     assert v == (2.5, 0.0), v
     vn, ve = pursuit_vel((10.0, 5.0, 0.0), (1.0, 0.0), 12.0, (7.0, 2.0))
     assert vn == 1.0 and ve == -1.0, (vn, ve)
-    # E6: every resolved acquire attempt is logged (t, raw box, accepted) --
-    # ticks 2 (accept), 15 (too-small box, reject), 20 (accept)
-    assert [(tt, ok) for tt, _, ok in sm.acquire_log] == \
-        [(2.0, True), (15.0, False), (20.0, True)], sm.acquire_log
+    # E6: every resolved acquire attempt is logged (t, raw box, accepted,
+    # reason) -- ticks 2 (accept), 15 (too-small box, reject), 20 (accept)
+    assert [(tt, ok, rs) for tt, _, ok, rs in sm.acquire_log] == \
+        [(2.0, True, ""), (15.0, False, "size"), (20.0, True, "")], sm.acquire_log
     assert sm.acquire_log[1][1] == [0.0, 0.0, 3.0, 3.0], sm.acquire_log
+    # E7 SM wiring: gate consulted ONLY on REGROUND resolves (never on the
+    # first ACQUIRE), reject keeps drawing, accept relocks. Same stub timeline
+    # plus a resolve @24: 20 gate-rejected, 24 gate-accepted.
+    pending.clear()
+    calls: list[float] = []
+
+    def rgate(box, frame, t, t_submit):
+        calls.append(t)
+        return len(calls) > 1  # reject first consult, accept after
+
+    sm2 = AcquireCarrySM(submit, make_carry,
+                         validate=lambda b: b[2] - b[0] > 5, loss_s=3.0,
+                         reground_gate=rgate)
+    for k in range(30):
+        if pending and k in (2, 15, 20, 24):
+            box = (0, 0, 3, 3) if k == 15 else (0, 0, 10, 10)
+            pending.pop(0).set_result((box, 2.5))
+        sm2.step(float(k), np.full((4, 4, 3), k, np.uint8))
+    assert sm2.first_lock_t == 2.0, sm2.acquire_log  # ACQUIRE: gate not consulted
+    assert calls == [20.0, 24.0], calls              # REGROUND resolves only
+    assert sm2.n_gate_rejected == 1 and sm2.n_rejected == 1, sm2.acquire_log
+    assert [rs for _, _, _, rs in sm2.acquire_log] == ["", "size", "motion", ""], \
+        sm2.acquire_log
+    assert sm2.relock_walls == [14.0], sm2.relock_walls  # fired@10, relocked@24
     # E6 motion_blob: two rendered poses (copter moved + yawed, car 0.5->1.5 m N)
     # -> blob centered on the car's swept span; identical frames -> None
     cam = NadirCam()
@@ -576,8 +661,21 @@ def selfcheck() -> None:
     assert d < 40, (blob, (u, v), d)
     ident = np.float32([[1, 0, 0], [0, 1, 0]])
     assert motion_blob(f1, f1, ident) is None, "static scene must yield no blob"
+    # E7 reground_motion_ok on the same rendered pair: a box on the car (base-
+    # frame coords) sits on the sweep -> accept; a box on a static ground point
+    # 3.5 m south of the sweep (the decoy analog, decoy offset is >=2 m)
+    # -> reject; a static scene (no mover at all) -> blob None -> reject
+    M = _ground_affine(cop0, 0.0, cop1, 0.05)
+    u0, v0 = world_to_px((0.5, 0.0), cop0, 0.0)[0]   # car center in f0
+    car_box = (u0 - 20, v0 - 20, u0 + 20, v0 + 20)
+    assert reground_motion_ok(car_box, f1, f0, M), "box on the mover must pass"
+    ud, vd = world_to_px((-5.0, 0.0), cop0, 0.0)[0]  # static point off the sweep
+    assert not reground_motion_ok((ud - 20, vd - 20, ud + 20, vd + 20), f1, f0, M), \
+        "box on a static point must be rejected"
+    assert not reground_motion_ok(car_box, f1, f1, ident), \
+        "no mover in scene -> reject"
     print("selfcheck PASS  acquire->carry->gate->reground->relock + E4 submit-frame/gate_box"
-          " + E5 pursuit_vel + E6 acquire_log/motion_blob")
+          " + E5 pursuit_vel + E6 acquire_log/motion_blob + E7 reground gate")
 
 
 def main() -> None:
@@ -605,6 +703,11 @@ def main() -> None:
                     help="E6: pre-first-lock FOV hold -- servo on the ego-motion-"
                          "compensated frame-diff blob so the target stays in "
                          "frame across VLM draws (E5 acquire lottery)")
+    ap.add_argument("--reground-gate", choices=["none", "motion"], default="none",
+                    help="E7: accept a REGROUND box only if it sits on the "
+                         "ego-motion-compensated frame-diff blob -- the size "
+                         "prior is identity-blind (E3 decoy wrong-lock 3/3), "
+                         "a parked decoy is not a mover")
     args = ap.parse_args()
     if args.selfcheck:
         selfcheck()
@@ -683,7 +786,8 @@ def main() -> None:
         trial = run_trial(pb, ctrl, be, predictor, raw_dir, args.image_size,
                           carry_conn=carry_conn, twin=args.twin,
                           loss_gate=args.loss_gate, score_tau=args.score_tau,
-                          dr=args.dr, acquire_hold=args.acquire_hold)
+                          dr=args.dr, acquire_hold=args.acquire_hold,
+                          reground_gate=args.reground_gate)
         ctrl.land_and_disarm()
         ctrl.close()
     finally:
@@ -715,6 +819,7 @@ def main() -> None:
            "twin": args.twin,
            "loss_gate": args.loss_gate, "score_tau": args.score_tau,
            "dr": args.dr, "acquire_hold": args.acquire_hold,
+           "reground_gate": args.reground_gate,
            "catchup_replay": True,
            "carry": "jetson-remote" if args.remote_carry else "host-3090"}
     out_dir = HERE / "runs" / phase
