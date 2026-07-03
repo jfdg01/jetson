@@ -460,3 +460,38 @@ genuine (copter translated N 0→26 m through ACQUIRE). **Honest chase-validated
 3.0 m/s** — still 6x the E2-era "< 0.5". Est-vs-actual: matched the pre-registration (d3.0 PASS
 expected, d3.5 expected to fail once the gift frame was removed). Raw:
 `experiments/2026-07-03-late-command/runs/{d3.0,d3.5a,d3.5b,d3.5c}/`.
+
+### 2026-07-03 — E13 identity-gate (appearance-color gate on REGROUND) ([`experiments/2026-07-03-identity-gate/`](../../experiments/2026-07-03-identity-gate/README.md))
+
+Rig: host 3090 SITL + SAM2 carry @1024, Jetson Qwen2-VL-2B Q8_0 self-booted per trial, 15 W
+mode 0 + jetson_clocks. Gate = `--reground-gate appearance` (off by default): descriptor = mean
+BGR of the crop's brightest quartile (max-channel ranked), template bound at first ACQUIRE, accept
+iff L-inf ≤ `--app-tau 12`. Decoy rendered `--decoy-shade 215` (discriminable same-class white).
+
+| leg | speed (m/s) | flags | n_regr | gate_rej | relock_on | closest_end | final_d_true / d_dist (m) | in_fov | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| smoke | — | 215-decoy capture + descriptor sep | — | — | — | — | — | — | PASS (10/10, dists 0.0 vs 30.0) |
+| ctl-decoy | 0.25 | `--twin decoy --decoy-shade 215 --duration-s 150`, no gate | 10 | 0 | `[true,dist×4,?,?,?,dist]` | distractor | 31.53 / 6.88 | 0.449 | reproduces wrong-lock |
+| ap-decoy-a | 0.25 | ctl + `--reground-gate appearance` | 2 | 26 | `[dist]` | distractor | 26.50 / 1.76 | 0.503 | FAIL |
+| ap-decoy-b | 0.25 | ctl + gate | 2 | 24 | `[dist]` | distractor | 26.49 / 1.79 | 0.488 | FAIL |
+| ap-decoy-c | 0.25 | ctl + gate | 2 | 14 | `[dist]` | distractor | 27.01 / 2.33 | 0.490 | FAIL |
+| ap-reg-0.5 | 0.5 | plain occlusion + gate | 1 | 0 | — | — | — | 1.000 | PASS |
+| ap-reg-3.0 | 3.0 | E12 d3.0 hard-spawn config + gate | 1 | 0 | — | — | — | 1.000 | PASS |
+| ap-rt | 0.5 | E9 retarget @50 s + gate | 1 | 0 | `[true,dist]` | distractor | 4.18 / 0.42 | 1.000 | PASS (E9 7/7, switch 2.35 s) |
+
+**RQ-E13 = NO** — the appearance-color gate does not close the identity hole. ap-decoy **0/3**:
+the gate fires correctly (14-26 REGROUND `gate` rejects of clean decoy boxes vs 0 in control,
+template correctly `[245,245,245]`) but is defeated by a **blend box** — at t≈67-69 s the true car
+emerges co-located with the parked decoy, the VLM draws a two-car box (`[268.8,0,428.8,441.6]`,
+160×441 px), its brightest quartile is dominated by the 245 true-car pixels so it passes tau=12,
+but the box centres on the decoy → SAM2 latches the decoy, wrong-lock 3/3 (final_d_true ~26.5 m,
+true car escaped). A bright-pixel colour statistic over a loose box is not bound to the tracked
+instance — defeated the same way the size prior (E3) and motion gate (E7) were. Regression clean
+(ap-reg-0.5/-3.0/ap-rt all PASS): the gate does not touch plain relock, the 3.0 m/s ceiling, or
+the E9 retarget switch. Attribution note: ctl `relock_on[0]="true"` (a transient early reground
+in the 150 s multi-reground control) but ctl ends firmly wrong-locked on the decoy — the rule's
+intent (decoy captures REGROUND) holds, so NO not NOT-MEASURABLE (see README for the literal-rule
+divergence, flagged for audit). Est-vs-actual: smoke ~80%→10/10; ap-decoy ~45% PASS→0/3 (the
+pre-registered blend-box failure branch); regressions ~85-90%→all PASS. Named next lever: an
+embedding on the SAM2 *mask* (not the box crop), or blend/oversized-box rejection at REGROUND.
+Raw: `experiments/2026-07-03-identity-gate/runs/`.

@@ -144,6 +144,28 @@ def reground_motion_ok(box, cur_bgr, base_bgr, M, pad: float = 60.0):
             and abs(v - blob["cy"]) <= blob["h"] / 2 + pad)
 
 
+def appearance_descriptor(frame_bgr, box):
+    """E13 identity gate: a body-color descriptor for a box crop -- mean BGR of
+    the crop's brightest quartile, ranked by max-channel value. The bright
+    quartile is the car-body pixels (the body outshines road/grass, and the
+    dark windshield drops out), so the descriptor survives loose boxes and
+    partially-emerged cars; ranking by max-channel rather than grey luminance
+    keeps it working for saturated bodies (the blue escort's B=230 outranks
+    grass, whose green would beat it in luminance). E3's byte-identical twin is
+    out of reach for ANY appearance cue by construction; --decoy-shade renders
+    the discriminable same-class case this gate exists for (true 245 vs decoy
+    215 -> L-inf gap 30). Returns a float BGR triple, or None on a degenerate
+    crop."""
+    h, w = frame_bgr.shape[:2]
+    x0, y0 = max(0, int(box[0])), max(0, int(box[1]))
+    x1, y1 = min(w, int(box[2])), min(h, int(box[3]))
+    if x1 - x0 < 2 or y1 - y0 < 2:
+        return None
+    crop = frame_bgr[y0:y1, x0:x1].reshape(-1, 3).astype(np.float64)
+    sel = crop.max(axis=1) >= np.percentile(crop.max(axis=1), 75)
+    return crop[sel].mean(axis=0)
+
+
 def gate_box(box, score, mode: str, tau: float, motion_stale: bool):
     """E4 loss gate: demote a carry box to None when it can't be trusted, so the
     existing LossGate/DR/REGROUND machinery fires on a confident-but-wrong box
@@ -193,7 +215,8 @@ class AcquireCarrySM:
         self.n_gate_rejected = 0
         # E5 blind spot: rejected acquires were counted but never logged, so
         # the lottery mechanism was invisible. (t, raw box, accepted, reason)
-        # per resolve; reason in {"", "size", "motion"} (E7).
+        # per resolve; reason in {"", "size", "gate"} ("gate" = the E7/E13
+        # reground gate; E7's recorded artifacts spell it "motion").
         self.acquire_log: list = []
         self.first_lock_t: float | None = None
         self.relock_walls: list[float] = []
@@ -237,10 +260,11 @@ class AcquireCarrySM:
                         and self.state == "REGROUND"
                         and not self.reground_gate(box, frame_bgr, t,
                                                    self._submit_t)):
-                    # E7: size prior passed but the box is not on the scene's
-                    # mover (parked decoy / target still occluded) -> keep drawing
+                    # E7/E13: size prior passed but the gate says the box is
+                    # not the target (not on the scene's mover / wrong body
+                    # color) -> keep drawing
                     self.n_gate_rejected += 1
-                    reason, box = "motion", None
+                    reason, box = "gate", None
                 self.acquire_log.append(
                     (round(t, 2),
                      [round(v, 1) for v in raw] if raw is not None else None,
@@ -271,7 +295,8 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
               dr: str = "velocity", acquire_hold: str = "none",
               reground_gate: str = "none", duration_s: float = DURATION_S,
               retarget_t: float | None = None, vmax: float = 2.5,
-              acquire_delay: float = 0.0) -> dict:
+              acquire_delay: float = 0.0, app_tau: float = 12.0,
+              decoy_shade: int = 245) -> dict:
     """One `duration_s` s follow trial at SPEED (default 75 s). Orchestration mirrors phase1_sitl.run_trial;
     the oracle box is kept for the in-FOV metric only -- control sees pixels.
     carry_conn set (3b): CARRY steps go to jetson_carry_service over the tunnel."""
@@ -364,6 +389,7 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
         ve = max(-vmax, min(vmax, (hist[-1][2] - hist[0][2]) / dt))
         return vn, ve
 
+    template = [None]  # E13: appearance template, bound at NL grounding time
     rg_gate = None
     if reground_gate == "motion":
         def rg_gate(box, frame_bgr, t, t_submit):
@@ -376,6 +402,18 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                 return False  # no usable baseline -> cannot confirm a mover
             return reground_motion_ok(box, frame_bgr, base[1], _ground_affine(
                 base[2], base[3], copter_ned, attitude[2]))
+    elif reground_gate == "appearance":
+        def rg_gate(box, frame_bgr, t, t_submit):
+            # E13: the box is only valid on the frame the VLM drew it on, so
+            # crop the SM's kept submit frame (sm._submit_frame -- exact, no
+            # base-vs-submit pose slack), not the current frame. No template
+            # yet (first capture degenerate) -> fail-open: with no bound
+            # identity there is no identity claim to enforce.
+            if template[0] is None:
+                return True
+            d = appearance_descriptor(sm._submit_frame, box)
+            return (d is not None
+                    and float(np.abs(d - template[0]).max()) <= app_tau)
 
     sm = AcquireCarrySM(submit, make_carry, validate, reground_gate=rg_gate,
                         acquire_delay=acquire_delay)
@@ -419,7 +457,9 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                                 rover_home_e + 3.0, 0.0)
     else:
         distractor = None
-    dist_color = ESCORT_COLOR if twin == "escort" else (245, 245, 245)
+    # E13: non-escort distractor body shade (default 245 = E3's byte-identical
+    # twin; 215 = the discriminable same-class "white-ish car" case)
+    dist_color = ESCORT_COLOR if twin == "escort" else (decoy_shade,) * 3
     twin_rows: list[tuple[float, float, float]] = []  # (t, d_true_px, d_dist_px) when boxed
     relock_on: list[str] = []  # E7 verdict metric: per relock, first boxed twin
     # frame is closer to "true" or "distractor" (aligned with relock_walls)
@@ -467,12 +507,23 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                 # would conflate relock and retarget in the walls metric)
                 sm.retarget(lambda f: submit(f, RETARGET_CAPTION), t)
                 rt_wall_idx = len(sm.relock_walls)
+                template[0] = None  # E13: new NL target -> old template void
 
             was_carry = sm.state == "CARRY"
             t_sm = time.monotonic()
             box = sm.step(t, frame)
             if was_carry:
                 carry_step_s.append(time.monotonic() - t_sm)
+            if (reground_gate == "appearance" and template[0] is None
+                    and sm.state == "CARRY" and sm.acquire_log
+                    and sm.acquire_log[-1][2]):
+                # E13: bind the template at NL grounding time -- the tick the
+                # first ACQUIRE (or RETARGET) accept lands, from the accepted
+                # box on its own submit frame. REGROUND accepts never rebind
+                # (template already set): reground identity is the very thing
+                # the gate judges.
+                template[0] = appearance_descriptor(sm._submit_frame,
+                                                    sm.acquire_log[-1][1])
 
             out = None
             if box is not None:
@@ -612,6 +663,8 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
         "n_acquire_attempts": sm.n_attempts,
         "n_rejected_acquires": sm.n_rejected,
         "n_reground_gate_rejects": sm.n_gate_rejected,
+        "app_template": [round(float(x), 1) for x in template[0]]
+                        if template[0] is not None else None,
         "acquire_log": sm.acquire_log,
         "n_regrounds": sm.n_regrounds,
         "relock_walls_s": sm.relock_walls,
@@ -758,7 +811,7 @@ def selfcheck() -> None:
     assert sm2.first_lock_t == 2.0, sm2.acquire_log  # ACQUIRE: gate not consulted
     assert calls == [20.0, 24.0], calls              # REGROUND resolves only
     assert sm2.n_gate_rejected == 1 and sm2.n_rejected == 1, sm2.acquire_log
-    assert [rs for _, _, _, rs in sm2.acquire_log] == ["", "size", "motion", ""], \
+    assert [rs for _, _, _, rs in sm2.acquire_log] == ["", "size", "gate", ""], \
         sm2.acquire_log
     assert sm2.relock_walls == [14.0], sm2.relock_walls  # fired@10, relocked@24
     # E9 retarget: lock @2, retarget mid-CARRY @4 -> carry dropped, state
@@ -845,9 +898,36 @@ def selfcheck() -> None:
         "box on a static point must be rejected"
     assert not reground_motion_ok(car_box, f1, f1, ident), \
         "no mover in scene -> reject"
+    # E13 appearance_descriptor on rendered frames: white car -> ~245 grey; a
+    # 215-shaded decoy -> ~215 (L-inf gap ~30, > 2x the default tau 12); the
+    # blue escort -> B-dominant (max-channel ranking picks the 230-blue body
+    # over grass, which would out-rank it in grey luminance); degenerate box
+    # -> None. Boxes are exact car rects from the known geometry.
+    from sitl.oracle_bbox import FOCAL_PX as _F
+    cop = (0.0, 0.0, -8.8)
+    px_m = _F / 8.8
+
+    def _car_box(n, e):
+        u, v = world_to_px((n, e), cop, 0.0)[0]
+        return (u - px_m, v - 2 * px_m, u + px_m, v + 2 * px_m)  # 2 x 4 m body
+
+    fw = cam.render(cop, 0.0, (0.5, 0.0, 0.0))
+    dw = appearance_descriptor(fw, _car_box(0.5, 0.0))
+    assert dw is not None and np.abs(dw - 245.0).max() <= 6.0, dw
+    fd = cam.render(cop, 0.0, (60.0, 0.0, 0.0),  # true car far out of FOV
+                    distractor_ned=(0.5, 0.0, 0.0), distractor_color=(215,) * 3)
+    dd = appearance_descriptor(fd, _car_box(0.5, 0.0))
+    assert np.abs(dd - 215.0).max() <= 6.0, dd
+    assert np.abs(dd - dw).max() >= 25.0, (dd, dw)  # gap comfortably > tau 12
+    fb = cam.render(cop, 0.0, (60.0, 0.0, 0.0),
+                    distractor_ned=(0.5, 3.0, 0.0), distractor_color=(230, 90, 40))
+    db = appearance_descriptor(fb, _car_box(0.5, 3.0))
+    assert db[0] > 200.0 and db[0] - db[2] > 100.0, db  # B-dominant = blue body
+    assert appearance_descriptor(fw, (0.0, 0.0, 1.0, 1.0)) is None
     print("selfcheck PASS  acquire->carry->gate->reground->relock + E4 submit-frame/gate_box"
           " + E5 pursuit_vel + E6 acquire_log/motion_blob + E7 reground gate"
-          " + E9 retarget + E11 chase box + E12 acquire-delay")
+          " + E9 retarget + E11 chase box + E12 acquire-delay"
+          " + E13 appearance descriptor")
 
 
 def main() -> None:
@@ -880,11 +960,26 @@ def main() -> None:
                          "pursuit DR chases the mover pre-lock (motion is a "
                          "positional servo only and hovers on blob loss -- at "
                          "3 m/s the car outruns the FOV and never returns)")
-    ap.add_argument("--reground-gate", choices=["none", "motion"], default="none",
-                    help="E7: accept a REGROUND box only if it sits on the "
-                         "ego-motion-compensated frame-diff blob -- the size "
-                         "prior is identity-blind (E3 decoy wrong-lock 3/3), "
-                         "a parked decoy is not a mover")
+    ap.add_argument("--reground-gate", choices=["none", "motion", "appearance"],
+                    default="none",
+                    help="extra REGROUND acceptance check -- the size prior is "
+                         "identity-blind (E3 decoy wrong-lock 3/3). motion "
+                         "(E7): box must sit on the ego-motion-compensated "
+                         "frame-diff blob (a parked decoy is not a mover; "
+                         "defeated by drive-through co-location). appearance "
+                         "(E13): box crop must match the body-color template "
+                         "bound at NL grounding time within --app-tau")
+    ap.add_argument("--app-tau", type=float, default=12.0,
+                    help="E13: L-inf BGR tolerance for reground-gate="
+                         "appearance (true car ~0, 215-shade decoy ~30; "
+                         "two-car blend boxes land in between -- 12 rejects "
+                         "blends up to ~60%% true-car body content)")
+    ap.add_argument("--decoy-shade", type=int, default=245,
+                    help="E13: grey body shade of the non-escort distractor "
+                         "car. Default 245 = E3's byte-identical twin, "
+                         "bit-identical to E2-E12; 215 = a discriminable "
+                         "same-class 'white-ish car'. Keep >200 (road-dash "
+                         "grey / sitl_cam selfcheck blob threshold).")
     ap.add_argument("--retarget-t", type=float, default=None,
                     help="E9: at this sim time (first CARRY tick at/after it), "
                          "swap the NL target to RETARGET_CAPTION and drop the "
@@ -985,7 +1080,8 @@ def main() -> None:
                           dr=args.dr, acquire_hold=args.acquire_hold,
                           reground_gate=args.reground_gate,
                           duration_s=args.duration_s, vmax=args.vmax,
-                          acquire_delay=args.acquire_delay)
+                          acquire_delay=args.acquire_delay,
+                          app_tau=args.app_tau, decoy_shade=args.decoy_shade)
         ctrl.land_and_disarm()
         ctrl.close()
     finally:
@@ -1019,6 +1115,7 @@ def main() -> None:
            "dr": args.dr, "acquire_hold": args.acquire_hold,
            "reground_gate": args.reground_gate, "vmax": args.vmax,
            "acquire_delay": args.acquire_delay,
+           "app_tau": args.app_tau, "decoy_shade": args.decoy_shade,
            "catchup_replay": True,
            "carry": "jetson-remote" if args.remote_carry else "host-3090"}
     out_dir = HERE / "runs" / phase
