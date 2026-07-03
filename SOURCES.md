@@ -59,3 +59,9 @@ the per-experiment README is the source of truth. Append; newest at the bottom.
 - **SAM2.1 (hiera-tiny)** — `facebook/sam2.1-hiera-tiny` · `sam2==1.1.0` ·
   https://github.com/facebookresearch/sam2 — zero-shot memory-carry tier of the temporal
   acquire-carry campaign (video predictor: box prompt → per-frame mask propagation).
+
+- **UAV123** — aerial single-object-tracking benchmark (Mueller et al., ECCV 2016) ·
+  https://cemse.kaust.edu.sa/ivul/uav123 · mirror
+  https://huggingface.co/datasets/xche32/UAV123
+  → [`experiments/2026-07-03-real-video-replay/`](experiments/2026-07-03-real-video-replay/README.md)
+  — real-footage GT (per-frame `x,y,w,h`, 30 fps) for the E18 wall-clock replay scoring.

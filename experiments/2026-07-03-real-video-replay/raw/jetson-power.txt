@@ -1,0 +1,3 @@
+--- nvpmodel -q ---
+NV Power Mode: 15W
+0

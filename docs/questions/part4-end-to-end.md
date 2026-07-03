@@ -371,3 +371,23 @@
   `--reground-hold` stays off by default. This closes the identity arc: the mask gate (E14/E16) is
   the standing answer — identity-safe (0 breaches) at a ~0.75 re-acquire rate bounded by the VLM's
   clean-box offer, and that upstream bound is NOT fixable by a pursuit-side chase lever.
+
+### 2026-07-03 — E18 real-video-replay ([`experiments/2026-07-03-real-video-replay/`](../../experiments/2026-07-03-real-video-replay/README.md))
+
+- **RQ-E18 (does the deployed stack genuinely lock and hold a real target on real aerial footage at
+  wall-clock cadence, vs dataset GT?):** **NO [grounding-bound].** On 6 UAV123 car sequences replayed
+  at 30 fps (frames dropped during inference), the full stack PASSes 1/6 clips (car10 only; PASS =
+  genuine_lock AND coverage ≥ 0.50, better of n=2). The oracle-init carry control (leg B) PASSes 6/6
+  (coverage 0.92–1.00), so the carry tier is real-video-ready and the binder is the acquire tier —
+  hence [grounding-bound]. **But the mechanism is acquire *latency*, not *accuracy*:** the ~4.85 s
+  full-frame VLM acquire computes a correct box (SAM2 latches the right car; carry then holds at
+  cov 0.90–0.99 on the three loss-free clips), but by the time it returns the target has moved ~146
+  frames, so `genuine_lock` — scored at the arrival frame — misses on 5/6. car10 passes only because
+  its target is slow at t=0 so a frame-0 box still overlaps GT ~4.85 s later. Secondary finding:
+  REGROUND inherits the same staleness and the appearance-only E14/E16 mask gate cannot catch a
+  stale-but-right-colour re-acquire (car7: carry cov collapses 0.99→0.28 after its occlusion trips a
+  loss, gate_rej=0). This is the sim-to-real gap measured: carry crosses to real footage, the
+  deployed single-blocking-acquire cadence does not. Estimate (3–5/6 PASS) inverted — it assumed the
+  risk was grounding accuracy; the real wall is acquire latency vs target motion. Next threads (out
+  of scope): motion-compensated acquire (project forward by measured latency), faster/ROI acquire, a
+  position-aware REGROUND gate. No UNRULED legs.

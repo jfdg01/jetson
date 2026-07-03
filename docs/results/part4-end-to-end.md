@@ -626,3 +626,35 @@ consulted. E16's passive DR-coast is strictly better. Est-vs-actual: design pred
 (premise: held FOV removes the no-relock mode) — **inverted to 0/10**; the mechanism assumption
 (chase = FOV-keeping) was false for this regime, a wrong estimate that is itself the finding. Runtime
 ~200 min (est 190-230). Raw: `experiments/2026-07-03-reground-chase/runs/`.
+
+### 2026-07-03 — E18 real-video-replay ([`experiments/2026-07-03-real-video-replay/`](../../experiments/2026-07-03-real-video-replay/README.md))
+
+First real-footage test of the deployed two-tier stack (all prior E2–E17 ran on synthetic
+`sitl_cam` renders). UAV123 aerial car sequences replayed at wall-clock 30 fps (frames DROP during
+inference — a live-camera realism), scored against dataset GT at native fps. Rig: host 3090
+SAM2.1-hiera-tiny @1024 rate-capped 6.15 Hz (E1's on-Orin number, D3); Jetson Orin Nano q8_0 terse
+15W + jetson_clocks (real acquire wall time). Perception-only (no SITL/actuation, D1). PASS =
+`genuine_lock` (first accepted box hits GT IoU≥0.25 at its arrival frame) AND `coverage` ≥ 0.50;
+clip PASS = better of n=2 A reps. Leg B = oracle GT-frame-0 carry init, REGROUND off (D5 attribution).
+
+| clip | class | A rep1 genuine/cov | A rep2 genuine/cov | A t_lock | B genuine/cov | clip A verdict |
+|---|---|---|---|---|---|---|
+| car3 | plain | F / 0.976 | F / 0.976 | 4.89 | T / 0.984 | FAIL (stale acquire) |
+| car9 | plain | F / 0.993 | F / 0.993 | 4.88 | T / 0.990 | FAIL (stale acquire) |
+| car14 | plain, occ | F / 0.903 | F / 0.903 | 4.82 | T / 0.915 | FAIL (stale acquire) |
+| car18 | plain | F / 0.711 | F / 0.711 | 4.81 | T / 0.987 | FAIL (stale acquire) |
+| car7 | distractor, occ | F / 0.285 | F / 0.285 | 4.81 | T / 0.993 | FAIL (stale acquire + REGROUND drift) |
+| car10 | distractor | **T / 1.000** | **T / 1.000** | 4.84 | T / 1.000 | **PASS** |
+
+**A PASS = 1/6** (car10) · **B PASS = 6/6.** **RQ-E18 = NO [grounding-bound]** (5 clips FAIL A while
+PASS B → binder is the acquire tier, not carry). No UNRULED legs. Mechanism: the ~4.85 s full-frame
+VLM acquire computes a *correct* box (SAM2 latches the right car — carry cov 0.90–0.99 on the three
+loss-free clips) but by arrival the target has moved ~146 frames (30 fps), so genuine_lock scored at
+the arrival frame misses — **latency-vs-motion, not misgrounding.** car10 passes because its target is
+slow at t=0. car7 is the only A leg whose carry also collapses (0.285 vs B 0.993): its 73-frame
+occlusion trips a loss, REGROUND re-acquires *also* stale, and the appearance-only E14/E16 mask gate
+accepts it (gate_rej=0 — right colour, wrong place) → drift. Est-vs-actual: predicted 3–5/6 PASS
+(PARTIAL-to-YES) assuming acquire *accuracy* was the risk; **actual 1/6 NO** — the binder is acquire
+*latency*, a wrong estimate that is the finding. Matrix ~35 min (est ~2 h); download ~1 h via HF
+mirror (no VisDrone fallback). Raw: `experiments/2026-07-03-real-video-replay/runs/`, proof in
+`.../proof/`.

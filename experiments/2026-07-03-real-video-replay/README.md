@@ -1,8 +1,9 @@
 # E18 real-video-replay — does the deployed two-tier stack hold a real target on real aerial footage at true cadence?
 
 - **Pre-registered:** 2026-07-03T22:58Z (Madrid wall-clock)
-- **Status:** IN PROGRESS. Steps 1-2 done (dataset + clips locked). Next: Step 3
-  selfcheck-green (done), then Step 4-5 matrix + Results.
+- **Status:** COMPLETE (2026-07-03). RQ-E18 = **NO [grounding-bound]** — carry
+  is real-video-ready (B 6/6) but the ~4.85 s acquire lands stale on moving
+  targets (A 1/6 PASS). Results + proof clips below.
 - **Roles:** design + audit by Fable (this README + `replay_source.py`, selfcheck
   green). Opus does Steps 1-6: dataset acquisition, `replay_e18.py` wiring per the
   spec below, the matrix, Results, ledgers, proof clips. Every judgment is pre-made
@@ -215,15 +216,96 @@ truncation). Captions authored from frame 0 only (D6), by montage inspection.
 | car7 | 1033 | 1280x720 | distractor, occ | 73 NaN gap + same-class cars beside target (~f520, ~f780) | the silver car |
 | car10 | 1405 | 1280x720 | distractor | van + white car beside target (~f700) | the red car |
 
-## Results (TBD)
+## Results (2026-07-03, matrix complete)
 
-| clip | leg | rep | t_lock | genuine | coverage | mean_iou | verdict |
-|---|---|---|---|---|---|---|---|
-| TBD | | | | | | | |
+Rig: host 3090 (SAM2.1-hiera-tiny @1024, capped 6.15 Hz) + Jetson Orin Nano
+q8_0 terse, 15W + jetson_clocks (`raw/jetson-power.txt`). 18 runs + smoke, all
+valid. Per-clip PASS = better of n=2 A reps; PASS iff `genuine_lock` AND
+`coverage` >= 0.50.
 
-- RQ-E18 verdict: TBD
-- Estimate-vs-actual: TBD
-- What broke / what surprised: TBD
+| clip | leg | rep | t_lock (s) | genuine | coverage | mean_iou | n_scored | gate_rej | leg verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| car3 | B | 1 | 0.34 | True | 0.984 | 0.641 | 1706 | 0 | PASS |
+| car3 | A | 1 | 4.89 | False | 0.976 | 0.595 | 1570 | 0 | FAIL (stale acquire) |
+| car3 | A | 2 | 4.87 | False | 0.976 | 0.594 | 1570 | 0 | FAIL (stale acquire) |
+| car9 | B | 1 | 0.34 | True | 0.990 | 0.788 | 1868 | 0 | PASS |
+| car9 | A | 1 | 4.88 | False | 0.993 | 0.781 | 1732 | 0 | FAIL (stale acquire) |
+| car9 | A | 2 | 4.88 | False | 0.993 | 0.781 | 1732 | 0 | FAIL (stale acquire) |
+| car14 | B | 1 | 0.34 | True | 0.915 | 0.585 | 1239 | 0 | PASS |
+| car14 | A | 1 | 4.82 | False | 0.903 | 0.550 | 1105 | 0 | FAIL (stale acquire) |
+| car14 | A | 2 | 4.82 | False | 0.903 | 0.550 | 1105 | 0 | FAIL (stale acquire) |
+| car18 | B | 1 | 0.34 | True | 0.987 | 0.703 | 1196 | 0 | PASS |
+| car18 | A | 1 | 4.81 | False | 0.711 | 0.544 | 1062 | 1 | FAIL (stale acquire) |
+| car18 | A | 2 | 4.81 | False | 0.711 | 0.543 | 1062 | 1 | FAIL (stale acquire) |
+| car7 | B | 1 | 0.35 | True | 0.993 | 0.743 | 949 | 0 | PASS |
+| car7 | A | 1 | 4.81 | False | 0.285 | 0.227 | 815 | 0 | FAIL (stale acquire + REGROUND drift) |
+| car7 | A | 2 | 4.81 | False | 0.285 | 0.228 | 815 | 0 | FAIL (stale acquire + REGROUND drift) |
+| car10 | B | 1 | 0.34 | True | 1.000 | 0.806 | 1394 | 0 | PASS |
+| car10 | A | 1 | 4.84 | True | 1.000 | 0.797 | 1259 | 0 | **PASS** |
+| car10 | A | 2 | 4.85 | True | 1.000 | 0.796 | 1259 | 0 | **PASS** |
+
+Per-clip roll-up: **A PASS = 1/6** (car10 only). **B PASS = 6/6.**
+
+- **RQ-E18 verdict: NO [grounding-bound]** (A PASS 1/6 <= 1; 5 clips — car3,
+  car9, car14, car18, car7 — FAIL leg A while PASSing leg B, so the binding tier
+  is the acquire/grounding path, not carry). No UNRULED legs: every leg is
+  covered by the pre-registered PASS + attribution rules.
+- **Estimate-vs-actual:**
+  - Dataset download: est. 1-3 h — **actual ~1 h** (HF mirror direct `curl`, no
+    KAUST Drive/gdown needed; no VisDrone fallback). Extraction hit ENOSPC on the
+    full 14 GB, resolved by selective extract of the 6 seqs + delete tarball.
+  - Matrix wall time: est. ~2 h — **actual ~35 min** (B ~5 min total, A legs
+    ~35-63 s each incl. Jetson self-boot).
+  - B-oracle: est. 5-6/6 PASS — **actual 6/6** (carry is real-video home turf,
+    cov 0.92-1.00). Estimate held.
+  - A-full: est. genuine on ~4-5/6, overall PARTIAL-to-YES 3-5/6 — **actual 1/6,
+    NO.** Estimate WRONG, and the reason is the finding below: the estimate
+    assumed acquire *accuracy* was the risk; the actual binder is acquire
+    *latency*.
+- **What broke / what surprised:**
+  - **The acquire lands stale, not wrong.** The 4.8-4.9 s full-frame VLM acquire
+    (t_lock ~4.85 s on every A leg) computes a *correct* box on the frame it saw,
+    but by the time it returns the target has moved ~146 frames (30 fps). The box
+    is time-stamped at arrival and scored there, so `genuine_lock` (first accepted
+    box vs GT at the arrival frame) misses on 5/6 clips. Proof it's staleness not
+    misgrounding: SAM2 latches the *right* car from that box and coverage on the
+    three loss-free clips (car3/car9/car14) is 0.90-0.99 — carry corrects the stale
+    lock within ~5 frames. So [grounding-bound] is the right *tier* (the binder
+    lives in the acquire path) but the mechanism is **latency vs target motion,
+    not model accuracy.**
+  - **car10 passes because its target is slow at t=0** — a frame-0 box still
+    overlaps GT ~146 frames later, so genuine_lock holds. It is the existence
+    proof that the stack works end-to-end when acquire latency < target
+    displacement time; the other five just move too fast for a ~5 s acquire.
+  - **REGROUND inherits the same staleness and the mask gate can't catch it.**
+    car7 (occlusion clip) is the only A leg whose *carry* also collapses (cov
+    0.28 vs B 0.99): the 73-frame occlusion trips a loss, REGROUND fires a fresh
+    full-frame acquire that ALSO lands stale, and the appearance-only E14/E16 mask
+    gate accepts it (gate_rej=0 — right colour, wrong place) so carry re-latches
+    off-target and drifts. car18 shows the milder version (1 gate-reject, cov
+    0.71). The mask gate guards *identity*, not *position* — it has no defence
+    against a stale-but-right-appearance box.
+  - **Net thesis point:** the deployed carry tier is real-video-ready; the
+    deployed *acquire cadence* (~4.85 s) is the sim-to-real wall. On UAV123 speeds
+    a single blocking full-frame acquire cannot land on target. Natural follow-ups
+    (out of E18 scope): motion-compensated acquire (predict target forward by the
+    measured latency), a faster/ROI acquire, or a position-aware REGROUND gate.
+
+## Proof clips (`proof/`, committed)
+
+- **`car10_A_PASS.mp4`** — leg A, car10 (the one A PASS). Green = held box, red =
+  GT. Acquire lands ~4.85 s in and still overlaps the slow-moving target;
+  genuine_lock True, coverage 1.00 for the rest of the clip. End-to-end stack
+  working on real footage.
+- **`car7_A_FAIL.mp4`** — leg A, car7 (occlusion + distractor). The visible
+  failure: after the mid-clip occlusion trips a loss, REGROUND re-acquires stale
+  and the mask gate accepts it, so the green box drifts off the target (coverage
+  0.28). The REGROUND-staleness failure mode.
+- **`car9_A_vs_B.mp4`** — the attribution pair, same clip stacked. Top = leg A (NL
+  VLM acquire, genuine_lock FALSE — box locks ~4.88 s late and lands stale before
+  carry recovers, cov 0.99). Bottom = leg B (oracle GT-init carry, PASS, cov
+  0.99). Identical carry quality; the only difference is the stale VLM acquire —
+  this is the [grounding-bound] attribution, visualised.
 
 ## Definition of done (per CLAUDE.md)
 

@@ -523,3 +523,24 @@
   it never wrong-locks the twin, and the residual ~25% miss is an upstream VLM limit that a
   pursuit-side lever cannot touch. Next thread (out of loop): lift the VLM's clean-box offer rate in
   the post-separation window.
+
+### 2026-07-03 — E18: dataset = UAV123 car sequences (D2); host rig at the measured on-Orin carry cap (D3)
+
+- **D2 — dataset: UAV123, car-class sequences.** *What:* score the real-footage test on UAV123 aerial
+  vehicle-tracking clips (per-frame `x,y,w,h` GT, NaN = absent, 30 fps); 6 sequences chosen — 4 plain
+  {car3, car9, car14(occ), car18} + 2 distractor {car7(occ), car10}, all 1280×720, standalone (not
+  split `carN_M`), `_s` flight-sim sequences excluded (synthetic). *Why:* it is the exact thesis
+  scenario (aerial cars) with quantitative GT, so the RQ can be scored, not eyeballed. *Given up:*
+  own-drone footage (no GT → no quantitative claim); the VisDrone2019-SOT fallback (D2) went unused —
+  UAV123 downloaded in ~1 h via the HF mirror `xche32/UAV123`, well inside the ~2 h fallback budget.
+  Practical: the 14 GB tarball did not fit (ENOSPC) → selectively extracted the 6 seqs + anno (~1.1 GB)
+  and deleted the tarball (re-downloadable, documented in the campaign README).
+- **D3 — host rig with the measured on-device carry cap, not on-Jetson orchestration.** *What:* run
+  the carry tier on the 3090 but rate-cap it to 6.15 Hz (E1's measured co-resident TensorRT number on
+  the Orin) and run the acquire tier as REAL Jetson wall time (q8_0 self-boot per run). *Why:* cadence
+  is already pinned by E1; the new variable in E18 is the DATA, and a fresh on-Jetson replay harness
+  would add failure modes without adding information. *Given up:* exact on-device 720p SAM2 timing (may
+  run slightly under 6.15 Hz measured at 640×480) — recorded as a known approximation; an on-Jetson
+  replay is the natural E19 if E18 had been YES. *Consequence realised:* the finding turned out to live
+  in the acquire tier's ~4.85 s latency (real Jetson time, faithfully measured) — exactly the axis D3
+  kept honest, so the [grounding-bound] verdict is not a rig artifact.
