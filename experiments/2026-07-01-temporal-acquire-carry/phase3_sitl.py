@@ -173,9 +173,16 @@ class AcquireCarrySM:
     """
 
     def __init__(self, submit, make_carry, validate=None, loss_s: float = LOSS_S,
-                 reground_gate=None):
+                 reground_gate=None, acquire_delay: float = 0.0):
         self.submit, self.make_carry, self.validate = submit, make_carry, validate
         self.loss_s = loss_s
+        # E12: sim time before which no VLM draw may submit (a late NL command
+        # -- "follow that white car" said after the car is already moving away).
+        # Removes the t=0 gift frame, so the winning submit frame must be one
+        # the pre-lock hold/chase produced. Pre-FIRST-lock only: the guard in
+        # step() tests first_lock_t, so REGROUND/RETARGET draws are never
+        # delayed. Default 0.0 = E2-E11 behavior, bit-identical.
+        self.acquire_delay = acquire_delay
         # E7: reground_gate(box, frame, t, t_submit) -> bool; consulted ONLY in
         # REGROUND (first ACQUIRE has no prior mover to confirm against)
         self.reground_gate = reground_gate
@@ -211,6 +218,8 @@ class AcquireCarrySM:
     def step(self, t: float, frame_bgr):
         if self.state != "CARRY":
             if self.fut is None:
+                if self.first_lock_t is None and t < self.acquire_delay:
+                    return None  # E12: NL command not yet given; hold/chase still run
                 self.fut = self.submit(frame_bgr)
                 # keep the submitted frame: the VLM box is valid on THIS frame,
                 # so carry must be initialized on it, not on the ~2.5-5s-later
@@ -261,7 +270,8 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
               loss_gate: str = "none", score_tau: float = 0.0,
               dr: str = "velocity", acquire_hold: str = "none",
               reground_gate: str = "none", duration_s: float = DURATION_S,
-              retarget_t: float | None = None, vmax: float = 2.5) -> dict:
+              retarget_t: float | None = None, vmax: float = 2.5,
+              acquire_delay: float = 0.0) -> dict:
     """One `duration_s` s follow trial at SPEED (default 75 s). Orchestration mirrors phase1_sitl.run_trial;
     the oracle box is kept for the in-FOV metric only -- control sees pixels.
     carry_conn set (3b): CARRY steps go to jetson_carry_service over the tunnel."""
@@ -367,7 +377,8 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
             return reground_motion_ok(box, frame_bgr, base[1], _ground_affine(
                 base[2], base[3], copter_ned, attitude[2]))
 
-    sm = AcquireCarrySM(submit, make_carry, validate, reground_gate=rg_gate)
+    sm = AcquireCarrySM(submit, make_carry, validate, reground_gate=rg_gate,
+                        acquire_delay=acquire_delay)
 
     copter_ned = (0.0, 0.0, -pb.TAKEOFF_ALT_M)
     attitude = (0.0, 0.0, 0.0)
@@ -779,6 +790,24 @@ def selfcheck() -> None:
     assert sm3.state == "CARRY" and sm3.retarget_fired_t == 4.0, sm3.state
     assert sm3.relock_walls == [2.0], sm3.relock_walls  # fired@4, relocked@6
     assert gate_calls == [], gate_calls  # E7 gate skipped on RETARGET resolves
+    # E12 acquire-delay: no draw may submit before t=acquire_delay (late NL
+    # command); the first submit fires at the first tick >= delay and carry
+    # still inits on the delayed SUBMIT frame (E4). Post-first-lock the guard
+    # is inert by construction (first_lock_t is not None), so REGROUND draws
+    # are never delayed.
+    pending.clear()
+    sm4 = AcquireCarrySM(submit, make_carry,
+                         validate=lambda b: b[2] - b[0] > 5, loss_s=3.0,
+                         acquire_delay=3.0)
+    for k in range(3):
+        assert sm4.step(float(k), np.full((4, 4, 3), k, np.uint8)) is None
+        assert sm4.n_attempts == 0 and sm4.fut is None, (k, sm4.n_attempts)
+    sm4.step(3.0, np.full((4, 4, 3), 3, np.uint8))
+    assert sm4.n_attempts == 1 and pending, sm4.n_attempts
+    pending.pop(0).set_result(((0, 0, 10, 10), 2.5))
+    sm4.step(4.0, np.full((4, 4, 3), 4, np.uint8))
+    assert sm4.first_lock_t == 4.0 and sm4.state == "CARRY", sm4.first_lock_t
+    assert carried[-1] == 3, carried  # E4 under delay: submit frame, not resolve
     # E6 motion_blob: two rendered poses (copter moved + yawed, car 0.5->1.5 m N)
     # -> blob centered on the car's swept span; identical frames -> None
     cam = NadirCam()
@@ -818,7 +847,7 @@ def selfcheck() -> None:
         "no mover in scene -> reject"
     print("selfcheck PASS  acquire->carry->gate->reground->relock + E4 submit-frame/gate_box"
           " + E5 pursuit_vel + E6 acquire_log/motion_blob + E7 reground gate"
-          " + E9 retarget + E11 chase box")
+          " + E9 retarget + E11 chase box + E12 acquire-delay")
 
 
 def main() -> None:
@@ -860,6 +889,12 @@ def main() -> None:
                     help="E9: at this sim time (first CARRY tick at/after it), "
                          "swap the NL target to RETARGET_CAPTION and drop the "
                          "carry -- mid-follow 'switch to the blue car'")
+    ap.add_argument("--acquire-delay", type=float, default=0.0,
+                    help="E12: sim seconds before the first VLM acquire may "
+                         "submit (a late NL command -- removes the t=0 gift "
+                         "frame; E11 s3.5 locked on draw 1 without stressing "
+                         "chase). Hold/chase run from t=0; REGROUND draws are "
+                         "unaffected. Default 0.0 = E2-E11, bit-identical.")
     ap.add_argument("--vmax", type=float, default=2.5,
                     help="E10: DR/pursuit speed cap (m/s); also raises the PID "
                          "velocity limit to max(3.0, vmax). Default 2.5 = the "
@@ -949,7 +984,8 @@ def main() -> None:
                           loss_gate=args.loss_gate, score_tau=args.score_tau,
                           dr=args.dr, acquire_hold=args.acquire_hold,
                           reground_gate=args.reground_gate,
-                          duration_s=args.duration_s, vmax=args.vmax)
+                          duration_s=args.duration_s, vmax=args.vmax,
+                          acquire_delay=args.acquire_delay)
         ctrl.land_and_disarm()
         ctrl.close()
     finally:
@@ -982,6 +1018,7 @@ def main() -> None:
            "loss_gate": args.loss_gate, "score_tau": args.score_tau,
            "dr": args.dr, "acquire_hold": args.acquire_hold,
            "reground_gate": args.reground_gate, "vmax": args.vmax,
+           "acquire_delay": args.acquire_delay,
            "catchup_replay": True,
            "carry": "jetson-remote" if args.remote_carry else "host-3090"}
     out_dir = HERE / "runs" / phase
