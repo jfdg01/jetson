@@ -229,8 +229,8 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
               carry_conn=None, twin: str | None = None,
               loss_gate: str = "none", score_tau: float = 0.0,
               dr: str = "velocity", acquire_hold: str = "none",
-              reground_gate: str = "none") -> dict:
-    """One 75 s follow trial at SPEED. Orchestration mirrors phase1_sitl.run_trial;
+              reground_gate: str = "none", duration_s: float = DURATION_S) -> dict:
+    """One `duration_s` s follow trial at SPEED (default 75 s). Orchestration mirrors phase1_sitl.run_trial;
     the oracle box is kept for the in-FOV metric only -- control sees pixels.
     carry_conn set (3b): CARRY steps go to jetson_carry_service over the tunnel."""
     import torch
@@ -390,7 +390,7 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
     hb_timer = t_start = time.monotonic()
 
     with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
-        while time.monotonic() - t_start < DURATION_S:
+        while time.monotonic() - t_start < duration_s:
             t_now = time.monotonic()
             t = t_now - t_start
 
@@ -514,7 +514,8 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
         "speed_ms": SPEED,
         "image_size": image_size,
         "n_frames": n_frames,
-        "achieved_hz": round(n_frames / DURATION_S, 1),
+        "duration_s": duration_s,
+        "achieved_hz": round(n_frames / duration_s, 1),
         "carry_fps": round(1.0 / (sum(carry_step_s) / len(carry_step_s)), 1)
                      if carry_step_s else None,
         "in_fov_frac": round(in_fov_frames / n_frames, 4),
@@ -708,6 +709,10 @@ def main() -> None:
                          "ego-motion-compensated frame-diff blob -- the size "
                          "prior is identity-blind (E3 decoy wrong-lock 3/3), "
                          "a parked decoy is not a mover")
+    ap.add_argument("--duration-s", type=float, default=DURATION_S,
+                    help="E8: trial length -- default 75s truncated the E7 decoy "
+                         "legs before the E4 motion loss-gate (2s stillness + 3s "
+                         "LOSS_S) could complete a post-wrong-lock reground retry")
     args = ap.parse_args()
     if args.selfcheck:
         selfcheck()
@@ -787,7 +792,8 @@ def main() -> None:
                           carry_conn=carry_conn, twin=args.twin,
                           loss_gate=args.loss_gate, score_tau=args.score_tau,
                           dr=args.dr, acquire_hold=args.acquire_hold,
-                          reground_gate=args.reground_gate)
+                          reground_gate=args.reground_gate,
+                          duration_s=args.duration_s)
         ctrl.land_and_disarm()
         ctrl.close()
     finally:
@@ -813,7 +819,7 @@ def main() -> None:
     summary = {"trial": trial, "gate_speed_ms": SPEED,
                "gate": "PASS" if gate else "FAIL"}
     cfg = {"caption": CAPTION, "loss_s": LOSS_S, "occ": [OCC_START, OCC_DUR],
-           "speed": SPEED, "duration_s": DURATION_S, "hz": CONTROL_HZ,
+           "speed": SPEED, "duration_s": args.duration_s, "hz": CONTROL_HZ,
            "image_size": args.image_size, "sam2": MODEL,
            "validate": "sizeprior-0.5-2.0", "deadreckon": True,
            "twin": args.twin,

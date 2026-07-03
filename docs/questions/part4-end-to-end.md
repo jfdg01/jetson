@@ -179,3 +179,20 @@
   Motion consistency is necessary-not-sufficient against a same-lane parked distractor on the
   target's own path. Reground acceptance remains identity-unsafe for this scenario; a moving
   or on-path same-appearance distractor is out of reach of any purely-geometric gate.
+
+### 2026-07-03 — E8 reground-selfcorrect ([`experiments/2026-07-03-reground-selfcorrect/`](../../experiments/2026-07-03-reground-selfcorrect/README.md))
+
+- **RQ-E8 (given a 150 s trial — 2x E7's 75 s — does the already-deployed E4 stillness
+  loss-gate + E7 reground motion-gate self-correct off the E7 decoy wrong-lock onto the true
+  car, using clock time alone and no new mechanism?):** **NO.** All three gated legs
+  (mg-decoy-a/b/c-long) FAIL every PASS gate: last `relock_on == "distractor"`,
+  `closest_at_end == "distractor"`, `final_d_true` ~26.5 m > 2.0, in-FOV ~0.49 < 0.90. Not a
+  dead-mechanism failure — the E4 loss-gate fired (`n_regrounds` 2 gated / 5 control) and the
+  E7 gate actively rejected the still decoy (29-32 reground rejects vs 0 control). The binding
+  constraint is upstream of both: by the time the loss-gate forces a reground (~67-69.5 s),
+  the true car has driven ~26.5 m downstream and out of frame, so the only salient near-camera
+  car the VLM can propose is the parked decoy — extra time cannot help with no true-car box to
+  reacquire. Control (loss-gate alone) also ends on the decoy, so attribution is unchanged from
+  E7. Adds a **durability caveat** to E7's NO (geometry-only correction has a ceiling; once the
+  target leaves frame during the wrong-lock, more clock time alone can't recover it — confirms
+  search/identity, E7's own named next lever, is required) rather than reversing it.

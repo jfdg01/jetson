@@ -287,3 +287,34 @@ necessary but not sufficient** against a same-lane parked distractor on the targ
 a static-but-co-located cousin of the "moving same-appearance distractor" limit named up
 front. Regression legs all PASS (`in_fov_frac == 1.0`, `recovered == true`) — no
 plain-occlusion regression. Raw: `experiments/2026-07-03-reground-gate/runs/`.
+
+### 2026-07-03 — E8 reground-selfcorrect: does the E4+E7 machinery self-correct given time? ([`experiments/2026-07-03-reground-selfcorrect/`](../../experiments/2026-07-03-reground-selfcorrect/README.md))
+
+Same levers as E7 (`--loss-gate motion --dr pursuit --acquire-hold motion`); gated legs add
+`--reground-gate motion`. Only knob changed vs E7: `--duration-s 150` (2x E7's 75 s) to give
+the already-deployed E4 stillness loss-gate room to complete a full detect+wait+reacquire
+cycle after the E7 wrong-lock. n=3 gated (mg-decoy-*-long) + 1 descriptive control.
+
+| label | speed | gate | n_regrounds | relock_on (all) | final_d_true (m) | final_d_dist (m) | closest_at_end | in-FOV | leg |
+|---|---|---|---|---|---|---|---|---|---|
+| ctl-decoy-long  | 0.25 | none   | 5 | distractor x4 | 26.67 | 1.96 | distractor | 0.438 | descriptive |
+| mg-decoy-a-long | 0.25 | motion | 2 | distractor    | 26.51 | 1.93 | distractor | 0.495 | **FAIL** |
+| mg-decoy-b-long | 0.25 | motion | 2 | distractor    | 26.61 | 1.93 | distractor | 0.481 | **FAIL** |
+| mg-decoy-c-long | 0.25 | motion | 2 | distractor    | 26.51 | 1.93 | distractor | 0.493 | **FAIL** |
+
+**RQ-E8 = NO.** A 150 s trial (2x E7) does not let the deployed E4+E7 machinery self-correct
+off the E7 decoy wrong-lock: all three gated legs fail every PASS gate (last `relock_on ==
+"distractor"`, `closest_at_end == "distractor"`, `final_d_true` ~26.5 m > 2.0, in-FOV ~0.49
+< 0.90). Not byte-identical (distinct md5s; `relock_walls_s` 37.13/34.98/37.0). Crucially
+this is **not** a dead-mechanism failure: the E4 stillness loss-gate fired (`n_regrounds` 2
+gated, 5 control) and the E7 reground-gate actively rejected the still decoy (`n_reground_
+gate_rejects` 29/32/29 vs 0 control). The binding constraint is **upstream of both gates** —
+by the time the loss-gate demotes the wrong-lock and forces a reground (~67-69.5 s), the true
+car has driven ~26.5 m downstream and out of frame (in-FOV ~0.49), so the only salient
+near-camera car the VLM can propose is the parked decoy; more clock time cannot help when
+there is no true-car box left to reacquire. Control (loss-gate alone, no reground gate) also
+ends `closest_at_end == "distractor"` (re-locks the decoy on all 4 extra regrounds) → the
+loss-gate alone does not self-correct either, so attribution is unchanged from E7. This is
+the **geometry-only correction has a ceiling; search/identity required** outcome, adding a
+durability caveat to E7's NO rather than reversing it. Raw:
+`experiments/2026-07-03-reground-selfcorrect/runs/`.
