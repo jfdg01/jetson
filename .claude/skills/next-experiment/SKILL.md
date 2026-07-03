@@ -13,32 +13,46 @@ rule. North star: a Jetson Orin Nano system where a user says "follow that white
 
 ## Division of labor (the closed loop)
 
+One long-lived Fable session drives the whole loop. It executes each experiment by
+spawning an **Opus executor subagent** (the Agent tool with `model: opus`), not by
+opening terminals. The subagent runs in fresh context, so its matrix logs stay out of
+Fable's context — only its final summary returns. Fable then **reviews that summary and
+the branch, and merges** — this is the point of the redesign: the drafter sees the
+executor's output and catches mistakes before anything lands on `main`.
+
 | Who | Does | Never does |
 |---|---|---|
-| **Fable (this skill)** | audit, pick RQ, write/commit design patches on `experiment/<slug>`, commit the pre-registered README, launch the executor terminal | run the matrix, fill Results |
-| **Opus (executor)** | run matrix, snapshot runs, fill Results, append RESULTS/QUESTIONS/DECISIONS ledger rows, verdict commit, merge branch to `main`, launch the next `/next-experiment` terminal | edit design code, re-interpret thresholds, draft the next experiment |
+| **Fable (this skill, the loop driver)** | audit, pick RQ, write/commit design patches on `experiment/<slug>`, commit the pre-registered README, spawn the Opus executor subagent, **review its returned work, merge to `main`**, then loop to the next experiment | run the matrix, fill Results |
+| **Opus executor (subagent)** | run matrix, snapshot runs, fill Results, append RESULTS/QUESTIONS/DECISIONS ledger rows, commit on `experiment/<slug>`, return a summary of what it did and any problems | edit design code, re-interpret thresholds, merge to `main`, draft the next experiment |
 
-The cycle: Fable pre-registers → Opus executes + documents + merges → Opus spawns a fresh
-Fable terminal running `/next-experiment` → repeat. An experiment **FAIL verdict still
-loops** (negative results are thesis content). The loop breaks only on **process failure**:
-merge conflict, incomplete closeout, crash — then the executor does NOT relaunch, leaves the
-branch unmerged, and writes what happened in the README Status line for a human.
+The cycle: Fable pre-registers → spawns Opus subagent → subagent executes + documents +
+commits on the branch + returns → Fable reviews + merges → Fable loops to the next
+experiment in the same session. An experiment **FAIL verdict still loops** (negative
+results are thesis content). The loop breaks only on **process failure**: the subagent
+crashes/returns an error, a merge conflict, or an incomplete closeout — then Fable does
+NOT loop, leaves the branch unmerged, and writes what happened in the README Status line
+for a human.
 
-**Runaway protection:** every relaunch goes through
-`.claude/skills/next-experiment/relaunch.py`, which refuses unless ALL hold: on `main`,
-clean tree, `.claude/loop-budget` exists and > 0 (each spawn decrements it; the human
-authorizes N cycles with `echo N > .claude/loop-budget`), and >= 30 min since the last
-spawn (crash-loop breaker). Every decision is appended to `.claude/loop.log`. Budget
-exhausted or any check failing = the loop parks quietly with the reason logged — never a
-pile of failed terminals. At the start of a Fable cycle, report the remaining budget; if
-the budget file is missing or 0, say the loop will stop after this cycle unless reseeded.
+**Runaway protection:** a plain counter in `.claude/loop-budget` (the human authorizes N
+cycles with `echo N > .claude/loop-budget`). At the top of each cycle Fable reads it; if
+missing or <= 0, Fable stops and says so. After a successful merge Fable decrements it
+(`echo $((budget-1)) > .claude/loop-budget`). No process/PID policing is needed — a
+failed subagent returns an error and Fable stops, so there is no way to pile up runaway
+terminals. Every cycle boundary is stamped in `.claude/loop.log` (see Step 1). Report the
+remaining budget at the start of each cycle.
+
+<!-- ponytail: whole loop in one session; Fable's context grows per cycle (bounded — only
+     the executor's final summary returns, not its logs) and autocompact (~130k) summarizes
+     it across cycles. Add explicit context handoff only if that actually bites. -->
+
 
 ## Step 1 — Review status (read, don't guess)
 
-- First action, always: stamp the timeline —
+- First action of every cycle: stamp the timeline —
   `echo "$(date -Is) CYCLE-START fable on $(git branch --show-current)" >> .claude/loop.log`
-  (this is how a human debugs the loop next morning: every session leaves exactly one
-  start line; a SPAWNED with no following CYCLE-START means the spawned claude died).
+  (one line per cycle; paired with the HANDOFF/MERGED stamps it's how a human reconstructs
+  the loop next morning — a HANDOFF with no following MERGED means the executor subagent
+  died or was rejected at review).
 - `git log --oneline -15` and current branch.
 - The 2–3 or so most recent `experiments/*/README.md` (Status, Results, verdict sections).
 - The current Part's ledger docs: `docs/questions/part4-*.md`, `docs/results/part4-*.md`,
@@ -91,65 +105,77 @@ workflow (CLAUDE.md "definition of done"). Front-load ALL intelligence:
   hangs > T min, crash, missing file → snapshot what exists, mark the run INVALID, continue).
 - **Estimates:** expected runtime and expected numbers, marked as estimates.
 - **Results (TBD):** empty table with the exact columns the executor fills.
-- **Closeout checklist for the executor** (copy this verbatim into the README — the
-  executor works from the README alone, including the loop-back command):
-  0. First action on session start (before running anything):
+- **Closeout checklist for the executor subagent** (copy this verbatim into the README —
+  the executor works from the README alone; it commits on the branch and returns, it does
+  NOT merge or loop):
+  0. First action, before running anything:
      `echo "$(date -Is) EXEC-START <slug>" >> .claude/loop.log`
   1. Fill Results here.
   2. Append RESULTS row(s), QUESTIONS verdict (per-Part doc, not root), DECISIONS entry if
      drafted here.
   3. Commit everything on `experiment/<slug>` with a one-line `E<n> <slug>: <verdict>`
-     message. `git status` must be clean after.
-  4. `git checkout main && git merge --no-ff experiment/<slug>`. Any conflict → STOP: abort
-     the merge, note it in the README Status line, do NOT run step 5.
-  5. Launch the next cycle — ONLY via the guard script, never by hand:
-     ```bash
-     python3 .claude/skills/next-experiment/relaunch.py
-     ```
-     If it prints `REFUSED: <reason>`, copy the reason into the README Status line and
-     STOP — do not retry, do not spawn a terminal any other way.
-  Step 5 runs ONLY if 1–4 all succeeded. FAIL verdicts still loop; broken process does not.
+     message. `git status` must be clean after. Do NOT merge to `main` — that is Fable's
+     review gate.
+  4. Return a short summary: the verdict, the key numbers, and anything that went wrong or
+     needed a judgment call (INVALID runs, aborts, surprises). This is what Fable reviews.
+  If any step fails (crash, missing rig, run hangs past the README's abort criteria),
+  stop and return what happened plainly — do not paper over it. FAIL verdicts are a normal
+  result and still get committed; a broken *process* is what you report as a problem.
 
-## Step 5 — Hand off: launch the executor terminal
+## Step 5 — Hand off: spawn the Opus executor subagent
 
-Open a new terminal running the executor session yourself (same mechanism as
-`/open-terminal`):
-
-```bash
-DISPLAY=${DISPLAY:-:0} gnome-terminal -- bash -c ": NEXTEXP-LOOP-WIN; cd <repo-root> && claude --remote-control --dangerously-skip-permissions --model opus '<handoff message>'; exec bash" &
-```
-
-The leading `: NEXTEXP-LOOP-WIN;` no-op tags the window so `relaunch.py` can reap stale
-loop terminals at the next cycle (each spawn closes the previous cycle's windows; the
-last pair is closed by `relaunch.py cleanup` in the morning). Do not omit it.
-
-- Fallback if `gnome-terminal` is missing, in order: `xterm`, `konsole`, `kitty`,
-  `alacritty`. Report which was used.
-- `--remote-control --dangerously-skip-permissions` always; `--model opus` unless the
-  user asks for another executor model. Models are pinned on both sides of the loop:
-  executor = `--model opus` (this command), drafter = `--model fable` (hardcoded in
-  `relaunch.py`). Never spawn either side without an explicit `--model`.
-- The **handoff message** is a self-contained prompt (shell-quoted, single-quotes-safe):
-  open `experiments/<dir>/README.md`, run the matrix, fill Results only, do NOT re-patch
-  code, then complete the closeout checklist in that README **through step 5 (merge to
-  main + relaunch `/next-experiment`)** — that step is what keeps the loop closed. It must
-  need zero clarification.
-
-Before launching, verify your own side is clean: pre-registration README and patches
+Before spawning, verify your own side is clean: pre-registration README and patches
 committed on `experiment/<slug>`, `git status` clean. You hand the executor a repo where
-the only remaining work is mechanical. Right after launching, stamp the timeline:
+the only remaining work is mechanical. Stamp the handoff:
 `echo "$(date -Is) HANDOFF <slug> -> opus executor" >> .claude/loop.log`.
 
-Then end your session output with: the README path, the branch name, the one-line RQ, the
-exact handoff message passed, and a note that the executor session is accessible via
-Remote Control (claude.ai/code / mobile app). Do not run the matrix yourself unless the
-user asks.
+Spawn the executor with the **Agent tool**, `subagent_type: "general-purpose"`,
+`model: "opus"` (fresh context so its matrix logs don't fill yours; only its final
+summary returns). Never omit the model. The **prompt** is a self-contained handoff — it
+must need zero clarification:
+
+> Open `experiments/<dir>/README.md` and work from it alone. Run the matrix exactly as
+> written, fill Results only, do NOT edit any design code. Then complete the "Closeout
+> checklist for the executor subagent" in that README: fill Results, append the
+> RESULTS/QUESTIONS/DECISIONS ledger rows, commit everything on `experiment/<slug>` with a
+> one-line `E<n> <slug>: <verdict>` message. Do NOT merge to main. Return a short summary:
+> verdict, key numbers, and anything that went wrong or needed a judgment call.
+
+## Step 6 — Review, merge, and loop
+
+When the subagent returns, YOU review its work before anything lands on `main` — this is
+the whole point of the redesign:
+
+- Read the returned summary. Then `git log experiment/<slug> --oneline` and
+  `git diff main...experiment/<slug>` — sanity-check that Results, ledger rows, and the
+  verdict match the README's verdict rules and the raw runs. Spot-check a run CSV/log if a
+  claim is load-bearing.
+- **Sound** → merge: `git checkout main && git merge --no-ff experiment/<slug>`. Then
+  `echo "$(date -Is) MERGED <slug> verdict=<v>" >> .claude/loop.log`.
+- **Fixable documentation mistake** (wrong ledger row, missed a column) → you may fix it
+  yourself on the branch and re-commit; never re-run the matrix or edit design code.
+- **Process failure** (subagent errored, merge conflict, incomplete closeout, a claim the
+  raw data doesn't support) → STOP: leave the branch unmerged, write what happened in the
+  README Status line, log it, and do not loop. A human picks it up.
+
+Then loop, in this same session:
+
+- Read `.claude/loop-budget`. Decrement it after the successful merge:
+  `echo $((budget-1)) > .claude/loop-budget`.
+- Budget still > 0 and on clean `main` → go back to **Step 1** and draft the next
+  experiment. FAIL verdicts still loop.
+- Budget <= 0, missing, or any process failure above → stop and report: the last README
+  path, branch, one-line RQ + verdict, remaining budget, and how to reseed
+  (`echo N > .claude/loop-budget`). The session stays reachable via Remote Control
+  (claude.ai/code / mobile).
+
+Do not run the matrix yourself unless the user asks.
 
 ## Rules
 
 - No unverified claims anywhere in the draft; estimates labelled as estimates.
 - Timestamps: `YYYY-MM-DDThh:mmZ` Madrid wall-clock (real hour, never a dummy).
-- One experiment per invocation. If the audit kills the premise, the "experiment" is the
+- One experiment per cycle. If the audit kills the premise, the "experiment" is the
   validation re-run.
 - The executor's job must survive this test: could a model with no context beyond the README
   complete it without asking anything? If not, the draft is not done.
