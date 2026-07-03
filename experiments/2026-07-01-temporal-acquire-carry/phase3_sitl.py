@@ -43,6 +43,8 @@ from follow_demo import vlm_acquire  # noqa: E402
 from sitl_cam import NadirCam, world_to_px  # noqa: E402
 
 CAPTION = "the white car"
+RETARGET_CAPTION = "the blue car"   # E9: mid-follow NL switch command
+ESCORT_COLOR = (230, 90, 40)        # E9: escort car body, BGR (vivid blue)
 LOSS_S = 3.0                     # seconds without a box before REGROUND (Phase 1 gate)
 OCC_START, OCC_DUR = 30.0, 5.0   # full-occlusion window the bridge is sized for
 SPEED = 0.25                     # m/s north; the pre-registered 3a gate speed
@@ -176,6 +178,22 @@ class AcquireCarrySM:
         self.first_lock_t: float | None = None
         self.relock_walls: list[float] = []
         self._reground_t: float | None = None
+        self.retarget_fired_t: float | None = None
+
+    def retarget(self, submit, t: float):
+        """E9: point the SM at a new NL target. Swap the acquire closure (it
+        carries the new caption) and drop the current carry -- the loop goes
+        blind (DR owns it) until the new target locks. Reuses the whole
+        not-CARRY acquire path: size prior validates, relock_walls records the
+        switch wall. RETARGET (not REGROUND) so the E7 motion gate -- a claim
+        of continuity with the OLD target -- is not consulted."""
+        self.submit = submit
+        if self.fut is not None:          # stale draw carries the old caption
+            self.fut.cancel()
+            self.fut = None
+        self.state, self.carry = "RETARGET", None
+        self._reground_t = t
+        self.retarget_fired_t = t
 
     def step(self, t: float, frame_bgr):
         if self.state != "CARRY":
@@ -211,7 +229,7 @@ class AcquireCarrySM:
                     self.last_seen = t
                     if self.first_lock_t is None:
                         self.first_lock_t = t
-                    if self.state == "REGROUND":
+                    if self.state in ("REGROUND", "RETARGET"):
                         self.relock_walls.append(round(t - self._reground_t, 2))
                     self.state = "CARRY"
             return None
@@ -229,7 +247,8 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
               carry_conn=None, twin: str | None = None,
               loss_gate: str = "none", score_tau: float = 0.0,
               dr: str = "velocity", acquire_hold: str = "none",
-              reground_gate: str = "none", duration_s: float = DURATION_S) -> dict:
+              reground_gate: str = "none", duration_s: float = DURATION_S,
+              retarget_t: float | None = None) -> dict:
     """One `duration_s` s follow trial at SPEED (default 75 s). Orchestration mirrors phase1_sitl.run_trial;
     the oracle box is kept for the in-FOV metric only -- control sees pixels.
     carry_conn set (3b): CARRY steps go to jetson_carry_service over the tunnel."""
@@ -245,16 +264,16 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
     rgb = lambda f: np.ascontiguousarray(f[:, :, ::-1])  # noqa: E731
     jpg = lambda f: cv2.imencode(".jpg", f, [cv2.IMWRITE_JPEG_QUALITY, 90])[1].tobytes()  # noqa: E731
 
-    def _acquire(path: str):
+    def _acquire(path: str, caption: str):
         try:
-            return vlm_acquire(be, path, CAPTION, IMG_W, IMG_H)
+            return vlm_acquire(be, path, caption, IMG_W, IMG_H)
         finally:
             os.unlink(path)
 
-    def submit(frame_bgr):
+    def submit(frame_bgr, caption: str = CAPTION):
         path = f"/dev/shm/p3a_acq_{time.monotonic_ns()}.png"
         cv2.imwrite(path, frame_bgr)
-        return executor.submit(_acquire, path)
+        return executor.submit(_acquire, path, caption)
 
     if carry_conn is not None:
         def _remote_step(f):
@@ -362,8 +381,15 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
     elif twin == "decoy":
         dn = bridge[1] + 2.0
         distractor = lambda t: (dn, rover_home_e, 0.0)  # noqa: E731
+    elif twin == "escort":
+        # E9: BLUE companion in the +3 m lane, 2.5 m behind, same velocity --
+        # the RETARGET target. Co-moving, so it sits at a fixed offset inside
+        # the ~8.7 x 11.6 m footprint whichever car the copter centers on.
+        distractor = lambda t: (rover_home_n + pb.ROVER_START_N + SPEED * t - 2.5,  # noqa: E731
+                                rover_home_e + 3.0, 0.0)
     else:
         distractor = None
+    dist_color = ESCORT_COLOR if twin == "escort" else (245, 245, 245)
     twin_rows: list[tuple[float, float, float]] = []  # (t, d_true_px, d_dist_px) when boxed
     relock_on: list[str] = []  # E7 verdict metric: per relock, first boxed twin
     # frame is closer to "true" or "distractor" (aligned with relock_walls)
@@ -385,6 +411,8 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
     motion_stale = [False]   # motion loss-gate latch; reset on each (re)lock
     stale_t0 = None
     n_frames = in_fov_frames = 0
+    rt_wall_idx = None          # E9: relock_walls index where switch walls start
+    rt_frames = rt_dist_fov = 0  # E9: post-switch frames / escort-in-FOV frames
     carry_errs: list[float] = []
     carry_step_s: list[float] = []
     hb_timer = t_start = time.monotonic()
@@ -397,9 +425,18 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
             rover_ned = (c(t), rover_home_e, 0.0)
             dnd = distractor(t) if distractor else None
             copter_ned, attitude = pb._drain_telemetry(ctrl, copter_ned, attitude)
-            frame = cam.render(copter_ned, attitude[2], rover_ned, dnd)
+            frame = cam.render(copter_ned, attitude[2], rover_ned, dnd,
+                               distractor_color=dist_color)
             if sm.state != "CARRY" and n_frames % 10 == 0:  # E4: catch-up buffer
                 acq_buf.append((t, frame.copy(), copter_ned, attitude[2]))
+
+            if (retarget_t is not None and sm.retarget_fired_t is None
+                    and t >= retarget_t and sm.state == "CARRY"):
+                # E9: the NL switch command fires at the first CARRY tick at/after
+                # retarget_t (never mid-REGROUND: a switch during a blind phase
+                # would conflate relock and retarget in the walls metric)
+                sm.retarget(lambda f: submit(f, RETARGET_CAPTION), t)
+                rt_wall_idx = len(sm.relock_walls)
 
             was_carry = sm.state == "CARRY"
             t_sm = time.monotonic()
@@ -460,6 +497,12 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
             occluded = bridge[0] <= rover_ned[0] - hl and rover_ned[0] + hl <= bridge[1]
             n_frames += 1
             in_fov_frames += bbox_geo is not None
+            if sm.retarget_fired_t is not None and dnd is not None:
+                # E9: post-switch the escort IS the commanded target -- its
+                # in-FOV fraction is the follow-quality metric that matters
+                rt_frames += 1
+                rt_dist_fov += oracle_project(copter_ned, dnd, 0.0, 0.0,
+                                              attitude[2]) is not None
             px_err = None
             if out is not None:
                 px_err = math.hypot(out["cx"] - IMG_W / 2, out["cy"] - IMG_H / 2)
@@ -558,6 +601,26 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
             "closest_at_end": "distractor" if fd_dist < fd_true else "true",
             "relock_on": relock_on,
         }
+    if retarget_t is not None:
+        # E9: post-switch, twin_rows' "distractor" is the COMMANDED target, so
+        # closer-to-distractor is the PASS direction (sign flip vs E3/E7/E8)
+        post = ([(dt, dd) for tt, dt, dd in twin_rows if tt > sm.retarget_fired_t]
+                if sm.retarget_fired_t is not None else [])
+        m["retarget"] = {
+            "commanded_t_s": retarget_t,
+            "fired_t_s": round(sm.retarget_fired_t, 2)
+                         if sm.retarget_fired_t is not None else None,
+            "caption": RETARGET_CAPTION,
+            "switch_walls_s": sm.relock_walls[rt_wall_idx:]
+                              if rt_wall_idx is not None else [],
+            "switch_on": relock_on[rt_wall_idx:] if rt_wall_idx is not None else [],
+            "n_post_boxed_frames": len(post),
+            "frac_box_closer_dist_post":
+                round(sum(dd < dt for dt, dd in post) / len(post), 3)
+                if post else None,
+            "dist_in_fov_frac_post": round(rt_dist_fov / rt_frames, 4)
+                                     if rt_frames else None,
+        }
     print(f"[{SPEED} m/s] in_fov={m['in_fov_frac']:.3f} lock@{m['first_lock_s']}s "
           f"attempts={m['n_acquire_attempts']} regrounds={m['n_regrounds']} "
           f"relock={m['relock_walls_s']} px_err={m['carry_px_err_mean']} "
@@ -649,6 +712,35 @@ def selfcheck() -> None:
     assert [rs for _, _, _, rs in sm2.acquire_log] == ["", "size", "motion", ""], \
         sm2.acquire_log
     assert sm2.relock_walls == [14.0], sm2.relock_walls  # fired@10, relocked@24
+    # E9 retarget: lock @2, retarget mid-CARRY @4 -> carry dropped, state
+    # RETARGET, the NEW submit closure draws, accept @6 -> relock_walls entry
+    # (wall = 6-4) + back to CARRY; E7 gate must NOT be consulted on RETARGET
+    pending.clear()
+    rt_pending: list[Future] = []
+
+    def rt_submit(_frame):
+        fut = Future()
+        rt_pending.append(fut)
+        return fut
+
+    gate_calls: list[float] = []
+    sm3 = AcquireCarrySM(submit, make_carry,
+                         validate=lambda b: b[2] - b[0] > 5, loss_s=3.0,
+                         reground_gate=lambda *a: gate_calls.append(a[2]) or True)
+    for k in range(8):
+        if pending and k == 2:
+            pending.pop(0).set_result(((0, 0, 10, 10), 2.5))
+        if rt_pending and k == 6:
+            rt_pending.pop(0).set_result(((0, 0, 10, 10), 2.5))
+        if k == 4:
+            assert sm3.state == "CARRY", sm3.state
+            sm3.retarget(rt_submit, float(k))
+            assert sm3.state == "RETARGET" and sm3.carry is None
+        sm3.step(float(k), np.full((4, 4, 3), k, np.uint8))
+    assert not pending, "old-caption closure drew after retarget"
+    assert sm3.state == "CARRY" and sm3.retarget_fired_t == 4.0, sm3.state
+    assert sm3.relock_walls == [2.0], sm3.relock_walls  # fired@4, relocked@6
+    assert gate_calls == [], gate_calls  # E7 gate skipped on RETARGET resolves
     # E6 motion_blob: two rendered poses (copter moved + yawed, car 0.5->1.5 m N)
     # -> blob centered on the car's swept span; identical frames -> None
     cam = NadirCam()
@@ -676,7 +768,8 @@ def selfcheck() -> None:
     assert not reground_motion_ok(car_box, f1, f1, ident), \
         "no mover in scene -> reject"
     print("selfcheck PASS  acquire->carry->gate->reground->relock + E4 submit-frame/gate_box"
-          " + E5 pursuit_vel + E6 acquire_log/motion_blob + E7 reground gate")
+          " + E5 pursuit_vel + E6 acquire_log/motion_blob + E7 reground gate"
+          " + E9 retarget")
 
 
 def main() -> None:
@@ -689,7 +782,7 @@ def main() -> None:
                     help="3b: TensorRT .plan on the Jetson (e.g. enc768.plan); E1 speedup")
     ap.add_argument("--speed", type=float, default=0.25,
                     help="E2: rover north speed m/s (bridge auto-scales via the SPEED closure)")
-    ap.add_argument("--twin", choices=["crossing", "decoy"], default=None,
+    ap.add_argument("--twin", choices=["crossing", "decoy", "escort"], default=None,
                     help="E3: add an identical distractor car (crossing | decoy)")
     ap.add_argument("--loss-gate", choices=["none", "score", "motion"], default="none",
                     help="E4: demote untrusted carry boxes to loss so REGROUND "
@@ -709,6 +802,10 @@ def main() -> None:
                          "ego-motion-compensated frame-diff blob -- the size "
                          "prior is identity-blind (E3 decoy wrong-lock 3/3), "
                          "a parked decoy is not a mover")
+    ap.add_argument("--retarget-t", type=float, default=None,
+                    help="E9: at this sim time (first CARRY tick at/after it), "
+                         "swap the NL target to RETARGET_CAPTION and drop the "
+                         "carry -- mid-follow 'switch to the blue car'")
     ap.add_argument("--duration-s", type=float, default=DURATION_S,
                     help="E8: trial length -- default 75s truncated the E7 decoy "
                          "legs before the E4 motion loss-gate (2s stillness + 3s "
@@ -790,6 +887,7 @@ def main() -> None:
         ctrl.connect_and_takeoff(target_alt_m=pb.TAKEOFF_ALT_M)
         trial = run_trial(pb, ctrl, be, predictor, raw_dir, args.image_size,
                           carry_conn=carry_conn, twin=args.twin,
+                          retarget_t=args.retarget_t,
                           loss_gate=args.loss_gate, score_tau=args.score_tau,
                           dr=args.dr, acquire_hold=args.acquire_hold,
                           reground_gate=args.reground_gate,
@@ -822,7 +920,7 @@ def main() -> None:
            "speed": SPEED, "duration_s": args.duration_s, "hz": CONTROL_HZ,
            "image_size": args.image_size, "sam2": MODEL,
            "validate": "sizeprior-0.5-2.0", "deadreckon": True,
-           "twin": args.twin,
+           "twin": args.twin, "retarget_t": args.retarget_t,
            "loss_gate": args.loss_gate, "score_tau": args.score_tau,
            "dr": args.dr, "acquire_hold": args.acquire_hold,
            "reground_gate": args.reground_gate,
