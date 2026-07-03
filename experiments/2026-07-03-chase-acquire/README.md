@@ -2,7 +2,9 @@
 
 **Pre-registered:** 2026-07-03T13:11Z (Madrid wall-clock)
 design + patches by Fable; Opus runs the matrix and fills Results only — do NOT re-patch code.
-**Status:** PRE-REGISTERED, not yet run.
+**Status:** COMPLETE 2026-07-03T13:40Z — **RQ-E11 = YES**. Chase-hold makes first-acquire
+reliable at 3.0 m/s (s3.0 3/3 PASS, locks ~9.2 s vs E10 never-locked), no chase-regression
+at 2.5, and s3.5 2/2 → **ceiling now >= 3.5 m/s** (top rung tested, not pinned). See Results.
 **Branch:** `experiment/chase-acquire` (off main = 0ddbbb9)
 
 ## RQ-E11
@@ -188,18 +190,42 @@ The runner prints all of this; the rules it applies:
 
 ## Results (TBD — Opus fills; one row per leg)
 
+Ran 2026-07-03T13:40Z. Rig: host 3090 (SITL + SAM2 carry @1024) + Jetson Q8_0
+acquire, **15 W + jetson_clocks**. Common flags `--loss-gate motion --dr pursuit
+--acquire-hold chase`; `--vmax` per leg. Raw: `raw/matrix.log`, per-leg
+`runs/<label>/{results.json,trial.csv,trial.mp4}`.
+
 | leg | gate | in_fov_frac | recovered | first_lock_s | attempts | rejected | n_regrounds | relock_walls_s | carry_px_err_mean | binding mode (FAIL only) |
 |---|---|---|---|---|---|---|---|---|---|---|
-| reg-2.5 | | | | | | | | | | |
-| s3.0a | | | | | | | | | | |
-| s3.0b | | | | | | | | | | |
-| s3.0c | | | | | | | | | | |
-| s3.5a | | | | | | | | | | |
-| s3.5b | | | | | | | | | | |
+| reg-2.5 | PASS | 1.000 | True | 2.30 | 8 | 6 | 1 | 16.22 | 127.9 | — |
+| s3.0a | PASS | 1.000 | True | 9.21 | 15 | 13 | 1 | 25.74 | 146.8 | — |
+| s3.0b | PASS | 1.000 | True | 9.31 | 15 | 13 | 1 | 25.74 | 148.5 | — |
+| s3.0c | PASS | 1.000 | True | 9.26 | 8 | 6 | 1 | 9.24 | 147.4 | — |
+| s3.5a | PASS | 0.962 | True | 2.30 | 4 | 2 | 1 | 6.82 | 174.6 | — |
+| s3.5b | PASS | 0.964 | True | 2.30 | 5 | 3 | 1 | 9.17 | 174.7 | — |
 
-**RQ-E11 verdict:** TBD
-**New measured ceiling:** TBD
-**Estimate-vs-actual (where diverged):** TBD
+**RQ-E11 verdict: YES** — reg-2.5 PASS (no chase-regression: first_lock 2.30 s,
+in_fov 1.000, byte-identical to E10 s2.5) **and** s3.0 **3/3** PASS. The chase-hold
+makes first-acquire reliable at 3.0 m/s: where E10's `motion` hold left the s3.0 car
+never-locked (in_fov 0.052, first_lock None), chase-hold keeps it in-frame across
+draws until the VLM locks at **~9.2 s** (s3.0a/b took 15 acquire attempts / 13
+rejected before the winning draw — chase bought that time; s3.0c locked on the same
+schedule but relocked faster). Once locked, carry+pursuit hold in_fov **1.000** to
+trial end.
+
+**New measured ceiling: >= 3.5 m/s** (top rung tested — NOT pinned). s3.5 passed
+**2/2** at `--vmax 5.0` (in_fov 0.96, first_lock 2.30 s, recovered through occlusion),
+so the real ceiling is above 3.5 and E11 did not find it. The follow ceiling has moved
+2.5 → **at least 3.5 m/s** in one lever; the E2-era "< 0.5" is now 7x behind.
+
+**Estimate-vs-actual (diverged — chase over-performed):** Fable estimated reg-2.5
+~85% (actual PASS), s3.0 >= 2/3 at ~50-60% (**actual 3/3**), s3.5 2/2 at ~20%
+(**actual 2/2**). The pre-lock chase physics were more robust to 4-5 m/s ego-motion
+blob/warp noise than estimated; no garbage-blob DR runaway occurred on any leg. Ceiling
+was expected to *maybe* reach 3.0; it cleared 3.5 without a failing rung, so the probe
+under-reached — the next campaign must test higher speeds to actually pin it. first_lock
+at 3.0 landed at ~9.2 s (within the estimated 5-15 s); relock walls 9-26 s (higher than
+the estimated < 10 s on the two legs that needed a full reground).
 
 ## Video deliverables (Opus cuts — DoD item 7)
 
@@ -209,18 +235,20 @@ Every leg's mp4 is snapshotted to `runs/<label>/trial.mp4` by the runner; the
 and which run it came from. Re-encode for clean seeks as E10 did:
 `ffmpeg -ss <t0> -t <dur> -i <src> -c:v libx264 -pix_fmt yuv420p proof/<name>.mp4`
 
+Cut 2026-07-03T15:42Z (re-encoded libx264 for clean seeks):
+
 1. `proof/e11-before-hover.mp4` — **the failing behaviour (before).** Source:
-   `../2026-07-03-fast-follow-ceiling/runs/s3.0a/trial.mp4`, t=0–25 s: E10's
-   3.0 m/s leg with `motion` hold — the car crosses and escapes the FOV
-   (~t=0–4 s), the copter hovers over empty road in ACQUIRE for the rest.
+   E10 `../2026-07-03-fast-follow-ceiling/runs/s3.0a/trial.mp4`, t=0–25 s: E10's
+   3.0 m/s leg with `motion` hold — the car crosses and escapes the FOV early,
+   the copter hovers over empty road in ACQUIRE (never locks, in_fov 0.052).
 2. `proof/e11-s3.0-chase.mp4` — **the RQ moment (after).** Source: E11
-   `runs/s3.0a/trial.mp4` (or the first passing s3.0 leg; if all fail, keep
-   s3.0a — a negative result shows the proof the fix didn't change the
-   behaviour), t=0–30 s: standing-start blob-pursuit chase, first lock, follow.
-3. `proof/e11-occlusion-relock.mp4` — **holding/relocking at the new speed.**
-   Source: if 3.5 has a passing leg, that leg t=22–48 s; else E11
-   `runs/s3.0a/trial.mp4` t=25–50 s (occlusion window is t=30–35 at all
-   speeds): the bridge occlusion and relock at the highest passing speed.
+   `runs/s3.0a/trial.mp4`, t=0–30 s: standing-start blob-pursuit chase keeps the
+   3.0 m/s car in-frame across draws, first VLM lock at ~9.2 s, then follow. Same
+   speed and spawn as clip 1 — this is the direct before/after.
+3. `proof/e11-occlusion-relock.mp4` — **holding at the new ceiling.** Source: E11
+   `runs/s3.5a/trial.mp4`, t=22–48 s (occlusion window ~30–35 s): 3.5 m/s
+   (`--vmax 5.0`), the bridge occlusion and relock at the highest passing speed —
+   in_fov 0.96, recovered.
 
 ## Closeout checklist (Opus)
 

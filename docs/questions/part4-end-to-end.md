@@ -236,3 +236,23 @@
   not the pursuit controller or carry FPS. Latency signature (secondary): relock wall-time
   *falls* with speed (25.9→13.9→6.8 s) and carry px error rises modestly (80→128 px), both
   benign while in_fov stays 1.000. n=3 at 2.0 and 2.5, n=2 at 3.0.
+
+### 2026-07-03 — E11 chase-acquire ([`experiments/2026-07-03-chase-acquire/`](../../experiments/2026-07-03-chase-acquire/README.md))
+
+- **RQ-E11 (does upgrading the pre-first-lock hold from a positional servo to a blob-pursuit
+  chase — `--acquire-hold chase`, pre-lock blob track feeds the existing `hist_vel`→`pursuit_vel`
+  DR — make first-acquire reliable at 3.0 m/s and raise the ceiling to >= 3.0? YES iff reg-2.5
+  passes the standard gate AND >= 2/3 s3.0 legs pass):** **YES.** reg-2.5 PASS (first_lock
+  2.30 s, in_fov 1.000 — no chase-regression, byte-identical to E10 s2.5) **and** s3.0 **3/3**
+  PASS (in_fov 1.000, first_lock ~9.2 s). Where E10's `motion` hold left s3.0 never-locked
+  (in_fov 0.052, first_lock None — the car escaped the FOV by draw 2 and the P-servo hovered
+  on blob loss), chase-hold keeps the 3.0 m/s car in-frame across draws (15 acquire attempts,
+  13 rejected on s3.0a/b) until the VLM locks at ~9.2 s, then carry+pursuit hold in_fov 1.000
+  to trial end. **The binding constraint was car-in-frame time under a hover-on-blob-loss
+  control law, not VLM draw repeatability** — the chase reuses the already-validated DR/pursuit
+  machinery, changes nothing about the VLM or carry, and is off by default. **New measured
+  ceiling >= 3.5 m/s** (NOT pinned): the stretch probe s3.5 passed **2/2** at `--vmax 5.0`
+  (in_fov 0.96, recovered through occlusion), so the real ceiling is above 3.5 and E11 did not
+  find it — the follow ceiling moved 2.5 → at least 3.5 m/s in one lever (7x the E2-era "< 0.5").
+  Chase over-performed every estimate (s3.0 est 50-60% → 3/3, s3.5 est ~20% → 2/2; no
+  garbage-blob DR runaway). n=1 reg, n=3 at 3.0, n=2 at 3.5.
