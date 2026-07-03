@@ -70,6 +70,19 @@ def pursuit_vel(hist_last, v_est, t, copter_ne, kp=0.5, vmax=2.5):
     return vn, ve
 
 
+def blob_chase_box(blob):
+    """E11 chase-hold: blob dict -> a box whose SOUTH edge is the sweep CENTER
+    row, for box_to_world. The sweep spans rear-at-base .. nose-at-now, so its
+    center trails the true car center by only ~v*lag/2 (~0.9 m at 3 m/s);
+    anchoring on the sweep's own south edge (rear at base, a full v*lag behind)
+    would park the copter far enough back to clip the nose out of the 4.33 m
+    half-footprint at 3 m/s -- exactly the high/clipped frames Stage 0 (E6)
+    showed the VLM grounds onto road dashes. The residual lag is near-constant
+    at a fixed diff baseline, so it differentiates out of hist_vel."""
+    return (blob["cx"] - blob["w"] / 2, blob["cy"] - blob["h"] / 2,
+            blob["cx"] + blob["w"] / 2, blob["cy"])
+
+
 def _ground_affine(prev_ned, prev_yaw, cur_ned, cur_yaw):
     """Pixel map prev frame -> cur frame for GROUND points. The nadir camera is
     an affine map of the ground plane (sitl_cam), so three world anchors pin it
@@ -469,7 +482,7 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                 else:
                     stale_t0 = None
             hold = None
-            if (acquire_hold == "motion" and out is None
+            if (acquire_hold in ("motion", "chase") and out is None
                     and sm.first_lock_t is None and acq_buf):
                 # E6 motion-hold: pre-first-lock the copter hovers while the VLM
                 # draws (~2.3 s/attempt) and a >=1.0 m/s car exits the FOV between
@@ -480,6 +493,21 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                 if base is not None:
                     hold = motion_blob(frame, base[1], _ground_affine(
                         base[2], base[3], copter_ned, attitude[2]))
+                    if hold is not None and acquire_hold == "chase":
+                        # E11 chase-hold: feed the blob's world track into hist
+                        # so the existing hist_vel -> pursuit DR (a) closes on
+                        # the mover with velocity feed-forward while the blob is
+                        # visible and (b) keeps chasing the last estimate when
+                        # the mover outruns the FOV. E10 s3.0: the positional
+                        # hold hovered on blob loss (compute(None)) and the car
+                        # never re-entered -- 73 s of road-dash draws. Pre-lock
+                        # entries mix with the E4 replay's box entries for
+                        # <=2.4 s after first lock (hist maxlen 48 @20 Hz); the
+                        # anchor offset between the two conventions is ~1 m, a
+                        # <~0.5 m/s transient in hist_vel that pursuit's
+                        # position term absorbs.
+                        hist.append((t, *box_to_world(
+                            blob_chase_box(hold), copter_ned, attitude[2])))
             sp = pid.compute(out if out is not None else hold)
             v_blind = hist_vel() if out is None else None
             if v_blind is not None:
@@ -764,6 +792,17 @@ def selfcheck() -> None:
     assert d < 40, (blob, (u, v), d)
     ident = np.float32([[1, 0, 0], [0, 1, 0]])
     assert motion_blob(f1, f1, ident) is None, "static scene must yield no blob"
+    # E11 chase-hold: blob_chase_box anchors box_to_world on the sweep CENTER
+    # row. On the rendered pair that row must lie strictly inside the true
+    # sweep span [rear at base (N=0.5-2.0) .. nose at cur (N=1.5+2.0)] -- i.e.
+    # the chase target trails the true car by less than the sweep length, a
+    # near-constant lag at fixed baseline (north = smaller image v)
+    from sitl.oracle_bbox import TARGET_LEN_M as _TL
+    cb = blob_chase_box(blob)
+    assert cb[3] == blob["cy"] and cb[2] - cb[0] == blob["w"], cb
+    v_nose = world_to_px((1.5 + _TL / 2, 0.0), cop1, 0.05)[0][1]
+    v_rear = world_to_px((0.5 - _TL / 2, 0.0), cop1, 0.05)[0][1]
+    assert v_nose < cb[3] < v_rear, (cb[3], v_nose, v_rear)
     # E7 reground_motion_ok on the same rendered pair: a box on the car (base-
     # frame coords) sits on the sweep -> accept; a box on a static ground point
     # 3.5 m south of the sweep (the decoy analog, decoy offset is >=2 m)
@@ -779,7 +818,7 @@ def selfcheck() -> None:
         "no mover in scene -> reject"
     print("selfcheck PASS  acquire->carry->gate->reground->relock + E4 submit-frame/gate_box"
           " + E5 pursuit_vel + E6 acquire_log/motion_blob + E7 reground gate"
-          " + E9 retarget")
+          " + E9 retarget + E11 chase box")
 
 
 def main() -> None:
@@ -803,10 +842,15 @@ def main() -> None:
                     help="E5: blind dead-reckoning mode -- velocity (E2/E4 "
                          "baseline: match estimated speed) or pursuit (also "
                          "close toward the dead-reckoned position, 2.5 m/s cap)")
-    ap.add_argument("--acquire-hold", choices=["none", "motion"], default="none",
+    ap.add_argument("--acquire-hold", choices=["none", "motion", "chase"],
+                    default="none",
                     help="E6: pre-first-lock FOV hold -- servo on the ego-motion-"
                          "compensated frame-diff blob so the target stays in "
-                         "frame across VLM draws (E5 acquire lottery)")
+                         "frame across VLM draws (E5 acquire lottery). E11 "
+                         "chase: additionally feed the blob track into hist so "
+                         "pursuit DR chases the mover pre-lock (motion is a "
+                         "positional servo only and hovers on blob loss -- at "
+                         "3 m/s the car outruns the FOV and never returns)")
     ap.add_argument("--reground-gate", choices=["none", "motion"], default="none",
                     help="E7: accept a REGROUND box only if it sits on the "
                          "ego-motion-compensated frame-diff blob -- the size "
