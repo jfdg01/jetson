@@ -161,8 +161,9 @@ Work from `experiments/<dir>/README.md` alone. Stamp the start:
 - Append the RESULTS row(s), the QUESTIONS verdict (per-Part doc, not root), and the
   DECISIONS entry if one was drafted. Every number carries its config (power mode, flags, ctx).
 - Cut the **2–3 video deliverables** (definition-of-done item 7) from the recorded footage —
-  before/after if positive, proof-of-failure if negative — into `experiments/<dir>/raw/` and
-  link + caption them in the README (what each shows, which run/config).
+  before/after if positive, proof-of-failure if negative — into `experiments/<dir>/proof/`
+  (curated clips only, not `raw/`) and link + caption them in the README (what each shows,
+  which run/config).
 - Commit everything on `experiment/<slug>` — Results, ledger rows, **and the video
   deliverables** — with a one-line `E<n> <slug>: <verdict>` message. `git status` clean after
   (the clips are checked in, not left untracked). A FAIL verdict is a normal result and still
