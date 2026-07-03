@@ -80,6 +80,11 @@ make test      # run pytest contract + manifest + audit suite
 
 `requirements-ft.txt` = direct deps; `requirements-ft.lock.txt` = pinned set (`uv pip sync` target). Edit the former, run `make lock`. Do not `pip install` globally.
 
+**Python over shell:** write scripts as `.py`, not `.sh`. Anything beyond a couple of
+one-line commands (loops, conditionals, parsing, retries) goes in a Python script run
+with the venv. Shell is fine inline in a Makefile target or a README command block;
+it's not fine as a standalone script.
+
 ## Environment
 
 - Device: `ssh jetson` (user `jfdg`). `sudo nvpmodel` and `sudo jetson_clocks` are **NOPASSWD** (run non-interactively over SSH); `apt install`, firmware flashing, etc. still need an interactive password.
