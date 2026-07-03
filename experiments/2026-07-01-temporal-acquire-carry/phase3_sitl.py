@@ -166,6 +166,22 @@ def appearance_descriptor(frame_bgr, box):
     return crop[sel].mean(axis=0)
 
 
+def mask_descriptor(frame_bgr, mask):
+    """E14 mask-bound identity: per-channel MEDIAN BGR over a SAM2 mask's
+    pixels. E13's crop statistic asked "is the template color PRESENT in this
+    box?" -- a two-car blend box answers yes via the emerging true car's
+    pixels while SAM2 latches the decoy the box centres on (ap-decoy 0/3).
+    The mask is what SAM2 actually latched, and the median is a MAJORITY vote
+    over it: a latch that is mostly decoy reads the decoy's body shade even
+    when true-car pixels are inside the mask (design probe 2026-07-03: blend
+    inits at 0.5-4.0 m emergence all read exactly 215.0 while containing up
+    to 65% true-region pixels), and the ~16% dark windshield never outvotes
+    the body. None on a degenerate (<16 px) mask."""
+    if mask is None or int(mask.sum()) < 16:
+        return None
+    return np.median(frame_bgr[mask.astype(bool)].astype(np.float64), axis=0)
+
+
 def gate_box(box, score, mode: str, tau: float, motion_stale: bool):
     """E4 loss gate: demote a carry box to None when it can't be trusted, so the
     existing LossGate/DR/REGROUND machinery fires on a confident-but-wrong box
@@ -357,7 +373,9 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
                 score_cell[0] = sc.last_score
                 return gate_box(b, sc.last_score, loss_gate, score_tau,
                                 motion_stale[0])
-            return SimpleNamespace(step=step)
+            # E14: expose the frame-0 mask so the mask template can be bound
+            # from the instance the carry actually latched at NL grounding
+            return SimpleNamespace(step=step, init_mask=sc.init_mask)
 
     def validate(box):
         # size prior from known altitude: reject acquire boxes that can't be the
@@ -412,6 +430,26 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
             if template[0] is None:
                 return True
             d = appearance_descriptor(sm._submit_frame, box)
+            return (d is not None
+                    and float(np.abs(d - template[0]).max()) <= app_tau)
+    elif reground_gate == "mask":
+        assert carry_conn is None, "--reground-gate mask needs the local carry"
+
+        def rg_gate(box, frame_bgr, t, t_submit):
+            # E14: judge the INSTANCE, not the crop. Run the exact StreamCarry
+            # init the SM would run on accept (same submit-frame bytes via the
+            # q=95 jpg path, same box, same weights -> the same latch) and take
+            # the majority body color of its frame-0 mask. E13's blend boxes
+            # (crop stat within tau while SAM2 latched the decoy) read the
+            # decoy's 215 here and are rejected. ~40 ms per consult on the 3090
+            # (design probe), once per size-passing REGROUND resolve -- noise
+            # against the ~2.3 s VLM draw cadence. Fail-open with no template,
+            # as in appearance mode: no bound identity, no claim to enforce.
+            if template[0] is None:
+                return True
+            sc = StreamCarry(predictor, rgb(sm._submit_frame), box)
+            d = mask_descriptor(sm._submit_frame, sc.init_mask)
+            del sc  # throwaway verifier state; accept re-inits identically
             return (d is not None
                     and float(np.abs(d - template[0]).max()) <= app_tau)
 
@@ -514,16 +552,22 @@ def run_trial(pb, ctrl, be, predictor, raw_dir: Path, image_size: int,
             box = sm.step(t, frame)
             if was_carry:
                 carry_step_s.append(time.monotonic() - t_sm)
-            if (reground_gate == "appearance" and template[0] is None
+            if (reground_gate in ("appearance", "mask") and template[0] is None
                     and sm.state == "CARRY" and sm.acquire_log
                     and sm.acquire_log[-1][2]):
                 # E13: bind the template at NL grounding time -- the tick the
                 # first ACQUIRE (or RETARGET) accept lands, from the accepted
                 # box on its own submit frame. REGROUND accepts never rebind
                 # (template already set): reground identity is the very thing
-                # the gate judges.
-                template[0] = appearance_descriptor(sm._submit_frame,
-                                                    sm.acquire_log[-1][1])
+                # the gate judges. E14 mask mode binds from the frame-0 mask of
+                # the carry the accept just created -- the instance actually
+                # latched, not the box crop.
+                if reground_gate == "mask":
+                    template[0] = mask_descriptor(sm._submit_frame,
+                                                  sm.carry.init_mask)
+                else:
+                    template[0] = appearance_descriptor(sm._submit_frame,
+                                                        sm.acquire_log[-1][1])
 
             out = None
             if box is not None:
@@ -924,10 +968,44 @@ def selfcheck() -> None:
     db = appearance_descriptor(fb, _car_box(0.5, 3.0))
     assert db[0] > 200.0 and db[0] - db[2] > 100.0, db  # B-dominant = blue body
     assert appearance_descriptor(fw, (0.0, 0.0, 1.0, 1.0)) is None
+    # E14 mask_descriptor + the exact E13 hole it closes, on one rendered
+    # two-car scene: true 245 car at N=0.5, 215 decoy at N=4.7, cop between
+    # them at 12 m. A wide REGROUND box spanning both cars + road background
+    # PASSES the E13 crop stat (its brightest quartile IS the true car's 245
+    # body -> dist 0 <= tau 12), while the median over the two-car latch
+    # region -- what SAM2 latches from such a box per the 2026-07-03 design
+    # probe -- reads the decoy's 215 (dark windshields keep 245 above the
+    # 50th percentile only when 245 is the outright majority) -> REJECTED.
+    from sitl.oracle_bbox import TARGET_WID_M as _TW
+    cop2 = (2.6, 0.0, -12.0)
+    f2 = cam.render(cop2, 0.0, (0.5, 0.0, 0.0),
+                    distractor_ned=(4.7, 0.0, 0.0), distractor_color=(215,) * 3)
+
+    def _region(frame, cop_, n0, n1, e0, e1):
+        (u0, v0), (u1, v1) = world_to_px([(n1, e0), (n0, e1)], cop_, 0.0)
+        m = np.zeros(frame.shape[:2], bool)
+        m[int(min(v0, v1)):int(max(v0, v1)), int(min(u0, u1)):int(max(u0, u1))] = True
+        return m
+
+    hl2, hw2 = _TL / 2, _TW / 2
+    m_true = _region(f2, cop2, 0.5 - hl2, 0.5 + hl2, -hw2, hw2)
+    m_dec = _region(f2, cop2, 4.7 - hl2, 4.7 + hl2, -hw2, hw2)
+    assert np.abs(mask_descriptor(f2, m_true) - 245.0).max() <= 6.0
+    assert np.abs(mask_descriptor(f2, m_dec) - 215.0).max() <= 6.0  # L-inf ~30 > tau
+    (bu0, bv0), (bu1, bv1) = world_to_px([(6.7, -1.5), (-1.5, 1.5)], cop2, 0.0)
+    blend_box = (min(bu0, bu1), min(bv0, bv1), max(bu0, bu1), max(bv0, bv1))
+    da_blend = appearance_descriptor(f2, blend_box)
+    assert np.abs(da_blend - 245.0).max() <= 12.0, da_blend  # E13 gate: ACCEPT (the hole)
+    dm_blend = mask_descriptor(f2, m_true | m_dec)
+    assert np.abs(dm_blend - 215.0).max() <= 6.0, dm_blend   # E14 gate: REJECT
+    assert mask_descriptor(f2, np.zeros(f2.shape[:2], bool)) is None
+    dm_blue = mask_descriptor(fb, _region(fb, cop, 0.5 - hl2, 0.5 + hl2,
+                                          3.0 - hw2, 3.0 + hw2))
+    assert dm_blue[0] > 200.0 and dm_blue[0] - dm_blue[2] > 100.0, dm_blue
     print("selfcheck PASS  acquire->carry->gate->reground->relock + E4 submit-frame/gate_box"
           " + E5 pursuit_vel + E6 acquire_log/motion_blob + E7 reground gate"
           " + E9 retarget + E11 chase box + E12 acquire-delay"
-          " + E13 appearance descriptor")
+          " + E13 appearance descriptor + E14 mask descriptor")
 
 
 def main() -> None:
@@ -960,7 +1038,8 @@ def main() -> None:
                          "pursuit DR chases the mover pre-lock (motion is a "
                          "positional servo only and hovers on blob loss -- at "
                          "3 m/s the car outruns the FOV and never returns)")
-    ap.add_argument("--reground-gate", choices=["none", "motion", "appearance"],
+    ap.add_argument("--reground-gate",
+                    choices=["none", "motion", "appearance", "mask"],
                     default="none",
                     help="extra REGROUND acceptance check -- the size prior is "
                          "identity-blind (E3 decoy wrong-lock 3/3). motion "
@@ -968,12 +1047,17 @@ def main() -> None:
                          "frame-diff blob (a parked decoy is not a mover; "
                          "defeated by drive-through co-location). appearance "
                          "(E13): box crop must match the body-color template "
-                         "bound at NL grounding time within --app-tau")
+                         "bound at NL grounding time within --app-tau "
+                         "(defeated by two-car blend boxes). mask (E14): the "
+                         "median body color of the SAM2 frame-0 mask the box "
+                         "would latch must match the template -- judges the "
+                         "instance, not the crop. Local carry only.")
     ap.add_argument("--app-tau", type=float, default=12.0,
-                    help="E13: L-inf BGR tolerance for reground-gate="
-                         "appearance (true car ~0, 215-shade decoy ~30; "
-                         "two-car blend boxes land in between -- 12 rejects "
-                         "blends up to ~60%% true-car body content)")
+                    help="E13/E14: L-inf BGR tolerance for reground-gate="
+                         "appearance and mask (true car ~0, 215-shade decoy "
+                         "~30; E13's crop stat let two-car blend boxes land "
+                         "inside tau -- mask mode's median reads the latched "
+                         "majority instance instead)")
     ap.add_argument("--decoy-shade", type=int, default=245,
                     help="E13: grey body shade of the non-escort distractor "
                          "car. Default 245 = E3's byte-identical twin, "
@@ -1002,6 +1086,10 @@ def main() -> None:
     if args.selfcheck:
         selfcheck()
         return
+    if args.reground_gate == "mask" and args.remote_carry:
+        # E14 gate verifies with the HOST predictor (StreamCarry init mask);
+        # the 3b remote path has no local predictor -- port when 3b re-gates
+        sys.exit("--reground-gate mask is local-carry only (drop --remote-carry)")
     global SPEED
     SPEED = args.speed
 
