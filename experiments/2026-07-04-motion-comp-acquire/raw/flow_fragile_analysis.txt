@@ -1,0 +1,6 @@
+car3   ncc=0.87 applied=True shifted_iou@arrival=0.584 raw_iou@arrival=0.000 wrong_match=False
+car9   ncc=0.32 applied=False shifted_iou@arrival=0.029 raw_iou@arrival=0.029 wrong_match=False
+car14  ncc=0.64 applied=True shifted_iou@arrival=0.000 raw_iou@arrival=0.013 wrong_match=True
+car18  ncc=0.51 applied=True shifted_iou@arrival=0.000 raw_iou@arrival=0.000 wrong_match=True
+car7   ncc=0.56 applied=True shifted_iou@arrival=0.000 raw_iou@arrival=0.000 wrong_match=True
+car10  ncc=0.96 applied=True shifted_iou@arrival=0.692 raw_iou@arrival=0.425 wrong_match=False

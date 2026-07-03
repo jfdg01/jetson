@@ -1,7 +1,10 @@
 # E19 motion-comp-acquire — does compensating the acquire's own latency close E18's stale-lock gap?
 
 - **Pre-registered:** 2026-07-04T00:54Z (Madrid wall-clock)
-- **Status:** PRE-REGISTERED, not yet run. Next step: Opus executes Steps 1-5 below.
+- **Status:** COMPLETE (2026-07-04). RQ-E19 = **PARTIAL [flow-fragile]** — best
+  arm FLOW 2/6 (car3 flipped to PASS, car10 held); BUF 1/6 (cannot flip
+  genuine_lock structurally, but repairs coverage: car7 0.285 -> 0.934). ctl
+  reproduced E18. Results + proof clips below.
 - **Roles:** design + audit by Fable (this README + `mc.py`, selfcheck green).
   Opus does Steps 1-5: `replay_e19.py` wiring per spec, the matrix, Results,
   ledgers, proof clips. Every judgment is pre-made below; if a case is not
@@ -164,16 +167,131 @@ edits (a caption that failed in E18 stays as-is). Data lives at
 | car7 | 1033 | 1280x720 | distractor, occ | 73 NaN gap + same-class cars beside target (~f520, ~f780) | the silver car |
 | car10 | 1405 | 1280x720 | distractor | van + white car beside target (~f700) | the red car |
 
-## Results (TBD)
+## Results (2026-07-04, matrix complete)
 
-| clip | leg | rep | t_lock | genuine | coverage | mean_iou | MC detail (ncc/applied or catchup_s) | verdict |
+Rig as pre-registered: host 3090 (SAM2.1-hiera-tiny @1024, capped 6.15 Hz) +
+Jetson Orin Nano q8_0 terse self-boot, 15W + jetson_clocks
+(`raw/jetson-power.txt`). 27 runs (2 ctl + smoke + 12 flow + 12 buf), all valid.
+Per-clip PASS = better of n=2 reps; PASS iff `genuine_lock` AND `coverage` >=
+0.50. Full log `raw/matrix.log`; per-run `runs/*/results.json` (committed).
+
+**ctl reproduction (D4): PASS.** car3 `--mc none`: genuine=False, cov=0.976
+(rule: genuine=False with cov >= 0.90) — matches E18 A car3 (0.976). car10
+`--mc none`: genuine=True, cov=1.000, PASS — matches E18 A car10. Neither
+inverted; the harness fork did not move the baseline. Smoke (flow car10) green.
+
+| clip | leg | rep | t_lock | genuine | coverage | mean_iou | MC detail (ACQ ncc/applied or catchup) | verdict |
 |---|---|---|---|---|---|---|---|---|
-| TBD | | | | | | | | |
+| car3 | ctl none | 1 | 4.87 | False | 0.976 | 0.594 | - | FAIL (= E18, reproduces) |
+| car10 | ctl none | 1 | 4.84 | True | 1.000 | 0.796 | - | PASS (= E18, reproduces) |
+| car3 | A-flow | 1 | 4.90 | **True** | 0.982 | 0.597 | ncc=0.87 applied | **PASS** (E18: FAIL) |
+| car3 | A-flow | 2 | 4.90 | **True** | 0.980 | 0.597 | ncc=0.87 applied | **PASS** |
+| car9 | A-flow | 1 | 4.91 | False | 0.000 | 0.000 | ncc=0.32 REFUSED; 9 gate-rej in REGROUND loop | FAIL (E18 cov 0.993) |
+| car9 | A-flow | 2 | 4.92 | False | 0.000 | 0.000 | ncc=0.32 REFUSED; 9 gate-rej | FAIL |
+| car14 | A-flow | 1 | 4.85 | False | 0.000 | 0.000 | ncc=0.64 applied WRONG-MATCH; 5 gate-rej | FAIL (E18 cov 0.903) |
+| car14 | A-flow | 2 | 4.86 | False | 0.000 | 0.000 | ncc=0.64 applied WRONG-MATCH; 5 gate-rej | FAIL |
+| car18 | A-flow | 1 | 4.86 | False | 0.000 | 0.000 | ncc=0.51 applied WRONG-MATCH; 7 gate-rej | FAIL (E18 cov 0.711) |
+| car18 | A-flow | 2 | 4.84 | False | 0.000 | 0.000 | ncc=0.51 applied WRONG-MATCH; 7 gate-rej | FAIL |
+| car7 | A-flow | 1 | 4.85 | False | 0.000 | 0.000 | ncc=0.56 applied WRONG-MATCH; 3 gate-rej | FAIL (E18 cov 0.285) |
+| car7 | A-flow | 2 | 4.84 | False | 0.000 | 0.001 | ncc=0.56 applied WRONG-MATCH; 3 gate-rej | FAIL |
+| car10 | A-flow | 1 | 4.88 | True | 1.000 | 0.800 | ncc=0.96 applied | **PASS** |
+| car10 | A-flow | 2 | 4.88 | True | 1.000 | 0.801 | ncc=0.96 applied | **PASS** |
+| car3 | A-buf | 1 | 4.87 | False | 0.941 | 0.570 | backlog 238f, 19 steps, 3.09 s, gap 10 | FAIL (genuine) |
+| car3 | A-buf | 2 | 4.87 | False | 0.940 | 0.571 | backlog 238f, 3.09 s | FAIL (genuine) |
+| car9 | A-buf | 1 | 4.88 | False | 0.950 | 0.745 | backlog 239f, 3.09 s | FAIL (genuine) |
+| car9 | A-buf | 2 | 4.87 | False | 0.950 | 0.744 | backlog 238f, 3.09 s | FAIL (genuine) |
+| car14 | A-buf | 1 | 4.82 | False | 0.850 | 0.499 | backlog 237f, 3.09 s | FAIL (genuine) |
+| car14 | A-buf | 2 | 4.82 | False | 0.853 | 0.504 | backlog 237f, 3.09 s | FAIL (genuine) |
+| car18 | A-buf | 1 | 4.81 | False | 0.914 | 0.657 | backlog 236f, 3.09 s | FAIL (genuine; E18 cov 0.711 -> 0.914) |
+| car18 | A-buf | 2 | 4.81 | False | 0.913 | 0.661 | backlog 236f, 3.09 s | FAIL (genuine) |
+| car7 | A-buf | 1 | 4.82 | False | 0.934 | 0.699 | backlog 237f, 3.09 s | FAIL (genuine; E18 cov 0.285 -> 0.934) |
+| car7 | A-buf | 2 | 4.82 | False | 0.934 | 0.699 | backlog 237f, 3.09 s | FAIL (genuine) |
+| car10 | A-buf | 1 | 4.85 | True | 1.000 | 0.782 | backlog 238f, 3.09 s | **PASS** |
+| car10 | A-buf | 2 | 4.85 | True | 1.000 | 0.781 | backlog 238f, 3.09 s | **PASS** |
 
-- RQ-E19 verdict: TBD
-- ctl reproduction: TBD
-- Estimate-vs-actual: TBD
-- What broke / what surprised: TBD
+Per-clip roll-up: **A-flow PASS = 2/6** (car3, car10). **A-buf PASS = 1/6**
+(car10). Best arm = FLOW, 2/6.
+
+- **RQ-E19 verdict: PARTIAL [flow-fragile]** (best arm FLOW 2/6, in the 2-3
+  band). ctl reproduction PASS. [flow-fragile] fires by the pre-registered rule
+  on 4 clips (>= 2 needed): ACQ refusal on car9 (ncc 0.32) and ACQ wrong-match
+  on car14/car18/car7 — shifted-box IoU vs GT at arrival = 0.000 on all three
+  while the unshifted box scores the same or better (0.013 / 0.000 / 0.000;
+  analysis in `raw/flow_fragile_analysis.txt`, unshifted boxes taken from the
+  E18 A frame-0 submits — same image, deterministic rig, rep NCC identical to
+  2 dp). No UNRULED legs: every leg is covered by the frozen PASS + verdict
+  rules.
+- **D5 threshold-vs-outcome (logged, not tuned):** applied-and-right at ncc
+  0.87-0.96 (car3, car10); applied-but-WRONG at 0.51-0.64 (car18, car7, car14);
+  refused at 0.32-0.49. The pre-registered 0.5 threshold does not separate
+  right from wrong matches — the wrong-match band overlaps the accept band, and
+  (see below) refusal is not a safe fallback under flow anyway, so no threshold
+  fixes this arm.
+- **Estimate-vs-actual:**
+  - Matrix wall time: est ~45 min — actual ~22 min of summed run wall time
+    (~35 min elapsed incl. Jetson self-boots and one harness restart after a
+    session interrupt; the restart re-ran only the smoke, no data loss).
+  - ctl: est reproduces E18 — actual reproduces (car3 cov 0.9764 = E18's
+    0.976). Held.
+  - A-flow: est 4-5/6 — **actual 2/6.** WRONG. genuine_lock flipped only on
+    car3; on car9 NCC refused (0.32) and on car14/car18/car7 it confidently
+    matched the wrong thing at ncc 0.51-0.64. "NCC should survive ~5 s of
+    appearance change on nadir cars" held only for car3 (0.87) and car10
+    (0.96). The predicted risk clips (car7, car14) did fail, but so did car18
+    and car9.
+  - A-buf: est 5-6/6 with a coverage dent — **actual 1/6,** and structurally
+    so: under the frozen E18 scorer the buf arm CANNOT flip genuine_lock on a
+    fast target — its first emitted event is still the raw
+    (submit-frame-correct) box timestamped at arrival, and catch-up only
+    repairs *coverage* afterwards. Convergence itself behaved exactly as
+    designed: backlog ~237 frames, 19 catch-up steps, 3.09 s, final gap < 12
+    frames on every single run (est 3-4 s — held).
+  - Overall: est YES via at least one arm — **actual PARTIAL [flow-fragile].**
+- **What broke / what surprised:**
+  - **FLOW is catastrophic when wrong, not graceful.** E18's `--mc none` inits
+    carry on the SUBMIT frame, where the VLM box is *correct* — SAM2 latches
+    the right car and its own tracking bridges the ~146-frame jump to live
+    (that is where E18's cov 0.90-0.99 came from). FLOW inits on the ARRIVAL
+    frame: when the NCC match is wrong (or refused, leaving a stale box on a
+    frame it no longer describes), SAM2 latches background or the wrong object.
+    Worse, ACQUIRE then binds the E14 mask-gate template to that wrong mask, so
+    the gate — doing its job against a poisoned template — rejects the genuine
+    relocks that follow (3-9 gate-rejects per failing run) and coverage pins at
+    0.000, strictly below the no-MC baseline on the same clips (0.285-0.993).
+    Both flow failure paths (refuse AND wrong-match) are fatal for the same
+    reason: arrival-frame init discards the one thing E18 proved works —
+    submit-frame-correct carry init.
+  - **BUF's catch-up works as designed, but the metric it needed to move is
+    decided before it starts.** genuine_lock is scored on the first accepted
+    box at its arrival frame; buf emits that raw box at arrival (per the
+    pre-registered harness spec), so buf inherits E18's genuine_lock verbatim
+    on every clip. What it DOES fix is E18's car7 failure mode: REGROUND
+    re-inits on the submit frame + catches up, so the occlusion clip goes cov
+    0.285 -> 0.934 (and car18 0.711 -> 0.914) with zero gate rejects. BUF is
+    the better *coverage* lever; it just cannot claim the lock.
+  - **Net:** motion compensation as bolted on here does not close the
+    stale-lock gap. The honest fix axis is the acquire latency itself
+    (faster/ROI acquire), or a buf-style submit-frame init whose lock is
+    re-scored at convergence — which the frozen E18 metric (correctly, for
+    comparability) does not credit.
+
+## Proof clips (`proof/`, committed)
+
+- **`car3_E18_vs_E19.mp4`** — the before/after. Top = E18 A car3 (no MC): the
+  acquire lands ~4.9 s stale, genuine_lock False. Bottom = E19 flow_car3_r1:
+  same clip, same caption, NCC (0.87) shifts the box to the target's arrival
+  position — genuine_lock True, cov 0.982, the E18-fail -> E19-pass flip that
+  carries the PARTIAL verdict.
+- **`car7_buf_REGROUND.mp4`** — the car7 REGROUND story under BUF
+  (buf_car7_r1): the occlusion still trips a loss, but REGROUND re-inits carry
+  on the submit frame and catches up 3.09 s later, so the E18 drift (cov 0.285,
+  mask gate accepting a stale box) is gone — cov 0.934, zero gate rejects.
+  Still FAIL on genuine_lock (structural, see Results) — this clip is the
+  coverage-repair evidence, not a PASS.
+- **`car9_flow_vs_buf.mp4`** — the arms diverging on one clip. Top = flow
+  (NCC refused at 0.32, carry inits stale on the arrival frame, template
+  poisoned, cov 0.000). Bottom = buf (submit-frame init + catch-up, cov 0.950).
+  Same VLM box, opposite outcomes — the init-frame choice is the whole story.
 
 ## Definition of done (per CLAUDE.md)
 

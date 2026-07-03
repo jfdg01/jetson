@@ -391,3 +391,21 @@
   risk was grounding accuracy; the real wall is acquire latency vs target motion. Next threads (out
   of scope): motion-compensated acquire (project forward by measured latency), faster/ROI acquire, a
   position-aware REGROUND gate. No UNRULED legs.
+
+### 2026-07-04 — E19 motion-comp-acquire ([`experiments/2026-07-04-motion-comp-acquire/`](../../experiments/2026-07-04-motion-comp-acquire/README.md))
+
+- **RQ-E19 (does motion-compensating the acquire/REGROUND box for its own ~4.85 s latency lift
+  E18's A-full from 1/6 to >= 4/6 on the same clips/captions/scoring?): PARTIAL [flow-fragile].**
+  Best arm FLOW = 2/6 (car3 flipped to PASS at ncc 0.87, car10 held); BUF = 1/6. ctl reproduced
+  E18's signature (D4 guard PASS). The [flow-fragile] suffix fires on 4 clips (rule: >= 2): car9
+  refused (ncc 0.32) and car14/car18/car7 confidently wrong-matched (ncc 0.51-0.64, shifted IoU
+  0.000 at arrival, unshifted same-or-better). Mechanism findings: FLOW's arrival-frame init is
+  catastrophic when the match is wrong OR refused — it discards E18's submit-frame-correct init,
+  latches the wrong object, and poisons the E14 mask-gate template so REGROUND rejects genuine
+  relocks (coverage 0.000, strictly below the no-MC baseline 0.285-0.993). BUF cannot flip
+  genuine_lock in principle under the frozen scorer (its first emitted box is still the raw box at
+  arrival) but its catch-up converges as designed (3.09 s, gap < 12 f on 12/12 runs) and repairs
+  coverage: car7 0.285 -> 0.934 (the E18 REGROUND-drift mode eliminated), car18 0.711 -> 0.914.
+  Verdict band: motion compensation bolted onto a ~4.85 s acquire is not the lever; the binder
+  remains raw acquire latency (faster/ROI acquire), or a buf-style submit-frame init re-scored at
+  convergence — which the frozen metric deliberately does not credit. No UNRULED legs.

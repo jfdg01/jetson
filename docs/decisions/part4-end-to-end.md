@@ -544,3 +544,25 @@
   replay is the natural E19 if E18 had been YES. *Consequence realised:* the finding turned out to live
   in the acquire tier's ~4.85 s latency (real Jetson time, faithfully measured) — exactly the axis D3
   kept honest, so the [grounding-bound] verdict is not a rig artifact.
+
+### 2026-07-04 — E19: two cheap MC arms, no new model (D1); refusal over teleport at NCC 0.5, logged not tuned (D5) ([`experiments/2026-07-04-motion-comp-acquire/`](../../experiments/2026-07-04-motion-comp-acquire/README.md))
+
+- **D1 — arms = whole-frame NCC shift (FLOW) + replay-buffer catch-up (BUF).** *What:* compensate
+  the acquire's measured ~4.85 s latency with rung-4-lazy machinery only — cv2 template match (~ms,
+  no new model) and StreamCarry itself stepping through every 12th buffered frame. *Why:* E18 showed
+  the box is correct-but-stale, so re-finding it (FLOW) or replaying through it (BUF) are the two
+  cheapest honest bridges; backlog ratio (30/12)/6.15 ~= 0.41 < 1 guarantees BUF converges (measured:
+  3.09 s, 12/12). *Given up:* KLT/learned motion models, and faster/ROI acquire — the latter is the
+  raw-latency lever E19's PARTIAL now points back to. *Consequence realised:* both arms were cheap
+  enough to run 12 reps each in ~22 min, and the failure modes found (arrival-frame init poisoning
+  the mask-gate template; genuine_lock structurally out of BUF's reach) are design lessons, not rig
+  noise.
+- **D5 — below NCC 0.5, keep the stale box (refuse) rather than teleport; log every score, never
+  tune the threshold mid-campaign.** *What:* pre-registered 0.5 refusal floor; every call's
+  (ncc, applied) recorded in results.json. *Why:* E18 proved a stale box is usually recoverable by
+  carry, a confident wrong match is not; freezing the threshold keeps the verdict untuned. *Given
+  up:* any post-hoc threshold rescue. *Consequence realised:* the log shows NO threshold works —
+  wrong-matches score 0.51-0.64, overlapping the accept band, while refusal is ALSO fatal under
+  FLOW because the kept stale box is initialised on the arrival frame it no longer describes
+  (car9 cov 0.000 vs E18's 0.993 with the same box). The un-tuned log is what exposed that the arm,
+  not the threshold, is the problem.
