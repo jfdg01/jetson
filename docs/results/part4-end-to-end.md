@@ -530,3 +530,41 @@ within 150 s in all 3 repeats. Est-vs-actual: runtime ~110 min (on est); smoke ~
 exactly, blend median [215,215,215]); mk-decoy ~50-60%→3/3 (top of range); regressions unaffected
 (gate off by default, consulted only on REGROUND after the size prior, 0 rejects on single-car legs).
 Raw: `experiments/2026-07-03-mask-identity/runs/`.
+
+### 2026-07-03 — E15 mask-hardening (geometry stress of the E14 mask gate) ([`experiments/2026-07-03-mask-hardening/`](../../experiments/2026-07-03-mask-hardening/README.md))
+
+Rig: host 3090 SITL + SAM2 carry @1024, Jetson Qwen2-VL-2B Q8_0 self-booted per trial, 15 W
+mode 0 + jetson_clocks. Same shade/descriptor as E14 (`--decoy-shade 215`, `--reground-gate mask`,
+tau 12); two new geometry knobs (off by default): `--decoy2 7.0` (second same-shade decoy 7 m north,
+destroys E14's clean accept window) and `--occ2 82 10` (second occlusion bridge over t[82,92],
+covering E14's observed accept at t=86.25). Shared decoy set on all 9 legs: `--speed 0.25 --twin
+decoy --decoy-shade 215 --duration-s 150 --loss-gate motion --dr pursuit --acquire-hold motion`.
+
+| leg | flags (beyond shared set) | n_regr | gate_rej | relock_on | closest_end | final_d_true / d_dist2 (m) | in_fov | verdict |
+|---|---|---|---|---|---|---|---|---|
+| reg-e14 | `--reground-gate mask` (E14 config) | 1 | 12 | `[]` | true | 3.41 / — | 1.000 | **FAIL (no-relock)** |
+| ctl-dd | `--decoy2 7.0`, no gate | 12 | 0 | `[true,dist×...]` | distractor | 26.64 / 8.93 | 0.450 | REPRODUCES |
+| dd-a | `--decoy2 7.0` + gate | 2 | 11 | `[true,true]` | true | 0.21 / 17.54 | 1.000 | PASS (unattributable) |
+| dd-b | `--decoy2 7.0` + gate | 2 | 13 | `[true,true]` | true | 0.21 / 17.54 | 1.000 | PASS (unattributable) |
+| dd-c | `--decoy2 7.0` + gate | 2 | 14 | `[true]` | distractor2 | 20.18 / 2.44 | 0.630 | FAIL (verified-but-lost) |
+| ctl-ro | `--occ2 82 10`, no gate | 8 | 0 | `[true,dist×6]` | distractor | 26.61 / — | 0.450 | REPRODUCES |
+| ro-a | `--occ2 82 10` + gate | 1 | 11 | `[true]` | true | 0.21 / — | 1.000 | PASS (unattributable) |
+| ro-b | `--occ2 82 10` + gate | 2 | 10 | `[true,true]` | true | 0.20 / — | 1.000 | PASS (unattributable) |
+| ro-c | `--occ2 82 10` + gate | 2 | 8 | `[true,true]` | true | 0.53 / — | 1.000 | PASS (unattributable) |
+
+**RQ-E15 = NOT-MEASURABLE** — the pre-registered patch-regression guard fired: **reg-e14**
+(E14's byte-for-byte mk-decoy config, re-run under the E15 patched code) FAILed with
+identity-preserving no-relock (gate rejected all 12 reground boxes, never re-accepted, coasted on
+DR to 3.41 m from true — did NOT wrong-lock the decoy, `closest=true in_fov=1.000`), where E14 went
+3/3 converging to 0.21 m. The rule routes reg-e14 FAIL → NOT-MEASURABLE and halts attribution of the
+stress families. Both controls reproduced (ctl-dd/ctl-ro latched the decoy ~26.6 m from true), so the
+geometries are valid traps; the block is the broken baseline. **The anomaly** (for the next-cycle
+audit): reg-e14, the EASIEST scenario, failed to accept, while 5/6 HARDER stress legs (dd-a/b, ro-a/b/c)
+accepted clean true boxes late (t≈100–114) and converged to ≤0.53 m — a pattern that fits stochastic
+win-path fragility (E14's 3/3 = three catches of one narrow accept window; an independent draw can
+miss it) more than a systematic code regression (which would disable accepts uniformly). Two readings —
+E15-patch perturbation vs E14 fragility — this cycle cannot decide; the `np.array_equal` selfcheck
+proves render identity, not SITL/VLM/pursuit timing identity across the code deltas. Stress numbers are
+RECORDED but NOT claimed (dd 2/3, ro 3/3) — un-attributable without a passing baseline. Est-vs-actual:
+runtime ~130 min (est 110–125); overall YES est ~25–35% → NOT-MEASURABLE (the anticipated reg-e14-FAIL
+halt branch). Raw: `experiments/2026-07-03-mask-hardening/runs/`.

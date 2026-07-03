@@ -1,180 +1,354 @@
 {
   "trial": {
-    "speed_ms": 0.5,
+    "speed_ms": 0.25,
     "image_size": 1024,
-    "n_frames": 1462,
-    "duration_s": 75.0,
-    "achieved_hz": 19.5,
-    "carry_fps": 20.6,
+    "n_frames": 2955,
+    "duration_s": 150.0,
+    "achieved_hz": 19.7,
+    "carry_fps": 20.7,
     "in_fov_frac": 1.0,
-    "first_lock_s": 2.3,
-    "n_acquire_attempts": 11,
-    "n_rejected_acquires": 8,
-    "n_reground_gate_rejects": 0,
+    "first_lock_s": 4.71,
+    "n_acquire_attempts": 28,
+    "n_rejected_acquires": 17,
+    "n_reground_gate_rejects": 8,
     "app_template": [
-      230.0,
-      90.0,
-      40.0
+      245.0,
+      245.0,
+      245.0
     ],
     "acquire_log": [
       [
-        2.3,
+        2.35,
         [
-          243.2,
-          72.0,
-          396.8,
-          336.0
+          288.0,
+          355.2,
+          307.2,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        4.71,
+        [
+          249.6,
+          96.0,
+          390.4,
+          345.6
         ],
         true,
         ""
       ],
       [
-        35.1,
-        [
-          147.2,
-          297.6,
-          448.0,
-          480.0
-        ],
-        false,
-        "size"
-      ],
-      [
-        37.46,
+        34.8,
         [
           294.4,
-          379.2,
+          273.6,
           313.6,
-          465.6
+          384.0
         ],
         false,
         "size"
       ],
       [
-        39.76,
+        37.15,
         [
-          294.4,
+          288.0,
+          307.2,
+          307.2,
+          417.6
+        ],
+        false,
+        "size"
+      ],
+      [
+        39.4,
+        [
+          320.0,
           0.0,
           409.6,
-          62.4
+          28.8
         ],
         false,
         "size"
       ],
       [
-        42.11,
+        41.71,
         [
+          281.6,
           0.0,
-          81.6,
-          633.6,
-          480.0
+          403.2,
+          67.2
         ],
         false,
         "size"
       ],
       [
-        44.42,
+        44.01,
         [
-          211.2,
+          268.8,
           0.0,
-          499.2,
-          206.4
+          403.2,
+          100.8
         ],
         false,
         "size"
       ],
       [
-        46.82,
-        [
-          0.0,
-          216.0,
-          640.0,
-          480.0
-        ],
-        false,
-        "size"
-      ],
-      [
-        49.22,
-        [
-          0.0,
-          288.0,
-          640.0,
-          480.0
-        ],
-        false,
-        "size"
-      ],
-      [
-        51.53,
+        46.31,
         [
           192.0,
           0.0,
-          505.6,
-          398.4
+          486.4,
+          124.8
         ],
         false,
         "size"
       ],
       [
-        53.83,
+        48.62,
         [
-          294.4,
+          192.0,
           0.0,
-          416.0,
+          486.4,
+          172.8
+        ],
+        false,
+        "size"
+      ],
+      [
+        51.02,
+        [
+          0.0,
+          148.8,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        53.32,
+        [
+          249.6,
+          0.0,
+          396.8,
+          230.4
+        ],
+        false,
+        "gate"
+      ],
+      [
+        55.63,
+        [
+          249.6,
+          0.0,
+          396.8,
+          264.0
+        ],
+        false,
+        "gate"
+      ],
+      [
+        57.94,
+        [
+          256.0,
+          0.0,
+          396.8,
+          292.8
+        ],
+        false,
+        "gate"
+      ],
+      [
+        60.24,
+        [
+          243.2,
+          0.0,
+          396.8,
+          326.4
+        ],
+        false,
+        "gate"
+      ],
+      [
+        62.54,
+        [
+          243.2,
+          0.0,
+          390.4,
+          355.2
+        ],
+        false,
+        "gate"
+      ],
+      [
+        64.85,
+        [
+          243.2,
+          0.0,
+          390.4,
+          388.8
+        ],
+        false,
+        "gate"
+      ],
+      [
+        67.15,
+        [
+          236.8,
+          0.0,
+          396.8,
+          412.8
+        ],
+        false,
+        "gate"
+      ],
+      [
+        69.45,
+        [
+          230.4,
+          4.8,
+          396.8,
+          446.4
+        ],
+        false,
+        "gate"
+      ],
+      [
+        71.76,
+        [
+          256.0,
+          33.6,
+          390.4,
           225.6
         ],
         true,
         ""
       ],
       [
-        56.44,
+        86.81,
         [
-          441.6,
-          139.2,
-          595.2,
-          384.0
+          230.4,
+          465.6,
+          294.4,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        89.16,
+        [
+          288.0,
+          350.4,
+          313.6,
+          475.2
+        ],
+        false,
+        "size"
+      ],
+      [
+        91.51,
+        [
+          288.0,
+          384.0,
+          313.6,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        93.87,
+        [
+          294.4,
+          417.6,
+          313.6,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        96.02,
+        [
+          32.0,
+          0.0,
+          38.4,
+          14.4
+        ],
+        false,
+        "size"
+      ],
+      [
+        98.32,
+        [
+          300.8,
+          14.4,
+          409.6,
+          48.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        100.63,
+        [
+          300.8,
+          4.8,
+          409.6,
+          76.8
+        ],
+        false,
+        "size"
+      ],
+      [
+        102.93,
+        [
+          294.4,
+          9.6,
+          409.6,
+          110.4
+        ],
+        false,
+        "size"
+      ],
+      [
+        105.23,
+        [
+          300.8,
+          14.4,
+          409.6,
+          148.8
         ],
         true,
         ""
       ]
     ],
-    "n_regrounds": 1,
+    "n_regrounds": 2,
     "relock_walls_s": [
-      21.13,
-      2.3
+      39.33,
+      20.83
     ],
-    "carry_px_err_mean": 29.3,
-    "carry_frames": 886,
+    "carry_px_err_mean": 14.3,
+    "carry_frames": 1539,
     "recovered_after_occlusion": true,
     "twin": {
-      "mode": "escort",
-      "id_switch_s": 18.29,
-      "frac_box_closer_distractor": 0.406,
-      "n_boxed_twin_frames": 886,
-      "final_d_true_m": 4.19,
-      "final_d_dist_m": 0.42,
-      "closest_at_end": "distractor",
+      "mode": "decoy",
+      "id_switch_s": 0.0,
+      "frac_box_closer_distractor": 0.0,
+      "n_boxed_twin_frames": 1539,
+      "final_d_true_m": 0.53,
+      "final_d_dist_m": 24.22,
+      "final_d_dist2_m": null,
+      "closest_at_end": "true",
       "relock_on": [
-        "?",
-        "distractor"
+        "true",
+        "true"
       ]
-    },
-    "retarget": {
-      "commanded_t_s": 50.0,
-      "fired_t_s": 54.14,
-      "caption": "the blue car",
-      "switch_walls_s": [
-        2.3
-      ],
-      "switch_on": [
-        "distractor"
-      ],
-      "n_post_boxed_frames": 360,
-      "frac_box_closer_dist_post": 1.0,
-      "dist_in_fov_frac_post": 1.0
     }
   },
-  "gate_speed_ms": 0.5,
+  "gate_speed_ms": 0.25,
   "gate": "PASS"
 }

@@ -314,3 +314,24 @@
   regression. Next open question: robustness under harder ambiguity (near-identical shades, >2
   distractors, partial re-occlusion during separation) and porting the gate to the 3b remote-carry
   path (currently local-carry only).
+
+- **RQ-E15 (is the E14 mask-median REGROUND gate robust to the win-path geometry — a second
+  same-shade decoy 7 m north with no clean window (`--decoy2 7.0`), and a second occlusion over
+  t[82,92] covering E14's observed accept at t=86.25 (`--occ2 82 10`) — or did E14's 3/3 depend on
+  its single favourable accept window?):** **NOT-MEASURABLE.** The pre-registered patch-regression
+  guard fired: **reg-e14** — E14's byte-for-byte mk-decoy config re-run under the E15 patched code —
+  FAILed with identity-preserving no-relock (gate rejected all 12 reground boxes, never re-accepted,
+  DR-coasted to 3.41 m from the true car; `closest=true, in_fov=1.000`, so it did NOT wrong-lock the
+  decoy — it missed the accept window), where E14 converged to 0.21 m 3/3. Per the rule, reg-e14 FAIL
+  forces NOT-MEASURABLE and halts stress-family attribution. Both controls reproduced (ctl-dd/ctl-ro
+  latched the decoy ~26.6 m from true) so the geometries are valid traps. **The load-bearing
+  observation for the next audit:** the EASIEST leg (reg-e14) failed to accept while 5/6 HARDER stress
+  legs accepted clean true boxes late (t≈100–114, ≤0.53 m) — this fits stochastic win-path fragility
+  (E14's "3/3" being three catches of one narrow accept window, missable on an independent draw) more
+  than a systematic patch break (which would kill accepts uniformly). This QUALIFIES E14's "identity
+  hole closed 3/3" — the gate's *rejection* is solid, but the *reject-until-separated win path* may be
+  stochastic. Cannot decide E15-patch-perturbation vs E14-fragility this cycle (the `np.array_equal`
+  selfcheck proves render identity, not timing identity across the code deltas). Recorded stress
+  outcomes (NOT claimed): dd 2/3 (dd-c verified-but-lost to decoy-2), ro 3/3. Next lever: re-run
+  reg-e14 at n≥3 on E14's merged code (no E15 patch) to isolate whether the failure is the patch or
+  the rig — before any further hardening or the 3b remote-carry port.

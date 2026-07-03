@@ -1,7 +1,16 @@
 # E15 mask-hardening — does the E14 mask gate survive geometry stress?
 
 - **Pre-registered:** 2026-07-03T18:40Z (Madrid wall-clock)
-- **Status:** PRE-REGISTERED — matrix not yet run
+- **Status:** COMPLETE 2026-07-03T19:20Z (Madrid wall-clock) — RQ-E15 =
+  **NOT-MEASURABLE** (mechanical rule: **reg-e14 regression leg FAILed**, so the
+  stress families cannot be attributed to geometry). Headline: E14's *exact*
+  mk-decoy config, re-run under the E15 patched code, produced
+  identity-preserving no-relock (ended 3.41 m from the true car, just outside the
+  2.0 m bar) where E14 went 3/3 at 0.21 m — while 5/6 harder stress legs (dd 2/3,
+  ro 3/3) PASSed with clean relock. That baseline-fails-while-harder-legs-pass
+  paradox is flagged for the next-cycle audit (either an E15-patch perturbation of
+  the E14 path, or evidence E14's reject-until-separated win is stochastically
+  fragile). See Results + verdict below.
 - **Branch:** `experiment/mask-hardening`
 - **Roles:** design + patches by Fable (this README, `phase3_sitl.py`/`sitl_cam.py`
   E15 knobs, `run_e15.py`). Opus runs the matrix and fills **Results only** —
@@ -216,34 +225,84 @@ If the host GPU OOMs or SITL fails to boot twice in a row, stop and report.
 
 ## Results (TBD — Opus fills this section only)
 
-| leg | verdict | n_regrounds | gate_rejects | relock_on | closest_at_end | final_d_true_m | final_d_dist2_m | in_fov_frac | first accept t |
+| leg | verdict | n_regrounds | gate_rejects | relock_on | closest_at_end | final_d_true_m | final_d_dist2_m | in_fov_frac | late accept t(s) |
 |---|---|---|---|---|---|---|---|---|---|
-| reg-e14 | | | | | | | — | | |
-| ctl-dd | | | | | | | | | — |
-| dd-a | | | | | | | | | |
-| dd-b | | | | | | | | | |
-| dd-c | | | | | | | | | |
-| ctl-ro | | | | | | | | | — |
-| ro-a | | | | | | | | | |
-| ro-b | | | | | | | | | |
-| ro-c | | | | | | | | | |
+| reg-e14 | **FAIL** (no-relock) | 1 | 12 | `[]` | true | 3.41 | — | 1.000 | none (gate rejected all 12) |
+| ctl-dd | REPRODUCES | 12 | 0 | `[true,dist×...]` | distractor | 26.64 | 8.93 | 0.450 | many (no gate) |
+| dd-a | PASS | 2 | 11 | `[true,true]` | true | 0.21 | 17.54 | 1.000 | 71.86, 100.94 |
+| dd-b | PASS | 2 | 13 | `[true,true]` | true | 0.21 | 17.54 | 1.000 | 74.31, 100.71 |
+| dd-c | FAIL (verified-but-lost) | 2 | 14 | `[true]` | distractor2 | 20.18 | 2.44 | 0.630 | 69.65 |
+| ctl-ro | REPRODUCES | 8 | 0 | `[true,dist×6]` | distractor | 26.61 | — | 0.450 | many (no gate) |
+| ro-a | PASS | 1 | 11 | `[true]` | true | 0.21 | — | 1.000 | 114.30 |
+| ro-b | PASS | 2 | 10 | `[true,true]` | true | 0.20 | — | 1.000 | 74.20, 110.10 |
+| ro-c | PASS | 2 | 8 | `[true,true]` | true | 0.53 | — | 1.000 | 71.76, 105.23 |
 
-- **RQ-E15 verdict:** TBD (apply the mechanical rule above; the runner prints
-  per-leg verdicts — copy them, do not re-derive).
-- **Estimate vs actual:** TBD (runtime, per-family outcomes vs the numbers above).
-- **Deviations/surprises:** TBD (anything UNRULED goes here verbatim).
+- **RQ-E15 verdict: NOT-MEASURABLE.** Per the pre-registered rule, reg-e14 FAILing
+  (patch-regression guard) forces NOT-MEASURABLE and halts interpretation of the
+  stress families. Both controls reproduced cleanly (ctl-dd 26.64 m, ctl-ro 26.61 m
+  from true, latched the decoy), so the new geometries themselves are valid traps;
+  the block is entirely the broken baseline.
+- **The reg-e14 anomaly (the actual finding, for the next-cycle audit).** reg-e14 is
+  byte-for-byte E14's mk-decoy config (no `--decoy2`, no `--occ2`) run under the E15
+  patched code. In E14 it locked at t=4.71, the single reground ACCEPTED a clean true
+  box at t=86.25, and it converged to 0.21 m (3/3). Here the single reground's 12
+  boxes were ALL gate-rejected — no clean true box ever passed — so it never
+  re-accepted and coasted on dead-reckoning to 3.41 m from the true car (still
+  `closest=true`, `in_fov=1.0`: it did NOT wrong-lock the decoy, it just missed the
+  accept window). Two readings, and this cycle cannot decide between them (that is
+  the next audit's job):
+  1. *E15-patch perturbation* — the `closest_label`/multi-bridge/`sitl_cam` edits
+     shifted the E14 path despite the `np.array_equal` render-identity selfcheck
+     (the selfcheck proves the rendered frame is identical, not that SITL/VLM/pursuit
+     timing is bit-identical across the E14→E15 code deltas).
+  2. *Stochastic win-path fragility* — E14's "3/3" was three catches of one narrow
+     accept window; a single independent draw can miss it, which would qualify E14's
+     "identity hole closed" claim rather than refute it.
+  The paradox that discriminates: reg-e14 (the EASIEST scenario) failed to accept,
+  while dd-a/b and ro-a/b/c (HARDER, with extra traps/occlusion) all accepted clean
+  true boxes late (t≈100–114) and converged to ≤0.53 m. A systematic patch break
+  would more likely disable accepts uniformly; a uniform gate that accepts in 5/6
+  harder legs but not the baseline points toward stochastic timing, not a code
+  regression. But this is an OBSERVATION handed to the audit — the mechanical verdict
+  stands at NOT-MEASURABLE.
+- **Stress observations (recorded, NOT attributable to geometry given the broken
+  baseline).** dd (double-decoy, no clean window): 2/3 PASS — dd-a/b converged to
+  0.21 m past both traps (final_d_dist2 17.54 m), dd-c relocked true once then lost
+  it to decoy-2 (verified-but-lost, 2.44 m from decoy-2, in_fov 0.63). ro
+  (re-occlusion over t[82,92]): 3/3 PASS — the gate rejected through the blind window
+  and relocked on emergence (ro-a accept t=114.30, converged 0.21 m). Taken at face
+  value these would be a strong result (gate survives 5/6 harder geometries); they
+  are NOT claimed, because without a passing baseline the attribution to geometry is
+  unsound.
+- **Estimate vs actual:** runtime ~130 min (9 legs, est 110–125 — slightly over).
+  Predicted overall YES ~25–35%; actual NOT-MEASURABLE (the pre-registered
+  reg-e14-FAIL → NOT-MEASURABLE branch fired — an outcome the design explicitly
+  anticipated as a possible halt). dd 3/3 est ~45–55% → observed 2/3; ro 3/3 est
+  ~50–60% → observed 3/3 (both un-attributable).
+- **Deviations/surprises:** the reg-e14 regression is the surprise; no leg was
+  UNRULED, no timeouts, no re-runs triggered (reg-e14 FAIL is a defined verdict, not
+  an INVALID/NOT-MEASURABLE leg, so the one-re-run provision did not apply — the rule
+  routes it straight to the RQ verdict).
 
 ## Proof clips (TBD — 2-3, committed under `proof/`)
 
 Pre-registered picks (copy from `runs/<label>/trial.mp4`, caption with the
 leg's config and verdict):
 
-1. `ctl-dd/trial.mp4` (or `ctl-ro` if dd does not reproduce) — the no-gate
-   wrong-lock on the new geometry (the failing behaviour).
-2. `dd-a/trial.mp4` — the gate running the double-trap gauntlet (the fix
-   working, or the failure the fix could not prevent — either is the clip).
-3. `ro-a/trial.mp4` — reject-through-re-occlusion then relock on emergence
-   (or its failure).
+1. `proof/e15-reg-e14-no-relock.mp4` (reg-e14, t40–120) — **the anomaly / the
+   reason RQ-E15 is NOT-MEASURABLE.** E14's exact mk-decoy config under the E15 code:
+   the gate rejects all 12 reground boxes, never re-accepts a clean true box, and the
+   copter coasts on dead-reckoning to 3.41 m from the true car (still tracking it, not
+   the decoy) — where E14 accepted at t=86.25 and converged to 0.21 m. This is the
+   baseline regression that blocks attribution of the stress legs.
+2. `proof/e15-ctl-dd-wronglock.mp4` (ctl-dd, t44–124) — the no-gate control on the
+   double-decoy geometry: 12 regrounds, latches the decoy, ends 26.64 m from the true
+   car. Confirms the new dd trap is a valid identity trap.
+3. `proof/e15-dd-a-gate-survives.mp4` (dd-a, t60–130) — the mask gate running the
+   double-trap gauntlet: rejects through both traps, accepts a clean true box at
+   t=100.94, converges to 0.21 m (17.54 m from decoy-2). Observed gate survival — but
+   NOT attributable to geometry given the failed baseline; shown as evidence for the
+   audit, not as an E15 PASS.
 
 ## Ledger updates on completion (Opus)
 
