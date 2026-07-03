@@ -1,7 +1,10 @@
 # E13 identity-gate: appearance-template gate on REGROUND acceptance
 
 **Pre-registered:** 2026-07-03T17:00Z (Madrid wall-clock)
-**Status:** PRE-REGISTERED, not yet run
+**Status:** COMPLETE 2026-07-03T18:20Z. **RQ-E13 = NO** — the appearance-color
+gate does NOT close the identity hole (ap-decoy 0/3; the gate fires 14-26
+rejects but a blend box passes and wrong-locks 3/3). All regression legs PASS
+(no plain-relock, ceiling, or retarget regression). Smoke PASS 10/10.
 **Division of labor:** design + patches by Fable; Opus runs the matrix and fills
 Results only — do NOT re-patch code.
 
@@ -241,36 +244,94 @@ Expected wall time: smoke ~5 min (20 VLM draws + boot), legs ~4 min (75 s) /
 - ap-reg-0.5 ~90%, ap-reg-3.0 ~85%, ap-rt ~85%.
 - Overall RQ-E13 YES ~35–45%.
 
-## Results (TBD — Opus fills after the run)
+## Results (2026-07-03T18:20Z)
 
-Ran: TBD. Rig/power/versions: TBD (from manifest).
+Ran: `.venv-ft/bin/python experiments/2026-07-03-identity-gate/run_e13.py`
+(host 3090 SITL + SAM2 carry @1024, Jetson Qwen2-VL-2B Q8_0 self-booted per
+trial over `ssh jetson`, 15 W mode 0 + jetson_clocks). Matrix wall ~110 min
+(vs ~40-50 min estimate — the four 150 s decoy legs plus per-trial SITL+Jetson
+boots dominate). Raw: `raw/matrix.log`; per-leg snapshots in `runs/<label>/`.
 
-| leg | smoke/twin metrics | n_regrounds | gate_rejects | relock_on | relock_walls_s | closest_at_end | final_d_true / final_d_dist (m) | in_fov_frac | verdict |
+| leg | key metrics | n_regrounds | gate_rejects | relock_on | closest_at_end | final_d_true / final_d_dist (m) | in_fov_frac | verdict |
 |---|---|---|---|---|---|---|---|---|---|
-| smoke | decoy_hits ?/10, pref_true ?/10, dists ?/? | — | — | — | — | — | — | — | TBD |
-| ctl-decoy | | | | | | | | | TBD |
-| ap-decoy-a | | | | | | | | | TBD |
-| ap-decoy-b | | | | | | | | | TBD |
-| ap-decoy-c | | | | | | | | | TBD |
-| ap-reg-0.5 | — | | | — | | — | — | | TBD |
-| ap-reg-3.0 | — | | | — | | — | — | | TBD |
-| ap-rt | E9 checks: ? | | | | | | | | TBD |
+| smoke | decoy_hits 10/10, pref_true 10/10; true_dists all 0.0, decoy_dists all 30.0 | — | — | — | — | — | — | **PASS** |
+| ctl-decoy | template none (no gate) | 10 | 0 | `[true, distractor×4, ?,?,?, distractor]` | distractor | 31.53 / 6.88 | 0.449 | reproduces wrong-lock (see note) |
+| ap-decoy-a | template `[245,245,245]` | 2 | 26 | `[distractor]` | distractor | 26.50 / 1.76 | 0.503 | **FAIL** |
+| ap-decoy-b | template `[245,245,245]` | 2 | 24 | `[distractor]` | distractor | 26.49 / 1.79 | 0.488 | **FAIL** |
+| ap-decoy-c | template `[245,245,245]` | 2 | 14 | `[distractor]` | distractor | 27.01 / 2.33 | 0.490 | **FAIL** |
+| ap-reg-0.5 | recovered=True | 1 | 0 | — | — | — | 1.000 | **PASS** |
+| ap-reg-3.0 | recovered=True | 1 | 0 | — | — | — | 1.000 | **PASS** |
+| ap-rt | E9 checks 7/7 True; switch_wall 2.35 s, template rebinds `[230,90,40]` (blue) | 1 | 0 | `[true, distractor]` | distractor | 4.18 / 0.42 | 1.000 | **PASS** |
 
-**RQ-E13 verdict:** TBD.
-Estimate-vs-actual notes: TBD.
+**RQ-E13 verdict: NO.** The appearance-color gate does not convert the decoy
+wrong-lock. ap-decoy 0/3 PASS (all end latched on the decoy, true car escaped to
+~26.5 m, in-FOV ~0.49), so the RQ is NO by the aggregate rule (an ap-leg fails
+with the control reproducing). Regression clean: ap-reg-0.5, ap-reg-3.0, ap-rt
+all PASS — the gate, off by default and consulted only on REGROUND, does not
+touch plain-scene relock, the 3.0 m/s ceiling, or the E9 retarget switch.
 
-## Proof clips (TBD — Opus cuts after the run)
+**Why it fails (the valuable negative — acquire_log audited).** The gate *fires
+correctly and hard*: template bound to `[245,245,245]` (true white car) at first
+ACQUIRE, and 14-26 REGROUND rejects per leg (reason `gate`) of the clean
+top-of-frame decoy boxes (e.g. `[249.6,14.4,390.4,254.4]`, descriptor ≈215 → >
+tau 12 → rejected). Control had 0 such rejects and re-locked the decoy directly.
+But the gate is defeated by a **blend box**: at t≈67-69 s the true car emerges
+from under the bridge co-located with the parked decoy, and the VLM proposes a
+giant box spanning both (`[268.8,0.0,428.8,441.6]`, 160×441 px). Its brightest
+quartile is dominated by the emerging true car's 245 pixels, so the descriptor
+lands within tau of the template and the box **passes** — but the box *centres*
+on the decoy, so SAM2 latches the decoy anyway. This is exactly the pre-registered
+blend-box risk. Root cause: a bright-pixel colour statistic over a loose box is
+not spatially bound to the tracked instance — a box whose brightest pixels come
+from the true car but whose mass/centre is the decoy sails through. Identity must
+be bound to the tracked *mask/instance*, not to a crop statistic. The colour gate
+is defeated the same way the size prior (E3) and the motion gate (E7) were: a
+global cue over the crop cannot enforce object identity when a two-car blend box
+mixes both cars' pixels. Named next lever: an embedding computed on the SAM2
+*mask* (not the box crop), or rejecting blend/oversized boxes at REGROUND before
+the descriptor is even consulted.
 
-2–3 clips into `proof/`, committed, captioned here. E12 ffmpeg pattern:
-`ffmpeg -ss <t0> -t <dur> -i runs/<label>/trial.mp4 -c:v libx264 -pix_fmt yuv420p proof/<name>.mp4`.
-1. `e13-wronglock-ctl.mp4` — ctl-decoy, ~t 28–80: reground fires under the
-   bridge, copter latches the parked decoy (the before).
-2. `e13-identity-relock.mp4` — best ap-decoy leg, ~t 28–95: gate rejects the
-   decoy window, decoy exits frame, relock on the true car (the after) — or,
-   if FAIL, the clip showing the failure mode (no-relock drift / a blend
-   accept), captioned as such.
-3. `e13-reg-3.0.mp4` — ap-reg-3.0, ~t 0–30: no regression at the honest
-   ceiling with the gate on.
+**ctl-decoy attribution note (Opus, transparency — flags a rule edge case for
+the next-cycle audit).** The README's ctl attribution rule reads "reproduces iff
+`relock_on[0] == distractor`". Here `relock_on[0] == "true"`: a *transient* early
+REGROUND at t≈46 s caught the true car while it was still visible pre-occlusion,
+because the 150 s control fires 10 regrounds (vs the 75 s E3/E7 single-reground
+trials the rule was written for). The control nonetheless **reproduces the E3-S2
+wrong-lock in substance** — it ends firmly latched on the decoy
+(`closest_at_end=distractor`, `final_d_true=31.53 m`, true car escaped, `relock_on`
+dominated by and terminating on `distractor`). The rule's own stated intent ("the
+215 decoy captures REGROUND / the follow collapses onto the decoy") is met, and
+the gate legs show the identical end-state despite the gate firing, so the test is
+measurable and the gate demonstrably loses. I therefore apply RQ-E13 = **NO**
+(not NOT-MEASURABLE) on the rule's intent, and record the literal-`relock_on[0]`
+divergence here for the Fable audit to re-examine.
+
+**Estimate-vs-actual.** Smoke PASS predicted ~80% → PASS 10/10 (the shade-215
+decoy-capture, the live unknown, held perfectly — descriptor gap 0.0 vs 30.0
+exactly as measured offline). ctl reproduces ~85% → reproduced (with the
+first-reground caveat above). ap-decoy 3/3 PASS ~45% → 0/3 (the pessimistic
+"most likely failure" branch, blend-box pass, is what happened — though as a
+*blend accept*, not the identity-preserving no-relock also flagged). Regressions
+~85-90% → all PASS. Overall RQ-E13 YES ~35-45% → NO. Matrix wall ~110 min vs
+~40-50 min estimate (the 150 s decoy legs + per-trial dual boots were
+underestimated).
+
+## Proof clips (cut 2026-07-03T18:20Z, committed in `proof/`)
+
+1. **`e13-wronglock-ctl.mp4`** (ctl-decoy, t≈44-90 s) — **the before**: no gate.
+   The true car goes under the bridge, REGROUND fires, and the copter latches the
+   parked decoy, ending 31.5 m from the true car. The E3-S2 wrong-lock reproduced
+   at shade 215.
+2. **`e13-gate-blendbox-fail.mp4`** (ap-decoy-a, t≈55-95 s) — **the after (still
+   FAIL)**: gate ON. It correctly rejects the tight decoy boxes (26 `gate`
+   rejects), but at t≈69 s the true car emerges co-located with the decoy, the VLM
+   draws a two-car blend box, its bright quartile (dominated by the 245 true-car
+   pixels) passes tau=12, and SAM2 latches the decoy the box centres on — the
+   colour gate defeated by a blend box. This is the proof the fix did not change
+   the behaviour.
+3. **`e13-reg-3.0-noregress.mp4`** (ap-reg-3.0, t≈0-40 s) — no regression at the
+   honest 3.0 m/s ceiling (E12 hard-spawn config) with the gate on: first-acquire
+   chase, lock, in-FOV 1.000.
 
 ## Closeout checklist (Opus — after the matrix)
 

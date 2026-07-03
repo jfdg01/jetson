@@ -269,3 +269,26 @@
   m/s** (6x the E2-era "< 0.5"). Above 3.0 the binding mode is the pre-lock blind DR chase failing
   to re-close on a target that outruns the FOV before the first legal draw — the next lever is
   pre-lock chase reach (DR gain / faster first draw), not the tracker.
+
+### 2026-07-03 — E13 identity-gate ([`experiments/2026-07-03-identity-gate/`](../../experiments/2026-07-03-identity-gate/README.md))
+
+- **RQ-E13 (does an appearance-template gate on REGROUND acceptance — bind a body-colour
+  descriptor at NL grounding, accept a size-passing reground box only if its crop matches
+  within tau — convert the E3-S2 decoy wrong-lock into a relock on the true car 3/3 at 0.25 m/s,
+  without regressing plain relock at 0.5, the E12 3.0 m/s ceiling, or the E9 retarget switch?):**
+  **NO.** ap-decoy **0/3** (all end latched on the decoy, true car escaped to ~26.5 m,
+  in-FOV ~0.49). The gate is real and fires hard — template correctly bound to `[245,245,245]`,
+  14-26 REGROUND rejects/leg (reason `gate`) of clean decoy boxes vs 0 in control — but is
+  defeated by a **blend box**: when the true car emerges co-located with the parked decoy the VLM
+  draws a two-car box (`[268.8,0,428.8,441.6]`), whose brightest quartile is dominated by the 245
+  true-car pixels so it passes tau=12, yet the box centres on the decoy → SAM2 latches the decoy.
+  A bright-pixel colour statistic over a loose box is not spatially bound to the tracked instance,
+  so it is defeated the same way the size prior (E3) and the motion gate (E7) were — a global crop
+  cue cannot enforce identity on a two-car blend. Regression clean: ap-reg-0.5, ap-reg-3.0 (E12
+  hard-spawn config), and ap-rt (E9 switch, 2.35 s, 7/7) all PASS — the gate, off by default and
+  consulted only on REGROUND, touches nothing else. Precondition smoke PASS 10/10 (the shade-215
+  decoy is still boxed as "the white car"; descriptor gap 0.0 vs 30.0 as measured offline). This
+  extends the E3/E7/E8 identity-hole arc: three cues now fail it (size E3, motion E7, colour E13),
+  all for the same reason — none is bound to the tracked instance. Named next lever: an embedding
+  computed on the SAM2 *mask* (not the box crop), and/or rejecting blend/oversized boxes at
+  REGROUND before the descriptor is consulted. n=3 decoy, n=1 each regression.

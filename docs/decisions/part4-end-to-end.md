@@ -358,3 +358,38 @@
   s3.5a/b `acquire_log[0]` accept at 2.30 s with in_fov 1→0 at 2.25 s (gift frame); s3.0a copter
   translated N 0→26 m through ACQUIRE (genuine chase).
 - → [`experiments/2026-07-03-late-command/`](../../experiments/2026-07-03-late-command/README.md)
+
+### 2026-07-03 — E13: shade-215 decoy rig + colour-descriptor gate over CLIP ([`experiments/2026-07-03-identity-gate/`](../../experiments/2026-07-03-identity-gate/README.md))
+
+- **Decision (rig):** test the appearance gate against a **discriminable same-class** decoy
+  (`--decoy-shade 215`, grey-white) rather than E3's byte-identical twin (`245`). A byte-identical
+  twin is unsolvable for ANY appearance mechanism information-theoretically — E7 rejected CLIP on
+  exactly that. 215 is still emphatically "a white car" in this palette (road dash 200, parapet
+  140) and the smoke precondition *checks* it (VLM boxes the 215 decoy as "the white car" 10/10;
+  ctl still wrong-locks), so the test is fair and the negative is attributable to the gate, not the
+  rig. **Given up:** the strongest adversarial case (identical twin) stays a recorded theoretical
+  bound, not a claim.
+- **Decision (mechanism):** a **zero-dependency colour descriptor** (mean BGR of the crop's
+  brightest quartile, max-channel ranked) over CLIP crop-embedding similarity. Rejected CLIP on
+  cost + necessity, not validity: an extra co-resident model on the 8 GB Jetson (or a host
+  dependency) + ~100s-of-ms/check, against a discriminandum this rig renders only as a colour/shape
+  difference that a 3-channel statistic separates 30-to-0 at microseconds. Laziest gate that could
+  discriminate.
+- **Result: RQ-E13 = NO.** The colour gate fires correctly (14-26 rejects/leg, template
+  `[245,245,245]`) but is defeated by a **two-car blend box** whose bright quartile is dominated by
+  the emerging true car's 245 pixels (passes tau) while the box centres on the decoy (SAM2 latches
+  the decoy). 0/3, ends wrong-locked ~26.5 m from true. Regression clean.
+- **What this buys the thesis:** the identity hole now has **three** failed cues — size (E3),
+  motion (E7), colour (E13) — and they fail for one shared reason: each is a global cue over the
+  proposed *box*, not bound to the tracked *instance*. That sharpens the next lever from "try
+  another cue" to "bind identity to the segmented mask" — an embedding on the SAM2 mask, or
+  rejecting blend/oversized boxes at REGROUND before any descriptor. CLIP is not re-opened by
+  this result (a mask-embedding, cheap or not, is the structural fix; CLIP-on-a-box would inherit
+  the same blend-box defeat).
+- **Process note (Opus):** the ctl-decoy attribution rule (literal `relock_on[0]=="distractor"`)
+  was written for E3/E7's single-reground 75 s trials; the 150 s control fired 10 regrounds with a
+  transient `relock_on[0]="true"` yet ended firmly on the decoy. Applied the rule's *intent*
+  (decoy captures REGROUND — satisfied by `closest_at_end`/`final_d_true`/terminal relock) →
+  NO, not NOT-MEASURABLE. Flagged in the README for the next-cycle audit. Future decoy-leg
+  attribution should key on `closest_at_end`/`final_d_true`, not `relock_on[0]`, when trials run
+  long enough to reground multiple times.
