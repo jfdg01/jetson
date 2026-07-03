@@ -258,3 +258,32 @@ three 1.0 runs locked identically @4.66 s (draw 2; deterministic greedy → iden
 across seeds). Residual cost at 1.5 is slower *relock* after the single occlusion (23-28 s vs ~7 s at
 1.0) and higher carry px_err (76-82 vs 50 at 1.0), not first-acquire. Raw:
 `experiments/2026-07-03-first-acquire/runs/{mh-0.5,mh-1.0{a,b,c},mh-1.5{a,b,c}}/`.
+
+### 2026-07-03 — E7 reground-gate: motion-consistency gate on REGROUND ([`experiments/2026-07-03-reground-gate/`](../../experiments/2026-07-03-reground-gate/README.md))
+
+Deployed levers on all legs (`--loss-gate motion --dr pursuit --acquire-hold motion`);
+treatment adds `--reground-gate motion` (accept a size-passing REGROUND box only if its
+center lands on the ego-compensated mover blob + 60 px pad). Trials 75 s.
+
+| label | speed | gate | relock_on[0] | final_d_true (m) | final_d_dist (m) | in-FOV | recovered | relock (s) | n_gate_rejects | leg |
+|---|---|---|---|---|---|---|---|---|---|---|
+| ctl-decoy  | 0.25 | none   | distractor | 7.91 | 1.93 | 0.903 | true | 23.38, 2.32 | 0 | CONTROL (wrong-lock reproduced) |
+| mg-decoy-a | 0.25 | motion | distractor | 4.32 | 1.68 | 1.000 | true | 36.91 | 8 | **FAIL** |
+| mg-decoy-b | 0.25 | motion | distractor | 4.05 | 1.94 | 1.000 | true | 37.10 | 7 | **FAIL** |
+| mg-decoy-c | 0.25 | motion | distractor | 4.07 | 1.93 | 1.000 | true | 37.12 | 6 | **FAIL** |
+| mg-reg-0.5 | 0.5  | motion | — | — | — | 1.000 | true | 9.32 | 0 | **PASS** |
+| mg-reg-1.0 | 1.0  | motion | — | — | — | 1.000 | true | 6.92 | 0 | **PASS** |
+| mg-reg-1.5 | 1.5  | motion | — | — | — | 1.000 | true | 6.78 | 0 | **PASS** |
+
+**RQ-E7 = NO.** The gate does not convert the E3-S2 decoy wrong-lock into a true relock:
+mg-decoy a/b/c all FAIL (`relock_on[0] == "distractor"`, `final_d_true` 4.05-4.32 m > 2.0
+on all three). Control reproduced E3-S2 (`closest_at_end == "distractor"`) → attribution
+clean. mg-decoy results are **not** byte-identical (rejects 8/7/6; distinct md5s) — real
+n=3 via wall-clock VLM submit timing. The gate *fired hard* (6-8 REGROUND rejects vs 0 in
+control, reason `motion` in `acquire_log`) and delayed re-acquisition, but the relock still
+landed on the decoy: the true car drives past the parked decoy, transiently co-locating it
+with the mover blob, so a decoy box eventually passes the gate. **Motion consistency is
+necessary but not sufficient** against a same-lane parked distractor on the target's path —
+a static-but-co-located cousin of the "moving same-appearance distractor" limit named up
+front. Regression legs all PASS (`in_fov_frac == 1.0`, `recovered == true`) — no
+plain-occlusion regression. Raw: `experiments/2026-07-03-reground-gate/runs/`.

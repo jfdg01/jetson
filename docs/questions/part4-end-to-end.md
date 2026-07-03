@@ -165,3 +165,17 @@
   simply buys the time for a correct draw. **The binding constraint reframed by E5 (first-acquire
   reliability, not the chase controller) is now resolved for ≤1.5 m/s.** Residual at 1.5: slower
   *relock* after occlusion (23-28 s vs ~7 s at 1.0) — a next-lever candidate, not first-acquire.
+
+### 2026-07-03 — E7 reground-gate ([`experiments/2026-07-03-reground-gate/`](../../experiments/2026-07-03-reground-gate/README.md))
+
+- **RQ-E7 (does a motion-consistency gate on REGROUND acceptance — accept a size-passing VLM
+  box only if it sits on the ego-compensated mover blob — convert E3-S2's decoy wrong-lock
+  into a relock on the true car, without regressing plain-occlusion relock at 0.5 and 1.0
+  m/s?):** **NO.** mg-decoy a/b/c all FAIL (`relock_on[0] == "distractor"`, `final_d_true`
+  4.05-4.32 m > 2.0). The gate fires (6-8 REGROUND rejects vs 0 control) and delays relock,
+  but the true car drives past the parked decoy and transiently co-locates it with the mover
+  blob, so a decoy box eventually passes → wrong-lock persists 3/3. Regression legs held
+  (mg-reg-0.5/-1.0/-1.5 all PASS, in-FOV 1.000, recovered), so no plain-occlusion regression.
+  Motion consistency is necessary-not-sufficient against a same-lane parked distractor on the
+  target's own path. Reground acceptance remains identity-unsafe for this scenario; a moving
+  or on-path same-appearance distractor is out of reach of any purely-geometric gate.
