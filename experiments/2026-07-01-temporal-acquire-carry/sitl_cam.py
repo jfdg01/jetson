@@ -81,19 +81,23 @@ class NadirCam:
         return px
 
     def render(self, copter_ned, yaw: float, rover_ned,
-               distractor_ned=None) -> np.ndarray:
+               distractor_ned=None,
+               distractor_color=(245, 245, 245)) -> np.ndarray:
         img = cv2.warpAffine(self.tex, self._tex_to_img(copter_ned, yaw),
                              (IMG_W, IMG_H), flags=cv2.INTER_LINEAR)
         hl, hw = TARGET_LEN_M / 2, TARGET_WID_M / 2
         # white car body, heading north (front = +N), dark windshield near front.
-        # distractor (E3) is drawn with the IDENTICAL polygon/color -- that
-        # identity is the twin-target experiment; bridge stays drawn last.
-        for car in (rover_ned, distractor_ned):
+        # distractor (E3) defaults to the IDENTICAL polygon/color -- that
+        # identity is the twin-target experiment; E9 passes distractor_color to
+        # render a color-referable second car ("the blue car") for RETARGET.
+        # bridge stays drawn last.
+        for car, body in ((rover_ned, (245, 245, 245)),
+                          (distractor_ned, distractor_color)):
             if car is None:
                 continue
             rn, re = car[0], car[1]
             self._fill_world_rect(img, copter_ned, yaw, rn - hl, rn + hl,
-                                  re - hw, re + hw, (245, 245, 245))
+                                  re - hw, re + hw, body)
             self._fill_world_rect(img, copter_ned, yaw, rn + 0.3 * hl, rn + 0.7 * hl,
                                   re - 0.8 * hw, re + 0.8 * hw, (60, 50, 40))
         if self.bridge_n is not None:
@@ -137,7 +141,20 @@ def selfcheck() -> None:
     blobs = [i for i in range(1, n_lab) if stats[i, cv2.CC_STAT_AREA] > 50]
     assert len(blobs) == 2, f"distractor: expected 2 car blobs, got {len(blobs)}"
     cv2.imwrite(str(out / "distractor.png"), img2)
-    print(f"selfcheck PASS -- frames in {out} (incl. distractor two-blob)")
+
+    # E9 escort: a colored distractor renders blue-dominant at its center while
+    # the rover stays white; default-color path above is untouched (E3 identity).
+    # 3 m east = the actual E9 lane offset (6 m projects outside the 640 frame).
+    img3 = cam.render((0.0, 0.0, -10.0), 0.0, (0.5, 0.0, 0.0),
+                      distractor_ned=(0.5, 3.0, 0.0),
+                      distractor_color=(230, 90, 40))
+    du, dv = world_to_px((0.5, 3.0), (0.0, 0.0, -10.0), 0.0)[0]
+    b, g, r = img3[int(dv) + 15, int(du)].astype(int)  # rear body, off windshield
+    assert b > r + 100, f"escort: distractor not blue-dominant (BGR {b},{g},{r})"
+    ru, rv = world_to_px((0.5, 0.0), (0.0, 0.0, -10.0), 0.0)[0]
+    assert (img3[int(rv) + 15, int(ru)].astype(int) > 200).all(), "rover no longer white"
+    cv2.imwrite(str(out / "escort.png"), img3)
+    print(f"selfcheck PASS -- frames in {out} (incl. distractor two-blob + escort color)")
 
 
 if __name__ == "__main__":
