@@ -2,14 +2,14 @@
   "trial": {
     "speed_ms": 0.5,
     "image_size": 1024,
-    "n_frames": 1450,
+    "n_frames": 1462,
     "duration_s": 75.0,
-    "achieved_hz": 19.3,
-    "carry_fps": 20.4,
+    "achieved_hz": 19.5,
+    "carry_fps": 20.6,
     "in_fov_frac": 1.0,
     "first_lock_s": 2.3,
-    "n_acquire_attempts": 6,
-    "n_rejected_acquires": 3,
+    "n_acquire_attempts": 11,
+    "n_rejected_acquires": 8,
     "n_reground_gate_rejects": 0,
     "app_template": [
       230.0,
@@ -29,10 +29,10 @@
         ""
       ],
       [
-        35.09,
+        35.1,
         [
           147.2,
-          288.0,
+          297.6,
           448.0,
           480.0
         ],
@@ -40,45 +40,100 @@
         "size"
       ],
       [
-        37.44,
+        37.46,
         [
-          300.8,
-          384.0,
+          294.4,
+          379.2,
           313.6,
-          470.4
+          465.6
         ],
         false,
         "size"
       ],
       [
-        39.74,
+        39.76,
         [
-          300.8,
-          14.4,
-          416.0,
-          67.2
-        ],
-        false,
-        "size"
-      ],
-      [
-        42.05,
-        [
-          300.8,
+          294.4,
           0.0,
-          422.4,
-          129.6
+          409.6,
+          62.4
+        ],
+        false,
+        "size"
+      ],
+      [
+        42.11,
+        [
+          0.0,
+          81.6,
+          633.6,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        44.42,
+        [
+          211.2,
+          0.0,
+          499.2,
+          206.4
+        ],
+        false,
+        "size"
+      ],
+      [
+        46.82,
+        [
+          0.0,
+          216.0,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        49.22,
+        [
+          0.0,
+          288.0,
+          640.0,
+          480.0
+        ],
+        false,
+        "size"
+      ],
+      [
+        51.53,
+        [
+          192.0,
+          0.0,
+          505.6,
+          398.4
+        ],
+        false,
+        "size"
+      ],
+      [
+        53.83,
+        [
+          294.4,
+          0.0,
+          416.0,
+          225.6
         ],
         true,
         ""
       ],
       [
-        52.36,
+        56.44,
         [
-          403.2,
-          254.4,
-          544.0,
-          480.0
+          441.6,
+          139.2,
+          595.2,
+          384.0
         ],
         true,
         ""
@@ -86,36 +141,36 @@
     ],
     "n_regrounds": 1,
     "relock_walls_s": [
-      9.37,
-      2.35
+      21.13,
+      2.3
     ],
-    "carry_px_err_mean": 30.8,
-    "carry_frames": 1109,
+    "carry_px_err_mean": 29.3,
+    "carry_frames": 886,
     "recovered_after_occlusion": true,
     "twin": {
       "mode": "escort",
-      "id_switch_s": 22.34,
-      "frac_box_closer_distractor": 0.396,
-      "n_boxed_twin_frames": 1109,
-      "final_d_true_m": 4.18,
+      "id_switch_s": 18.29,
+      "frac_box_closer_distractor": 0.406,
+      "n_boxed_twin_frames": 886,
+      "final_d_true_m": 4.19,
       "final_d_dist_m": 0.42,
       "closest_at_end": "distractor",
       "relock_on": [
-        "true",
+        "?",
         "distractor"
       ]
     },
     "retarget": {
       "commanded_t_s": 50.0,
-      "fired_t_s": 50.01,
+      "fired_t_s": 54.14,
       "caption": "the blue car",
       "switch_walls_s": [
-        2.35
+        2.3
       ],
       "switch_on": [
         "distractor"
       ],
-      "n_post_boxed_frames": 439,
+      "n_post_boxed_frames": 360,
       "frac_box_closer_dist_post": 1.0,
       "dist_in_fov_frac_post": 1.0
     }

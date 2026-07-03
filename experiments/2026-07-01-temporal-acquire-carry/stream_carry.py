@@ -83,9 +83,13 @@ class StreamCarry:
         imgs = _FrameList()
         imgs.append(self.state["images"][0].cpu().float())
         self.state["images"] = imgs
-        predictor.add_new_points_or_box(
+        _, _, logits = predictor.add_new_points_or_box(
             self.state, frame_idx=0, obj_id=1, box=np.asarray(box, dtype=np.float32)
         )
+        # E14: the frame-0 mask (video res, HxW bool) -- the INSTANCE this init
+        # latched. Capture-only (the return value was previously discarded), so
+        # every prior caller is bit-identical.
+        self.init_mask = (logits[0, 0] > 0.0).cpu().numpy()
         predictor.propagate_in_video_preflight(self.state)
 
     def _prep(self, frame: np.ndarray) -> torch.Tensor:

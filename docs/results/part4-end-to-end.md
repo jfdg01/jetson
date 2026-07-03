@@ -495,3 +495,38 @@ divergence, flagged for audit). Est-vs-actual: smoke ~80%→10/10; ap-decoy ~45%
 pre-registered blend-box failure branch); regressions ~85-90%→all PASS. Named next lever: an
 embedding on the SAM2 *mask* (not the box crop), or blend/oversized-box rejection at REGROUND.
 Raw: `experiments/2026-07-03-identity-gate/runs/`.
+
+### 2026-07-03 — E14 mask-identity (mask-bound median gate on REGROUND) ([`experiments/2026-07-03-mask-identity/`](../../experiments/2026-07-03-mask-identity/README.md))
+
+Rig: host 3090 SITL + SAM2 carry @1024, Jetson Qwen2-VL-2B Q8_0 self-booted per trial, 15 W
+mode 0 + jetson_clocks. Gate = `--reground-gate mask` (off by default): on a size-passing REGROUND,
+run the exact StreamCarry init the accept would run and take the per-channel **median** BGR over
+its frame-0 SAM2 mask (the instance actually latched); accept iff L-inf ≤ `--app-tau 12` vs the
+template bound at NL grounding. Decoy `--decoy-shade 215`. The median is a majority vote over the
+latch, so a majority-decoy blend reads 215 (reject) even with true pixels inside — the fix E13's
+crop-brightest-quartile could not do.
+
+| leg | speed (m/s) | flags | n_regr | gate_rej | relock_on | closest_end | final_d_true / d_dist (m) | in_fov | verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| smoke | — | 215-decoy capture + mask-latch sep + blend probes | — | — | — | — | — | — | PASS (10/10; 4 blend probes median [215,215,215] REJECT, true-strip [245,245,245] ACCEPT) |
+| ctl-decoy | 0.25 | `--twin decoy --decoy-shade 215 --duration-s 150`, no gate | 6 | 0 | `[true,dist×4]` | distractor | 26.68 / 1.95 | 0.447 | reproduces wrong-lock |
+| mk-decoy-a | 0.25 | ctl + `--reground-gate mask` | 1 | 13 | `[true]` | true | 0.21 / 24.53 | 1.000 | PASS |
+| mk-decoy-b | 0.25 | ctl + gate | 1 | 13 | `[true]` | true | 0.21 / 24.53 | 1.000 | PASS |
+| mk-decoy-c | 0.25 | ctl + gate | 1 | 11 | `[true]` | true | 0.22 / 24.52 | 1.000 | PASS |
+| mk-reg-0.5 | 0.5 | plain occlusion + gate | 1 | 0 | — | — | — | 1.000 | PASS |
+| mk-reg-3.0 | 3.0 | E12 d3.0 hard-spawn config + gate | 1 | 0 | — | — | — | 1.000 | PASS |
+| mk-rt | 0.5 | E9 retarget @50 s + gate | 1 | 0 | `[?,dist]` | distractor | 4.19 / 0.42 | 1.000 | PASS (E9 7/7, template rebinds [230,90,40]) |
+
+**RQ-E14 = YES** — the mask-bound median gate closes the identity hole **3/3** (mk-decoy final_d_true
+0.21-0.22 m, in_fov 1.000, template `[245,245,245]`) with zero regression (mk-reg-0.5/-3.0 and mk-rt
+all PASS). First identity cue to survive the two-car blend box that defeated size (E3), motion (E7),
+and crop-colour (E13). Mechanism from the acquire_log: while the true car is co-located with the
+decoy the gate rejects every blend/decoy box (11-13 `gate` rejects/leg — the box straddles both
+cars so the latch is majority-decoy → median 215 → reject vs the 245 template), then accepts the
+first clean true-car box once the cars separate (t=86.25 s in mk-decoy-a) → SAM2 locks the true car.
+The win path is **reject-until-separated**, not first-frame accept; the pre-registered failure branch
+(*identity-preserving no-relock*) did not materialise — the VLM produced a separated true box well
+within 150 s in all 3 repeats. Est-vs-actual: runtime ~110 min (on est); smoke ~85%→PASS (probe held
+exactly, blend median [215,215,215]); mk-decoy ~50-60%→3/3 (top of range); regressions unaffected
+(gate off by default, consulted only on REGROUND after the size prior, 0 rejects on single-car legs).
+Raw: `experiments/2026-07-03-mask-identity/runs/`.
