@@ -292,3 +292,25 @@
   all for the same reason — none is bound to the tracked instance. Named next lever: an embedding
   computed on the SAM2 *mask* (not the box crop), and/or rejecting blend/oversized boxes at
   REGROUND before the descriptor is consulted. n=3 decoy, n=1 each regression.
+
+- **RQ-E14 (does binding the REGROUND identity gate to the instance SAM2 actually latches — the
+  per-channel *median* BGR over the frame-0 mask of a throwaway StreamCarry init on the proposed
+  box, L-inf ≤ tau 12 vs the template bound at NL grounding — defeat the two-car blend box that
+  defeated E13's crop gate, i.e. end the 215-decoy leg on the TRUE car 3/3 at 0.25 m/s with no
+  regression on 0.5 relock, the E12 3.0 m/s ceiling, or the E9 retarget?):** **YES.** mk-decoy
+  **3/3** (relock_on `[true]`, closest_at_end true, final_d_true 0.21-0.22 m, in_fov 1.000, template
+  `[245,245,245]`); mk-reg-0.5, mk-reg-3.0, mk-rt all PASS (retarget rebinds the template to the
+  blue escort `[230,90,40]`, E9 7/7). This is the **first identity cue to close the hole** — where
+  size (E3), motion (E7), and E13's crop-colour all failed on the two-car blend box, the mask median
+  succeeds because it is a majority vote over the pixels SAM2 *actually segments*: while the true car
+  is co-located with the decoy the reground box straddles both, the latch is majority-decoy, the
+  median reads 215 and is rejected (11-13 rejects/leg); once the cars physically separate the VLM
+  draws a clean true-car box (t≈86 s), the mask median reads 245, and SAM2 locks the true car.
+  Win path = **reject-until-separated**, not first-frame accept; the pre-registered *identity-
+  preserving no-relock* failure branch did not occur. The mechanism is structural (not a shade-215
+  artifact) — the design-time GPU probe predicted the blend median [215,215,215] exactly. Regression
+  clean: the gate is off by default and consulted only on REGROUND after the size prior, so the
+  single-car legs recorded 0 rejects and the follow ceiling is untouched. n=3 decoy, n=1 each
+  regression. Next open question: robustness under harder ambiguity (near-identical shades, >2
+  distractors, partial re-occlusion during separation) and porting the gate to the 3b remote-carry
+  path (currently local-carry only).

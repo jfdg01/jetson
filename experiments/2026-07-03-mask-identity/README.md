@@ -1,7 +1,10 @@
 # E14 mask-identity: bind the REGROUND identity gate to the SAM2 latch, not the box crop
 
 **Pre-registered:** 2026-07-03T17:52Z (Madrid wall clock)
-**Status:** PRE-REGISTERED, not yet run
+**Status:** COMPLETE 2026-07-03T18:18Z (Madrid wall clock) — RQ-E14 = **YES**. The
+mask-bound median gate closes the identity hole 3/3 (mk-decoy final_d_true 0.21 m) with
+zero regression (0.5 relock, 3.0 ceiling, E9 retarget all PASS). First identity cue to
+survive the blend box; the win path is reject-until-separated, not first-frame accept.
 **Roles:** design + patches by Fable (already committed on this branch); Opus runs the
 matrix and fills Results only — do NOT re-patch code.
 **Rig:** host 3090 (SITL + renderer + SAM2 @1024) + Jetson Orin Nano (VLM Qwen2-VL-2B
@@ -198,28 +201,58 @@ rule. All fields from the leg's snapshotted `results.json` `trial` object.
 
 | leg | verdict | n_regrounds | gate rejects | relock_on | closest_at_end | final_d_true_m | in_fov_frac | notes |
 |---|---|---|---|---|---|---|---|---|
-| smoke | | — | — | — | — | — | — | decoy_hits /10, dists, blend probes |
-| ctl-decoy | | | — | | | | | |
-| mk-decoy-a | | | | | | | | |
-| mk-decoy-b | | | | | | | | |
-| mk-decoy-c | | | | | | | | |
-| mk-reg-0.5 | | | | — | — | — | | recovered_after_occlusion |
-| mk-reg-3.0 | | | | — | — | — | | first-lock wall |
-| mk-rt | | | | — | — | — | | E9 7-checks |
+| smoke | PASS | — | — | — | — | — | — | decoy_hits 10/10; true_dists all 0.0, decoy_dists all 30.0; 4 blend probes (0.5-2.0 m) median [215,215,215] all REJECT, true-strip (3.0 m) median [245,245,245] ACCEPT |
+| ctl-decoy | REPRODUCES | 6 | 0 (no gate) | ['true','distractor','distractor','distractor','distractor'] | distractor | 26.68 | 0.4467 | no-gate control accepts blend box at t=46.3, drifts onto decoy; final_d_dist 1.95 m |
+| mk-decoy-a | PASS | 1 | 13 | ['true'] | true | 0.21 | 1.0 | template [245,245,245]; rejects blends t46.3-81.6, accepts clean true box t86.25 |
+| mk-decoy-b | PASS | 1 | 13 | ['true'] | true | 0.21 | 1.0 | template [245,245,245]; identical reject-until-separated path |
+| mk-decoy-c | PASS | 1 | 11 | ['true'] | true | 0.22 | 1.0 | template [245,245,245] |
+| mk-reg-0.5 | PASS | 1 | 0 | — | — | — | 1.0 | recovered_after_occlusion=true; single-car scene, gate never had to reject |
+| mk-reg-3.0 | PASS | 1 | 0 | — | — | — | 1.0 | recovered_after_occlusion=true; E12 honest 3.0 m/s ceiling holds with gate on |
+| mk-rt | PASS | 1 | 0 | — | distractor | — | 1.0 | E9 7/7 checks; template rebinds to blue escort [230,90,40] on retarget; final_d_dist 0.42 m |
 
-**RQ-E14 verdict (TBD):**
+**RQ-E14 verdict: YES.** smoke PASS AND ctl-decoy REPRODUCES AND mk-decoy-{a,b,c} all
+PASS (3/3, final_d_true 0.21-0.22 m) AND all three regression legs PASS. The mask-bound
+median gate is the first identity cue (after size E3, motion E7, crop-color E13) to
+defeat the two-car blend box. Mechanism confirmed from the acquire_log: the gate rejects
+the blend/decoy boxes (11-13 rejects/leg) while the true car is co-located with the
+decoy, then accepts the first clean true-car box once they separate (t=86.25 in
+mk-decoy-a) and SAM2 locks the true car (relock_on=['true'], ends 0.21 m from true,
+24.5 m from the decoy). Zero regression: the gate is off by default, consulted only on
+REGROUND after the size prior, and the single-car regression legs recorded 0 rejects.
+
+## Estimate vs actual
+
+- Runtime: est ~90-120 min; **actual ~110 min** (matched E13). On estimate.
+- smoke PASS: est ~85%; **actual PASS** (decoy_hits 10/10, all 4 blend probes rejected,
+  true-strip accepted). The design-time GPU probe held exactly — blend median [215,215,215].
+- mk-decoy 3/3: est ~50-60%; **actual 3/3 PASS**, at the top of the range. The predicted
+  risk (*identity-preserving no-relock* — gate rejects everything and the VLM never draws
+  an acceptable true box) did NOT materialize: in all three repeats the VLM produced a
+  clean separated true-car box at ~t86 (well within 150 s) after the cars physically
+  separated, and the E4 replay/DR kept the copter close enough to relock (final_d_true
+  ~0.21 m). The reject-until-separated dynamic worked as designed.
+- Overall RQ-E14 YES: est ~40-50%; **actual YES**. The uncertainty was entirely on the
+  win path (whether a clean true box would appear post-rejection); it did, reliably.
+- Gate cost: est ~40 ms/consult; not separately instrumented this run, but no leg
+  timed out and the draw cadence was unaffected (consistent with the probe).
 
 ## Proof clips (Opus: 2–3, committed under `proof/`)
 
-1. `proof/e14-ctl-decoy-wronglock.mp4` — the failing behaviour: copy of the ctl-decoy
-   `trial.mp4` (or E13's if bit-similar; prefer this run's own).
-2. `proof/e14-mk-decoy-relock.mp4` — the fixed behaviour: one PASSing mk-decoy repeat,
-   captioned with the reject count and the accept time. If the result is negative, the
-   clip that shows the actual failure mode instead (e.g. the no-relock hover) — a
-   negative result shows the proof it didn't work.
-3. Optional: `proof/e14-reg-3.0.mp4` — the ceiling regression holding with the gate on.
-
-Caption each in this README (what it shows, which run/config).
+1. `proof/e14-ctl-decoy-wronglock.mp4` (ctl-decoy, t42-97) — **the failing behaviour, no
+   gate.** The no-gate control accepts the two-car blend box as the true car emerges next
+   to the 215 decoy (t=46.3), SAM2 latches the decoy, and the copter drifts onto the
+   wrong car; ends 26.68 m from the true car, 1.95 m from the decoy. This is the E3/E7/E13
+   identity hole, reproduced.
+2. `proof/e14-mk-decoy-relock.mp4` (mk-decoy-a, t44-120) — **the fix.** The mask-bound
+   median gate rejects every blend/decoy box while the cars are co-located (13 rejects,
+   t46.3-81.6; the box straddles both cars so SAM2's latch is majority-decoy -> median
+   215 -> reject vs the 245 template), then accepts the first clean true-car box once the
+   cars separate (t=86.25) and locks the true car (ends 0.21 m from true, 24.5 m from the
+   decoy). Reject-until-separated, not first-frame accept.
+3. `proof/e14-reg-3.0.mp4` (mk-reg-3.0, t0-40) — **no regression.** The E12 honest
+   3.0 m/s follow ceiling holds with the gate on (in_fov 1.0, recovered after occlusion);
+   the gate is consulted only on REGROUND after the size prior, so the plain follow path
+   is untouched.
 
 ## Closeout checklist (Opus)
 

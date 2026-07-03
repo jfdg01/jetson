@@ -393,3 +393,37 @@
   NO, not NOT-MEASURABLE. Flagged in the README for the next-cycle audit. Future decoy-leg
   attribution should key on `closest_at_end`/`final_d_true`, not `relock_on[0]`, when trials run
   long enough to reground multiple times.
+
+## E14 — bind the REGROUND identity gate to the SAM2 mask, not the box crop (2026-07-03)
+
+- **Decision:** close the identity hole with a **mask-bound median** REGROUND gate: on a
+  size-passing reground, run the exact StreamCarry init the accept would run and take the
+  per-channel *median* BGR over its frame-0 SAM2 mask (the instance actually latched); accept iff
+  L-inf ≤ tau 12 vs the template bound at NL grounding. Off by default (`--reground-gate mask`),
+  consulted only on REGROUND after the size prior. **Result: RQ-E14 = YES**, mk-decoy 3/3
+  (final_d_true 0.21 m), zero regression. First identity cue to survive the two-car blend box.
+- **Why the mask median (not the crop):** E13 proved a crop statistic answers "is the template
+  colour *present* in this box?" — a two-car blend box says yes (245 true pixels inside) while
+  SAM2 latches the decoy it centres on. The median over the *mask* answers "what did SAM2
+  *actually latch*?" — a majority vote that reads 215 for a majority-decoy blend even with true
+  pixels present. It needs >50% true content to flip, vs E13's brightest-quartile flipping at
+  ≥25%. Binding the descriptor to the segmented instance, not the proposed box, is the structural
+  fix the whole E3/E7/E13 arc pointed to.
+- **Alternatives rejected (given up):**
+  - *Geometry blend-box pre-filter* (reject reground boxes much larger than the last-known target
+    box before any descriptor). Rejected: a fourth instance-blind global cue that stacks another
+    tunable and would reject a legitimately loose-but-correct box with no path to accept. The mask
+    gate needs no size-ratio threshold and admits a correct loose box as long as the latch is the
+    true car.
+  - *CLIP crop embedding* (E13's other named alternative). Rejected: crop-based, so it inherits the
+    exact blend-box defeat (the embedding of a two-car crop is not the embedding of the latched
+    car), at ~10× the descriptor cost. The blend diagnosis strengthens E13's cost-based rejection.
+- **What it costs:** ~40 ms per consulted REGROUND resolve (a throwaway StreamCarry init on the
+  host predictor); negligible against the ~2.3 s VLM draw cadence. And the gate is **local-carry
+  only** — it verifies with the host SAM2 predictor, so the 3b remote-carry path is unported and a
+  `--remote-carry` run is refused at startup. Porting to remote carry is deferred (open question).
+- **What it does NOT claim:** reliability was shown for one discriminable decoy shade (215 vs 245),
+  a single distractor, and a clean physical separation of the two cars. Near-identical shades, >2
+  distractors, and re-occlusion during separation are untested — the win path depends on the VLM
+  producing a clean separated true box (reject-until-separated), which a persistent co-location
+  would starve. That is the next lever if harder ambiguity breaks it.
