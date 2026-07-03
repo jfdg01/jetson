@@ -303,3 +303,35 @@
   (first-acquire) but not fixed — deliberately, as E10 was scoped to *locate* the ceiling, not
   raise it past 2.5.
 - → [`experiments/2026-07-03-fast-follow-ceiling/`](../../experiments/2026-07-03-fast-follow-ceiling/README.md)
+
+### 2026-07-03T13:40Z — E11: fix first-acquire-at-speed in the pre-lock control law, not the VLM
+
+- **What / why:** E10 showed the follow ceiling is bound above 2.5 m/s by first-acquire, not
+  tracking. The E11 audit sharpened *why*: E10's s3.0 raw shows the VLM got exactly **one**
+  car-in-frame draw (submitted t≈0, lost the greedy lottery); by draw 2 (t≈2.3 s) the 3.0 m/s
+  car had crossed the ±4.33 m half-footprint, and E6's position-only `motion` hold
+  (`pid.compute(None)` → zeros) hovered on blob loss for the rest of the trial — 73 s of
+  byte-identical empty-road draws. So the binding failure is the **pre-lock control law** (pre-lock
+  `hist` is empty, so the proven DR/pursuit machinery never engages), NOT VLM draw repeatability
+  (~74% accept on car-in-frame frames, E6 Stage-0). **Chosen:** `--acquire-hold chase` — pre-lock,
+  each visible motion blob is converted to a world position and appended to `hist`, so the existing
+  `hist_vel`→`pursuit_vel` DR chases the mover pre-lock (feed-forward while visible, DR when it
+  outruns the FOV), buying car-in-frame time until the VLM locks. Minimal, default-preserving
+  (`none`/`motion` never append to hist), reuses validated machinery. Result: s3.0 3/3, ceiling
+  moved to **>= 3.5 m/s**.
+- **Rejected alternatives (Fable named these):** (1) **blob-seeded CARRY** — hand the pre-lock
+  blob straight to SAM2 as the track; rejected as identity-blind (E3: size prior can't tell the
+  target from a decoy) and a large state-machine change vs the small pre-lock-hint chase. (2)
+  **VLM draw-latency cut** — speed the acquire draw; rejected because the audit showed latency is
+  not binding (the VLM *did* draw; the car left frame between draws), and the E9 max_workers=1
+  non-cancellation quirk makes faster draws risky. (3) **spawn-geometry sweep** — vary heading /
+  crossing angle to characterize the acquire lottery; rejected because the mechanism was already
+  unambiguous from the s3.0 raw, so a sweep would spend the cycle measuring instead of fixing.
+- **Given up:** the ceiling is now **unpinned** (>= 3.5, top rung tested) — E11 under-reached its
+  own ceiling, so the next campaign must probe higher (4.0+) to find where chase-hold actually
+  breaks and what the new binding mode there is. Still only the co-moving chase-from-behind
+  scenario; crossing / counter-moving fast targets remain untested. The pre-lock chase has no
+  timeout guard (a garbage early blob could DR-runaway north at vmax) — it did not bite on any
+  E11 leg, but it is an un-guarded edge, deliberately left as a design fact to revisit if it ever
+  fires.
+- → [`experiments/2026-07-03-chase-acquire/`](../../experiments/2026-07-03-chase-acquire/README.md)

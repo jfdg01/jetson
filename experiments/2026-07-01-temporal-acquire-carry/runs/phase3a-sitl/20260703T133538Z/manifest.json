@@ -1,0 +1,39 @@
+{
+  "run_id": "20260703T133538Z",
+  "created_utc": "2026-07-03T13:35:38.142508+00:00",
+  "kind": "phase3a-sitl-integrated",
+  "git_sha": "3b22c68682192d4e831d1cff7515291bb0cd52ab",
+  "git_dirty": true,
+  "llamacpp_commit": "57fe1f07c3b6a1de3f4fff19098e2056a85275b7",
+  "lockfile_sha256": "8766f2dbfc806e5f6938dbd1715e228180ac778a04f4f2bacc03abda422c2b7a",
+  "python_version": "3.12.10",
+  "platform": "Linux-6.17.0-35-generic-x86_64-with-glibc2.39",
+  "config": {
+    "caption": "the white car",
+    "loss_s": 3.0,
+    "occ": [
+      30.0,
+      5.0
+    ],
+    "speed": 3.0,
+    "duration_s": 75.0,
+    "hz": 20,
+    "image_size": 1024,
+    "sam2": "facebook/sam2.1-hiera-tiny",
+    "validate": "sizeprior-0.5-2.0",
+    "deadreckon": true,
+    "twin": null,
+    "retarget_t": null,
+    "loss_gate": "motion",
+    "score_tau": 0.0,
+    "dr": "pursuit",
+    "acquire_hold": "chase",
+    "reground_gate": "none",
+    "vmax": 4.0,
+    "catchup_replay": true,
+    "carry": "host-3090"
+  },
+  "dataset_path": null,
+  "dataset_sha256": null,
+  "extra": {}
+}

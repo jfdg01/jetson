@@ -397,3 +397,39 @@ speed (25.9 s @1.5 → 13.9 @2.0 → 6.8 @2.5 — faster car re-enters the acqui
 carry pixel error rises modestly (80 → 128 px, benign while in_fov 1.000). So the next lever to
 raise the ceiling past 2.5 is first-acquire reliability at speed, not the pursuit controller or
 carry FPS. Raw: `experiments/2026-07-03-fast-follow-ceiling/runs/{reg-1.5,s2.0a-c,s2.5a-c,s3.0a-b}/`.
+
+### 2026-07-03 — E11 chase-acquire: pre-lock blob-pursuit chase, first-acquire at 3.0 m/s ([`experiments/2026-07-03-chase-acquire/`](../../experiments/2026-07-03-chase-acquire/README.md))
+
+Follows E10's finding that above 2.5 m/s the binding constraint is **first-acquire, not
+tracking**. E10's `--acquire-hold motion` was a position-only P-servo on the frame-diff blob
+that hovered (`pid.compute(None)` → zeros) the moment the blob left the FOV; a 3.0 m/s car
+crossed the ±4.33 m half-footprint by draw 2, so the VLM got exactly one car-in-frame draw and
+lost the greedy lottery. E11 adds `--acquire-hold chase`: pre-first-lock, each visible motion
+blob is converted (`blob_chase_box` sweep-center anchor → `box_to_world`) into a `hist` append,
+so the *existing* `hist_vel`→`pursuit_vel` DR chases the mover pre-lock (velocity feed-forward
+while visible, dead-reckoning when it outruns the FOV), buying car-in-frame time until the VLM
+(sole lock authority) locks. Defaults bit-identical (`none`/`motion` never append to hist).
+Full lever stack, real carry (3090 SAM2 @1024), Jetson Q8_0 acquire, 15 W + jetson_clocks.
+Per-leg gate: PASS iff `in_fov_frac >= 0.90 AND recovered_after_occlusion`. Trials 75 s.
+
+| leg | speed (m/s) | vmax | gate | in_fov_frac | recovered | first_lock_s | attempts | rejected | n_regrounds | relock_walls_s | carry_px_err_mean |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| reg-2.5 | 2.5 | 4.0 | PASS | 1.000 | True | 2.30 | 8 | 6 | 1 | 16.22 | 127.9 |
+| s3.0a | 3.0 | 4.0 | PASS | 1.000 | True | 9.21 | 15 | 13 | 1 | 25.74 | 146.8 |
+| s3.0b | 3.0 | 4.0 | PASS | 1.000 | True | 9.31 | 15 | 13 | 1 | 25.74 | 148.5 |
+| s3.0c | 3.0 | 4.0 | PASS | 1.000 | True | 9.26 | 8 | 6 | 1 | 9.24 | 147.4 |
+| s3.5a | 3.5 | 5.0 | PASS | 0.962 | True | 2.30 | 4 | 2 | 1 | 6.82 | 174.6 |
+| s3.5b | 3.5 | 5.0 | PASS | 0.964 | True | 2.30 | 5 | 3 | 1 | 9.17 | 174.7 |
+
+**RQ-E11 = YES** — reg-2.5 PASS (no chase-regression, byte-identical to E10 s2.5) **and** s3.0
+**3/3** PASS. Chase-hold makes first-acquire reliable at 3.0 m/s: E10's `motion` s3.0 never
+locked (in_fov 0.052, first_lock None); chase-hold keeps the car in-frame across draws until
+the VLM locks at **~9.2 s** (s3.0a/b needed 15 acquire attempts / 13 rejected before the
+winning draw — chase bought that time), then carry+pursuit hold in_fov **1.000** to trial end.
+**New measured ceiling: >= 3.5 m/s** (NOT pinned — s3.5 passed 2/2 at `--vmax 5.0`, the top
+rung tested; the real ceiling is above 3.5 and E11 did not find it). The follow ceiling moved
+2.5 → **at least 3.5 m/s** in one lever (7x the E2-era "< 0.5"). The fix is entirely in the
+pre-lock control law — it reuses the already-validated DR/pursuit machinery, changes nothing
+about the VLM or carry, and is off by default. Est-vs-actual: chase over-performed (s3.0
+estimated 50-60% → 3/3; s3.5 estimated ~20% → 2/2; no garbage-blob DR runaway on any leg); the
+probe under-reached its own ceiling. Raw: `experiments/2026-07-03-chase-acquire/runs/{reg-2.5,s3.0a-c,s3.5a-b}/`.
