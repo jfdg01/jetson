@@ -1,7 +1,8 @@
 # E18 real-video-replay — does the deployed two-tier stack hold a real target on real aerial footage at true cadence?
 
 - **Pre-registered:** 2026-07-03T22:58Z (Madrid wall-clock)
-- **Status:** PRE-REGISTERED, not yet run. Next step: Opus executes Steps 1-6 below.
+- **Status:** IN PROGRESS. Steps 1-2 done (dataset + clips locked). Next: Step 3
+  selfcheck-green (done), then Step 4-5 matrix + Results.
 - **Roles:** design + audit by Fable (this README + `replay_source.py`, selfcheck
   green). Opus does Steps 1-6: dataset acquisition, `replay_e18.py` wiring per the
   spec below, the matrix, Results, ledgers, proof clips. Every judgment is pre-made
@@ -184,11 +185,35 @@ before any A leg; log `nvpmodel -q` output into `raw/`.
   real clutter). Overall estimate: **PARTIAL-to-YES, 3-5/6 PASS**, coverage
   0.5-0.7 on passing clips.
 
-## Chosen clips + captions (D6 — fill BEFORE first A run)
+## Dataset (Step 1 — done 2026-07-03)
+
+- **Source:** UAV123 (D2, no fallback needed). HF mirror
+  `https://huggingface.co/datasets/xche32/UAV123/resolve/main/UAV123.tar.gz`
+  (the official KAUST Google-Drive tarball is the same data; the HF mirror is a
+  direct `curl`, no browser/gdown). Downloaded 2026-07-03. Tarball size
+  14 033 813 268 bytes (~14 GB), gzip.
+- **What was kept:** the full dataset does not fit — disk hit ENOSPC at 100% on
+  the 14 GB extract. Selectively extracted only the 6 chosen `car*` sequences +
+  all anno (`data/UAV123/{data_seq,anno}/UAV123/`, ~1.1 GB) and **deleted the
+  tarball** to reclaim 14 GB. Re-downloadable from the URL above if needed.
+- **`_s` sequences excluded** (flight-simulator synthetic, not real footage, per
+  D2). **Split subsequences (`carN_M`) excluded** — they share a parent image
+  dir with frame offsets; standalone sequences align 1:1 to their anno file
+  (verified: jpg count == anno line count, first frame `000001.jpg`, all six).
+
+## Chosen clips + captions (D6 — locked BEFORE first A run)
+
+All UAV123 `car*`, 1280x720, 30 fps nominal, none over the 4500-frame cap (no
+truncation). Captions authored from frame 0 only (D6), by montage inspection.
 
 | clip | frames | res | plain/distractor/occ | why chosen | caption |
 |---|---|---|---|---|---|
-| TBD | | | | | |
+| car3 | 1717 | 1280x720 | plain | single dominant vehicle, clean | the red car |
+| car9 | 1879 | 1280x720 | plain | single dominant vehicle | the white car |
+| car14 | 1327 | 1280x720 | plain, occ | 77 NaN GT gap (full occlusion) — exercises REGROUND for free | the red car |
+| car18 | 1207 | 1280x720 | plain | oblique test-track view, real scale change | the red car |
+| car7 | 1033 | 1280x720 | distractor, occ | 73 NaN gap + same-class cars beside target (~f520, ~f780) | the silver car |
+| car10 | 1405 | 1280x720 | distractor | van + white car beside target (~f700) | the red car |
 
 ## Results (TBD)
 
