@@ -10,4 +10,5 @@
 | I | [`docs/results/part1-exploratory.md`](docs/results/part1-exploratory.md) | device benchmarks + grounding Stages 1–4 |
 | II | [`docs/results/part2-rebuild.md`](docs/results/part2-rebuild.md) | v2 single-frame grounding, Phases 0–4 |
 | III | [`docs/results/part3-permanence.md`](docs/results/part3-permanence.md) | v3 persistent tracking, T0–T4 + latency levers |
-| IV | [`docs/results/part4-end-to-end.md`](docs/results/part4-end-to-end.md) | **in progress** — end-to-end workflow refinement |
+| IV | [`docs/results/part4-end-to-end.md`](docs/results/part4-end-to-end.md) | end-to-end workflow refinement (E18–E23 acquire arc, closed) |
+| V | [`docs/results/part5-anticipatory.md`](docs/results/part5-anticipatory.md) | **in progress** — anticipatory grounding / warm-start acquire |

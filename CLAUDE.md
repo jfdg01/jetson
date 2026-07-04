@@ -15,12 +15,13 @@ not documented — record what was chosen, why, and what was given up.
 wall-clock time** (local hour, not UTC-converted), e.g. `2026-06-30T18:45Z` — within
 15 min is fine, never a dummy hour. Folder names stay date-only.
 
-## Project parts (I–III complete, IV in progress)
+## Project parts (I–IV complete, V in progress)
 
 - **Part I — Exploratory:** device benchmark campaigns + VLM grounding fine-tune (Stages 1–4). Frozen.
 - **Part II — v2 principled rebuild:** single-frame grounding. Qwen2-VL-2B Q8_0, RefDrone IoU@0.25 = 62.6%, Phases 0–4 all done.
 - **Part III — v3 object permanence:** persistent moving-target tracking. T0–T4 all done, demo built, terse+ROI latency levers deployed (anchor ≈2.0 s ROI re-anchor, 85.2% IoU@0.25).
-- **Part IV — v4 end-to-end workflow refinement (IN PROGRESS):** the two-tier follow loop passed T0–T4 in isolation but the integrated NL→ground→track→fly pipeline doesn't hold up end-to-end; Part IV hardens it.
+- **Part IV — v4 end-to-end workflow refinement (COMPLETE):** hardened the integrated NL→ground→track→fly pipeline. The acquire-latency arc (E18–E23) on real UAV123 video closed: the ~4.85 s cold acquire lands stale on moving targets; an operator-phrase crop hint (E20) is the only working sub-2s acquire but stays hint-fragile; automating the hint (E21/E22) and widening the crop cell (E23) both failed.
+- **Part V — v5 anticipatory grounding / warm-start acquire (IN PROGRESS):** the operator's prompt arrives mid-flight, not at frame 0 — the pre-prompt stream is free compute. Keep salient objects tracked over the idle window and select on command, instead of cold-acquiring under time pressure. Reframe: `experiments/PART5-PROPOSAL-anticipatory-grounding.md`.
 
 ## Repository map
 

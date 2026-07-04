@@ -11,6 +11,7 @@
 | I | [`docs/decisions/part1-exploratory.md`](docs/decisions/part1-exploratory.md) | exploratory device campaigns + grounding Stages 1–4 |
 | II | [`docs/decisions/part2-rebuild.md`](docs/decisions/part2-rebuild.md) | v2 principled rebuild, Phases 0–4 |
 | III | [`docs/decisions/part3-permanence.md`](docs/decisions/part3-permanence.md) | v3 persistent tracking / object permanence |
-| IV | [`docs/decisions/part4-end-to-end.md`](docs/decisions/part4-end-to-end.md) | **in progress** — end-to-end workflow refinement; newest decisions here |
+| IV | [`docs/decisions/part4-end-to-end.md`](docs/decisions/part4-end-to-end.md) | end-to-end workflow refinement (E18–E23 acquire arc, closed) |
+| V | [`docs/decisions/part5-anticipatory.md`](docs/decisions/part5-anticipatory.md) | **in progress** — anticipatory grounding / warm-start acquire; newest decisions here |
 
-New work is on Part IV → append to the bottom of `docs/decisions/part4-end-to-end.md`.
+New work is on Part V → append to the bottom of `docs/decisions/part5-anticipatory.md`.
