@@ -12,7 +12,7 @@ P5.1 showed warm-start beats cold on 6 near-identical cars. Two things it left o
 central to Part V:
 
 **RQ-P5.2a (generalization):** does the warm-start win hold across object *categories*
-(person, boat, truck, group, bike, uav — not just cars)?
+(person, boat, wakeboard, bike — not just cars)?
 
 **RQ-P5.2b (speed dependence):** the whole premise is that a blocking acquire lands stale
 because the target *moves on screen* during it. So the WARM-vs-COLD advantage should **grow
@@ -114,11 +114,56 @@ Relationship to P5.1: P5.1's 6-clip result stays frozen; P5.2 either corroborate
   exactly RQ-P5.2b: cold should pass the slow bin and fail the fast bin).
 - **Speed sweep:** est WARM−COLD gap ≈ 0 in the slow bin, large in the fast bin (ρ > 0).
 
-## Selected clips (TBD — filled from profiles.json before running)
+## Selected clips (frozen 2026-07-04T20:20Z from `profiles.json`)
+
+78/123 UAV123 sequences clear the length gate (≥700 valid frames). Of those, **only 36 have
+their own frame directory** — the rest (`car1_2`, `group2_1`, `person7_1`, `uav1_1`, …) are
+frame-offset *segments* that share a parent video's frames via a start/end mapping the replay rig
+doesn't implement (it zips `sorted(*.jpg)` with the anno 1:1). So selection is restricted to the
+36 whole sequences. **This removes group and uav entirely** (they exist only as segments) and
+**truck/bird** (no sequence ≥700 frames) — a real UAV123 fact, recorded not worked around.
+Building is excluded on purpose: it is a static structure, its "on-screen speed" is pure
+ego-motion and would pollute the RQ-P5.2b axis.
+
+The frozen 25 therefore span **5 moving-target categories** (car, person, boat, wakeboard, bike),
+verified frame-aligned 1:1. Bins are the **eligible-set tertiles** SLOW<2.3 / 2.3–4.5 med /
+FAST>4.5 %diag/s ("fast" = top-third on-screen speed, relative). Speed range 0.00–15.62 %diag/s,
+**over-weighting the fast bin** (8 slow / 6 med / **11 fast**) for RQ-P5.2b resolution. Cars are
+10/25: the 6 P5.1 anchors + 4 more giving a clean same-category speed sweep 0→7.37. Captions are
+generic category phrases (the honest operator phrase; single-dominant-target clips).
 
 | clip | category | frames | size% | speed%/s | bin | caption | anchor? |
 |---|---|---|---|---|---|---|---|
-| _(25 rows: 6 P5.1 cars + ~19 across categories/speeds)_ | | | | | | | |
+| car10 | car | 1405 | 0.16 | 0.00 | slow | the car | yes |
+| boat2 | boat | 799 | 2.73 | 1.02 | slow | the boat |  |
+| person15 | person | 1339 | 0.20 | 1.02 | slow | the person |  |
+| car3 | car | 1717 | 0.06 | 2.04 | slow | the car | yes |
+| car9 | car | 1879 | 0.23 | 2.04 | slow | the car | yes |
+| boat3 | boat | 901 | 2.86 | 2.04 | slow | the boat |  |
+| car14 | car | 1250 | 0.17 | 2.28 | slow | the car | yes |
+| car7 | car | 960 | 0.41 | 2.28 | slow | the car | yes |
+| person13 | person | 883 | 0.39 | 2.89 | med | the person |  |
+| wakeboard8 | wakeboard | 1543 | 0.04 | 3.23 | med | the wakeboarder |  |
+| person6 | person | 901 | 0.42 | 3.68 | med | the person |  |
+| wakeboard3 | wakeboard | 823 | 0.08 | 4.09 | med | the wakeboarder |  |
+| bike1 | bike | 3085 | 0.59 | 4.21 | med | the cyclist |  |
+| person1 | person | 799 | 0.52 | 4.21 | med | the person |  |
+| person18 | person | 1393 | 3.97 | 4.57 | fast | the person |  |
+| car18 | car | 1207 | 0.81 | 5.11 | fast | the car | yes |
+| person20 | person | 1783 | 6.29 | 5.21 | fast | the person |  |
+| car17 | car | 1057 | 1.07 | 5.96 | fast | the car |  |
+| car4_s | car | 830 | 0.83 | 6.13 | fast | the car |  |
+| wakeboard6 | wakeboard | 1165 | 0.13 | 7.22 | fast | the wakeboarder |  |
+| car1_s | car | 1475 | 0.34 | 7.37 | fast | the car |  |
+| car3_s | car | 1300 | 1.20 | 7.37 | fast | the car |  |
+| wakeboard2 | wakeboard | 733 | 0.29 | 7.37 | fast | the wakeboarder |  |
+| person10 | person | 855 | 0.45 | 8.42 | fast | the person |  |
+| person1_s | person | 1600 | 0.79 | 15.62 | fast | the person |  |
+
+`frames` = jpg count (= anno lines, 1:1 verified); `speed%/s`/`size%` are medians over valid
+(non-NaN) frames, so a clip's valid-frame count can be < `frames`. The list is frozen in
+`clips.json` (what `run_matrix.py` reads); `profiles.json` (full 123-seq profile) lives with the
+data. **Note the category-count caveat for RQ-P5.2a:** 5 categories, ≥4 threshold still applies.
 
 ## Results (TBD)
 

@@ -30,8 +30,9 @@ from statistics import median
 W, H, FPS = 1280, 720, 30.0
 DIAG = (W * W + H * H) ** 0.5           # 1468.6 px
 MIN_FRAMES = 700                        # ~23 s: t_p 8s + acquire ~4.5s + cover 10s
-# speed bins in %diag/s, set from the observed UAV123 distribution (see profile run)
-SLOW, FAST = 3.0, 8.0                   # <3 slow, 3-8 med, >8 fast (provisional; retune on real data)
+# speed bins in %diag/s = tertile cuts of the 78 eligible UAV123 clips (p33/p66),
+# so slow/med/fast are equal-population thirds -> "fast" = top-third on-screen speed.
+SLOW, FAST = 2.3, 4.5                   # <2.3 slow, 2.3-4.5 med, >4.5 fast
 
 
 def category_of(name: str) -> str:
@@ -103,7 +104,7 @@ def selfcheck() -> None:
     moving = [(100 + i * 14.686, 100, 50, 50) for i in range(800)]  # 1%diag/frame
     pm = profile("boat1", moving)
     assert abs(pm["speed_pct_s"] - 30.0) < 0.1, pm            # 1%/frame * 30fps = 30%/s
-    assert speed_bin(1.0) == "slow" and speed_bin(5.0) == "med" and speed_bin(12.0) == "fast"
+    assert speed_bin(1.0) == "slow" and speed_bin(3.0) == "med" and speed_bin(12.0) == "fast"
     # gaps (None) must not create a giant fake jump
     withgap = [(0, 0, 10, 10), None, (500, 500, 10, 10), (505, 500, 10, 10)]
     pg = profile("x1", withgap)
