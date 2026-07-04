@@ -749,3 +749,37 @@ a right-edge box and poisons the mask gate (gate_rej 10). A coarse VLM pass is i
 the EASY central targets (car10/car14 grounded off-cell) AND its latency re-opens the staleness
 gap the crop closes. Matrix ~35 min wall. Raw: `experiments/2026-07-04-coarse-to-fine-acquire/runs/`,
 proof in `.../proof/`.
+
+### 2026-07-04 — E22 cv-proposal acquire ([`experiments/2026-07-04-cv-proposal-acquire/`](../../experiments/2026-07-04-cv-proposal-acquire/README.md))
+
+A ~3 ms CPU location prior (phaseCorrelate camera-motion comp → absdiff motion mask
+T=25 → caption-colour HSV mask → combine → largest CC ≥30px@320w → centroid →
+`scope.hint_for`) replaces E20's operator hint with no second VLM call. **Phase-0
+offline prior audit is a MANDATORY gate (t=0 cell-hit ≥ 4/6); it FAILED at 2/6, so NO
+Jetson leg was run** (D4). Thresholds FROZEN (D5); prior selfcheck green.
+
+Phase-0 audit (proposed 3x3 cell vs GT cell; `raw/phase0_prior_audit.txt`):
+
+| clip | kw | t=0 proposed | source | t=0 GT | t=0 | motion_inGT | color_inGT |
+|---|---|---|---|---|---|---|---|
+| car3 | red | None | — | bottom left | miss | 0 | 0 |
+| car7 | silver | center | color | top center | miss | 0 | 56 |
+| car9 | white | bottom center | motion+color | bottom center | **HIT** | 329 | 79 |
+| car10 | red | None | — | center | miss | 0 | 3 |
+| car14 | red | None | — | center | miss | 0 | 0 |
+| car18 | red | middle left | color | middle left | **HIT** | 0 | 171 |
+
+**t=0 cell-hit 2/6, t=10s 0/6 → RQ-E22 = NO [prior-insufficient]** (< the 4/6 gate). No
+[prior-wrong] suffix: it is defined on an accepted garbage lock on a Jetson leg, and the
+offline gate stopped the campaign before any VLM call — which is what D4 buys. Diagnosis:
+the two HITs are both **large** targets carried by the **colour** channel (car9 also
+motion); the four misses split as (a) car3/car10/car14 — tiny red cars (~4–12 px wide at
+320w) that displace sub-pixel over 0.5 s, so camera-comp cancels their motion (motion_inGT
+0) and their red is too weak/small in-GT → prior None → harmless full-frame fallback; and
+(b) car7 — the silver HSV mask FLOODS the bright roundabout (23,741 px), centroid drifts to
+a confident-wrong "center" — the automatable version of E20's [hint-fragile] hallucination,
+which the offline gate is the only defense against. The motion channel — the campaign's
+headline idea — contributed to exactly one cell (car9). Prior latency ~3 ms (10× under the
+<30 ms estimate); acquire not measured (no Jetson leg). No matrix, no overlays; proof =
+`proof/phase0_prior_stages.png` (mask-stage montage: car9 HIT, car3 tiny-miss, car7
+silver-flood). Raw: `experiments/2026-07-04-cv-proposal-acquire/raw/phase0_prior_audit.txt`.

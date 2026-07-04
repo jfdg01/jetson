@@ -1,0 +1,36 @@
+E22 Phase 0 -- offline CPU-prior audit (proposed cell vs GT cell)
+prev lag = 15 frames (~0.5 s); working width 320; T=25 area>=30
+
+clip   kw      | submit  proposed       source        GT             hit
+------------------------------------------------------------------------
+car3   red     | t=0     None           None          bottom left    miss
+car3   red     | t=10s   None           None          middle left    miss
+
+car7   silver  | t=0     center         color         top center     miss
+car7   silver  | t=10s   None           None          center         miss
+
+car9   white   | t=0     bottom center  motion+color  bottom center  HIT
+car9   white   | t=10s   None           None          center         miss
+
+car10  red     | t=0     None           None          center         miss
+car10  red     | t=10s   None           None          center         miss
+
+car14  red     | t=0     None           None          center         miss
+car14  red     | t=10s   None           None          center         miss
+
+car18  red     | t=0     middle left    color         middle left    HIT
+car18  red     | t=10s   None           None          center         miss
+
+Stage diagnosis at t=0 (working-width px; *_inGT = mask px inside the GT box):
+  clip   motion_tot color_tot motion_inGT color_inGT
+  car3            0        28           0          0
+  car7            0     23741           0         56
+  car9          350      1105         329         79
+  car10         258        10           0          3
+  car14         307        17           0          0
+  car18           0       259           0        171
+
+t=0 top-1 cell hit rate  = 2/6
+t=10s top-1 cell hit rate = 0/6
+
+GATE (t=0 >= 4/6): FAIL -> NO [prior-insufficient], no Jetson legs

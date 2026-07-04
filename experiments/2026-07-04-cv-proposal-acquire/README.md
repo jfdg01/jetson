@@ -1,9 +1,10 @@
 # E22 CV-proposal acquire (drafted 2026-07-04)
 
-**Status: DRAFT — BLOCKED ON E21 (or orchestrator re-order) + PHASE-0 GATE.** Not yet
-run. Drafted 2026-07-04T12:10Z by the orchestrator session as a complete handoff: a
-fresh conversation should be able to run this campaign from this file alone. Arc-level
-loop: `experiments/HANDOFF-acquire-arc.md`.
+**Status: COMPLETE — RQ-E22 NO [prior-insufficient] (Phase-0 gate FAIL, 2/6).** Branch
+`experiment/cv-proposal-acquire`. Drafted 2026-07-04T12:10Z; Phase-0 offline audit run
+2026-07-04T15:55Z; gate failed (t=0 top-1 cell hit rate 2/6 < 4/6) so NO Jetson legs
+were run (per D4/D5); results written 2026-07-04T16:10Z. Arc-level loop:
+`experiments/HANDOFF-acquire-arc.md`.
 
 ## Launch gate
 
@@ -172,17 +173,114 @@ Per clip: PASS = `genuine_lock` AND coverage >= 0.50, better of n=2. Primary arm
 8. Final message = completion report: Phase-0 table, verdict, per-clip table, prior
    hit/source stats, latencies, breakages, `git log --oneline main..HEAD`.
 
-## Results (TBD)
+## Results (2026-07-04T16:10Z)
 
-Phase-0 prior audit (t=0 / t=10s cell vs GT): TBD (6x2 table).
+**The Phase-0 gate FAILED, so the campaign closes offline.** The ~ms CPU prior points
+at the correct 3x3 cell on only 2 of 6 clips at t=0 (< the pre-registered 4/6 gate),
+so no Jetson leg was run (D4: burning 13 on-device legs on a prior that points at the
+wrong cell would just rediscover E20's wrong-probe poisoning at 13x the cost). The
+prior selfcheck is green (`proposals.py`); the gate is the honest, cheap stop.
 
-| clip | kw | E18 A best | E20 cell best | prior hint ok? | prior source | cv r1 | cv r2 | cv best PASS? | acquire_s |
-|---|---|---|---|---|---|---|---|---|---|
-| car3 | red | F / 0.976 | F / 0.982 | | | | | | |
-| car7 | silver | F / 0.285 | F / 0.997 | | | | | | |
-| car9 | white | F / 0.993 | **P** / 0.996 | | | | | | |
-| car10 | red | **P** / 1.000 | **P** / 1.000 | | | | | | |
-| car14 | red | F / 0.903 | **P** / 0.907 | | | | | | |
-| car18 | red | F / 0.711 | F / 0.981 | | | | | | |
+### Phase-0 prior audit (6x2: proposed cell vs GT cell) — `raw/phase0_prior_audit.txt`
 
-Verdict: TBD. Estimate-vs-actual: TBD. What broke / what surprised: TBD.
+| clip | kw | t=0 proposed | source | t=0 GT | t=0 | t=10s proposed | t=10s GT | t=10s |
+|---|---|---|---|---|---|---|---|---|
+| car3 | red | None | — | bottom left | miss | None | middle left | miss |
+| car7 | silver | center | color | top center | miss | None | center | miss |
+| car9 | white | bottom center | motion+color | bottom center | **HIT** | None | center | miss |
+| car10 | red | None | — | center | miss | None | center | miss |
+| car14 | red | None | — | center | miss | None | center | miss |
+| car18 | red | middle left | color | middle left | **HIT** | None | center | miss |
+
+**t=0 top-1 cell hit rate = 2/6** (car9, car18). t=10s = **0/6**.
+
+### Stage diagnosis at t=0 (working-width px; `*_inGT` = mask px inside the GT box)
+
+| clip | motion_tot | color_tot | motion_inGT | color_inGT | why |
+|---|---|---|---|---|---|
+| car3 | 0 | 28 | 0 | 0 | tiny target (~4 px wide @320w); both masks empty in-GT |
+| car7 | 0 | 23741 | 0 | 56 | silver mask FLOODS the bright scene; centroid drifts to center |
+| car9 | 350 | 1105 | 329 | 79 | large white target; motion+color both fire in-GT -> HIT |
+| car10 | 258 | 10 | 0 | 3 | small target; red too weak in-GT; motion is spurious background |
+| car14 | 307 | 17 | 0 | 0 | small target; red empty in-GT; motion is spurious background |
+| car18 | 259* | 259 | 0 | 171 | large red target; colour alone lands it -> HIT (motion_tot 0) |
+
+(*car18 motion_tot 0 — camera-comp cancels the whole frame incl. the slow target;
+colour carries it.)
+
+### Per-clip comparison (matrix NOT run — gate failed)
+
+| clip | kw | E18 A best | E20 cell best | prior hint ok? (t=0) | prior source | cv (not run) |
+|---|---|---|---|---|---|---|
+| car3 | red | F / 0.976 | F / 0.982 | miss (None) | — | — |
+| car7 | silver | F / 0.285 | F / 0.997 | miss (center vs top center) | color | — |
+| car9 | white | F / 0.993 | **P** / 0.996 | **HIT** | motion+color | — |
+| car10 | red | **P** / 1.000 | **P** / 1.000 | miss (None) | — | — |
+| car14 | red | F / 0.903 | **P** / 0.907 | miss (None) | — | — |
+| car18 | red | F / 0.711 | F / 0.981 | **HIT** | color | — |
+
+Prior hit rate: **2/6 t=0** (motion+color 1, color 1), 0/6 t=10s. Prior latency
+~3 ms at width 320 (selfcheck). No `acquire_s` measured — no Jetson leg ran.
+
+### Verdict (frozen rules applied mechanically)
+
+Phase-0 gate failed (t=0 2/6 < 4/6) -> **RQ-E22 NO [prior-insufficient]**. No
+[prior-wrong] suffix is assigned: it is defined on an *accepted garbage lock on a
+Jetson leg*, and no Jetson leg was run — the wrong cells (car7 "center") were caught
+by the offline gate before any VLM call, which is exactly what D4 is for. Regression
+guard: not evaluated (no cv coverage exists to compare).
+
+Note the gate is doing real work, not being pedantic: on the 2 HIT clips the prior
+matches the operator hint, but of the 4 misses **three (car3/car10/car14) would have
+fallen back to full-frame** (prior None -> E18 floor, no harm), while **car7 would
+have submitted a confidently-wrong "center" crop** — the exact E20 wrong-probe
+failure mode (hallucinate + poison the mask gate), now demonstrated to be automatable
+by a naive colour prior. That is the campaign's substantive negative finding.
+
+### Estimate vs actual
+
+| estimate | actual | verdict |
+|---|---|---|
+| Phase-0 t=0 hit rate 4/6 | 2/6 | **miss (worse)** — over-estimated the CPU prior |
+| car9 (white, large) survives on motion | HIT (motion+color) | hit |
+| car7 (silver, small-high) the likely miss | MISS (silver floods scene) | hit (right clip, worse mechanism: flood not empty) |
+| prior_ms < 30 ms @320w | ~3 ms | hit (10x better) |
+| if gate passed: cv ~3/6 | gate did not pass; no matrix | n/a |
+
+### What broke / what surprised
+
+- **The gate killed the campaign for the right reason, offline and free.** The prior
+  is target-size and colour-strength bound, not compute bound (~3 ms). On 720p UAV123
+  the cars are 4-12 px wide at the 320 working width and displace *sub-pixel* between
+  frame 0 and frame 15, so the camera-motion-compensated motion mask cancels them
+  along with the background (motion_inGT = 0 on every red clip). The motion channel —
+  the campaign's headline idea — contributed to exactly **one** cell (car9); the two
+  HITs are really carried by the **colour** channel on the two *large* targets.
+- **Silver is worse than "weak", it is actively misleading.** The pre-registration
+  called white/silver weak (expected empty -> fallback). Instead the silver HSV mask
+  matched 23,741 px — most of a sunlit roundabout — and the largest component's
+  centroid landed dead "center", a *confident wrong* cell. A wrong-but-confident CPU
+  prior reproduces E20's [hint-fragile] hallucination automatically; the offline gate
+  is the only thing standing between it and a poisoned mask-gate template.
+- **t=10s is 0/6.** By 10 s several targets have left their frame-0 cell and the prior
+  finds nothing (motion cancelled, colour scattered) — the prior has no value for the
+  REGROUND-era submit either, so there was no salvage path even at 3/6.
+- **Nothing crashed.** phaseCorrelate cancels the global pan correctly (sign verified
+  in the selfcheck: background residual ~0, only independent motion survives); this is
+  genuinely a footage/target-scale limit, not an implementation bug (D5: no threshold
+  was tuned to chase the gate).
+
+### Proof (committed under `proof/`)
+
+- `proof/phase0_prior_stages.png` — mask-stage montage at t=0 for three representative
+  clips (columns: frame+GT | motion mask | colour mask | combined -> cell):
+  - **car9** (white, large): motion mask fires on the car, colour AND isolates it from
+    the road-marking clutter -> "bottom center" HIT.
+  - **car3** (red, tiny): the car is a ~4 px speck; motion and colour are both empty in
+    the GT box -> None -> full-frame fallback (harmless).
+  - **car7** (silver): the colour mask floods the entire bright roundabout; the largest
+    component's centroid is "center" -> a confident WRONG cell (the automatable
+    [hint-fragile] failure the gate blocks).
+
+  No run overlays exist because the Phase-0 gate stopped the campaign before any
+  Jetson leg (README D4).

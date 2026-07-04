@@ -613,3 +613,37 @@
   engineered here). The pre-registered COARSE_MAX_SIDE 320→448 contingency was armed but never
   fired: every coarse pass returned a valid box, so the failure is accuracy+latency, not plumbing;
   a 448 re-run would cost more latency for marginal cell accuracy and was not pursued.
+
+### 2026-07-04 — E22: CPU motion+colour prior gated offline before any Jetson leg; thresholds frozen; gate FAILed 2/6 (D3, D4, D5; D1/D2 supporting) ([`experiments/2026-07-04-cv-proposal-acquire/`](../../experiments/2026-07-04-cv-proposal-acquire/README.md))
+
+- **D1 — the prior replaces E20's operator phrase with a CPU location vote; the fine crop and
+  caption stay exactly E20.** *What:* phaseCorrelate cam-comp -> absdiff motion mask -> caption-
+  colour HSV mask -> combine -> largest CC centroid -> `scope.hint_for` cell -> E20's identical
+  scoped fine crop. *Why:* one variable (who supplies the cell) so a regression is attributable to
+  the prior, not the crop. *Given up:* an M-margin ROI crop around the CC (kept the quantised cell
+  for byte-parity with E20). *Consequence realised:* moot — the prior failed the offline gate
+  before any crop ran; the M-margin geometry stays E21-D1's open follow-up.
+- **D3 — camera-motion compensation is translation-only (phaseCorrelate + warpAffine), not full
+  homography.** *What:* estimate a single (dx,dy) shift of prev onto cur, then absdiff. *Why:*
+  ~ms cost and the UAV123 inter-frame ego-motion at 30 fps is dominated by translation; a
+  homography is orders more compute for the ms budget the whole idea rests on. *Given up:*
+  rotation/scale ego-motion rejection. *Consequence realised:* the residual after comp was ~0 px
+  of background (sign verified correct), so translation-only was adequate — the misses are target
+  scale and colour flood, NOT uncompensated ego-motion.
+- **D4 — a MANDATORY offline Phase-0 gate (t=0 cell-hit >= 4/6) runs before any Jetson leg.**
+  *What:* audit the proposed cell vs the GT cell on all 6 clips offline; below 4/6 the campaign
+  is a documented negative and burns zero Jetson time. *Why:* the E20 wrong-hint probe showed a
+  wrong cell poisons the mask-gate template — cheap to catch offline, expensive on-device. *Given
+  up:* on-device confirmation of the miss shapes. *Consequence realised:* the gate paid off — it
+  FAILed at 2/6 and stopped car7's confident-wrong "center" crop before it could produce an
+  accepted garbage lock (the exact [prior-wrong] failure it was designed to pre-empt). No Jetson
+  legs spent on a losing prior.
+- **D5 — thresholds are FROZEN (T=25, MIN_AREA=30, WORK_W=320, HSV bands); a Phase-0 failure is
+  diagnosed, not tuned.** *What:* one documented global fix allowed for a plain bug, never
+  per-clip tuning. *Why:* per-clip threshold fitting would manufacture a hit rate that doesn't
+  generalise — the opposite of a thesis result. *Consequence realised:* the diagnosis (car3/10/14
+  target too small for camera-comp to keep their motion; car7 silver mask floods a bright scene)
+  is a real footage/target-scale limit, not a tuning miss — no bug found, thresholds untouched,
+  verdict stands as an honest negative. Supporting: D2 no motion-history buffer (E19 showed buf
+  repairs coverage but cannot flip the arrival-frame metric the gate scores), D1 selfcheck-only
+  synthetic sizing was adjusted to exercise the algorithm, never the frozen constants.
