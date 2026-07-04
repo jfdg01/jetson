@@ -65,7 +65,7 @@ A campaign isn't done until:
 4. **DECISIONS** entry appended under the run's Part — only if a non-trivial choice was made (what / why / what was given up).
 5. **SOURCES** appended if a new paper/model/dataset was used.
 6. New Part? add a row to each of the three ledger root indexes and create `docs/{results,questions,decisions}/partN-*.md`.
-7. **2–3 video deliverables** saved under `experiments/<campaign>/proof/` (a dedicated folder — the curated thesis clips only, kept out of `raw/` so they're trivial to find), **committed** (checked into git alongside the run), and linked from the README. A positive result shows before-and-after (the failing behaviour, then the fixed one); a negative result shows the proof it didn't work (the behaviour the fix failed to change). Thesis-facing evidence, not a debug dump — each clip is captioned in the README with what it shows and which run/config it came from.
+7. **2–3 thesis deliverables** under `experiments/<campaign>/proof/` (curated evidence only, out of `raw/`), **committed** and captioned in the README (what it shows, which run/config). Positive = before/after (failing then fixed); negative = proof it didn't work. **Clip when the behaviour is the point** (drone locks/drifts/switches), **figure when the numbers are the point** (a matplotlib plot of per-clip IoU, latency, PASS rate, a sweep curve) — a purely-quantitative result may be all figures. Figures come from a committed `make_proof.py`-style script (reproducible from `runs/*/results.json`), saved as PNG.
 
 Every number carries its config (power mode, flags, ctx). Negative/unexpected results are content — record them plainly.
 
@@ -96,4 +96,5 @@ it's not fine as a standalone script.
 ## Working agreement
 
 - Don't leave findings only in chat — land them via the workflow above before the session ends.
+- **Isolate infra from experiment runs.** Changes to CLAUDE.md, skills, or other tooling go on `main` (or their own branch), never committed onto an `experiment/<slug>` branch — and never while an executor is mid-run in the shared worktree (stash them until it merges). An experiment branch carries only that experiment's work, so its merge stays a clean, reviewable unit.
 - **Install what you need.** If a tool or package is missing (`ffmpeg`, a Python package, a wheel on the Jetson), install it and move on — don't work around it or stall to ask. Installs go in a venv, never global. The only stops: anything needing an interactive password (Jetson `apt`) — ask the user to run it — and anything destructive. Document every install (what, version, why) in the relevant `experiments/` README.
