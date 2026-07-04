@@ -647,3 +647,25 @@
   verdict stands as an honest negative. Supporting: D2 no motion-history buffer (E19 showed buf
   repairs coverage but cannot flip the arrival-frame metric the gate scores), D1 selfcheck-only
   synthetic sizing was adjusted to exercise the algorithm, never the frozen constants.
+
+### 2026-07-04 — E23 tolerant-cell sizing ([`experiments/2026-07-04-tolerant-cells/`](../../experiments/2026-07-04-tolerant-cells/README.md))
+
+- **D1 — single overlapping half-width knob HW; HW=0.2667 reproduces E20.** *What:* one
+  parameter (cells centered at {1/6,3/6,5/6}, span [c-HW,c+HW]) replaces E20's separate
+  footprint+pad, making E23 a clean superset. *Given up:* two-dimensional footprint/pad tuning.
+- **D2 — fuzzy operator frozen at tau=0.10, worst-case phrasing on device.** *What:* honest
+  "casual operator" model — every third-band expanded by tau contains the centroid is a plausible
+  phrasing; device uses the most edge-ward one. tau sensitivity {0.05,0.15} reported offline only.
+  *Given up:* a learned/empirical operator distribution (no data).
+- **D3 — Phase-0 (offline, free) picks the size; device only confirms it.** *What:* containment
+  and crop-area are geometric and free; only lock-success + real acquire_s need Jetson. *Given up:*
+  an on-device HW sweep. *Consequence realised:* paid off in reverse — Phase-0's 6/6 containment at
+  HW* looked like a green light, but the device leg revealed containment does not imply a lock;
+  the free geometry could not have predicted the distractor/staleness failure.
+- **D4 — KEEP E20's deployed 0.2667 grammar; do NOT adopt HW*=0.38.** *What:* the pre-registered
+  "if YES, deploy HW*" path is void — RQ-E23 is NO (REGRESSIVE). The tighter E20 cell stays the
+  deployed acquire grammar. *Why:* enlarging cells to tolerate operator fuzz collapsed E20's PASS
+  set 3→1 (car10 grounds a decoy, car9 re-goes stale) at no latency saving. *Given up:* operator
+  fuzz-tolerance — the acquire still demands the operator's spatial phrase agree with the geometric
+  third; buying tolerance needs an appearance-gated or faster acquire, not a bigger crop. This is
+  the standing recommendation the acquire-arc UX coda lands on.

@@ -48,25 +48,29 @@ def stacked(top: Path, bottom: Path, out: Path, top_label: str, bottom_label: st
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--flip-clip", required=True)
-    ap.add_argument("--flip-run", required=True)
-    ap.add_argument("--flip-fuzzed", required=True)
-    ap.add_argument("--single-clip", required=True)
-    ap.add_argument("--single-run", required=True)
-    ap.add_argument("--single-fuzzed", required=True)
-    args = ap.parse_args()
-
+    # RQ-E23 = NO (REGRESSIVE): captions show the fix FAILING, not a positive flip.
     PROOF.mkdir(exist_ok=True)
-    stacked(E18_RUNS / f"A_{args.flip_clip}_r1" / "overlay.mp4",
-            HERE / "runs" / args.flip_run / "overlay.mp4",
-            PROOF / f"{args.flip_clip}_E18_vs_E23tol.mp4",
-            "E18 A (full-frame ~4.85s) - stale acquire, genuine_lock FALSE",
-            f"E23 {args.flip_run} - fuzzed '{args.flip_fuzzed}' HW*=0.38 tolerant cell")
-    single(HERE / "runs" / args.single_run / "overlay.mp4",
-           PROOF / f"{args.single_clip}_E23tol_fuzzed.mp4",
-           f"E23 {args.single_run} - casual fuzzed hint '{args.single_fuzzed}', "
-           "HW*=0.38 cell still locks")
+
+    # 1. The regression: E18 full-frame LOCKED car10 (genuine, cov 1.00); the E23
+    #    worst-case fuzzed 'top center' tolerant cell grounds the WRONG red car (cov 0.00).
+    stacked(E18_RUNS / "A_car10_r1" / "overlay.mp4",
+            HERE / "runs" / "tol_car10_r1" / "overlay.mp4",
+            PROOF / "car10_E18_vs_E23tol_regression.mp4",
+            "E18 A full-frame (~4.85s) - LOCKED car10 (genuine, cov 1.00)",
+            "E23 tol fuzzed 'top center' HW*=0.38 - grounds the WRONG car (cov 0.00)")
+
+    # 2. Staleness unchanged: E23 tol car9 tracks (cov 0.99) but the ~2.8s acquire still
+    #    lands after the arrival frame -> genuine_lock FALSE, same binder as E18.
+    single(HERE / "runs" / "tol_car9_r1" / "overlay.mp4",
+           PROOF / "car9_E23tol_stale.mp4",
+           "E23 tol fuzzed 'middle left' HW*=0.38 - cov 0.99 but genuine_lock FALSE "
+           "(arrival-frame stale, E18 binder unchanged)")
+
+    # 3. The lone survivor: E18 A car14 stale (genuine FALSE) -> E23 tol locks it
+    #    (genuine, cov 0.92, acq 2.1s). The mechanism isn't universally broken.
+    single(HERE / "runs" / "tol_car14_r1" / "overlay.mp4",
+           PROOF / "car14_E23tol_survivor.mp4",
+           "E23 tol fuzzed 'top left' HW*=0.38 - lone survivor, locks (genuine, acq 2.1s)")
     print("proof clips written to", PROOF)
 
 

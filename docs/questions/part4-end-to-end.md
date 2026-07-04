@@ -459,3 +459,22 @@
   limit is target scale / scene colour on this footage. Prior latency ~3 ms (10x under estimate).
   The CPU-prior axis for automating the E20 hint is closed on this footage; the open lever remains
   E21-D1's coarse-box M-margin ROI geometry or a convergence-scored lock. No Jetson legs, no matrix.
+
+- **RQ-E23 (how large must the acquire crop cells be to absorb realistic operator boundary-fuzz —
+  a target near a cell edge named one cell over — without regressing E20's acquire PASS set and
+  sub-staleness latency?): NO (REGRESSIVE) [containment-not-sufficient].** Phase-0 (free, offline,
+  fuzzy operator tau=0.10) found E20's HW=0.2667 contains only 2/6 worst-case phrasings (grid IS
+  too cagey, NOT [already-tolerant]); HW*=0.38 is the smallest half-width with 6/6 worst-case
+  containment (mean crop-area frac 0.660 vs E20 0.364). But on device at HW* the tol PASS set
+  collapsed to {car14} (1/6) — E20's {car9,car10,car14} kept only 1/3 → NO; car10 breached the
+  E18 regression guard (cov 0.000 vs 1.000) → REGRESSIVE. **Geometric containment is necessary but
+  NOT sufficient:** enlarging the crop to absorb a casual phrase re-imports (a) distractors — car10's
+  wide worst-case "top center" crop contains a second red car and the VLM grounds the decoy (cov
+  0.000, poisoned mask-gate template), and (b) the E18 acquire-latency-vs-motion staleness —
+  car3/car9/car18 track at cov 0.90–0.99 but genuine_lock FALSE because the ~2.8 s acquire lands
+  after the arrival frame. mean acquire_s 2.80 s is inside the <3.0 s budget, so latency is not the
+  binder — containment/distractors are. car14 alone survives (E18-A stale → tolerant cell locks,
+  2.10 s). Verdict was pre-registered YES; prior wrong: a bigger cell does not recover the PASS set,
+  it trades E20's cageyness for distractor exposure. Operator fuzz-tolerance and small
+  distractor-free crops are in tension — closing it needs an appearance-gated (not just geometric)
+  acquire or a faster acquire, not a bigger cell. Closes the E20 UX-hardening coda.

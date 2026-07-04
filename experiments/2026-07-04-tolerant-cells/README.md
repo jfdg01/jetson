@@ -1,6 +1,7 @@
 # E23 tolerant-cell sizing (pre-registered 2026-07-04T16:20Z)
 
-**Status: PRE-REGISTERED, not yet run.** Final Part IV experiment. Self-contained
+**Status: COMPLETE (2026-07-04T17:41Z) — RQ-E23 NO (REGRESSIVE) [containment-not-sufficient].
+See `## Results` below.** Final Part IV experiment. Self-contained
 handoff: a fresh session should run this from this file alone. Arc context:
 `experiments/HANDOFF-acquire-arc.md` (acquire arc, now CLOSED). This campaign is a
 UX-hardening coda to E20, not part of the acquire-latency arc.
@@ -197,18 +198,103 @@ Per clip: PASS = `genuine_lock` AND coverage >= 0.50, better of n=2. Arm `tol` a
    E20-HW-vs-HW\* containment contrast, mean acquire_s vs E20 1.85 / E18 4.85,
    breakages, `git log --oneline main..HEAD`.
 
-## Results (TBD)
+## Results (2026-07-04T17:41Z)
 
-Phase-0 cell sweep (HW -> worst-case containment /6, mean crop area frac): TBD.
-HW\*: TBD.
+**Status: COMPLETE. RQ-E23 = NO (REGRESSIVE) [containment-not-sufficient].**
+Run date 2026-07-04. Jetson Orin Nano 8 GB, 15 W + jetson_clocks (`raw/jetson-power.txt`).
+Backend Qwen2-VL-2B Q8_0, `max_side=1024`. Phase-0 offline; 13 on-device legs.
 
-| clip | true hint | fuzzed hint | E18 A best | E20 cell best | tol r1 | tol r2 | tol best PASS? | acquire_s |
+### Phase 0 -- offline cell sweep (`raw/phase0_cell_sweep.txt`, `proof/cell_sweep.png`)
+
+Frame-0 GT, 1280x720, fuzzy operator tau=0.10. Worst-case = most edge-ward plausible cell.
+
+| HW | worst-case containment /6 | all-phrasing rate | mean worst-case crop-area frac | note |
+|---|---|---|---|---|
+| 0.2667 | 2/6 | 11/19 | 0.364 | E20-equivalent |
+| 0.3200 | 5/6 | 17/19 | 0.492 | |
+| **0.3800** | **6/6** | **19/19** | **0.660** | **HW\*** |
+| 0.4400 | 6/6 | 19/19 | 0.745 | |
+| 0.5000 | 6/6 | 19/19 | 0.789 | |
+
+Per-clip worst-case containment: car3/car7 contained at every HW; car9/car10/car14/car18
+all escape E20's 0.2667 and are only contained at HW>=0.38 (car9 needs 0.38, the rest 0.32).
+tau sensitivity: at tau=0.05 even E20's HW is 6/6; at tau>=0.10 E20 collapses to 2/6, HW*=0.38
+holds 6/6 through tau=0.15.
+
+**HW\* = 0.38** (smallest HW with 6/6 worst-case containment). **E20's HW (0.2667) worst-case
+containment = 2/6** -- NOT [already-tolerant]; E20's grid IS too cagey under tau=0.10 fuzz
+(worse than the estimated 4/6).
+
+### On-device -- HW\*=0.38, worst-case fuzzed hints, n=2 (`raw/matrix.log`)
+
+PASS = `genuine_lock` AND coverage >= 0.50, better of n=2. E18-A / E20-cell columns are the
+committed baselines (not re-run).
+
+| clip | true hint | fuzzed hint | E18 A best | E20 cell best | tol r1 | tol r2 | tol PASS? | acquire_s |
 |---|---|---|---|---|---|---|---|---|
-| car3 | bottom left | TBD | F / 0.976 | F / 0.982 | | | | |
-| car7 | top center | TBD | F / 0.285 | F / 0.997 | | | | |
-| car9 | bottom center | TBD | F / 0.993 | **P** / 0.996 | | | | |
-| car10 | center | TBD | **P** / 1.000 | **P** / 1.000 | | | | |
-| car14 | center | TBD | F / 0.903 | **P** / 0.907 | | | | |
-| car18 | middle left | TBD | F / 0.711 | F / 0.981 | | | | |
+| car3 | bottom left | center | F / 0.976 | F / 0.982 | F / 0.901 | F / 0.898 | **FAIL** | 3.93 |
+| car7 | top center | top center | F / 0.285 | F / 0.997 | F / 0.286 | F / 0.283 | **FAIL** | 2.67 |
+| car9 | bottom center | middle left | F / 0.993 | **P** / 0.996 | F / 0.988 | F / 0.985 | **FAIL** | 2.83 |
+| car10 | center | top center | **P** / 1.000 | **P** / 1.000 | F / 0.000 | F / 0.000 | **FAIL** | 2.67 |
+| car14 | center | top left | F / 0.903 | **P** / 0.907 | **P** / 0.916 | **P** / 0.916 | **PASS** | 2.10 |
+| car18 | middle left | top center | F / 0.711 | F / 0.981 | F / 0.984 | F / 0.987 | **FAIL** | 2.63 |
 
-Verdict: TBD. Estimate-vs-actual: TBD. What broke / what surprised: TBD.
+- tol PASS set = **{car14}** (1/6). E20 PASS set to preserve {car9, car10, car14}: **kept 1/3**.
+- mean scoped `acquire_s` = **2.80 s** (n=12, min 2.10 max 3.93) vs E20 1.85 / E18 4.85.
+- Regression guard vs E18-A best coverage: **car10 BREACH** (tol cov 0.000 vs E18-A 1.000);
+  others within 0.10 (car3 -0.075, car7 +0.001, car9 -0.005, car14 +0.013, car18 +0.276).
+
+### Verdict
+
+Frozen rules -> superset FALSE (kept 1/3, drops car9 AND car10 = drops >=2) -> **NO**; plus the
+car10 regression breach -> **NO (REGRESSIVE)**. mean acquire_s 2.80 s is inside budget (<3.0),
+so latency is NOT the binder -- containment is.
+
+### Estimate-vs-actual
+
+| field | estimate | actual | note |
+|---|---|---|---|
+| E20 HW worst-case containment | 4/6 | **2/6** | E20 more cagey than expected |
+| HW\* | ~0.38 | **0.38** | exact |
+| tol PASS superset preserved | YES (car9/car10/car14) | **NO, kept only car14** | the core miss |
+| mean acquire_s | 2.0-2.6 s | **2.80 s** | slightly over; not the binder |
+| verdict | YES | **NO (REGRESSIVE)** | prior wrong: bigger cell != recovers the PASS |
+
+### What broke / what surprised
+
+**Geometric containment is necessary but NOT sufficient for a lock.** Phase-0 guaranteed HW*=0.38
+crops geometrically contain the frame-0 GT box for every worst-case phrasing (6/6), yet on device
+only car14 locked. Two distinct failure modes, neither visible offline:
+
+1. **Enlarged crop admits a decoy (car10, the regression).** E18's full-frame acquire LOCKED
+   car10 (genuine, cov 1.00). The worst-case fuzz pushes "center" -> "top center", whose HW*=0.38
+   crop is a wide top band that still contains the target but now also contains a *second red car*.
+   The VLM grounds the decoy (mapped box far from GT, cov 0.000, 9-10 REGROUND gate rejects =
+   E20-style poisoned template). A bigger tolerant cell trades E20's cageyness for distractor
+   exposure. Proof: `proof/car10_E18_vs_E23tol_regression.mp4`.
+2. **Staleness binder unchanged (car3/car9/car18).** These reach high coverage (0.90-0.99) --
+   the crop DID contain the target and carry tracks it -- but `genuine_lock` is FALSE because the
+   ~2.8 s acquire still lands *after* the arrival frame on a moving target. This is exactly E18's
+   acquire-latency-vs-motion binder; a fuzz-tolerant crop does nothing to it. Proof:
+   `proof/car9_E23tol_stale.mp4`.
+
+car14 (true "center", fuzzed "top left") is the lone survivor: E18-A had it stale (genuine FALSE),
+E23's tolerant cell locks it fast (2.10 s, genuine, cov 0.92) -- the mechanism works when the
+enlarged crop is distractor-free and the target is slow enough. Proof: `proof/car14_E23tol_survivor.mp4`.
+
+Net: making cells tolerant to operator fuzz is not free. Enlarging the crop to absorb a casual
+phrase re-imports the two problems the tight E20 cell was suppressing -- distractors (car10) and,
+for moving targets, the acquire-latency staleness that E18 already pinned as the true binder.
+E20's tight-cell latency win does NOT survive a realistic worst-case fuzzy operator. Operator
+fuzz-tolerance and small distractor-free crops are in tension; closing it needs an appearance
+gate on the acquire (not just a geometric one) or a faster acquire, not a bigger cell.
+
+### Proof deliverables (`proof/`)
+
+- `cell_sweep.png` -- Phase-0 containment (bars) vs mean worst-case crop-area frac (line) across
+  the HW sweep; HW*=0.38 marked (containment / latency-proxy trade).
+- `car10_E18_vs_E23tol_regression.mp4` -- **the negative result**: E18 full-frame locks car10
+  (top), E23 HW*=0.38 worst-case 'top center' cell grounds the WRONG red car (bottom).
+- `car9_E23tol_stale.mp4` -- HW*=0.38 'middle left' cell tracks (cov 0.99) but genuine_lock FALSE:
+  the E18 acquire-staleness binder is untouched by fuzz-tolerance.
+- `car14_E23tol_survivor.mp4` -- the lone clip the tolerant cell recovers (locks, genuine, 2.10 s).
