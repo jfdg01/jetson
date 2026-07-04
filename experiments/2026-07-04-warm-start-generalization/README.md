@@ -103,6 +103,14 @@ Per clip, per leg: **PASS = `genuine_lock` (at the leg's deliver_frame) AND `cov
 Relationship to P5.1: P5.1's 6-clip result stays frozen; P5.2 either corroborates it at scale
 (the cars should reproduce) or qualifies it.
 
+**Deliver-frame occlusion caveat (known pre-run):** `genuine_lock` hard-requires
+`gt[deliver_frame] is not None`. Two of the 25 — **car7 and person10** — have GT absent
+(occluded) exactly at the WARM/ORACLE deliver frame 240, so they fail `genuine_lock` on *all*
+legs including ORACLE (a GT seed cannot fix a missing GT). These are `[deliver-occluded]`
+structural misses, not detection failures — report them flagged with their window coverage (the
+real tracking signal), exactly as P5.1 handled car7. Kept in the /25 denominator for P5.1
+comparability. COLD's deliver frame (376) is clear on all 25.
+
 ## Estimates (mark vs actual)
 
 - **Matrix wall:** ~33 min (75 legs × ~26 s/leg realized in P5.1; per-leg time is ~constant —
