@@ -658,3 +658,34 @@ accepts it (gate_rej=0 — right colour, wrong place) → drift. Est-vs-actual: 
 *latency*, a wrong estimate that is the finding. Matrix ~35 min (est ~2 h); download ~1 h via HF
 mirror (no VisDrone fallback). Raw: `experiments/2026-07-03-real-video-replay/runs/`, proof in
 `.../proof/`.
+
+### 2026-07-04 — E19 motion-comp-acquire ([`experiments/2026-07-04-motion-comp-acquire/`](../../experiments/2026-07-04-motion-comp-acquire/README.md))
+
+Two motion-compensation arms for E18's stale-lock gap, same six UAV123 clips / frozen captions /
+byte-identical scoring, rig unchanged (3090 SAM2.1-tiny @1024 capped 6.15 Hz + Jetson q8_0 terse
+self-boot, 15W + jetson_clocks). ctl (`--mc none`, D4 regression guard) reproduced E18's signature
+(car3 genuine=False cov 0.976; car10 PASS). Per-clip PASS = genuine_lock AND coverage >= 0.50,
+better of n=2.
+
+| clip | E18 A (baseline) | A-flow (NCC shift) | A-buf (catch-up) |
+|---|---|---|---|
+| car3 | F / 0.976 | **T / 0.982 PASS** (ncc 0.87) | F / 0.941 |
+| car9 | F / 0.993 | F / 0.000 (ncc 0.32 refused) | F / 0.950 |
+| car14 | F / 0.903 | F / 0.000 (ncc 0.64 wrong-match) | F / 0.850 |
+| car18 | F / 0.711 | F / 0.000 (ncc 0.51 wrong-match) | F / 0.914 |
+| car7 | F / 0.285 | F / 0.000 (ncc 0.56 wrong-match) | F / **0.934** |
+| car10 | T / 1.000 PASS | **T / 1.000 PASS** (ncc 0.96) | **T / 1.000 PASS** |
+
+**A-flow 2/6, A-buf 1/6 → RQ-E19 = PARTIAL [flow-fragile]** (best arm 2/6 in the 2-3 band; suffix
+fires on 4 clips: car9 refusal + car14/car18/car7 wrong-matches, shifted IoU 0.000 at arrival while
+unshifted scores same-or-better). Key mechanics: (1) FLOW is catastrophic when wrong — arrival-frame
+init throws away E18's submit-frame-correct carry init, and a wrong/refused box there latches the
+wrong object AND poisons the E14 mask-gate template, so REGROUND rejects genuine relocks (3-9
+rej/run) and coverage pins at 0.000, strictly below no-MC. NCC 0.5 threshold does not separate:
+wrong-matches score 0.51-0.64, right matches 0.87-0.96 (logged per D5, not tuned). (2) BUF cannot
+structurally flip genuine_lock (first event = raw box at arrival, per spec) but converges exactly as
+designed (backlog ~237 f, 19 steps, 3.09 s, gap < 12 on all 12 runs) and repairs coverage — car7
+0.285 -> 0.934 (kills the E18 REGROUND-drift mode), car18 0.711 -> 0.914. Est-vs-actual: predicted
+YES 4-6/6, actual PARTIAL 2/6 — both arm estimates wrong (flow 4-5/6, buf 5-6/6). Matrix ~22 min
+summed run wall (est ~45 min). Raw: `experiments/2026-07-04-motion-comp-acquire/runs/`, proof in
+`.../proof/`.

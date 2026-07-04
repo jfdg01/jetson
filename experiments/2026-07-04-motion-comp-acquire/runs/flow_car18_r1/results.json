@@ -1,0 +1,187 @@
+{
+  "mc": "flow",
+  "clip": "car18",
+  "caption": "the red car",
+  "fps": 30.0,
+  "n_frames_gt": 1207,
+  "wall_s": 43.9,
+  "cap_hz": 6.15,
+  "loss_s": 1.0,
+  "app_tau": 12.0,
+  "buf_k": 12,
+  "n_gate_reject": 7,
+  "n_events": 11,
+  "trace": [
+    "TRACK",
+    "REGROUND"
+  ],
+  "mc_log": [
+    {
+      "state": "ACQUIRE",
+      "submit_i": 0,
+      "arrival_i": 134,
+      "ncc": 0.5069133639335632,
+      "applied": true,
+      "gate": "accept"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 224,
+      "arrival_i": 358,
+      "ncc": 0.829921305179596,
+      "applied": true,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 361,
+      "arrival_i": 493,
+      "ncc": 0.4822094738483429,
+      "applied": false,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 496,
+      "arrival_i": 629,
+      "ncc": 0.3769528865814209,
+      "applied": false,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 632,
+      "arrival_i": 764,
+      "ncc": 0.5351771116256714,
+      "applied": true,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 767,
+      "arrival_i": 900,
+      "ncc": 0.4090798497200012,
+      "applied": false,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 903,
+      "arrival_i": 1036,
+      "ncc": 0.5843918919563293,
+      "applied": true,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 1038,
+      "arrival_i": 1171,
+      "ncc": 0.5494463443756104,
+      "applied": true,
+      "gate": "reject"
+    }
+  ],
+  "score": {
+    "t_lock": 4.86,
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 1061
+  },
+  "events": [
+    [
+      4.859,
+      [
+        1137.0,
+        147.0,
+        1239.4,
+        197.4
+      ]
+    ],
+    [
+      4.927,
+      [
+        1103.0,
+        231.0,
+        1190.0,
+        305.0
+      ]
+    ],
+    [
+      5.082,
+      [
+        1099.0,
+        329.0,
+        1182.0,
+        382.0
+      ]
+    ],
+    [
+      5.24,
+      [
+        1082.0,
+        372.0,
+        1170.0,
+        426.0
+      ]
+    ],
+    [
+      5.412,
+      [
+        1067.0,
+        404.0,
+        1156.0,
+        467.0
+      ]
+    ],
+    [
+      5.572,
+      [
+        1061.0,
+        431.0,
+        1147.0,
+        495.0
+      ]
+    ],
+    [
+      5.745,
+      [
+        1046.0,
+        465.0,
+        1140.0,
+        543.0
+      ]
+    ],
+    [
+      5.905,
+      [
+        1042.0,
+        506.0,
+        1136.0,
+        594.0
+      ]
+    ],
+    [
+      6.076,
+      [
+        1032.0,
+        564.0,
+        1134.0,
+        667.0
+      ]
+    ],
+    [
+      6.235,
+      [
+        1054.0,
+        634.0,
+        1137.0,
+        720.0
+      ]
+    ],
+    [
+      7.394,
+      null
+    ]
+  ]
+}
