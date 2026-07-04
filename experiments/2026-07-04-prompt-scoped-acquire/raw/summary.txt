@@ -1,0 +1,48 @@
+
+===== CELL =====
+car3   r1 t_lock= 1.92 gen=False cov=0.982 iou=0.613 rej=0 acq=[1.57] FAIL
+car3   r2 t_lock= 1.92 gen=False cov=0.981 iou=0.614 rej=0 acq=[1.57] FAIL
+car7   r1 t_lock= 2.19 gen=False cov=0.997 iou=0.759 rej=0 acq=[1.83] FAIL
+car7   r2 t_lock= 2.19 gen=False cov=0.997 iou=0.758 rej=0 acq=[1.83] FAIL
+car9   r1 t_lock= 2.19 gen=True  cov=0.996 iou=0.788 rej=0 acq=[1.83] PASS
+car9   r2 t_lock= 2.19 gen=True  cov=0.993 iou=0.787 rej=0 acq=[1.83] PASS
+car10  r1 t_lock= 2.42 gen=True  cov=1.000 iou=0.800 rej=0 acq=[2.07] PASS
+car10  r2 t_lock= 2.41 gen=True  cov=1.000 iou=0.802 rej=0 acq=[2.03] PASS
+car14  r1 t_lock= 2.38 gen=True  cov=0.907 iou=0.574 rej=0 acq=[2.0] PASS
+car14  r2 t_lock= 2.38 gen=True  cov=0.905 iou=0.575 rej=0 acq=[2.0] PASS
+car18  r1 t_lock= 2.21 gen=False cov=0.980 iou=0.700 rej=0 acq=[1.83] FAIL
+car18  r2 t_lock= 2.21 gen=False cov=0.981 iou=0.699 rej=0 acq=[1.83] FAIL
+  CELL clip PASS = 3/6
+  CELL mean scoped acquire_s = 1.85 (n=12, min=1.57 max=2.07)
+
+===== CELLBUF =====
+car3   r1 t_lock= 1.92 gen=False cov=0.977 iou=0.607 rej=0 acq=[1.57] FAIL
+car3   r2 t_lock= 1.92 gen=False cov=0.977 iou=0.607 rej=0 acq=[1.57] FAIL
+car7   r1 t_lock= 2.19 gen=False cov=0.975 iou=0.739 rej=0 acq=[1.83] FAIL
+car7   r2 t_lock= 2.19 gen=False cov=0.975 iou=0.740 rej=0 acq=[1.83] FAIL
+car9   r1 t_lock= 2.19 gen=True  cov=0.990 iou=0.775 rej=0 acq=[1.83] PASS
+car9   r2 t_lock= 2.19 gen=True  cov=0.990 iou=0.776 rej=0 acq=[1.83] PASS
+car10  r1 t_lock= 2.41 gen=True  cov=1.000 iou=0.802 rej=0 acq=[2.03] PASS
+car10  r2 t_lock= 2.41 gen=True  cov=1.000 iou=0.800 rej=0 acq=[2.07] PASS
+car14  r1 t_lock= 2.38 gen=True  cov=0.904 iou=0.562 rej=0 acq=[2.0] PASS
+car14  r2 t_lock= 2.38 gen=True  cov=0.903 iou=0.560 rej=0 acq=[2.0] PASS
+car18  r1 t_lock= 2.21 gen=False cov=0.958 iou=0.679 rej=0 acq=[1.83] FAIL
+car18  r2 t_lock= 2.21 gen=False cov=0.958 iou=0.682 rej=0 acq=[1.83] FAIL
+  CELLBUF clip PASS = 3/6
+  CELLBUF mean scoped acquire_s = 1.85 (n=12, min=1.57 max=2.07)
+
+===== REGRESSION GUARD (cell cov vs E18 A best) =====
+car3   cell_cov=0.982 E18A_cov=0.976 d=+0.005 ok
+car7   cell_cov=0.997 E18A_cov=0.285 d=+0.712 ok
+car9   cell_cov=0.996 E18A_cov=0.993 d=+0.003 ok
+car10  cell_cov=1.000 E18A_cov=1.000 d=+0.000 ok
+car14  cell_cov=0.907 E18A_cov=0.903 d=+0.004 ok
+car18  cell_cov=0.981 E18A_cov=0.711 d=+0.270 ok
+
+===== WRONG PROBE (car10, 'top left') =====
+r1 gen=False cov=0.000 accepted_lock=True acq=[1.57] HINT-FRAGILE
+r2 gen=False cov=0.000 accepted_lock=True acq=[1.57] HINT-FRAGILE
+
+===== VERDICT =====
+cell PASS = 3/6, cellbuf PASS = 3/6 -> RQ-E20 PARTIAL [hint-fragile]
+mean scoped acquire_s (cell) = 1.85 s vs E18 full-frame ~4.85 s

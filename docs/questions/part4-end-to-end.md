@@ -409,3 +409,18 @@
   Verdict band: motion compensation bolted onto a ~4.85 s acquire is not the lever; the binder
   remains raw acquire latency (faster/ROI acquire), or a buf-style submit-frame init re-scored at
   convergence — which the frozen metric deliberately does not credit. No UNRULED legs.
+
+- **RQ-E20 (does prompt-scoped cell-crop acquire cut acquire latency enough to flip E18's stale
+  locks into genuine arrival-frame locks, unchanged E18 metric?): PARTIAL [hint-fragile].**
+  cell = 3/6 (car9 + car14 flipped to PASS, car10 held; E18 A baseline 1/6); cellbuf identical
+  3/6. The latency lever itself worked exactly as estimated: mean scoped acquire 1.85 s vs
+  ~4.85 s full-frame (padded 3x3 cells, 173k-262k px vs 590k), backlog ~146 -> 47-62 frames, no
+  coverage regression (car7 0.285 -> 0.997, car18 0.711 -> 0.981 from the earlier lock alone).
+  The residual 3 FAILs are target-size-bound, not latency-bound: small targets (car3 16x41 px)
+  displace more than their own footprint even in ~1.8 s, so arrival-frame IoU pins ~0 while
+  coverage sits at 0.98+ — the frozen lock metric is now the conservative bound and the honest
+  next axis is lock scoring (convergence-scored lock) or even-smaller crops (resolution axis,
+  D7's E21). [hint-fragile] fired 2/2: a wrong hint makes the VLM hallucinate the caption in the
+  empty crop, the wrong lock poisons the E14 mask-gate template, and all 10 genuine REGROUND
+  re-offers get rejected — a deployment needs a hint-escape (full-frame + fresh template after N
+  gate rejects). No UNRULED legs.
