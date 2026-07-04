@@ -1,0 +1,41 @@
+E23 Phase-0 cell sweep (offline, free) -- frame-0 GT, 1280x720, tau=0.10
+==============================================================================
+
+Per-clip fuzz exposure (tau=0.10):
+  clip       cx     cy           true     worst_hint  plausible                   
+  car3    0.320  0.726    bottom left         center  middle left,center,bottom left,bottom center
+  car7    0.435  0.096     top center     top center  top center                  
+  car9    0.382  0.726  bottom center    middle left  middle left,center,bottom left,bottom center
+  car10   0.514  0.411         center     top center  top center,center           
+  car14   0.346  0.393         center       top left  top left,top center,middle left,center
+  car18   0.243  0.426    middle left     top center  top left,top center,middle left,center
+
+Sweep (worst-case containment /6, all-phrasing rate, mean worst-case area frac):
+       HW  wc_contain   allphrase  mean_area note            
+   0.2667       2/6     11/19        0.364 E20-equiv       
+   0.3200       5/6     17/19        0.492                 
+   0.3800       6/6     19/19        0.660 HW*             
+   0.4400       6/6     19/19        0.745                 
+   0.5000       6/6     19/19        0.789                 
+
+Per-clip worst-case containment across HW (1=contained, 0=escapes):
+  clip    0.2667  0.3200  0.3800  0.4400  0.5000
+  car3          1       1       1       1       1
+  car7          1       1       1       1       1
+  car9          0       0       1       1       1
+  car10         0       1       1       1       1
+  car14         0       1       1       1       1
+  car18         0       1       1       1       1
+
+tau sensitivity (worst-case containment /6 at tau in [0.05, 0.15, 0.1]):
+       HW tau=0.05  tau=0.1   tau=0.15 
+   0.2667   6/6      2/6      1/6    
+   0.3200   6/6      5/6      5/6    
+   0.3800   6/6      6/6      6/6    
+   0.4400   6/6      6/6      6/6    
+   0.5000   6/6      6/6      6/6    
+
+------------------------------------------------------------------------------
+E20 HW (0.2667) worst-case containment = 2/6  (< 6/6 -> too cagey, E23 justified)
+HW* = 0.3800 (smallest HW with 6/6 worst-case containment), mean worst-case area frac 0.660 (vs E20 0.364)
+------------------------------------------------------------------------------
