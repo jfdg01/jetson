@@ -25,3 +25,26 @@ detection miss — hence the `[carry-bound]` suffix. Warm-start removes the ~135
 COLD delivery staleness that killed 5/6 moving targets in Part IV. `[ready-only]` regime
 (t_p > acquire); early-prompt fallback out of scope. Detail:
 [`../../experiments/2026-07-04-warm-start-acquire/README.md`](../../experiments/2026-07-04-warm-start-acquire/README.md).
+
+### P5.2 — warm-start generalization + on-screen-speed sweep (2026-07-04)
+
+**RQ-P5.2a (generalization):** does the P5.1 warm-start win hold across object *categories*
+(person, boat, wakeboard, bike — not just cars)?
+
+**Verdict: YES.** WARM 21/25 vs COLD 5/25 (≥18, 21 > 5), passing in **all 5** categories
+(car, person, boat, wakeboard, bike). The 6 P5.1 car anchors reproduce; 2 of the 4 WARM misses are
+`[deliver-occluded]` structural fails (car7, person10 — GT absent at deliver frame, fail ORACLE
+too), so 21/23 = 91% on the non-degenerate set. Unlike P5.1 (WARM==ORACLE), P5.2 opens a 2-clip
+`[detection-bound]` headroom (person18, car17: ORACLE passes, the idle-window VLM seed misses) —
+the seed is no longer free on every category, itself a finding for small/deformable targets.
+
+**RQ-P5.2b (speed dependence):** does the WARM−COLD advantage grow with on-screen target speed
+(the Part V staleness premise: a blocking acquire lands stale because the target moves during it)?
+
+**Verdict: NO [flat-in-speed].** Spearman ρ(gap, speed) = **−0.06** (not > 0); per-bin mean
+WARM−COLD gap slow **+0.42** / med **+0.76** / fast **+0.62** — large and positive in every bin,
+not rising with speed. The staleness-grows-with-speed story is refuted: the payoff is a flat offset
+because COLD's ~135-frame *delivery* lag sinks it broadly (5/25), and its survivors are
+deliver-frame geometry accidents, not slow targets. Warm-start beats cold because cold's delivery
+is stale full stop — not because faster targets move further during the acquire. Detail:
+[`../../experiments/2026-07-04-warm-start-generalization/README.md`](../../experiments/2026-07-04-warm-start-generalization/README.md).
