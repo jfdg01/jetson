@@ -1,0 +1,45 @@
+===== C2F PER-CLIP (PASS = genuine_lock AND cov>=0.50; best of n=2) =====
+car3   r1 t_lock= 3.16 gen=False cov=0.980 iou=0.600 rej=0 coarse_hint=bottom center gt_hint=bottom left coarse_s=0.97 acquire_s=2.8 FAIL
+car3   r2 t_lock= 3.16 gen=False cov=0.980 iou=0.601 rej=0 coarse_hint=bottom center gt_hint=bottom left coarse_s=0.97 acquire_s=2.8 FAIL
+car7   r1 t_lock= 3.11 gen=False cov=0.000 iou=0.001 rej=3 coarse_hint=top center gt_hint=top center coarse_s=0.93 acquire_s=2.73 FAIL
+car7   r2 t_lock=  3.1 gen=False cov=0.000 iou=0.001 rej=3 coarse_hint=top center gt_hint=top center coarse_s=0.93 acquire_s=2.73 FAIL
+car9   r1 t_lock= 3.17 gen=False cov=0.991 iou=0.782 rej=0 coarse_hint=bottom center gt_hint=bottom center coarse_s=0.97 acquire_s=2.8 FAIL
+car9   r2 t_lock= 3.16 gen=False cov=0.989 iou=0.780 rej=0 coarse_hint=bottom center gt_hint=bottom center coarse_s=0.97 acquire_s=2.8 FAIL
+car10  r1 t_lock= 3.26 gen=False cov=0.000 iou=0.000 rej=10 coarse_hint=middle right gt_hint=center coarse_s=1.0 acquire_s=2.9 FAIL
+car10  r2 t_lock= 3.26 gen=False cov=0.000 iou=0.000 rej=10 coarse_hint=middle right gt_hint=center coarse_s=1.0 acquire_s=2.9 FAIL
+car14  r1 t_lock= 2.92 gen=True  cov=0.590 iou=0.374 rej=4 coarse_hint=top left gt_hint=center coarse_s=0.97 acquire_s=2.57 PASS
+car14  r2 t_lock= 2.92 gen=True  cov=0.590 iou=0.374 rej=4 coarse_hint=top left gt_hint=center coarse_s=0.97 acquire_s=2.57 PASS
+car18  r1 t_lock= 2.92 gen=False cov=0.888 iou=0.397 rej=0 coarse_hint=top left gt_hint=middle left coarse_s=0.97 acquire_s=2.57 FAIL
+car18  r2 t_lock= 2.92 gen=False cov=0.885 iou=0.395 rej=0 coarse_hint=top left gt_hint=middle left coarse_s=0.97 acquire_s=2.57 FAIL
+  c2f clip PASS = 1/6
+
+===== COARSE-HINT HIT (logged coarse cell vs GT submit-frame cell) =====
+car3   r1 coarse= bottom center gt=   bottom left MISS
+car3   r2 coarse= bottom center gt=   bottom left MISS
+car7   r1 coarse=    top center gt=    top center HIT
+car7   r2 coarse=    top center gt=    top center HIT
+car9   r1 coarse= bottom center gt= bottom center HIT
+car9   r2 coarse= bottom center gt= bottom center HIT
+car10  r1 coarse=  middle right gt=        center MISS
+car10  r2 coarse=  middle right gt=        center MISS
+car14  r1 coarse=      top left gt=        center MISS
+car14  r2 coarse=      top left gt=        center MISS
+car18  r1 coarse=      top left gt=   middle left MISS
+car18  r2 coarse=      top left gt=   middle left MISS
+  coarse-hint hit rate = 4/12 reps; clips with >=1 wrong rep = 4/6
+
+===== LATENCY =====
+  coarse_s: mean=0.97 min=0.93 max=1.0 (n=12)
+  total acquire_s: mean=2.73 min=2.57 max=2.9 (n=12) | E20 cell 1.57-2.07, E18 full-frame ~4.85
+
+===== REGRESSION GUARD (c2f cov vs E18 A best) =====
+car3   c2f_cov=0.980 E18A_cov=0.976 d=+0.004 ok
+car7   c2f_cov=0.000 E18A_cov=0.285 d=-0.285 BREACH
+car9   c2f_cov=0.991 E18A_cov=0.993 d=-0.002 ok
+car10  c2f_cov=0.000 E18A_cov=1.000 d=-1.000 BREACH
+car14  c2f_cov=0.590 E18A_cov=0.903 d=-0.313 BREACH
+car18  c2f_cov=0.888 E18A_cov=0.711 d=+0.177 ok
+
+===== VERDICT =====
+c2f PASS = 1/6 -> RQ-E21 NO (REGRESSIVE) [prior-wrong]
+mean coarse_s = 0.97 s, mean total acquire_s = 2.73 s

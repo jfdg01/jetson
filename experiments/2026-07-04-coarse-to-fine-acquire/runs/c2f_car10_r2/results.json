@@ -1,0 +1,207 @@
+{
+  "mc": "none",
+  "clip": "car10",
+  "caption": "the red car",
+  "hint": null,
+  "c2f": true,
+  "coarse_side": 320,
+  "gt_hint": "center",
+  "fps": 30.0,
+  "n_frames_gt": 1405,
+  "wall_s": 50.2,
+  "cap_hz": 6.15,
+  "loss_s": 1.0,
+  "app_tau": 12.0,
+  "buf_k": 12,
+  "max_side": 1024,
+  "n_gate_reject": 10,
+  "n_events": 4,
+  "trace": [
+    "TRACK",
+    "REGROUND"
+  ],
+  "mc_log": [
+    {
+      "state": "ACQUIRE",
+      "submit_i": 0,
+      "arrival_i": 87,
+      "acquire_s": 2.9,
+      "scoped": true,
+      "rect": [
+        725,
+        168,
+        1280,
+        552
+      ],
+      "coarse_s": 1.0,
+      "coarse_box": [
+        1241.6,
+        410.4,
+        1280.0,
+        446.4
+      ],
+      "coarse_hint": "middle right",
+      "gate": "accept"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 142,
+      "arrival_i": 277,
+      "acquire_s": 4.5,
+      "scoped": false,
+      "rect": null,
+      "coarse_s": null,
+      "coarse_box": null,
+      "coarse_hint": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 278,
+      "arrival_i": 413,
+      "acquire_s": 4.5,
+      "scoped": false,
+      "rect": null,
+      "coarse_s": null,
+      "coarse_box": null,
+      "coarse_hint": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 414,
+      "arrival_i": 548,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "coarse_s": null,
+      "coarse_box": null,
+      "coarse_hint": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 550,
+      "arrival_i": 684,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "coarse_s": null,
+      "coarse_box": null,
+      "coarse_hint": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 685,
+      "arrival_i": 820,
+      "acquire_s": 4.5,
+      "scoped": false,
+      "rect": null,
+      "coarse_s": null,
+      "coarse_box": null,
+      "coarse_hint": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 821,
+      "arrival_i": 955,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "coarse_s": null,
+      "coarse_box": null,
+      "coarse_hint": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 956,
+      "arrival_i": 1090,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "coarse_s": null,
+      "coarse_box": null,
+      "coarse_hint": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 1092,
+      "arrival_i": 1226,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "coarse_s": null,
+      "coarse_box": null,
+      "coarse_hint": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 1227,
+      "arrival_i": 1361,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "coarse_s": null,
+      "coarse_box": null,
+      "coarse_hint": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 1362,
+      "arrival_i": 1496,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "coarse_s": null,
+      "coarse_box": null,
+      "coarse_hint": null,
+      "gate": "reject"
+    }
+  ],
+  "score": {
+    "t_lock": 3.26,
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 1307
+  },
+  "events": [
+    [
+      3.259,
+      [
+        974.8,
+        264.0,
+        1013.6,
+        287.0
+      ]
+    ],
+    [
+      3.329,
+      [
+        1137.0,
+        319.0,
+        1196.0,
+        360.0
+      ]
+    ],
+    [
+      3.484,
+      [
+        1142.0,
+        315.0,
+        1211.0,
+        365.0
+      ]
+    ],
+    [
+      4.648,
+      null
+    ]
+  ]
+}

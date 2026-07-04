@@ -1,6 +1,11 @@
 # E21 coarse-to-fine acquire (drafted 2026-07-04)
 
-**Status: DRAFT — BLOCKED ON E20 MERGE + LAUNCH GATE.** Not yet run. Drafted
+**Status: COMPLETE — RQ-E21 NO (REGRESSIVE) [prior-wrong] (c2f 1/6).** Branch
+`experiment/coarse-to-fine-acquire`. Pre-registered 2026-07-04T12:05Z; 13-run matrix
+executed 2026-07-04T13:00Z-13:16Z; results written 2026-07-04T13:25Z. Launch gate
+CONFIRMED against E20's merged README (PARTIAL [hint-fragile], cell 3/6) before running.
+
+Drafted
 2026-07-04T12:05Z by the orchestrator session, before E20's official audit, as a
 complete handoff: a fresh conversation should be able to run this campaign from this
 file alone. See `experiments/HANDOFF-acquire-arc.md` for the arc-level loop
@@ -169,19 +174,126 @@ Per clip: PASS = `genuine_lock` AND coverage >= 0.50, better of n=2. Primary arm
 9. Final message = completion report: verdict, per-clip table, coarse hit rate, mean
    latencies, breakages, `git log --oneline main..HEAD`.
 
-## Results (TBD)
+## Results (2026-07-04T13:25Z)
 
-| clip | E18 A best (gen/cov) | E20 cell best (gen/cov) | c2f r1 | c2f r2 | c2f best PASS? | coarse hint ok? | coarse_s | total acquire_s |
+Run: 13/13 legs, zero crashes (`raw/matrix.log`, rollup `raw/summary.txt`). Jetson
+15W + jetson_clocks (`raw/jetson-power.txt`, GPU pinned 624.75 MHz). Every c2f leg got
+a valid (non-None) coarse box, so the pre-registered COARSE_MAX_SIDE 320->448
+contingency never fired (the coarse premise is not dead at the plumbing level — it is
+dead at the *accuracy* level, which is the result). The E20 cell / E18 A columns are
+verified against E20's merged official README table.
+
+### Per-clip table (PASS = genuine_lock AND coverage >= 0.50; clip = best of n=2)
+
+| clip | E18 A best (gen/cov) | E20 cell best (gen/cov) | c2f r1 (gen/cov) | c2f r2 (gen/cov) | c2f best PASS? | coarse hint ok? | coarse_s | total acquire_s |
 |---|---|---|---|---|---|---|---|---|
-| car3 | F / 0.976 | F / 0.982 | | | | | | |
-| car7 | F / 0.285 | F / 0.997 | | | | | | |
-| car9 | F / 0.993 | **P** / 0.996 | | | | | | |
-| car10 | **P** / 1.000 | **P** / 1.000 | | | | | | |
-| car14 | F / 0.903 | **P** / 0.907 | | | | | | |
-| car18 | F / 0.711 | F / 0.981 | | | | | | |
+| car3 | F / 0.976 | F / 0.982 | F / 0.980 | F / 0.980 | FAIL | MISS (bottom center vs bottom left) | 0.97 | 2.80 |
+| car7 | F / 0.285 | F / 0.997 | F / 0.000 | F / 0.000 | FAIL | HIT (top center) | 0.93 | 2.73 |
+| car9 | F / 0.993 | **P** / 0.996 | F / 0.991 | F / 0.989 | FAIL | HIT (bottom center) | 0.97 | 2.80 |
+| car10 | **P** / 1.000 | **P** / 1.000 | F / 0.000 | F / 0.000 | FAIL | MISS (middle right vs center) | 1.00 | 2.90 |
+| car14 | F / 0.903 | **P** / 0.907 | **P** / 0.590 | **P** / 0.590 | **PASS** | MISS (top left vs center) | 0.97 | 2.57 |
+| car18 | F / 0.711 | F / 0.981 | F / 0.888 | F / 0.885 | FAIL | MISS (top left vs middle left) | 0.97 | 2.57 |
 
-(The E20 column here is from the orchestrator's pre-audit peek at the run JSONs;
-verify against E20's official README Results when it merges and correct if needed.)
+c2f = **1/6 PASS** (only car14 — and its coverage regressed 0.907 -> 0.590). E20 cell
+was 3/6; E18 A was 1/6 (car10). Both clips E20 flipped (car9, car14) plus the one E18
+held (car10) come apart under c2f: car9 loses the genuine lock, car10 wrong-cells to
+cov 0.000, car14 survives only as a low-coverage regression.
 
-Verdict: TBD. Coarse hit rate: TBD. Estimate-vs-actual: TBD.
-What broke / what surprised: TBD.
+### Coarse-hint hit table (logged coarse cell vs GT cell at the submit frame, D4)
+
+| clip | coarse cell | GT cell | hit? |
+|---|---|---|---|
+| car3 | bottom center | bottom left | MISS |
+| car7 | top center | top center | **HIT** |
+| car9 | bottom center | bottom center | **HIT** |
+| car10 | middle right | center | MISS |
+| car14 | top left | center | MISS |
+| car18 | top left | middle left | MISS |
+
+**Coarse-hint hit rate = 4/12 reps (2/6 clips: car7, car9; deterministic per clip,
+both reps identical).** 4/6 clips voted the wrong 3x3 cell -> suffix **[prior-wrong]**
+(threshold was >= 2). The 320px coarse pass grounds "the red car" off-target even for
+the large, centred, "easy" targets: car10 (E20/E18's most reliable clip) landed
+`middle right`, car14 landed `top left` — both are actually `center`.
+
+### Latency (per `mc_log`: coarse_s = coarse pass, acquire_s = both passes)
+
+| quantity | E18 full-frame | E20 scoped cell | E21 coarse-to-fine |
+|---|---|---|---|
+| coarse pass wall | — | — | **0.97 s** (n=12, 0.93–1.00) |
+| total acquire wall | ~4.85 s | 1.85 s | **2.73 s** (n=12, 2.57–2.90) |
+| frame backlog at arrival | ~146 | 47–62 | 77–87 |
+| arrival-frame IoU (r1) | 1/6 >= 0.25 | car9 0.32, car10 0.57, car14 0.73 pass | car3 0.00, car7 0.00, car9 **0.24**, car10 0.00, car14 0.55, car18 0.00 |
+
+The coarse pass is cheap (0.97 s, ~as estimated) but it is *additive*: total acquire
+rises 1.85 s -> 2.73 s, so the backlog grows 47–62 -> 77–87 frames. car9 is the clean
+demonstration: correct cell, same frame-0 fine crop as E20, but the arrival-frame IoU
+falls 0.32 (E20) -> **0.24** (E21) — just under the 0.25 lock threshold — purely
+because the extra ~1 s let the target move further before arrival. The prior automates
+fine on car9; the automation's own latency un-flips it.
+
+### Verdict (frozen rules applied mechanically)
+
+c2f 1/6 -> **NO** (rule: <= 1/6). Regression guard: **BREACH** on car7 (0.000 vs E18A
+0.285), car10 (0.000 vs 1.000), car14 (0.590 vs 0.903) -> **(REGRESSIVE)**. Wrong
+coarse cell on 4/6 clips (>= 2) -> **[prior-wrong]**. Final: **RQ-E21 NO (REGRESSIVE)
+[prior-wrong]**. The automated coarse prior is both too inaccurate (4/6 wrong cell) and
+too slow (the extra pass re-opens the very staleness gap the crop was meant to close).
+
+### Estimate vs actual
+
+| estimate | actual | verdict |
+|---|---|---|
+| coarse pass ~0.8–1.0 s | 0.97 s mean (0.93–1.00) | hit |
+| total acquire ~2.6–3.0 s | 2.73 s mean (2.57–2.90) | hit |
+| c2f <= E20 cell, ~2/6 PASS (car10, car9 survive) | **1/6** (car14 only); car9 AND car10 both dropped | **worse** |
+| coarse cell hit rate ~4/6 (car3, car7 the likely misses) | **2/6** (car7 HIT, car9 HIT); car3/car10/car14/car18 MISS | **worse, wrong misses** |
+
+Both quality estimates were too optimistic and mis-attributed. The latency estimates
+were exact.
+
+### What broke / what surprised
+
+- **Nothing crashed; 13/13 legs clean, every coarse pass returned a valid box** (so the
+  320->448 contingency did not trigger). The failure is entirely in accuracy + latency,
+  not plumbing.
+- **The coarse prior misses the EASY targets.** The pre-registration guessed the small
+  car3 (16 px) and boundary car7 (40 px) would miss; instead car7 HIT and the large,
+  centred car10/car14 — E20/E18's most reliable clips — MISSED (grounded `middle right`
+  / `top left` for `center` targets). At 320 px the VLM's box for "the red car" is
+  imprecise enough that its *centroid* falls in a neighbouring cell even for a big
+  central car. Cell voting does not rescue this: an off-by-one cell crops away the
+  target.
+- **A correct coarse cell is not enough — the extra pass un-flips car9.** car9's coarse
+  cell was right and its fine crop identical to E20's, yet the genuine lock is lost:
+  arrival-frame IoU 0.32 -> 0.24, straddling the 0.25 threshold, because ~1 s more
+  latency = ~29 more frames of target motion before arrival. This is the pre-registered
+  "the prior automates fine; the extra ~1 s re-opens the staleness gap" outcome,
+  realised on the one clip where the prior worked.
+- **car7 collapses even with a correct cell (cov 0.997 -> 0.000).** Same frame-0 fine
+  crop as E20, but the longer acquire widens the SAM2 init(frame 0) -> first-live-step
+  (frame 82 vs E20's ~55) jump; for the fast, small silver car SAM2 cannot bridge it,
+  the mask goes empty, and it drops to REGROUND (3 gate rejects). Latency hurts carry
+  bridging, not just the arrival-frame metric.
+- **Wrong cells reproduce E20's [hint-fragile] automatically.** car10's `middle right`
+  crop contains no red car; the VLM hallucinates a box at the frame's right edge
+  (~x 1240–1280), carry locks it (cov 0.000), and the poisoned mask-gate template then
+  rejects all 10 full-frame REGROUND re-offers of the true car (gate_rej=10). The E20
+  wrong-hint probe is now an unforced, self-inflicted error whenever the coarse pass
+  votes wrong — which is 4/6 of the time.
+- **Net:** automating the E20 hint with a coarse VLM pass is a dead end on both axes.
+  The follow-up lever is E22 (a ~ms CPU motion+colour prior) or E21-D1's given-up
+  M-margin ROI crop (a tighter, latency-cheaper prior geometry), not a second VLM pass.
+
+### Proof clips (committed under `proof/`)
+
+- `proof/car9_E20cell_vs_E21c2f.mp4` — the automation-cost before/after: top = E20
+  `cell_car9_r1` (operator "bottom center" hint, genuine PASS); bottom = E21
+  `c2f_car9_r1` (automated pass votes the SAME correct cell, but the extra ~1 s coarse
+  pass drops the arrival IoU 0.32 -> 0.24 and the genuine lock is lost). A correct
+  automated hint is still not free.
+- `proof/car10_E20cell_vs_E21c2f_wrongcell.mp4` — the automated [prior-wrong] failure
+  (the analogue of E20's wrong-hint probe): top = E20 `cell_car10_r1` (operator
+  "center", PASS cov 1.00); bottom = E21 `c2f_car10_r1` (coarse pass votes `middle
+  right`, hallucinates a red box on the empty right edge, cov 0.000, and poisons the
+  mask gate — 10 REGROUND rejects, never recovers).

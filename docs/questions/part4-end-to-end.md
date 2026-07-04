@@ -424,3 +424,21 @@
   empty crop, the wrong lock poisons the E14 mask-gate template, and all 10 genuine REGROUND
   re-offers get rejected — a deployment needs a hint-escape (full-frame + fresh template after N
   gate rejects). No UNRULED legs.
+
+- **RQ-E21 (can a cheap low-res coarse VLM pass replace E20's operator hint — vote the crop
+  cell automatically — and preserve E20's genuine-lock flips, unchanged E18 metric?): NO
+  (REGRESSIVE) [prior-wrong].** c2f = 1/6 (only car14, and its coverage regressed 0.907 →
+  0.590) vs E20's operator-hinted 3/6. The automated 320-px coarse pass votes the wrong 3x3
+  cell on 4/6 clips ([prior-wrong]) — and the misses are the EASY, large, central targets
+  (car10, car14 grounded off-cell), not the small/boundary ones the pre-registration guessed;
+  at 320 px the box centroid for "the red car" slips into a neighbouring cell even for a big
+  central car, and an off-by-one cell crops the target away. Worse, the coarse pass is additive
+  latency (0.97 s → total acquire 1.85 → 2.73 s), which alone un-flips the wins even when the
+  cell is right: car9 (correct cell, identical fine crop) loses the genuine lock as arrival-IoU
+  falls 0.32 → 0.24 under the 0.25 threshold from ~1 s more motion, and car7 (correct cell)
+  collapses cov 0.997 → 0.000 as the wider SAM2 init→first-live jump breaks carry bridging on the
+  fast small target. Regression guard BREACH on car7/car10/car14 → (REGRESSIVE). A wrong coarse
+  cell reproduces E20's [hint-fragile] unforced (car10: hallucinate + mask-gate poison, gate_rej
+  10). Automating the E20 hint with a second VLM pass is a dead end on both axes; the next lever
+  is a ~ms CPU motion+colour prior (E22) or a tighter latency-cheaper ROI-margin crop geometry
+  (E21-D1 given-up), not a coarse VLM pass. No UNRULED legs.
