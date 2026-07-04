@@ -25,8 +25,8 @@ automated by a coarse VLM pass (E21, drafted) or a ~free CPU motion+colour prior
 | E18 real-video-replay | `2026-07-03-real-video-replay/` | COMPLETE, merged `e2343a8` |
 | E19 motion-comp-acquire | `2026-07-04-motion-comp-acquire/` | COMPLETE, merged `18b90fa` |
 | E20 prompt-scoped-acquire | `2026-07-04-prompt-scoped-acquire/` | COMPLETE, audited + merged to main 2026-07-04 (PARTIAL [hint-fragile], cell 3/6, mean scoped acquire 1.85 s; 27/27 legs clean, zero fallbacks) |
-| E21 coarse-to-fine | `2026-07-04-coarse-to-fine-acquire/` | DRAFT (README only, on the E20 branch). Launch gate: E20 merged PARTIAL/YES — met, pending audit |
-| E22 cv-proposal | `2026-07-04-cv-proposal-acquire/` | DRAFT (README only, on the E20 branch). Phase-0 offline audit is free and may run any time after E20 merges; E22 may be re-ordered before E21 (see its Launch gate) |
+| E21 coarse-to-fine | `2026-07-04-coarse-to-fine-acquire/` | COMPLETE, merged `e3fc228` (RQ-E21 NO (REGRESSIVE) [prior-wrong], c2f 1/6 vs E20 cell 3/6; automated coarse VLM prior fails both axes) |
+| E22 cv-proposal | `2026-07-04-cv-proposal-acquire/` | DRAFT (README only, on main). NEXT. Launch gate MET: E20 cell was PARTIAL and E21 did NOT hit YES -> E22 runs IN FULL (not scoped to Phase-0-only). Phase-0 offline prior audit is the free MANDATORY gate; run it first |
 
 Orientation for a cold start: read `CLAUDE.md` (workflow rules), then this file, then
 the E20 README end-to-end, then the E21/E22 READMEs. Auto-memory (if you have it)
@@ -76,19 +76,26 @@ Division of labor that has worked for E18-E20:
   `runs/*/results.json` committed.
 - Estimate-vs-actual section filled; "what broke / what surprised" honest.
 
-## Immediate next action: launch E21 (or re-order E22 first)
+## Immediate next action: launch E22 (cv-proposal)
 
-E20 is audited and merged; its README Results section is authoritative. Two E20
-findings that E21/E22 already account for: cellbuf ≈ cell (both drafts dropped buf
-legs, their D2), and the residual FAILs (car3/car7/car18) are TARGET-SIZE bound, not
-latency bound — arrival-frame IoU 0.00-0.02 while coverage is 0.98+, i.e. the carry
-latches the right object from the submit frame but the raw arrival-frame box misses
-a small displaced target. A perfect automated prior can therefore be expected to
-reproduce E20's 3/6, not beat it (both drafts pre-register this).
+E20 and E21 are both audited and merged. E21's answer settled one branch of the
+question: **a second VLM pass is the wrong shape for the automated prior** — a 320px
+coarse VLM vote is too inaccurate (2/6 cells, misses the easy large central targets)
+AND its +0.97s re-opens the staleness gap even when the cell is right (car9 correct
+cell still loses the genuine lock). So the surviving hypothesis is E22's: a ~ms CPU
+motion+colour prior that preserves E20's 1.85s latency. E21 did NOT hit YES, so
+E22's Launch gate says run it IN FULL (not scoped to Phase-0-only).
 
-Next step: check E21's Launch gate (met), branch `experiment/coarse-to-fine-acquire`
-off main, spawn the executor per "The loop" step 2. Or run E22's free offline
-Phase-0 prior audit first to decide the order (E22's Launch gate explains why).
+Two E20 findings E22 already accounts for: cellbuf ≈ cell (dropped buf legs, D2), and
+the residual FAILs are TARGET-SIZE bound not latency bound (arrival-frame IoU ~0 at
+cov 0.98+). E21 added a third caveat E22 should heed: even a CORRECT cell can lose
+the arrival-frame lock (car9) or fail carry bridging (car7 fast small target) — so
+E22 preserving E20's 3/6 is the honest ceiling, not a certainty.
+
+Next step: check E22's Launch gate (met, run in full), branch
+`experiment/cv-proposal-acquire` off main, spawn the executor per "The loop" step 2.
+E22's Phase-0 offline prior audit is a FREE MANDATORY gate (>=4/6 t=0 cell hit rate)
+that can kill the campaign cheaply before any Jetson leg — the executor runs it first.
 
 One E20 deployment note not yet acted on anywhere: the hint-escape idea (after N
 consecutive mask-gate rejects following a scoped acquire, drop to full-frame AND
