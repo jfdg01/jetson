@@ -783,3 +783,47 @@ headline idea — contributed to exactly one cell (car9). Prior latency ~3 ms (1
 <30 ms estimate); acquire not measured (no Jetson leg). No matrix, no overlays; proof =
 `proof/phase0_prior_stages.png` (mask-stage montage: car9 HIT, car3 tiny-miss, car7
 silver-flood). Raw: `experiments/2026-07-04-cv-proposal-acquire/raw/phase0_prior_audit.txt`.
+
+### 2026-07-04 — E23 tolerant-cell sizing ([`experiments/2026-07-04-tolerant-cells/`](../../experiments/2026-07-04-tolerant-cells/README.md))
+
+UX coda to E20: replace E20's rigid `third+pad` crop with one overlapping half-width knob HW
+(cells centered at {1/6,3/6,5/6}, span [c-HW,c+HW]; HW=0.2667 reproduces E20). Score against a
+FUZZED operator (tau=0.10, worst-case plausible phrasing) to ask if bigger cells absorb casual
+edge-fuzz without regressing E20's acquire win. Phase-0 offline sweep picks HW*; 13 on-device
+legs (Jetson Q8_0, 15W + jetson_clocks) confirm only that size.
+
+Phase-0 sweep (frame-0 GT, tau=0.10, worst-case containment / mean crop-area frac):
+
+| HW | wc containment /6 | all-phrasing | mean area frac | note |
+|---|---|---|---|---|
+| 0.2667 | 2/6 | 11/19 | 0.364 | E20-equiv (too cagey, NOT [already-tolerant]) |
+| 0.3200 | 5/6 | 17/19 | 0.492 | |
+| **0.3800** | **6/6** | **19/19** | **0.660** | **HW\*** |
+| 0.4400 | 6/6 | 19/19 | 0.745 | |
+| 0.5000 | 6/6 | 19/19 | 0.789 | |
+
+On-device at HW*=0.38, worst-case fuzzed hints, n=2 (PASS = genuine_lock AND cov>=0.50, best of 2):
+
+| clip | true→fuzzed hint | E18 A best | E20 cell best | tol best | tol PASS? | acquire_s |
+|---|---|---|---|---|---|---|
+| car3 | bottom left→center | F/0.976 | F/0.982 | F/0.901 | FAIL | 3.93 |
+| car7 | top center→top center | F/0.285 | F/0.997 | F/0.286 | FAIL | 2.67 |
+| car9 | bottom center→middle left | F/0.993 | **P**/0.996 | F/0.988 | FAIL | 2.83 |
+| car10 | center→top center | **P**/1.000 | **P**/1.000 | F/0.000 | FAIL | 2.67 |
+| car14 | center→top left | F/0.903 | **P**/0.907 | **P**/0.916 | **PASS** | 2.10 |
+| car18 | middle left→top center | F/0.711 | F/0.981 | F/0.987 | FAIL | 2.63 |
+
+**tol PASS = 1/6 (only car14), E20 set {car9,car10,car14} kept 1/3 → RQ-E23 = NO (REGRESSIVE)
+[containment-not-sufficient]**. mean scoped acquire_s = **2.80 s** (n=12, 2.10–3.93) vs E20 1.85
+/ E18 4.85 — inside the <3.0 s budget, so latency is NOT the binder. Regression guard: car10
+BREACH (tol cov 0.000 vs E18-A 1.000). Phase-0 guaranteed 6/6 geometric containment at HW*, yet
+containment did not yield a lock: (a) car10's enlarged worst-case "top center" crop still contains
+the target but ALSO a second red car → VLM grounds the decoy (cov 0.000, 9–10 REGROUND gate
+rejects = E20-style poisoned template); (b) car3/car9/car18 reach high coverage (0.90–0.99) but
+`genuine_lock` FALSE — the ~2.8 s acquire lands after the arrival frame on moving targets, E18's
+acquire-latency-vs-motion binder untouched by fuzz-tolerance. car14 is the lone survivor (E18-A
+stale FALSE → tolerant cell locks, genuine, 2.10 s). Bigger tolerant cells re-import the two
+problems E20's tight cell suppressed (distractors + moving-target staleness); operator
+fuzz-tolerance and small distractor-free crops are in tension. Proof: `proof/cell_sweep.png`,
+`proof/car10_E18_vs_E23tol_regression.mp4`, `proof/car9_E23tol_stale.mp4`,
+`proof/car14_E23tol_survivor.mp4`. Raw: `experiments/2026-07-04-tolerant-cells/raw/`.

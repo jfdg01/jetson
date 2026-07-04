@@ -1,0 +1,208 @@
+{
+  "mc": "none",
+  "clip": "car10",
+  "caption": "the red car",
+  "hw": 0.38,
+  "tau": 0.1,
+  "true_hint": "center",
+  "fuzzed_hint": "top center",
+  "fps": 30.0,
+  "n_frames_gt": 1405,
+  "wall_s": 51.1,
+  "cap_hz": 6.15,
+  "loss_s": 1.0,
+  "app_tau": 12.0,
+  "buf_k": 12,
+  "max_side": 1024,
+  "n_gate_reject": 9,
+  "n_events": 5,
+  "trace": [
+    "TRACK",
+    "REGROUND",
+    "TRACK",
+    "REGROUND"
+  ],
+  "mc_log": [
+    {
+      "state": "ACQUIRE",
+      "submit_i": 0,
+      "arrival_i": 80,
+      "acquire_s": 2.67,
+      "scoped": true,
+      "rect": [
+        153,
+        0,
+        1126,
+        393
+      ],
+      "hw": 0.38,
+      "fuzzed_hint": "top center",
+      "true_hint": "center",
+      "gate": "accept"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 125,
+      "arrival_i": 260,
+      "acquire_s": 4.5,
+      "scoped": false,
+      "rect": null,
+      "hw": 0.38,
+      "fuzzed_hint": null,
+      "true_hint": "center",
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 262,
+      "arrival_i": 396,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "hw": 0.38,
+      "fuzzed_hint": null,
+      "true_hint": "center",
+      "gate": "accept"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 439,
+      "arrival_i": 573,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "hw": 0.38,
+      "fuzzed_hint": null,
+      "true_hint": "center",
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 574,
+      "arrival_i": 709,
+      "acquire_s": 4.5,
+      "scoped": false,
+      "rect": null,
+      "hw": 0.38,
+      "fuzzed_hint": null,
+      "true_hint": "center",
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 710,
+      "arrival_i": 845,
+      "acquire_s": 4.5,
+      "scoped": false,
+      "rect": null,
+      "hw": 0.38,
+      "fuzzed_hint": null,
+      "true_hint": "center",
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 846,
+      "arrival_i": 980,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "hw": 0.38,
+      "fuzzed_hint": null,
+      "true_hint": "center",
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 981,
+      "arrival_i": 1115,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "hw": 0.38,
+      "fuzzed_hint": null,
+      "true_hint": "center",
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 1117,
+      "arrival_i": 1251,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "hw": 0.38,
+      "fuzzed_hint": null,
+      "true_hint": "center",
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 1252,
+      "arrival_i": 1386,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "hw": 0.38,
+      "fuzzed_hint": null,
+      "true_hint": "center",
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 1388,
+      "arrival_i": 1522,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "hw": 0.38,
+      "fuzzed_hint": null,
+      "true_hint": "center",
+      "gate": "reject"
+    }
+  ],
+  "score": {
+    "t_lock": 3.03,
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 1314
+  },
+  "events": [
+    [
+      3.027,
+      [
+        376.8,
+        224.0,
+        406.0,
+        251.5
+      ]
+    ],
+    [
+      4.087,
+      null
+    ],
+    [
+      13.318,
+      [
+        550.4,
+        259.2,
+        601.6,
+        295.2
+      ]
+    ],
+    [
+      13.37,
+      [
+        600.0,
+        198.0,
+        628.0,
+        229.0
+      ]
+    ],
+    [
+      14.531,
+      null
+    ]
+  ]
+}
