@@ -39,3 +39,30 @@ W=5/6, C=1/6, O=5/6. **WARM-vs-ORACLE gap = EMPTY** (real idle VLM seed == GT se
 zero detection headroom). Sole failure car7 = occlusion at the prompt frame (`gt[240]` absent) →
 carry-bound, also fails ORACLE. See `proof/warm_vs_cold_vs_oracle.png` (coverage + freshness) and
 `proof/car10_warm_vs_cold.mp4` (fresh vs stale delivery).
+
+### P5.2 — warm-start generalization + on-screen-speed sweep (2026-07-04)
+
+Detail: [`../../experiments/2026-07-04-warm-start-generalization/README.md`](../../experiments/2026-07-04-warm-start-generalization/README.md).
+Config identical to P5.1 (Q8_0 terse acquire, SAM2.1-tiny TRT fp16 6.15 Hz, mask gate app-τ=12.0,
+t_p=8 s, 10 s window, Jetson 15 W + jetson_clocks). Extends P5.1's 6 cars to **25 clips × 5
+categories × a data-driven on-screen-speed sweep** (0.00–15.62 %frame-diag/s), clips selected from
+UAV123 GT via `profiles.py` (measured, not eyeballed). n=1 (P5.1 was bit-identical across reps);
+75 legs, 0 INVALID. Metric unchanged: genuine_lock at deliver-frame AND coverage ≥ 0.50.
+
+| leg | PASS | mechanism |
+|---|---|---|
+| WARM (idle-window VLM seed, select at t_p) | **21/25** | fresh carry still locked at prompt; 5 categories (car/person/boat/wakeboard/bike) |
+| COLD (cold acquire at prompt, delivered stale) | 5/25 | ~135-frame stale box; survivors are deliver-frame geometry accidents, not slow clips |
+| ORACLE (GT[0] seed, ceiling) | 22/25 | GT-seed ceiling; 2-clip detection headroom over WARM at scale |
+
+WARM 4 misses: car7, person10 `[deliver-occluded]` (GT absent at deliver frame 240 → fail ORACLE
+too; 21/23 = 91% on the non-degenerate set); person18, car17 `[detection-bound]` (ORACLE passes,
+idle-window VLM seed is the binder). WARM *beats* ORACLE on wakeboard2 (cov 0.677 > 0.443).
+
+**Speed sweep (RQ-P5.2b):** per-clip WARM−COLD coverage gap vs on-screen speed — Spearman
+ρ = **−0.06** (flat). Per-bin mean gap: slow **+0.42**, med **+0.76**, fast **+0.62** — large and
+positive in every bin, NOT rising with speed. The staleness-grows-with-speed prediction is
+refuted: warm-start's payoff is a flat offset (COLD's *delivery* lag sinks it broadly, independent
+of motion). Full per-clip table in the experiment README. Proof: `proof/gap_vs_speed.png` (the
+thesis figure — ρ + per-bin means), `proof/generalization_grid.png` (PASS by category),
+`proof/person20_warm_vs_cold.mp4` (fast non-car money shot: fresh WARM tracks, stale COLD misses).

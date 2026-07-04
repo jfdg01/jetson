@@ -4,7 +4,9 @@
 (warm-start acquire, YES [carry-bound], 6 red-ish cars). Reuses the P5.1 rig **unchanged**
 (`warmstart.py` schedule + `replay_e24.py` WARM/COLD/ORACLE legs); the only new code here is
 `profiles.py` (data-driven clip selection). Self-contained handoff.
-**Status:** PRE-REGISTERED — dataset selection + matrix pending the UAV123 download.
+**Status:** COMPLETE 2026-07-04T20:05Z. **RQ-P5.2a = YES** (WARM 21/25, COLD 5/25, 5 categories).
+**RQ-P5.2b = NO [flat-in-speed]** (Spearman ρ(gap,speed) = −0.06; the payoff is a large *flat*
+offset, not speed-scaling). Full matrix ran clean (0 INVALID).
 
 ## Research question
 
@@ -173,14 +175,68 @@ generic category phrases (the honest operator phrase; single-dominant-target cli
 `clips.json` (what `run_matrix.py` reads); `profiles.json` (full 123-seq profile) lives with the
 data. **Note the category-count caveat for RQ-P5.2a:** 5 categories, ≥4 threshold still applies.
 
-## Results (TBD)
+## Results (2026-07-04T20:05Z, n=1, 0 INVALID)
+
+**W = 21/25, C = 5/25, O = 22/25.** Backend/rig unchanged from P5.1 (Q8_0 terse max_side 1024,
+SAM2.1-tiny TRT fp16, mask gate app_tau 12.0, Jetson 15 W + jetson_clocks). PASS = `genuine_lock`
+(at the leg's deliver_frame) AND `coverage` ≥ 0.50. `gen/cov` below is `genuine_lock`/`coverage`.
 
 | clip | speed%/s | WARM gen/cov | COLD gen/cov | ORACLE gen/cov | WARM−COLD gap | WARM PASS? |
 |---|---|---|---|---|---|---|
-| _(25 rows)_ | | | | | | |
+| car10 | 0.00 | T/1.000 | F/0.000 | T/1.000 | +1.00 | YES |
+| boat2 | 1.02 | T/1.000 | T/1.000 | T/1.000 | +0.00 | YES |
+| person15 | 1.02 | T/1.000 | F/0.897 | T/1.000 | +0.10 | YES |
+| boat3 | 2.04 | T/1.000 | T/1.000 | T/1.000 | +0.00 | YES |
+| car3 | 2.04 | T/1.000 | F/0.000 | T/1.000 | +1.00 | YES |
+| car9 | 2.04 | T/1.000 | F/0.000 | T/1.000 | +1.00 | YES |
+| car14 | 2.28 | T/0.980 | T/0.870 | T/0.980 | +0.11 | YES |
+| car7 | 2.28 | F/0.111 | F/0.000 | F/0.111 | +0.11 | no [deliver-occluded] |
+| person13 | 2.89 | T/0.970 | F/0.000 | T/0.970 | +0.97 | YES |
+| wakeboard8 | 3.23 | T/0.710 | F/0.000 | T/0.700 | +0.71 | YES |
+| person6 | 3.68 | T/0.953 | T/0.907 | T/0.937 | +0.05 | YES |
+| wakeboard3 | 4.09 | T/0.923 | F/0.000 | T/0.923 | +0.92 | YES |
+| bike1 | 4.21 | T/0.963 | F/0.000 | T/0.970 | +0.96 | YES |
+| person1 | 4.21 | T/0.937 | F/0.000 | T/0.927 | +0.94 | YES |
+| person18 | 4.57 | F/0.293 | F/0.000 | T/1.000 | +0.29 | no [detection-bound] |
+| car18 | 5.11 | T/0.993 | F/0.000 | T/0.983 | +0.99 | YES |
+| person20 | 5.21 | T/0.980 | F/0.000 | T/0.980 | +0.98 | YES |
+| car17 | 5.96 | F/0.000 | F/0.000 | T/0.997 | +0.00 | no [detection-bound] |
+| car4_s | 6.13 | T/0.907 | F/0.000 | T/0.900 | +0.91 | YES |
+| wakeboard6 | 7.22 | T/0.730 | F/0.000 | T/0.733 | +0.73 | YES |
+| car1_s | 7.37 | T/0.747 | F/0.000 | T/0.783 | +0.75 | YES |
+| car3_s | 7.37 | T/0.930 | T/0.987 | T/0.923 | -0.06 | YES |
+| wakeboard2 | 7.37 | T/0.677 | F/0.000 | T/0.443 | +0.68 | YES |
+| person10 | 8.42 | F/0.859 | F/0.104 | F/0.859 | +0.76 | no [deliver-occluded] |
+| person1_s | 15.62 | T/0.787 | F/0.000 | T/0.817 | +0.79 | YES |
 
-`W=_/25, C=_/25, O=_/25.` RQ-P5.2a = TBD. RQ-P5.2b: Spearman ρ(gap, speed) = TBD;
-gap by bin slow/med/fast = TBD. Estimate-vs-actual: TBD.
+**RQ-P5.2a (generalization) = YES.** W=21 ≥ 18, W(21) > C(5), and WARM passes in **all 5**
+categories (car, person, boat, wakeboard, bike). Of the 4 WARM misses, 2 are the pre-registered
+`[deliver-occluded]` structural fails (car7, person10 — GT absent at deliver frame 240, fail
+ORACLE too), so on the non-degenerate 23-clip set WARM is **21/23 = 91%**. The 6 P5.1 car anchors
+reproduce (car3/9/10/14/18 PASS; car7 structural) — P5.1 corroborated at scale, across categories.
+
+**RQ-P5.2b (speed dependence) = NO [flat-in-speed].** Spearman ρ(gap, speed) = **−0.06** (not > 0).
+Per-bin mean WARM−COLD gap: **slow +0.42, med +0.76, fast +0.62** — large and positive in *every*
+bin, not rising with speed. The staleness-grows-with-speed prediction is refuted: the warm-start
+payoff is a big *flat* offset, already saturated at slow speeds. Mechanism: COLD's ~135-frame
+delivery staleness sinks it broadly (C=5/25) regardless of on-screen speed — the 5 COLD survivors
+(boat2, boat3, car14, person6, car3_s) are not the slow clips but the ones whose target happens to
+sit near its deliver-frame position, a geometry accident independent of speed. So the warm-start
+win is **real and general but not mediated by the speed axis Part V hypothesised** — a clean
+negative that reshapes the story: warm-start beats cold because cold's *delivery* is stale, full
+stop, not because faster targets move further during the blocking acquire.
+
+**WARM-vs-ORACLE gap set:** WARM loses to ORACLE on **person18, car17** (`[detection-bound]`:
+ORACLE's GT seed passes where the idle-window VLM seed misses — the seed is the binder, not the
+carry) and *beats* ORACLE on **wakeboard2** (WARM cov 0.677 > ORACLE 0.443, seed noise). Net 21 vs
+22. Unlike P5.1 (WARM==ORACLE exactly), P5.2 opens a 2-clip detection headroom at scale — the VLM
+seed is no longer free on every category, which is itself a finding (small/deformable targets).
+
+**Estimate vs actual:** matrix wall ~19 min (est ~33 min — per-leg faster than P5.1's 26 s). W=21
+landed at the top of the est ~17–20 range; C=5 mid-range (est 3–6). The **speed-sweep estimate was
+wrong**: predicted gap ≈0 slow / large fast (ρ>0); actual gap is large in *all* bins (ρ=−0.06).
+The wrong estimate is the content — the staleness mechanism is delivery-lag, not motion-during-
+acquire.
 
 ## Deliverables (proof/)
 
@@ -189,7 +245,10 @@ gap by bin slow/med/fast = TBD. Estimate-vs-actual: TBD.
    per-bin means — shows warm-start's payoff growing with target speed.
 2. **`proof/generalization_grid.png`**: WARM/COLD/ORACLE PASS across the 25 clips grouped by
    category (does the win hold beyond cars).
-3. One overlay clip on a **fast non-car** target where WARM passes and COLD misses (the money
-   shot: fresh warm box tracks the fast mover, stale cold box lands where it *was*).
+3. **`proof/person20_warm_vs_cold.mp4`** (money shot): side-by-side overlay on **person20**
+   (fast non-car, 5.21 %diag/s, WARM T/0.980 vs COLD F/0.000). Left = WARM: fresh idle-window
+   seed, green held box tracks the moving person (red GT). Right = COLD: the ~135-frame-stale
+   delivered box lands where the person *was* and never covers it (cov 0.000). Overlays from
+   `replay_e24.run_matrix_clip(clip=True)`, hstacked with ffmpeg.
 
 Figures from a committed `make_proof.py` over `runs/*/results.json` + `profiles.json`.
