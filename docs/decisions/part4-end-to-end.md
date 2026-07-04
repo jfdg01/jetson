@@ -591,3 +591,25 @@
   lever), D3 pad = 10% W/H (boundary-straddling GT stays in-cell, asserted in selfcheck), D6
   controls reused from E18/E19 (identical code path, 12 legs saved), D7 crops sent native under
   the unchanged 1024 cap (single knob: area; the resolution axis is E21's if needed).
+
+### 2026-07-04 — E21: coarse pass consumed client-side ahead of E20's scoped submit; c2f off by default; coarse cell measured post-hoc vs GT (D1, D4; D2/D3 supporting) ([`experiments/2026-07-04-coarse-to-fine-acquire/`](../../experiments/2026-07-04-coarse-to-fine-acquire/README.md))
+
+- **D1 — the coarse pass replaces the operator's spatial phrase, nothing else; the fine crop
+  and caption stay exactly E20.** *What:* downscale the submit frame to 320 px, ground the frozen
+  E18 caption, take the box centroid's 3x3 cell, then run E20's identical scoped fine crop. *Why:*
+  isolate one variable — who supplies the cell (operator vs coarse VLM) — so a regression is
+  attributable to the prior, not the crop. *Given up:* a tighter, latency-cheaper prior geometry
+  (a coarse-box M-margin ROI crop instead of a quantised cell) — deferred; the cell was chosen to
+  stay byte-comparable with E20. *Consequence realised:* attribution was clean and the prior lost
+  on both terms — 4/6 wrong cells and, even when right (car9), the pass's own 0.97 s latency
+  un-flipped the win. The given-up M-margin geometry is now the live follow-up, not this cell vote.
+- **D4 — `--c2f` off by default; default path is byte-equivalent E20/E18.** *What:* without the
+  flag replay_e21 is replay_e20; the coarse pass and cell vote are opt-in. *Why:* a regressive
+  lever must not become the accidental default. *Consequence realised:* confirmed NO (REGRESSIVE)
+  — c2f stays off; the E20 operator-hint path remains the acquire front-end of record. Supporting:
+  D2 no buf legs (E19 showed buf repairs coverage but cannot flip the arrival-frame metric the
+  verdict scores on), D3 coarse cell logged and compared to the GT submit-frame cell post-hoc
+  (the [prior-wrong] test is observational, exactly as E20's wrong probe — no client-side defense
+  engineered here). The pre-registered COARSE_MAX_SIDE 320→448 contingency was armed but never
+  fired: every coarse pass returned a valid box, so the failure is accuracy+latency, not plumbing;
+  a 448 re-run would cost more latency for marginal cell accuracy and was not pursued.

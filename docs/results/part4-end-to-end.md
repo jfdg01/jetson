@@ -721,3 +721,31 @@ probe (car10 mis-hinted "top left") hallucinated a lock 2/2 reps, coverage 0.000
 poisoned mask-gate template then rejected all 10 genuine REGROUND re-offers — E19-FLOW-style
 poisoning at the UX layer, no in-clip recovery. Matrix ~30 min wall. Raw:
 `experiments/2026-07-04-prompt-scoped-acquire/runs/`, proof in `.../proof/`.
+
+### 2026-07-04 — E21 coarse-to-fine acquire ([`experiments/2026-07-04-coarse-to-fine-acquire/`](../../experiments/2026-07-04-coarse-to-fine-acquire/README.md))
+
+PASS = genuine_lock AND coverage >= 0.50; clip = best of n=2 reps. c2f = a cheap 320-px
+coarse VLM pass votes a 3x3 cell, then E20's scoped fine crop. 13/13 legs clean, 15W +
+jetson_clocks.
+
+| clip | E18 A best | E20 cell best | c2f r1 | c2f r2 | c2f PASS? | coarse cell | GT cell | hit? |
+|---|---|---|---|---|---|---|---|---|
+| car3 | F / 0.976 | F / 0.982 | F / 0.980 | F / 0.980 | FAIL | bottom center | bottom left | MISS |
+| car7 | F / 0.285 | F / **0.997** | F / 0.000 | F / 0.000 | FAIL | top center | top center | **HIT** |
+| car9 | F / 0.993 | **T / 0.996** | F / 0.991 | F / 0.989 | FAIL | bottom center | bottom center | **HIT** |
+| car10 | **T / 1.000** | **T / 1.000** | F / 0.000 | F / 0.000 | FAIL | middle right | center | MISS |
+| car14 | F / 0.903 | **T / 0.907** | **T / 0.590** | **T / 0.590** | **PASS** | top left | center | MISS |
+| car18 | F / 0.711 | F / **0.981** | F / 0.888 | F / 0.885 | FAIL | top left | middle left | MISS |
+
+**c2f 1/6 → RQ-E21 = NO (REGRESSIVE) [prior-wrong]** (E20 cell was 3/6, E18 A 1/6).
+Coarse-hint hit rate 4/12 reps (2/6 clips) → [prior-wrong] (>=2 wrong clips). Regression
+guard BREACH on car7 (0.000 vs E18A 0.285), car10 (0.000 vs 1.000), car14 (0.590 vs 0.903)
+→ (REGRESSIVE). Latency: coarse pass 0.97 s (n=12, 0.93-1.00), total acquire **2.73 s**
+(2.57-2.90) — additive over E20's 1.85 s, backlog 47-62 → 77-87 frames. The extra pass
+un-flips E20's wins: car9 (correct cell, same fine crop) drops arrival-IoU 0.32 → 0.24 under
+the 0.25 lock threshold from ~1 s more target motion; car7 (correct cell) collapses cov 0.997
+→ 0.000 as the widened SAM2 init→first-live jump breaks carry; car10 (wrong cell) hallucinates
+a right-edge box and poisons the mask gate (gate_rej 10). A coarse VLM pass is inaccurate on
+the EASY central targets (car10/car14 grounded off-cell) AND its latency re-opens the staleness
+gap the crop closes. Matrix ~35 min wall. Raw: `experiments/2026-07-04-coarse-to-fine-acquire/runs/`,
+proof in `.../proof/`.
