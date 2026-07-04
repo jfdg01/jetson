@@ -1,0 +1,274 @@
+
+===== [1/36] ORACLE car3 r1 (elapsed 0s) =====
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 51.07it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 ORACLE car3] genuine=True cov=1.0 deliver_iou=0.6625 deliver_f=240 acq=None gate_rej=0 wall=14s
+
+===== [2/36] ORACLE car3 r2 (elapsed 27s) =====
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 50.82it/s]
+[E24 ORACLE car3] genuine=True cov=1.0 deliver_iou=0.6625 deliver_f=240 acq=None gate_rej=0 wall=13s
+
+===== [3/36] ORACLE car7 r1 (elapsed 53s) =====
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 50.13it/s]
+[E24 ORACLE car7] genuine=False cov=0.1074 deliver_iou=0.0 deliver_f=240 acq=None gate_rej=0 wall=13s
+
+===== [4/36] ORACLE car7 r2 (elapsed 73s) =====
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.79it/s]
+[E24 ORACLE car7] genuine=False cov=0.1074 deliver_iou=0.0 deliver_f=240 acq=None gate_rej=0 wall=13s
+
+===== [5/36] ORACLE car9 r1 (elapsed 93s) =====
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 49.01it/s]
+[E24 ORACLE car9] genuine=True cov=1.0 deliver_iou=0.8755 deliver_f=240 acq=None gate_rej=0 wall=13s
+
+===== [6/36] ORACLE car9 r2 (elapsed 119s) =====
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.44it/s]
+[E24 ORACLE car9] genuine=True cov=1.0 deliver_iou=0.8755 deliver_f=240 acq=None gate_rej=0 wall=13s
+
+===== [7/36] ORACLE car10 r1 (elapsed 145s) =====
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 52.62it/s]
+[E24 ORACLE car10] genuine=True cov=1.0 deliver_iou=0.8149 deliver_f=240 acq=None gate_rej=0 wall=13s
+
+===== [8/36] ORACLE car10 r2 (elapsed 168s) =====
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.10it/s]
+[E24 ORACLE car10] genuine=True cov=1.0 deliver_iou=0.8149 deliver_f=240 acq=None gate_rej=0 wall=13s
+
+===== [9/36] ORACLE car14 r1 (elapsed 192s) =====
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.32it/s]
+[E24 ORACLE car14] genuine=True cov=0.98 deliver_iou=0.7337 deliver_f=240 acq=None gate_rej=0 wall=13s
+
+===== [10/36] ORACLE car14 r2 (elapsed 213s) =====
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.93it/s]
+[E24 ORACLE car14] genuine=True cov=0.98 deliver_iou=0.7337 deliver_f=240 acq=None gate_rej=0 wall=13s
+
+===== [11/36] ORACLE car18 r1 (elapsed 235s) =====
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 52.38it/s]
+[E24 ORACLE car18] genuine=True cov=0.9933 deliver_iou=0.9384 deliver_f=240 acq=None gate_rej=0 wall=13s
+
+===== [12/36] ORACLE car18 r2 (elapsed 256s) =====
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.28it/s]
+[E24 ORACLE car18] genuine=True cov=0.9933 deliver_iou=0.9384 deliver_f=240 acq=None gate_rej=0 wall=13s
+
+===== [13/36] COLD car3 r1 (elapsed 277s) =====
+[E24 COLD car3] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.33it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.18it/s]
+[E24 COLD car3] genuine=False cov=0.0 deliver_iou=0.0 deliver_f=376 acq=4.52 gate_rej=1 wall=16s
+
+===== [14/36] COLD car3 r2 (elapsed 306s) =====
+[E24 COLD car3] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.95it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.10it/s]
+[E24 COLD car3] genuine=False cov=0.0 deliver_iou=0.0 deliver_f=376 acq=4.52 gate_rej=1 wall=16s
+
+===== [15/36] COLD car7 r1 (elapsed 335s) =====
+[E24 COLD car7] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.92it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 COLD car7] genuine=False cov=0.0 deliver_iou=0.0 deliver_f=375 acq=4.5 gate_rej=0 wall=15s
+
+===== [16/36] COLD car7 r2 (elapsed 358s) =====
+[E24 COLD car7] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.79it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 COLD car7] genuine=False cov=0.0 deliver_iou=0.0 deliver_f=375 acq=4.51 gate_rej=0 wall=15s
+
+===== [17/36] COLD car9 r1 (elapsed 382s) =====
+[E24 COLD car9] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.44it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.14it/s]
+[E24 COLD car9] genuine=False cov=0.0 deliver_iou=0.0602 deliver_f=376 acq=4.52 gate_rej=1 wall=16s
+
+===== [18/36] COLD car9 r2 (elapsed 413s) =====
+[E24 COLD car9] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.83it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.23it/s]
+[E24 COLD car9] genuine=False cov=0.0 deliver_iou=0.0602 deliver_f=376 acq=4.52 gate_rej=1 wall=16s
+
+===== [19/36] COLD car10 r1 (elapsed 444s) =====
+[E24 COLD car10] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 51.09it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 COLD car10] genuine=False cov=0.0 deliver_iou=0.0 deliver_f=375 acq=4.5 gate_rej=0 wall=15s
+
+===== [20/36] COLD car10 r2 (elapsed 470s) =====
+[E24 COLD car10] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.10it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 COLD car10] genuine=False cov=0.0 deliver_iou=0.0 deliver_f=375 acq=4.5 gate_rej=0 wall=15s
+
+===== [21/36] COLD car14 r1 (elapsed 497s) =====
+[E24 COLD car14] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.09it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 COLD car14] genuine=True cov=0.9467 deliver_iou=0.4951 deliver_f=374 acq=4.48 gate_rej=0 wall=15s
+
+===== [22/36] COLD car14 r2 (elapsed 522s) =====
+[E24 COLD car14] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 49.82it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 COLD car14] genuine=True cov=0.9467 deliver_iou=0.4951 deliver_f=374 acq=4.48 gate_rej=0 wall=15s
+
+===== [23/36] COLD car18 r1 (elapsed 547s) =====
+[E24 COLD car18] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 57.39it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 COLD car18] genuine=False cov=0.0 deliver_iou=0.0 deliver_f=374 acq=4.46 gate_rej=0 wall=15s
+
+===== [24/36] COLD car18 r2 (elapsed 571s) =====
+[E24 COLD car18] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.88it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 COLD car18] genuine=False cov=0.0 deliver_iou=0.0 deliver_f=374 acq=4.46 gate_rej=0 wall=15s
+
+===== [25/36] WARM car3 r1 (elapsed 595s) =====
+[E24 WARM car3] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.05it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 WARM car3] genuine=True cov=1.0 deliver_iou=0.6196 deliver_f=240 acq=4.52 gate_rej=0 wall=18s
+
+===== [26/36] WARM car3 r2 (elapsed 626s) =====
+[E24 WARM car3] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.55it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 WARM car3] genuine=True cov=1.0 deliver_iou=0.6196 deliver_f=240 acq=4.52 gate_rej=0 wall=18s
+
+===== [27/36] WARM car7 r1 (elapsed 657s) =====
+[E24 WARM car7] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.61it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 WARM car7] genuine=False cov=0.1074 deliver_iou=0.0 deliver_f=240 acq=4.46 gate_rej=0 wall=18s
+
+===== [28/36] WARM car7 r2 (elapsed 683s) =====
+[E24 WARM car7] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.73it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 WARM car7] genuine=False cov=0.1074 deliver_iou=0.0 deliver_f=240 acq=4.46 gate_rej=0 wall=18s
+
+===== [29/36] WARM car9 r1 (elapsed 709s) =====
+[E24 WARM car9] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 52.78it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 WARM car9] genuine=True cov=1.0 deliver_iou=0.8755 deliver_f=240 acq=4.52 gate_rej=0 wall=18s
+
+===== [30/36] WARM car9 r2 (elapsed 741s) =====
+[E24 WARM car9] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.82it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 WARM car9] genuine=True cov=1.0 deliver_iou=0.8755 deliver_f=240 acq=4.52 gate_rej=0 wall=18s
+
+===== [31/36] WARM car10 r1 (elapsed 773s) =====
+[E24 WARM car10] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.49it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 WARM car10] genuine=True cov=1.0 deliver_iou=0.8149 deliver_f=240 acq=4.49 gate_rej=0 wall=18s
+
+===== [32/36] WARM car10 r2 (elapsed 802s) =====
+[E24 WARM car10] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.06it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 WARM car10] genuine=True cov=1.0 deliver_iou=0.8149 deliver_f=240 acq=4.49 gate_rej=0 wall=18s
+
+===== [33/36] WARM car14 r1 (elapsed 831s) =====
+[E24 WARM car14] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.76it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 WARM car14] genuine=True cov=0.98 deliver_iou=0.693 deliver_f=240 acq=4.47 gate_rej=0 wall=18s
+
+===== [34/36] WARM car14 r2 (elapsed 859s) =====
+[E24 WARM car14] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.83it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 WARM car14] genuine=True cov=0.9767 deliver_iou=0.693 deliver_f=240 acq=4.47 gate_rej=0 wall=18s
+
+===== [35/36] WARM car18 r1 (elapsed 887s) =====
+[E24 WARM car18] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.40it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 WARM car18] genuine=True cov=0.9933 deliver_iou=0.901 deliver_f=240 acq=4.46 gate_rej=0 wall=18s
+
+===== [36/36] WARM car18 r2 (elapsed 913s) =====
+[E24 WARM car18] booting Jetson q8_0 server...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.61it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[E24 WARM car18] genuine=True cov=0.99 deliver_iou=0.901 deliver_f=240 acq=4.46 gate_rej=0 wall=18s
+
+===== MATRIX DONE: 36/36 runs, invalid=[], 940s =====

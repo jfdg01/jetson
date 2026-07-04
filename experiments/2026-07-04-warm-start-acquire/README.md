@@ -3,7 +3,7 @@
 **Pre-registered:** 2026-07-04T18:40Z. Design + the `warmstart.py` contract by the
 orchestrator; the executor forks the replay harness, runs the matrix, and fills Results
 only — **do NOT edit `warmstart.py` or re-interpret the verdict rules.**
-**Status:** PRE-REGISTERED, not yet run.
+**Status:** COMPLETE (2026-07-04T18:35Z). RQ-E24 = **YES [carry-bound]** (W=5/6, C=1/6, O=5/6).
 
 First experiment of **Part V** (anticipatory grounding / warm-start acquire). Reframe:
 `experiments/PART5-PROPOSAL-anticipatory-grounding.md`. Arc it closes on:
@@ -208,19 +208,91 @@ experiment (multi-candidate selector) is not conflated with this result.
 7. Report: verdict + W/C/O table + `git log --oneline main..HEAD`. Do NOT merge or push — the
    orchestrator audits and merges.
 
-## Results (TBD)
+## Results (2026-07-04T18:35Z)
 
-Per-clip PASS (best of n=2), deliver-frame genuine_lock / coverage:
+Run on 2026-07-04, `experiment/warm-start-acquire`. Stack: Qwen2-VL-2B Q8_0 terse
+acquire on the Jetson Orin Nano (15 W + jetson_clocks, `nvpmodel -m 0` = 15 W index
+on this board, no MAXN -- see `raw/jetson-power.txt`); SAM2.1-hiera-tiny StreamCarry
+on the local RTX 3090 rate-capped to 6.15 Hz (E1's on-Orin co-resident number).
+Measured acquire wall-time ~4.5 s (COLD delivers ~135 frames stale, not the nominal
+146). Matrix: 6 clips x {WARM,COLD,ORACLE} x n=2 = 36 runs, 0 INVALID, ~16 min
+(`runs/MATRIX_DONE.txt`). **Fully reproducible: 0 PASS/FAIL splits across n=2** (rig
+is deterministic -- greedy VLM decode + fixed-cadence catch-up).
 
-| clip | caption | WARM gen/cov | COLD gen/cov | ORACLE gen/cov | WARM PASS? |
+Per-clip PASS (best of n=2), deliver-frame genuine_lock / coverage (deliver_iou):
+
+| clip | caption | WARM gen/cov (iou) | COLD gen/cov (iou) | ORACLE gen/cov (iou) | WARM PASS? |
 |---|---|---|---|---|---|
-| car3 | the red car | | | | |
-| car7 | the silver car | | | | |
-| car9 | the white car | | | | |
-| car10 | the red car | | | | |
-| car14 | the red car | | | | |
-| car18 | the red car | | | | |
+| car3 | the red car | T / 1.00 (0.62) | F / 0.00 (0.00) | T / 1.00 (0.66) | **PASS** |
+| car7 | the silver car | F / 0.11 (0.00) | F / 0.00 (0.00) | F / 0.11 (0.00) | FAIL |
+| car9 | the white car | T / 1.00 (0.88) | F / 0.00 (0.06) | T / 1.00 (0.88) | **PASS** |
+| car10 | the red car | T / 1.00 (0.81) | F / 0.00 (0.00) | T / 1.00 (0.81) | **PASS** |
+| car14 | the red car | T / 0.98 (0.69) | T / 0.95 (0.50) | T / 0.98 (0.73) | **PASS** |
+| car18 | the red car | T / 0.99 (0.90) | F / 0.00 (0.00) | T / 0.99 (0.94) | **PASS** |
 
-`W = _/6, C = _/6, O = _/6.` **RQ-E24 = TBD.** WARM-vs-ORACLE gap: TBD.
+`W = 5/6, C = 1/6, O = 5/6.` **RQ-E24 = YES [carry-bound]** (W>=4 AND W>C AND WARM's
+PASS set {car3,car9,car10,car14,car18} superset-of COLD's {car14}).
 
-Estimate vs actual + what broke / what surprised: TBD.
+**WARM-vs-ORACLE gap: EMPTY.** WARM's PASS set is *identical* to ORACLE's -- the real
+idle-window VLM seed is as good as the GT seed on every clip. There is **zero
+detection headroom**: warm-start is NOT detection-bound on these clips. The only
+failure (car7) is shared by ORACLE, so it is `[carry-bound]` per the frozen rule.
+
+**car7 (the one failure), mechanism:** `gt[240]` (the prompt frame) is **NaN/absent**
+in the UAV123 anno -- the silver car is under an occlusion exactly at t_p, so no leg
+can deliver a genuine lock there (genuine_lock requires GT present at the deliver
+frame), and the carry seeded at frame 0 drifts across the occlusion so coverage over
+the window is only 0.11 even from a perfect GT seed. This is an honest `[carry-bound]`
++ occlusion-at-prompt case, not a detection miss. It does not contradict E18-B (which
+seeded frame 0 and scored coverage from t_lock~0 over the whole clip, before the
+occlusion); scoring the lock *at t_p=8 s* is what exposes it. `[ready-only]` reminder:
+t_p (8 s) > acquire (~4.5 s), so this is the "warm track already established" case; the
+early-prompt / cold-fallback case (t_p < acquire) is deliberately out of scope.
+
+**COLD (baseline):** 1/6, only car14 -- exactly the E18-A staleness mode shifted to
+t_p. COLD delivers ~135 frames (~4.5 s) after the prompt with a submit-frame box; on
+every moving-target clip except the slow car14 the target has left the box by the
+arrival frame, so genuine_lock fails (deliver_iou 0.00). car14's target moves slowly
+enough that even a 135-frame-stale box still overlaps (deliver_iou 0.50, exactly on
+the 0.25 lock line's safe side).
+
+**Selection is trivial here** (one salient target per `car*` clip) -- E24 isolates
+"is a real idle-window detection good enough to seed a carry still locked at t_p?"
+(answer: YES, and it equals the GT ceiling). The multi-candidate phrase-selector is
+the *next* experiment (twin-distractor clip), not conflated with this result.
+
+### Estimate vs actual + what broke / surprised
+
+- **WARM: est PARTIAL-to-YES 4-5/6 -> actual YES 5/6.** Landed at the top of the
+  estimate. Surprise on *direction*: the estimate feared frame-0 detection quality on
+  car3 (tiny red) and car7 (fast silver) as the risk; instead **car3 passed** (the
+  frame-0 red-car detection was fine and the carry held), and **car7 failed for carry
+  /occlusion reasons that also sank ORACLE** -- i.e. the binder was NOT detection at
+  all. The WARM==ORACLE identity (zero detection headroom) is the headline surprise:
+  the real VLM seed never lost a clip the GT seed kept.
+- **COLD: est 1-2/6 -> actual 1/6.** As predicted (car14 the slow-target pass).
+- **ORACLE: est 6/6 -> actual 5/6.** One miss (car7) -- the pre-registered
+  `[carry-bound]` surprise fired: a perfect seed still cannot deliver a lock at a t_p
+  that lands on an occlusion. Documented above; it is an occlusion-at-prompt artifact
+  of the frozen t_p, not a general carry-hold failure (the other 5 held 10 s cleanly).
+- **Runtime: est 2-3 h -> actual ~16 min.** Big over-estimate: the Jetson q8_0 boot +
+  acquire is ~5 s co-resident-cached, ORACLE skips the VLM, and the carry is on the
+  3090. No overnight needed.
+- **What broke:** nothing at run time (0 INVALID). One dev fix: the `--selfcheck`
+  coverage loop needs a real frames dir (WallClockVideo can't take `None`), so the
+  selfcheck writes a synthetic clip to a tempdir. The proof clip was mp4v (8.4 MB) ->
+  re-encoded h264 crf30 (1.0 MB) via ffmpeg inside `make_clip.py`.
+
+## Proof deliverables (`proof/`, committed)
+
+1. **`proof/warm_vs_cold_vs_oracle.png`** (primary, `make_proof.py` from
+   `runs/*/results.json`): Panel A = grouped per-clip coverage bars WARM/COLD/ORACLE
+   with PASS dots and the 0.50 threshold -- shows WARM (blue) matching ORACLE (grey)
+   on all six clips and towering over COLD (orange, only car14), and the shared car7
+   dip (WARM+ORACLE both ~0.11, carry-bound). Panel B = delivery-freshness lollipop:
+   WARM/ORACLE deliver at frame 240 (the prompt), COLD at ~375 -- the ~135-frame
+   staleness the warm path removes.
+2. **`proof/car10_warm_vs_cold.mp4`** (secondary, `make_clip.py`): car10 (WARM PASS,
+   COLD FAIL) side by side over frames 200-560. Left WARM locks a fresh green box on
+   the red car at the prompt (240) and holds; right COLD sits "LOST (no box yet)" until
+   ~375 then drops a stale box that misses the moved target. green=held, red=GT.
