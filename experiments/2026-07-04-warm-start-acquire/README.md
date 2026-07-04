@@ -1,9 +1,10 @@
-# E24 — warm-start acquire: select a pre-tracked candidate at t_p (Part V, first experiment)
+# P5.1 — warm-start acquire: select a pre-tracked candidate at t_p (Part V, first experiment)
 
 **Pre-registered:** 2026-07-04T18:40Z. Design + the `warmstart.py` contract by the
 orchestrator; the executor forks the replay harness, runs the matrix, and fills Results
 only — **do NOT edit `warmstart.py` or re-interpret the verdict rules.**
-**Status:** COMPLETE (2026-07-04T18:35Z). RQ-E24 = **YES [carry-bound]** (W=5/6, C=1/6, O=5/6).
+**Status:** COMPLETE (2026-07-04T18:35Z). RQ-P5.1 = **YES [carry-bound]** (W=5/6, C=1/6, O=5/6).
+**ID:** pre-registered and run as **E24**; renumbered **P5.1** at merge under the Part V `P<part>.<n>` scheme (branch commits and the internal `replay_e24.py` / `runs/` prefixes keep their as-run E24 label).
 
 First experiment of **Part V** (anticipatory grounding / warm-start acquire). Reframe:
 `experiments/PART5-PROPOSAL-anticipatory-grounding.md`. Arc it closes on:
@@ -12,7 +13,7 @@ session runs this from this file alone.
 
 ## Research question
 
-**RQ-E24:** On a t_p>0 replay (the operator's command arrives mid-flight, not at frame 0),
+**RQ-P5.1:** On a t_p>0 replay (the operator's command arrives mid-flight, not at frame 0),
 does a **warm-start** acquire — VLM acquire fired during the idle pre-prompt window, its box
 carried by SAM2 to the prompt, then **selected** — beat the deployed **cold** acquire (fired
 at the prompt, delivered stale) on the lock the operator actually receives, and how close does
@@ -32,7 +33,7 @@ VLM slot sits **idle** before the command. That idle window is free compute.
 Two facts from E18 bound this experiment:
 - **E18-B (oracle):** seed StreamCarry from the GT frame-0 box, carry the whole clip — **6/6
   PASS.** Carry from a correct seed holds on real UAV123 video. So "can SAM2 carry for
-  seconds" is already answered YES; it is not what E24 tests.
+  seconds" is already answered YES; it is not what P5.1 tests.
 - **E18-A (cold):** VLM acquire at t=0, carry forward — **1/6.** The failure is that the box
   is delivered stale (target moved during the blocking acquire), and a stale seed poisons the
   carry.
@@ -40,15 +41,15 @@ Two facts from E18 bound this experiment:
 So the *only* gap between the proven 6/6 oracle and a deployable system is **replacing the GT
 seed with a real VLM detection taken in the idle window, and scoring the lock at the operator's
 real prompt time t_p** (by which carry has caught up to "now") **instead of at the stale
-acquire-arrival frame.** E24 measures exactly that gap.
+acquire-arrival frame.** P5.1 measures exactly that gap.
 
 Why this is the right first experiment and not a bigger build: on the UAV123 `car*` clips there
 is **one** salient target per clip, so "select the operator's phrase among warm tracks" is
-unambiguous — E24 can defer the multi-candidate selector (that is the *next* experiment, on a
+unambiguous — P5.1 can defer the multi-candidate selector (that is the *next* experiment, on a
 twin-distractor clip) and isolate the load-bearing unknown: **is a real idle-window detection
 good enough to seed a carry that is still locked at t_p?** Rejected alternative: jump straight
 to the full periodic-detection + phrase-selector system — it confounds detection quality, carry
-hold, and phrase matching in one number; E24 pins the first two with the selector held trivial.
+hold, and phrase matching in one number; P5.1 pins the first two with the selector held trivial.
 
 ## The three legs (contract: `warmstart.py`, already committed)
 
@@ -150,7 +151,7 @@ Results + proof + commit.
 Per clip, per leg: **PASS = `genuine_lock` (at that leg's `deliver_frame`) AND `coverage` ≥ 0.50,
 best of n=2.** Let `W`, `C`, `O` = PASS counts /6 for WARM, COLD, ORACLE.
 
-- **RQ-E24 = YES** iff `W ≥ 4` **AND** `W > C` **AND** WARM's PASS set ⊇ COLD's PASS set.
+- **RQ-P5.1 = YES** iff `W ≥ 4` **AND** `W > C` **AND** WARM's PASS set ⊇ COLD's PASS set.
 - **PARTIAL** iff `W > C` but (`W < 4` **OR** WARM's PASS set ⊉ COLD's set).
 - **NO** iff `W ≤ C` (warm-start does not beat the deployed cold acquire).
 - **Suffixes (append the one that fits the dominant failure mode):**
@@ -201,10 +202,10 @@ experiment (multi-candidate selector) is not conflated with this result.
    stall waiting.**
 4. Fill the Results table; apply the frozen Verdict rules to get W/C/O and the verdict + suffix.
 5. Append the ledgers under **Part 5** (`docs/{results,questions,decisions}/part5-anticipatory.md`,
-   not the roots): RESULTS row, QUESTIONS RQ-E24 + one-line verdict, DECISIONS entry (the
+   not the roots): RESULTS row, QUESTIONS RQ-P5.1 + one-line verdict, DECISIONS entry (the
    warm-vs-cold choice / what was given up). Madrid wall-clock timestamps, no emojis.
 6. `make_proof.py` → the figure; cut the clip(s). Commit everything on the branch with
-   `E24 warm-start-acquire COMPLETE: RQ-E24 <verdict>`; `git status` clean.
+   `P5.1 warm-start-acquire COMPLETE: RQ-P5.1 <verdict>`; `git status` clean.
 7. Report: verdict + W/C/O table + `git log --oneline main..HEAD`. Do NOT merge or push — the
    orchestrator audits and merges.
 
@@ -230,7 +231,7 @@ Per-clip PASS (best of n=2), deliver-frame genuine_lock / coverage (deliver_iou)
 | car14 | the red car | T / 0.98 (0.69) | T / 0.95 (0.50) | T / 0.98 (0.73) | **PASS** |
 | car18 | the red car | T / 0.99 (0.90) | F / 0.00 (0.00) | T / 0.99 (0.94) | **PASS** |
 
-`W = 5/6, C = 1/6, O = 5/6.` **RQ-E24 = YES [carry-bound]** (W>=4 AND W>C AND WARM's
+`W = 5/6, C = 1/6, O = 5/6.` **RQ-P5.1 = YES [carry-bound]** (W>=4 AND W>C AND WARM's
 PASS set {car3,car9,car10,car14,car18} superset-of COLD's {car14}).
 
 **WARM-vs-ORACLE gap: EMPTY.** WARM's PASS set is *identical* to ORACLE's -- the real
@@ -256,7 +257,7 @@ arrival frame, so genuine_lock fails (deliver_iou 0.00). car14's target moves sl
 enough that even a 135-frame-stale box still overlaps (deliver_iou 0.50, exactly on
 the 0.25 lock line's safe side).
 
-**Selection is trivial here** (one salient target per `car*` clip) -- E24 isolates
+**Selection is trivial here** (one salient target per `car*` clip) -- P5.1 isolates
 "is a real idle-window detection good enough to seed a carry still locked at t_p?"
 (answer: YES, and it equals the GT ceiling). The multi-candidate phrase-selector is
 the *next* experiment (twin-distractor clip), not conflated with this result.

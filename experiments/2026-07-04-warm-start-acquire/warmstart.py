@@ -1,4 +1,4 @@
-"""E24 warm-start frame-schedule contract (Part V).
+"""P5.1 (E24) warm-start frame-schedule contract (Part V).
 
 Pins the frame arithmetic shared by all three legs so the verdict has no
 ambiguity. This is the load-bearing bit: staleness bugs hide in "which frame

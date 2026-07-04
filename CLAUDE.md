@@ -21,7 +21,9 @@ wall-clock time** (local hour, not UTC-converted), e.g. `2026-06-30T18:45Z` — 
 - **Part II — v2 principled rebuild:** single-frame grounding. Qwen2-VL-2B Q8_0, RefDrone IoU@0.25 = 62.6%, Phases 0–4 all done.
 - **Part III — v3 object permanence:** persistent moving-target tracking. T0–T4 all done, demo built, terse+ROI latency levers deployed (anchor ≈2.0 s ROI re-anchor, 85.2% IoU@0.25).
 - **Part IV — v4 end-to-end workflow refinement (COMPLETE):** hardened the integrated NL→ground→track→fly pipeline. The acquire-latency arc (E18–E23) on real UAV123 video closed: the ~4.85 s cold acquire lands stale on moving targets; an operator-phrase crop hint (E20) is the only working sub-2s acquire but stays hint-fragile; automating the hint (E21/E22) and widening the crop cell (E23) both failed.
-- **Part V — v5 anticipatory grounding / warm-start acquire (IN PROGRESS):** the operator's prompt arrives mid-flight, not at frame 0 — the pre-prompt stream is free compute. Keep salient objects tracked over the idle window and select on command, instead of cold-acquiring under time pressure. Reframe: `experiments/PART5-PROPOSAL-anticipatory-grounding.md`.
+- **Part V — v5 anticipatory grounding / warm-start acquire (IN PROGRESS):** the operator's prompt arrives mid-flight, not at frame 0 — the pre-prompt stream is free compute. Keep salient objects tracked over the idle window and select on command, instead of cold-acquiring under time pressure. Reframe: `experiments/PART5-PROPOSAL-anticipatory-grounding.md`. **P5.1 warm-start acquire = YES [carry-bound]:** idle-window VLM seed + SAM2 catch-up + select-on-command lands 5/6 on the UAV123 `car*` clips, matches the GT-seed oracle exactly, beats the cold blocking acquire 1/6 — removes the ~135-frame delivery staleness that capped the Part IV arc.
+
+**Experiment IDs:** I–IV keep their as-run labels (Part II `Phase 0-4`, Part III `T0-T4`, then a flat `E1..E23`) — frozen, do not renumber. **Part V onward uses `P<part>.<n>`** (P5.1, P5.2, …). P5.1 was pre-registered as E24 and renumbered at merge.
 
 ## Repository map
 

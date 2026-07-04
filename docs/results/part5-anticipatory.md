@@ -15,7 +15,7 @@ already tracked over the idle window and **select on command**. Reframe origin:
 
 <!-- append one result row per campaign below -->
 
-### E24 — warm-start acquire (2026-07-04)
+### P5.1 — warm-start acquire (2026-07-04)
 
 Detail: [`../../experiments/2026-07-04-warm-start-acquire/README.md`](../../experiments/2026-07-04-warm-start-acquire/README.md).
 Config: Qwen2-VL-2B Q8_0 terse acquire on Jetson Orin Nano (15 W + jetson_clocks, `nvpmodel -m 0`,

@@ -11,9 +11,9 @@
 
 <!-- append one RQ + one-line verdict per campaign below -->
 
-### E24 — warm-start acquire (2026-07-04)
+### P5.1 — warm-start acquire (2026-07-04)
 
-**RQ-E24:** does seeding the carry from a real VLM detection during the idle pre-prompt window
+**RQ-P5.1:** does seeding the carry from a real VLM detection during the idle pre-prompt window
 (WARM) and selecting on command at t_p=8 s beat the cold blocking acquire (COLD, E18-A shifted to
 t_p), reaching the GT-seed ceiling (ORACLE)?
 
