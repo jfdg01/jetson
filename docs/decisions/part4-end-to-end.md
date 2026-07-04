@@ -566,3 +566,28 @@
   FLOW because the kept stale box is initialised on the arrival frame it no longer describes
   (car9 cov 0.000 vs E18's 0.993 with the same box). The un-tuned log is what exposed that the arm,
   not the threshold, is the problem.
+
+### 2026-07-04 — E20: hint consumed client-side, first-attempt-only scope, observational wrong probe (D1, D4, D5; D2/D3/D6/D7 supporting) ([`experiments/2026-07-04-prompt-scoped-acquire/`](../../experiments/2026-07-04-prompt-scoped-acquire/README.md))
+
+- **D1 — the operator's spatial phrase is consumed client-side; the VLM caption stays the frozen
+  E18 caption.** *What:* "the red car in the bottom left" -> crop the padded bottom-left cell,
+  ground "the red car" in the crop, map back. *Why:* keeps the VLM input distribution comparable
+  to E18/E19 — the crop already encodes the place. *Given up:* testing whether the VLM itself can
+  exploit spatial language. *Consequence realised:* attribution stayed clean — the 2.6x latency
+  win is purely crop area (ROI-campaign scaling), and every scoped ground landed in-crop 24/24.
+- **D4 — scope applies to the FIRST ACQUIRE attempt only; retries and all REGROUND submits are
+  full-frame.** *What:* the hint is a statement about t=0; the floor is exactly E18 behaviour.
+  *Why:* a stale hint mid-clip would be a second, uncontrolled failure axis. *Consequence
+  realised:* no scoped leg ever needed the fallback (24/24 first attempts valid), and the wrong
+  probe's REGROUNDs were correctly full-frame — the observed non-recovery is the gate template's
+  fault, not the scope's.
+- **D5 — wrong-hint probe is observational; no client-side defense engineered in E20.** *What:*
+  2 reps of car10 deliberately mis-hinted "top left". *Why:* quantify the UX-contract risk before
+  designing around it. *Given up:* shipping a mitigation in the same campaign. *Consequence
+  realised:* worse than estimated — 2/2 hallucinated locks AND the poisoned mask-gate template
+  vetoed all genuine re-acquires (gate_rej 10/10), pinning coverage at 0.000. The measured
+  failure shape dictates the fix (hint-escape: full-frame + fresh template after N gate rejects)
+  rather than guessing it up front. Supporting: D2 halves not matrixed (~1.1x px saving, no
+  lever), D3 pad = 10% W/H (boundary-straddling GT stays in-cell, asserted in selfcheck), D6
+  controls reused from E18/E19 (identical code path, 12 legs saved), D7 crops sent native under
+  the unchanged 1024 cap (single knob: area; the resolution axis is E21's if needed).

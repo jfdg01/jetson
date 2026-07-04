@@ -689,3 +689,35 @@ designed (backlog ~237 f, 19 steps, 3.09 s, gap < 12 on all 12 runs) and repairs
 YES 4-6/6, actual PARTIAL 2/6 — both arm estimates wrong (flow 4-5/6, buf 5-6/6). Matrix ~22 min
 summed run wall (est ~45 min). Raw: `experiments/2026-07-04-motion-comp-acquire/runs/`, proof in
 `.../proof/`.
+
+### 2026-07-04 — E20 prompt-scoped-acquire ([`experiments/2026-07-04-prompt-scoped-acquire/`](../../experiments/2026-07-04-prompt-scoped-acquire/README.md))
+
+Operator-phrase-scoped first acquire vs E18's stale locks: the spatial part of the command ("the
+red car **in the bottom left**") is parsed client-side into a padded 3x3-cell crop (pad 10% W/H,
+`scope.py`), the frozen E18 caption is grounded inside the crop (sent native, no resize), and the
+box maps back to full-frame. Scope on the FIRST ACQUIRE attempt only; retries + REGROUND stay
+full-frame (D4). Same six UAV123 clips / frozen captions / byte-identical E18 scoring; rig
+unchanged (3090 SAM2.1-tiny @1024 capped 6.15 Hz + Jetson q8_0 terse self-boot, 15W +
+jetson_clocks). 27/27 legs clean; controls reused from E18 A / E19 ctl (D6). Per-clip PASS =
+genuine_lock AND coverage >= 0.50, better of n=2.
+
+| clip | hint | E18 A (baseline) | cell | cellbuf | scoped acquire_s |
+|---|---|---|---|---|---|
+| car3 | bottom left | F / 0.976 | F / 0.982 | F / 0.977 | 1.57 |
+| car7 | top center | F / 0.285 | F / **0.997** | F / 0.975 | 1.83 |
+| car9 | bottom center | F / 0.993 | **T / 0.996 PASS** | **T / 0.990 PASS** | 1.83 |
+| car10 | center | T / 1.000 PASS | **T / 1.000 PASS** | **T / 1.000 PASS** | 2.03-2.07 |
+| car14 | center | F / 0.903 | **T / 0.907 PASS** | **T / 0.904 PASS** | 2.00 |
+| car18 | middle left | F / 0.711 | F / **0.980** | F / 0.958 | 1.83 |
+
+**cell 3/6, cellbuf 3/6 (same set) → RQ-E20 = PARTIAL [hint-fragile]**. Mean scoped acquire
+**1.85 s** vs E18's ~4.85 s (2.6x, backlog ~146 -> 47-62 frames) — the ROI-campaign prefill
+scaling (2026-06-26) delivered at first acquire, estimates hit exactly (est 1.7-2.3 s, est 3/6).
+Regression guard: no breach; the earlier lock alone lifts coverage car7 0.285 -> 0.997, car18
+0.711 -> 0.981. Residual FAILs (car3/car7/car18, arrival-IoU 0.00/0.00/0.02) are target-size
+bound: small targets displace more than their own footprint even in ~1.8 s, while coverage is
+0.98+ on all six (submit-frame carry init latches the right object). [hint-fragile]: the wrong
+probe (car10 mis-hinted "top left") hallucinated a lock 2/2 reps, coverage 0.000, and the
+poisoned mask-gate template then rejected all 10 genuine REGROUND re-offers — E19-FLOW-style
+poisoning at the UX layer, no in-clip recovery. Matrix ~30 min wall. Raw:
+`experiments/2026-07-04-prompt-scoped-acquire/runs/`, proof in `.../proof/`.

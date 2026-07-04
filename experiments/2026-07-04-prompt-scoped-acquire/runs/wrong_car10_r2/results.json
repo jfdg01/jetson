@@ -1,0 +1,211 @@
+{
+  "mc": "none",
+  "clip": "car10",
+  "caption": "the red car",
+  "hint": "top left",
+  "fps": 30.0,
+  "n_frames_gt": 1405,
+  "wall_s": 50.2,
+  "cap_hz": 6.15,
+  "loss_s": 1.0,
+  "app_tau": 12.0,
+  "buf_k": 12,
+  "max_side": 1024,
+  "n_gate_reject": 10,
+  "n_events": 9,
+  "trace": [
+    "TRACK",
+    "REGROUND"
+  ],
+  "mc_log": [
+    {
+      "state": "ACQUIRE",
+      "submit_i": 0,
+      "arrival_i": 47,
+      "acquire_s": 1.57,
+      "scoped": true,
+      "rect": [
+        0,
+        0,
+        554,
+        312
+      ],
+      "gate": "accept"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 142,
+      "arrival_i": 276,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 278,
+      "arrival_i": 413,
+      "acquire_s": 4.5,
+      "scoped": false,
+      "rect": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 414,
+      "arrival_i": 548,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 550,
+      "arrival_i": 684,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 685,
+      "arrival_i": 820,
+      "acquire_s": 4.5,
+      "scoped": false,
+      "rect": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 821,
+      "arrival_i": 955,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 956,
+      "arrival_i": 1090,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 1092,
+      "arrival_i": 1226,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 1227,
+      "arrival_i": 1361,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "gate": "reject"
+    },
+    {
+      "state": "REGROUND",
+      "submit_i": 1363,
+      "arrival_i": 1497,
+      "acquire_s": 4.47,
+      "scoped": false,
+      "rect": null,
+      "gate": "reject"
+    }
+  ],
+  "score": {
+    "t_lock": 1.93,
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 1347
+  },
+  "events": [
+    [
+      1.925,
+      [
+        371.2,
+        224.6,
+        398.9,
+        249.6
+      ]
+    ],
+    [
+      2.153,
+      [
+        364.0,
+        226.0,
+        393.0,
+        256.0
+      ]
+    ],
+    [
+      2.479,
+      [
+        337.0,
+        237.0,
+        348.0,
+        266.0
+      ]
+    ],
+    [
+      2.818,
+      [
+        254.0,
+        250.0,
+        271.0,
+        289.0
+      ]
+    ],
+    [
+      2.984,
+      [
+        226.0,
+        258.0,
+        243.0,
+        295.0
+      ]
+    ],
+    [
+      3.148,
+      [
+        186.0,
+        254.0,
+        267.0,
+        307.0
+      ]
+    ],
+    [
+      3.313,
+      [
+        215.0,
+        255.0,
+        238.0,
+        302.0
+      ]
+    ],
+    [
+      3.48,
+      [
+        87.0,
+        257.0,
+        198.0,
+        315.0
+      ]
+    ],
+    [
+      4.636,
+      null
+    ]
+  ]
+}
