@@ -442,3 +442,20 @@
   10). Automating the E20 hint with a second VLM pass is a dead end on both axes; the next lever
   is a ~ms CPU motion+colour prior (E22) or a tighter latency-cheaper ROI-margin crop geometry
   (E21-D1 given-up), not a coarse VLM pass. No UNRULED legs.
+
+- **RQ-E22 (can a ~ms CPU motion+colour prior — phaseCorrelate camera-motion comp + absdiff
+  motion mask + caption-colour HSV mask, no second VLM call — vote E20's crop cell automatically
+  and pass an offline t=0 cell-hit >= 4/6 gate before spending Jetson legs?): NO
+  [prior-insufficient].** Phase-0 offline audit hit 2/6 at t=0 (0/6 at t=10 s), below the 4/6
+  gate, so no Jetson leg ran (the gate is the whole point of D4). Both HITs (car9 white, car18
+  red) are LARGE targets carried by the colour channel; the motion channel — the campaign's
+  headline idea — voted exactly one cell (car9). Two failure shapes: (a) car3/car10/car14 are
+  tiny red cars (~4-12 px @320w) whose sub-pixel t=0 displacement is cancelled by camera-comp
+  (motion_inGT 0) and whose red is too weak in-GT -> prior returns None -> harmless full-frame
+  fallback; (b) car7's silver HSV mask floods the bright roundabout (23,741 px) -> confident-wrong
+  "center" cell, the automatable twin of E20's [hint-fragile] hallucination — caught here only
+  because the offline gate ran before any VLM call. No [prior-wrong] suffix: that is defined on an
+  accepted garbage lock on a Jetson leg and none ran. Thresholds FROZEN (D5); no bug found, the
+  limit is target scale / scene colour on this footage. Prior latency ~3 ms (10x under estimate).
+  The CPU-prior axis for automating the E20 hint is closed on this footage; the open lever remains
+  E21-D1's coarse-box M-margin ROI geometry or a convergence-scored lock. No Jetson legs, no matrix.
