@@ -1,0 +1,105 @@
+<?xml version="1.0" ?>
+<!-- sonoma_follow.sdf -- Sonoma Raceway (ArduPilot SITL_Models) + an oblique
+     forward-looking camera for the live feed. Derived from
+     external/SITL_Models/Gazebo/worlds/sonoma_raceway.sdf; changes:
+       - added gz-sim-sensors-system (ogre2) so the camera renders headless
+       - dropped the skywalker_x8_quad include (we don't need an aircraft)
+       - added the `chase_cam` model: mounted high, pitched near-horizon so the
+         frame is mostly sky over receding track. Static -> pose driven by
+         set_pose at runtime (gz_feed_view --pitch/--height), no gravity.
+     Needs GZ_SIM_RESOURCE_PATH -> external/SITL_Models/Gazebo/{models,worlds}. -->
+<sdf version="1.7">
+  <world name="raceway">
+    <plugin filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin filename="gz-sim-imu-system"
+      name="gz::sim::systems::Imu">
+    </plugin>
+    <!-- added: renders camera sensors offscreen (EGL). ogre2 to match the render fix. -->
+    <plugin filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <!-- NOTE: the Sonoma mesh is a single OBJ with baked-in shading textures;
+         gz/ogre2 renders its flat surfaces at fixed brightness and ignores scene
+         <ambient> + directional sun on them (verified: ambient 1->0.35, sun recolor,
+         and a low raking sun all left the track pixel-identical). World lighting is
+         inert here -- the scene "look" is graded on the feed frames in gz_feed_view.py
+         (GRADE), not lit in-world. Left as the upstream defaults. -->
+    <scene>
+      <ambient>1.0 1.0 1.0</ambient>
+      <background>0.8 0.8 0.8</background>
+      <sky></sky>
+    </scene>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>38.161479</latitude_deg>
+      <longitude_deg>-122.454630</longitude_deg>
+      <elevation>488.0</elevation>
+    </spherical_coordinates>
+
+    <include>
+      <uri>model://sonoma_raceway</uri>
+    </include>
+
+    <!-- Oblique camera. Baked pose here is the render-test default; at runtime
+         gz_feed_view drives it via set_pose (pitch/height knobs).
+         pose = x y z roll pitch yaw. z=3 up, pitch=-0.17rad (~-10 deg, near
+         horizon -> mostly sky), yaw=2.53rad (145 deg = start-grid heading, looks
+         down the straight). -->
+    <model name="chase_cam">
+      <static>true</static>
+      <pose>0 0 3 0 -0.17 2.53</pose>
+      <link name="cam_link">
+        <inertial>
+          <mass>0.001</mass>
+          <inertia>
+            <ixx>1e-6</ixx><iyy>1e-6</iyy><izz>1e-6</izz>
+          </inertia>
+        </inertial>
+        <sensor name="chase_cam" type="camera">
+          <update_rate>15</update_rate>
+          <camera>
+            <horizontal_fov>1.2</horizontal_fov>  <!-- ~69 deg -->
+            <image>
+              <width>640</width>
+              <height>480</height>
+              <format>R8G8B8</format>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>2000</far>  <!-- see the horizon -->
+            </clip>
+          </camera>
+          <always_on>true</always_on>
+          <visualize>false</visualize>
+          <!-- topic: /world/raceway/model/chase_cam/link/cam_link/sensor/chase_cam/image -->
+        </sensor>
+      </link>
+    </model>
+
+  </world>
+</sdf>

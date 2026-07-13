@@ -68,3 +68,5 @@ eeprom.bin
 .auto-continue/
 .claude/loop*
 .claude/settings.local.json
+runners/sitl/external/
+runners/_gz_feed.log

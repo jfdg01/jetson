@@ -35,21 +35,16 @@
     <!-- Ground plane — medium green for contrast with orange target -->
     <model name="ground_plane">
       <static>true</static>
+      <pose>0 0 -0.1 0 0 0</pose>  <!-- 0.2-thick ground box centred at -0.1 -> top face at z=0 (target rests on it) -->
       <link name="link">
         <collision name="collision">
           <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>200 200</size>
-            </plane>
+            <box><size>200 200 0.2</size></box>  <!-- box, not <plane>: ogre2 headless does not render infinite planes (was blank/gray) -->
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>200 200</size>
-            </plane>
+            <box><size>200 200 0.2</size></box>  <!-- box, not <plane>: ogre2 headless does not render infinite planes (was blank/gray) -->
           </geometry>
           <material>
             <ambient>0.3 0.5 0.2 1</ambient>
@@ -67,7 +62,7 @@
          Camera looks along local +X; pitch=-pi/2 rotates +X to point -Z (down).
          ================================================================= -->
     <model name="downward_cam">
-      <static>false</static>
+      <static>true</static>  <!-- kinematic: pose driven by set_pose (follow controller), no gravity -->
       <!-- Initial pose: x=0 y=0 z=10, roll=0 pitch=-1.5707963 yaw=0 -->
       <pose>0 0 10 0 -1.5707963 0</pose>
       <link name="cam_link">
@@ -105,7 +100,7 @@
          Initial position at (0, 0.5, 0.5) — slightly ahead of origin.
          ================================================================= -->
     <model name="target_rover">
-      <static>false</static>
+      <static>true</static>  <!-- kinematic: driven on-rails by set_pose, no gravity (was false -> box fell through ground) -->
       <pose>0 0.5 0.5 0 0 0</pose>
       <link name="body">
         <inertial>

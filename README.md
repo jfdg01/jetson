@@ -1,135 +1,82 @@
-# Jetson Orin Nano — Device Capabilities & LLM Testbed
+# Un dron que pilotas hablándole
 
-Hardware survey of the `ssh jetson` host, captured for masters-thesis research on
-running local LLMs at the edge. Probed on **2026-06-13**.
+**Le dices en lenguaje natural qué seguir —"la furgoneta blanca", "el coche azul"— y el dron lo localiza, lo engancha y lo mantiene encuadrado él solo. Todo corre en la placa, sin nube.** Trabajo Fin de Máster (TFM) de Edge-AI.
 
-> **Note:** despite the directory name, this is **not** the original Jetson Nano
-> (Maxwell GPU, 4 GB, JetPack 4.x). It is a **Jetson Orin Nano 8GB Developer Kit**
-> running JetPack 6.2.2 — roughly an order of magnitude more capable.
-
-## Project layout
-
-The repo is a lab notebook in two parts:
-
-- **Part I — Exploratory** (`experiments/`, `runners/`, `runners/legacy/`,
-  `archive/`): device benchmark campaigns + the VLM grounding fine-tune arc (Stages
-  1–4). Complete and frozen as the historical record. Legacy per-stage trainers /
-  exporters live in `runners/legacy/`; research prose in `archive/`.
-- **Part II — Principled rebuild (v2)** (`grounding/` package, branch
-  `v2/principled-rebuild`): a deliberate rebuild organised around one shared
-  *contract* and a fidelity-before-GPU workflow. See `grounding/README.md`.
-
-```
-grounding/        # v2 package: contract.py (shared truth) + data/ eval/ train/ export/ deploy/ resolution.py
-runners/      # device-benchmark tooling (stdlib-only) + legacy/ (archived Part-I scripts)
-archive/ # archived research/handoff prose
-experiments/          # Part-I experiment writeups (one dir per campaign)
-DECISIONS.md      # decision log (Part II newest-first at top; Part I below)
-RESULTS.md        # results ledger (Part II appended at bottom)
-```
-
-The ledgers (`DECISIONS.md`, `RESULTS.md`) are append-only and carry a `Part II`
-demarcation; Part I content is untouched.
-
-## Connection
-
-```bash
-ssh jetson        # user: jfdg, hostname: jetson
-```
-
-## Platform summary
-
-| Component | Value |
-|---|---|
-| **Board** | NVIDIA Jetson Orin Nano Developer Kit |
-| **SoC** | Tegra234 (Orin) |
-| **JetPack** | 6.2.2 (`nvidia-jetpack 6.2.2+b24`) |
-| **L4T / BSP** | R36.5.0 (`nvidia-l4t-core 36.5.0`) |
-| **Kernel** | Linux 5.15.185-tegra, aarch64 |
-| **OS** | Ubuntu 22.04 (Python 3.10.12) |
-
-## CPU
-
-- **6× ARM Cortex-A78AE** (single cluster, 1 thread/core)
-- Max clock ~1.5 GHz (default 15 W mode); min ~115 MHz
-
-## GPU
-
-- **NVIDIA Ampere architecture**, integrated (`Orin (nvgpu)`)
-- **1024 CUDA cores + 32 Tensor cores** (3rd-gen), compute capability **8.7 (sm_87)**
-- Driver 540.5.0, reports CUDA 12.6
-- No dedicated VRAM — uses **unified memory shared with the CPU** (see below)
-
-## Memory & storage
-
-- **8 GB LPDDR5** unified (7.4 GiB visible), shared between CPU and GPU
-  — this is the **primary constraint** for model sizing.
-- **3.7 GiB swap** (zram, 6 devices)
-- **232 GB NVMe SSD** (ADATA SWORDFISH) at `/`, ~198 GB free — root is on NVMe, fast.
-
-## Power / thermals
-
-- **`nvpmodel` modes available: `15W` (ID 0, default) and `7W` (ID 1)**
-- `jetson_clocks` available (needs `sudo`) to lock max clocks for benchmarking
-- Monitor live with `tegrastats` (CPU/GPU/mem/temps), no root needed
-- ⚠️ The JetPack 6.2 **"Super" mode (25 W / MAXN_SUPER)** is *not* enabled here —
-  only 7 W and 15 W modes are present. Enabling it (firmware + `nvpmodel`) would
-  raise GPU clocks and LLM throughput
-
-## Installed ML / CUDA stack
-
-| Library | Version |
-|---|---|
-| CUDA Toolkit | 12.6.11 (`/usr/local/cuda` → 12.6) |
-| cuDNN | 9.3.0 |
-| TensorRT | 10.3.0 (incl. `python3-libnvinfer`) |
-| nvcc | present at `/usr/local/cuda/bin/nvcc` (not on default PATH) |
-
-`nvcc` is not on `$PATH` by default — you may add it:
-```bash
-export PATH=/usr/local/cuda/bin:$PATH
-export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
-```
-
-### Not yet installed (you'll add these for the thesis)
-- **No** PyTorch / Transformers / ONNX Runtime / llama.cpp / Ollama
-- **No Docker** (user `jfdg` is not in the docker group; would need install)
-- **No `cmake`** (have `gcc`, `git`, `python3-venv`)
+![Jetson Orin Nano](https://img.shields.io/badge/Jetson-Orin%20Nano%208GB-76B900?logo=nvidia&logoColor=white)
+![Qwen2-VL-2B](https://img.shields.io/badge/VLM-Qwen2--VL--2B-blue)
+![llama.cpp](https://img.shields.io/badge/runtime-llama.cpp-lightgrey)
+![Edge-AI](https://img.shields.io/badge/Edge--AI-on--device-orange)
+![15W](https://img.shields.io/badge/power-15W-green)
 
 ---
 
-## What LLMs can realistically run here
+## El problema
 
-The hard limit is **~8 GB unified memory shared by CPU+GPU+OS**. After the OS and
-desktop (~0.6–1.5 GB), budget **~6–6.5 GB** for model weights + KV cache.
-Use **4-bit quantization** (GGUF `Q4_K_M`, AWQ, or TensorRT-LLM INT4) for anything ≥3B.
+Los drones se pilotan con mando o con waypoints GPS. Nadie le dice a un dron *"sigue a aquel coche"* — porque entender lenguaje natural sobre imágenes requiere modelos grandes que viven en la nube, y la nube añade latencia, dependencia de red y coste.
 
-| Model size | Quant | Approx. weights | Fits? | Notes |
-|---|---|---|---|---|
-| 1–2B (Qwen2.5-1.5B, Llama-3.2-1B, Gemma-2-2B) | Q4–Q8 | 0.7–2 GB | ✅ Easy | Fast, lots of headroom for context |
-| 3–4B (Phi-3-mini, Llama-3.2-3B, Qwen2.5-3B) | Q4_K_M | ~2–2.5 GB | ✅ Comfortable | Good sweet spot for Orin Nano |
-| 7–8B (Llama-3.1-8B, Qwen2.5-7B, Mistral-7B) | Q4_K_M | ~4.5–5 GB | ⚠️ Tight | Works with small context; watch KV cache + swap |
-| 7–8B | Q5/Q6/Q8 | 6–8.5 GB | ❌ / risky | OOM or heavy swapping |
-| 13B+ | any | >7 GB | ❌ | Won't fit |
-
-### Runtime
-
-* We are running with llama.cpp
-
-### Benchmarking checklist for the thesis
-- Set a fixed power mode before each run: `sudo nvpmodel -m 0` (15 W) and lock clocks
-  `sudo jetson_clocks`; consider enabling 25 W Super mode for a third data point.
-- Log `tegrastats` during inference for power, GPU util, and thermal throttling.
-- Report tokens/sec (prefill vs. decode), time-to-first-token, peak RAM, and
-  power draw per model/quant — the interesting edge-LLM tradeoffs.
+Este TFM demuestra que un dron puede aceptar órdenes en lenguaje natural y seguir el objetivo **enteramente on-device**, en una Jetson Orin Nano de 8 GB a **15 W**, sin conexión a internet.
 
 ---
 
-## Environment conventions (per global rules)
+## Cómo funciona
 
-Python work on the Jetson should use a venv per project:
-```bash
-python3 -m venv .venv && source .venv/bin/activate
+```mermaid
+flowchart LR
+    A["Orden en lenguaje natural<br/>«la furgoneta blanca»"] --> B["VLM (Qwen2-VL-2B)<br/>produce bounding box"]
+    B --> C["Tracker ligero<br/>mantiene el lock a 20 Hz"]
+    C --> D["Control dron + gimbal<br/>encuadra el objetivo"]
+    D --> C
+    C -->|se pierde el lock| B
 ```
-Do not `pip install` globally. Note: PyTorch for Jetson must come from NVIDIA's
-prebuilt aarch64 wheels (Jetson PyPI index), **not** stock PyPI.
+
+El sistema es un **bucle de seguimiento de dos niveles**: un modelo pesado que ancla y uno ligero que coastea entre anclajes.
+
+- **VLM afinado y cuantizado para caber en 15 W.** Qwen2-VL-2B con LoRA, exportado a GGUF **Q8_0 (~1.65 GB)** y servido con llama.cpp. Se eligió por su resolución dinámica nativa (clave para objetos aéreos diminutos, ~16 px) y porque su fidelidad al cuantizar apenas cae, a diferencia de otros backbones probados.
+- **Dos niveles, cada uno en lo suyo.** El VLM re-ancla el objetivo cada ~2 s (es preciso pero lento, ~0.44 Hz); un tracker ligero (ByteTrack, ~0.14 ms/frame en la Orin) mantiene el lock a 20 Hz entre anclajes. El re-grounding con el VLM se dispara **al perder el lock**, no en cadencia fija, porque el horizonte de coasteo (~1.5 s) es menor que el periodo de anclaje.
+- **Re-ancla más rápido recortando la ROI.** En lugar de reprocesar el fotograma completo, se le pasa al VLM un recorte alrededor del último box: prefill 2.7× más rápido *y* más preciso (super-resolución del recorte).
+- **Evaluación por etapas con puertas.** Cada fase (backend → datos → resolución → entreno → despliegue) tiene una puerta cuantitativa medida (IoU@0.25) antes de pasar a la siguiente; nada de código especulativo.
+
+---
+
+## En números
+
+> **Todo corre en una Jetson Orin Nano 8 GB a 15 W, sin nube.**
+>
+> - **Modelo en el dispositivo:** Qwen2-VL-2B GGUF **Q8_0 = 1.65 GB** (vs 3.09 GB en F16, precisión indistinguible).
+> - **Grounding on-device:** **62.6 %** IoU@0.25 en RefDrone (n=439), subiendo a **63.1 %** con salida compacta. El despliegue cuantizado *iguala o supera* al modelo de referencia HF bf16 (59.5 %) — la caída catastrófica de la Parte I (−23 pp) no se reproduce.
+> - **Re-anclaje ROI:** **85.2 %** IoU@0.25 con recorte alrededor del objetivo (+22.6 pp sobre fotograma completo, y 2.7× más rápido).
+> - **Seguimiento temporal sostenido:** carry con memoria (SAM2.1-tiny, zero-shot) da **0.849** IoU@0.25 y **0.891** de consistencia de identidad sobre 186 tracks de AerialMind.
+> - **Latencia del tracker:** 0.14 ms/frame en la Orin → 20 Hz con ~350× de margen.
+> - **Techo de seguimiento validado:** hasta **3.0 m/s** de objetivo en SITL de extremo a extremo.
+
+---
+
+## Estructura del repo
+
+El repositorio es un cuaderno de laboratorio en dos partes:
+
+- **Parte I — Exploratoria** (`experiments/`, `runners/`, `runners/legacy/`, `archive/`): campañas de benchmark del dispositivo y el arco inicial de fine-tune del VLM (Stages 1–4). Congelada como registro histórico.
+- **Parte II — Rebuild principled** (paquete `grounding/`): reconstrucción deliberada organizada en torno a **un único contrato compartido** (`grounding/contract.py`: prompt, parser y métricas, importados por todos los módulos para que no vuelvan a divergir) y un flujo *fidelidad-antes-que-GPU* con fases con puerta. Ver [`grounding/README.md`](grounding/README.md).
+
+El trabajo posterior extiende esta base: seguimiento persistente y permanencia de objeto (Parte III), refinamiento end-to-end del bucle de vuelo (Parte IV) y grounding anticipatorio / warm-start (Parte V). Los libros de resultados y decisiones están divididos por parte:
+
+- **[`RESULTS.md`](RESULTS.md)** — índice de resultados por parte (`docs/results/`).
+- **[`DECISIONS.md`](DECISIONS.md)** — registro de decisiones por parte (`docs/decisions/`).
+
+---
+
+## Hardware
+
+Todo se ejecuta sobre un **NVIDIA Jetson Orin Nano 8 GB Developer Kit** (no la Jetson Nano original):
+
+| Componente | Valor |
+|---|---|
+| SoC | Tegra234 (Orin), GPU Ampere 1024 CUDA + 32 Tensor cores (sm_87) |
+| Memoria | 8 GB LPDDR5 **unificada** CPU+GPU (~6–6.5 GB útiles para el modelo) — la restricción principal |
+| JetPack / L4T | 6.2.2 / R36.5.0, Ubuntu 22.04, kernel 5.15-tegra (aarch64) |
+| Potencia | modo **15 W** (por defecto) y 7 W; sin modo Super de 25 W en esta placa |
+| Runtime LLM | llama.cpp (CUDA full-offload) |
+
+El detalle completo del hardware, el stack CUDA/TensorRT y las convenciones de entorno está en [`CURRENT-SETUP.md`](CURRENT-SETUP.md) y en el histórico de la Parte I.
+</content>
+</invoke>
