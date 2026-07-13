@@ -70,3 +70,6 @@ eeprom.bin
 .claude/settings.local.json
 runners/sitl/external/
 runners/_gz_feed.log
+.claude/autoresearch.log
+.claude/autoresearch-logs/
+.claude/autoresearch.STOP
