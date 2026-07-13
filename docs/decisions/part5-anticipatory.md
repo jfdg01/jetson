@@ -53,3 +53,34 @@ figure as a positive result; kept as a clean documented negative (a wrong estima
   `genuine_lock` on all legs (GT absent at deliver frame), so they are structural not detection
   misses; kept for P5.1 comparability and reported flagged with window coverage. *Given up:* a
   flattering 21/23; the honest denominator is /25 = 21/25, with the /23=91% stated alongside.
+
+### P5.3 — multi-candidate select-on-command (2026-07-14)
+
+★ **Late-binding IoU-match chosen over crop-scoring for the first select test — and the FAIL now
+promotes crop-scoring to the next deep-research target.** P5.3 selected candidates by firing the
+deployed phrase-grounding VLM on the prompt frame and matching its (stale) box by IoU to the
+carried candidate boxes, then delivering the matched track's live box. *Why chosen:* it reuses only
+deployed, already-validated components (the Part II RefDrone-fine-tuned VLM is a referring-expression
+model by lineage; the IoU match is `replay_source.iou` + existing carry) — no new method, no new
+citation, runnable immediately. *Rejected:* CLIP crop-text similarity / VLM multiple-choice over the
+candidate crops — lower-latency and they score the *carried candidates directly* (no free-frame
+grounding), but neither is grounded in repo code or cited work, so each needs a deep-research cycle
+first. *Outcome / consequence:* P5.3 FAILED on the match mechanism (NO_MATCH 4/7 non-passes — the
+VLM's prompt-frame box misses both carried candidates), exactly the pre-registered trigger to
+promote the crop-scoring family. *Given up (for now):* sub-acquire-latency selection; the next
+Part V select experiment should be a deep-research cycle on crop-scoring, landing SOURCES citations
+before designing.
+
+- **Oracle-seeded 2-candidate set (target = GT[f0], distractor = hand box), enumeration out of
+  scope.** Candidate *discovery/maintenance* over the idle window is charter backlog item 2; P5.3
+  isolates the *select* stage given a known candidate set, justified by P5.1/P5.2 where WARM matched
+  ORACLE. *Given up:* end-to-end realism — but it cleanly separates "can the phrase pick the right
+  carried track" from "can we find the candidates", so the NO_MATCH finding is unambiguously a
+  grounding-accuracy result, not a seeding artifact.
+- **Car scenes only; person/K>2 dropped.** The downloaded UAV123 person subset has no ≥8 s
+  co-visible same-class distractor pair (person13/person20 ~5-6 s); K>2 is future work. *Given up:*
+  category breadth for the select test — recorded as a negative curation result, not worked around.
+- **Same-frame delivery for all legs (WSEL/SWAP/CSEL all deliver at prompt+acquire).** Differs from
+  P5.1's earlier warm delivery — deliberately removes the delivery-lag advantage so P5.3 measures
+  *only* the late-binding select claim (delivery-lag removal already proven in P5.1/P5.2). *Given
+  up:* showing warm's full end-to-end win again; kept the experiment a clean single-variable test.

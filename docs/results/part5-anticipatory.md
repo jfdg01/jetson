@@ -66,3 +66,33 @@ refuted: warm-start's payoff is a flat offset (COLD's *delivery* lag sinks it br
 of motion). Full per-clip table in the experiment README. Proof: `proof/gap_vs_speed.png` (the
 thesis figure — ρ + per-bin means), `proof/generalization_grid.png` (PASS by category),
 `proof/person20_warm_vs_cold.mp4` (fast non-car money shot: fresh WARM tracks, stale COLD misses).
+
+### P5.3 — multi-candidate select-on-command (late-binding phrase select, 2026-07-14)
+
+Detail: [`../../experiments/2026-07-14-multi-candidate-select/README.md`](../../experiments/2026-07-14-multi-candidate-select/README.md).
+First Part V test of the *selection* stage (P5.1/P5.2 all had one dominant target, so select was
+trivially satisfied). Two same-class candidates carried through the idle window (target = oracle
+GT[f0] seed, distractor = hand box); at t_p the deployed VLM (Qwen2-VL-2B q8_0 terse, max_side 1024,
+Jetson 15 W + jetson_clocks) fires on the prompt frame, and its stale box is **matched by IoU
+against the candidates' carried boxes at the prompt frame** (`argmax IoU`, NO_MATCH floor 0.10) —
+then the matched *track's live box* is delivered. 5 car scenes × 3 legs (WSEL / SWAP / CSEL), n=1
+deterministic, 15/15 ran clean (exit 0), no abort. Same-frame delivery for all legs (isolates the
+late-binding claim from the delivery-lag win already proven in P5.1/P5.2).
+
+| leg | PASS | mechanism |
+|---|---|---|
+| WSEL (target phrase → matched live track) | **3/5** | car10:240, car9:300, car7:460 lock at IoU 0.81-0.87; car10:615 + car3:200 fail |
+| SWAP (distractor phrase → should flip selection) | **2/5** | car9:300, car3:200 flip correctly; other 3 NO_MATCH on the distractor caption |
+| CSEL (cold deployed baseline, non-gating) | **1/5** genuine_lock | car10:240 only — cold stays broadly stale, consistent with COLD 5/25 (P5.2) |
+
+**Verdict: NO** (RQ-P5.3a FAIL 3/5 < 4; RQ-P5.3b FAIL 2/5 < 4). **Dominant failure = NO_MATCH**
+(4 of 7 non-passes): the stale VLM box at the prompt frame overlapped neither carried candidate
+(max IoU ~0.000), i.e. the deployed VLM grounded the caption onto an object outside both tracks
+(third in-frame cars; type/colour phrase ambiguity for the distractor captions). **Not a match-rule
+bug** — the 3 WSEL passes deliver the correct live track at IoU 0.81-0.87 whenever the VLM boxes a
+carried candidate. The late-binding IoU-match mechanism is *sound but not robust*: it is bottlenecked
+by the deployed VLM's raw grounding accuracy at the prompt frame, not by carry drift or the match
+rule. Motivates the crop-scoring family (CLIP crop-text / VLM multiple-choice over the carried
+candidate crops directly) as the next deep-research target. Proof: `proof/p53_pass_grid.png`
+(outcome grid), `proof/p53_deliver_iou.png` (WSEL matched 0.81-0.87 vs CSEL stale ~0 same frame),
+`proof/car9_300_WSEL.mp4` + `proof/car9_300_SWAP.mp4` (phrase flips the selected track in one scene).

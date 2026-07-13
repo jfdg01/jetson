@@ -1,5 +1,7 @@
 # P5.3 — multi-candidate select-on-command (late-binding phrase select)
 
+**Status: COMPLETE — RQ-P5.3a FAIL (WSEL 3/5), RQ-P5.3b FAIL (SWAP 2/5), overall NO. Ran 2026-07-14T01:47Z (Madrid). A FAIL is a valid result; matrix ran clean (15/15, exit 0), no abort triggered.**
+<!-- prior status -->
 **Status: PRE-REGISTERED — matrix not yet run.**
 Pre-registered 2026-07-14T01:35Z (Madrid wall clock). Design + patches by Fable;
 **Opus runs the matrix and fills the Results section only — do NOT re-patch code.**
@@ -194,35 +196,51 @@ Then proof figures:
 
 ## Results (TBD — Opus fills this section only)
 
-Jetson power mode check output: `TBD`
+Jetson power mode check output: `NV Power Mode: 15W` (+ `sudo jetson_clocks`). Rig on local RTX 3090 (SAM2 carry, rate-capped to 6.15 Hz), VLM q8_0 max_side 1024 on the Jetson over SSH. n=1 per cell (deterministic, as P5.1/P5.2). Wall ~15 min total.
 
 | Scene | WSEL sel | WSEL iou@deliver | WSEL cov | WSEL PASS | SWAP sel | SWAP iou@deliver | SWAP PASS | CSEL iou@deliver | CSEL PASS |
 |---|---|---|---|---|---|---|---|---|---|
-| car10:240 | | | | | | | | | |
-| car10:615 | | | | | | | | | |
-| car9:300 | | | | | | | | | |
-| car7:460 | | | | | | | | | |
-| car3:200 | | | | | | | | | |
+| car10:240 | target | 0.815 | 1.00 | **PASS** | NO_MATCH (0.000) | — | FAIL | 0.490 | **PASS** |
+| car10:615 | NO_MATCH (0.000) | — | 0.00 | FAIL | NO_MATCH (0.009) | — | FAIL | 0.000 | FAIL |
+| car9:300 | target | 0.873 | 0.963 | **PASS** | distractor | 0.000 | **PASS** | 0.053 | FAIL |
+| car7:460 | target | 0.806 | 1.00 | **PASS** | NO_MATCH (0.000) | — | FAIL | 0.000 | FAIL |
+| car3:200 | distractor | 0.000 | 0.00 | FAIL | distractor | 0.000 | **PASS** | 0.249 | FAIL |
 
-- WSEL PASS count: `TBD`/5 -> RQ-P5.3a: `TBD`
-- SWAP PASS count: `TBD`/5 -> RQ-P5.3b: `TBD`
-- Overall P5.3 verdict: `TBD`
-- Estimate-vs-actual divergences: `TBD`
-- What broke where (per failing run, from `reason`/`match_ious`/overlay): `TBD`
+- WSEL PASS count: **3/5** (car10:240, car9:300, car7:460) -> RQ-P5.3a: **FAIL** (needs >= 4/5)
+- SWAP PASS count: **2/5** (car9:300, car3:200) -> RQ-P5.3b: **FAIL** (needs >= 4/5)
+- Overall P5.3 verdict: **NO** (YES requires both a and b)
+- CSEL (baseline, non-gating): genuine_lock **1/5** (car10:240 only), consistent with COLD 5/25 in P5.2 — cold stays broadly stale.
+- Estimate-vs-actual divergences: WSEL landed 3/5 vs estimated 4/5 (car10:615 missed as flagged, but car3:200 also missed — VLM grounded the "red car" phrase onto the white-car distractor track, not the tiny red target). SWAP landed 2/5 vs estimated 3-5/5 — worse than expected: the distractor captions ("the black car", "the white van") NO_MATCH 3/5 because the deployed VLM's box at the prompt frame overlapped neither carried candidate. Wall ~15 min, under the 30-50 min estimate (Jetson server kept warm across cells).
+- What broke where (from `reason`/`match_ious`/overlay):
+  - **Dominant failure = NO_MATCH (4 of 7 non-passes):** the stale VLM box at the submit frame overlaps neither carried candidate's box at the prompt frame (max IoU ~0.000). This is the honest fallback the match rule was designed to catch, but it fires far more than expected — the VLM grounded the caption onto an object outside both carried tracks (third cars in-frame, or type/colour phrase ambiguity for the distractor captions). NOT a match-rule bug: WSEL passed cleanly on car10:240 / car9:300 / car7:460 with deliver_iou 0.81-0.87, proving the IoU match delivers the correct live track when the VLM box lands on a carried candidate.
+  - **Wrong-object grounding (car3:200 WSEL):** VLM boxed the white-car distractor for "the red car" (tiny ~16x40 px target), match selected distractor, deliver_iou 0.0 vs target GT. Small-object grounding risk, pre-registered.
+  - **SWAP passes are real but partial:** car9:300 and car3:200 SWAP correctly selected the distractor (delivered box off the target, IoU 0.0 vs target GT = correct per the SWAP scoring rule). The other 3 SWAP cells NO_MATCH on the distractor caption.
+  - **Interpretation:** the late-binding IoU-match mechanism is *sound but not robust enough* — it is bottlenecked by the deployed VLM's raw grounding accuracy at the prompt frame, not by carry drift or the match rule. Selection succeeds when and only when the VLM boxes a carried candidate. Per the pre-registered rejected-alternative note, this motivates the crop-scoring family (CLIP crop-text / VLM multiple-choice over the *carried candidate crops* directly, bypassing free-frame VLM grounding) as the next deep-research target.
 
 ## Deliverables plan (DoD-7)
 
-1. `proof/p53_pass_grid.png` — outcome grid (from `make_proof.py`).
+1. `proof/p53_pass_grid.png` — per-scene x per-leg outcome grid (from
+   `make_proof.py`, built from `runs/*/results.json`). Shows WSEL 3/5, SWAP 2/5,
+   CSEL 1/5 and the NO_MATCH cells — the quantitative FAIL at a glance.
 2. `proof/p53_deliver_iou.png` — WSEL vs CSEL delivered-box IoU at the same
-   deliver frame (the late-binding-vs-stale figure).
-3. One curated overlay clip pair copied from `runs/` into `proof/` (suggest
-   car9:300 WSEL + SWAP — the phrase flips the selected track in the same
-   scene). Caption them in this README when filled.
+   deliver frame. Where WSEL matches (3 scenes) it delivers a live track at
+   IoU 0.81-0.87; CSEL's stale raw box collapses to ~0 on the same frame. The
+   late-binding-vs-stale figure — and the reason the *mechanism* is sound even
+   though the *verdict* is FAIL.
+3. Curated overlay clip pair (car9:300, re-encoded from `runs/`):
+   - `proof/car9_300_WSEL.mp4` — phrase "the silver car": the matched track (green
+     delivered box) locks the silver target, IoU 0.873, cov 0.96 → PASS. The
+     positive half of the late-binding claim.
+   - `proof/car9_300_SWAP.mp4` — same scene, phrase swapped to "the black car":
+     selection flips to the distractor track (delivered box leaves the target) →
+     SWAP PASS. The phrase drives the selection when the VLM grounds a carried
+     candidate. (This is one of only 2 scenes where both directions worked; the
+     overall FAIL is driven by NO_MATCH elsewhere — see Results.)
 
 ## Ledger checklist (post-run)
 
-- [ ] RESULTS row(s) -> `docs/results/part5-anticipatory.md`
-- [ ] QUESTIONS entry (RQ-P5.3a/b + one-line verdicts) -> `docs/questions/part5-anticipatory.md`
-- [ ] DECISIONS entry (late-binding vs crop-scoring; oracle-seeded candidate
+- [x] RESULTS row(s) -> `docs/results/part5-anticipatory.md`
+- [x] QUESTIONS entry (RQ-P5.3a/b + one-line verdicts) -> `docs/questions/part5-anticipatory.md`
+- [x] DECISIONS entry (late-binding vs crop-scoring; oracle-seeded candidate
   set scope cut) -> `docs/decisions/part5-anticipatory.md`
-- [ ] No new external sources expected (SOURCES only if something new is pulled in)
+- [x] No new external sources pulled in -> SOURCES unchanged

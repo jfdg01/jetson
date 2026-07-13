@@ -1,0 +1,71 @@
+{
+  "leg": "SWAP",
+  "scene": {
+    "clip": "car10",
+    "f0": 240,
+    "t_p": 8.0,
+    "target_caption": "the white car",
+    "distractor_caption": "the black car",
+    "distractor_box": [
+      540,
+      253,
+      600,
+      311
+    ],
+    "note": "two sedans side by side same road; third dark car ahead ~[580,230,620,260] may draw the VLM (NO_MATCH risk, recorded)"
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 12.1,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "n_gate_reject": 0,
+  "pass": false,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "n_scored": 0,
+    "deliver_frame": 615,
+    "selection": null,
+    "selection_correct": false,
+    "reason": "NO_MATCH: vlm box overlaps no carried candidate (max IoU 0.000 < 0.1)",
+    "leg": "SWAP"
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 240,
+    "t_p": 8.0,
+    "prompt_frame": 480,
+    "acquire_s": 4.49,
+    "caption": "the black car",
+    "cand_at_prompt": {
+      "target": [
+        627.0,
+        223.0,
+        665.0,
+        253.0
+      ],
+      "distractor": [
+        616.0,
+        192.0,
+        635.0,
+        208.0
+      ]
+    },
+    "vlm_box": [
+      601.6,
+      187.2,
+      614.4,
+      201.6
+    ],
+    "match_ious": {
+      "target": 0.0,
+      "distractor": 0.0
+    },
+    "selected": null
+  },
+  "events": []
+}

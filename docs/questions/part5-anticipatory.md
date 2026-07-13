@@ -48,3 +48,30 @@ because COLD's ~135-frame *delivery* lag sinks it broadly (5/25), and its surviv
 deliver-frame geometry accidents, not slow targets. Warm-start beats cold because cold's delivery
 is stale full stop — not because faster targets move further during the acquire. Detail:
 [`../../experiments/2026-07-04-warm-start-generalization/README.md`](../../experiments/2026-07-04-warm-start-generalization/README.md).
+
+### P5.3 — multi-candidate select-on-command (2026-07-14)
+
+**RQ-P5.3a (select works):** when two same-class candidates are warm-carried through the idle
+window, does the operator's phrase, late-bound by IoU-matching the stale VLM box to the carried
+boxes, deliver the *named* target's live track? (PASS = selection==target AND genuine_lock IoU≥0.25
+at deliver AND coverage≥0.5; RQ PASS at ≥4/5 scenes.)
+
+**Verdict: FAIL (WSEL 3/5).** car10:240, car9:300, car7:460 lock the target at deliver IoU
+0.81-0.87 (cov 0.96-1.00) — the mechanism *works* when the VLM boxes a carried candidate. But
+car10:615 NO_MATCH (VLM boxed neither carry) and car3:200 selected the white-car distractor for
+"the red car" (tiny ~16×40 px target). 3/5 < 4/5.
+
+**RQ-P5.3b (the phrase drives it):** swapping to the distractor phrase swaps the selection?
+(PASS = selection==distractor AND delivered box off the target, IoU<0.25 vs target GT; ≥4/5.)
+
+**Verdict: FAIL (SWAP 2/5).** car9:300 and car3:200 correctly flip to the distractor track; the
+other 3 scenes NO_MATCH — the deployed VLM could not ground the distractor captions ("the black
+car", "the white van") onto a carried candidate at the prompt frame. 2/5 < 4/5.
+
+**Overall P5.3 = NO** (YES needs both). The failure is not the IoU-match rule or carry drift — it
+is the deployed VLM's raw grounding accuracy at the single prompt frame: selection succeeds iff the
+VLM boxes a carried candidate, and NO_MATCH (4 of 7 non-passes) fires when it does not. Late-binding
+phrase-select is sound-but-not-robust on the deployed VLM; the next lever is crop-scoring over the
+carried candidate crops (bypassing free-frame VLM grounding), pre-registered as a deep-research
+target. Detail:
+[`../../experiments/2026-07-14-multi-candidate-select/README.md`](../../experiments/2026-07-14-multi-candidate-select/README.md).

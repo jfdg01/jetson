@@ -1,0 +1,71 @@
+{
+  "leg": "SWAP",
+  "scene": {
+    "clip": "car7",
+    "f0": 460,
+    "t_p": 8.0,
+    "target_caption": "the silver car",
+    "distractor_caption": "the black car",
+    "distractor_box": [
+      900,
+      308,
+      1000,
+      352
+    ],
+    "note": "roundabout scene; black car on right road; target GT has a NaN occlusion patch ~f900 inside the coverage window (scorer skips NaN frames)"
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 12.1,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "n_gate_reject": 0,
+  "pass": false,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "n_scored": 0,
+    "deliver_frame": 835,
+    "selection": null,
+    "selection_correct": false,
+    "reason": "NO_MATCH: vlm box overlaps no carried candidate (max IoU 0.000 < 0.1)",
+    "leg": "SWAP"
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 460,
+    "t_p": 8.0,
+    "prompt_frame": 700,
+    "acquire_s": 4.51,
+    "caption": "the black car",
+    "cand_at_prompt": {
+      "target": [
+        818.0,
+        532.0,
+        895.0,
+        608.0
+      ],
+      "distractor": [
+        0.0,
+        407.0,
+        41.0,
+        424.0
+      ]
+    },
+    "vlm_box": [
+      678.4,
+      597.6,
+      780.8,
+      648.0
+    ],
+    "match_ious": {
+      "target": 0.0,
+      "distractor": 0.0
+    },
+    "selected": null
+  },
+  "events": []
+}
