@@ -1,0 +1,40 @@
+{
+  "comment": "P5.3 frozen scene set. f0 = 0-based frame index (frame file = f0+1 as %06d.jpg; GT line = f0+1). distractor_box = hand-annotated pixel box at f0 (1280x720), verified visually 2026-07-14 (see README curation section). Target seed is gt[f0] (oracle seed, recorded scope cut). t_p seconds after f0; prompt = f0 + t_p*30.",
+  "scenes": [
+    {
+      "clip": "car10", "f0": 240, "t_p": 8.0,
+      "target_caption": "the white car",
+      "distractor_caption": "the black car",
+      "distractor_box": [540, 253, 600, 311],
+      "note": "two sedans side by side same road; third dark car ahead ~[580,230,620,260] may draw the VLM (NO_MATCH risk, recorded)"
+    },
+    {
+      "clip": "car10", "f0": 615, "t_p": 8.0,
+      "target_caption": "the white car",
+      "distractor_caption": "the white van",
+      "distractor_box": [588, 455, 715, 700],
+      "note": "type disambiguation (car vs van), same colour; van enters frame bottom at f0; large silver sedan mid-frame is a phrase-ambiguity risk for 'the white car'"
+    },
+    {
+      "clip": "car9", "f0": 300, "t_p": 8.0,
+      "target_caption": "the silver car",
+      "distractor_caption": "the black car",
+      "distractor_box": [588, 528, 660, 672],
+      "note": "black car directly behind target, overtakes during idle window; third maroon car enters ~f540 (NO_MATCH risk, recorded)"
+    },
+    {
+      "clip": "car7", "f0": 460, "t_p": 8.0,
+      "target_caption": "the silver car",
+      "distractor_caption": "the black car",
+      "distractor_box": [900, 308, 1000, 352],
+      "note": "roundabout scene; black car on right road; target GT has a NaN occlusion patch ~f900 inside the coverage window (scorer skips NaN frames)"
+    },
+    {
+      "clip": "car3", "f0": 200, "t_p": 8.0,
+      "target_caption": "the red car",
+      "distractor_caption": "the white car",
+      "distractor_box": [388, 538, 420, 602],
+      "note": "top-down convoy, strong colour contrast but tiny boxes (~16x40 px, small-object VLM risk); a second white car below ~[365,615,395,675] may draw the SWAP acquire (NO_MATCH risk, recorded)"
+    }
+  ]
+}
