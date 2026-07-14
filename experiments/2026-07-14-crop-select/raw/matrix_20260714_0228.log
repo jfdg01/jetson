@@ -1,0 +1,83 @@
+[P5.4] loading primary CLIP openai/clip-vit-large-patch14 on cuda...
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+[P5.4] loading secondary CLIP openai/clip-vit-base-patch32 on cuda...
+[P5.4 VSEL car10:240] booting Jetson q8_0...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.01it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 28.16it/s]
+[P5.4 VSEL car10:240] PASS=True sel=target clip_sel=target genuine=True cov=1.0 deliver_iou=0.746 acq=2.09 wall=18s reason=None
+[P5.4 VSWP car10:240] booting Jetson q8_0...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.39it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.66it/s]
+[P5.4 VSWP car10:240] PASS=True sel=distractor clip_sel=distractor genuine=False cov=0.0 deliver_iou=0.0 acq=2.08 wall=17s reason=None
+[P5.4 VSEL car10:615] booting Jetson q8_0...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.08it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.43it/s]
+[P5.4 VSEL car10:615] PASS=False sel=None clip_sel=target genuine=False cov=0.0 deliver_iou=None acq=None wall=7s reason=NO_MATCH: vlm box overlaps no carried candidate (max IoU 0.000 < 0.1)
+[P5.4 VSWP car10:615] booting Jetson q8_0...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.26it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.25it/s]
+[P5.4 VSWP car10:615] PASS=False sel=None clip_sel=target genuine=False cov=0.0 deliver_iou=None acq=None wall=7s reason=NO_MATCH: vlm box overlaps no carried candidate (max IoU 0.000 < 0.1)
+[P5.4 VSEL car9:300] booting Jetson q8_0...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.14it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.51it/s]
+[P5.4 VSEL car9:300] PASS=True sel=target clip_sel=target genuine=True cov=0.97 deliver_iou=0.8326 acq=2.06 wall=17s reason=None
+[P5.4 VSWP car9:300] booting Jetson q8_0...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.05it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.41it/s]
+[P5.4 VSWP car9:300] PASS=True sel=distractor clip_sel=distractor genuine=False cov=0.0 deliver_iou=0.0 acq=2.06 wall=18s reason=None
+[P5.4 VSEL car7:460] booting Jetson q8_0...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.95it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.73it/s]
+[P5.4 VSEL car7:460] PASS=True sel=target clip_sel=target genuine=True cov=1.0 deliver_iou=0.5909 acq=1.6 wall=16s reason=None
+[P5.4 VSWP car7:460] booting Jetson q8_0...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.84it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.72it/s]
+[P5.4 VSWP car7:460] PASS=False sel=None clip_sel=target genuine=False cov=0.0 deliver_iou=None acq=None wall=6s reason=NO_MATCH: vlm box overlaps no carried candidate (max IoU 0.000 < 0.1)
+[P5.4 VSEL car3:200] booting Jetson q8_0...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.43it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 51.53it/s]
+[P5.4 VSEL car3:200] PASS=False sel=distractor clip_sel=distractor genuine=False cov=0.0 deliver_iou=0.0 acq=2.11 wall=17s reason=None
+[P5.4 VSWP car3:200] booting Jetson q8_0...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.49it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.95it/s]
+[P5.4 VSWP car3:200] PASS=True sel=distractor clip_sel=distractor genuine=False cov=0.0 deliver_iou=0.0 acq=2.11 wall=17s reason=None

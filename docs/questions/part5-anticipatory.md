@@ -75,3 +75,25 @@ phrase-select is sound-but-not-robust on the deployed VLM; the next lever is cro
 carried candidate crops (bypassing free-frame VLM grounding), pre-registered as a deep-research
 target. Detail:
 [`../../experiments/2026-07-14-multi-candidate-select/README.md`](../../experiments/2026-07-14-multi-candidate-select/README.md).
+
+### P5.4 — ROI-constrained select-on-command (2026-07-14)
+
+- **RQ-P5.4a (ROI select works):** with the VLM fired on the candidates-union ROI crop (union of
+  the two carried boxes, margin 1.5, min_side 256, LANCZOS@512 — the deployed Part III lever),
+  does the target phrase deliver the named target's live track? PASS iff VSEL >= 4/5. **Verdict:
+  NO** (VSEL 3/5) — cell-for-cell identical to P5.3's full-frame WSEL 3/5. The ROI crop cut
+  acquire latency ~2.3x (4.5-4.9s -> 2.08s median) but did NOT move the select verdict: car10:615
+  still NO_MATCH (the VLM grounds an in-crop third object *between* the two carries — NO_MATCH is
+  reduced 4->3, not eliminated by construction), and car3:200's ~16x40 px target still mis-grounds
+  despite the 2-5x upscale (resolution ceiling).
+- **RQ-P5.4b (the phrase drives it):** does the distractor phrase flip the selection? PASS iff VSWP
+  >= 4/5. **Verdict: NO** (VSWP 3/5) — up from P5.3 SWAP 2/5 (car10:240 now grounds the distractor
+  caption inside the crop). Remaining fails: car10:615 (same in-crop third object) and car7:460
+  (pre-registered carry-drift cell, `carry_suspect=['distractor']` — carry maintenance, not select).
+- **Overall P5.4 = NO [match-bound, resolution-bound].** The ROI lever is a real latency win
+  (~2.08s, transfers from Part III as predicted) but the binding constraint stays the deployed VLM's
+  grounding at the prompt: select succeeds iff the VLM boxes a carried candidate, and the ROI crop
+  helps that only marginally (VSWP +1, VSEL +0). The in-crop-third-object and small-object failure
+  modes are not addressed by cropping; CLIP crop-scoring (circlectx, non-gating 7/10) would not have
+  rescued them either. Detail:
+  [`../../experiments/2026-07-14-crop-select/README.md`](../../experiments/2026-07-14-crop-select/README.md).

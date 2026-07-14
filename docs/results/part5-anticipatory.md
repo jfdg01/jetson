@@ -96,3 +96,29 @@ rule. Motivates the crop-scoring family (CLIP crop-text / VLM multiple-choice ov
 candidate crops directly) as the next deep-research target. Proof: `proof/p53_pass_grid.png`
 (outcome grid), `proof/p53_deliver_iou.png` (WSEL matched 0.81-0.87 vs CSEL stale ~0 same frame),
 `proof/car9_300_WSEL.mp4` + `proof/car9_300_SWAP.mp4` (phrase flips the selected track in one scene).
+
+### P5.4 — ROI-constrained select-on-command (2026-07-14)
+
+`experiments/2026-07-14-crop-select/` · Jetson 15W + jetson_clocks, q8_0 VLM max_side 1024 fired on
+the candidates-union ROI crop (margin 1.5, min_side 256, LANCZOS@512), SAM2 carry on local RTX 3090
+rate-capped to 6.15 Hz. 5 frozen P5.3 scenes x {VSEL, VSWP} = 10 runs, n=1/cell, deterministic,
+10/10 ran clean (exit 0), no abort. Same rig and frozen scenes as P5.3 -> before/after is cell-by-cell.
+
+| leg | PASS | vs P5.3 | mechanism |
+|---|---|---|---|
+| VSEL (target phrase, ROI crop) | **3/5** | = WSEL 3/5 | car10:240, car9:300, car7:460 lock at deliver-IoU 0.59-0.83; car10:615 NO_MATCH (in-crop third car), car3:200 wrong-object (16x40 px target) |
+| VSWP (distractor phrase, ROI crop) | **3/5** | up from SWAP 2/5 | car10:240, car9:300, car3:200 flip correctly; car10:615 NO_MATCH, car7:460 NO_MATCH (carry-drift cell) |
+| CLIP circlectx (non-gating secondary) | **7/10** correct | — | agrees with VLM on the 7 grounded runs; would not rescue car10:615 |
+
+**Verdict: NO [match-bound, resolution-bound]** (RQ-P5.4a FAIL 3/5, RQ-P5.4b FAIL 3/5). **The one
+unambiguous win: ROI cut acquire latency ~2.3x — 2.08 s median vs P5.3 full-frame ~4.5-4.9 s** (the
+Part III ROI-anchor lever transferring as predicted, est. ~1.5-2.5s -> actual 2.08s). But the select
+verdict did not move: VSEL identical to P5.3 WSEL cell-for-cell. The pre-registered "ROI kills
+NO_MATCH by construction" hypothesis is **falsified** — NO_MATCH only fell 4->3, because a distractor
+object *between* the two carries (car10:615's big silver sedan) is inside the union crop by
+construction and the VLM grounds onto it. The 2-5x LANCZOS upscale did not rescue the ~16x40 px
+car3:200 target (still mis-grounds, match valid at 0.48 -> wrong track delivered = `[resolution-bound]`).
+VSWP improved 2/5->3/5 (crop helps the distractor-caption grounding). Bottleneck remains the deployed
+VLM's grounding accuracy at the prompt, now at ~2s instead of ~4.5s. Proof: `proof/p54_pass_grid.png`,
+`proof/p54_acquire_match.png` (the 2.3x latency cut), `proof/p54_vsel_car10_615.mp4` (in-crop
+third-object NO_MATCH), `proof/p54_vsel_car9_300.mp4` (grounded-carry PASS at IoU 0.83).

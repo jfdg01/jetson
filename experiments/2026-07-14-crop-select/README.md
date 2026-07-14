@@ -1,7 +1,9 @@
 # P5.4 — ROI-constrained select-on-command (crop the prompt frame to the carried candidates)
 
 - **Date:** pre-registered 2026-07-14T02:25Z (Madrid wall-clock)
-- **Status:** PRE-REGISTERED — matrix not yet run
+- **Status:** COMPLETE — RQ-P5.4a FAIL (VSEL 3/5), RQ-P5.4b FAIL (VSWP 3/5), overall **NO [match-bound, resolution-bound]**. Ran 2026-07-14T02:33Z (Madrid). Matrix clean (10/10, no abort). A FAIL is a valid result.
+<!-- prior status -->
+- **Status (pre-run):** PRE-REGISTERED — matrix not yet run
 - **Roles:** design + patches by **Fable**; **Opus** runs the matrix and fills Results only — do **NOT** re-patch code. If a run crashes for infra reasons, rerun the single cell; if the code is wrong, stop and report instead of editing.
 - **Branch:** `experiment/crop-select`
 - **Part:** V (anticipatory grounding). Predecessor: P5.3 multi-candidate select — **NO [match-bound]** (WSEL 3/5, SWAP 2/5), record in
@@ -156,13 +158,22 @@ mkdir -p experiments/2026-07-14-crop-select/raw
 .venv-ft/bin/python experiments/2026-07-14-crop-select/make_proof.py
 ```
 
-Proof deliverables (`proof/`, committed + captioned here when filled):
+Proof deliverables (`proof/`, committed + captioned):
 
-1. `p54_pass_grid.png` — P5.3 vs P5.4 PASS grid per scene, NO_MATCH cells marked (make_proof.py).
-2. `p54_acquire_match.png` — acquire latency + winning match IoU per run vs P5.3 (make_proof.py).
-3. One clip: re-encode `runs/VSEL_car10_615/overlay.mp4` (the P5.3 NO_MATCH cell) to
-   `proof/p54_vsel_car10_615.mp4` (`ffmpeg -i ... -c:v libx264 -crf 28`). If it fails again, keep
-   it anyway — proof-of-failure is a deliverable.
+1. `p54_pass_grid.png` — P5.3 vs P5.4 PASS grid per scene, NO_MATCH cells marked. Shows VSEL
+   3/5 = P5.3 WSEL 3/5 cell-for-cell, VSWP 3/5 up from SWAP 2/5, and the surviving car10:615 /
+   car3:200 / car7:460 failures.
+2. `p54_acquire_match.png` — acquire latency + winning match IoU per run vs P5.3. The clear win:
+   ROI acquire ~2.08 s median vs P5.3 full-frame ~4.5–4.9 s (~2.3×), with match IoU 0.48–0.75 on
+   the cells that grounded a carry.
+3. `p54_vsel_car10_615.mp4` — proof-of-failure: the P5.3 NO_MATCH cell, still NO_MATCH under ROI.
+   The VLM grounds "the white car" onto the in-crop big silver sedan (a third object *between* the
+   two carries, inside the union crop by construction), so no carry matches → no delivery. This is
+   the figure behind the "ROI reduces but does not eliminate NO_MATCH" finding.
+4. `p54_vsel_car9_300.mp4` — positive contrast: same rig, "the silver car" grounds the carried
+   silver target inside the ROI crop, match IoU 0.75, delivered live track locks at IoU 0.83,
+   coverage 0.97 → PASS. Late-binding select works when the VLM grounds a carry; the verdict FAILs
+   only because that condition still misses on 2/5 scenes.
 
 ## Verdict + abort rules (mechanical)
 
@@ -177,29 +188,75 @@ Proof deliverables (`proof/`, committed + captioned here when filled):
 - Estimates (marked as estimates): VSEL 4–5/5, VSWP 3–4/5 (VSWP_car7_460 is the known
   carry-drift risk cell), wall ≈ 25–40 min total (10 runs × ~2–4 min: Jetson boot dominates).
 
-## Results (TBD — Opus fills after the matrix)
+## Results (filled 2026-07-14T02:33Z)
+
+Jetson power mode check output: `NV Power Mode: 15W` (+ `sudo jetson_clocks`). Rig on local
+RTX 3090 (SAM2 carry, rate-capped to 6.15 Hz), VLM q8_0 max_side 1024 on the Jetson over SSH,
+ROI crop LANCZOS long-edge 512. n=1 per cell (deterministic, as P5.1/P5.2/P5.3). Wall ~4 min
+total (Jetson kept warm across cells). Matrix ran 10/10, exit 0, no abort triggered.
 
 | Scene | VSEL sel | VSEL match_iou | VSEL iou@deliver | VSEL cov | VSEL PASS | VSWP sel | VSWP PASS | clip sel (VSEL/VSWP) | acq_s (VSEL/VSWP) |
 |---|---|---|---|---|---|---|---|---|---|
-| car10:240 | | | | | | | | | |
-| car10:615 | | | | | | | | | |
-| car9:300 | | | | | | | | | |
-| car7:460 | | | | | | | | | |
-| car3:200 | | | | | | | | | |
+| car10:240 | target | 0.674 | 0.746 | 1.00 | **PASS** | distractor | **PASS** | target / distractor | 2.09 / 2.08 |
+| car10:615 | NO_MATCH (0.000) | — | — | 0.00 | FAIL | NO_MATCH (0.000) | FAIL | target / target | — / — |
+| car9:300 | target | 0.747 | 0.833 | 0.97 | **PASS** | distractor | **PASS** | target / distractor | 2.06 / 2.06 |
+| car7:460 | target | 0.602 | 0.591 | 1.00 | **PASS** | NO_MATCH (0.000)† | FAIL | target / target | 1.60 / — |
+| car3:200 | distractor | 0.480 | 0.000 | 0.00 | FAIL | distractor | **PASS** | distractor / distractor | 2.11 / 2.11 |
 
-- **RQ-P5.4a:** TBD (VSEL _/5)
-- **RQ-P5.4b:** TBD (VSWP _/5)
-- **Overall:** TBD
-- NO_MATCH count: TBD (P5.3 baseline: 4) · CLIP circlectx tally: TBD/10 · median ROI acquire: TBD s (P5.3 ~4.5–4.9 s)
+† VSWP_car7_460 is the pre-registered carry-drift cell: the distractor carry drifted from its
+seed to the frame edge during idle catch-up (`carry_suspect=['distractor']`, `carry_disp` 0.36),
+so the union crop mis-framed the distractor and the VLM box matched neither carry → NO_MATCH.
+Attributable to carry maintenance, not the select mechanism, exactly as pre-registered.
 
-### What broke where (TBD)
+- **RQ-P5.4a:** VSEL 3/5 (car10:240, car9:300, car7:460) → **FAIL** (needs ≥4/5)
+- **RQ-P5.4b:** VSWP 3/5 (car10:240, car9:300, car3:200) → **FAIL** (needs ≥4/5)
+- **Overall P5.4 = NO [match-bound, resolution-bound]** (YES requires both a and b). NO_MATCH
+  persists (3 runs) → `[match-bound]`; car3:200 VSEL mis-selects the white distractor for "the
+  red car" with a *valid* match (m_iou 0.48) → `[resolution-bound]`. Not `[carry-bound]`: the
+  car10:615 NO_MATCH failures have empty `carry_suspect`.
+- NO_MATCH count: **3** (P5.3 baseline 4) · CLIP circlectx tally: **7/10** correct (VSEL→target /
+  VSWP→distractor) · median ROI acquire: **2.08 s** (P5.3 full-frame ~4.5–4.9 s).
 
-### Estimate vs actual (TBD)
+### What broke where
+
+- **ROI cut acquire latency ~2.3× (4.5–4.9 s → 2.08 s median), as predicted from the Part III
+  ROI-anchor ≈2.0 s lever** — the single unambiguous win. Every cell that grounded a carry did so
+  at ~1.6–2.1 s. This is a deployed, validated component doing exactly what it was expected to.
+- **ROI did NOT move the VSEL verdict: identical 3/5 to P5.3's WSEL, cell-for-cell** (same PASSes
+  car10:240/car9:300/car7:460, same 2 failures car10:615 NO_MATCH + car3:200 wrong-object). The
+  crop constrains *where* the VLM looks, but both VSEL failures survive the crop:
+  - **car10:615 NO_MATCH (both legs):** the union crop still contains the pre-flagged big silver
+    sedan mid-frame; the VLM grounded the caption onto that in-crop third object, not either
+    carry. ROI excludes objects *outside* the union, but a distractor object *between* the two
+    carries is inside the crop by construction — so the third-object NO_MATCH family is reduced,
+    not eliminated (4→3). The "kills NO_MATCH by construction" hypothesis is **falsified**.
+  - **car3:200 VSEL `[resolution-bound]`:** the 2–5× LANCZOS upscale did NOT rescue the ~16×40 px
+    red target — the VLM still boxed the white-car distractor for "the red car" (match valid at
+    0.48, so it delivered the wrong track, IoU 0.0). Upscaling a 16 px object to ~80 px is not
+    enough for colour disambiguation at this scale.
+- **VSWP improved 2/5 → 3/5 vs P5.3 SWAP:** car10:240 now passes — the ROI crop let the
+  distractor caption ("the black car") ground onto the carried distractor where the full frame had
+  NO_MATCH'd. The crop helps the *distractor*-caption grounding more than the target's.
+- **CLIP circlectx (non-gating secondary) 7/10**, in line with the design-time pilot's
+  above-chance-but-fragile 5/6; it agreed with the VLM selection on the same 7 runs and would not
+  have rescued car10:615 (picked target both legs) — confirms the pilot call to keep it
+  non-gating rather than pre-registering a verdict on it.
+
+### Estimate vs actual
+
+- VSEL landed **3/5** vs estimated 4–5/5 — worse; the ROI upscale did not fix car3's resolution
+  ceiling as hoped, and car10:615's in-crop third object was not anticipated to survive the crop.
+- VSWP landed **3/5** vs estimated 3–4/5 — in range; the car7 carry-drift cell failed exactly as
+  the pre-registered `carry_disp` diagnostic flagged.
+- Acquire latency **2.08 s median** vs estimated ~1.5–2.5 s — dead on the estimate; the ROI lever
+  transferred from Part III as predicted.
+- Wall **~4 min** vs estimated 25–40 min — far under (Jetson server stayed warm across all 10
+  cells; boot was not re-paid per cell).
 
 ## Ledger checklist (after the verdict)
 
-- [ ] RESULTS row(s) → `docs/results/part5-anticipatory.md`
-- [ ] QUESTIONS entry (RQ-P5.4a/b + verdicts) → `docs/questions/part5-anticipatory.md`
-- [ ] DECISIONS entry (CLIP demoted to secondary on pilot evidence; ROI pivot) → `docs/decisions/part5-anticipatory.md`
-- [ ] SOURCES — already appended this cycle (ReCLIP, red-circle VP, CLIP checkpoints)
-- [ ] 2–3 proof deliverables committed + captioned above
+- [x] RESULTS row(s) → `docs/results/part5-anticipatory.md`
+- [x] QUESTIONS entry (RQ-P5.4a/b + verdicts) → `docs/questions/part5-anticipatory.md`
+- [x] DECISIONS entry (CLIP demoted to secondary on pilot evidence; ROI pivot) → `docs/decisions/part5-anticipatory.md`
+- [x] SOURCES — appended this cycle (ReCLIP, red-circle VP, CLIP checkpoints)
+- [x] 4 proof deliverables committed + captioned above

@@ -84,3 +84,24 @@ before designing.
   P5.1's earlier warm delivery — deliberately removes the delivery-lag advantage so P5.3 measures
   *only* the late-binding select claim (delivery-lag removal already proven in P5.1/P5.2). *Given
   up:* showing warm's full end-to-end win again; kept the experiment a clean single-variable test.
+
+### P5.4 — ROI-constrained select-on-command (2026-07-14)
+
+- **ROI-constrained late-binding select over CLIP crop-scoring as the gating mechanism.** P5.3
+  pre-registered CLIP crop-scoring as the next deep-research target; a deep-research cycle was run
+  this cycle (ReCLIP IPS, red-circle visual prompting -> SOURCES) and then a design-time pilot
+  *falsified* CLIP as a gate on 16-100 px aerial crops: vanilla IPS is size-biased (picked the
+  larger silver target for "the black car" at 0.963) and the best of 5 variants (circlectx, red
+  ellipse + 2.5x context, ViT-L/14) reached only 5/6 with near-tie margins. *Chosen instead:*
+  reuse the deployed Part III ROI-crop lever (validated, +22.6pp, ~2.0s) to constrain *where the
+  VLM looks*, keeping the P5.3 IoU-match unchanged. *Given up:* pre-registering a verdict on CLIP
+  crop-scoring — demoted to a recorded non-gating secondary arm (`clip_select`, 7/10) so the
+  crop-scoring question is settled as documented evidence, not a burned cycle on a predictable FAIL.
+- **In-run outcome: the ROI pivot is a latency win but not a select win.** Post-hoc, the ROI crop
+  cut acquire ~2.3x (2.08s) but left the VSEL verdict at 3/5 (identical to P5.3). The two select
+  failures survive cropping — an in-crop third object (NO_MATCH by construction of the union window)
+  and a sub-resolution target the upscale can't rescue. *Recorded for the next cycle:* cropping to
+  the candidate union does not fix grounding when a distractor sits *between* the carries; the next
+  lever must either (a) crop per-candidate (single-carry windows, disambiguating by which crop the
+  phrase scores highest — closer to the falsified CLIP arm but with the ROI upscale) or (b) accept
+  the VLM grounding ceiling and change the contract. Do NOT re-propose union-crop select.

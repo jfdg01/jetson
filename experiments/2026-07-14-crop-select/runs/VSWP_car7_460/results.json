@@ -1,0 +1,105 @@
+{
+  "leg": "VSWP",
+  "scene": {
+    "clip": "car7",
+    "f0": 460,
+    "t_p": 8.0,
+    "target_caption": "the silver car",
+    "distractor_caption": "the black car",
+    "distractor_box": [
+      900,
+      308,
+      1000,
+      352
+    ],
+    "note": "roundabout scene; black car on right road; target GT has a NaN occlusion patch ~f900 inside the coverage window (scorer skips NaN frames)"
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 6.3,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "union_margin": 1.5,
+  "roi_min_side": 256,
+  "roi_out": 512,
+  "clip_primary": "openai/clip-vit-large-patch14",
+  "clip_secondary": "openai/clip-vit-base-patch32",
+  "pass": false,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "n_scored": 0,
+    "deliver_frame": 748,
+    "selection": null,
+    "selection_correct": false,
+    "reason": "NO_MATCH: vlm box overlaps no carried candidate (max IoU 0.000 < 0.1)",
+    "leg": "VSWP"
+  },
+  "meta": {
+    "leg": "VSWP",
+    "f0": 460,
+    "t_p": 8.0,
+    "prompt_frame": 700,
+    "cand_at_prompt": {
+      "target": [
+        818.0,
+        532.0,
+        895.0,
+        608.0
+      ],
+      "distractor": [
+        0.0,
+        407.0,
+        41.0,
+        424.0
+      ]
+    },
+    "carry_disp": {
+      "target": 0.2794,
+      "distractor": 0.6356
+    },
+    "carry_suspect": [
+      "distractor"
+    ],
+    "caption": "the black car",
+    "roi_window": [
+      0,
+      0,
+      1119,
+      720
+    ],
+    "clip_select": {
+      "selection": "target",
+      "probs": {
+        "primary": {
+          "target": 0.7981867777396212,
+          "distractor": 0.20181322226037882
+        },
+        "secondary": {
+          "target": 0.9890130573694068,
+          "distractor": 0.01098694263059318
+        }
+      },
+      "excluded": [],
+      "variant": "circlectx"
+    },
+    "acquire_s": 1.6,
+    "roi_fed_size": [
+      512,
+      329
+    ],
+    "vlm_box": [
+      678.4,
+      597.6,
+      768.0,
+      648.0
+    ],
+    "match_ious": {
+      "target": 0.0,
+      "distractor": 0.0
+    },
+    "selected": null
+  },
+  "events": []
+}
