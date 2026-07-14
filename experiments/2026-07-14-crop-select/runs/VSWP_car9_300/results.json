@@ -1,0 +1,194 @@
+{
+  "leg": "VSWP",
+  "scene": {
+    "clip": "car9",
+    "f0": 300,
+    "t_p": 8.0,
+    "target_caption": "the silver car",
+    "distractor_caption": "the black car",
+    "distractor_box": [
+      588,
+      528,
+      660,
+      672
+    ],
+    "note": "black car directly behind target, overtakes during idle window; third maroon car enters ~f540 (NO_MATCH risk, recorded)"
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 17.5,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "union_margin": 1.5,
+  "roi_min_side": 256,
+  "roi_out": 512,
+  "clip_primary": "openai/clip-vit-large-patch14",
+  "clip_secondary": "openai/clip-vit-base-patch32",
+  "pass": true,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 300,
+    "deliver_frame": 602,
+    "deliver_iou": 0.0,
+    "window": [
+      602,
+      902
+    ],
+    "leg": "VSWP",
+    "selection": "distractor",
+    "selection_correct": true,
+    "acquire_s": 2.06
+  },
+  "meta": {
+    "leg": "VSWP",
+    "f0": 300,
+    "t_p": 8.0,
+    "prompt_frame": 540,
+    "cand_at_prompt": {
+      "target": [
+        642.0,
+        381.0,
+        679.0,
+        435.0
+      ],
+      "distractor": [
+        635.0,
+        62.0,
+        658.0,
+        81.0
+      ]
+    },
+    "carry_disp": {
+      "target": 0.0377,
+      "distractor": 0.3602
+    },
+    "carry_suspect": [
+      "distractor"
+    ],
+    "caption": "the black car",
+    "roi_window": [
+      377,
+      0,
+      937,
+      528
+    ],
+    "clip_select": {
+      "selection": "distractor",
+      "probs": {
+        "primary": {
+          "target": 0.13296424019782924,
+          "distractor": 0.8670357598021706
+        },
+        "secondary": {
+          "target": 0.1645164628965632,
+          "distractor": 0.8354835371034369
+        }
+      },
+      "excluded": [],
+      "variant": "circlectx"
+    },
+    "acquire_s": 2.06,
+    "roi_fed_size": [
+      512,
+      483
+    ],
+    "vlm_box": [
+      640.0,
+      64.8,
+      652.8,
+      86.4
+    ],
+    "match_ious": {
+      "target": 0.0,
+      "distractor": 0.4097
+    },
+    "selected": "distractor",
+    "deliver_frame": 602
+  },
+  "events": [
+    [
+      20.067,
+      [
+        632.0,
+        16.0,
+        652.0,
+        32.0
+      ]
+    ],
+    [
+      20.123,
+      [
+        631.0,
+        10.0,
+        649.0,
+        25.0
+      ]
+    ],
+    [
+      20.288,
+      [
+        630.0,
+        7.0,
+        648.0,
+        22.0
+      ]
+    ],
+    [
+      20.454,
+      [
+        629.0,
+        3.0,
+        648.0,
+        18.0
+      ]
+    ],
+    [
+      20.619,
+      [
+        627.0,
+        0.0,
+        647.0,
+        15.0
+      ]
+    ],
+    [
+      20.784,
+      [
+        627.0,
+        0.0,
+        645.0,
+        12.0
+      ]
+    ],
+    [
+      20.949,
+      [
+        626.0,
+        0.0,
+        644.0,
+        9.0
+      ]
+    ],
+    [
+      21.114,
+      [
+        625.0,
+        0.0,
+        643.0,
+        6.0
+      ]
+    ],
+    [
+      21.279,
+      [
+        626.0,
+        0.0,
+        638.0,
+        2.0
+      ]
+    ]
+  ]
+}

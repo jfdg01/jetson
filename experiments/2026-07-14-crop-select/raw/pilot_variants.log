@@ -1,0 +1,75 @@
+[P5.4] loading primary CLIP openai/clip-vit-large-patch14 on cuda...
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+[P5.4] loading secondary CLIP openai/clip-vit-base-patch32 on cuda...
+car9:300 [ips/primary] 'the silver car' -> target (OK) {'target': 42.0, 'distractor': 37.48}
+car9:300 [ips/secondary] 'the silver car' -> target (OK) {'target': 48.87, 'distractor': 47.51}
+car9:300 [crop/primary] 'the silver car' -> distractor (X) {'target': 19.89, 'distractor': 21.98}
+car9:300 [crop/secondary] 'the silver car' -> distractor (X) {'target': 24.26, 'distractor': 27.22}
+car9:300 [ctx/primary] 'the silver car' -> target (OK) {'target': 23.78, 'distractor': 20.28}
+car9:300 [ctx/secondary] 'the silver car' -> distractor (X) {'target': 24.38, 'distractor': 26.85}
+car9:300 [circle/primary] 'the silver car' -> target (OK) {'target': 23.27, 'distractor': 19.67}
+car9:300 [circle/secondary] 'the silver car' -> target (OK) {'target': 22.09, 'distractor': 20.84}
+car9:300 [circlectx/primary] 'the silver car' -> target (OK) {'target': 22.24, 'distractor': 21.84}
+car9:300 [circlectx/secondary] 'the silver car' -> distractor (X) {'target': 26.86, 'distractor': 28.26}
+car9:300 [ips/primary] 'the black car' -> target (X) {'target': 43.49, 'distractor': 40.23}
+car9:300 [ips/secondary] 'the black car' -> target (X) {'target': 50.8, 'distractor': 50.39}
+car9:300 [crop/primary] 'the black car' -> distractor (OK) {'target': 21.81, 'distractor': 24.74}
+car9:300 [crop/secondary] 'the black car' -> distractor (OK) {'target': 24.54, 'distractor': 27.84}
+car9:300 [ctx/primary] 'the black car' -> target (X) {'target': 25.36, 'distractor': 22.58}
+car9:300 [ctx/secondary] 'the black car' -> distractor (OK) {'target': 25.47, 'distractor': 28.08}
+car9:300 [circle/primary] 'the black car' -> target (X) {'target': 26.56, 'distractor': 22.51}
+car9:300 [circle/secondary] 'the black car' -> target (X) {'target': 24.67, 'distractor': 23.42}
+car9:300 [circlectx/primary] 'the black car' -> distractor (OK) {'target': 23.93, 'distractor': 25.74}
+car9:300 [circlectx/secondary] 'the black car' -> distractor (OK) {'target': 28.26, 'distractor': 29.76}
+car10:240 [ips/primary] 'the white car' -> target (OK) {'target': 40.3, 'distractor': 35.1}
+car10:240 [ips/secondary] 'the white car' -> target (OK) {'target': 51.64, 'distractor': 48.92}
+car10:240 [crop/primary] 'the white car' -> distractor (X) {'target': 20.51, 'distractor': 20.53}
+car10:240 [crop/secondary] 'the white car' -> target (OK) {'target': 26.8, 'distractor': 26.19}
+car10:240 [ctx/primary] 'the white car' -> target (OK) {'target': 25.92, 'distractor': 21.51}
+car10:240 [ctx/secondary] 'the white car' -> distractor (X) {'target': 24.79, 'distractor': 25.03}
+car10:240 [circle/primary] 'the white car' -> target (OK) {'target': 28.03, 'distractor': 18.89}
+car10:240 [circle/secondary] 'the white car' -> target (OK) {'target': 25.8, 'distractor': 23.97}
+car10:240 [circlectx/primary] 'the white car' -> target (OK) {'target': 27.78, 'distractor': 27.09}
+car10:240 [circlectx/secondary] 'the white car' -> target (OK) {'target': 29.48, 'distractor': 27.89}
+car10:240 [ips/primary] 'the black car' -> target (X) {'target': 38.51, 'distractor': 38.49}
+car10:240 [ips/secondary] 'the black car' -> distractor (OK) {'target': 49.57, 'distractor': 51.5}
+car10:240 [crop/primary] 'the black car' -> distractor (OK) {'target': 19.13, 'distractor': 22.59}
+car10:240 [crop/secondary] 'the black car' -> distractor (OK) {'target': 24.12, 'distractor': 26.12}
+car10:240 [ctx/primary] 'the black car' -> target (X) {'target': 23.21, 'distractor': 20.42}
+car10:240 [ctx/secondary] 'the black car' -> distractor (OK) {'target': 24.65, 'distractor': 25.5}
+car10:240 [circle/primary] 'the black car' -> target (X) {'target': 26.22, 'distractor': 16.73}
+car10:240 [circle/secondary] 'the black car' -> target (X) {'target': 26.61, 'distractor': 23.96}
+car10:240 [circlectx/primary] 'the black car' -> distractor (OK) {'target': 23.45, 'distractor': 28.23}
+car10:240 [circlectx/secondary] 'the black car' -> distractor (OK) {'target': 28.5, 'distractor': 29.65}
+car3:200 [ips/primary] 'the red car' -> distractor (X) {'target': 26.95, 'distractor': 32.65}
+car3:200 [ips/secondary] 'the red car' -> distractor (X) {'target': 39.07, 'distractor': 43.04}
+car3:200 [crop/primary] 'the red car' -> distractor (X) {'target': 14.54, 'distractor': 20.08}
+car3:200 [crop/secondary] 'the red car' -> distractor (X) {'target': 19.82, 'distractor': 22.65}
+car3:200 [ctx/primary] 'the red car' -> distractor (X) {'target': 20.92, 'distractor': 22.73}
+car3:200 [ctx/secondary] 'the red car' -> distractor (X) {'target': 25.54, 'distractor': 25.74}
+car3:200 [circle/primary] 'the red car' -> distractor (X) {'target': 24.71, 'distractor': 25.5}
+car3:200 [circle/secondary] 'the red car' -> distractor (X) {'target': 24.95, 'distractor': 25.93}
+car3:200 [circlectx/primary] 'the red car' -> distractor (X) {'target': 22.8, 'distractor': 23.22}
+car3:200 [circlectx/secondary] 'the red car' -> distractor (X) {'target': 28.1, 'distractor': 28.11}
+car3:200 [ips/primary] 'the white car' -> distractor (OK) {'target': 34.53, 'distractor': 40.29}
+car3:200 [ips/secondary] 'the white car' -> distractor (OK) {'target': 43.26, 'distractor': 48.42}
+car3:200 [crop/primary] 'the white car' -> distractor (OK) {'target': 19.85, 'distractor': 25.29}
+car3:200 [crop/secondary] 'the white car' -> distractor (OK) {'target': 22.74, 'distractor': 26.17}
+car3:200 [ctx/primary] 'the white car' -> distractor (OK) {'target': 25.56, 'distractor': 28.41}
+car3:200 [ctx/secondary] 'the white car' -> target (X) {'target': 29.11, 'distractor': 29.06}
+car3:200 [circle/primary] 'the white car' -> distractor (OK) {'target': 23.79, 'distractor': 25.83}
+car3:200 [circle/secondary] 'the white car' -> distractor (OK) {'target': 25.13, 'distractor': 25.87}
+car3:200 [circlectx/primary] 'the white car' -> distractor (OK) {'target': 27.39, 'distractor': 28.86}
+car3:200 [circlectx/secondary] 'the white car' -> target (X) {'target': 31.64, 'distractor': 30.85}
+
+=== pilot tally (correct/6) ===
+circle     primary    3/6
+circle     secondary  3/6
+circlectx  primary    5/6
+circlectx  secondary  3/6
+crop       primary    3/6
+crop       secondary  4/6
+ctx        primary    3/6
+ctx        secondary  2/6
+ips        primary    3/6
+ips        secondary  4/6

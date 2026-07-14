@@ -1,0 +1,103 @@
+{
+  "leg": "VSEL",
+  "scene": {
+    "clip": "car10",
+    "f0": 615,
+    "t_p": 8.0,
+    "target_caption": "the white car",
+    "distractor_caption": "the white van",
+    "distractor_box": [
+      588,
+      455,
+      715,
+      700
+    ],
+    "note": "type disambiguation (car vs van), same colour; van enters frame bottom at f0; large silver sedan mid-frame is a phrase-ambiguity risk for 'the white car'"
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 7.2,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "union_margin": 1.5,
+  "roi_min_side": 256,
+  "roi_out": 512,
+  "clip_primary": "openai/clip-vit-large-patch14",
+  "clip_secondary": "openai/clip-vit-base-patch32",
+  "pass": false,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "n_scored": 0,
+    "deliver_frame": 915,
+    "selection": null,
+    "selection_correct": false,
+    "reason": "NO_MATCH: vlm box overlaps no carried candidate (max IoU 0.000 < 0.1)",
+    "leg": "VSEL"
+  },
+  "meta": {
+    "leg": "VSEL",
+    "f0": 615,
+    "t_p": 8.0,
+    "prompt_frame": 855,
+    "cand_at_prompt": {
+      "target": [
+        627.0,
+        321.0,
+        667.0,
+        355.0
+      ],
+      "distractor": [
+        537.0,
+        341.0,
+        574.0,
+        435.0
+      ]
+    },
+    "carry_disp": {
+      "target": 0.0723,
+      "distractor": 0.1446
+    },
+    "carry_suspect": [],
+    "caption": "the white car",
+    "roi_window": [
+      474,
+      250,
+      730,
+      506
+    ],
+    "clip_select": {
+      "selection": "target",
+      "probs": {
+        "primary": {
+          "target": 0.9740426428022031,
+          "distractor": 0.02595735719779685
+        },
+        "secondary": {
+          "target": 0.679178699175393,
+          "distractor": 0.32082130082460697
+        }
+      },
+      "excluded": [],
+      "variant": "circlectx"
+    },
+    "acquire_s": 2.0,
+    "roi_fed_size": [
+      512,
+      512
+    ],
+    "vlm_box": [
+      576.0,
+      252.0,
+      601.6,
+      273.6
+    ],
+    "match_ious": {
+      "target": 0.0,
+      "distractor": 0.0
+    },
+    "selected": null
+  },
+  "events": []
+}

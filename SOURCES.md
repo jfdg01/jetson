@@ -31,6 +31,13 @@ the per-experiment README is the source of truth. Append; newest at the bottom.
   https://huggingface.co/HuggingFaceTB/SmolVLM2-500M-Video-Instruct
   → [`experiments/2026-06-30-vlm-backbone-bakeoff/`](experiments/2026-06-30-vlm-backbone-bakeoff/README.md) arm E
 
+- **CLIP ViT-L/14 + ViT-B/32** — `openai/clip-vit-large-patch14` · `openai/clip-vit-base-patch32`
+  https://huggingface.co/openai/clip-vit-large-patch14 ·
+  https://huggingface.co/openai/clip-vit-base-patch32
+  → [`experiments/2026-07-14-crop-select/`](experiments/2026-07-14-crop-select/README.md) P5.4
+  crop-scoring pilot + recorded secondary arm (design-time pilot found vanilla crop scoring
+  size-biased on 16-100 px aerial crops)
+
 ## Papers / surveys
 
 - **Advancing Image Super-resolution Techniques in Remote Sensing: A Comprehensive Survey**
@@ -44,6 +51,19 @@ the per-experiment README is the source of truth. Append; newest at the bottom.
 - **EDiffSR: An Efficient Diffusion Probabilistic Model for Remote Sensing Image Super-Resolution**
   https://arxiv.org/pdf/2310.19288
   → [`experiments/2026-06-30-roi-sr-upscale/`](experiments/2026-06-30-roi-sr-upscale/README.md)
+
+- **ReCLIP: A Strong Zero-Shot Baseline for Referring Expression Comprehension**
+  (Subramanian et al., ACL 2022) · arXiv 2204.05991
+  https://arxiv.org/abs/2204.05991
+  → [`experiments/2026-07-14-crop-select/`](experiments/2026-07-14-crop-select/README.md) — the
+  IPS proposal-scoring method (crop + Gaussian-blur sigma=100 isolation, summed CLIP logits)
+  piloted for P5.4 candidate select; falsified at design time on small aerial crops.
+
+- **What does CLIP know about a red circle? Visual prompt engineering for VLMs**
+  (Shtedritski et al., ICCV 2023) · arXiv 2304.06712
+  https://arxiv.org/abs/2304.06712
+  → [`experiments/2026-07-14-crop-select/`](experiments/2026-07-14-crop-select/README.md) — the
+  red-circle visual prompt behind the pilot-winning `circlectx` variant (P5.4 secondary arm).
 
 ## Datasets
 
