@@ -1,0 +1,55 @@
+{
+  "comment": "P5.5 frozen scene set. 5 scenes inherited verbatim from P5.3 (experiments/2026-07-14-multi-candidate-select/scenes.json: same clip, f0, t_p, distractor_box) + 1 new scene (car9:560) curated 2026-07-14 (see curation/ contact sheets + grid frames). f0 = 0-based frame index (frame file = f0+1 as %06d.jpg; GT line = f0+1). distractor_box = hand-annotated pixel box at f0 (1280x720). Target seed is gt[f0] (oracle seed, recorded scope cut, unchanged from P5.1/P5.3). prompt = f0 + t_p*30. target_caption/distractor_caption are the MC-arm captions; old_* fields (present only where a caption changed vs P5.3) are the M-arm captions for the attribution runs. gating=false marks the resolution-bound control (car3:200) excluded from the verdict counts.",
+  "scenes": [
+    {
+      "clip": "car10", "f0": 240, "t_p": 8.0,
+      "target_caption": "the white car",
+      "distractor_caption": "the black car in front of the white car",
+      "old_distractor_caption": "the black car",
+      "distractor_box": [540, 253, 600, 311],
+      "gating": true,
+      "note": "P5.3 scene 1. WSEL passed with these seeds; SWAP failed as a 1.6px tiny-box IoU near-miss on 'the black car' (VLM boxed the third dark car ahead ~[580,230,620,260]). MC distractor caption made referentially unique to pull the VLM onto the carried black sedan; target caption unchanged (single-factor: WSEL passed in P5.3)."
+    },
+    {
+      "clip": "car10", "f0": 615, "t_p": 8.0,
+      "target_caption": "the white car in front of the white van",
+      "old_target_caption": "the white car",
+      "distractor_caption": "the white van",
+      "distractor_box": [588, 455, 715, 700],
+      "gating": true,
+      "note": "P5.3 scene 2. WSEL failed on phrase ambiguity ('the white car' -> silver sedan ahead, audit-verified); SWAP failed on distractor-carry drift (van carry shrank 137x245 -> 37x94 while VLM boxed the van correctly). MC target caption made unique; distractor caption unchanged (SWAP failure was drift, not phrasing) -- the maintenance lever owns this cell."
+    },
+    {
+      "clip": "car9", "f0": 300, "t_p": 8.0,
+      "target_caption": "the silver car",
+      "distractor_caption": "the black car",
+      "distractor_box": [588, 528, 660, 672],
+      "gating": true,
+      "note": "P5.3 scene 3, both legs PASSED. Captions and seeds unchanged: regression guard -- maintenance must not break a working cell."
+    },
+    {
+      "clip": "car7", "f0": 460, "t_p": 8.0,
+      "target_caption": "the silver car",
+      "distractor_caption": "the black car",
+      "distractor_box": [900, 308, 1000, 352],
+      "gating": true,
+      "note": "P5.3 scene 4. WSEL passed; SWAP failed on distractor-carry drift (carry slid to left frame edge [0,407,41,424] while the VLM boxed the black car correctly at ~[678,598,781,648], audit-verified). Captions unchanged -- the maintenance lever owns this cell. Target GT has a NaN occlusion patch ~f900 in the coverage window (scorer skips NaN frames)."
+    },
+    {
+      "clip": "car9", "f0": 560, "t_p": 6.0,
+      "target_caption": "the silver car",
+      "distractor_caption": "the dark red car",
+      "distractor_box": [578, 522, 624, 598],
+      "gating": true,
+      "note": "NEW scene (only clean additional co-visible same-class pair found in the downloaded UAV123 subset; see README scene-survey section). Maroon sedan behind the silver target; box verified on the 40px-grid zoom render (curation/frame_car9_560_z.jpg arithmetic). t_p=6.0 not 8.0: at t_p=8 the prompt frame f800 has the target under a road-sign gantry (occluded); at f740 both cars are clear. Risk: distractor ~46x76 px at seed, shrinking as it recedes."
+    },
+    {
+      "clip": "car3", "f0": 200, "t_p": 8.0,
+      "target_caption": "the red car",
+      "distractor_caption": "the white car",
+      "distractor_box": [388, 538, 420, 602],
+      "gating": false,
+      "note": "P5.3 scene 5, NON-GATING resolution control (target ~16x40 px -- P5.4 showed this cell is resolution-bound, out of scope for the maintenance/caption levers). Kept to record whether the levers move a resolution-bound cell at all (expected: no). Captions unchanged."
+    }
+  ]
+}

@@ -122,3 +122,33 @@ VSWP improved 2/5->3/5 (crop helps the distractor-caption grounding). Bottleneck
 VLM's grounding accuracy at the prompt, now at ~2s instead of ~4.5s. Proof: `proof/p54_pass_grid.png`,
 `proof/p54_acquire_match.png` (the 2.3x latency cut), `proof/p54_vsel_car10_615.mp4` (in-crop
 third-object NO_MATCH), `proof/p54_vsel_car9_300.mp4` (grounded-carry PASS at IoU 0.83).
+
+### P5.5 — Maintained-candidate select-on-command (2026-07-14)
+
+`experiments/2026-07-14-select-generalization/` · Jetson 15W + jetson_clocks, q8_0 VLM terse
+(max_side 1024 full-frame select + 512 pre-resized ROI crops for the idle re-anchor), SAM2 carry on
+local RTX 3090 rate-capped to 6.15 Hz (CAND_HZ 3.075/candidate). 6 scenes (5 frozen P5.3 + new
+car9:560) x {WSEL, SWAP} = 12 MC runs (gating) + 4 M runs (attribution, old P5.3 captions), n=1/cell,
+deterministic, 16/16 ran clean, no `infra`. Two levers on the frozen P5.3 rig: (1) idle-window
+distractor ROI re-anchor at f0+90/165 (accept = parseable + in-frame, no IoU floor), (2)
+referentially-unique captions on the two audit-tagged caption-bound cells.
+
+| leg | PASS | vs P5.3 | mechanism |
+|---|---|---|---|
+| MC WSEL (target phrase) | **4/5** | up from WSEL 3/5 | car10:240, car9:300, car7:460, car9:560 lock at deliver-IoU 0.77-0.87; car10:615 NO_MATCH |
+| MC SWAP (distractor phrase) | **3/5** | up from SWAP 2/5 | car10:615, car9:300, car9:560 flip correctly; car10:240 + car7:460 carry-drift NO_MATCH |
+| M arm (old captions, attribution) | **= MC cell-for-cell** | — | caption lever inert: car10:240 SWAP + car10:615 WSEL FAIL NO_MATCH in both M and MC |
+| car3:200 control (resolution) | WSEL FAIL / SWAP PASS | = P5.3/P5.4 | levers do not move the ~16x40 px resolution cell |
+
+**Verdict: NO [match/carry-bound]** (RQ-P5.5a YES 4/5, RQ-P5.5b NO 3/5; YES iff both). Idle-window
+maintenance re-anchored in **every** cell (`[True, True]` throughout) but did not close the SWAP gap:
+two distractor carries (car10:240, car7:460) still fail **carry-drift NO_MATCH** (carried box vs
+select-time full-frame VLM box IoU 0.000) *after* two accepted ROI re-anchors. The caption lever
+(Lever 2) is **falsified** as a select-fix — M == MC on both targeted cells; the P5.5 audit's
+"phrase-ambiguity"/"tiny-box near-miss" re-diagnoses were partly wrong (both cells are
+match/carry-bound under maintenance, not caption-bound). Third consecutive select-on-command NO
+(P5.3 match-bound, P5.4 match/resolution-bound, P5.5 match/carry-bound): the binding constraint stays
+the agreement between the carried SAM2 box and the deployed full-frame VLM grounding at the prompt.
+Proof: `proof/p55_pass_grid.png` (WSEL 4/5, SWAP 3/5, M==MC), `proof/p55_reanchor_traj.png`
+(re-anchors fire/accepted yet carry still not matching), `proof/car7_460_SWAP_MC_driftNOMATCH.mp4`
+(surviving carry-drift NO_MATCH), `proof/car10_615_WSEL_MC_captionNOMATCH.mp4` (inert caption lever).
