@@ -1,0 +1,145 @@
+{
+  "arm": "MC",
+  "leg": "SWAP",
+  "scene": {
+    "clip": "car7",
+    "f0": 460,
+    "t_p": 8.0,
+    "target_caption": "the silver car",
+    "distractor_caption": "the black car",
+    "distractor_box": [
+      900,
+      308,
+      1000,
+      352
+    ],
+    "gating": true,
+    "note": "P5.3 scene 4. WSEL passed; SWAP failed on distractor-carry drift (carry slid to left frame edge [0,407,41,424] while the VLM boxed the black car correctly at ~[678,598,781,648], audit-verified). Captions unchanged -- the maintenance lever owns this cell. Target GT has a NaN occlusion patch ~f900 in the coverage window (scorer skips NaN frames)."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 16.4,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "pass": false,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "n_scored": 0,
+    "deliver_frame": 835,
+    "selection": null,
+    "selection_correct": false,
+    "reason": "NO_MATCH: vlm box overlaps no carried candidate (max IoU 0.000 < 0.1)",
+    "leg": "SWAP"
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 460,
+    "t_p": 8.0,
+    "prompt_frame": 700,
+    "reanchor": [
+      {
+        "frame": 550,
+        "win": [
+          434,
+          221,
+          690,
+          477
+        ],
+        "crop_wh": [
+          512,
+          512
+        ],
+        "prior": [
+          547.0,
+          343.0,
+          577.0,
+          356.0
+        ],
+        "raw": [
+          556.9,
+          343.9,
+          572.2,
+          361.8
+        ],
+        "accepted": true,
+        "new_box": [
+          556.9,
+          343.9,
+          572.2,
+          361.8
+        ]
+      },
+      {
+        "frame": 625,
+        "win": [
+          170,
+          256,
+          426,
+          512
+        ],
+        "crop_wh": [
+          512,
+          512
+        ],
+        "prior": [
+          271.0,
+          368.0,
+          326.0,
+          400.0
+        ],
+        "raw": [
+          267.3,
+          371.2,
+          326.2,
+          404.5
+        ],
+        "accepted": true,
+        "new_box": [
+          267.3,
+          371.2,
+          326.2,
+          404.5
+        ]
+      }
+    ],
+    "acquire_s": 4.5,
+    "caption": "the black car",
+    "cand_at_prompt": {
+      "target": [
+        818.0,
+        532.0,
+        895.0,
+        608.0
+      ],
+      "distractor": [
+        0.0,
+        407.0,
+        41.0,
+        424.0
+      ]
+    },
+    "vlm_box": [
+      678.4,
+      597.6,
+      780.8,
+      648.0
+    ],
+    "match_ious": {
+      "target": 0.0,
+      "distractor": 0.0
+    },
+    "selected": null
+  },
+  "events": []
+}

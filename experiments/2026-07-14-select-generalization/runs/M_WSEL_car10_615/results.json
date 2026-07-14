@@ -1,0 +1,146 @@
+{
+  "arm": "M",
+  "leg": "WSEL",
+  "scene": {
+    "clip": "car10",
+    "f0": 615,
+    "t_p": 8.0,
+    "target_caption": "the white car",
+    "old_target_caption": "the white car",
+    "distractor_caption": "the white van",
+    "distractor_box": [
+      588,
+      455,
+      715,
+      700
+    ],
+    "gating": true,
+    "note": "P5.3 scene 2. WSEL failed on phrase ambiguity ('the white car' -> silver sedan ahead, audit-verified); SWAP failed on distractor-carry drift (van carry shrank 137x245 -> 37x94 while VLM boxed the van correctly). MC target caption made unique; distractor caption unchanged (SWAP failure was drift, not phrasing) -- the maintenance lever owns this cell."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 16.4,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "pass": false,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "n_scored": 0,
+    "deliver_frame": 989,
+    "selection": null,
+    "selection_correct": false,
+    "reason": "NO_MATCH: vlm box overlaps no carried candidate (max IoU 0.000 < 0.1)",
+    "leg": "WSEL"
+  },
+  "meta": {
+    "leg": "WSEL",
+    "f0": 615,
+    "t_p": 8.0,
+    "prompt_frame": 855,
+    "reanchor": [
+      {
+        "frame": 705,
+        "win": [
+          428,
+          260,
+          684,
+          516
+        ],
+        "crop_wh": [
+          512,
+          512
+        ],
+        "prior": [
+          537.0,
+          341.0,
+          574.0,
+          435.0
+        ],
+        "raw": [
+          530.4,
+          331.7,
+          684.0,
+          516.0
+        ],
+        "accepted": true,
+        "new_box": [
+          530.4,
+          331.7,
+          684.0,
+          516.0
+        ]
+      },
+      {
+        "frame": 780,
+        "win": [
+          520,
+          273,
+          796,
+          549
+        ],
+        "crop_wh": [
+          512,
+          512
+        ],
+        "prior": [
+          614.0,
+          342.0,
+          702.0,
+          480.0
+        ],
+        "raw": [
+          611.1,
+          342.0,
+          704.9,
+          482.8
+        ],
+        "accepted": true,
+        "new_box": [
+          611.1,
+          342.0,
+          704.9,
+          482.8
+        ]
+      }
+    ],
+    "acquire_s": 4.48,
+    "caption": "the white car",
+    "cand_at_prompt": {
+      "target": [
+        627.0,
+        321.0,
+        667.0,
+        355.0
+      ],
+      "distractor": [
+        621.0,
+        356.0,
+        692.0,
+        461.0
+      ]
+    },
+    "vlm_box": [
+      576.0,
+      259.2,
+      601.6,
+      280.8
+    ],
+    "match_ious": {
+      "target": 0.0,
+      "distractor": 0.0
+    },
+    "selected": null
+  },
+  "events": []
+}

@@ -105,3 +105,27 @@ before designing.
   lever must either (a) crop per-candidate (single-carry windows, disambiguating by which crop the
   phrase scores highest — closer to the falsified CLIP arm but with the ROI upscale) or (b) accept
   the VLM grounding ceiling and change the contract. Do NOT re-propose union-crop select.
+
+### P5.5 — Maintained-candidate select-on-command (2026-07-14)
+
+- **Fuse idle-window maintenance (loop-focus dir 2) with unique captions over a maintenance-only
+  t_p sweep.** The P5.5 audit re-diagnosed P5.3's "match-bound" fails as 2 distractor-carry-drift cells
+  + 2 caption cells + 1 resolution cell; a maintenance-only sweep could not touch the caption cells, so
+  both levers were tested in one matrix with an M attribution arm. *Given up:* a clean t_p (4/8/16/30s)
+  sweep — deferred because scene-set expansion was data-starved (an exhaustive UAV123 contact-sheet
+  survey, committed under `curation/`, found exactly one extra clean co-visible same-class pair,
+  car9:560), so a speed/idle-length sweep had too few scenes to be meaningful.
+- **Accept-without-IoU-floor re-anchor rule; distractor-only maintenance.** The idle ROI re-anchor
+  reseeds the SAM2 carry with no IoU floor vs the prior box (a drifted carry must not veto its own fix);
+  the GT-oracle-seeded target carry is never re-anchored (single-factor discipline — target carries
+  never drifted in P5.1/P5.3/P5.4). *Given up:* symmetric maintenance and a drift-guard on the reseed —
+  both would confound the single-lever read.
+- **In-run outcome: maintenance helps but does not clear the bar; the caption lever is falsified.**
+  Post-hoc, re-anchor fired/accepted (`[True, True]`) in all 16 cells and flipped WSEL 3/5 -> 4/5,
+  SWAP 2/5 -> 3/5, yet two SWAP carries (car10:240, car7:460) still fail carry-drift NO_MATCH after two
+  accepted re-anchors, and M == MC proves captions bought nothing. *Recorded for the next cycle:* the
+  select bottleneck is the carried-box vs full-frame-VLM-box agreement at the prompt — three levers
+  (P5.3 match, P5.4 crop, P5.5 maintenance+caption) have now failed to clear >= 4/5 on both legs. Do NOT
+  re-propose caption rewriting or union-crop select as a select-fix. The remaining untested direction is
+  changing the delivery contract (deliver the carried track directly, bypassing the prompt-time
+  full-frame re-grounding) rather than trying to make the VLM re-ground onto the carry.

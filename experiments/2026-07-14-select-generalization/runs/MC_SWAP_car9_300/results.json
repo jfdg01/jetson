@@ -1,0 +1,162 @@
+{
+  "arm": "MC",
+  "leg": "SWAP",
+  "scene": {
+    "clip": "car9",
+    "f0": 300,
+    "t_p": 8.0,
+    "target_caption": "the silver car",
+    "distractor_caption": "the black car",
+    "distractor_box": [
+      588,
+      528,
+      660,
+      672
+    ],
+    "gating": true,
+    "note": "P5.3 scene 3, both legs PASSED. Captions and seeds unchanged: regression guard -- maintenance must not break a working cell."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 26.4,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "pass": true,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 300,
+    "deliver_frame": 674,
+    "deliver_iou": 0.0,
+    "window": [
+      674,
+      974
+    ],
+    "leg": "SWAP",
+    "selection": "distractor",
+    "selection_correct": true,
+    "acquire_s": 4.47
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 300,
+    "t_p": 8.0,
+    "prompt_frame": 540,
+    "reanchor": [
+      {
+        "frame": 390,
+        "win": [
+          490,
+          204,
+          746,
+          460
+        ],
+        "crop_wh": [
+          512,
+          512
+        ],
+        "prior": [
+          600.0,
+          306.0,
+          635.0,
+          358.0
+        ],
+        "raw": [
+          600.1,
+          309.0,
+          630.8,
+          355.0
+        ],
+        "accepted": true,
+        "new_box": [
+          600.1,
+          309.0,
+          630.8,
+          355.0
+        ]
+      },
+      {
+        "frame": 465,
+        "win": [
+          508,
+          42,
+          764,
+          298
+        ],
+        "crop_wh": [
+          512,
+          512
+        ],
+        "prior": [
+          624.0,
+          157.0,
+          648.0,
+          184.0
+        ],
+        "raw": [
+          630.9,
+          164.9,
+          648.8,
+          190.5
+        ],
+        "accepted": true,
+        "new_box": [
+          630.9,
+          164.9,
+          648.8,
+          190.5
+        ]
+      }
+    ],
+    "acquire_s": 4.47,
+    "caption": "the black car",
+    "cand_at_prompt": {
+      "target": [
+        642.0,
+        381.0,
+        679.0,
+        435.0
+      ],
+      "distractor": [
+        636.0,
+        63.0,
+        658.0,
+        81.0
+      ]
+    },
+    "vlm_box": [
+      627.2,
+      57.6,
+      652.8,
+      79.2
+    ],
+    "match_ious": {
+      "target": 0.0,
+      "distractor": 0.4021
+    },
+    "selected": "distractor",
+    "deliver_frame": 674
+  },
+  "events": [
+    [
+      22.467,
+      [
+        625.0,
+        0.0,
+        640.0,
+        3.0
+      ]
+    ]
+  ]
+}

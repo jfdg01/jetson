@@ -97,3 +97,21 @@ target. Detail:
   modes are not addressed by cropping; CLIP crop-scoring (circlectx, non-gating 7/10) would not have
   rescued them either. Detail:
   [`../../experiments/2026-07-14-crop-select/README.md`](../../experiments/2026-07-14-crop-select/README.md).
+
+### P5.5 — Maintained-candidate select-on-command (2026-07-14)
+
+- **RQ-P5.5a (maintenance + unique captions lift WSEL to >= 4/5):** does per-candidate idle-window
+  ROI re-anchor of the distractor carry plus referentially-unique captions raise warm select-on-command
+  to >= 4/5 (P5.3 baseline 3/5)? PASS iff MC WSEL >= 4/5. **Verdict: YES** (4/5) — car10:240, car9:300,
+  car7:460, car9:560 lock; only car10:615 fails NO_MATCH. But the win is **maintenance, not captions**:
+  the M-arm (old captions) is cell-for-cell identical, so the unique-caption lever contributed nothing.
+- **RQ-P5.5b (same treatment lifts SWAP to >= 4/5):** PASS iff MC SWAP >= 4/5 (P5.3 baseline 2/5).
+  **Verdict: NO** (3/5) — maintenance flipped car10:615 SWAP but car10:240 and car7:460 still fail
+  **carry-drift NO_MATCH** *after two accepted ROI re-anchors*: the re-anchor fires and is accepted, yet
+  the carried distractor box and the select-time full-frame VLM box do not overlap (IoU 0.000).
+- **Overall P5.5 = NO [match/carry-bound]** (YES iff both; SWAP 3/5). The caption lever is falsified as
+  a select-fix (M == MC). This is the third consecutive select-on-command NO — the bottleneck is not
+  captioning (P5.5), not ROI-crop-select (P5.4), not the late-binding IoU match itself (P5.3), but the
+  agreement between the carried SAM2 box and the deployed full-frame VLM grounding at the prompt.
+  Idle-window maintenance helps (SWAP 2/5 -> 3/5, WSEL 3/5 -> 4/5) but does not clear the bar. Detail:
+  [`../../experiments/2026-07-14-select-generalization/README.md`](../../experiments/2026-07-14-select-generalization/README.md).

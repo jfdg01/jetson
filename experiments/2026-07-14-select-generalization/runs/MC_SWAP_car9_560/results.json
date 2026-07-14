@@ -1,0 +1,162 @@
+{
+  "arm": "MC",
+  "leg": "SWAP",
+  "scene": {
+    "clip": "car9",
+    "f0": 560,
+    "t_p": 6.0,
+    "target_caption": "the silver car",
+    "distractor_caption": "the dark red car",
+    "distractor_box": [
+      578,
+      522,
+      624,
+      598
+    ],
+    "gating": true,
+    "note": "NEW scene (only clean additional co-visible same-class pair found in the downloaded UAV123 subset; see README scene-survey section). Maroon sedan behind the silver target; box verified on the 40px-grid zoom render (curation/frame_car9_560_z.jpg arithmetic). t_p=6.0 not 8.0: at t_p=8 the prompt frame f800 has the target under a road-sign gantry (occluded); at f740 both cars are clear. Risk: distractor ~46x76 px at seed, shrinking as it recedes."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 25.9,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "pass": true,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 300,
+    "deliver_frame": 876,
+    "deliver_iou": 0.0,
+    "window": [
+      876,
+      1176
+    ],
+    "leg": "SWAP",
+    "selection": "distractor",
+    "selection_correct": true,
+    "acquire_s": 4.52
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 560,
+    "t_p": 6.0,
+    "prompt_frame": 740,
+    "reanchor": [
+      {
+        "frame": 650,
+        "win": [
+          456,
+          178,
+          712,
+          434
+        ],
+        "crop_wh": [
+          512,
+          512
+        ],
+        "prior": [
+          569.0,
+          286.0,
+          599.0,
+          325.0
+        ],
+        "raw": [
+          561.0,
+          293.2,
+          581.4,
+          326.5
+        ],
+        "accepted": true,
+        "new_box": [
+          561.0,
+          293.2,
+          581.4,
+          326.5
+        ]
+      },
+      {
+        "frame": 725,
+        "win": [
+          448,
+          32,
+          704,
+          288
+        ],
+        "crop_wh": [
+          512,
+          512
+        ],
+        "prior": [
+          571.0,
+          150.0,
+          581.0,
+          170.0
+        ],
+        "raw": [
+          576.0,
+          149.8,
+          588.8,
+          162.6
+        ],
+        "accepted": true,
+        "new_box": [
+          576.0,
+          149.8,
+          588.8,
+          162.6
+        ]
+      }
+    ],
+    "acquire_s": 4.52,
+    "caption": "the dark red car",
+    "cand_at_prompt": {
+      "target": [
+        594.0,
+        420.0,
+        630.0,
+        480.0
+      ],
+      "distractor": [
+        573.0,
+        124.0,
+        590.0,
+        138.0
+      ]
+    },
+    "vlm_box": [
+      563.2,
+      122.4,
+      588.8,
+      151.2
+    ],
+    "match_ious": {
+      "target": 0.0,
+      "distractor": 0.2933
+    },
+    "selected": "distractor",
+    "deliver_frame": 876
+  },
+  "events": [
+    [
+      29.2,
+      [
+        578.0,
+        0.0,
+        593.0,
+        3.0
+      ]
+    ]
+  ]
+}

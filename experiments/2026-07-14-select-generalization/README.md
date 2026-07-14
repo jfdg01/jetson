@@ -1,7 +1,7 @@
 # P5.5 — Maintained-candidate select-on-command (idle-window distractor re-anchor + unique captions)
 
 **Pre-registered:** 2026-07-14T06:16Z (Madrid wall-clock).
-**Status:** PRE-REGISTERED — design + code + smoke test done, graded matrix NOT run.
+**Status:** COMPLETE (2026-07-14T06:52Z). Verdict **NO [match/carry-bound]** — MC WSEL 4/5 (RQ-P5.5a YES), MC SWAP 3/5 (RQ-P5.5b NO); caption lever falsified (M == MC).
 **Branch:** `experiment/select-generalization`.
 **Division of labour:** design + patches by Fable; **Opus runs the matrix and fills
 the Results section only — do NOT re-patch code.** All code files listed under
@@ -216,34 +216,93 @@ f0+90/165 around the current carry box, drifted-carry reseed flips a P5.3-style
 SWAP drift failure, reject path leaves the carry alone, rounds >= prompt are
 skipped, M-arm caption swap; plus the full upstream P5.3 suite).
 
-## Results (TBD — Opus fills this section only)
+## Results (filled by Opus, 2026-07-14T06:52Z)
 
-Paste `verdict_p55.py` output, then the table:
+Run 2026-07-14, 15W + `jetson_clocks`, MC arm 12 runs + M arm 4 runs, all cells
+completed (no `infra`). `verdict_p55.py` output:
+
+```
+RQ-P5.5a (MC WSEL >= 4/5 gating): 4/5 -> YES
+RQ-P5.5b (MC SWAP >= 4/5 gating): 3/5 -> NO
+OVERALL: NO
+```
 
 | cell | arm | leg | pass | selection | acquire_s | reanchor accepted | fail class / reason |
 |---|---|---|---|---|---|---|---|
-| MC_WSEL_car10_240 | MC | WSEL | | | | | |
-| MC_SWAP_car10_240 | MC | SWAP | | | | | |
-| MC_WSEL_car10_615 | MC | WSEL | | | | | |
-| MC_SWAP_car10_615 | MC | SWAP | | | | | |
-| MC_WSEL_car9_300 | MC | WSEL | | | | | |
-| MC_SWAP_car9_300 | MC | SWAP | | | | | |
-| MC_WSEL_car7_460 | MC | WSEL | | | | | |
-| MC_SWAP_car7_460 | MC | SWAP | | | | | |
-| MC_WSEL_car9_560 | MC | WSEL | | | | | |
-| MC_SWAP_car9_560 | MC | SWAP | | | | | |
-| MC_WSEL_car3_200 (control) | MC | WSEL | FAIL | distractor | 4.51 | [True, True] | grounding: wrong selection (smoke) |
-| MC_SWAP_car3_200 (control) | MC | SWAP | | | | | |
-| M_WSEL_car10_240 | M | WSEL | | | | | |
-| M_SWAP_car10_240 | M | SWAP | | | | | |
-| M_WSEL_car10_615 | M | WSEL | | | | | |
-| M_SWAP_car10_615 | M | SWAP | | | | | |
+| MC_WSEL_car10_240 | MC | WSEL | PASS | target | 4.49 | [True, True] | — (deliver_iou 0.815) |
+| MC_SWAP_car10_240 | MC | SWAP | FAIL | None | — | [True, True] | carry-drift: NO_MATCH (max IoU 0.000 < 0.10) |
+| MC_WSEL_car10_615 | MC | WSEL | FAIL | None | — | [True, True] | match/grounding: NO_MATCH (max IoU 0.000 < 0.10) |
+| MC_SWAP_car10_615 | MC | SWAP | PASS | distractor | 4.48 | [True, True] | — |
+| MC_WSEL_car9_300 | MC | WSEL | PASS | target | 4.52 | [True, True] | — (deliver_iou 0.873) |
+| MC_SWAP_car9_300 | MC | SWAP | PASS | distractor | 4.47 | [True, True] | — |
+| MC_WSEL_car7_460 | MC | WSEL | PASS | target | 4.50 | [True, True] | — (deliver_iou 0.770) |
+| MC_SWAP_car7_460 | MC | SWAP | FAIL | None | — | [True, True] | carry-drift: NO_MATCH (max IoU 0.000 < 0.10) |
+| MC_WSEL_car9_560 | MC | WSEL | PASS | target | 4.52 | [True, True] | — (deliver_iou 0.840) |
+| MC_SWAP_car9_560 | MC | SWAP | PASS | distractor | 4.52 | [True, True] | — |
+| MC_WSEL_car3_200 (control) | MC | WSEL | FAIL | distractor | 4.51 | [True, True] | grounding: wrong selection (resolution-bound; expected) |
+| MC_SWAP_car3_200 (control) | MC | SWAP | PASS | distractor | 4.51 | [True, True] | — |
+| M_WSEL_car10_240 | M | WSEL | PASS | target | 4.49 | [True, True] | — |
+| M_SWAP_car10_240 | M | SWAP | FAIL | None | — | [True, True] | carry-drift: NO_MATCH (max IoU 0.000 < 0.10) |
+| M_WSEL_car10_615 | M | WSEL | FAIL | None | — | [True, True] | match/grounding: NO_MATCH (max IoU 0.000 < 0.10) |
+| M_SWAP_car10_615 | M | SWAP | PASS | distractor | 4.48 | [True, True] | — |
 
-- **RQ-P5.5a (MC WSEL >= 4/5 gating): _/5 -> TBD**
-- **RQ-P5.5b (MC SWAP >= 4/5 gating): _/5 -> TBD**
-- **Overall: TBD**
-- Attribution (M vs MC on car10:240 / car10:615): TBD
-- Estimate-vs-actual divergences: TBD
+- **RQ-P5.5a (MC WSEL >= 4/5 gating): 4/5 -> YES** (only car10:615 fails, NO_MATCH).
+- **RQ-P5.5b (MC SWAP >= 4/5 gating): 3/5 -> NO** (car10:240 + car7:460 carry-drift NO_MATCH).
+- **Overall: NO** (YES iff both; SWAP is 3/5).
+- **Attribution (M vs MC on the two caption-changed cells): the caption lever bought
+  nothing.** M and MC are cell-for-cell identical: `car10:240 SWAP` FAILs NO_MATCH in
+  both arms (the "the black car in front of the white car" caption did not pull the VLM
+  onto the carried black sedan); `car10:615 WSEL` FAILs NO_MATCH in both arms (the "white
+  car in front of the white van" caption did not resolve the P5.3 phrase ambiguity —
+  because the failure is no longer a wrong *selection* but a NO_MATCH: the VLM's box
+  overlaps *no* carried candidate at all). So Lever 2 is falsified as a select-fixing
+  lever on this set. The two WSEL/SWAP cells that pass in both arms (car10:240 WSEL,
+  car10:615 SWAP) pass on maintenance alone.
+- **Maintenance (Lever 1) re-anchored in every cell (`[True, True]` throughout) but did
+  not close the SWAP gap.** Two distractor-carry cells (car10:240, car7:460) still fail
+  carry-drift NO_MATCH *after* two accepted ROI re-anchors — the re-anchor fires and is
+  accepted, yet the carried distractor box and the select-time full-frame VLM box do not
+  overlap (IoU 0.000). Maintenance flipped `car10:615 SWAP` (P5.3 FAIL -> PASS) but not
+  `car7:460 SWAP`; net SWAP 2/5 (P5.3) -> 3/5 (P5.5), one cell better, still < 4/5.
+- **Estimate-vs-actual divergences:**
+  - MC WSEL estimate 4–5/5, actual **4/5** — the audit predicted car10:615 WSEL "should
+    flip on the unique caption"; it did **not** (the M-arm attribution shows the caption
+    is inert; the cell fails NO_MATCH, not phrase-ambiguity, once maintenance is on).
+  - MC SWAP estimate 3–4/5, actual **3/5** (low end) — maintenance flipped car10:615 SWAP
+    as hoped but car7:460 SWAP did **not** flip (still carry-drift NO_MATCH), and the
+    car10:240 near-miss caption fix did **not** land (now carry-drift NO_MATCH, not a
+    1.6px near-miss). The P5.5 audit's per-cell failure re-diagnosis was itself partly
+    wrong: two cells it tagged caption-bound are match/carry-bound under maintenance.
+  - car3:200 control: FAIL WSEL (wrong selection), PASS SWAP — resolution-bound, as
+    expected; the levers did not move the resolution cell.
+  - Runtime: 16 cells at 16–27 s each + boots, well inside the 12–20 min estimate.
+
+## Verdict
+
+**NO [match/carry-bound].** Idle-window distractor maintenance + referentially-unique
+captions lift WSEL to 4/5 (RQ-P5.5a YES) but leave SWAP at 3/5 (RQ-P5.5b NO), so the
+pre-registered "YES iff both" fails. The dominant surviving failure family is **carry-drift
+NO_MATCH**: even with two accepted ROI re-anchors per idle window, the distractor carry and
+the select-time full-frame VLM box fail to overlap (IoU 0.000) on car10:240 and car7:460.
+The caption lever is **falsified** as a select-fix (M == MC cell-for-cell). This is the
+third consecutive select-on-command NO (P5.3 match-bound, P5.4 match/resolution-bound, P5.5
+match/carry-bound): the bottleneck is the agreement between the carried SAM2 box and the
+deployed full-frame VLM grounding at the prompt, which neither maintenance nor captioning
+nor ROI-crop-select has moved. Negative result — thesis content.
+
+## Deliverables (cut by Opus)
+
+- `proof/p55_pass_grid.png` — per-cell PASS/FAIL grid, MC + M arms vs the P5.3 baseline;
+  shows WSEL 4/5, SWAP 3/5, and the two arms identical on the caption cells.
+- `proof/p55_reanchor_traj.png` — distractor-carry box trajectories across the two idle-window
+  re-anchor rounds; shows the re-anchors firing/accepted yet the carry still not matching the
+  select-time VLM box on the two failing SWAP cells.
+- `proof/car7_460_SWAP_MC_driftNOMATCH.mp4` (run `MC_SWAP_car7_460`) — proof of failure:
+  the surviving carry-drift NO_MATCH SWAP cell that maintenance did **not** rescue (green
+  held box vs the select-time VLM box never overlap).
+- `proof/car10_615_WSEL_MC_captionNOMATCH.mp4` (run `MC_WSEL_car10_615`) — proof of failure:
+  the caption-lever cell that still NO_MATCHes despite the referentially-unique caption
+  (M-arm identical), showing Lever 2 is inert.
 
 ## Deliverables checklist (Opus, after the matrix)
 
