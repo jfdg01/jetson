@@ -256,3 +256,35 @@ flips P5.8's failing gate — disclosed, deliberate, grounded in third-party-che
   — the marginal p10 migrated from the blue distractor (P5.8) to the white target (self-occlusion, not
   clipping) — is recorded, not acted on. *Rationale:* executor runs and reports; design changes are
   the designer's call. The bank is declared usable for the parked P5.6 select experiment next cycle.
+
+### P5.10 — select on the scene bank (2026-07-17)
+
+- **A/B-on-bank chosen over running the parked P5.6 verbatim on UAV123, and over hardening the bank
+  first.** The SIMULATOR steer directs building on the just-delivered P5.9 sim; the paired A/B on
+  n=12 with exact dual per-frame GT is strictly stronger evidence than P5.6's n=5 with one
+  hand-annotated distractor frame, and only the sim A/B can answer the scene-bound-vs-contract-bound
+  attribution question that P5.3/4/5's three NOs left open. *Given up:* a direct real-video
+  measurement this cycle (P5.6 stays the designated follow-up, `experiment/direct-delivery-select`).
+  *Bought:* controlled attribution — carries, VLM and scenes no longer vary together. **Outcome
+  note:** the A/B could not separate the contracts because bank v1 is too easy (both at ceiling); the
+  attribution it *did* deliver is that the old RG contract is not scene-murk-proof-fragile on clean
+  attribute scenes, so the P5.3/4/5 NOs are scene-bound — which is exactly the question the cycle
+  existed to answer, even though RQ-b came back NO.
+- **Dominance delivery rule (IoU_named ≥ 0.25 AND IoU_named > IoU_other) over the strict P5.6-shape
+  variant (IoU_other < 0.25).** Robust to any GT-GT overlap; on this bank GT-GT IoU = 0.000 so the
+  two coincide and both were recorded (strict_ok true on all 24). *Given up:* nothing on this bank.
+  *Bought:* a rule that stays correct if a future bank v2 introduces crossings/occlusion.
+- **t_p = 3.0 s (prompt f75) forced by clip length.** The bank is 240 frames at 25 fps = 9.6 s; P5.6's
+  8 s idle window does not fit. *Given up:* long-idle carry-drift stress (the P5.5 surviving failure
+  mode is under-exercised at 3 s) — recorded as a bank-v2 trigger. *Bought:* the experiment fits the
+  delivered dataset without recalibrating the kerb-safe corridor (which caps clip length).
+- **Idle ROI re-anchor maintenance dropped, keeping each cell single-factor.** With a 3 s window the
+  P5.6 maintenance offsets (+3 s/+5.5 s) have no room to act; dropping it makes the *contract* the
+  only difference between the DD and RG legs. *Given up:* any maintenance benefit (none available at
+  3 s). *Bought:* a clean single-factor A/B.
+- **Executor note (no code touched):** ran the matrix as written, opened the 16 required sample
+  overlays, confirmed V PASS and no V-vs-script disagreement. The pre-registered sim-gap NO_BOX sweep
+  did not fire (VLM grounded all 24 Gazebo renders) — reported faithfully as the valid branch-2
+  result, not treated as a bug; no prompts or code were tweaked to "fix" it. sam2_model recorded from
+  results.json as `sam2.1-hiera-tiny` (the method text's `sam2-hiera-small` is a doc mismatch, not
+  re-run). Matrix wall ~2.75 min vs the 15–35 min estimate (warm Jetson, 4.37 s/call).

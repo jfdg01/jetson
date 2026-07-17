@@ -311,3 +311,31 @@ Proof: `proof/p59_beforeafter_kerb.png` (P5.8 seed101 f0180 two-blob clip vs P5.
 intact), `proof/p59_kerb_calibration.png` (the (s,lat) integrity sweep + ~4° kerb skew that
 explains P5.8's late-clip), `proof/p59_bank_grid.png` (12 clips at f0180, all clean, per-run G6),
 `proof/p59_g6_teeth.png` (frag p10 all 16 runs vs the P5.8 clipped 0.666 reference).
+
+### P5.10 — select on the P5.9 scene bank: direct delivery vs prompt-time re-ground (2026-07-17)
+
+Detail: [`../../experiments/2026-07-17-simbank-select/README.md`](../../experiments/2026-07-17-simbank-select/README.md).
+Config: RTX 3090 + SAM2.1-hiera-tiny StreamCarry (bf16), CAND_STRIDE 8 dual carry, oracle f0 seeds;
+Jetson Orin Nano 15 W + jetson_clocks serving Qwen2-VL-2B q8_0 terse (llama.cpp over SSH, full frame,
+max_side 1024). 12 P5.9 bank clips × 2 legs (white/blue phrase) = 24 paired cells, each scoring BOTH
+contracts on byte-identical cached carries. Delivery rule: delivered box IoU vs named-car GT ≥ 0.25
+AND > IoU vs other-car GT (dominance; strict variant coincides — GT-GT IoU 0.000 on all 12).
+t_p = 3.0 s (prompt f75). Matrix wall ~2.75 min, 0 VLM reboots, 0 INFRA, 0 INCOMPLETE, no reruns.
+Versions: torch 2.6.0+cu124, numpy 2.4.4, cv2 4.13.0, python 3.12.10.
+
+| contract | white | blue | total | fail classes | delivery latency |
+|---|---|---|---|---|---|
+| DD (direct delivery, phrase→carried candidate, acquire 0 s) | 12/12 | 12/12 | **24/24** | none | 0 s |
+| RG (P5.3 prompt-time full-frame VLM + IoU-match, measured latency) | 12/12 | 12/12 | **24/24** | none | mean 4.37 s (4.36–4.39), deliver f184–185 |
+
+**RQ-P5.10a YES** (DD ≥ 10/12 each leg). **RQ-P5.10b NO** (DD_total 24, RG_total 24, margin 0 < 4).
+**Overall NO; interpretation branch 2** — RG at ceiling: the P5.3/4/5 select NOs are *scene-bound*
+(UAV123 attribute murk), not contract-bound; DD's remaining edge is **latency only** (0 s vs 4.37 s).
+The pre-registered sim-gap NO_BOX sweep did **not** occur: `vlm_on = named` on all 24 cells — the
+RefDrone-fine-tuned VLM grounded every Gazebo render on the first call (0 NO_BOX, 0 NO_MATCH, 0
+OVERRUN). **Visual gate V PASS** — all 16 opened sample overlays (bank01/04/07/10 both legs, DD+RG)
+show the green delivered box on the named car; no V-vs-script contradiction. Bank v1 is honestly
+*too easy to separate the contracts* (2 colour-distinct cars, no crossings, 3 s idle) — the pre-reg
+called this the live alternative and it fired. Proof: `proof/p510_pass_grid.png` (24/24 both
+contracts), `proof/p510_failclass.png` (0/24 fails each), `proof/p510_headline_dd_vs_rg.png`
+(bank01_white: DD f75 vs RG f185, both on the white car, RG paid 4.39 s to reach the same box).
