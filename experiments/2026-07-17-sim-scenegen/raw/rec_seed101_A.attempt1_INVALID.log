@@ -1,0 +1,14 @@
+[scenegen] frame 0/240 (1.45 fps)
+[scenegen] frame 40/240 (1.46 fps)
+[scenegen] frame 80/240 (1.46 fps)
+[scenegen] frame 120/240 (1.46 fps)
+Traceback (most recent call last):
+  File "/home/gara/jetson/runners/scenegen.py", line 556, in <module>
+    main()
+  File "/home/gara/jetson/runners/scenegen.py", line 552, in main
+    record(args)
+  File "/home/gara/jetson/runners/scenegen.py", line 339, in record
+    gz.set_poses(frame_poses(sc, i))
+  File "/home/gara/jetson/runners/scenegen.py", line 121, in set_poses
+    raise RuntimeError(f"set_pose_vector failed: {out[:300]}")
+RuntimeError: set_pose_vector failed: Service call timed out

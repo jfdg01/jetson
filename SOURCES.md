@@ -85,3 +85,21 @@ the per-experiment README is the source of truth. Append; newest at the bottom.
   https://huggingface.co/datasets/xche32/UAV123
   → [`experiments/2026-07-03-real-video-replay/`](experiments/2026-07-03-real-video-replay/README.md)
   — real-footage GT (per-frame `x,y,w,h`, 30 fps) for the E18 wall-clock replay scoring.
+
+- **Gazebo Fuel "Hatchback" model** (OpenRobotics / Nate Koenig, `nate@osrfoundation.org`) ·
+  https://app.gazebosim.org/OpenRobotics/fuel/models/Hatchback · vendored under
+  [`runners/sitl/models/hatchback_{white,blue,red}/`](runners/sitl/models/) (three copies of the same
+  mesh; `map_Kd`/`map_Ka` rewritten from remote Fuel URLs to local paths)
+  → [`experiments/2026-07-17-sim-scenegen/`](experiments/2026-07-17-sim-scenegen/README.md) — the
+  colour-distinct same-class vehicle assets for the P5.7 select-arena scene generator. **Note:** the
+  vendored textures do **not** load under this rig (the Fuel "Hatchback blue" material even points at
+  the *white* model's texture), and localising the map paths still rendered the body white — vehicle
+  colour therefore comes from a solid `<material>` override in the spawn SDF, not from the model's
+  textures (P5.7 design finding, `curation/probe_texture_stays_white.png`).
+
+- **Gazebo Sim 8.14.0 (Harmonic)** · https://gazebosim.org/docs/harmonic — headless simulator
+  (`gz sim -s` + Sensors/ogre2 + EGL) behind the P5.7 scene generator
+  ([`runners/scenegen.py`](runners/scenegen.py),
+  [`runners/sitl/worlds/select_arena.sdf`](runners/sitl/worlds/select_arena.sdf)). P5.7 found its
+  `gz service` CLI request path unreliable under per-frame churn (~0.42%/call `RecvSrvRequest() ...
+  Host unreachable`), which is what blocked that campaign — see the experiment README.

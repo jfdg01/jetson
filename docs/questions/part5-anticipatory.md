@@ -115,3 +115,32 @@ target. Detail:
   agreement between the carried SAM2 box and the deployed full-frame VLM grounding at the prompt.
   Idle-window maintenance helps (SWAP 2/5 -> 3/5, WSEL 3/5 -> 4/5) but does not clear the bar. Detail:
   [`../../experiments/2026-07-14-select-generalization/README.md`](../../experiments/2026-07-14-select-generalization/README.md).
+
+### P5.7 — Simulator scene-generator capability gate (select-arena v1) (2026-07-17)
+
+- **RQ-P5.7 (can the Gazebo rig act as a deterministic on-demand scene generator?):** two same-class
+  colour-distinct vehicles, UAV-style moving camera, per-frame GT boxes + stable track IDs, meeting
+  G1 render-alive, G2 GT-on-vehicle, G3 co-visibility, G4a cross-session same-seed determinism,
+  G4b seed diversity, G5 >= 0.5 fps, plus the mandatory visual gate V. **Verdict: NO [`infra` FAIL:
+  gz-transport service flake]** — not a gate reading but the pre-registered abort rule: the rig cannot
+  produce a 240-frame clip **at all**. `seed101_A` crashed mid-clip twice (127/240 and 108/240), each
+  on a fresh server session, each on a `gz service` CLI call timing out while the **server stayed
+  alive**; per the rule (INVALID -> re-run once -> fails again -> `infra` FAIL and stop), B/C/D never
+  ran. `verdict_p57.py` prints INCOMPLETE (exit 2); every gate is unmeasured and **V is uncomputable**
+  (overlays are finalize-time artifacts, so none of the 12 required PNGs exist — recorded INVALID, not
+  a log-inferred pass). Cause: `scenegen.py` makes **2 `gz service` subprocess calls per frame**
+  (~480/run) and the server intermittently cannot route a response back to those ephemeral transport
+  nodes (`RecvSrvRequest() ... Host unreachable`); at ~0.42%/call (ESTIMATE, n=2) a 240-frame run has
+  ~13% odds of completing and the 4-run matrix ~0.03% — unrunnable as designed, so re-running it
+  unchanged is not worth the compute. The fix is a design change (persistent node / batched stepping /
+  retry-on-timeout) and is deferred to Fable, not implemented here.
+- **Not a verdict, but the answer to the pre-registered open risk:** G4a's frame half looks
+  **excellent** — the two INVALID seed-101 attempts (fresh sessions) are **108/108 byte-identical,
+  mean |diff| = 0.000000** against a 2.0 gate. GPU AA/shadow nondeterminism did not materialise; the
+  `<sky>` removal + puppeteer-lockstep design appear to buy exact frame determinism. The scene itself
+  renders correctly (two colour-distinct cars, correct UAV aim, no black frames, 1.48 fps = on
+  estimate), so **the capability is blocked on transport plumbing, not on the scene design** — the
+  premise that a sim can author colour-attributed same-class pairs with per-frame GT is undamaged and
+  worth one more cycle. P5.6 (`experiment/direct-delivery-select`) stays PARKED as pre-registered.
+  Detail:
+  [`../../experiments/2026-07-17-sim-scenegen/README.md`](../../experiments/2026-07-17-sim-scenegen/README.md).

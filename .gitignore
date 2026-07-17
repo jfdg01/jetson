@@ -38,6 +38,7 @@ experiments/*/runs/**
 !experiments/*/runs/**/run-card.md
 !experiments/*/runs/**/results.json
 !experiments/*/runs/**/*.csv
+!experiments/*/runs/**/gt.jsonl
 
 # Stray root runs/ — provenance belongs under runners/runs/ or experiments/*/runs/
 # (co-located with its artifact). A bare /runs/ at repo root is always a cwd-relative

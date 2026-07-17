@@ -1,0 +1,79 @@
+<?xml version="1.0" ?>
+<!-- select_arena.sdf : deterministic multi-candidate scene-generation arena (P5.7).
+     Derived from sonoma_follow.sdf (Sonoma Raceway + Sensors plugin); changes:
+       - world renamed select_arena (topics/services move accordingly)
+       - <sky> REMOVED: the sky plugin animates clouds on sim time, which breaks
+         cross-session frame determinism. Cameras in this arena look down anyway.
+       - imu plugin dropped (unused), physics step pinned to 1 ms explicitly
+         (scenegen.py steps the paused world in 40 ms batches = 1 frame @ 25 Hz)
+       - camera model renamed uav_cam, 1280x720 @ 25 Hz (UAV123-like footage)
+     Vehicles are NOT in this file: runners/scenegen.py spawns them at runtime
+     via the EntityFactory service (inline SDF, seeded solid-colour materials).
+     Needs GZ_SIM_RESOURCE_PATH -> external/SITL_Models/Gazebo/{models,worlds}
+     and the NVIDIA EGL ICD env (see runners/sitl/GAZEBO_LIVE_FEED.md). -->
+<sdf version="1.7">
+  <world name="select_arena">
+    <physics name="default_physics" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <scene>
+      <ambient>1.0 1.0 1.0</ambient>
+      <background>0.7 0.75 0.8</background>
+    </scene>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <include>
+      <uri>model://sonoma_raceway</uri>
+    </include>
+
+    <!-- UAV camera. Pose is driven per-frame by runners/scenegen.py via the
+         set_pose service (empirical SDF convention: pitch +90 deg = nadir). -->
+    <model name="uav_cam">
+      <static>true</static>
+      <pose>0 0 25 0 1.5707 0</pose>
+      <link name="cam_link">
+        <sensor name="cam" type="camera">
+          <update_rate>25</update_rate>
+          <camera>
+            <horizontal_fov>1.2</horizontal_fov>
+            <image>
+              <width>1280</width>
+              <height>720</height>
+              <format>R8G8B8</format>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>2000</far>
+            </clip>
+          </camera>
+          <always_on>true</always_on>
+          <visualize>false</visualize>
+          <!-- topic: /world/select_arena/model/uav_cam/link/cam_link/sensor/cam/image -->
+        </sensor>
+      </link>
+    </model>
+
+  </world>
+</sdf>
