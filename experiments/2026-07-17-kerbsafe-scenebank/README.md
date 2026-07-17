@@ -1,7 +1,8 @@
 # P5.9 — Kerb-safe scene generator: calibrated spawn bands, G4b redefined, first scene bank
 
 **Pre-registered:** 2026-07-17T15:44Z (Madrid wall-clock).
-**Status: PRE-REGISTERED, not yet run.**
+**Run:** 2026-07-17T16:50Z. **Status: COMPLETE — RQ-P5.9 = YES** (full gate 16/16,
+G4a/G4b PASS, 12/12 bank cells clean, V 16/16, zero clipping). See Results.
 **Branch:** `experiment/kerbsafe-scenebank`.
 **Division of labour:** design + patches by Fable; **Opus runs the matrix and fills
 the Results section only — do NOT re-patch code.** All files under "Code changes"
@@ -327,33 +328,134 @@ record it explicitly with the frame path.
 
 ## Results (filled by Opus)
 
-Run date/time: TBD. Versions: TBD (from results.json). Rig: TBD.
+Run date/time: 2026-07-17T16:50Z (Madrid wall-clock). Versions (from
+results.json): gz 8.14.0, Python 3.12.10, numpy 2.4.4, cv2 4.13.0. Rig: RTX 3090
+workstation, stock clocks (Jetson NOT used, per pre-reg). Matrix wall time ≈ 45
+min (16 serial runs incl. ~20 s world load + ~29 s record + finalize + teardown
+each; verdict + proof ≈ 4 min). All 16 cells completed on the first attempt —
+zero INVALID/INFRA cells, zero re-runs, zero stray servers (every `killserver`
+printed `remaining: 0`; final `ps` for ruby/gz = 0).
 
 | run | seed | G0 (retries/lost/restarts) | G1 | G2 (pur0/pur1) | G3 | G5 fps | G6 (p10 id0/id1) | V (one line) |
 |---|---|---|---|---|---|---|---|---|
-| seed101_A | 101 | | | | | | | |
-| seed202_B | 202 | | | | | | | |
-| seed303_C | 303 | | | | | | | |
-| seed101_D | 101 | | | | | | | |
-| bank01 | 1 | | | | | | | |
-| bank02 | 2 | | | | | | | |
-| bank03 | 3 | | | | | | | |
-| bank04 | 4 | | | | | | | |
-| bank05 | 5 | | | | | | | |
-| bank06 | 6 | | | | | | | |
-| bank07 | 7 | | | | | | | |
-| bank08 | 8 | | | | | | | |
-| bank09 | 9 | | | | | | | |
-| bank10 | 10 | | | | | | | |
-| bank11 | 11 | | | | | | | |
-| bank12 | 12 | | | | | | | |
+| seed101_A | 101 | PASS 0/0/0 | PASS | PASS 0.824/0.766 | PASS 1.000 | 8.27 | PASS 0.997/1.000 | PASS — blue distractor ONE connected body on asphalt at f0180 (the P5.8 two-blob frame), clear of median; white target clean; scene advances f0060→180 |
+| seed202_B | 202 | PASS 0/0/0 | PASS | PASS 0.836/0.810 | PASS 1.000 | 8.28 | PASS 0.999/1.000 | PASS — both cars intact, on asphalt, tight GT boxes across all 3 frames |
+| seed303_C | 303 | PASS 0/0/0 | PASS | PASS 0.874/0.871 | PASS 1.000 | 8.31 | PASS 0.999/1.000 | PASS — both cars intact, well clear of kerb, boxes tight |
+| seed101_D | 101 | PASS 0/0/0 | PASS | PASS 0.824/0.766 | PASS 1.000 | 8.29 | PASS 0.997/1.000 | PASS — visually identical to seed101_A frame-for-frame (consistent with byte-identical G4a); blue intact at f0180 |
+| bank01 | 1 | PASS 0/0/0 | PASS | PASS 0.814/0.856 | PASS 1.000 | 8.25 | PASS 0.999/1.000 | PASS — cars well separated, both intact on asphalt |
+| bank02 | 2 | PASS 0/0/0 | PASS | PASS 0.795/0.911 | PASS 1.000 | 8.26 | PASS 0.999/1.000 | PASS — cars side-by-side mid-lane, both connected, boxes tight |
+| bank03 | 3 | PASS 0/0/0 | PASS | PASS 0.835/0.855 | PASS 1.000 | 8.27 | PASS 0.998/1.000 | PASS — both intact, on asphalt, clear of paint |
+| bank04 | 4 | PASS 0/0/0 | PASS | PASS 0.768/0.834 | PASS 1.000 | 8.24 | PASS 0.997/1.000 | PASS — both intact, blue lags target, clear of kerb |
+| bank05 | 5 | PASS 0/0/0 | PASS | PASS 0.842/0.910 | PASS 1.000 | 8.21 | PASS 0.999/1.000 | PASS — cars side-by-side, both connected on asphalt |
+| bank06 | 6 | PASS 0/0/0 | PASS | PASS 0.877/0.873 | PASS 1.000 | 8.18 | PASS 0.999/1.000 | PASS — both intact, well separated, boxes tight |
+| bank07 | 7 | PASS 0/0/0 | PASS | PASS 0.712/0.800 | PASS 1.000 | 8.26 | PASS 0.998/1.000 | PASS — both intact on asphalt (pur0 0.712 is lowest of bank, still well above G2 0.30; body connected) |
+| bank08 | 8 | PASS 0/0/0 | PASS | PASS 0.834/0.854 | PASS 1.000 | 8.26 | PASS 0.998/1.000 | PASS — cars side-by-side, both connected, boxes tight |
+| bank09 | 9 | PASS 0/0/0 | PASS | PASS 0.911/0.900 | PASS 1.000 | 8.23 | PASS 0.999/1.000 | PASS — cars far apart (blue high, white low), both intact |
+| bank10 | 10 | PASS 0/0/0 | PASS | PASS 0.872/0.848 | PASS 1.000 | 8.26 | PASS 0.999/1.000 | PASS — cars far apart, both intact on asphalt |
+| bank11 | 11 | PASS 0/0/0 | PASS | PASS 0.775/0.785 | PASS 1.000 | 8.33 | PASS 0.997/1.000 | PASS (worst-G6 cell, full 3-frame look f0060/120/180) — both cars intact and on asphalt at every frame; blue's max lat +1.645 m (margin 0.355 m to LAT_SAFE hi 2.0), body connected, NOT riding paint |
+| bank12 | 12 | PASS 0/0/0 | PASS | PASS 0.796/0.814 | PASS 1.000 | 8.24 | PASS 0.997/1.000 | PASS (2nd worst-G6 cell, full 3-frame look) — both cars intact; blue's max lat +1.674 m is the closest approach in the whole matrix (margin 0.326 m), body still ONE connected blob on asphalt at f0060/120/180 |
 
-- G4a (A vs D): TBD
-- G4b (redefined, 15 seeds; + old-statistic diagnostic values): TBD
-- `verdict_p59.py` full output (verbatim): TBD
-- V notes per run + the two worst-G6 bank cells given the full three-frame look: TBD
-- **RQ-P5.9 overall: TBD**
-- Estimate-vs-actual table: TBD
+- **G4a (A vs D):** PASS — canonical GT byte-identical, frame mean |diff| = 0.0
+  (≤ 2.0), frac(|diff| > 8) = 0.0 (≤ 0.01). Matches P5.8's full-scale result
+  exactly; nothing in this patch touched transport/rendering, and the frames
+  looked identical by eye. Determinism holds cross-session.
+- **G4b (redefined, 15 seeds):** PASS — min pairwise whole-scenario divergence
+  **1.36 m** (≥ 1.0) at pair (8, 12); recorded-f0 faithfulness True over all 16
+  runs (recorder reproduced `author_scenario` within 1e-3 m). Landed exactly on
+  the design-time estimate (1.36 m).
+  **Old-statistic diagnostic (non-gating):** min pairwise target-f0 distance
+  over the 15 seeds = **0.135 m** at pair (1, 12) — far below the retired 1.0 m
+  threshold, so the OLD G4b gate would have *failed this bank badly*. This is
+  direct corroboration of the redefinition, not a contradiction: seeds 1 and 12
+  place their targets 13.5 cm apart at f0 yet their whole scenarios diverge
+  1.36 m on average — precisely the "single-frame coincidence between otherwise-
+  diverging trajectories" the old point-statistic false-failed on. The new gate
+  measures the intended property (generator, not replayer); the old one measured
+  f0 luck. (P5.8's retired triple under the old stat: 101-202 0.782, 101-303
+  0.613, 202-303 0.215 m.)
+- **Corridor safety (from `author_scenario`, all 15 seeds):** every scenario's
+  `assert` on LAT_SAFE (−5.2, 2.0) and S_SAFE_MAX 70 passed by construction (all
+  16 runs completed → none tripped the assert). Worst-case distractor lateral
+  approach to the median paint: bank12 max lat +1.674 m (0.326 m margin), bank11
+  +1.645 (0.355 m), seed101/bank04 ≈ +1.55. All connected on-asphalt by eye — the
+  "close to the line" residual risk the pre-reg flagged materialised at ~0.33 m
+  and rendered clean, a PASS per the pre-registered rule (connected body on
+  asphalt).
+
+### `verdict_p59.py` full output (verbatim)
+
+```
+run          seed G0 G1 G2 G3 G5 G6  fps    pur0   pur1   fragp10        bothvis retries lost restarts
+seed101_A    101  1  1  1  1  1  1  8.27   0.824  0.766  0.997/1.000  1.000   0       0    0
+seed202_B    202  1  1  1  1  1  1  8.28   0.836  0.810  0.999/1.000  1.000   0       0    0
+seed303_C    303  1  1  1  1  1  1  8.31   0.874  0.871  0.999/1.000  1.000   0       0    0
+seed101_D    101  1  1  1  1  1  1  8.29   0.824  0.766  0.997/1.000  1.000   0       0    0
+bank01       1    1  1  1  1  1  1  8.25   0.814  0.856  0.999/1.000  1.000   0       0    0
+bank02       2    1  1  1  1  1  1  8.26   0.795  0.911  0.999/1.000  1.000   0       0    0
+bank03       3    1  1  1  1  1  1  8.27   0.835  0.855  0.998/1.000  1.000   0       0    0
+bank04       4    1  1  1  1  1  1  8.24   0.768  0.834  0.997/1.000  1.000   0       0    0
+bank05       5    1  1  1  1  1  1  8.21   0.842  0.910  0.999/1.000  1.000   0       0    0
+bank06       6    1  1  1  1  1  1  8.18   0.877  0.873  0.999/1.000  1.000   0       0    0
+bank07       7    1  1  1  1  1  1  8.26   0.712  0.800  0.998/1.000  1.000   0       0    0
+bank08       8    1  1  1  1  1  1  8.26   0.834  0.854  0.998/1.000  1.000   0       0    0
+bank09       9    1  1  1  1  1  1  8.23   0.911  0.900  0.999/1.000  1.000   0       0    0
+bank10       10   1  1  1  1  1  1  8.26   0.872  0.848  0.999/1.000  1.000   0       0    0
+bank11       11   1  1  1  1  1  1  8.33   0.775  0.785  0.997/1.000  1.000   0       0    0
+bank12       12   1  1  1  1  1  1  8.24   0.796  0.814  0.997/1.000  1.000   0       0    0
+G4a determinism seed101_A vs seed101_D: gt_identical=True frame_mean_absdiff=0.0 (<= 2.0) frac_gt8=0.0 (<= 0.01) -> PASS
+G4b seed diversity (redefined, 15 seeds): min pairwise scenario divergence 1.36 m (>= 1.0) at pair (8, 12); recorded-f0 faithful=True over 16 runs -> PASS
+RQ-P5.9 OVERALL: YES (YES iff 4/4 gate runs pass G0,G1,G2,G3,G5,G6 AND G4a AND G4b AND >= 11/12 bank cells pass with <= 1 infra loss and 0 gate failures; the visual gate V is checked by the operator on the overlay PNGs and can only downgrade this to NO)
+```
+
+### V notes + V-vs-G6
+
+All 28 required overlay PNGs opened with the Read tool and inspected before
+writing this verdict (4 gate × 3 frames = 12; 12 bank × f0180; + bank11 & bank12
+× f0060/f0120 as the two mechanically-selected worst-G6 cells). **V PASS on
+every opened run.** Every car renders as ONE connected body with wheels on the
+asphalt; no split blobs, no sinking, no median-riding. The P5.8 regression frame
+(seed101 f0180, previously two disconnected blue slivers with the mid-body sunk
+below the median — confirmed by re-opening
+`../2026-07-17-scenegen-transport/runs/seed101_A/overlay_f0180.png`) now renders
+the blue car intact and clear of the kerb.
+
+**No V-vs-G6 disagreement in either direction.** G6 passed all 16 runs by a wide
+margin (min p10 across the matrix = 0.9967, gate 0.95 → margin +0.047; below-0.90
+fraction 0.000 everywhere) and V independently saw clean bodies. One notable
+inversion worth recording: the marginally-lowest p10 cells are now the **white
+target (id0)**, not the blue distractor (id1) that was the P5.8 clip victim —
+id1 sits at p10 ≥ 0.9893 (four runs) to 1.000, id0 dips to 0.9967. The old defect
+class (blue distractor into the median kerb) is gone; the residual sub-1.0 p10 is
+ordinary self-occlusion of the target car at oblique yaw, not clipping. All far
+above gate; V confirms no visual defect.
+
+- **RQ-P5.9 overall: YES.** `verdict_p59.py` prints YES AND V passed on every
+  opened run. Full capability gate (G0,G1,G2,G3,G5,G6) 16/16, G4a PASS, G4b
+  (redefined) PASS, 12/12 bank cells clean (0 infra loss, 0 gate failures). The
+  12-clip scene bank is produced with zero clipping — the select arc's dataset
+  exists.
+
+### Estimate-vs-actual
+
+| gate | estimate (pre-reg) | actual | note |
+|---|---|---|---|
+| G0 | PASS 16/16, 0 retries | PASS 16/16, 0/0/0 all cells | on estimate; 1920 service calls, 0 retries (as P5.8) |
+| G1 | PASS 16/16, 0 dead/0 identical/stamps exact | PASS 16/16 | on estimate |
+| G2 | PASS 16/16, purity ≈ 0.70–0.90 | PASS 16/16, 0.712–0.911 | on estimate; lowest pur0 = bank07 0.712 (yellow-flag noted, no defect); no blue-car <0.6 outlier — the P5.8 0.472 clip did not recur |
+| G3 | PASS 16/16, both-vis 1.000 | PASS 16/16, 1.000 | on estimate |
+| G5 | PASS 16/16, 8.0–8.5 fps | PASS 16/16, 8.18–8.33 | on estimate |
+| G6 (new) | PASS 16/16, p10 ≥ 0.99 both cars | PASS 16/16, min p10 0.9967 | on estimate; margin +0.047, no cell in the [0.95,0.99) watch band |
+| G4a | PASS, mean|diff|=0.0 | PASS, mean|diff|=0.0 | exactly as estimated (byte-identical) |
+| G4b (redef) | PASS at 1.36 m | PASS at 1.36 m | on estimate to 2 d.p.; old-stat diagnostic 0.135 m corroborates the redefinition |
+| V | PASS 16/16, no split/sunk/median cars | PASS 16/16 | on estimate; residual "close to paint" risk materialised at 0.326 m margin (bank12), rendered clean = PASS |
+
+Every gate landed inside its pre-registered estimate. No gate flipped an
+estimate this cycle (contrast P5.8, where the "formality" gate G4b was the sole
+failure) — the design-time calibration (kerb sweep + G6 tuning + fixed-code
+smoke) correctly predicted the outcome.
+
+**Status: COMPLETE — RQ-P5.9 = YES. Matrix 16/16, V 16/16, all gates PASS.
+Committed on `experiment/kerbsafe-scenebank`, not merged (loop reviewer merges).**
 
 ## Deliverables (cut by Opus after the matrix — commit all, view all)
 

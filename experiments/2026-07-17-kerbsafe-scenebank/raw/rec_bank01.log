@@ -1,0 +1,65 @@
+[scenegen] frame 0/240 (7.80 fps)
+[scenegen] frame 40/240 (8.27 fps)
+[scenegen] frame 80/240 (8.27 fps)
+[scenegen] frame 120/240 (8.26 fps)
+[scenegen] frame 160/240 (8.26 fps)
+[scenegen] frame 200/240 (8.25 fps)
+[scenegen] frame 239/240 (8.25 fps)
+{
+  "seed": 1,
+  "frames": 240,
+  "out": "experiments/2026-07-17-kerbsafe-scenebank/runs/bank01",
+  "wall_loop_s": 29.1,
+  "fps_wall": 8.247,
+  "g1_dead_frames": 0,
+  "g1_identical_consecutive": 0,
+  "g1_stamp_steps_ok": true,
+  "g2_purity_median": {
+    "0": 0.8138,
+    "1": 0.8559
+  },
+  "g2_bg_purity_median": {
+    "0": 0.0454,
+    "1": 0.0
+  },
+  "g3_both_visible_frac": 1.0,
+  "g6_frag_p10": {
+    "0": 0.9991,
+    "1": 1.0
+  },
+  "g6_frag_min": {
+    "0": 0.9968,
+    "1": 0.9926
+  },
+  "g6_frag_below090_frac": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g6_frag_n": {
+    "0": 240,
+    "1": 240
+  },
+  "g0_retries_pose": 0,
+  "g0_retries_step": 0,
+  "g0_response_lost": 0,
+  "g0_proxy_restarts": 0,
+  "g0_spawn_warns": [],
+  "params": {
+    "standoff": 16.637853731992738,
+    "alt": 23.884287034284043,
+    "aim_err": [
+      -0.8896342779715511,
+      -0.7130599786744515
+    ],
+    "v_target": 4.53546487410077,
+    "v_distractor": 5.518572655562095
+  },
+  "versions": {
+    "gz": "8.14.0",
+    "python": "3.12.10",
+    "numpy": "2.4.4",
+    "cv2": "4.13.0"
+  },
+  "cmd": "runners/scenegen.py record --seed 1 --frames 240 --out experiments/2026-07-17-kerbsafe-scenebank/runs/bank01"
+}
+[scenegen] DONE experiments/2026-07-17-kerbsafe-scenebank/runs/bank01

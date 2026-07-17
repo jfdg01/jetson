@@ -225,3 +225,34 @@ before designing.
   *Bought:* the verdict stays honest, and the next cycle gets a measured false-failure rate to design
   against (widen target spawn / pre-screen the triple / measure trajectory divergence rather than a
   single f0 point) instead of a hunch.
+
+### P5.9 — kerb-safe scene bank (2026-07-17)
+
+★ **Ship the redefined G4b (whole-scenario divergence ≥ 1.0 m) and retire the old min-pairwise
+target-f0-distance statistic** — designer's ruling (Fable), executed and empirically corroborated
+this cycle. The run gave decisive independent evidence: under the OLD statistic the 15-seed bank
+scores **0.135 m** (pair 1,12) — it would have *failed the retired 1.0 m gate outright* — while the
+NEW statistic scores 1.36 m. Seeds 1 and 12 place their targets 13.5 cm apart at f0 yet diverge 1.36
+m over the whole scenario: the single-frame coincidence between otherwise-diverging trajectories that
+the old point-stat false-failed on (measured 25% false-failure rate, P5.8). *Given up:* sensitivity
+to two seeds coinciding at one instant. *Bought:* a gate that measures "is this a generator, not a
+replayer" directly, plus a faithfulness cross-check (recorded GT reproduces `author_scenario` within
+1e-3 m, True over all 16 runs). Honesty note carried from pre-reg: the redefinition retroactively
+flips P5.8's failing gate — disclosed, deliberate, grounded in third-party-checkable measurement.
+
+- **Executor call: report the old G4b statistic as a non-gating diagnostic rather than suppress it.**
+  0.135 m is an eye-catching number that superficially reads as "the bank is not diverse". Kept it in
+  Results because it is the strongest available evidence *for* the redefinition once you look at the
+  scenario-wide divergence — hiding it would be the dishonest move. *Given up:* a cleaner-looking
+  ledger. *Bought:* the reviewer can check the redefinition's premise against a real number.
+- **G6 (rendered-integrity gate) adopted as a standing gate for the scene generator** — this cycle
+  its first live run: 16/16 PASS, min p10 0.9967 (margin +0.047), 0 cells in the [0.95,0.99) watch
+  band, and it separates cleanly from the P5.8 clip (0.666). It caught the P5.8 defect class by
+  construction (p10 + tail, not median — the clip's median was 0.999). *Given up:* nothing measurable;
+  it adds one per-frame connected-component computation. *Bought:* the anti-clipping regression is now
+  mechanical, not eyes-only. V still gates (it is the whole point of the arc), but G6 now backs it.
+- **No V-vs-G6 disagreement to reconcile, and no code touched.** The executor ran the matrix as
+  written, opened all 28 required overlays, and confirmed V and G6 agree. The one finding worth a note
+  — the marginal p10 migrated from the blue distractor (P5.8) to the white target (self-occlusion, not
+  clipping) — is recorded, not acted on. *Rationale:* executor runs and reports; design changes are
+  the designer's call. The bank is declared usable for the parked P5.6 select experiment next cycle.

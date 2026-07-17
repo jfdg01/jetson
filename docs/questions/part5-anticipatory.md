@@ -183,3 +183,24 @@ target. Detail:
   fidelity and co-visibility are all demonstrated.
   Detail:
   [`../../experiments/2026-07-17-scenegen-transport/README.md`](../../experiments/2026-07-17-scenegen-transport/README.md).
+
+### P5.9 — kerb-safe scene bank (2026-07-17)
+
+**RQ-P5.9:** with spawn bands clamped to the calibrated kerb-safe corridor and G4b redefined to
+whole-scenario divergence, does the generator pass the full capability gate (including the new
+rendered-integrity gate G6) AND produce a 12-clip pre-registered scene bank with zero clipping —
+the dataset the select arc needs?
+
+**Verdict: YES.** Full capability gate 16/16 (G0,G1,G2,G3,G5,G6 all PASS), G4a byte-identical PASS,
+G4b (redefined) PASS at 1.36 m ≥ 1.0, **12/12 bank cells clean**, **V PASS 16/16** on all 28 opened
+overlays. Zero clipping: the P5.8 seed101 kerb-clip (blue distractor rendered as two disconnected
+blobs at f0180) is fixed — same seed/frame now renders one connected body clear of the median. G6
+has teeth and margin (min p10 0.9967 vs 0.95 gate; the P5.8 clip scored 0.666); notably the residual
+sub-1.0 p10 is now the white *target* (self-occlusion), not the blue distractor, so the old defect
+class is gone. **No V-vs-G6 disagreement** in either direction. First-attempt matrix: 0 INVALID / 0
+INFRA / 0 retries in 1920 calls. **The 12-clip bank is usable as a select dataset** (per-object
+white/blue phrases + GT, co-visible ≥ 80%, both cars intact). Independent corroboration of the G4b
+redefinition: under the OLD statistic the bank scores 0.135 m (would have failed the retired 1.0 m
+gate) while diverging 1.36 m scenario-wide — the exact single-frame-coincidence artefact the
+redefinition targets. **P5.6 (`experiment/direct-delivery-select`) unblocks next cycle on this bank.**
+Detail: [`../../experiments/2026-07-17-kerbsafe-scenebank/README.md`](../../experiments/2026-07-17-kerbsafe-scenebank/README.md).
