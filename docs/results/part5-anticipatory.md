@@ -152,3 +152,48 @@ the agreement between the carried SAM2 box and the deployed full-frame VLM groun
 Proof: `proof/p55_pass_grid.png` (WSEL 4/5, SWAP 3/5, M==MC), `proof/p55_reanchor_traj.png`
 (re-anchors fire/accepted yet carry still not matching), `proof/car7_460_SWAP_MC_driftNOMATCH.mp4`
 (surviving carry-drift NO_MATCH), `proof/car10_615_WSEL_MC_captionNOMATCH.mp4` (inert caption lever).
+
+### P5.7 — Simulator scene-generator capability gate (select-arena v1) (2026-07-17)
+
+`experiments/2026-07-17-sim-scenegen/` · **RTX 3090 workstation only, Jetson not used** (Gazebo does
+not run on it; no on-device claim in RQ-P5.7). gz sim 8.14.0 (Harmonic), Python 3.12.10 / numpy 2.4.4
+/ opencv 4.13.0 via `.venv-ft`, driver 595.71.05, headless EGL (`__EGL_VENDOR_LIBRARY_FILENAMES`
+pinned to 10_nvidia.json). No power-mode knob (desktop GPU, stock clocks). Planned: 4 runs
+(`seed101_A`, `seed202_B`, `seed303_C`, `seed101_D`), 240 frames @ 25 fps virtual, one fresh
+`gz sim -s` session each. **Actual: 1 run attempted, twice, both INVALID; B/C/D never ran** (abort
+rule: INVALID -> re-run once with a fresh server -> fails again -> record `infra` FAIL and stop).
+
+| attempt | frames | died on | wall / fps | server at crash |
+|---|---|---|---|---|
+| seed101_A #1 | **127/240** (53%) | `set_pose_vector failed: Service call timed out` | 14:31:50->14:33:16, 1.48 fps | **ALIVE** |
+| seed101_A #2 | **108/240** (45%) | `world control failed: Service call timed out` | 14:44:06->14:45:19, 1.48 fps | **ALIVE** |
+| seed202_B / seed303_C / seed101_D | — | NOT RUN (stop rule) | — | — |
+
+**Verdict: NO [`infra` FAIL: gz-transport service flake].** `verdict_p57.py` -> `INCOMPLETE: missing
+runs ['seed101_A','seed202_B','seed303_C','seed101_D']` (exit 2). G1/G2/G3/G4a/G4b/G5 **unmeasured**
+(all are computed at finalize) and the mandatory visual gate **V is uncomputable** — overlays,
+`gt.jsonl`, `overlay.mp4` and `results.json` are all finalize-time artifacts, so 0 of the required 12
+overlay PNGs exist; recorded INVALID, never a log-inferred pass. Root cause (evidence, not inference):
+the sim never crashed — server alive and camera topic up at both crashes; `scenegen.py` drives the
+world with **two `gz service` CLI subprocess calls per frame** (~480 ephemeral gz-transport nodes per
+run) and the server intermittently fails to route a response back to one ("`NodeShared::RecvSrvRequest()
+error sending response: Host unreachable`", the only error in both server logs, identical across
+sessions), so the CLI burns its 5000 ms timeout and the recorder raises. Different services hit in the
+two attempts -> transport/discovery layer, not one handler. **Rate (ESTIMATE, n=2):** ~236 calls
+mean-time-to-failure -> ~0.42%/call -> P(240-frame run completes) ~= **13%**, P(4 runs) ~= **0.03%** —
+the matrix as designed is essentially unrunnable, not unlucky.
+
+**Non-gating salvage (the pre-registered open risk, answered favourably):** both INVALID attempts are
+seed 101 under *fresh* sessions, so their 108 overlapping raw frames are exactly G4a's cross-session
+comparison (frame half only). Measured with `verdict_p57.frame_diff`'s metric: **108/108 byte-identical,
+mean |diff| = 0.000000** (gate <= 2.0), frac(|diff|>8) = 0.0 (gate <= 0.01); render health min
+per-frame std 21.07 (dead if <= 5), 0 byte-identical consecutive frames. **Not a G4a pass** (runs
+INVALID, GT half uncheckable, 108/240 frames) but GPU AA/shadow nondeterminism did **not** materialise
+across sessions — better than the "mean |diff| < 1.0" estimate. Raw frames viewed directly (per the
+visual-verification rule): two colour-distinct cars (blue + white), grey asphalt, yellow lane lines,
+checkered start grid, UAV-style oblique aim — the render path, EGL pin, camera aim and solid-colour
+materials all work; only the per-frame service-call transport is broken. Throughput 1.48 fps was
+**on estimate** (1.3-1.5), so G5 would very likely have passed had the clip finished.
+Proof: `proof/p57_infra_fail.png` (both attempts stop mid-clip, server alive),
+`proof/p57_crosssession_determinism.png` (flat 0.0 vs the 2.0 gate, non-gating),
+`proof/p57_render_ok_f0060.png` (scene renders correctly; no GT box drawn — why V is uncomputable).

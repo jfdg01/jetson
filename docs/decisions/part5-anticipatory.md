@@ -129,3 +129,43 @@ before designing.
   re-propose caption rewriting or union-crop select as a select-fix. The remaining untested direction is
   changing the delivery contract (deliver the carried track directly, bypassing the prompt-time
   full-frame re-grounding) rather than trying to make the VLM re-ground onto the carry.
+
+### P5.7 — Simulator scene-generator capability gate (2026-07-17)
+
+- **Stopped the matrix after two fresh-session failures on the first run, instead of continuing with
+  B/C/D.** The pre-registered abort rule (INVALID -> re-run once with a fresh server -> fails again ->
+  record `infra` FAIL and stop) was applied literally. Continuing was tempting — three more runs might
+  have produced a completing clip — but the failure is a **per-call** flake (~0.42%/call, ESTIMATE
+  n=2): each further run had ~13% odds of finishing, so B/C/D would most likely have burned ~12 min to
+  produce three more INVALID dirs and no gate reading. *Given up:* any G1/G2/G3/G5 measurement this
+  cycle, and the planned A-vs-D G4a pair. *Bought:* an early, cheap, correctly-diagnosed stop, plus
+  the salvage below.
+- **Root-caused the failure rather than reporting "flaky sim", but did NOT fix it.** The evidence
+  (server alive at both crashes, identical `RecvSrvRequest() ... Host unreachable` in both server logs,
+  two *different* services hit, crash ~5 s after the last frame = the CLI's 5000 ms timeout) locates the
+  fault in per-frame `gz service` CLI subprocess churn (~480 ephemeral transport nodes per run), not in
+  the scene, the render path, or a service handler. Fixing it (persistent transport node / batched
+  stepping / retry-on-timeout) is a **design change and Fable's call** — the executor role is to run the
+  matrix, not redesign it, so it is flagged with the diagnosis attached and left unimplemented. *Given
+  up:* a same-day green matrix. *Bought:* the next cycle starts from a named cause and a decision, not a
+  re-run of an unrunnable matrix.
+- **Killed the gz server by process group, not by the pid file — applies to every future sim campaign.**
+  The pre-registered `kill $(cat gz_$RUN.pid)` kills only the `nohup` **bash wrapper**; the real server
+  is its ruby child (verified: wrapper 28988 -> server 28991, shared PGID), which survives as an orphan.
+  That would silently break the "fresh server session per run" property G4a's cross-session claim rests
+  on, and the stale server keeps answering on the camera topic, so the next run would *look* fine. Used
+  `kill -- -<pgid>` + verified `pgrep -af select_arena` empty before each launch. Relatedly, step 0's
+  `pkill -f "gz sim"` self-matches under this harness (the launching shell's own command line contains
+  the string) and can kill its own wrapper — matched on `select_arena.sdf` instead. Mechanism only; no
+  design or code was changed.
+- **Left `make_proof.py` untouched and added `make_proof_infra.py` for the negative result.** The
+  pre-registered proof script requires all 4 runs' `results.json` + overlays and cannot run; it stays
+  valid for the post-fix re-run, so editing it to limp through a failed matrix would have destroyed a
+  working asset. *Given up:* the pre-registered deliverable list (overlay grid / determinism / clip).
+  *Bought:* the deliverables that match what actually happened, from the artifacts that do exist.
+- **Recorded the cross-session determinism probe as NON-GATING, despite it being the cycle's best
+  news.** 108/108 byte-identical frames across two fresh sessions (mean |diff| = 0.000000 vs a 2.0
+  gate) answers the pre-registered open risk favourably, but the runs are INVALID, no finalize ran, the
+  GT half of G4a is uncheckable and it covers 108/240 frames — so it is documented as a probe and
+  explicitly **not** a G4a pass, in the README, the figure title, and the ledgers. *Given up:* claiming
+  a gate. *Bought:* the claim stays true if the post-fix run disagrees.

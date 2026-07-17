@@ -1,7 +1,16 @@
 # P5.7 — Simulator scene-generator capability gate (select-arena v1)
 
 **Pre-registered:** 2026-07-17T14:45Z (Madrid wall-clock).
-**Status:** PRE-REGISTERED, not yet run.
+**Status:** RUN 2026-07-17T14:31Z–14:47Z — **RQ-P5.7 = NO [infra FAIL: gz-transport
+service flake]**. No gating run reached finalize: `seed101_A` crashed mid-clip twice
+(frames 127 and 108 of 240), each on a fresh server session, on a `gz service` CLI
+call timing out while the server stayed alive. Per the abort rule (INVALID → re-run
+once with a fresh server → fails again → record `infra` FAIL and stop),
+`seed202_B` / `seed303_C` / `seed101_D` were **not run**. `verdict_p57.py` prints
+INCOMPLETE; V is **uncomputable** (overlays are written at finalize, so none exist).
+The render path itself is healthy and the open G4a risk looks *better* than estimated
+(108/108 frames byte-identical across two fresh sessions, non-gating) — the sole
+blocker is per-frame service-call churn. See Results.
 **Branch:** `experiment/sim-scenegen`.
 **Division of labour:** design + patches by Fable; **Opus runs the matrix and fills
 the Results section only — do NOT re-patch code.** All files under "Committed
@@ -246,30 +255,166 @@ Read tool** (12 images total) before writing any verdict.
   frames" for every future sim campaign).
 - Disk: ~1 GB total under `runs/` (gitignored).
 
-## Results (TBD — filled by Opus)
+## Results (filled by Opus)
 
-Run date/time: TBD. Versions: TBD (from `results.json`).
+Run date/time: **2026-07-17T14:31Z–14:47Z** (Madrid wall-clock). Versions: gz sim
+8.14.0 (Harmonic), Python 3.12.10 / numpy 2.4.4 / opencv 4.13.0 via `.venv-ft`,
+RTX 3090 (driver 595.71.05), headless EGL. No power-mode knob (desktop GPU, stock
+clocks). Jetson not used, as pre-registered. No `results.json` exists for any run —
+the columns below are therefore **not measured**, not "failed".
 
 | run | seed | G1 | G2 (pur0/pur1) | G3 bothvis | G5 fps | V visual (one line) |
 |---|---|---|---|---|---|---|
-| seed101_A | 101 | | | | | |
-| seed202_B | 202 | | | | | |
-| seed303_C | 303 | | | | | |
-| seed101_D | 101 | | | | | |
+| seed101_A | 101 | n/a | n/a | n/a | n/a (1.48 fps observed while alive) | **uncomputable — no overlay PNG written (run died pre-finalize)** |
+| seed202_B | 202 | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN (stop rule) |
+| seed303_C | 303 | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN (stop rule) |
+| seed101_D | 101 | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN (stop rule) |
 
-- G4a (A vs D): gt_identical = TBD, frame mean |diff| = TBD, frac>8 = TBD → TBD
-- G4b (seeds differ): min pairwise f0 distance = TBD → TBD
-- `verdict_p57.py` full output: TBD (paste)
-- **RQ-P5.7 overall: TBD**
-- Estimate-vs-actual divergences: TBD
+- G4a (A vs D): **not measured** — run D never ran. (See the non-gating probe below.)
+- G4b (seeds differ): **not measured** — only seed 101 was attempted.
+- `verdict_p57.py` full output (verbatim, exit 2):
+  ```
+  INCOMPLETE: missing runs ['seed101_A', 'seed202_B', 'seed303_C', 'seed101_D'] -- verdict not final
+  ```
+- **RQ-P5.7 overall: NO — `infra` FAIL.** The rig cannot currently generate a
+  240-frame clip at all, so it does not meet the "on-demand scene generator" claim.
+  Gates G1–G5 are unmeasured and V is uncomputable; the verdict rests on the
+  pre-registered abort rule, not on a gate reading.
+
+### What failed (the actual finding)
+
+`seed101_A` was attempted twice, each with a **fresh** `gz sim -s` session, and
+crashed mid-clip both times:
+
+| attempt | frames done | died on | wall | server at crash |
+|---|---|---|---|---|
+| 1 | 127/240 (53%) | `set_pose_vector failed: Service call timed out` (scenegen.py:121) | 14:31:50→14:33:16, 1.48 fps | **ALIVE** (pid 28991) |
+| 2 | 108/240 (45%) | `world control failed: Service call timed out` (scenegen.py:129) | 14:44:06→14:45:19, 1.48 fps | **ALIVE** (pid 33052) |
+
+Both server logs contain exactly one error, identical across sessions:
+
+```
+NodeShared::RecvSrvRequest() error sending response: Host unreachable
+```
+
+Diagnosis (evidence, not inference): the sim never crashed — the server process was
+alive at both crashes and the camera topic stayed up. `scenegen.py` drives the world
+with **two `gz service` CLI subprocess calls per frame** (`set_pose_vector` +
+`control`, `svc()` at scenegen.py:103), i.e. ~480 short-lived gz-transport nodes per
+240-frame run. The server intermittently fails to route a *response* back to one of
+those ephemeral nodes ("Host unreachable"); that CLI then burns its 5000 ms timeout,
+returns non-zero, and `svc()`'s caller raises. The crash timestamp is ~5 s after the
+last frame in both attempts, matching the timeout exactly. The two failures hit
+*different* services, so the flake is in the transport/discovery layer, not in one
+service handler.
+
+**Rate (ESTIMATE, n=2 — small sample):** failures came after ~254 and ~216 calls
+(mean ~236) → per-call failure ≈ 0.42%. A 240-frame run makes ~480 calls →
+P(run completes) ≈ (1−1/236)^480 ≈ **13%**; P(all 4 gating runs complete) ≈
+**0.03%**. So this was not bad luck: the matrix as designed is essentially
+unrunnable, and re-running it unchanged is not worth the compute. Fixing it is a
+design change (persistent transport node / batched stepping / retry-on-timeout) and
+is **Fable's call, not mine** — flagged, not implemented.
+
+### Non-gating salvage: the open G4a risk looks GOOD
+
+Both INVALID attempts are seed 101 under fresh server sessions, leaving 127 and 108
+raw frames — the overlapping 108 are exactly the cross-session comparison G4a asks
+about (frame half only). Measured with `verdict_p57.frame_diff`'s metric:
+
+- **108/108 frames byte-identical. mean |diff| = 0.000000** (gate ≤ 2.0),
+  frac(|diff|>8) = 0.0 (gate ≤ 0.01).
+- Render health over those frames: min per-frame std **21.07** (dead frame if ≤ 5 →
+  no black/dead frames), **0** byte-identical consecutive frames (feed alive/moving).
+
+**This is NOT a G4a pass** and must not be recorded as one: the runs are INVALID, no
+finalize ran, the GT half (canonical `gt.jsonl` identity) is uncheckable, and it
+covers 108/240 frames. But it does answer the pre-registered open risk in the
+encouraging direction: GPU AA/shadow nondeterminism did **not** materialise across
+fresh sessions — better than Fable's "mean |diff| < 1.0" estimate, which anticipated
+small nonzero drift. The `<sky>` removal and puppeteer-lockstep design appear to have
+bought exact frame determinism.
+
+### Visual verification (mandatory gate)
+
+**V is UNCOMPUTABLE for every run — recorded as INVALID, never a log-inferred pass.**
+`overlay_f0060/0120/0180.png`, `gt.jsonl`, `overlay.mp4` and `results.json` are all
+written at finalize (scenegen.py:414+), after the 240-frame loop. No attempt reached
+finalize, so **0 of the required 12 overlay PNGs exist**. `make_proof.py` fails for
+the same reason (`ValueError: need at least one array to concatenate`).
+
+What I *did* look at, so the render path is not left log-inferred — the **raw** frames
+(no GT boxes drawn; these cannot substitute for V, which grades GT-on-vehicle):
+
+- `runs/seed101_A/frames/0060.png` (session 2) and
+  `runs/seed101_A_attempt1_INVALID/frames/0060.png` (session 1): oblique aerial view
+  of grey asphalt with yellow lane lines and the checkered start grid; **two cars,
+  one clearly blue and one clearly white**, both well inside frame and plausibly
+  UAV-framed. Not black, not sky, not one car, not two same-coloured cars. Matches
+  `curation/smoke900_overlay_f0030.png` in look, minus the overlay. The two sessions'
+  f0060 are byte-identical, confirmed numerically above.
+
+So the design's visual risks (black EGL frames, nadir/sky mis-aim, texture-white
+cars, dead feed) are all **clear** on the evidence available; the GT-projection half
+of V is simply untested, because the run dies before any overlay is drawn.
+
+### Estimate-vs-actual
+
+| quantity | estimate | actual |
+|---|---|---|
+| per run | ~4.5 min | **never completed**; 1.48 fps → 240 frames would take ~2.7 min + finalize |
+| matrix | 25–35 min | **~16 min to a hard stop** (2 attempts + diagnosis) |
+| throughput (G5) | 1.3–1.5 fps | **1.48 fps observed** — on estimate; G5 would very likely have passed |
+| G1/G3/G5 | expected PASS | unmeasured (no finalize) — render health consistent with PASS |
+| G2 purity | 0.6–0.9 | unmeasured (purity is computed at finalize) |
+| **G4a (flagged open risk)** | mean \|diff\| < 1.0, might fail | **0.000000, byte-identical** (non-gating, 108/240 frames) — better than estimated |
+| **run completion** | **not listed as a risk** | **the gate that actually failed** — 0/2 completions, ~13% est. per-run odds |
+
+The miss worth recording: the pre-registration budgeted for gate *failures* but
+assumed the 240-frame loop would *finish* — the design smoke ran only 60 frames
+(`curation/smoke900_results.json`), ~120 service calls, which is inside the ~236-call
+mean-time-to-failure and so could not surface this. A 60-frame smoke cannot validate
+a 240-frame run when the failure mode is per-call and cumulative.
+
+### Mechanism note for future sim campaigns (no design change made)
+
+The README's `kill $(cat $EXP/raw/gz_$RUN.pid)` is **insufficient**: `$!` records the
+`nohup` **bash wrapper**, whose child is the actual `gz sim` ruby server (verified:
+wrapper 28988 → server 28991, shared PGID). Killing the wrapper orphans a live
+server, which would silently break the "fresh server session per run" property that
+G4a's cross-session claim depends on — and a stale server would still answer on the
+topic, so the next run would look fine. I killed the **process group**
+(`kill -- -<pid>`, then verified `pgrep -af select_arena` is empty) before each
+launch. Not a design change; the pid file is still written as pre-registered.
+`pkill -f "gz sim"` (step 0) is also self-matching under this harness — the launching
+shell's own command line contains the string — so it can kill its own wrapper; I
+matched on `select_arena.sdf` instead.
 
 ## Deliverables (cut by Opus after the matrix)
 
-1. Fill Results above (including V lines and estimate-vs-actual).
-2. `make_proof.py` → `proof/p57_overlay_grid.png` (the 4×3 visual-gate grid),
-   `proof/p57_determinism.png` (A-vs-D per-frame diff + worst pair),
-   `proof/p57_seed101_overlay.mp4` (behaviour clip: moving cars + moving camera +
-   locked GT boxes). Caption each here (what it shows, which run).
+The pre-registered deliverables assumed the success path and **could not be cut**:
+`make_proof.py` needs all 4 runs' `results.json` + the overlay PNGs, and exits
+`ValueError: need at least one array to concatenate`. Its file is **untouched** (it
+is design code and stays valid for a re-run once the transport flake is fixed). The
+negative result is evidenced instead by `make_proof_infra.py` (new, committed,
+reproducible from the raw frames + logs that do exist):
+
+1. **`proof/p57_infra_fail.png`** — the verdict in one figure: both `seed101_A`
+   attempts (seed 101, fresh gz server session each) stop at 127/240 and 108/240
+   frames, annotated with the ~254 / ~216 `gz service` calls made before the flake
+   and the identical server-side error. Shows the failure is mid-clip, repeatable,
+   and not a server death (server alive at both crashes).
+2. **`proof/p57_crosssession_determinism.png`** — the non-gating G4a probe:
+   per-frame mean |diff| between the two fresh sessions is flat **0.000000** against
+   the 2.0 gate line over the 108 overlapping frames, with the f=60 pair side by
+   side. Title states plainly that this is **not** a G4a pass (runs INVALID, GT half
+   uncheckable, 108/240 frames). Answers the pre-registered open risk favourably.
+3. **`proof/p57_render_ok_f0060.png`** — raw frame 60 of `seed101_A` (session 2,
+   seed 101): two colour-distinct cars (one blue, one white) on the Sonoma start
+   straight under the UAV-style oblique camera. Proof the render path, EGL vendor
+   pin, camera aim and solid-colour materials all work — i.e. what remains broken is
+   only the per-frame service-call transport, not the scene. No GT box is drawn (the
+   overlay is a finalize-time artifact), which is exactly why V is uncomputable.
 3. Append: RESULTS row(s) to `docs/results/part5-anticipatory.md`; QUESTIONS
    entry (RQ-P5.7 + one-line verdict) to `docs/questions/part5-anticipatory.md`;
    DECISIONS entry to `docs/decisions/part5-anticipatory.md` covering (a) sim as
