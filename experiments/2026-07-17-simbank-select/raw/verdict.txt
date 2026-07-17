@@ -1,0 +1,39 @@
+cell          DD    dd_class      ddIoU  RG    rg_class        vlm_on  acq_s  delivF  ddCov  rgCov  
+bank01_blue   PASS  None          0.704  PASS  None            named   4.38   184     1.000  1.000  
+bank01_white  PASS  None          0.638  PASS  None            named   4.39   185     1.000  1.000  
+bank02_blue   PASS  None          0.703  PASS  None            named   4.37   184     1.000  1.000  
+bank02_white  PASS  None          0.632  PASS  None            named   4.37   184     1.000  1.000  
+bank03_blue   PASS  None          0.631  PASS  None            named   4.37   184     1.000  1.000  
+bank03_white  PASS  None          0.628  PASS  None            named   4.37   184     1.000  1.000  
+bank04_blue   PASS  None          0.622  PASS  None            named   4.37   184     1.000  1.000  
+bank04_white  PASS  None          0.651  PASS  None            named   4.37   184     1.000  1.000  
+bank05_blue   PASS  None          0.730  PASS  None            named   4.37   184     1.000  1.000  
+bank05_white  PASS  None          0.647  PASS  None            named   4.37   184     1.000  1.000  
+bank06_blue   PASS  None          0.704  PASS  None            named   4.37   184     1.000  1.000  
+bank06_white  PASS  None          0.697  PASS  None            named   4.37   184     1.000  1.000  
+bank07_blue   PASS  None          0.598  PASS  None            named   4.37   184     1.000  1.000  
+bank07_white  PASS  None          0.628  PASS  None            named   4.37   184     1.000  1.000  
+bank08_blue   PASS  None          0.625  PASS  None            named   4.37   184     1.000  1.000  
+bank08_white  PASS  None          0.627  PASS  None            named   4.37   184     0.994  0.982  
+bank09_blue   PASS  None          0.675  PASS  None            named   4.37   184     1.000  1.000  
+bank09_white  PASS  None          0.708  PASS  None            named   4.37   184     1.000  1.000  
+bank10_blue   PASS  None          0.652  PASS  None            named   4.36   184     1.000  1.000  
+bank10_white  PASS  None          0.715  PASS  None            named   4.36   184     1.000  1.000  
+bank11_blue   PASS  None          0.574  PASS  None            named   4.37   184     1.000  1.000  
+bank11_white  PASS  None          0.656  PASS  None            named   4.37   184     1.000  1.000  
+bank12_blue   PASS  None          0.665  PASS  None            named   4.37   184     0.952  0.857  
+bank12_white  PASS  None          0.624  PASS  None            named   4.37   184     1.000  1.000  
+
+DD per leg: white 12/12, blue 12/12  -> DD_total 24/24
+RG per leg: white 12/12, blue 12/12  -> RG_total 24/24
+DD fail classes: {}  RG fail classes: {}
+
+RQ-P5.10a (DD >= 10/12 on each leg): YES
+RQ-P5.10b (DD_total >= RG_total + 4): NO (24 vs 24)
+OVERALL RQ-P5.10: NO (YES iff a AND b; the visual gate V is checked by the operator on the overlay PNGs and can only downgrade this to NO)
+
+Pre-registered interpretation branches (the matching one applies):
+  [ ] branch 1: contract-change validated on clean-attribute scenes at n=12; next lever = unpark P5.6 (direct delivery on real UAV123).
+  [X] branch 2: RG near ceiling: the P5.3/4/5 select NOs are SCENE-bound (UAV123 attribute murk), not contract-bound; DD's remaining edge is latency only (0 s vs ~5 s acquire).
+  [ ] branch 3: DD clears the bar but the margin over RG is < 4: contracts not separable on bank v1; harden the bank (crossings, longer idle) before re-testing.
+  [ ] branch 4: DD itself fails on clean sim: carry-bound (ID switch/drift) or stack-on-sim gap; select is blocked upstream of any delivery contract.

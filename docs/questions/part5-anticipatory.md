@@ -204,3 +204,30 @@ redefinition: under the OLD statistic the bank scores 0.135 m (would have failed
 gate) while diverging 1.36 m scenario-wide — the exact single-frame-coincidence artefact the
 redefinition targets. **P5.6 (`experiment/direct-delivery-select`) unblocks next cycle on this bank.**
 Detail: [`../../experiments/2026-07-17-kerbsafe-scenebank/README.md`](../../experiments/2026-07-17-kerbsafe-scenebank/README.md).
+
+### P5.10 — select on the scene bank: direct delivery vs prompt-time re-ground (2026-07-17)
+
+**RQ-P5.10:** on the P5.9 12-clip sim bank (two colour-distinct cars, exact dual per-frame GT), with
+both candidates carried from oracle f0 seeds under the two-candidate SAM2 budget, does the
+**direct-delivery contract** (phrase→carried candidate by stored caption, deliver its carried box at
+the prompt, no VLM, acquire 0 s) select correctly at n=12 (RQ-a: ≥ 10/12 each leg) **and beat the
+P5.3 re-ground contract** (full-frame VLM at prompt + IoU-match + measured latency) by a
+pre-registered margin (RQ-b: DD_total ≥ RG_total + 4), evaluated paired on identical carries?
+
+**Verdict: RQ-P5.10a YES, RQ-P5.10b NO → OVERALL NO (interpretation branch 2).** DD 24/24 (white
+12/12, blue 12/12) — clears RQ-a easily. But RG also hit ceiling: 24/24, `vlm_on = named` on all 24
+cells, 0 NO_BOX / 0 NO_MATCH / 0 OVERRUN — so the margin is 0 (< 4) and RQ-b fails. **The
+pre-registered sim-gap NO_BOX sweep did NOT happen**: the RefDrone-fine-tuned Qwen2-VL-2B grounded
+every clean Gazebo render on the first call. Reading (branch 2): the P5.3/4/5 select NOs are
+**scene-bound** (UAV123 same-class attribute murk + one hand-annotated distractor frame), *not*
+contract-bound — on a clean two-attribute scene the old re-ground contract works fine, so DD's real
+advantage over RG here is **latency only** (0 s vs mean 4.37 s acquire), not accuracy. **Visual gate
+V PASS** (16/16 opened overlays show green on the named car; no contradiction). Honest-negative
+caveat baked into the pre-reg: bank v1 is too easy to *separate* the contracts (2 colour-distinct
+cars, no crossings, max GT-GT IoU 0.000, 3 s idle) — a YES was structurally guarded against and did
+not materialise; this does not claim real-video select is solved. **Next levers (pre-registered):**
+either unpark P5.6 (direct delivery on real UAV123, where RG is known to fail — the A/B that would
+actually separate the contracts) or harden the bank to v2 (crossings/occlusion, longer idle) to
+exercise the under-tested carry-drift / ID-switch failure modes. DD's 0-s delivery + carried-track
+accuracy is validated on clean scenes at n=12; the contract *separation* claim is not.
+Detail: [`../../experiments/2026-07-17-simbank-select/README.md`](../../experiments/2026-07-17-simbank-select/README.md).

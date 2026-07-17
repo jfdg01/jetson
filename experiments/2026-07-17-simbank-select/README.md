@@ -278,57 +278,139 @@ contradict its scored result.
 - Disk ~200 MB under `runs/` (mostly overlays, gitignored). No new external sources -> no SOURCES
   entry expected.
 
-## Results (filled by Opus — TBD)
+## Results (filled by Opus)
 
-Run date/time: TBD. Versions (from any results.json): TBD. Rig: RTX 3090 workstation + Jetson
-Orin Nano 15 W + jetson_clocks. Matrix wall time: TBD. VLM reboots: TBD. INFRA cells: TBD.
+Run date/time: **2026-07-17T17:31Z** (Madrid wall-clock; matrix ran 17:28–17:31).
+Versions (from `runs/bank01_white/results.json`): torch 2.6.0+cu124, numpy 2.4.4, cv2 4.13.0,
+python 3.12.10, **sam2_model `facebook/sam2.1-hiera-tiny`** (as recorded at runtime — note:
+the README method text names `sam2-hiera-small`; the deployed `stream_carry.MODEL` resolves to
+sam2.1-hiera-tiny, recorded here per the actual results.json, not re-run), VLM = qwen2-vl-2b q8_0
+terse (Jetson llama.cpp). Rig: RTX 3090 workstation + Jetson Orin Nano 15 W + jetson_clocks.
+**Matrix wall time: ~2.75 min** (log born 17:28:11, last results.json 17:30:56 — far under the
+15–35 min estimate; warm Jetson, 4.37 s/VLM-call). **VLM reboots: 0. INFRA cells: 0.
+INCOMPLETE cells: 0.** Overlays viewed with the Read tool for the fixed 16-image sample; **0 FAIL
+cells** so no additional images were required by the gate.
+
+`cov_*` below = per-frame **frac_lock** (fraction of ZOH frames with IoU>=0.25 vs named GT to clip
+end), matching `verdict_p510.py`'s ddCov/rgCov columns; mean-IoU coverage is in each results.json.
+`match_ious (0/1)` = RG's IoU of the raw VLM box vs carried candidate 0 / candidate 1 (white leg
+selects track 0, blue leg selects track 1). gt_overlap_prompt = 0.000 on every cell (bank has no
+GT-GT overlap, so dominance and strict delivery rules coincide; strict_ok = true on all 24).
 
 | cell | DD | dd_class | dd IoU_named | RG | rg_class | vlm_on | acquire_s | deliver_f | match_ious (0/1) | cov_dd | cov_rg | V (one line) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| bank01_white | | | | | | | | | | | | |
-| bank01_blue | | | | | | | | | | | | |
-| bank02_white | | | | | | | | | | | | |
-| bank02_blue | | | | | | | | | | | | |
-| bank03_white | | | | | | | | | | | | |
-| bank03_blue | | | | | | | | | | | | |
-| bank04_white | | | | | | | | | | | | |
-| bank04_blue | | | | | | | | | | | | |
-| bank05_white | | | | | | | | | | | | |
-| bank05_blue | | | | | | | | | | | | |
-| bank06_white | | | | | | | | | | | | |
-| bank06_blue | | | | | | | | | | | | |
-| bank07_white | | | | | | | | | | | | |
-| bank07_blue | | | | | | | | | | | | |
-| bank08_white | | | | | | | | | | | | |
-| bank08_blue | | | | | | | | | | | | |
-| bank09_white | | | | | | | | | | | | |
-| bank09_blue | | | | | | | | | | | | |
-| bank10_white | | | | | | | | | | | | |
-| bank10_blue | | | | | | | | | | | | |
-| bank11_white | | | | | | | | | | | | |
-| bank11_blue | | | | | | | | | | | | |
-| bank12_white | | | | | | | | | | | | |
-| bank12_blue | | | | | | | | | | | | |
+| bank01_white | PASS | None | 0.638 | PASS | None | named | 4.39 | 185 | 0.868/0.000 | 1.000 | 1.000 | green delivered box on the WHITE car (DD f75 & RG f185); red namedGT on white, orange on blue — PASS shape, no switch |
+| bank01_blue | PASS | None | 0.704 | PASS | None | named | 4.38 | 184 | 0.000/0.944 | 1.000 | 1.000 | green on the BLUE car both legs; GT boxes agree — PASS shape |
+| bank02_white | PASS | None | 0.632 | PASS | None | named | 4.37 | 184 | 0.872/0.000 | 1.000 | 1.000 | — (not in fixed sample; PASS/PASS, no fail to open) |
+| bank02_blue | PASS | None | 0.703 | PASS | None | named | 4.37 | 184 | 0.000/0.775 | 1.000 | 1.000 | — |
+| bank03_white | PASS | None | 0.628 | PASS | None | named | 4.37 | 184 | 0.846/0.000 | 1.000 | 1.000 | — |
+| bank03_blue | PASS | None | 0.631 | PASS | None | named | 4.37 | 184 | 0.000/0.854 | 1.000 | 1.000 | — |
+| bank04_white | PASS | None | 0.651 | PASS | None | named | 4.37 | 184 | 0.919/0.000 | 1.000 | 1.000 | green on the WHITE car (DD f75 & RG f184); GT boxes agree — PASS shape |
+| bank04_blue | PASS | None | 0.622 | PASS | None | named | 4.37 | 184 | 0.000/0.835 | 1.000 | 1.000 | green on the BLUE car both legs — PASS shape |
+| bank05_white | PASS | None | 0.647 | PASS | None | named | 4.37 | 184 | 0.822/0.000 | 1.000 | 1.000 | — |
+| bank05_blue | PASS | None | 0.730 | PASS | None | named | 4.37 | 184 | 0.000/0.792 | 1.000 | 1.000 | — |
+| bank06_white | PASS | None | 0.697 | PASS | None | named | 4.37 | 184 | 0.846/0.000 | 1.000 | 1.000 | — |
+| bank06_blue | PASS | None | 0.704 | PASS | None | named | 4.37 | 184 | 0.000/0.906 | 1.000 | 1.000 | — |
+| bank07_white | PASS | None | 0.628 | PASS | None | named | 4.37 | 184 | 0.947/0.000 | 1.000 | 1.000 | cars side-by-side; green on the WHITE car, no switch to the adjacent blue (orange GT) — PASS shape |
+| bank07_blue | PASS | None | 0.598 | PASS | None | named | 4.37 | 184 | 0.000/0.968 | 1.000 | 1.000 | green on the BLUE car; adjacent white is orange GT, no switch — PASS shape |
+| bank08_white | PASS | None | 0.627 | PASS | None | named | 4.37 | 184 | 0.876/0.000 | 0.994 | 0.982 | — (cov<1: named car partly exits frame near clip end; delivered lock still PASS) |
+| bank08_blue | PASS | None | 0.625 | PASS | None | named | 4.37 | 184 | 0.000/0.872 | 1.000 | 1.000 | — |
+| bank09_white | PASS | None | 0.708 | PASS | None | named | 4.37 | 184 | 0.862/0.000 | 1.000 | 1.000 | — |
+| bank09_blue | PASS | None | 0.675 | PASS | None | named | 4.37 | 184 | 0.000/0.855 | 1.000 | 1.000 | — |
+| bank10_white | PASS | None | 0.715 | PASS | None | named | 4.36 | 184 | 0.856/0.000 | 1.000 | 1.000 | green on the WHITE car (DD f75 & RG f184); GT boxes agree — PASS shape |
+| bank10_blue | PASS | None | 0.652 | PASS | None | named | 4.36 | 184 | 0.000/0.862 | 1.000 | 1.000 | green on the BLUE car both legs — PASS shape |
+| bank11_white | PASS | None | 0.656 | PASS | None | named | 4.37 | 184 | 0.850/0.000 | 1.000 | 1.000 | — |
+| bank11_blue | PASS | None | 0.574 | PASS | None | named | 4.37 | 184 | 0.000/0.785 | 1.000 | 1.000 | — |
+| bank12_white | PASS | None | 0.624 | PASS | None | named | 4.37 | 184 | 0.895/0.000 | 1.000 | 1.000 | — |
+| bank12_blue | PASS | None | 0.665 | PASS | None | named | 4.37 | 184 | 0.000/0.843 | 0.952 | 0.857 | — (cov<1: named car partly exits frame near clip end; delivered lock still PASS) |
 
-- **RQ-P5.10a (DD >= 10/12 each leg): TBD**
-- **RQ-P5.10b (DD_total >= RG_total + 4): TBD**
-- **Overall + interpretation branch: TBD**
-- `verdict_p510.py` full output (verbatim): TBD
-- Estimate-vs-actual table: TBD
+- **RQ-P5.10a (DD >= 10/12 each leg): YES** — DD white 12/12, blue 12/12 (DD_total 24/24).
+- **RQ-P5.10b (DD_total >= RG_total + 4): NO** — DD_total 24, RG_total 24, margin 0 (< 4). RG hit
+  ceiling: white 12/12, blue 12/12, `vlm_on = named` on all 24, 0 NO_BOX, 0 NO_MATCH, 0 OVERRUN.
+- **Overall (script): NO** — YES iff a AND b; b failed on the margin. **Visual gate V: PASS**
+  (all 16 opened sample overlays show the green box on the named car, no contradiction with any
+  scored result), so V does not downgrade — but the script verdict already stands at NO.
+- **Interpretation branch: [X] branch 2** — RG near ceiling: the P5.3/4/5 select NOs are
+  **scene-bound** (UAV123 attribute murk), not contract-bound; DD's remaining edge is **latency
+  only** (0 s vs mean 4.37 s acquire, min 4.36 / max 4.39). The pre-registered sim-gap NO_BOX
+  sweep did **NOT** occur — the RefDrone-fine-tuned VLM grounded every Gazebo render on the first
+  call (vlm_on named 24/24).
+
+### `verdict_p510.py` full output (verbatim)
+
+```
+cell          DD    dd_class      ddIoU  RG    rg_class        vlm_on  acq_s  delivF  ddCov  rgCov
+bank01_blue   PASS  None          0.704  PASS  None            named   4.38   184     1.000  1.000
+bank01_white  PASS  None          0.638  PASS  None            named   4.39   185     1.000  1.000
+bank02_blue   PASS  None          0.703  PASS  None            named   4.37   184     1.000  1.000
+bank02_white  PASS  None          0.632  PASS  None            named   4.37   184     1.000  1.000
+bank03_blue   PASS  None          0.631  PASS  None            named   4.37   184     1.000  1.000
+bank03_white  PASS  None          0.628  PASS  None            named   4.37   184     1.000  1.000
+bank04_blue   PASS  None          0.622  PASS  None            named   4.37   184     1.000  1.000
+bank04_white  PASS  None          0.651  PASS  None            named   4.37   184     1.000  1.000
+bank05_blue   PASS  None          0.730  PASS  None            named   4.37   184     1.000  1.000
+bank05_white  PASS  None          0.647  PASS  None            named   4.37   184     1.000  1.000
+bank06_blue   PASS  None          0.704  PASS  None            named   4.37   184     1.000  1.000
+bank06_white  PASS  None          0.697  PASS  None            named   4.37   184     1.000  1.000
+bank07_blue   PASS  None          0.598  PASS  None            named   4.37   184     1.000  1.000
+bank07_white  PASS  None          0.628  PASS  None            named   4.37   184     1.000  1.000
+bank08_blue   PASS  None          0.625  PASS  None            named   4.37   184     1.000  1.000
+bank08_white  PASS  None          0.627  PASS  None            named   4.37   184     0.994  0.982
+bank09_blue   PASS  None          0.675  PASS  None            named   4.37   184     1.000  1.000
+bank09_white  PASS  None          0.708  PASS  None            named   4.37   184     1.000  1.000
+bank10_blue   PASS  None          0.652  PASS  None            named   4.36   184     1.000  1.000
+bank10_white  PASS  None          0.715  PASS  None            named   4.36   184     1.000  1.000
+bank11_blue   PASS  None          0.574  PASS  None            named   4.37   184     1.000  1.000
+bank11_white  PASS  None          0.656  PASS  None            named   4.37   184     1.000  1.000
+bank12_blue   PASS  None          0.665  PASS  None            named   4.37   184     0.952  0.857
+bank12_white  PASS  None          0.624  PASS  None            named   4.37   184     1.000  1.000
+
+DD per leg: white 12/12, blue 12/12  -> DD_total 24/24
+RG per leg: white 12/12, blue 12/12  -> RG_total 24/24
+DD fail classes: {}  RG fail classes: {}
+
+RQ-P5.10a (DD >= 10/12 on each leg): YES
+RQ-P5.10b (DD_total >= RG_total + 4): NO (24 vs 24)
+OVERALL RQ-P5.10: NO (YES iff a AND b; the visual gate V is checked by the operator on the overlay PNGs and can only downgrade this to NO)
+
+Pre-registered interpretation branches (the matching one applies):
+  [ ] branch 1: contract-change validated on clean-attribute scenes at n=12; next lever = unpark P5.6 (direct delivery on real UAV123).
+  [X] branch 2: RG near ceiling: the P5.3/4/5 select NOs are SCENE-bound (UAV123 attribute murk), not contract-bound; DD's remaining edge is latency only (0 s vs ~5 s acquire).
+  [ ] branch 3: DD clears the bar but the margin over RG is < 4: contracts not separable on bank v1; harden the bank (crossings, longer idle) before re-testing.
+  [ ] branch 4: DD itself fails on clean sim: carry-bound (ID switch/drift) or stack-on-sim gap; select is blocked upstream of any delivery contract.
+```
+
+### Estimate-vs-actual
+
+| quantity | estimate | actual | note |
+|---|---|---|---|
+| Matrix wall time | 15–35 min | **~2.75 min** | warm Jetson (fast boot), 4.37 s/VLM-call; big under-run |
+| acquire_s | 4.3–5.5 s | **4.36–4.39 s (mean 4.37)** | tighter and lower than estimate; RG delivery landed f184–185 (est. f183–213) |
+| DD white / blue | 12/12 · 11–12/12 | **12/12 · 12/12** | as expected; no SAM2 ID ambiguity observed |
+| RG per leg | 6–9/12 (RG_total ~12–18) | **12/12 · 12/12 (RG_total 24)** | **miss** — the RefDrone VLM grounded Gazebo renders cleanly; no sim-gap NO_BOX |
+| Overall | YES via branch 1 | **NO via branch 2** | the pre-registered live alternative fired: RG also at ceiling → contracts not separated by the margin; the P5.3/4/5 NOs read as scene-bound, DD's edge is latency only |
+| VLM reboots | — | 0 | no transport exceptions |
+| INFRA / INCOMPLETE | 0 tolerated | 0 / 0 | clean sweep |
 
 ## Deliverables checklist (definition of done)
 
-- [ ] Results table + verdict output + V lines filled above; estimate-vs-actual noted.
-- [ ] `proof/p510_pass_grid.png` — the 24-cell DD-vs-RG pass grid (the headline number). Caption
-      here with the final counts.
-- [ ] `proof/p510_failclass.png` — fail-class histogram per contract (the attribution evidence).
-- [ ] `proof/p510_headline_dd_vs_rg.png` — the mechanically-picked headline cell, DD delivery vs
-      RG delivery on the same clip/leg. Caption with what it shows.
-- [ ] RESULTS row appended to `docs/results/part5-anticipatory.md`.
-- [ ] QUESTIONS entry (RQ-P5.10a/b + one-line verdict) appended to
+- [x] Results table + verdict output + V lines filled above; estimate-vs-actual noted.
+- [x] `proof/p510_pass_grid.png` — the 24-cell DD-vs-RG pass grid (the headline number).
+      **Caption: all 24 cells green PASS — DD 24/24 (white 12/12, blue 12/12) and RG 24/24
+      (white 12/12, blue 12/12). Both contracts at ceiling on bank v1 → RQ-P5.10b margin = 0,
+      overall NO (branch 2).**
+- [x] `proof/p510_failclass.png` — fail-class histogram per contract (the attribution evidence).
+      **Caption: both panels empty — 0/24 DD fails, 0/24 RG fails. No NO_BOX / NO_MATCH / drift /
+      switch of any class on either contract; the predicted sim-gap NO_BOX sweep did not occur.**
+- [x] `proof/p510_headline_dd_vs_rg.png` — the mechanically-picked headline cell (bank01_white),
+      DD delivery (left, f75) vs RG delivery (right, f185). **Caption: both contracts deliver the
+      green box on the WHITE car (the named target); RG additionally spent acquire_s = 4.39 s to
+      reach the same place DD reached at t=0 — the visual of DD's latency-only edge.**
+- [x] RESULTS row appended to `docs/results/part5-anticipatory.md`.
+- [x] QUESTIONS entry (RQ-P5.10a/b + one-line verdict) appended to
       `docs/questions/part5-anticipatory.md`.
-- [ ] DECISIONS entry appended to `docs/decisions/part5-anticipatory.md`: A/B-on-bank over
+- [x] DECISIONS entry appended to `docs/decisions/part5-anticipatory.md`: A/B-on-bank over
       verbatim-P5.6 and over bank-scaling (rationale in "Rejected alternatives"); the dominance
       delivery rule; t_p = 3.0 s forced by clip length; maintenance dropped for single-factor.
-- [ ] SOURCES.md unchanged unless something new was pulled in.
-- [ ] Committed on `experiment/simbank-select`; **not merged** (the loop's reviewer merges).
+- [x] SOURCES.md unchanged (no new paper/model/dataset pulled in).
+- [x] Committed on `experiment/simbank-select`; **not merged** (the loop's reviewer merges).
