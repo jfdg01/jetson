@@ -169,3 +169,59 @@ before designing.
   GT half of G4a is uncheckable and it covers 108/240 frames — so it is documented as a probe and
   explicitly **not** a G4a pass, in the README, the figure title, and the ledgers. *Given up:* claiming
   a gate. *Bought:* the claim stays true if the post-fix run disagrees.
+
+### P5.8 — Scene-generator transport fix (persistent requester) (2026-07-17)
+
+- **Persistent gz-transport requester node over CLI + retry-on-timeout** (design decision, Fable;
+  vindicated by the run). P5.7's per-frame `gz service` CLI calls spawned ~480 ephemeral transport
+  nodes/run and died twice inside ~240 calls with the server alive. The fix replaces them with **one
+  persistent pybind requester `Node` in a dedicated no-subscriber `proxy` child process** (JSON-lines
+  over pipes, auto-restart on hang). *Rationale:* under the cumulative-degradation reading of the
+  P5.7 data (two suspiciously-similar times-to-failure, ~254 and ~216 calls, which a memoryless
+  0.42%/call model fits poorly), retrying through *more* ephemeral nodes attacks the symptom while
+  feeding the cause; eliminating the churn attacks the cause. *Given up:* nothing — retry was kept as
+  a safety net (below). *Bought:* completion 0/2 -> **4/4 at 240/240**, throughput 1.48 -> **8.34 fps
+  (5.6x)**, and **0 failures across 1920 gating calls**. The result also **falsifies the memoryless
+  model** (which predicted <13% chance any single run finishes) and supports the cumulative-degradation
+  amendment — worth carrying into any future gz-transport work: **do not put ephemeral service nodes
+  in a per-frame loop.**
+- **Reply-lost-aware step retry, with G1 as the double-step tripwire** (design decision, Fable;
+  never exercised). `set_pose_vector`/`create` are idempotent and retry x3; `world control` is **not**
+  — a lost *reply* is not an unexecuted step, so the layer waits `RESPONSE_LOST_WAIT_S` = 3 s for the
+  frame before re-issuing, and counts `response_lost` separately. *Rationale:* a blind step retry
+  would silently double-advance sim time and corrupt GT. The tripwire is G1's exact-40 ms stamp check
+  — a double-step shows an 80 ms jump and fails the run rather than passing quietly. *Given up:* up to
+  3 s of latency per lost reply. *Bought:* a safety net that cannot corrupt the clip it protects.
+  **Actual: it never fired** (retries 0, lost 0, restarts 0 on all 4 runs) — the primary fix was
+  sufficient, and the net's cost was zero.
+- **`killserver` process-group scan replacing the pid-file teardown** (design decision, Fable;
+  load-bearing for G4a). P5.7's `nohup ... & echo $!` recorded the **bash wrapper** PID, not the real
+  (ruby child) server — killing it **orphaned a live server that still answered on the topic**,
+  silently faking the fresh session that G4a's cross-session claim rests on; `pkill -f "gz sim"`
+  self-matches its own launching shell. `killserver` scans /proc, kills by process group, excludes
+  itself/ancestors/own group, and **verifies `remaining: 0`**. *Given up:* the convenience of a pid
+  file. *Bought:* G4a means what it says. **Actual: all 4 teardowns printed `remaining: 0`** (pgids
+  42448 / 42828 / 43255 / 43678), so every run genuinely had a fresh session — without which the
+  byte-identical G4a result would be unfalsifiable.
+- **Executor call: recorded V as PASS-with-caveat for seed101_A/D rather than a V FAIL.** The blue
+  distractor spawns near the median kerb (lat y = 0.596) and clips into it, rendering by f0180 as two
+  disconnected blue blobs with the mid-body sunk below the kerb surface. *Why not FAIL:* the
+  pre-registered V FAIL list is box floating off / lagging / wildly mis-sized, one car, same-coloured
+  cars, or a dead feed — none hold; the box bounds the full 3D model and tracks the car, so the defect
+  is **scene geometry, not GT projection**, and G2 passes (pur1 = 0.472 vs a 0.30 gate). *Why not a
+  silent pass:* it is a real defect — **a half-sunk distractor is not a fair grounding target** — so it
+  is recorded in the README, both ledgers, and the proof-grid caption, and flagged as fix-before-use.
+  *Given up:* a clean binary. *Bought:* the caveat survives into the next cycle instead of being
+  rounded away. (V did not decide this verdict — the matrix is NO on G4b regardless.)
+- **Executor call: diagnosed G4b as mis-calibrated but did NOT change the threshold, the seeds, or any
+  code.** The gate failed at 0.216 m < 1.0 m, and the diagnosis is quantitative: GT reproduces
+  `author_scenario()` exactly (not a transport artefact), target f0 spreads ~8 m x 7 m over 120 seeds
+  (the generator diversifies), yet only **74.6% of 2000 random 3-seed triples pass** (median
+  min-pairwise 1.52 m, p10 0.59 m) — with 3 seeds there are 3 pairs, so near-collisions are a birthday
+  effect and **G4b has a ~25% false-failure rate on an arbitrary triple**; {101, 202, 303} landed in
+  it. *Rationale:* re-picking seeds or widening the threshold after seeing the result is exactly the
+  post-hoc move pre-registration exists to prevent — the executor runs the matrix and reports, the
+  designer rules on gate definitions. *Given up:* a YES this cycle that would have been unearned.
+  *Bought:* the verdict stays honest, and the next cycle gets a measured false-failure rate to design
+  against (widen target spawn / pre-screen the triple / measure trajectory divergence rather than a
+  single f0 point) instead of a hunch.

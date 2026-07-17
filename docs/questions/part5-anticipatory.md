@@ -144,3 +144,42 @@ target. Detail:
   worth one more cycle. P5.6 (`experiment/direct-delivery-select`) stays PARKED as pre-registered.
   Detail:
   [`../../experiments/2026-07-17-sim-scenegen/README.md`](../../experiments/2026-07-17-sim-scenegen/README.md).
+
+### P5.8 — Scene-generator transport fix (persistent requester) + capability gate re-run (2026-07-17)
+
+- **RQ-P5.8 (does moving per-frame service calls from ephemeral `gz service` CLI subprocesses to one
+  persistent gz-transport requester node — plus a reply-lost-aware retry layer — let the select-arena
+  rig complete the 4-run matrix and pass the unchanged P5.7 capability gates?):** gates G0 completion
+  (new), G1 render-alive, G2 GT-on-vehicle, G3 co-visibility, G4a cross-session same-seed determinism,
+  G4b seed diversity, G5 >= 0.5 fps, plus the mandatory visual gate V. **Verdict: NO [G4b — seed
+  diversity], but the transport question underneath it is YES.** The P5.7 blocker is gone: **G0 PASS
+  4/4 at 240/240 frames with 0 retries / 0 lost replies / 0 proxy restarts** across 1920 gating
+  service calls (P5.7: 0/2 runs finished, dying inside ~240 calls with the server alive), at **8.34 fps
+  vs 1.48 (5.6x)**. G1/G2/G3/G5 PASS 4/4 and **V PASS 4/4** (12/12 overlays viewed: two colour-distinct
+  cars, boxes tight on the vehicles, motion visible). **G4a — pre-registered as "the one genuinely open
+  gate" — PASS and stronger than estimated:** GT byte-identical and frames `mean |diff| = 0.0`,
+  `frac(|diff|>8) = 0.0` across **all 240** frames on fresh sessions, so the feared late-clip shadow/AA
+  divergence does not exist; P5.7's 108/240 probe now extends to a full clip. The sole failure is
+  **G4b: min pairwise target-f0 distance 0.216 m < 1.0 m** on the pre-registered triple {101, 202, 303}
+  (all three pairs under gate). Diagnosed as **gate calibration, not a generator defect**: recorded GT
+  reproduces `author_scenario()` exactly, target f0 spreads ~8 m x 7 m over 120 seeds, and **74.6% of
+  2000 random 3-seed triples pass G4b** (median min-pairwise 1.52 m) — 3 seeds give 3 pairs, so
+  near-collisions are a birthday effect and the gate has a ~25% false-failure rate on an arbitrary
+  triple; {101, 202, 303} landed in that 25%. The seeds differ materially on every other axis
+  (distractor f0 ~5 m apart, v_target 3.6-5.8 m/s, standoff 17.8-21.4 m, alt 16.3-21.6 m). Verdict
+  applied literally per the pre-registered rule (`YES iff ... AND G4b`) — threshold, seeds and code
+  untouched; **the next cycle rules on G4b's definition** (widen target spawn / pre-screen the triple /
+  measure trajectory divergence instead of a single f0 point), not the executor.
+- **Scene-quality defect found by the visual gate, not by any metric:** in seed 101 the blue
+  distractor spawns near the median kerb (lat y = 0.596) and **clips into the kerb geometry** — by
+  f0180 it renders as two disconnected blue blobs with the mid-body sunk below the kerb surface. The
+  GT box still bounds the model and tracks the car (no float/lag), so it passed G2 (pur1 = 0.472 vs a
+  0.30 gate) and is recorded as V PASS-with-caveat rather than a V FAIL — but **a half-sunk distractor
+  is not a fair grounding target** and should be fixed before this generator feeds a select experiment.
+  This is exactly the class of silent sim failure the mandatory-visual rule exists to catch.
+- **P5.6 (`experiment/direct-delivery-select`) stays PARKED** as pre-registered — still the live select
+  lever, still the n=5-starved test this generator exists to unblock. The generator is now one
+  gate-definition fix away from being usable for it: transport, determinism, render health, GT
+  fidelity and co-visibility are all demonstrated.
+  Detail:
+  [`../../experiments/2026-07-17-scenegen-transport/README.md`](../../experiments/2026-07-17-scenegen-transport/README.md).

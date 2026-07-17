@@ -1,7 +1,16 @@
 # P5.8 — Scene-generator transport fix (persistent requester) + capability gate re-run
 
 **Pre-registered:** 2026-07-17T15:09Z (Madrid wall-clock).
-**Status:** PRE-REGISTERED, not yet run.
+**Run:** 2026-07-17T15:12Z–15:17Z. **Status: COMPLETE — RQ-P5.8 = NO [G4b].**
+Transport fix works: **G0 PASS 4/4 with 0 retries** (P5.7: 0/2 runs finished),
+240/240 frames every run at **8.34 fps (5.6× P5.7's 1.48)**; G1/G2/G3/G5 PASS
+4/4; **G4a PASS — byte-identical frames across fresh sessions for all 240 frames**
+(the pre-registered "one genuinely open gate", now closed); V PASS 4/4 (12/12
+overlays viewed). Sole failure: **G4b, min pairwise target-f0 distance 0.216 m <
+1.0 m** on the pre-registered seed triple — diagnosed below as **gate calibration,
+not a generator defect** (74.6% of random seed triples pass; target f0 spreads
+8 m × 7 m over 120 seeds). Next cycle rules on G4b's definition; the capability
+claim is otherwise met.
 **Branch:** `experiment/scenegen-transport`.
 **Division of labour:** design + patches by Fable; **Opus runs the matrix and fills
 the Results section only — do NOT re-patch code.** All files under "Code changes"
@@ -249,38 +258,160 @@ images total) before writing any verdict.
 
 ## Results (filled by Opus)
 
-Run date/time: TBD. Versions: TBD (record `gz sim --versions`, python, numpy,
-cv2 from any `results.json`, plus GPU driver via `nvidia-smi`).
+Run date/time: **2026-07-17T15:12Z–15:17Z** (Madrid wall-clock), matrix run
+straight through, 4/4 cells completed first attempt (no INVALID cells, no
+partial-run rule invoked, no abort criterion triggered).
+Versions: **gz sim 8.14.0**, Python 3.12.10, numpy 2.4.4, cv2 4.13.0 (from
+`results.json`); GPU **NVIDIA RTX 3090, driver 595.71.05**; RTX 3090 workstation
+only (Jetson not used). No power-mode knob (desktop GPU, stock clocks).
 
 | run | seed | G0 (retries/lost/restarts) | G1 | G2 (pur0/pur1) | G3 bothvis | G5 fps | V visual (one line) |
 |---|---|---|---|---|---|---|---|
-| seed101_A | 101 | | | | | | |
-| seed202_B | 202 | | | | | | |
-| seed303_C | 303 | | | | | | |
-| seed101_D | 101 | | | | | | |
+| seed101_A | 101 | PASS 240/240 (0/0/0) | PASS (0 dead, 0 ident, stamps ok) | PASS 0.761 / 0.472 (bg 0.020 / 0.000) | PASS 1.000 | PASS 8.35 | PASS w/ caveat — two colour-distinct cars, boxes on both, motion visible; blue distractor clips into the median kerb (see V notes) |
+| seed202_B | 202 | PASS 240/240 (0/0/0) | PASS (0 dead, 0 ident, stamps ok) | PASS 0.804 / 0.750 (bg 0.002 / 0.000) | PASS 1.000 | PASS 8.34 | PASS — clean: tight boxes on both cars, all three frames distinct |
+| seed303_C | 303 | PASS 240/240 (0/0/0) | PASS (0 dead, 0 ident, stamps ok) | PASS 0.857 / 0.845 (bg 0.000 / 0.000) | PASS 1.000 | PASS 8.36 | PASS — clean: tight boxes on both cars, all three frames distinct |
+| seed101_D | 101 | PASS 240/240 (0/0/0) | PASS (0 dead, 0 ident, stamps ok) | PASS 0.761 / 0.472 (bg 0.020 / 0.000) | PASS 1.000 | PASS 8.35 | PASS w/ caveat — pixel-indistinguishable from seed101_A at all three overlays (same caveat) |
 
-- G4a (A vs D): TBD (gt_identical=?, frame mean |diff|=?, frac>8=?)
-- G4b (seeds differ, min pairwise f0 distance): TBD
-- `verdict_p58.py` full output (verbatim): TBD
-- **RQ-P5.8 overall: TBD**
-- Estimate-vs-actual: TBD
+**G0 retry counters: 0 across the whole matrix** (`retries_pose=0, retries_step=0,
+response_lost=0, proxy_restarts=0, spawn_warns=[]` on all 4 runs; budget was ≤12).
+The retry/reply-lost safety net **never fired** — 1920 gating service calls
+(4 × 240 × 2) with zero failures, on the same two services that killed P5.7 twice
+inside ~240 calls. The persistent-proxy transport is the whole story: 4/4 runs
+completed where 0/2 did, at **8.34 fps vs 1.48 fps (5.6×)**.
 
-## Deliverables (cut by Opus after the matrix)
+- **G4a (A vs D): PASS** — `gt_identical=True`, frame `mean |diff| = 0.0`
+  (≤ 2.0), `frac(|diff|>8) = 0.0` (≤ 1%). **Byte-identical across all 240 frames
+  on fresh server sessions**, not merely near-identical: the per-frame curve in
+  `proof/p58_determinism.png` is flat at 0.0 for the entire clip and the worst
+  frame pair is f=0 at 0.000. This closes the one gate the pre-registration
+  flagged as genuinely open — the P5.7 probe's 108/108 (45% of a clip, one seed
+  pair) now extends to 240/240 with no late-clip shadow/AA divergence.
+- **G4b (seeds differ, min pairwise f0 distance): FAIL — 0.216 m < 1.0 m required.**
+  Target (`objs[0]`, car_white) frame-0 positions: seed101 (2.346, 1.390),
+  seed202 (1.485, 1.335), seed303 (1.671, 1.226). Pairwise: 101–202 **0.863 m**,
+  101–303 **0.695 m**, 202–303 **0.216 m** — all three below the 1.0 m gate, so
+  the failure is not a single unlucky pair.
+- `verdict_p58.py` full output (verbatim):
 
-1. `proof/p58_overlay_grid.png` — 4 runs × 3 mid-run GT overlays (the V gate in
-   one figure). Caption: which runs/seeds, what tight boxes demonstrate.
-2. `proof/p58_determinism.png` — per-frame mean |diff| seed101_A vs seed101_D +
-   worst frame pair. Caption: the G4a reading.
-3. `proof/p58_transport_fix.png` — before/after: P5.7 CLI attempts (127/240,
-   108/240 @ 1.48 fps) vs P5.8 persistent-proxy runs (frames completed, fps,
-   retry counters). Caption: the campaign's actual finding.
-4. `proof/p58_seed101_overlay.mp4` — behaviour clip of seed101_A.
-5. Append: RESULTS row(s) to `docs/results/part5-anticipatory.md`; QUESTIONS
-   entry (RQ-P5.8 + one-line verdict) to `docs/questions/part5-anticipatory.md`;
-   DECISIONS entry to `docs/decisions/part5-anticipatory.md` covering (a)
-   persistent proxy over CLI+retry (what was given up: none — retry kept as
-   safety net; and the cumulative-degradation amendment to P5.7's 0.42% model),
-   (b) reply-lost-aware step retry with G1 as the double-step tripwire, (c)
-   killserver replacing the defective pid-file teardown, (d) P5.6 re-affirmed
-   PARKED. No new SOURCES expected (no new external asset).
-6. Commit on this branch; do not merge (the loop's reviewer merges).
+```
+run          seed  G0 G1 G2 G3 G5  fps    pur0   pur1   bothvis retries lost restarts
+seed101_A    101   1  1  1  1  1  8.35   0.761  0.472  1.000   0       0    0
+seed202_B    202   1  1  1  1  1  8.34   0.804  0.750  1.000   0       0    0
+seed303_C    303   1  1  1  1  1  8.36   0.857  0.845  1.000   0       0    0
+seed101_D    101   1  1  1  1  1  8.35   0.761  0.472  1.000   0       0    0
+G4a determinism seed101_A vs seed101_D: gt_identical=True frame_mean_absdiff=0.0 (<= 2.0) frac_gt8=0.0 (<= 0.01) -> PASS
+G4b seeds differ (f0 target pos, min pairwise dist 0.22 m > 1.0): FAIL
+RQ-P5.8 OVERALL: NO (YES iff G0,G1,G2,G3,G5 on all 4 runs AND G4a AND G4b; visual gate V is checked by the operator on the overlay PNGs, and can only downgrade this to NO)
+```
+
+- **RQ-P5.8 overall: NO [G4b — seed-diversity gate].** G0 PASS 4/4 (0 retries),
+  G1/G2/G3/G5 PASS 4/4, G4a PASS, V PASS 4/4 → **the transport fix works and the
+  capability claim it was blocking is otherwise met**; the matrix fails on G4b
+  alone. Per the pre-registered rule (`YES iff … AND G4b`) this is a NO, applied
+  literally and without re-interpreting the threshold.
+
+### G4b diagnosis (read before re-designing — the gate, not the generator)
+
+The failure is **gate calibration + seed luck, not a generator defect**, and the
+evidence is quantitative:
+
+- The recorded `gt.jsonl` frame-0 positions **match `author_scenario()` exactly**
+  (2.346/1.390 etc. reproduce offline), so the GT pipeline is faithful — this is
+  not a recording or transport artefact.
+- Target f0 spread over **120 seeds**: x ∈ [−1.98, 5.98], y ∈ [−1.39, 5.72] —
+  roughly **8 m × 7 m**. The generator diversifies scenes widely.
+- Sampling **2000 random 3-seed triples**: only **74.6%** pass G4b
+  (median min-pairwise 1.52 m, p10 0.59 m). With 3 seeds there are 3 pairs, so
+  near-collisions are common (birthday effect) — **G4b has a ~25% false-failure
+  rate on an arbitrary seed triple.** The pre-registered triple {101, 202, 303}
+  landed in that ~25%.
+- The seeds *do* produce materially different scenes on every other axis:
+  distractor f0 (−8.91, 0.60) / (−11.05, 5.79) / (−11.60, 5.03) — a ~5 m lateral
+  spread; v_target 5.83 / 4.04 / 3.64 m/s; standoff 17.8 / 18.2 / 21.4 m;
+  alt 16.3 / 19.5 / 21.6 m.
+
+**Executor note (not a design change — for the next cycle to rule on):** G4b as
+written tests one point (`objs[0]` at f0) rather than scene divergence. Candidate
+fixes are a designer's call: widen the target spawn range, pre-screen the seed
+triple, or measure trajectory/whole-scene divergence instead of a single f0 point.
+I did not change the threshold, the seeds, or any code.
+
+### V visual gate — what the frames actually show (12/12 overlays opened)
+
+All 12 required PNGs exist and were opened with the Read tool before any verdict
+was written. Against the reference `curation/smoke900_p58_overlay_f0180.png`:
+
+- **All 4 runs:** grey asphalt with yellow lane lines filling the frame (oblique
+  aerial), checkered start-grid strip drifting through, **two colour-distinct
+  cars** (white `id0`, blue `id1`) each inside a green GT box, and the scene
+  visibly advances f0060 → f0120 → f0180. No black frames, no single-colour
+  frames, no sky-instead-of-ground, no dead/repeated feed. The white target's box
+  is tight and well-centred in every frame of every run.
+- **seed202_B / seed303_C: clean PASS** — both boxes tight on both cars
+  (purity 0.75–0.86, matching the reference's look).
+- **seed101_A / seed101_D: PASS with a documented caveat.** In this seed the blue
+  distractor spawns near the median kerb (lat y = 0.596, vs 5.79/5.03 for the
+  other seeds) and progressively **clips into the kerb geometry**: at f0120 it
+  sits left-of-centre in its box, and at f0180 it renders as **two disconnected
+  blue blobs straddling the kerb line with the mid-body hidden below the kerb
+  surface**. The box still bounds the full 3D model and tracks the car (it does
+  not float, lag, or drift), so this reads as a **scene-geometry defect, not a
+  projection error** — and it is exactly what drives pur1 = 0.472, the lowest
+  cell in the matrix (still ≫ the 0.30 gate and ≫ 4× its 0.000 control).
+  I am recording this as PASS-with-caveat rather than a V FAIL because the
+  pre-registered FAIL list (box floating off / lagging / wildly mis-sized, one
+  car, same-coloured cars, dead feed) is not met; but **the kerb-clipping is a
+  real scene-quality defect and should be fixed before this generator feeds a
+  select experiment** — a half-sunk distractor is not a fair grounding target.
+- **seed101_D vs seed101_A:** visually indistinguishable at all three overlays,
+  independently corroborating G4a's byte-identity.
+- V did not decide this verdict: the matrix is NO on G4b regardless of V.
+
+### Estimate-vs-actual
+
+| quantity | estimate | actual | note |
+|---|---|---|---|
+| per run | 1.5–2.5 min | **~1.0 min** (28.7 s record loop + ~20 s world load + finalize) | faster than estimated |
+| matrix (4 runs) | 12–20 min | **~5 min** (15:12→15:17) | ~3× faster; est. assumed a slower finalize |
+| G0 | PASS 4/4, 0 retries | **PASS 4/4, 0 retries** | exact hit; safety net never fired |
+| G5 fps | 6–8.5 | **8.34–8.36** | top of range, matches the 8.32 smoke |
+| G2 purity | 0.6–0.9/car | **0.472–0.857** | **below range on seed101's blue car** — kerb-clipping (see V); still passes the 0.30 gate |
+| G4a mean \|diff\| | ~0.0 | **0.0 exactly**, all 240 frames | open gate closed; no late-clip divergence |
+| G4b | (not called out) | **FAIL 0.216 m** | **the miss** — no estimate was pre-registered for it; the pre-reg treated G4a as the open risk, and G4b as a formality |
+
+The pre-registration's risk model was inverted by the outcome: **G4a — flagged as
+"the one genuinely open gate" — passed perfectly, while G4b, treated as a
+formality, is the sole failure.** That inversion is the cycle's most useful
+process finding.
+
+## Deliverables (cut by Opus after the matrix — all committed, all viewed)
+
+1. **`proof/p58_overlay_grid.png`** — the V gate in one figure: 4 gating runs
+   (rows: seed101_A, seed202_B, seed303_C, seed101_D) × 3 mid-run GT overlays
+   (f0060/f0120/f0180), all from the 2026-07-17 matrix, gz 8.14.0 / RTX 3090 /
+   persistent-proxy transport. **What it shows:** every cell has two
+   colour-distinct cars inside green GT boxes tight on the vehicles, with the
+   scene advancing left→right — i.e. G1 (live feed), G2 (GT on vehicle) and G3
+   (co-visibility) are real, not log artefacts. Rows 1 and 4 (same seed 101,
+   different server sessions) are visually indistinguishable — G4a made visible.
+   Row 1/4 f0180 also shows the documented kerb-clipping of the blue distractor.
+2. **`proof/p58_determinism.png`** — G4a: per-frame mean |diff| between
+   seed101_A and seed101_D (same seed, **fresh server session each**) + the worst
+   frame pair. **What it shows:** the curve is **flat at 0.0 for all 240 frames**
+   against a 2.0 gate, worst frame f=0 at 0.000 — cross-session rendering is
+   byte-identical for a full clip, not just the 45% P5.7 probed. This is the
+   figure behind "deterministic sim scenes are safe to build campaigns on".
+3. **`proof/p58_transport_fix.png`** — the campaign's actual finding: P5.7's two
+   CLI-transport attempts (127/240 and 108/240 frames, 1.48 fps, died with the
+   server alive) vs P5.8's four persistent-proxy runs (**240/240 each, ~8.34 fps,
+   retries=0 lost=0 restarts=0**). **What it shows:** replacing ~480 ephemeral
+   `gz service` nodes/run with one persistent requester turns a 0/2 completion
+   record into 4/4 and buys 5.6× throughput — the P5.7 blocker is gone.
+4. **`proof/p58_seed101_overlay.mp4`** — behaviour clip of seed101_A (240 frames,
+   seed 101, persistent-proxy config): GT boxes tracking both cars through the
+   whole clip, the behaviour that the static grid can only sample.
+5. Ledgers appended: RESULTS row to `docs/results/part5-anticipatory.md`;
+   QUESTIONS entry (RQ-P5.8) to `docs/questions/part5-anticipatory.md`;
+   DECISIONS entries to `docs/decisions/part5-anticipatory.md`. No new SOURCES
+   (no new external asset).
+6. Committed on this branch; **not merged** (the loop's reviewer merges).
