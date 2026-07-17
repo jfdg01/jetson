@@ -1,0 +1,41 @@
+{
+  "seed": 900,
+  "frames": 240,
+  "out": "/tmp/claude-1000/-home-gara-jetson/f5d32afc-22f7-4d8e-8b1b-f1a2e28ff097/scratchpad/smoke900_p58",
+  "wall_loop_s": 28.9,
+  "fps_wall": 8.317,
+  "g1_dead_frames": 0,
+  "g1_identical_consecutive": 0,
+  "g1_stamp_steps_ok": true,
+  "g2_purity_median": {
+    "0": 0.7993,
+    "1": 0.8568
+  },
+  "g2_bg_purity_median": {
+    "0": 0.0323,
+    "1": 0.0
+  },
+  "g3_both_visible_frac": 1.0,
+  "g0_retries_pose": 0,
+  "g0_retries_step": 0,
+  "g0_response_lost": 0,
+  "g0_proxy_restarts": 0,
+  "g0_spawn_warns": [],
+  "params": {
+    "standoff": 14.553584516841015,
+    "alt": 25.46290416858463,
+    "aim_err": [
+      -1.0041572283113345,
+      0.924896549156931
+    ],
+    "v_target": 3.016031658694511,
+    "v_distractor": 3.940495669982401
+  },
+  "versions": {
+    "gz": "8.14.0",
+    "python": "3.12.10",
+    "numpy": "2.4.4",
+    "cv2": "4.13.0"
+  },
+  "cmd": "runners/scenegen.py record --seed 900 --frames 240 --out /tmp/claude-1000/-home-gara-jetson/f5d32afc-22f7-4d8e-8b1b-f1a2e28ff097/scratchpad/smoke900_p58"
+}

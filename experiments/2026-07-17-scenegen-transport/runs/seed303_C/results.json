@@ -1,0 +1,41 @@
+{
+  "seed": 303,
+  "frames": 240,
+  "out": "experiments/2026-07-17-scenegen-transport/runs/seed303_C",
+  "wall_loop_s": 28.7,
+  "fps_wall": 8.355,
+  "g1_dead_frames": 0,
+  "g1_identical_consecutive": 0,
+  "g1_stamp_steps_ok": true,
+  "g2_purity_median": {
+    "0": 0.8567,
+    "1": 0.8448
+  },
+  "g2_bg_purity_median": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g3_both_visible_frac": 1.0,
+  "g0_retries_pose": 0,
+  "g0_retries_step": 0,
+  "g0_response_lost": 0,
+  "g0_proxy_restarts": 0,
+  "g0_spawn_warns": [],
+  "params": {
+    "standoff": 21.366794082775957,
+    "alt": 21.571125190421007,
+    "aim_err": [
+      1.3396103485300954,
+      -0.8716337191574365
+    ],
+    "v_target": 3.643297257421959,
+    "v_distractor": 3.4525046206957697
+  },
+  "versions": {
+    "gz": "8.14.0",
+    "python": "3.12.10",
+    "numpy": "2.4.4",
+    "cv2": "4.13.0"
+  },
+  "cmd": "runners/scenegen.py record --seed 303 --frames 240 --out experiments/2026-07-17-scenegen-transport/runs/seed303_C"
+}
