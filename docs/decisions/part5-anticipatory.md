@@ -288,3 +288,25 @@ flips P5.8's failing gate — disclosed, deliberate, grounded in third-party-che
   result, not treated as a bug; no prompts or code were tweaked to "fix" it. sam2_model recorded from
   results.json as `sam2.1-hiera-tiny` (the method text's `sam2-hiera-small` is a doc mismatch, not
   re-run). Matrix wall ~2.75 min vs the 15–35 min estimate (warm Jetson, 4.37 s/call).
+
+### P5.11 — bank v2 designed-crossing build gate (2026-07-17)
+
+- **Reported NO faithfully rather than nudge the failing gates to pass (executor discipline).** The
+  mechanical verdict came back NO on G4b (seed diversity 0.77 m < 1.0) and 3/12 bank cells (G6c
+  n_clear<60 ×7, G8b bdom<0.55 ×3). No code, threshold, or scene param was touched to lift the
+  count. *Given up:* a passing v2 bank this cycle. *Bought:* an honest calibration signal — the
+  gates were byte-frozen with the pre-reg specifically so the executor cannot tune them, and the
+  right response to "the population doesn't match the single-probe calibration" is a new
+  pre-registration, not a same-cycle tweak.
+- **Diagnosed the NO as integrity-threshold-bound, not render-bound, via the mandatory visual gate.**
+  Opened all 12 crossing-peak overlays + 3 post-prompt + 2 gate mid-run + the montage with the Read
+  tool: every crossing is a genuine designed occlusion (blue occluder in front of intact white,
+  overlapping GT boxes), G9=12/12, zero render defects. So the failing cells are *valid occlusions
+  the gates reject*, not defects the gates caught. This flips the follow-up from "fix the generator"
+  to "recalibrate the gates to the seed population + add a seed-diversity constraint to the offline
+  screen + re-derive G8b for shallow-occlusion seeds." *Given up:* nothing. *Bought:* the next
+  pre-reg targets the real cause instead of re-authoring a working scene generator.
+- **Executor note (no code touched):** ran the 16-run matrix exactly as pre-registered (`--profile
+  v2` on every record, one fresh gz server per run, killserver remaining:0 before+after each),
+  0 INFRA / 0 INCOMPLETE / 0 reruns, 13.6 min wall. Did not merge, push, or touch main. The
+  pre-registered P5.12 v2-discrimination A/B is blocked until a v2.1 bank passes this gate.

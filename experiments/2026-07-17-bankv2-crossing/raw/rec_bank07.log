@@ -1,0 +1,102 @@
+[scenegen] frame 0/300 (8.18 fps)
+[scenegen] frame 40/300 (8.65 fps)
+[scenegen] frame 80/300 (8.62 fps)
+[scenegen] frame 120/300 (8.67 fps)
+[scenegen] frame 160/300 (8.69 fps)
+[scenegen] frame 200/300 (8.69 fps)
+[scenegen] frame 240/300 (8.68 fps)
+[scenegen] frame 280/300 (8.69 fps)
+[scenegen] frame 299/300 (8.70 fps)
+{
+  "seed": 7,
+  "frames": 300,
+  "out": "/home/gara/jetson/experiments/2026-07-17-bankv2-crossing/runs/bank07",
+  "profile": "v2",
+  "v2_screen": {
+    "peak_iou": 0.241,
+    "peak_f": 80,
+    "run_iou15": 57,
+    "peak_occl_white": 0.5953,
+    "run_occl50": 61,
+    "tail_iou_max": 0.0446,
+    "pass": true
+  },
+  "v2_xpeak_pred_f": 80,
+  "v2_xpeak_pred_iou": 0.241,
+  "g2_purity_median_clear": {
+    "0": 0.7678,
+    "1": 0.7805
+  },
+  "g6_frag_p10_clear": {
+    "0": 0.9996,
+    "1": 1.0
+  },
+  "g6_frag_below090_frac_clear": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g6_n_clear": {
+    "0": 41,
+    "1": 300
+  },
+  "wall_loop_s": 34.5,
+  "fps_wall": 8.696,
+  "g1_dead_frames": 0,
+  "g1_identical_consecutive": 0,
+  "g1_stamp_steps_ok": true,
+  "g2_purity_median": {
+    "0": 0.7035,
+    "1": 0.7805
+  },
+  "g2_bg_purity_median": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g3_both_visible_frac": 1.0,
+  "g6_frag_p10": {
+    "0": 0.9952,
+    "1": 1.0
+  },
+  "g6_frag_min": {
+    "0": 0.989,
+    "1": 1.0
+  },
+  "g6_frag_below090_frac": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g6_frag_n": {
+    "0": 300,
+    "1": 300
+  },
+  "g0_retries_pose": 0,
+  "g0_retries_step": 0,
+  "g0_response_lost": 0,
+  "g0_proxy_restarts": 0,
+  "g0_spawn_warns": [],
+  "params": {
+    "standoff": 25.170647676855012,
+    "alt": 5.244358458882325,
+    "aim_err": [
+      -1.36817397611585,
+      -1.3929591636792116
+    ],
+    "v_target": 2.9501145599256002,
+    "v_distractor": 2.9411759808447386,
+    "ds0": -6.894734695434425,
+    "lat_b_a": 1.1782416572512278,
+    "lat_b_b": -4.56603252357814,
+    "t_in0": 0.7909097280457941,
+    "T_in": 0.983527683630232,
+    "T_hold": 1.4274347938270624,
+    "T_out": 1.4780305223530585
+  },
+  "versions": {
+    "gz": "8.14.0",
+    "python": "3.12.10",
+    "numpy": "2.4.4",
+    "cv2": "4.13.0"
+  },
+  "cmd": "/home/gara/jetson/runners/scenegen.py record --seed 7 --frames 300 --profile v2 --out /home/gara/jetson/experiments/2026-07-17-bankv2-crossing/runs/bank07"
+}
+[scenegen] DONE /home/gara/jetson/experiments/2026-07-17-bankv2-crossing/runs/bank07

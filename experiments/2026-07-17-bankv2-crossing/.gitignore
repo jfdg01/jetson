@@ -1,0 +1,8 @@
+# local-only probe bulk (144 MB frames + mp4s); provenance (results.json,
+# gt.jsonl, overlays) is committed -- see README "Calibration probe"
+curation/probe_seed1/frames/
+curation/probe_seed1/clip.mp4
+curation/probe_seed1/overlay.mp4
+# (runs/ bulk — frames, mp4s, overlays — is already covered by the root
+# .gitignore's experiments/*/runs/** rule; only results.json + gt.jsonl commit.
+# Per-cell crossing-peak overlays are delivered committed via proof/ montage.)

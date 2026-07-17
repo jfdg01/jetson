@@ -339,3 +339,42 @@ show the green delivered box on the named car; no V-vs-script contradiction. Ban
 called this the live alternative and it fired. Proof: `proof/p510_pass_grid.png` (24/24 both
 contracts), `proof/p510_failclass.png` (0/24 fails each), `proof/p510_headline_dd_vs_rg.png`
 (bank01_white: DD f75 vs RG f185, both on the white car, RG paid 4.39 s to reach the same box).
+
+### P5.11 — bank v2 designed-crossing scene bank (build gate) (2026-07-17)
+
+Detail: [`../../experiments/2026-07-17-bankv2-crossing/README.md`](../../experiments/2026-07-17-bankv2-crossing/README.md).
+Config: RTX 3090 workstation, gz sim 8.14.0 (Harmonic) headless, `.venv-ft` python 3.12.10 / numpy
+2.4.4 / cv2 4.13.0. No model inference (dataset-build gate, no Jetson leg). World `select_arena.sdf`
+1280×720 @ 25 Hz, hfov 1.2 rad. Two-stage overtake (`scenegen.py` profile v2): white constant-lane
+target, blue distractor pulls in behind → holds dead-centre (sustained occlusion) → pulls out;
+300 frames = 12.0 s, prompt f150 (6.0 s idle, double P5.10). 16 runs, one fresh gz server per run
+(4 gate 101/202/303/101 + 12 bank seeds 1,2,3,4,5,6,7,8,9,10,13,14). Occlusion partition by per-frame
+GT `occl`: CLEAR (occl≤0.05) graded v1-style, OCCLUDED (white occl≥0.50) graded only on occluder
+(blue) intactness (G8c) + blue-dominance z-order (G8b). Matrix wall **13.6 min** (est 30–40), fps
+8.60–8.78, 0 INFRA, 0 INCOMPLETE, 0 reruns, killserver remaining:0 before+after every run.
+
+| axis | result | detail |
+|---|---|---|
+| Gate runs G0–G6c | **4/4 PASS** | seed101_A/202_B/303_C/101_D all green; fps 8.60–8.70 |
+| G4a determinism (A vs D) | **PASS** | gt byte-identical, frame mean\|diff\| 0.0, frac(>8)=0.0 (byte-perfect) |
+| G4b seed diversity (16 seeds) | **FAIL** | min pairwise scenario divergence **0.77 m < 1.0** at seed pair (9,14); recorded-f0 faithful 16/16 |
+| Bank cells all gates | **3/12 PASS** (bank01/03/04) | G6c fails 7 cells (n_clear<60), G8b fails 3 cells (bdom<0.55); bank11 both |
+| G9 crossing-as-designed | 12/12 | every clip: peak IoU 0.22–0.35 pre-prompt, tail ≤0.15 post-prompt |
+| Visual gate V | **PASS (no downgrade)** | 12 crossing-peaks + 3 post-prompt + 2 gate mid-run + montage opened; all genuine occlusions, 0 render defects |
+
+**RQ-P5.11 = NO** [G4b FAIL; bank 3/12 < 11/12]. The generator DOES author genuine designed
+occlusions — V confirmed all 12 crossing peaks (blue occluder in front of white target, intact
+bodies, overlapping GT boxes, on the start line; no shards/z-fighting/road-sink), and G9=12/12 shows
+correct pre-prompt peak + post-prompt separation. The bank fails on **integrity-threshold
+calibration**, not render quality: (1) the G6c n_clear floor (60, calibrated off the single seed-1
+probe's 80) is too tight — deeper/longer crossings across the seed population eat >240 of white's 300
+frames, leaving <60 CLEAR frames on 7 cells that visually render valid occlusions; (2) G8b bdom<0.55
+on 3 shallow-occlusion seeds where the white roof stays prominent (a real depth property, not a
+defect); (3) G4b seed-diversity FAIL — the offline crossing screen picked the first 12 passing seeds
+with no pairwise-diversity constraint, admitting near-duplicates 9 & 14 (0.77 m). All three are
+NEW-pre-registration fixes (recalibrate n_clear floor to the population, add a diversity constraint,
+possibly relax/re-derive G8b for shallow seeds), NOT threshold nudges — reported as the P5.11
+follow-up trigger; the pre-registered P5.12 v2-discrimination A/B is blocked until the bank passes.
+Proof: `proof/p511_occlusion_montage.png` (12 genuine crossings), `proof/p511_gate_grid.png`
+(failure partition heatmap, 3/12), `proof/p511_crossing_traces.png` (per-clip IoU/occlusion traces,
+peaks pre-prompt, tails post-prompt).

@@ -1,0 +1,92 @@
+{
+  "seed": 1,
+  "frames": 300,
+  "out": "/home/gara/jetson/experiments/2026-07-17-bankv2-crossing/runs/bank01",
+  "profile": "v2",
+  "v2_screen": {
+    "peak_iou": 0.3314,
+    "peak_f": 87,
+    "run_iou15": 74,
+    "peak_occl_white": 0.6743,
+    "run_occl50": 76,
+    "tail_iou_max": 0.1335,
+    "pass": true
+  },
+  "v2_xpeak_pred_f": 87,
+  "v2_xpeak_pred_iou": 0.3314,
+  "g2_purity_median_clear": {
+    "0": 0.5933,
+    "1": 0.7922
+  },
+  "g6_frag_p10_clear": {
+    "0": 0.995,
+    "1": 1.0
+  },
+  "g6_frag_below090_frac_clear": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g6_n_clear": {
+    "0": 80,
+    "1": 300
+  },
+  "wall_loop_s": 34.2,
+  "fps_wall": 8.765,
+  "g1_dead_frames": 0,
+  "g1_identical_consecutive": 0,
+  "g1_stamp_steps_ok": true,
+  "g2_purity_median": {
+    "0": 0.6625,
+    "1": 0.7922
+  },
+  "g2_bg_purity_median": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g3_both_visible_frac": 1.0,
+  "g6_frag_p10": {
+    "0": 0.9964,
+    "1": 1.0
+  },
+  "g6_frag_min": {
+    "0": 0.9866,
+    "1": 1.0
+  },
+  "g6_frag_below090_frac": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g6_frag_n": {
+    "0": 300,
+    "1": 300
+  },
+  "g0_retries_pose": 0,
+  "g0_retries_step": 0,
+  "g0_response_lost": 0,
+  "g0_proxy_restarts": 0,
+  "g0_spawn_warns": [],
+  "params": {
+    "standoff": 23.612451945788518,
+    "alt": 4.406910481352299,
+    "aim_err": [
+      1.442211599403716,
+      1.38497158099136
+    ],
+    "v_target": 2.814185949640308,
+    "v_distractor": 2.784645906458766,
+    "ds0": -6.072297406179558,
+    "lat_b_a": 1.0297562126038358,
+    "lat_b_b": -4.786220443378466,
+    "t_in0": 0.926053932602442,
+    "T_in": 1.0614429939657835,
+    "T_hold": 1.4648658582495462,
+    "T_out": 1.6153714813713618
+  },
+  "versions": {
+    "gz": "8.14.0",
+    "python": "3.12.10",
+    "numpy": "2.4.4",
+    "cv2": "4.13.0"
+  },
+  "cmd": "/home/gara/jetson/runners/scenegen.py record --seed 1 --frames 300 --profile v2 --out /home/gara/jetson/experiments/2026-07-17-bankv2-crossing/runs/bank01"
+}
