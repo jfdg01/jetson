@@ -388,8 +388,13 @@ LAT_SAFE = (-5.2, 2.0)  # sweep corridor [-5.5, +2.5] minus 0.3/0.5 m margin
 S_SAFE_MAX = 70.0       # sweep's calibrated along-track extent
 
 
-def author_scenario(seed, n_frames, fps=25.0):
-    """Seeded, fully precomputed poses for 2 cars + camera. Pure numpy, no gz."""
+def author_scenario(seed, n_frames, fps=25.0, profile="v1"):
+    """Seeded, fully precomputed poses for 2 cars + camera. Pure numpy, no gz.
+    profile 'v1' = P5.9 bank (disjoint lanes, no crossings) -- byte-stable, do
+    not touch. profile 'v2' = P5.11 crossing bank (designed occlusion)."""
+    if profile == "v2":
+        return author_scenario_v2(seed, n_frames, fps)
+    assert profile == "v1", profile
     rng = np.random.default_rng(seed)
     h = ROAD_HEADING
     u = np.array([math.cos(h), math.sin(h)])   # along-track unit
@@ -442,6 +447,241 @@ def author_scenario(seed, n_frames, fps=25.0):
         "params": {"standoff": standoff, "alt": alt, "aim_err": aim_err.tolist(),
                    "v_target": v_t, "v_distractor": v_d},
     }
+
+
+# ------------------------------------------------- v2 crossing profile (P5.11)
+# Bank v2 exists to manufacture the ID-ambiguity hazard bank v1 lacked (P5.10:
+# max GT-GT image IoU 0.000 across all 12 v1 clips -> both select contracts at
+# ceiling). Design: the blue distractor rides BEHIND the white target for the
+# whole clip (smaller s = nearer to the trailing camera = always the OCCLUDER,
+# never interpenetrating: |ds| >= 5.5 m by construction, asserted), and makes
+# ONE smooth lane change that sweeps THROUGH the target's lat -- while the two
+# are depth-stacked the blue body passes over the white body in image space: a
+# DESIGNED occlusion with exact, precomputable geometry. Because poses are
+# authored in pure numpy and GT is projected (project_box), the per-frame
+# GT-GT IoU trace is computable OFFLINE (predicted_gtgt_iou) -- crossing
+# screens are design-time facts, not run-time hopes.
+
+V2_N_FRAMES = 300          # 12.0 s @ 25 Hz (s-corridor-safe at the v2 speeds)
+V2_PROMPT_FRAME = 150      # t_p = 6.0 s -- documented here for the screens;
+                           # the select harness owns the actual prompt timing
+V2_MIN_GAP_S = 5.5         # min along-track separation, asserted (no contact)
+
+
+def author_scenario_v2(seed, n_frames, fps=25.0):
+    rng = np.random.default_rng(seed)
+    h = ROAD_HEADING
+    u = np.array([math.cos(h), math.sin(h)])
+    n = np.array([-math.sin(h), math.cos(h)])
+    t = np.arange(n_frames) / fps
+
+    # white target: constant lane, small sway
+    v_t = rng.uniform(2.2, 3.4)
+    s0_t = rng.uniform(5.0, 12.0)
+    lat_w0 = rng.uniform(-3.0, -2.4)
+    amp_w = rng.uniform(0.10, 0.25)
+    per_w, ph_w = rng.uniform(5.0, 9.0), rng.uniform(0, 2 * math.pi)
+    lat_w = lat_w0 + amp_w * np.sin(2 * math.pi * t / per_w + ph_w)
+    s_w = s0_t + v_t * t
+
+    # blue distractor: behind for the whole clip, TWO-STAGE lane move (an
+    # overtake prep): pull IN behind the target's lane, HOLD there ~1.5 s
+    # (the sustained designed occlusion -- blue tailgates white along the
+    # camera ray), then pull OUT to the far-left lane. A single fast
+    # smoothstep sweep gave only a blink of overlap (peak IoU ~0.17, zero
+    # sustained frames -- measured, see P5.11 README); the hold buys a
+    # multi-frame occlusion window. All stages END before the prompt frame
+    # (worst case 5.7 s < 6.0 s) so prompt-time delivery stays unambiguous.
+    # Gap kept tight (|ds| in ~[5.9, 7.5] m): occlusion needs the depth
+    # stack shallow (alt/standoff scan in the P5.11 README).
+    ds0 = rng.uniform(-6.9, -5.9)
+    dv = rng.uniform(-0.05, 0.0)           # keeps ds in [-7.5, -5.9] over 12 s
+    v_d = v_t + dv
+    lat_b_a = rng.uniform(0.7, 1.3)        # start: right lane
+    lat_b_b = rng.uniform(-4.8, -4.3)      # end: far-left lane
+    t_in0 = rng.uniform(0.7, 1.0)          # pull-in start (s)
+    T_in = rng.uniform(0.9, 1.2)           # pull-in duration (s)
+    T_hold = rng.uniform(1.3, 1.8)         # in-lane hold = occlusion window (s)
+    T_out = rng.uniform(1.3, 1.7)          # pull-out duration (s)
+    amp_b = rng.uniform(0.08, 0.20)
+    per_b, ph_b = rng.uniform(5.0, 9.0), rng.uniform(0, 2 * math.pi)
+
+    def sstep(t0, T):
+        x = np.clip((t - t0) / T, 0.0, 1.0)
+        return x * x * (3.0 - 2.0 * x)
+
+    lat_hold = lat_w0                      # dead-centre of the target's lane
+    lat_b = lat_b_a \
+        + (lat_hold - lat_b_a) * sstep(t_in0, T_in) \
+        + (lat_b_b - lat_hold) * sstep(t_in0 + T_in + T_hold, T_out) \
+        + amp_b * np.sin(2 * math.pi * t / per_b + ph_b)
+    s_b = s0_t + ds0 + v_d * t
+
+    def track(s, lat, v):
+        xy = GRID + np.outer(s, u) + np.outer(lat, n)
+        dlat = np.gradient(lat, 1.0 / fps)
+        yaw = h + np.arctan2(dlat, v)
+        return xy, yaw
+
+    tgt_xy, tgt_yaw = track(s_w, lat_w, v_t)
+    dis_xy, dis_yaw = track(s_b, lat_b, v_d)
+
+    # hard construction guarantees (a band edit cannot silently regress these)
+    for xy in (tgt_xy, dis_xy):
+        lat_v, s_v = xy @ n, xy @ u
+        assert lat_v.min() >= LAT_SAFE[0] and lat_v.max() <= LAT_SAFE[1], \
+            f"v2 seed {seed}: lat [{lat_v.min():.2f},{lat_v.max():.2f}] outside {LAT_SAFE}"
+        assert s_v.max() <= S_SAFE_MAX, \
+            f"v2 seed {seed}: s_max {s_v.max():.1f} beyond {S_SAFE_MAX}"
+    gap = s_b - s_w
+    assert gap.max() <= -V2_MIN_GAP_S, \
+        f"v2 seed {seed}: min |ds| {-gap.max():.2f} < {V2_MIN_GAP_S} (contact risk)"
+
+    # LOW, LONG camera: occlusion is a grazing-view phenomenon. The offline
+    # scan (P5.11 README) shows the sightline from a v1-style camera
+    # (alt 16-26) to the far car clears the near car's roof by metres; only
+    # alt ~4-6 m with standoff 22-26 m puts the near body across the ray
+    # (predicted lat-aligned GT-GT IoU 0.20-0.41). Sway/bob tightened so the
+    # crossing window is not swept away by camera motion.
+    mid = (tgt_xy + dis_xy) / 2
+    standoff = rng.uniform(22, 26)
+    alt = rng.uniform(4.0, 6.0)
+    bob_a, bob_p = rng.uniform(0.2, 0.6), rng.uniform(5.0, 11.0)
+    sway_a, sway_p = rng.uniform(0.5, 1.5), rng.uniform(6.0, 13.0)
+    aim_err = rng.uniform(-1.5, 1.5, size=2)
+    cam_pos = np.zeros((n_frames, 3))
+    cam_quat = np.zeros((n_frames, 4))
+    for i in range(n_frames):
+        p = np.array([*(mid[i] - u * standoff
+                        + n * (sway_a * math.sin(2 * math.pi * t[i] / sway_p))),
+                      alt + bob_a * math.sin(2 * math.pi * t[i] / bob_p)])
+        q, _, _ = look_at(p, [mid[i][0] + aim_err[0], mid[i][1] + aim_err[1], 0.0])
+        cam_pos[i] = p
+        cam_quat[i] = q
+    return {
+        "seed": seed, "n_frames": n_frames, "fps": fps, "profile": "v2",
+        "target": {"name": "car_white", "color": "white", "xy": tgt_xy,
+                   "yaw": tgt_yaw, "v": v_t},
+        "distractor": {"name": "car_blue", "color": "blue", "xy": dis_xy,
+                       "yaw": dis_yaw, "v": v_d},
+        "cam_pos": cam_pos, "cam_quat": cam_quat,
+        "params": {"standoff": standoff, "alt": alt, "aim_err": aim_err.tolist(),
+                   "v_target": v_t, "v_distractor": v_d, "ds0": ds0,
+                   "lat_b_a": lat_b_a, "lat_b_b": lat_b_b,
+                   "t_in0": t_in0, "T_in": T_in,
+                   "T_hold": T_hold, "T_out": T_out},
+    }
+
+
+def _iou2d(a, b):
+    if a is None or b is None:
+        return 0.0
+    x1, y1 = max(a[0], b[0]), max(a[1], b[1])
+    x2, y2 = min(a[2], b[2]), min(a[3], b[3])
+    if x2 <= x1 or y2 <= y1:
+        return 0.0
+    inter = (x2 - x1) * (y2 - y1)
+    ar = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter
+    return inter / ar
+
+
+def _overlap_frac(own, other):
+    """Fraction of OWN box area covered by the other box (0 if either None)."""
+    if own is None or other is None:
+        return 0.0
+    x1, y1 = max(own[0], other[0]), max(own[1], other[1])
+    x2, y2 = min(own[2], other[2]), min(own[3], other[3])
+    if x2 <= x1 or y2 <= y1:
+        return 0.0
+    return ((x2 - x1) * (y2 - y1)) / ((own[2] - own[0]) * (own[3] - own[1]))
+
+
+def scenario_boxes(sc):
+    """Predicted per-frame projected GT boxes for both cars. Pure numpy."""
+    out = {"target": [], "distractor": []}
+    for i in range(sc["n_frames"]):
+        for role in ("target", "distractor"):
+            c = sc[role]
+            b, _ = project_box(sc["cam_pos"][i], sc["cam_quat"][i],
+                               [float(c["xy"][i][0]), float(c["xy"][i][1]), CAR_Z],
+                               float(c["yaw"][i]))
+            out[role].append(b)
+    return out
+
+
+def predicted_gtgt_iou(sc, boxes=None):
+    """Per-frame predicted GT-GT image IoU trace (the crossing signal)."""
+    boxes = boxes or scenario_boxes(sc)
+    return np.array([_iou2d(a, b) for a, b in
+                     zip(boxes["target"], boxes["distractor"])])
+
+
+# Pre-registered v2 crossing screen (P5.11): five design-time facts, all pure
+# projection -- no gz, no render. Thresholds fixed from a 60-seed offline sweep
+# (52/60 pass; see the P5.11 README) BEFORE any bank clip was recorded.
+V2_SCREEN = {
+    "peak_iou_min": 0.20,     # S1: the crossing really overlaps
+    "run_iou15_min": 25,      # S2: >= 1.0 s consecutive frames IoU >= 0.15
+    "run_occl50_min": 25,     # S3: >= 1.0 s with white >= 50% covered by blue
+    "peak_before_f": V2_PROMPT_FRAME - 25,   # S4: peak >= 1 s pre-prompt
+    "tail_iou_max": 0.15,     # S5: post-prompt GT-GT IoU stays unambiguous
+}
+
+
+def _max_run(trace, thr):
+    c = best = 0
+    for v in trace:
+        c = c + 1 if v >= thr else 0
+        best = max(best, c)
+    return best
+
+
+def v2_crossing_screen(sc):
+    """Offline screen for one authored v2 scenario. Returns metrics + pass."""
+    boxes = scenario_boxes(sc)
+    iou = predicted_gtgt_iou(sc, boxes)
+    occl_w = np.array([_overlap_frac(w, b) for w, b in
+                       zip(boxes["target"], boxes["distractor"])])
+    P = V2_PROMPT_FRAME
+    m = {
+        "peak_iou": round(float(iou.max()), 4),
+        "peak_f": int(iou.argmax()),
+        "run_iou15": _max_run(iou, 0.15),
+        "peak_occl_white": round(float(occl_w.max()), 4),
+        "run_occl50": _max_run(occl_w, 0.50),
+        "tail_iou_max": round(float(iou[P:].max()), 4) if len(iou) > P else 0.0,
+    }
+    m["pass"] = bool(
+        m["peak_iou"] >= V2_SCREEN["peak_iou_min"]
+        and m["run_iou15"] >= V2_SCREEN["run_iou15_min"]
+        and m["run_occl50"] >= V2_SCREEN["run_occl50_min"]
+        and m["peak_f"] <= V2_SCREEN["peak_before_f"]
+        and m["tail_iou_max"] <= V2_SCREEN["tail_iou_max"])
+    return m
+
+
+def screen_cmd(args):
+    """Design-time preflight: sweep seeds through the offline crossing screen,
+    print the per-seed table and the first --need passing seeds (the bank)."""
+    passing = []
+    print(f"{'seed':<6}{'pass':<6}{'peakIoU':<9}{'peak_f':<8}{'run15':<7}"
+          f"{'occlPk':<8}{'run50':<7}{'tailIoU':<8}")
+    for seed in range(args.lo, args.hi + 1):
+        sc = author_scenario(seed, V2_N_FRAMES, profile="v2")
+        m = v2_crossing_screen(sc)
+        if m["pass"]:
+            passing.append(seed)
+        print(f"{seed:<6}{('PASS' if m['pass'] else 'fail'):<6}"
+              f"{m['peak_iou']:<9.3f}{m['peak_f']:<8}{m['run_iou15']:<7}"
+              f"{m['peak_occl_white']:<8.3f}{m['run_occl50']:<7}"
+              f"{m['tail_iou_max']:<8.3f}")
+    print(f"\npassing: {len(passing)}/{args.hi - args.lo + 1}")
+    bank = passing[:args.need]
+    print(f"bank (first {args.need}): {bank}")
+    if len(bank) < args.need:
+        print("SCREEN FAIL: not enough passing seeds")
+        return 1
+    return 0
 
 
 # ---------------------------------------------------------------- validity metrics
@@ -510,7 +750,15 @@ def control_purity(bgr, bbox, color):
 def record(args):
     out = Path(args.out)
     (out / "frames").mkdir(parents=True, exist_ok=True)
-    sc = author_scenario(args.seed, args.frames)
+    sc = author_scenario(args.seed, args.frames, profile=args.profile)
+    pred_boxes, xpeak_f, xpeak_iou = None, None, None
+    if args.profile == "v2":
+        # designed-occlusion provenance: the crossing peak is a design-time
+        # fact (pure projection), so the LOOK-AT-IT overlay lands exactly on it
+        pred_boxes = scenario_boxes(sc)
+        pred_iou = predicted_gtgt_iou(sc, pred_boxes)
+        xpeak_f = int(np.argmax(pred_iou))
+        xpeak_iou = float(pred_iou[xpeak_f])
     gz = GzClient()
     time.sleep(0.7)
 
@@ -531,6 +779,8 @@ def record(args):
 
     gt_path = out / "gt.jsonl"
     overlay_at = set(overlay_frames(args.frames))
+    if xpeak_f is not None:
+        overlay_at.add(xpeak_f)
     t_loop0 = time.time()
     prev = None
     stamps = []
@@ -564,7 +814,22 @@ def record(args):
                 fr, _npx = frag_metric(bgr, bbox, c["color"])
                 if fr is not None:
                     rec["frag"] = round(fr, 4)
+                if args.profile == "v2":
+                    rec["npx"] = _npx  # visible own-colour pixel count (gate G8)
             objs.append(rec)
+        if args.profile == "v2":
+            # occlusion provenance: 'nearer' = closer to the camera than the
+            # other car; 'occl' = fraction of OWN GT box covered by the other
+            # car's GT box IF the other car is nearer (else 0). This is what
+            # lets the gates tell a DESIGNED occlusion from a render defect.
+            cam = sc["cam_pos"][i]
+            dcam = [float(np.linalg.norm(np.asarray(o["pos"]) - cam))
+                    for o in objs]
+            for a, b in ((0, 1), (1, 0)):
+                objs[a]["nearer"] = bool(dcam[a] < dcam[b])
+                objs[a]["occl"] = round(
+                    _overlap_frac(objs[a]["bbox"], objs[b]["bbox"])
+                    if dcam[b] < dcam[a] else 0.0, 4)
         frec = {
             "f": i, "t_sim_ns": stamp,
             "cam": {"pos": [round(float(v), 4) for v in sc["cam_pos"][i]],
@@ -610,8 +875,41 @@ def record(args):
                     frg[o["id"]].append(o["frag"])
             ok_both &= v
         both_vis += ok_both
+    v2_extra = {}
+    if args.profile == "v2":
+        # clear-frame partition (occl <= 0.05): the frames where v1-grade
+        # integrity thresholds still apply. Occluded-frame fragmentation of the
+        # farther car is DESIGNED, not a defect; verdict_p511 is the authority,
+        # these aggregates are the at-a-glance copy. NOTE: for v2 the plain
+        # g2_*/g6_* fields above/below mix designed-occlusion frames in and
+        # are non-gating.
+        frg_clear = {0: [], 1: []}
+        pur_clear = {0: [], 1: []}
+        for r in records:
+            for o in r["objs"]:
+                if o["bbox"] is not None and o.get("occl", 0.0) <= 0.05:
+                    if "frag" in o:
+                        frg_clear[o["id"]].append(o["frag"])
+                    if "purity" in o:
+                        pur_clear[o["id"]].append(o["purity"])
+        v2_extra = {
+            "profile": "v2",
+            "v2_screen": v2_crossing_screen(sc),
+            "v2_xpeak_pred_f": xpeak_f, "v2_xpeak_pred_iou": round(xpeak_iou, 4),
+            "g2_purity_median_clear": {
+                str(k): round(float(np.median(v)), 4) if v else None
+                for k, v in pur_clear.items()},
+            "g6_frag_p10_clear": {
+                str(k): round(float(np.percentile(v, 10)), 4) if v else None
+                for k, v in frg_clear.items()},
+            "g6_frag_below090_frac_clear": {
+                str(k): round(float(np.mean(np.array(v) < 0.90)), 4) if v else None
+                for k, v in frg_clear.items()},
+            "g6_n_clear": {str(k): len(v) for k, v in frg_clear.items()},
+        }
     results = {
         "seed": args.seed, "frames": args.frames, "out": str(out),
+        **v2_extra,
         "wall_loop_s": round(loop_s, 1), "fps_wall": round(fps_wall, 3),
         "g1_dead_frames": dead_frames,
         "g1_identical_consecutive": identical_consec,
@@ -860,6 +1158,49 @@ def selfcheck():
             assert LAT_SAFE[0] <= lat_v.min() and lat_v.max() <= LAT_SAFE[1]
             assert s_v.max() <= S_SAFE_MAX
 
+    # 6d. v1 draw-order regression: the P5.9 bank must stay reproducible from
+    #     this file. Exact params recorded in the P5.9 seed101_A results.json.
+    sc101 = author_scenario(101, 240)
+    assert abs(sc101["params"]["v_target"] - 5.830597516831662) < 1e-9
+    assert abs(sc101["params"]["standoff"] - 17.7684841698056) < 1e-9
+    assert abs(sc101["params"]["alt"] - 16.308054705510095) < 1e-9
+
+    # 6e. v2 profile (P5.11): determinism, corridor + no-contact construction
+    #     guarantees over a seed sweep (asserts fire inside author_scenario_v2),
+    #     occluder invariant (blue strictly nearer every frame), lane change
+    #     really crosses the target's lat, and helper unit tests.
+    a2, b2 = author_scenario(7, 300, profile="v2"), author_scenario(7, 300, profile="v2")
+    assert np.array_equal(a2["distractor"]["xy"], b2["distractor"]["xy"])
+    assert np.array_equal(a2["cam_quat"], b2["cam_quat"])
+    hh = ROAD_HEADING
+    uu2 = np.array([math.cos(hh), math.sin(hh)])
+    nn2 = np.array([-math.sin(hh), math.cos(hh)])
+    for sd in range(1, 41):
+        sc = author_scenario(sd, 300, profile="v2")  # internal asserts run here
+        s_w2 = sc["target"]["xy"] @ uu2
+        s_b2 = sc["distractor"]["xy"] @ uu2
+        assert (s_b2 - s_w2).max() <= -V2_MIN_GAP_S  # blue behind = nearer, always
+        lat_w2 = sc["target"]["xy"] @ nn2
+        lat_b2 = sc["distractor"]["xy"] @ nn2
+        d = lat_b2 - lat_w2
+        assert d[0] > 0 and d[-1] < 0, sd  # starts right of target, ends left
+    assert _iou2d((0, 0, 10, 10), (5, 0, 15, 10)) == 50 / 150
+    assert _iou2d((0, 0, 10, 10), (20, 20, 30, 30)) == 0.0
+    assert _iou2d(None, (0, 0, 1, 1)) == 0.0
+    assert _overlap_frac((0, 0, 10, 10), (5, 0, 15, 10)) == 0.5
+    assert _overlap_frac((0, 0, 10, 10), None) == 0.0
+    assert _max_run([0, 1, 1, 1, 0, 1], 0.5) == 3
+
+    # 6f. v2 crossing screen: regression-pin the offline screen on two known
+    #     seeds (measured 2026-07-17: seed 1 passes all five S-rules, seed 11
+    #     fails S3 run_occl50=0 < 25). If either flips, the geometry or the
+    #     screen changed -- both are pre-registered, so that is a real break.
+    m1 = v2_crossing_screen(author_scenario(1, V2_N_FRAMES, profile="v2"))
+    m11 = v2_crossing_screen(author_scenario(11, V2_N_FRAMES, profile="v2"))
+    assert m1["pass"], m1
+    assert not m11["pass"] and m11["run_occl50"] < 25, m11
+    assert m1["peak_f"] <= V2_SCREEN["peak_before_f"]
+
     # 7. proxy protocol round-trip (needs the gz python libs but NO gz server):
     #    ping->pong, then a request to a nonexistent service must come back
     #    ok=False without crashing the proxy, and the proxy must still answer.
@@ -888,12 +1229,20 @@ def main():
     r.add_argument("--seed", type=int, required=True)
     r.add_argument("--frames", type=int, default=240)
     r.add_argument("--out", required=True)
+    r.add_argument("--profile", choices=("v1", "v2"), default="v1",
+                   help="v1 = P5.9 bank (frozen); v2 = P5.11 crossing bank")
+    s = sub.add_parser("screen")  # offline v2 crossing screen (no gz needed)
+    s.add_argument("--lo", type=int, default=1)
+    s.add_argument("--hi", type=int, default=60)
+    s.add_argument("--need", type=int, default=12)
     sub.add_parser("selfcheck")
     sub.add_parser("proxy")       # internal: spawned by ProxyClient
     sub.add_parser("killserver")  # kill select_arena gz servers by process group
     args = ap.parse_args()
     if args.cmd == "selfcheck":
         selfcheck()
+    elif args.cmd == "screen":
+        sys.exit(screen_cmd(args))
     elif args.cmd == "proxy":
         proxy_main()
     elif args.cmd == "killserver":
