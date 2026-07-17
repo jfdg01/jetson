@@ -305,41 +305,133 @@ log-inferred PASS.
   threshold nudge); or an INFRA pair from gz-transport flake (P5.7's killer,
   not seen in P5.9/P5.10 with the proxy).
 
-## Results (TBD — Opus fills; paste verdict output verbatim)
+## Results (run 2026-07-17T18:31Z; verdict pasted verbatim below)
 
-### Gate runs
+**Overall: RQ-P5.11 = NO** [G4b FAIL; bank 3/12 pass]. Visual gate V PASS —
+opened all 12 crossing-peak overlays + 3 post-prompt + 2 gate mid-run + the
+proof montage; every render is a genuine designed occlusion, NO defects, so V
+did not downgrade (and cannot upgrade a mechanical NO). Matrix ran clean: 16/16
+runs recorded, 0 INFRA, 0 INCOMPLETE, 0 reruns, 13.6 min wall, killserver
+`remaining: 0` before+after every run. Versions (from results.json): gz sim
+8.14.0, python 3.12.10, numpy 2.4.4, cv2 4.13.0.
+
+### Gate runs (all 4 PASS G0–G6c)
 
 | run | seed | G0 | G1 | G2c | G3 | G5 | G6c | fps | notes |
 |---|---|---|---|---|---|---|---|---|---|
-| seed101_A | 101 | | | | | | | | |
-| seed202_B | 202 | | | | | | | | |
-| seed303_C | 303 | | | | | | | | |
-| seed101_D | 101 | | | | | | | | |
+| seed101_A | 101 | P | P | P | P | P | P | 8.70 | purW/B 0.692/0.786, n_clear 115, n_occ 60 |
+| seed202_B | 202 | P | P | P | P | P | P | 8.60 | purW/B 0.807/0.803, n_clear 68 |
+| seed303_C | 303 | P | P | P | P | P | P | 8.62 | purW/B 0.731/0.827, n_occ 25 (pred window 24; realized 25, not screened) |
+| seed101_D | 101 | P | P | P | P | P | P | 8.70 | determinism pair with A; identical to A |
 
-G4a: (TBD) G4b: (TBD)
+**G4a: PASS** — seed101_A vs seed101_D gt_identical=True, frame_mean_absdiff=0.0
+(≤2.0), frac_gt8=0.0 (≤0.01). Determinism across fresh server sessions is
+byte-clean for the v2 camera (the pre-registered residual risk did not fire).
+**G4b: FAIL** — min pairwise whole-scenario divergence **0.77 m < 1.0** at seed
+pair (9, 14); recorded-f0 faithful=True over all 16 runs. The seed-diversity
+floor is a generator/seed-set property: seeds 9 and 14 author near-duplicate
+trajectories. This is independent of render quality.
 
-### Bank cells
+### Bank cells (3/12 pass all gates)
 
-| run | seed | G0 | G1 | G2c | G3 | G5 | G6c | G8 | G9 | n_occ | bdom | xpeak_f | looked-at verdict |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| bank01 | 1 | | | | | | | | | | | | |
-| bank02 | 2 | | | | | | | | | | | | |
-| bank03 | 3 | | | | | | | | | | | | |
-| bank04 | 4 | | | | | | | | | | | | |
-| bank05 | 5 | | | | | | | | | | | | |
-| bank06 | 6 | | | | | | | | | | | | |
-| bank07 | 7 | | | | | | | | | | | | |
-| bank08 | 8 | | | | | | | | | | | | |
-| bank09 | 9 | | | | | | | | | | | | |
-| bank10 | 10 | | | | | | | | | | | | |
-| bank11 | 13 | | | | | | | | | | | | |
-| bank12 | 14 | | | | | | | | | | | | |
+| run | seed | G0 | G1 | G2c | G3 | G5 | G6c | G8 | G9 | n_clear | n_occ | bdom | xpeak_f | looked-at verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| bank01 | 1 | P | P | P | P | P | P | P | P | 80 | 76 | 0.687 | 87 | VALID: blue in front, white roofline above; boxes overlap. Matches probe. |
+| bank02 | 2 | P | P | P | P | P | **F** | P | P | 57 | 73 | 0.627 | 74 | VALID occlusion at peak; G6c fails only on n_clear 57<60 (too few CLEAR frames). |
+| bank03 | 3 | P | P | P | P | P | P | P | P | 119 | 69 | 0.600 | 85 | VALID: blue front, white behind-left; clean stack. |
+| bank04 | 4 | P | P | P | P | P | P | P | P | 96 | 76 | 0.700 | 88 | VALID: blue fully in front, white roof sliver above. |
+| bank05 | 5 | P | P | P | P | P | **F** | P | P | 26 | 60 | 0.554 | 87 | VALID occlusion (white cabin exposed); G6c fails on n_clear 26<60. |
+| bank06 | 6 | P | P | P | P | P | P | **F** | P | 77 | 46 | 0.488 | 69 | Shallow occlusion — white roof prominent/high; G8b bdom 0.488<0.55. No defect. |
+| bank07 | 7 | P | P | P | P | P | **F** | P | P | 41 | 61 | 0.555 | 80 | VALID occlusion; G6c fails on n_clear 41<60. |
+| bank08 | 8 | P | P | P | P | P | **F** | P | P | 23 | 71 | 0.557 | 45 | VALID (early peak f45, white cabin large above); G6c n_clear 23<60. |
+| bank09 | 9 | P | P | P | P | P | **F** | P | P | 32 | 66 | 0.598 | 44 | VALID; G6c n_clear 32<60. |
+| bank10 | 10 | P | P | P | P | P | **F** | P | P | 27 | 86 | 0.700 | 89 | VALID deep occlusion (bdom 0.7); G6c n_clear 27<60. |
+| bank11 | 13 | P | P | P | P | P | **F** | **F** | P | 23 | 40 | 0.487 | 84 | Shallow — white cabin very exposed; G8b 0.487<0.55 AND G6c n_clear 23<60. |
+| bank12 | 14 | P | P | P | P | P | P | **F** | P | 77 | 45 | 0.541 | 56 | Shallow occlusion, white roof prominent; G8b 0.541<0.55. No defect. |
 
-### Verdict
+Failure partition: **G6c fails on 7 cells** (n_clear < 60: bank02/05/07/08/09/10/11)
+and **G8b fails on 3 cells** (bdom < 0.55: bank06/11/12); bank11 fails both.
+Passing: bank01, bank03, bank04. G0/G1/G2c/G3/G5/G9 pass on all 12 (crossings
+render and separate post-prompt as designed — G9 = 12/12).
 
-(TBD — paste `verdict_p511.py` full output; visual gate V statement: which
-overlays were opened, what was seen, downgrade yes/no.)
+### Verdict (`verdict_p511.py` output, verbatim)
+
+```
+run          seed G0 G1 G2c G3 G5 G6c G8 G9  fps    purW/B        wfragp10 nclr nocc bdom   xpeak
+seed101_A    101  1  1  1   1  1  1   -  -   8.70   0.692/0.786   1.0    115  60   None   90
+seed202_B    202  1  1  1   1  1  1   -  -   8.60   0.807/0.803   0.995    68   55   None   88
+seed303_C    303  1  1  1   1  1  1   -  -   8.62   0.731/0.827   0.999    112  25   None   89
+seed101_D    101  1  1  1   1  1  1   -  -   8.70   0.692/0.786   1.0    115  60   None   90
+bank01       1    1  1  1   1  1  1   1  1   8.77   0.593/0.792   0.995    80   76   0.687  87
+bank02       2    1  1  1   1  1  0   1  1   8.74   0.838/0.855   0.995    57   73   0.627  74
+bank03       3    1  1  1   1  1  1   1  1   8.73   0.749/0.847   0.997    119  69   0.6    85
+bank04       4    1  1  1   1  1  1   1  1   8.77   0.791/0.799   0.992    96   76   0.7    88
+bank05       5    1  1  1   1  1  0   1  1   8.71   0.831/0.780   0.994    26   60   0.554  87
+bank06       6    1  1  1   1  1  1   0  1   8.66   0.808/0.781   0.992    77   46   0.488  69
+bank07       7    1  1  1   1  1  0   1  1   8.70   0.768/0.780   1.0    41   61   0.555  80
+bank08       8    1  1  1   1  1  0   1  1   8.68   0.820/0.796   0.994    23   71   0.557  45
+bank09       9    1  1  1   1  1  0   1  1   8.76   0.773/0.815   0.997    32   66   0.598  44
+bank10       10   1  1  1   1  1  0   1  1   8.78   0.812/0.813   0.99    27   86   0.7    89
+bank11       13   1  1  1   1  1  0   0  1   8.66   0.762/0.766   0.999    23   40   0.487  84
+bank12       14   1  1  1   1  1  1   0  1   8.67   0.790/0.782   0.993    77   45   0.541  56
+G4a determinism seed101_A vs seed101_D: gt_identical=True frame_mean_absdiff=0.0 (<= 2.0) frac_gt8=0.0 (<= 0.01) -> PASS
+G4b seed diversity (16 seeds, v2): min pairwise scenario divergence 0.77 m (>= 1.0) at pair (9, 14); recorded-f0 faithful=True over 16 runs -> FAIL
+RQ-P5.11 OVERALL: NO [G4b; bank (3/12 pass, 0 infra)] (YES iff 4/4 gate runs pass G0,G1,G2c,G3,G5,G6c AND G4a AND G4b AND >= 11/12 bank cells also pass G8,G9 with <= 1 infra loss and 0 gate failures; the visual gate V -- operator opens the named overlay PNGs, including every bank cell's crossing-peak overlay -- can only downgrade this to NO)
+```
+
+**Visual gate V — PASS (does not downgrade).** Opened with the Read tool: all
+12 bank crossing-peak overlays (`bankNN/overlay_f<xpeak>.png`), 3 post-prompt
+frames (bank08/11/12 `overlay_f0225.png`), 2 gate mid-run frames
+(seed101_A/seed202_B `overlay_f0150.png`), and the proof occlusion montage.
+Every crossing-peak frame shows a **genuine designed occlusion**: one intact
+blue body drawn in front, the white body behind/above (roofline sliver to full
+cabin exposed depending on depth), both green GT boxes on the overlapping stack,
+on the checkered start line. **No render defects** — no white shards inside the
+blue silhouette, no z-fighting, no car sunk into road/kerb, no two-separated
+cars at peak. Post-prompt frames show two cleanly separated intact boxed cars
+(white left, blue right). Gate mid-run frames are live, non-black, both cars
+present and boxed. The 3 G8b-fail cells (bank06/11/12) visually confirm the
+mechanical read: their occlusion is *shallow* (white roof stays prominent), not
+a z-order defect. **Finding (V vs script — no contradiction, but a calibration
+note):** several G6c-fail cells (bank02/07/08/09/10) render *perfectly valid*
+designed occlusions — the failure is that the crossing/grazing eats more of
+white's frames than the seed-1 probe, leaving <60 CLEAR frames, so the G6c
+n_clear floor (60, set from the single probe's 80) is too tight for the seed
+population. G6c on these cells is a threshold miss, not a render defect; V
+cannot upgrade a mechanical NO, so the verdict stands.
 
 ### Estimate vs actual
 
-(TBD — wall time, fps, any gate that surprised.)
+- **Wall: 13.6 min actual vs 30–40 min estimate** — well under (fewer stalls,
+  no world-load retries; ~50 s/run: ~7 s topic-up + ~35 s record + finalize).
+- **fps 8.60–8.78 across all 16 runs** vs the ~8.8 probe estimate — matched.
+- **Surprises:** (1) G4a determinism was *byte-perfect* (mean_absdiff 0.0), the
+  cleanest possible — the pre-registered residual risk on the v2 camera did not
+  materialise. (2) The expected fail mode was G8b on an extreme-sway seed; that
+  did fire (3 cells), but the *dominant* fail was G6c n_clear<60 on 7 cells,
+  which was NOT anticipated in the pre-reg — the probe (n_clear 80) was not
+  representative; deeper/longer crossings across the population routinely eat
+  >240 of white's 300 frames. (3) G4b seed-diversity FAIL (seeds 9,14 at 0.77 m)
+  was also unanticipated — the offline crossing screen selected the first 12
+  passing seeds without a pairwise-diversity constraint, so two near-duplicates
+  slipped in. Both misses require a NEW pre-registration to fix (recalibrate the
+  n_clear floor + add a diversity constraint to seed selection), not a threshold
+  nudge — recorded as the P5.11 follow-up trigger.
+
+## Proof deliverables (`proof/`, from `make_proof.py`)
+
+Negative-result evidence — the crossings render but the bank fails its gates:
+
+- **`p511_occlusion_montage.png`** — the 12 bank crossing-peak overlays in one
+  grid (blue occluder in front of the white target on every clip, peak GT-GT
+  IoU 0.22–0.35). Shows the generator DOES author genuine designed occlusions
+  consistently; this is the "it renders" half of the negative. Reference look:
+  `curation/probe_seed1/overlay_f0087.png`.
+- **`p511_gate_grid.png`** — per-cell PASS/FAIL heatmap over G0–G9. Shows the
+  failure partition at a glance: G6c red on 7 cells (n_clear<60), G8 red on 3
+  (bdom<0.55), everything else green; 3/12 pass all. This is the "but it fails
+  the gates" half.
+- **`p511_crossing_traces.png`** — per-clip GT-GT IoU and white-occlusion traces
+  vs frame, with the prompt line at f150. Shows the crossing peaks land pre-prompt
+  and separate post-prompt (G9 = 12/12) — the temporal shape is correct; the
+  failures are integrity-threshold calibration, not crossing failure.

@@ -3,3 +3,6 @@
 curation/probe_seed1/frames/
 curation/probe_seed1/clip.mp4
 curation/probe_seed1/overlay.mp4
+# (runs/ bulk — frames, mp4s, overlays — is already covered by the root
+# .gitignore's experiments/*/runs/** rule; only results.json + gt.jsonl commit.
+# Per-cell crossing-peak overlays are delivered committed via proof/ montage.)

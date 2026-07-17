@@ -231,3 +231,29 @@ actually separate the contracts) or harden the bank to v2 (crossings/occlusion, 
 exercise the under-tested carry-drift / ID-switch failure modes. DD's 0-s delivery + carried-track
 accuracy is validated on clean scenes at n=12; the contract *separation* claim is not.
 Detail: [`../../experiments/2026-07-17-simbank-select/README.md`](../../experiments/2026-07-17-simbank-select/README.md).
+
+**RQ-P5.11:** can the P5.9 scene generator author + record a **12-clip bank v2** where the two
+candidates actually cross — sustained designed occlusion (white recorded ≥50% occluded for ≥25
+frames, GT-GT IoU peak ≥0.20) inside a doubled idle window (prompt f150 = 6.0 s, clip 12.0 s) —
+while every clip still passes render-integrity gates that mechanically separate a designed occlusion
+from a render defect (occl-partitioned G2c/G6c on CLEAR frames + G8 occluder/z-order on OCCLUDED
+frames + G9 crossing shape), on 4/4 gate runs (G0–G6c, G4a determinism, G4b seed diversity) and
+≥11/12 bank cells?
+
+**Verdict: NO** [G4b FAIL; bank 3/12 pass]. `verdict_p511.py`: 4/4 gate runs pass G0–G6c, G4a PASS
+(byte-perfect determinism, mean\|diff\| 0.0), but **G4b FAIL** (min pairwise scenario divergence
+0.77 m < 1.0 at seed pair 9,14) and only **3/12 bank cells** pass all gates (bank01/03/04). The
+crossing itself renders correctly: G9 = 12/12 (peak IoU 0.22–0.35 pre-prompt, tail ≤0.15 post-prompt)
+and **visual gate V PASS** — all 12 crossing-peak overlays + 3 post-prompt + 2 gate mid-run + the
+montage were opened with the Read tool; every one is a genuine designed occlusion (blue occluder in
+front of intact white target, overlapping GT boxes, on the start line), **zero render defects**, V
+does not downgrade. The NO is **integrity-threshold-bound, not scene-render-bound**: G6c fails on 7
+cells because the n_clear floor (60, from the single seed-1 probe's 80) is too tight for the seed
+population (deep/long crossings leave <60 CLEAR frames on cells that visually render valid), G8b
+fails on 3 shallow-occlusion seeds (white roof stays prominent — a real depth property), and the
+offline crossing screen admitted near-duplicate seeds 9 & 14 for lack of a diversity constraint. All
+three are NEW-pre-registration fixes (recalibrate n_clear to the population, add a seed-diversity
+constraint, re-derive G8b for shallow seeds), not threshold nudges. The generator's crossing
+*capability* is validated (12/12 crossings render + separate as designed); the bank *build gate*
+fails its own calibration. Blocks the pre-registered **P5.12 v2-discrimination A/B** until a v2.1
+bank passes. Detail: [`../../experiments/2026-07-17-bankv2-crossing/README.md`](../../experiments/2026-07-17-bankv2-crossing/README.md).
