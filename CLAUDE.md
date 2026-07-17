@@ -72,6 +72,34 @@ A campaign isn't done until:
 
 Every number carries its config (power mode, flags, ctx). Negative/unexpected results are content — record them plainly.
 
+## Look at it: visual verification is mandatory
+
+Rendering, simulator, camera-feed and overlay work **fails silently**. A black frame, an unlit
+mesh, a camera aimed at nothing, a GT box one frame stale, a video of 300 identical frames —
+each of these exits 0, writes well-formed files, and prints a log that reads like success. An
+agent that only reads logs will confidently report a working simulator over a black video. This
+has already happened here (see the EGL ICD / sensors-plugin / infinite-plane gotchas in
+`runners/sitl/GAZEBO_LIVE_FEED.md`), which is why this is a rule and not advice.
+
+**Any claim about what a render, sim, camera feed, overlay or clip *shows* must be backed by an
+image the agent actually opened with the Read tool.** "The pipeline ran", "112 frames written",
+"no errors in the log" are not evidence about pixels. The frame, viewed, is.
+
+- **Dump a frame, then look at it.** Every sim/render run writes at least one PNG into its
+  `runs/<id>/` dir — mid-run, not frame 0 (frame 0 is routinely black before the first render
+  completes) — and the agent Reads it before writing any verdict.
+- **Geometry claims need an overlay.** A GT/box/mask/track-ID claim is unverified until the
+  boxes are drawn on the real frame and that image is viewed. A GT dump nobody rendered over a
+  frame is a hypothesis.
+- **Auditing includes looking.** A later cycle auditing an earlier result (or Fable auditing
+  Opus's run) opens the committed `proof/` frames. "The README says PASS" is not an audit.
+- **Assert what you'd notice.** Cheap mechanical checks catch the classic failures without
+  relying on an agent to spot them: a frame that is >99% one colour is a failed render, not a
+  night scene; frames byte-identical across time are a dead feed, not a still camera. Put the
+  assert in the script.
+- **Can't see it, say so.** No frame captured → "cannot verify, no frame" and the run is
+  INVALID. Never infer a picture from a log.
+
 ## Tooling
 
 Single venv: `.venv-ft` — torch + transformers + opencv-contrib + pymavlink. All work goes here.

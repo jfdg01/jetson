@@ -64,6 +64,7 @@ Before merging (this is a handoff gate, you trust the science you pre-registered
 - Verdict = mechanical application of the FROZEN README rules, no post-hoc bending; regression guard actually evaluated per clip.
 - Ledgers appended under the CURRENT Part (`docs/{results,questions,decisions}/partN-*.md`), NOT the root redirects; Madrid wall-clock timestamps; no emojis.
 - Deliverables exist under `proof/` (clips and/or figures), COMMITTED, captioned in the README; figures come from a committed reproducible script, not hand-drawn.
+- **Open the proof frames yourself with the Read tool** before you accept the executor's verdict (CLAUDE.md "Look at it") — for any render/sim/camera/overlay claim, the executor's "PASS" over a black or empty frame is indistinguishable from a real one in text. Auditing the report is not auditing the pixels.
 - `.gitignore`: `data/` + `runs/*/overlay.mp4` (large video) ignored; `runs/*/results.json` committed.
 - Estimate-vs-actual filled; "what broke / what surprised" honest.
 

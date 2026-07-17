@@ -95,7 +95,10 @@ The Fable design brief (put this in the subagent prompt, filled with the concret
 > on, oracle inputs, flattering SITL conditions)? *Stale assumptions* — does an inherited
 > number (ceiling, latency, accuracy) still hold after later changes? If the audit finds a
 > result that is invalid or under-supported, the next experiment may be a **re-run/validation**,
-> not a new lever — say so plainly; negative results are thesis content.
+> not a new lever — say so plainly; negative results are thesis content. **Where the prior
+> result is visual (a render, sim, feed, overlay, clip), open its committed `proof/` frames with
+> the Read tool as part of the audit** — a README that says PASS over a black frame reads exactly
+> like one that says PASS over a working one, and reading the claim is not auditing the pixels.
 >
 > **2. Pick ONE next experiment** — the highest-leverage single question toward the north
 > star. One RQ, falsifiable, with a pre-stated numeric pass/fail threshold. If two candidates
@@ -121,10 +124,18 @@ The Fable design brief (put this in the subagent prompt, filled with the concret
 >   commands **record video** of the runs the deliverables need — the 2–3 before/after (or
 >   proof-of-failure) clips are part of the definition of done, and Opus can only clip footage
 >   the matrix actually captured. Say which runs to record and where the raw video lands.
+> - **Visual verification (mandatory for any render/sim/camera/overlay work; CLAUDE.md "Look at
+>   it"):** the matrix must dump inspectable PNG frames (mid-run, not frame 0) into each
+>   `runs/<id>/`, and the README must name the exact files Opus is to open with the Read tool
+>   and state what a PASS frame looks like versus a failure ("track visible, two cars, GT boxes
+>   on the cars" vs "black / uniform / boxes off the vehicles"). Sim work fails silently with
+>   exit 0 — a design that lets Opus verdict from logs alone is not done. Put the cheap asserts
+>   (frame >99% one colour = failed render; byte-identical frames = dead feed) in your patch.
 > - **Verdict rules (mechanical — Opus does not deliberate):** for every decision Opus could
 >   face, a rule like "PASS iff metric X >= N over all runs; if A and B both qualify, prefer
 >   A; if neither, record FAIL and stop." Include abort criteria (run hangs > T min, crash,
->   missing file → snapshot what exists, mark the run INVALID, continue).
+>   missing file → snapshot what exists, mark the run INVALID, continue). Where the claim is
+>   visual, the rule cites the frame to open, not just the metric.
 > - **Estimates:** expected runtime and expected numbers, marked as estimates.
 > - **Results (TBD):** empty table with the exact columns Opus fills.
 >
@@ -156,6 +167,11 @@ Work from `experiments/<dir>/README.md` alone. Stamp the start:
 
 - Run the matrix exactly as written, snapshot each run to its `runs/` dir immediately, and
   fill the Results table. Do NOT edit any design code Fable committed.
+- **Look at the frames before you verdict** (CLAUDE.md "Look at it"). For any run that renders,
+  simulates, films or overlays anything, open the README's named PNG(s) with the **Read tool**
+  and say in the Results what you saw. A green log over a black frame is the default failure
+  mode of sim work, and it costs one Read to catch. No frame → the run is INVALID ("cannot
+  verify, no frame"), never a PASS inferred from logs.
 - Apply the README's mechanical verdict rules to get the verdict — you do not deliberate; if
   a rule is ambiguous, that is a process failure (record it, stop, do not merge).
 - Append the RESULTS row(s), the QUESTIONS verdict (per-Part doc, not root), and the
