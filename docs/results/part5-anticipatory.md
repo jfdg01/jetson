@@ -275,3 +275,39 @@ Proof: `proof/p58_transport_fix.png` (0/2 -> 4/4 completion, 1.48 -> 8.34 fps, r
 `proof/p58_determinism.png` (G4a flat at 0.0 for all 240 frames vs the 2.0 gate),
 `proof/p58_overlay_grid.png` (4 runs x 3 overlays — the V gate in one figure),
 `proof/p58_seed101_overlay.mp4` (behaviour clip, seed101_A).
+
+### P5.9 — kerb-safe scene bank (2026-07-17)
+
+Detail: [`../../experiments/2026-07-17-kerbsafe-scenebank/README.md`](../../experiments/2026-07-17-kerbsafe-scenebank/README.md).
+Config: RTX 3090 workstation only (Jetson NOT used); gz sim 8.14.0, Python 3.12.10 / numpy 2.4.4 /
+cv2 4.13.0 via `.venv-ft`; persistent-proxy transport (P5.8), one fresh server session per run,
+teardown via `killserver` (`remaining: 0` every time). 16 runs: 4 gate (seed101_A/202_B/303_C/101_D)
++ 12 bank (seeds 1-12). Calibrated kerb-safe spawn bands (target lat0 U(-4.5,-2.2), distractor lat0
+U(0.5,1.3), amp U(0.2,0.5), distractor s0 U(4,10), v_d cap 6.0 → worst-case lat ∈ [-5.0,+1.8] ⊂
+LAT_SAFE (-5.2,2.0), s ≤ 67.4 ≤ 70), asserted per scenario in `author_scenario`. New gate **G6**
+(rendered integrity): per car frag p10 ≥ 0.95 AND frac(frag<0.90) ≤ 0.02 AND ≥ 200 scored frames.
+G4b **redefined** to whole-scenario divergence ≥ 1.0 m (was min pairwise target-f0 distance).
+
+**RQ-P5.9 = YES.** Full capability gate 16/16 (G0,G1,G2,G3,G5,G6 all PASS every cell), G4a PASS,
+G4b (redefined) PASS, 12/12 bank cells clean, **V PASS 16/16**, zero clipping. Matrix landed on the
+first attempt: 0 INVALID, 0 INFRA, 0 re-runs, 240/240 frames × 16 = 3840 frames, **0 retries across
+1920 service calls**, 8.18–8.33 fps.
+
+| gate | value | note |
+|---|---|---|
+| G0 | 0/0/0 retries all 16 cells | 1920 calls, 0 retries (as P5.8) |
+| G2 purity | 0.712–0.911 (both cars) | lowest pur0 bank07 0.712; NO blue-car <0.6 outlier (P5.8's 0.472 clip did not recur) |
+| G5 fps | 8.18–8.33 | on estimate |
+| **G6** frag p10 | min 0.9967 across 16 runs (gate 0.95) | margin +0.047; below-0.90 frac 0.000 everywhere; no cell in [0.95,0.99) watch band. Marginal cells are the WHITE target (self-occlusion), not the blue distractor (P5.8's clip victim, now p10 ≥ 0.9893) |
+| G4a | GT byte-identical, mean\|diff\| 0.0, frac(>8) 0.0 | cross-session determinism, exactly as P5.8 |
+| G4b (redef) | min divergence **1.36 m** ≥ 1.0 at pair (8,12); f0-faithful True/16 | on design estimate to 2 d.p. |
+| G4b OLD-stat diagnostic | min pairwise target-f0 dist **0.135 m** at pair (1,12) | **far below the retired 1.0 m gate — the OLD G4b would have failed this bank.** Corroborates the redefinition: seeds 1&12 start 13.5 cm apart at f0 but diverge 1.36 m scenario-wide (single-frame coincidence between diverging trajectories = the birthday noise the old point-stat false-failed on) |
+| corridor safety | worst distractor lat +1.674 m (bank12, 0.326 m margin to paint) | all connected on-asphalt by eye; the "close to line" residual risk materialised at ~0.33 m and rendered clean = PASS |
+
+Every gate landed inside its pre-registered estimate; no estimate flipped (contrast P5.8, where the
+"formality" G4b was the sole failure). The design-time calibration (kerb sweep + G6 tuning on P5.8
+frames + fixed-code seed-101 smoke) correctly predicted the whole matrix.
+Proof: `proof/p59_beforeafter_kerb.png` (P5.8 seed101 f0180 two-blob clip vs P5.9 same seed/frame
+intact), `proof/p59_kerb_calibration.png` (the (s,lat) integrity sweep + ~4° kerb skew that
+explains P5.8's late-clip), `proof/p59_bank_grid.png` (12 clips at f0180, all clean, per-run G6),
+`proof/p59_g6_teeth.png` (frag p10 all 16 runs vs the P5.8 clipped 0.666 reference).

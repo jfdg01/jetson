@@ -374,6 +374,19 @@ GRID = np.array([0.0, 0.0])       # start-grid origin on the Sonoma straight
 ROAD_HEADING = math.radians(145)  # the start straight runs along ~145 deg (verified)
 CAR_Z = 0.05
 
+# P5.9 kerb-safe corridor -- calibrated, not guessed. Source:
+# experiments/2026-07-17-kerbsafe-scenebank/probe_kerb.py sweep
+# (curation/kerb_heatmap.png + kerb_sweep.json, 2026-07-17, gz 8.14.0):
+# rendered-car integrity (pixel-count ratio >= 0.90 AND largest-connected-
+# component fraction >= 0.98) holds for lat in [-5.5, +2.5] at EVERY station
+# s in [0, 70]. The median kerb is NOT parallel to ROAD_HEADING: it converges
+# from lat ~7.5 at s=10 to ~3.5 at s=70 (~4 deg skew), which is why P5.8's
+# seed 101 distractor (lat 4.6-5.2) only clipped late in the clip. Scenarios
+# must therefore respect BOTH a lat corridor and an s cap; author_scenario
+# asserts them so a future band edit cannot silently reintroduce clipping.
+LAT_SAFE = (-5.2, 2.0)  # sweep corridor [-5.5, +2.5] minus 0.3/0.5 m margin
+S_SAFE_MAX = 70.0       # sweep's calibrated along-track extent
+
 
 def author_scenario(seed, n_frames, fps=25.0):
     """Seeded, fully precomputed poses for 2 cars + camera. Pure numpy, no gz."""
@@ -385,7 +398,7 @@ def author_scenario(seed, n_frames, fps=25.0):
 
     def car(lat_lo, lat_hi, s0, v):
         lat0 = rng.uniform(lat_lo, lat_hi)
-        amp, per, ph = rng.uniform(0.2, 0.7), rng.uniform(4.0, 9.0), rng.uniform(0, 2 * math.pi)
+        amp, per, ph = rng.uniform(0.2, 0.5), rng.uniform(4.0, 9.0), rng.uniform(0, 2 * math.pi)
         lat = lat0 + amp * np.sin(2 * math.pi * t / per + ph)
         s = s0 + v * t
         xy = GRID + np.outer(s, u) + np.outer(lat, n)
@@ -393,10 +406,19 @@ def author_scenario(seed, n_frames, fps=25.0):
         yaw = h + np.arctan2(dlat, v)
         return xy, yaw, v
 
+    # Bands are kerb-safe by construction (see LAT_SAFE above): worst case
+    # target lat -4.5-0.5 = -5.0, distractor lat 1.3+0.5 = +1.8, both inside
+    # LAT_SAFE; distractor s_max = 10 + 6.0*(239/25) = 67.4 <= S_SAFE_MAX.
     v_t = rng.uniform(3.0, 6.0)
-    tgt_xy, tgt_yaw, v_t = car(-5.0, -1.5, rng.uniform(-4, 4), v_t)
-    v_d = float(np.clip(v_t + rng.uniform(-1.5, 1.5), 2.5, 6.5))
-    dis_xy, dis_yaw, v_d = car(1.5, 5.0, rng.uniform(4, 14), v_d)
+    tgt_xy, tgt_yaw, v_t = car(-4.5, -2.2, rng.uniform(-4, 4), v_t)
+    v_d = float(np.clip(v_t + rng.uniform(-1.5, 1.5), 2.5, 6.0))
+    dis_xy, dis_yaw, v_d = car(0.5, 1.3, rng.uniform(4, 10), v_d)
+    for xy in (tgt_xy, dis_xy):
+        lat_v, s_v = xy @ n, xy @ u
+        assert lat_v.min() >= LAT_SAFE[0] and lat_v.max() <= LAT_SAFE[1], \
+            f"seed {seed}: lat [{lat_v.min():.2f},{lat_v.max():.2f}] outside kerb-safe {LAT_SAFE}"
+        assert s_v.max() <= S_SAFE_MAX, \
+            f"seed {seed}: s_max {s_v.max():.1f} beyond calibrated {S_SAFE_MAX}"
 
     mid = (tgt_xy + dis_xy) / 2
     standoff = rng.uniform(14, 22)
@@ -447,6 +469,27 @@ def box_purity(bgr, bbox, color, shrink=0.12):
         return 0.0
     m = color_mask(bgr[y1:y2, x1:x2], color)
     return float(m.mean())
+
+
+FRAG_MIN_NPX = 30  # below this many car-colour pixels the split stat is noise
+
+
+def frag_metric(bgr, bbox, color, pad=0.10):
+    """Rendered-integrity stat (P5.9 gate G6): largest-connected-component
+    fraction of car-colour pixels in the padded GT box. A healthy render is one
+    blob (~1.0); kerb-clipping splits the body (P5.8 seed 101 blue car:
+    min 0.504, p10 0.666 vs >= 0.992 on clean runs). Returns (frac|None, npx);
+    None = too few pixels to score."""
+    x1, y1, x2, y2 = bbox
+    dx, dy = (x2 - x1) * pad, (y2 - y1) * pad
+    x1, y1 = max(0, int(x1 - dx)), max(0, int(y1 - dy))
+    x2, y2 = min(bgr.shape[1], int(x2 + dx)), min(bgr.shape[0], int(y2 + dy))
+    m = color_mask(bgr[y1:y2, x1:x2], color).astype(np.uint8)
+    npx = int(m.sum())
+    if npx < FRAG_MIN_NPX:
+        return None, npx
+    n_lab, _lab, stats, _ = cv2.connectedComponentsWithStats(m, 8)
+    return float(stats[1:, 4].max() / npx), npx
 
 
 def control_purity(bgr, bbox, color):
@@ -518,6 +561,9 @@ def record(args):
             if bbox is not None:
                 rec["purity"] = round(box_purity(bgr, bbox, c["color"]), 4)
                 rec["bg_purity"] = round(control_purity(bgr, bbox, c["color"]), 4)
+                fr, _npx = frag_metric(bgr, bbox, c["color"])
+                if fr is not None:
+                    rec["frag"] = round(fr, 4)
             objs.append(rec)
         frec = {
             "f": i, "t_sim_ns": stamp,
@@ -550,6 +596,7 @@ def record(args):
     vis = {0: [], 1: []}
     pur = {0: [], 1: []}
     bgp = {0: [], 1: []}
+    frg = {0: [], 1: []}
     both_vis = 0
     for r in records:
         ok_both = True
@@ -559,6 +606,8 @@ def record(args):
             if v:
                 pur[o["id"]].append(o["purity"])
                 bgp[o["id"]].append(o["bg_purity"])
+                if "frag" in o:
+                    frg[o["id"]].append(o["frag"])
             ok_both &= v
         both_vis += ok_both
     results = {
@@ -572,6 +621,13 @@ def record(args):
         "g2_bg_purity_median": {str(k): round(float(np.median(v)), 4) if v else None
                                 for k, v in bgp.items()},
         "g3_both_visible_frac": round(both_vis / args.frames, 4),
+        "g6_frag_p10": {str(k): round(float(np.percentile(v, 10)), 4) if v else None
+                        for k, v in frg.items()},
+        "g6_frag_min": {str(k): round(float(np.min(v)), 4) if v else None
+                        for k, v in frg.items()},
+        "g6_frag_below090_frac": {str(k): round(float(np.mean(np.array(v) < 0.90)), 4)
+                                  if v else None for k, v in frg.items()},
+        "g6_frag_n": {str(k): len(v) for k, v in frg.items()},
         "g0_retries_pose": gz.retries_pose,
         "g0_retries_step": gz.retries_step,
         "g0_response_lost": gz.response_lost,
@@ -775,6 +831,34 @@ def selfcheck():
     grey[:] = (120, 120, 120)
     assert color_mask(blue, "blue").all() and not color_mask(grey, "blue").any()
     assert color_mask(white, "white").all() and not color_mask(grey, "white").any()
+
+    # 6b. frag_metric (gate G6): one solid blob ~= 1.0; a split body scores the
+    #     largest piece's share; sub-threshold pixel counts return None.
+    img = np.zeros((60, 120, 3), np.uint8)
+    img[10:50, 10:50] = (150, 40, 20)    # blue blob A: 40x40 = 1600 px
+    fr, npx = frag_metric(img, [0, 0, 120, 60], "blue", pad=0.0)
+    assert fr == 1.0 and npx == 1600, (fr, npx)
+    img[10:50, 80:100] = (150, 40, 20)   # blob B: 40x20 = 800 px -> largest 2/3
+    fr, npx = frag_metric(img, [0, 0, 120, 60], "blue", pad=0.0)
+    assert abs(fr - 2 / 3) < 1e-6 and npx == 2400, (fr, npx)
+    tiny = np.zeros((20, 20, 3), np.uint8)
+    tiny[0:2, 0:2] = (150, 40, 20)
+    fr, npx = frag_metric(tiny, [0, 0, 20, 20], "blue", pad=0.0)
+    assert fr is None and npx == 4, (fr, npx)
+
+    # 6c. kerb-safe corridor (P5.9): every authored scenario stays inside
+    #     LAT_SAFE x [0, S_SAFE_MAX] (author_scenario asserts internally; run a
+    #     seed sweep so a band edit that breaks the corridor fails here, offline).
+    h = ROAD_HEADING
+    uu = np.array([math.cos(h), math.sin(h)])
+    nn = np.array([-math.sin(h), math.cos(h)])
+    for sd in range(1, 41):
+        sc = author_scenario(sd, 240)
+        for role in ("target", "distractor"):
+            lat_v = sc[role]["xy"] @ nn
+            s_v = sc[role]["xy"] @ uu
+            assert LAT_SAFE[0] <= lat_v.min() and lat_v.max() <= LAT_SAFE[1]
+            assert s_v.max() <= S_SAFE_MAX
 
     # 7. proxy protocol round-trip (needs the gz python libs but NO gz server):
     #    ping->pong, then a request to a nonexistent service must come back
