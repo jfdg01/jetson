@@ -19,15 +19,31 @@ RTX 3090 headless EGL -- see experiments/2026-07-17-sim-scenegen/README.md):
   - Fuel hatchback textures do not load under this rig (map_Kd/map_Ka resolve to
     remote URLs / are dropped); a solid <material> override in the spawn SDF renders
     reliably, so vehicle colour comes from the SDF material, not the texture.
-  - gz-transport pybind service *requests* concurrent with an image-subscriber
-    callback crash on the GIL -> all requests go through the `gz service` CLI
-    (~0.29 s/call); pybind is used for the image subscription only.
+  - gz-transport pybind service *requests* CONCURRENT WITH an image-subscriber
+    callback in the SAME process crash on the GIL (GAZEBO_LIVE_FEED.md). P5.7
+    routed around this with per-call `gz service` CLI subprocesses (~0.29 s/call,
+    ~480 ephemeral transport nodes per 240-frame run) and DIED for it: the server
+    intermittently failed to route a reply back to an ephemeral node
+    ("NodeShared::RecvSrvRequest() error sending response: Host unreachable"),
+    ~one failure per ~236 calls, so no 240-frame run ever completed (P5.7 = NO
+    [infra FAIL]). P5.8 fix: ONE persistent pybind requester Node living in a
+    DEDICATED child process (`scenegen.py proxy`, JSON-lines over pipes) that has
+    NO subscriptions -- the GIL crash condition (request overlapping a subscriber
+    callback in one process) cannot occur, and there is no per-call node churn.
+    The recorder process keeps its subscribe-only pybind node exactly as before.
+  - retry policy on top (belt and braces): set_pose_vector is idempotent ->
+    plain re-issue; a world-control step whose *reply* was lost may still have
+    EXECUTED, so on request failure we first wait RESPONSE_LOST_WAIT_S for the
+    frame to arrive and only re-issue if it does not. A double-step would show
+    up mechanically as an 80 ms sim-stamp jump -> G1 catches it.
 
 Usage (server must already be running -- see the experiment README for the exact
 nohup launch line; scenegen never spawns `gz sim` itself):
     .venv-ft/bin/python runners/scenegen.py record --seed 101 --frames 240 \
-        --out experiments/2026-07-17-sim-scenegen/runs/seed101_A
-    .venv-ft/bin/python runners/scenegen.py selfcheck   # no gz / no GPU needed
+        --out experiments/2026-07-17-scenegen-transport/runs/seed101_A
+    .venv-ft/bin/python runners/scenegen.py selfcheck    # no gz / no GPU needed
+    .venv-ft/bin/python runners/scenegen.py killserver   # kill select_arena servers by pgid
+    (`scenegen.py proxy` is internal -- the persistent requester child process.)
 """
 import argparse
 import json
@@ -68,18 +84,136 @@ CAR_COLORS = {  # solid SDF material (r, g, b); phrase used by later select expe
 CAM_PERIOD_STEPS = 40  # 40 x 1 ms = one 25 Hz camera frame per batch
 STEP_TIMEOUT_S = 8.0
 SETTLE_S = 0.08
+SVC_TIMEOUT_MS = 5000
+RESPONSE_LOST_WAIT_S = 3.0  # request failed: how long the step may still land
+MAX_TRIES = 3               # per service call (first attempt included)
 
 # ---------------------------------------------------------------- gz plumbing
 
 
+class ProxyClient:
+    """ONE persistent gz-transport requester Node, living in a dedicated child
+    process (`scenegen.py proxy`) that never subscribes to anything -- so the
+    pybind GIL crash (request overlapping a subscriber callback in the same
+    process) cannot occur, and there is zero per-call transport-node churn
+    (the P5.7 killer). Protocol: JSON lines over stdin/stdout."""
+
+    def __init__(self):
+        self.restarts = 0
+        self._id = 0
+        self._start()
+
+    def _start(self):
+        import queue
+        self._p = subprocess.Popen(
+            [sys.executable, str(Path(__file__).resolve()), "proxy"],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, bufsize=1)
+        self._q = queue.Queue()
+
+        def _reader(p, q):
+            for line in p.stdout:
+                q.put(line)
+            q.put(None)  # EOF sentinel
+
+        threading.Thread(target=_reader, args=(self._p, self._q), daemon=True).start()
+        got, resp = self._roundtrip({"op": "ping"}, deadline_s=20.0)
+        if not got or resp.get("op") != "pong":
+            raise RuntimeError(f"gz proxy failed to start (no pong: {resp})")
+
+    def _roundtrip(self, obj, deadline_s):
+        import queue
+        try:
+            self._p.stdin.write(json.dumps(obj) + "\n")
+            self._p.stdin.flush()
+        except (BrokenPipeError, OSError):
+            return False, None
+        try:
+            line = self._q.get(timeout=deadline_s)
+        except queue.Empty:
+            return False, None
+        if line is None:
+            return False, None
+        try:
+            return True, json.loads(line)
+        except json.JSONDecodeError:
+            return False, None
+
+    def call(self, service, reqtype, req, timeout_ms=SVC_TIMEOUT_MS):
+        """One service request through the persistent node -> (ok, err_text).
+        A hung/dead proxy is restarted and reported as a failed call."""
+        self._id += 1
+        got, resp = self._roundtrip(
+            {"op": "req", "id": self._id, "service": service, "reqtype": reqtype,
+             "req": req, "timeout_ms": timeout_ms},
+            deadline_s=timeout_ms / 1000 + 5.0)
+        if not got or resp.get("id") != self._id:
+            self.restarts += 1
+            self._kill()
+            self._start()
+            return False, f"proxy dead/hung -- restarted (resp={resp})"
+        return bool(resp.get("ok")), resp.get("err", "")
+
+    def _kill(self):
+        try:
+            self._p.kill()
+            self._p.wait(timeout=5)
+        except Exception:
+            pass
+
+    def close(self):
+        try:
+            self._p.stdin.close()
+            self._p.wait(timeout=5)
+        except Exception:
+            self._kill()
+
+
+def proxy_main():
+    """The dedicated requester process. No subscriptions, one Node, lives for
+    the whole recording. Replies on stdout, one JSON line per request."""
+    import gz.transport13 as transport
+    from google.protobuf import text_format
+    from gz.msgs10 import boolean_pb2, entity_factory_pb2, pose_v_pb2, world_control_pb2
+
+    types = {
+        "gz.msgs.Pose_V": pose_v_pb2.Pose_V,
+        "gz.msgs.WorldControl": world_control_pb2.WorldControl,
+        "gz.msgs.EntityFactory": entity_factory_pb2.EntityFactory,
+    }
+    node = transport.Node()
+    for line in sys.stdin:
+        line = line.strip()
+        if not line:
+            continue
+        o = json.loads(line)
+        if o.get("op") == "ping":
+            print(json.dumps({"op": "pong"}), flush=True)
+            continue
+        try:
+            cls = types[o["reqtype"]]
+            msg = cls()
+            text_format.Parse(o["req"], msg)
+            result, rep = node.request(o["service"], msg, cls, boolean_pb2.Boolean,
+                                       int(o["timeout_ms"]))
+            ok = bool(result) and bool(getattr(rep, "data", False))
+            err = "" if ok else f"result={result} rep_data={getattr(rep, 'data', None)}"
+        except Exception as e:  # noqa: BLE001 -- proxy must never die on one request
+            ok, err = False, repr(e)
+        print(json.dumps({"id": o.get("id"), "ok": ok, "err": err[:300]}), flush=True)
+
+
 class GzClient:
-    """Image subscriber (pybind) + CLI service caller. Subscribe-only pybind: safe."""
+    """Image subscriber (pybind, subscribe-only: safe) + persistent-proxy caller."""
 
     def __init__(self):
         self._lock = threading.Lock()
         self._arr = None
         self._stamp_ns = -1
         self._count = 0
+        self.retries_pose = 0     # failed set_pose_vector attempts that were re-issued
+        self.retries_step = 0     # failed world-control attempts re-issued (no frame landed)
+        self.response_lost = 0    # step executed but the service reply was lost
+        self.spawn_warns = []
         import gz.transport13 as transport
         from gz.msgs10 import image_pb2
 
@@ -95,54 +229,78 @@ class GzClient:
         ok = self._node.subscribe(image_pb2.Image, CAM_TOPIC, on_image)
         if not ok:
             raise RuntimeError(f"subscribe failed: {CAM_TOPIC}")
+        self.proxy = ProxyClient()
 
     def latest(self):
         with self._lock:
             return (None if self._arr is None else self._arr.copy()), self._stamp_ns, self._count
 
-    @staticmethod
-    def svc(service, reqtype, req, timeout_ms=5000):
-        r = subprocess.run(
-            ["gz", "service", "-s", service, "--reqtype", reqtype,
-             "--reptype", "gz.msgs.Boolean", "--timeout", str(timeout_ms), "--req", req],
-            capture_output=True, text=True)
-        ok = r.returncode == 0 and "true" in r.stdout
-        return ok, (r.stdout + r.stderr).strip()
-
     def set_poses(self, named_poses):
-        """named_poses: list of (name, (x,y,z), (qw,qx,qy,qz)). One batched CLI call."""
+        """named_poses: list of (name, (x,y,z), (qw,qx,qy,qz)). One batched call.
+        Idempotent -> plain retry on failure."""
         parts = []
         for name, p, q in named_poses:
             parts.append(
                 f'pose: {{name: "{name}", position: {{x: {p[0]:.6f}, y: {p[1]:.6f}, z: {p[2]:.6f}}}, '
                 f'orientation: {{w: {q[0]:.8f}, x: {q[1]:.8f}, y: {q[2]:.8f}, z: {q[3]:.8f}}}}}')
-        ok, out = self.svc(f"/world/{WORLD}/set_pose_vector", "gz.msgs.Pose_V", ", ".join(parts))
-        if not ok:
-            raise RuntimeError(f"set_pose_vector failed: {out[:300]}")
+        req = ", ".join(parts)
+        out = ""
+        for _ in range(MAX_TRIES):
+            ok, out = self.proxy.call(f"/world/{WORLD}/set_pose_vector", "gz.msgs.Pose_V", req)
+            if ok:
+                return
+            self.retries_pose += 1
+            time.sleep(0.2)
+        raise RuntimeError(f"set_pose_vector failed after {MAX_TRIES} tries: {out[:300]}")
 
-    def step_one_frame(self):
-        """Advance one camera period; return the frame rendered for the current state."""
-        _, stamp0, _ = self.latest()
-        ok, out = self.svc(f"/world/{WORLD}/control", "gz.msgs.WorldControl",
-                           f"pause: true, multi_step: {CAM_PERIOD_STEPS}")
-        if not ok:
-            raise RuntimeError(f"world control failed: {out[:300]}")
+    def _wait_frame(self, stamp0, wait_s):
         t0 = time.time()
-        while time.time() - t0 < STEP_TIMEOUT_S:
+        while time.time() - t0 < wait_s:
             arr, stamp, _ = self.latest()
             if stamp > stamp0:
                 time.sleep(SETTLE_S)  # let a same-batch straggler land, then re-read
                 arr, stamp, _ = self.latest()
                 return arr, stamp
             time.sleep(0.01)
-        raise RuntimeError(f"no frame within {STEP_TIMEOUT_S}s after step (stamp0={stamp0})")
+        return None, None
+
+    def step_one_frame(self):
+        """Advance one camera period; return the frame rendered for the current
+        state. NOT idempotent -> a failed request may still have executed with
+        only the reply lost, so wait for the frame before re-issuing."""
+        _, stamp0, _ = self.latest()
+        out = ""
+        for _ in range(MAX_TRIES):
+            ok, out = self.proxy.call(f"/world/{WORLD}/control", "gz.msgs.WorldControl",
+                                      f"pause: true, multi_step: {CAM_PERIOD_STEPS}")
+            if ok:
+                arr, stamp = self._wait_frame(stamp0, STEP_TIMEOUT_S)
+                if arr is not None:
+                    return arr, stamp
+                raise RuntimeError(
+                    f"step acked but no frame within {STEP_TIMEOUT_S}s (stamp0={stamp0}) "
+                    "-- renderer stall; re-issuing would double-step")
+            arr, stamp = self._wait_frame(stamp0, RESPONSE_LOST_WAIT_S)
+            if arr is not None:
+                self.response_lost += 1  # step executed, reply lost -> frame is valid
+                return arr, stamp
+            self.retries_step += 1  # genuinely not executed -> safe to re-issue
+        raise RuntimeError(f"world control failed after {MAX_TRIES} tries: {out[:300]}")
 
     def spawn_car(self, name, color_rgb):
         sdf = car_sdf(name, color_rgb).replace('"', '\\"')
-        ok, out = self.svc(f"/world/{WORLD}/create", "gz.msgs.EntityFactory",
-                           f'sdf: "{sdf}", name: "{name}"')
-        if not ok:
-            raise RuntimeError(f"spawn {name} failed: {out[:300]}")
+        req = f'sdf: "{sdf}", name: "{name}"'
+        out = ""
+        for _ in range(MAX_TRIES):
+            ok, out = self.proxy.call(f"/world/{WORLD}/create", "gz.msgs.EntityFactory", req)
+            if ok:
+                return
+            time.sleep(0.3)
+        # A create whose reply was lost may have executed; the retry then fails
+        # ("name already exists"), so a hard raise here could kill a healthy run.
+        # Continue with a recorded warning -- a truly missing car fails G3 and V.
+        self.spawn_warns.append(f"{name}: {out[:200]}")
+        print(f"[scenegen] WARN spawn {name} unconfirmed: {out[:200]}", flush=True)
 
 
 def car_sdf(name, rgb):
@@ -329,12 +487,14 @@ def record(args):
                            "-- black render: check EGL ICD env on the gz server")
 
     gt_path = out / "gt.jsonl"
+    overlay_at = set(overlay_frames(args.frames))
     t_loop0 = time.time()
     prev = None
     stamps = []
     identical_consec = 0
     dead_frames = 0
     records = []
+    gtf = open(gt_path, "w")  # incremental: a mid-run death still leaves GT on disk
     for i in range(args.frames):
         gz.set_poses(frame_poses(sc, i))
         arr, stamp = gz.step_one_frame()
@@ -359,19 +519,29 @@ def record(args):
                 rec["purity"] = round(box_purity(bgr, bbox, c["color"]), 4)
                 rec["bg_purity"] = round(control_purity(bgr, bbox, c["color"]), 4)
             objs.append(rec)
-        records.append({
+        frec = {
             "f": i, "t_sim_ns": stamp,
             "cam": {"pos": [round(float(v), 4) for v in sc["cam_pos"][i]],
                     "quat": [round(float(v), 6) for v in sc["cam_quat"][i]]},
-            "objs": objs})
+            "objs": objs}
+        records.append(frec)
+        gtf.write(json.dumps(frec) + "\n")
+        gtf.flush()
         cv2.imwrite(str(out / "frames" / f"{i:04d}.png"), bgr)
-        if i % 40 == 0:
+        if i in overlay_at:  # incremental: the visual gate stays computable mid-run
+            cv2.imwrite(str(out / f"overlay_f{i:04d}.png"), draw_overlay(bgr, frec))
+        if i % 40 == 0 or i == args.frames - 1:
             print(f"[scenegen] frame {i}/{args.frames} "
                   f"({(i + 1) / (time.time() - t_loop0):.2f} fps)", flush=True)
+            with open(out / "progress.json", "w") as pf:
+                json.dump({"frames_done": i + 1, "of": args.frames,
+                           "fps_wall": round((i + 1) / (time.time() - t_loop0), 3),
+                           "retries_pose": gz.retries_pose,
+                           "retries_step": gz.retries_step,
+                           "response_lost": gz.response_lost,
+                           "proxy_restarts": gz.proxy.restarts}, pf)
     loop_s = time.time() - t_loop0
-    with open(gt_path, "w") as f:
-        for r in records:
-            f.write(json.dumps(r) + "\n")
+    gtf.close()
 
     # ---- per-run gate metrics
     fps_wall = args.frames / loop_s
@@ -402,6 +572,11 @@ def record(args):
         "g2_bg_purity_median": {str(k): round(float(np.median(v)), 4) if v else None
                                 for k, v in bgp.items()},
         "g3_both_visible_frac": round(both_vis / args.frames, 4),
+        "g0_retries_pose": gz.retries_pose,
+        "g0_retries_step": gz.retries_step,
+        "g0_response_lost": gz.response_lost,
+        "g0_proxy_restarts": gz.proxy.restarts,
+        "g0_spawn_warns": gz.spawn_warns,
         "params": sc["params"],
         "versions": {"gz": gz_version(), "python": sys.version.split()[0],
                      "numpy": np.__version__, "cv2": cv2.__version__},
@@ -411,8 +586,7 @@ def record(args):
         json.dump(results, f, indent=2)
 
     write_videos(out, records, args.frames)
-    for i in overlay_frames(args.frames):
-        dump_overlay_png(out, records[i], i)
+    gz.proxy.close()
     print(json.dumps(results, indent=2))
     print(f"[scenegen] DONE {out}")
 
@@ -447,11 +621,6 @@ def draw_overlay(bgr, rec):
     return img
 
 
-def dump_overlay_png(out, rec, i):
-    bgr = cv2.imread(str(out / "frames" / f"{i:04d}.png"))
-    cv2.imwrite(str(out / f"overlay_f{i:04d}.png"), draw_overlay(bgr, rec))
-
-
 def write_videos(out, records, n):
     vw = cv2.VideoWriter(str(out / "clip.mp4"), cv2.VideoWriter_fourcc(*"mp4v"), 25, (W, H))
     vo = cv2.VideoWriter(str(out / "overlay.mp4"), cv2.VideoWriter_fourcc(*"mp4v"), 25, (W, H))
@@ -469,6 +638,79 @@ def gz_version():
                               text=True, timeout=10).stdout.strip().splitlines()[0]
     except Exception:
         return "unknown"
+
+
+# ---------------------------------------------------------------- killserver
+
+
+def killserver():
+    """Kill every gz-sim server running select_arena, by PROCESS GROUP.
+
+    Replaces the P5.7 README teardown, which had two recorded defects:
+    `kill $(cat pidfile)` killed only the nohup bash wrapper (`$!`) and orphaned
+    the live ruby server -- silently faking the "fresh server session" that the
+    G4a cross-session claim rests on -- and `pkill -f "gz sim"` self-matches the
+    launching shell's own command line under this harness. This scans /proc for
+    cmdlines containing the world file, excludes itself + its ancestors + its
+    own process group, SIGTERMs the victims' process groups, escalates to
+    SIGKILL, and verifies. Exit 0 iff nothing matching survives.
+    """
+    import os
+    import signal
+
+    needle = "select_arena.sdf"
+    me = os.getpid()
+    anc = set()
+    p = me
+    while p > 1:
+        anc.add(p)
+        try:
+            stat = Path(f"/proc/{p}/stat").read_text()
+            p = int(stat.rsplit(")", 1)[1].split()[1])
+        except (OSError, ValueError, IndexError):
+            break
+
+    def victims():
+        out = {}
+        for d in Path("/proc").iterdir():
+            if not d.name.isdigit():
+                continue
+            pid = int(d.name)
+            if pid == me or pid in anc:
+                continue
+            try:
+                cmd = (d / "cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")
+            except OSError:
+                continue
+            if needle in cmd:
+                try:
+                    pgid = os.getpgid(pid)
+                except OSError:
+                    continue
+                if pgid == os.getpgid(0):
+                    continue  # never kill our own process group
+                out.setdefault(pgid, []).append((pid, cmd.strip()[:120]))
+        return out
+
+    v = victims()
+    for pgid, procs in v.items():
+        print(f"[killserver] SIGTERM pgid {pgid}: {procs}")
+        try:
+            os.killpg(pgid, signal.SIGTERM)
+        except OSError:
+            pass
+    if v:
+        time.sleep(2.0)
+        for pgid in victims():
+            print(f"[killserver] SIGKILL pgid {pgid}")
+            try:
+                os.killpg(pgid, signal.SIGKILL)
+            except OSError:
+                pass
+        time.sleep(0.5)
+    left = victims()
+    print(f"[killserver] remaining: {len(left)}")
+    sys.exit(0 if not left else 1)
 
 
 # ---------------------------------------------------------------- selfcheck (no gz)
@@ -534,6 +776,24 @@ def selfcheck():
     assert color_mask(blue, "blue").all() and not color_mask(grey, "blue").any()
     assert color_mask(white, "white").all() and not color_mask(grey, "white").any()
 
+    # 7. proxy protocol round-trip (needs the gz python libs but NO gz server):
+    #    ping->pong, then a request to a nonexistent service must come back
+    #    ok=False without crashing the proxy, and the proxy must still answer.
+    px = ProxyClient()
+    ok, err = px.call("/no/such/service", "gz.msgs.WorldControl", "pause: true",
+                      timeout_ms=300)
+    assert not ok and px.restarts == 0, (ok, err, px.restarts)
+    got, resp = px._roundtrip({"op": "ping"}, 5.0)
+    assert got and resp.get("op") == "pong", resp  # proxy alive after the failure
+    px.close()
+
+    # 8. killserver never matches its own process tree (run with no server up it
+    #    must find nothing that is this process or an ancestor -- structural
+    #    guard only; the full behaviour needs a live server).
+    import os
+    assert "select_arena.sdf" not in Path(f"/proc/{os.getpid()}/cmdline"
+                                          ).read_bytes().decode(errors="replace")
+
     print("scenegen selfcheck OK")
 
 
@@ -545,9 +805,15 @@ def main():
     r.add_argument("--frames", type=int, default=240)
     r.add_argument("--out", required=True)
     sub.add_parser("selfcheck")
+    sub.add_parser("proxy")       # internal: spawned by ProxyClient
+    sub.add_parser("killserver")  # kill select_arena gz servers by process group
     args = ap.parse_args()
     if args.cmd == "selfcheck":
         selfcheck()
+    elif args.cmd == "proxy":
+        proxy_main()
+    elif args.cmd == "killserver":
+        killserver()
     else:
         record(args)
 
