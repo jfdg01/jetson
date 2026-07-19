@@ -502,3 +502,34 @@ DD 0.00 s vs shadow 4.51 s), `proof/p514_swap_car7_460_deliver_OFFOBJECT.png` (t
 empty kerb — negative proof), `proof/p514_swap_car9_560_deliver_PASS.png` (the 0.2843 marginal pass),
 `proof/p514_DD_{WSEL,SWAP}_car10_240.mp4` (same scene, two phrases, zero acquire latency). Detail:
 [`../../experiments/2026-07-19-realvid-dd-select/README.md`](../../experiments/2026-07-19-realvid-dd-select/README.md).
+
+### P5.15 — carry-horizon: warm-carry survival at 8/16/24 s idle on real video (2026-07-19)
+
+Rig: RTX 3090 host (`.venv-ft`: python 3.12.10, torch 2.6.0+cu124, transformers 4.57.6),
+SAM2 `sam2.1-hiera-tiny` stepped at the deployed 6.15 Hz idle budget (stride 5 @ 30 fps),
+seeded at GT[0]; MAINT arm adds the deployed P5.5 idle ROI re-anchor (margin 2.0, min_side
+256, crop 512, LANCZOS, accept = parseable + in-frame, **no IoU floor**) every 165 frames
+with the clip's generic P5.2 caption, VLM = Jetson `phase3-terse100eos-1024-q8_0.gguf`,
+15W + `jetson_clocks`. Clip set = the frozen 25-clip P5.2 set (5 categories). n=1
+deterministic, alive = carried-box IoU >= 0.25 vs UAV123 GT at the scoring frame. 50/50
+cells scored, 0 INVALID, 0 N/A. Matrix wall ~10 min (PLAIN 8.4 s/cell, MAINT 16.5 s/cell)
+against a 35–60 min estimate — the second consecutive ~4x overestimate.
+
+| arm | alive @8 s | alive @16 s | alive @24 s | deaths (clip) |
+|---|---|---|---|---|
+| PLAIN (unmaintained carry) | 25/25 | **24/25** | 24/25 | `car7` (f270, never recovers) |
+| MAINT (+ P5.5 idle re-anchor) | 24/25 | 22/25 | 22/25 | `car10`, `car3`, `person10` (identity swap); `car7` rescued |
+
+RQ-P5.15a floor was 18/25 at 16 s; measured 24/25. Surviving cells sit at IoU 0.6–0.97 at
+24 s, i.e. not marginal. RQ-P5.15b did not run its comparison — the pre-registered ceiling
+(PLAIN@24s >= 22) fired. Non-gating: MAINT accepted **100/100** re-anchor rounds and is
+**net -2 clips**, because a generic-caption re-ground with no identity constraint
+eventually lands on a different same-class object (visible in the h24 frames). Health
+signals: `area_ratio` separates alive from dead (median 1.039 vs 0.163 over 150 horizon
+points), `hist_corr` does not (0.742 both).
+Proof: `proof/p515_arms.png` (survival vs horizon, both arms, floor line),
+`proof/p515_alive_grid.png` (per-clip x per-horizon IoU grid),
+`proof/p515_decay.png` (per-step IoU traces by category),
+`proof/p515_maint_car10_h24_IDENTITY_SWAP.png` (negative proof: re-anchor moved onto a
+different car), `proof/p515_plain_car7_h16_DEAD.png` (the one RQ-a failure).
+Detail: [`../../experiments/2026-07-19-carry-horizon/README.md`](../../experiments/2026-07-19-carry-horizon/README.md).
