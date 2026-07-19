@@ -684,6 +684,107 @@ def screen_cmd(args):
     return 0
 
 
+# ------------------------------------------- v2.1 seed screen (P5.12 recal)
+# P5.11 finding (NO [G4b; bank 3/12]): the S1-S5 screen admits seeds whose
+# recorded clips then fail build gates for reasons that are fully PREDICTABLE
+# offline -- record() realizes author_scenario byte-exactly (G4a mean|diff|
+# 0.0), so predicted clear-frame counts matched recorded G6c n_clear 12/12
+# EXACTLY on the P5.11 bank -- and the first-N-passing admission rule has no
+# pairwise-diversity constraint, so near-duplicate seeds 9/14 slipped in and
+# failed G4b at 0.77 m < 1.0. v2.1 adds two ADMISSION constraints (the
+# generator profile itself is untouched; renders were defect-free 12/12):
+#   S6 predicted CLEAR-frame floor: white occl <= 0.05 with box visible on
+#      >= 45 frames (recalibrated gate G6c needs n_clear >= 40; 5-frame belt
+#      over an exact prediction).
+#   S7 pairwise diversity: greedy admission in ascending seed order; admit
+#      iff whole-scenario divergence >= 1.1 m vs EVERY gate seed AND every
+#      already-admitted seed (G4b floor is 1.0 m; 0.1 m margin -- the screen
+#      uses the same author_scenario + same formula, so the guarantee is
+#      exact, the margin is belt-and-braces).
+
+V2_1_SCREEN = {"clear_min": 45, "div_min": 1.1, "lo": 1, "hi": 56,
+               "gate_seeds": (101, 202, 303)}
+# Pinned admission result of v2_1_bank() over the defaults above (computed
+# offline 2026-07-17, pre-registered in the P5.12 README; selfcheck 6g pins it):
+V2_1_BANK_PINNED = [1, 2, 3, 4, 6, 14, 17, 28, 29, 33, 40, 56]
+
+
+def predicted_occl_white(sc, boxes=None):
+    """Predicted per-frame occluded fraction of the white target (white is
+    farther than blue on every v2 frame by construction, so blue is always
+    the occluder -- same convention record() writes into gt.jsonl)."""
+    boxes = boxes or scenario_boxes(sc)
+    return np.array([_overlap_frac(w, b) for w, b in
+                     zip(boxes["target"], boxes["distractor"])])
+
+
+def predicted_clear_count(sc, boxes=None):
+    """Predicted CLEAR-frame count for white (occl <= 0.05, box visible).
+    Equals the recorded G6c white pool exactly under byte-determinism --
+    verified 12/12 (pred==recorded) on the P5.11 bank before pre-registration."""
+    boxes = boxes or scenario_boxes(sc)
+    occ = predicted_occl_white(sc, boxes)
+    vis = np.array([b is not None for b in boxes["target"]])
+    return int(((occ <= 0.05) & vis).sum())
+
+
+def scenario_divergence(A, B):
+    """Whole-scenario divergence (m) between two authored scenarios: the G4b
+    statistic (mean of target/distractor/camera mean point distances). Must
+    stay formula-identical to verdict_p511/verdict_p512 g4b()."""
+    dt = np.linalg.norm(A["target"]["xy"] - B["target"]["xy"], axis=1).mean()
+    dd = np.linalg.norm(A["distractor"]["xy"] - B["distractor"]["xy"], axis=1).mean()
+    dc = np.linalg.norm(A["cam_pos"] - B["cam_pos"], axis=1).mean()
+    return float((dt + dd + dc) / 3)
+
+
+def v2_1_bank(lo=None, hi=None, need=12):
+    """v2.1 offline seed screen: S1-S5 (v2_crossing_screen, unchanged) + S6
+    clear floor + S7 greedy pairwise diversity vs gate seeds + admitted set.
+    Deterministic; returns (admitted, rows). No gz, no GPU."""
+    cfg = V2_1_SCREEN
+    lo = cfg["lo"] if lo is None else lo
+    hi = cfg["hi"] if hi is None else hi
+    gate_scs = [author_scenario(s, V2_N_FRAMES, profile="v2")
+                for s in cfg["gate_seeds"]]
+    admitted, adm_scs, rows = [], [], []
+    for seed in range(lo, hi + 1):
+        sc = author_scenario(seed, V2_N_FRAMES, profile="v2")
+        boxes = scenario_boxes(sc)
+        m = v2_crossing_screen(sc)
+        clear = predicted_clear_count(sc, boxes)
+        s6 = clear >= cfg["clear_min"]
+        s7 = None
+        if m["pass"] and s6 and len(admitted) < need:
+            dmin = min([scenario_divergence(sc, g) for g in gate_scs]
+                       + [scenario_divergence(sc, a) for a in adm_scs])
+            s7 = dmin >= cfg["div_min"]
+            if s7:
+                admitted.append(seed)
+                adm_scs.append(sc)
+        rows.append({"seed": seed, "s15_pass": m["pass"], "clear": clear,
+                     "s6": s6, "s7": s7, "admitted": seed in admitted, **m})
+    return admitted, rows
+
+
+def screen21_cmd(args):
+    """Design-time preflight for the P5.12 bank: v2.1 screen table + bank."""
+    admitted, rows = v2_1_bank(args.lo, args.hi, args.need)
+    print(f"{'seed':<6}{'S1-5':<6}{'clear':<7}{'S6':<5}{'S7':<6}{'in':<4}"
+          f"{'peakIoU':<9}{'run50':<7}{'tailIoU':<8}")
+    for r in rows:
+        print(f"{r['seed']:<6}{('PASS' if r['s15_pass'] else 'fail'):<6}"
+              f"{r['clear']:<7}{('ok' if r['s6'] else 'LOW'):<5}"
+              f"{('-' if r['s7'] is None else 'ok' if r['s7'] else 'DUP'):<6}"
+              f"{('IN' if r['admitted'] else ''):<4}"
+              f"{r['peak_iou']:<9.3f}{r['run_occl50']:<7}{r['tail_iou_max']:<8.3f}")
+    print(f"\nadmitted bank ({len(admitted)}/{args.need}): {admitted}")
+    if len(admitted) < args.need:
+        print("SCREEN21 FAIL: not enough admissible seeds -- widen --hi")
+        return 1
+    return 0
+
+
 # ---------------------------------------------------------------- validity metrics
 
 def color_mask(bgr, color):
@@ -1201,6 +1302,24 @@ def selfcheck():
     assert not m11["pass"] and m11["run_occl50"] < 25, m11
     assert m1["peak_f"] <= V2_SCREEN["peak_before_f"]
 
+    # 6g. v2.1 screen regression pins (P5.12): the greedy admission over the
+    #     pre-registered pool must reproduce the pinned bank byte-for-byte;
+    #     the P5.11 G4b-failing near-duplicate pair (9, 14) must be split
+    #     (9 fails S6: predicted clear 32 < 45); seed 13 (P5.11 bank11,
+    #     n_clear 23) must be excluded; and the full 15-seed set (3 gate + 12
+    #     bank) must clear the G4b floor 1.0 m with the screen's 1.1 m margin.
+    import itertools as _it
+    admitted_21, _rows_21 = v2_1_bank()
+    assert admitted_21 == V2_1_BANK_PINNED, admitted_21
+    assert 9 not in admitted_21 and 13 not in admitted_21
+    scs_21 = {s: author_scenario(s, V2_N_FRAMES, profile="v2")
+              for s in list(V2_1_SCREEN["gate_seeds"]) + admitted_21}
+    dmin_21 = min(scenario_divergence(scs_21[a], scs_21[b])
+                  for a, b in _it.combinations(list(scs_21), 2))
+    assert dmin_21 >= 1.0, dmin_21  # G4b floor; measured 1.106 at pair (2, 29)
+    for s in admitted_21:
+        assert predicted_clear_count(scs_21[s]) >= V2_1_SCREEN["clear_min"], s
+
     # 7. proxy protocol round-trip (needs the gz python libs but NO gz server):
     #    ping->pong, then a request to a nonexistent service must come back
     #    ok=False without crashing the proxy, and the proxy must still answer.
@@ -1235,6 +1354,10 @@ def main():
     s.add_argument("--lo", type=int, default=1)
     s.add_argument("--hi", type=int, default=60)
     s.add_argument("--need", type=int, default=12)
+    s21 = sub.add_parser("screen21")  # offline v2.1 screen: S1-S5 + S6 + S7 (P5.12)
+    s21.add_argument("--lo", type=int, default=None)
+    s21.add_argument("--hi", type=int, default=None)
+    s21.add_argument("--need", type=int, default=12)
     sub.add_parser("selfcheck")
     sub.add_parser("proxy")       # internal: spawned by ProxyClient
     sub.add_parser("killserver")  # kill select_arena gz servers by process group
@@ -1243,6 +1366,8 @@ def main():
         selfcheck()
     elif args.cmd == "screen":
         sys.exit(screen_cmd(args))
+    elif args.cmd == "screen21":
+        sys.exit(screen21_cmd(args))
     elif args.cmd == "proxy":
         proxy_main()
     elif args.cmd == "killserver":
