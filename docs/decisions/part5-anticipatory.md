@@ -324,10 +324,15 @@ flips P5.8's failing gate — disclosed, deliberate, grounded in third-party-che
   occlusion stress and a fragmented occlusion window. Recorded explicitly in the README and the
   ledgers so that if P5.13's contracts fail to separate, these two cells are the first place to
   look — rather than the finding being silently absorbed into a "the bank was fine" claim.
-- **Did not edit `make_proof.py` to fix its stale `p511_*` output filenames.** The three proof PNGs
-  are P5.12 content (titles and data are correct) but are written as `p511_occlusion_montage.png`
-  etc., because the script is a retarget of P5.11's. **Why:** the executor role does not modify
-  committed core code mid-campaign, and a rename mid-run would break the pre-registered
-  reproducibility chain from `runs/*/results.json` to the committed figures. **Given up:** cosmetic
-  filename accuracy. Documented in the README's proof section rather than silently fixed, so the
+- **`make_proof.py`'s stale `p511_*` output filenames: logged by the executor, fixed at audit.** The
+  three proof PNGs are P5.12 content (titles and data correct) but were written as
+  `p511_occlusion_montage.png` etc., because the script is a retarget of P5.11's. **Why the executor
+  left it:** the executor role does not modify committed core code mid-campaign, and a rename mid-run
+  would break the pre-registered reproducibility chain from `runs/*/results.json` to the committed
+  figures. **Why the orchestrator then fixed it before merging:** P5.11's `proof/` contains three
+  PNGs with byte-identical names, so a thesis citation of `p511_occlusion_montage.png` is ambiguous
+  between two campaigns with opposite verdicts (3/12 vs 12/12). Renamed to `p512_*` with the script
+  and all ledger references updated; figure content unchanged. **Given up:** nothing material — the
+  division of labour held (executor logged rather than silently patched), which is what made the
+  wart visible at audit. Documented rather than silently fixed, so the
   discrepancy is on the record instead of being a future reader's puzzle.

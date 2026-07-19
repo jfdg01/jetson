@@ -482,12 +482,15 @@ Surprises, recorded plainly:
 
 Reproducible from `runs/*/results.json` via the committed
 `make_proof.py`. All three were opened with the Read tool before being
-captioned. **Filename caveat:** the script is a retarget of P5.11's and still
-emits `p511_*` filenames; the figure *titles* and all content are P5.12. The
-committed script was not edited (executor does not modify committed code) —
-the stale prefix is cosmetic and noted here rather than silently fixed.
+captioned. **Filename note:** the script is a retarget of P5.11's and
+originally emitted `p511_*` filenames. The executor correctly declined to edit
+it mid-campaign and logged the wart; the orchestrator renamed the outputs to
+`p512_*` at audit time, before the merge, because P5.11's `proof/` holds three
+identically-named PNGs and a thesis reader citing `p511_occlusion_montage.png`
+would get an ambiguous hit. Figure content and titles were already correct and
+are unchanged; re-running `make_proof.py` reproduces the renamed files.
 
-1. **`p511_occlusion_montage.png`** — the headline deliverable. 3x4 montage of
+1. **`p512_occlusion_montage.png`** — the headline deliverable. 3x4 montage of
    every bank cell's crossing-peak overlay, captioned with cell / seed / peak
    frame / GT-GT IoU. Config: bank v2.1, `--profile v2`, 300 frames, 1280x720
    @ 25 Hz, gz 8.14.0. **Shows:** all 12 clips realize the same designed
@@ -496,18 +499,58 @@ the stale prefix is cosmetic and noted here rather than silently fixed.
    that the P5.11 NO was not render-bound: the renders were always fine.
    Contrast in stack tightness across tiles (bank04 tightest, bank05 loosest)
    is the bdom spread made visible.
-2. **`p511_gate_grid.png`** — 12x8 PASS grid, all cells green `P`, titled
+2. **`p512_gate_grid.png`** — 12x8 PASS grid, all cells green `P`, titled
    "12/12 cells pass all". Config: same 12 bank runs, graded by
    `verdict_p512.py` at the recalibrated floors (`N_CLEAR_FLOOR` 40,
    `BDOM_FLOOR` 0.40). **Shows:** the recalibrated build gate clears the whole
    bank — the direct before/after against P5.11's 3/12 on the same generator.
-3. **`p511_crossing_traces.png`** — per-clip recorded GT-GT IoU vs frame, with
+3. **`p512_crossing_traces.png`** — per-clip recorded GT-GT IoU vs frame, with
    the `occl >= 0.5` window shaded, the P5.13 prompt frame (f150) dashed, and
    the peak-floor 0.20 / tail-cap 0.15 lines dotted. Config: same 12 runs.
    **Shows:** every clip peaks inside its occlusion window and decays to a low
    tail well before f150, i.e. the designed crossing happens mid-idle and is
    over by prompt time — the temporal structure P5.13's dual-carry test needs.
    Also shows the bank05 / bank06 fragmented-occlusion caveat noted above.
+
+## Orchestrator audit (2026-07-19T13:15Z) — a limit the gates do not measure
+
+The verdict was independently re-run (reproduces YES), four cells spot-checked
+against `results.json`, and the montage, traces figure and a never-before-
+rendered cell (bank07) opened with the Read tool. All confirmed. **The verdict
+stands unchanged** — what follows is not a downgrade, and deliberately was not
+allowed to become one: it is a property nobody pre-registered a gate for, and
+bending the verdict on it after the fact would be the mirror image of the
+threshold-fitting this campaign exists to avoid.
+
+Measured across the 12 crossing peaks:
+
+| quantity | spread | frame scale |
+|---|---|---|
+| white-box centre x | 559–672 px, std 27.9 | 1280 |
+| white-box centre y | 304–322 px, std 6.1 | 720 |
+| white-box area | 5088–6889, std 592 | ~6000 mean |
+| peak GT-GT IoU | 0.217–0.352 | — |
+| frames where white is the *nearer* car | **0 of 300, in all 12 clips** | — |
+
+So: G4b's 1.11 m divergence is real, but it is a *whole-trajectory* statistic
+(mean target/distractor/camera point distance). At the crossing peak — the
+moment P5.13 actually grades — the twelve clips converge to nearly the same
+picture, and **the white target is the occluded car in 100% of frames of every
+clip.** The bank never renders the target in front.
+
+This is structurally the same shape as the P5.10 failure, one level in: bank v1
+was diverse by seed but degenerate on the property that mattered downstream
+(GT-GT IoU 0.000). Bank v2.1 fixes that property and is genuinely diverse by
+the gated metric — but the *event* geometry and the z-order are near-constant,
+and neither has a gate.
+
+**Consequence for P5.13, recorded before it runs:** if the DD/RG contracts fail
+to separate, "the bank was too uniform at the decision moment" is a live
+explanation ranking alongside the bank05/bank06 occlusion-stress caveat, and it
+must not be re-derived after the fact as if it were discovered by the result. If
+they *do* separate, they did so on a bank that never tests target-in-front
+z-order, which bounds the claim. Either way this belongs in P5.13's
+pre-registration, not in its post-hoc discussion.
 
 ## Status / next step
 
@@ -523,5 +566,8 @@ The bank at `runs/bank01..bank12` (seeds 1, 2, 3, 4, 6, 14, 17, 28, 29, 33, 40,
 rerun the P5.10 matrix (`select_p510.py`, contracts DD vs RG, DELIVER_FLOOR
 0.25, MATCH_FLOOR 0.10, dominance rule, Qwen2-VL-2B q8_0 terse on Jetson) over
 this bank with **prompt frame 150**. Success = the contracts separate,
-`|DD_total - RG_total| >= 4` of 24. If they do not separate, check bank05 and
-bank06 first (weakest occlusion stress, per the visual gate).
+`|DD_total - RG_total| >= 4` of 24. If they do not separate, the two
+pre-registered explanations to check first — in this order — are the
+crossing-peak uniformity and constant z-order measured in the audit section
+above, then bank05 / bank06's weaker occlusion stress. P5.13's pre-registration
+must name both **before** it runs.

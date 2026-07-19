@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """P5.12 proof deliverables (reproducible from runs/*). Writes proof/*.png:
 
-  p511_crossing_traces.png   per-bank-cell recorded GT-GT IoU trace, occlusion
+  p512_crossing_traces.png   per-bank-cell recorded GT-GT IoU trace, occlusion
                              window shaded, prompt frame marked (numbers proof)
-  p511_gate_grid.png         gate x cell PASS grid from the same grader the
+  p512_gate_grid.png         gate x cell PASS grid from the same grader the
                              verdict uses (numbers proof)
-  p511_occlusion_montage.png crossing-peak overlay crop per bank cell (visual
+  p512_occlusion_montage.png crossing-peak overlay crop per bank cell (visual
                              proof the designed occlusion rendered)
 
 Skips missing cells; needs >= 1 recorded bank cell.
@@ -63,7 +63,7 @@ def fig_traces(cells):
                  "(shaded = white occluded >= 50%; dashed = prompt f150; "
                  "dotted green/red = peak floor 0.20 / tail cap 0.15)")
     fig.tight_layout()
-    fig.savefig(PROOF / "p511_crossing_traces.png", dpi=120)
+    fig.savefig(PROOF / "p512_crossing_traces.png", dpi=120)
     plt.close(fig)
 
 
@@ -86,7 +86,7 @@ def fig_gates(cells):
     ax.set_title(f"P5.12 gate grid ({int(m.all(axis=1).sum())}/{len(rows)} "
                  "cells pass all)")
     fig.tight_layout()
-    fig.savefig(PROOF / "p511_gate_grid.png", dpi=120)
+    fig.savefig(PROOF / "p512_gate_grid.png", dpi=120)
     plt.close(fig)
 
 
@@ -114,7 +114,7 @@ def fig_montage(cells):
     fig.suptitle("P5.12 bank v2.1: crossing-peak overlay per clip "
                  "(blue occluder in front of white target = designed occlusion)")
     fig.tight_layout()
-    fig.savefig(PROOF / "p511_occlusion_montage.png", dpi=120)
+    fig.savefig(PROOF / "p512_occlusion_montage.png", dpi=120)
     plt.close(fig)
 
 

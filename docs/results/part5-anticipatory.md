@@ -416,8 +416,8 @@ P5.11's floors rejected. **Caveat carried forward from looking, not from the num
 occlusion window is fragmented (multiple bands in the trace figure) — they pass every gate but carry
 less occlusion stress, and are the first place to look if P5.13's contracts fail to separate.
 Unblocks the deferred **P5.13 v2-discrimination A/B**, which consumes this bank unchanged.
-Proof: `proof/p511_occlusion_montage.png` (12 genuine crossings, one per cell),
-`proof/p511_gate_grid.png` (12/12 all-green, the before/after against P5.11's 3/12),
-`proof/p511_crossing_traces.png` (per-clip IoU traces: peak inside the occlusion window, tail decayed
+Proof: `proof/p512_occlusion_montage.png` (12 genuine crossings, one per cell),
+`proof/p512_gate_grid.png` (12/12 all-green, the before/after against P5.11's 3/12),
+`proof/p512_crossing_traces.png` (per-clip IoU traces: peak inside the occlusion window, tail decayed
 before the f150 prompt frame). Detail:
 [`../../experiments/2026-07-17-bankv21-recal/README.md`](../../experiments/2026-07-17-bankv21-recal/README.md).
