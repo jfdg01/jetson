@@ -391,9 +391,13 @@ S_SAFE_MAX = 70.0       # sweep's calibrated along-track extent
 def author_scenario(seed, n_frames, fps=25.0, profile="v1"):
     """Seeded, fully precomputed poses for 2 cars + camera. Pure numpy, no gz.
     profile 'v1' = P5.9 bank (disjoint lanes, no crossings) -- byte-stable, do
-    not touch. profile 'v2' = P5.11 crossing bank (designed occlusion)."""
+    not touch. profile 'v2' = P5.11 crossing bank (designed occlusion).
+    profile 'v3' = P5.17 lag-stress bank (crossing + post-prompt camera hold +
+    z-order coin)."""
     if profile == "v2":
         return author_scenario_v2(seed, n_frames, fps)
+    if profile == "v3":
+        return author_scenario_v3(seed, n_frames, fps)
     assert profile == "v1", profile
     rng = np.random.default_rng(seed)
     h = ROAD_HEADING
@@ -570,6 +574,142 @@ def author_scenario_v2(seed, n_frames, fps=25.0):
                    "lat_b_a": lat_b_a, "lat_b_b": lat_b_b,
                    "t_in0": t_in0, "T_in": T_in,
                    "T_hold": T_hold, "T_out": T_out},
+    }
+
+
+# ------------------------------------------- v3 lag-stress profile (P5.17)
+# Bank v2.1 could not separate the select contracts (P5.13 = NO branch 3):
+# the camera tracks the two-car midpoint every frame, so after the prompt the
+# target's IMAGE box barely moves (measured dcx 0.4-15.6 px over the 109-frame
+# RG delivery lag) -- a stale delivered box scores as well as a fresh one, and
+# the RG contract's ~4.4 s latency is free. The P5.13 audit pre-registered
+# three mandatory properties for the next bank, implemented here:
+#   1. post-prompt lag stress: the camera's tracking ANCHOR (midpoint + aim
+#      point) freezes at the prompt frame (V3_HOLD_FRAME); bob/sway keep
+#      oscillating so the feed stays alive, but the cars drive on and recede,
+#      so a box delivered stale by the RG lag is genuinely wrong (gated:
+#      predicted ZOH self-IoU over the lag <= 0.20 for BOTH cars, S8).
+#   2. z-order variation: a seeded coin picks which car is the NEAR car
+#      (smaller s = nearer to the trailing camera = the occluder). v2 had
+#      blue nearer in 100% of frames of 12/12 clips (P5.12 audit).
+#   3. crossing-peak diversity: stage timing is drawn against a randomized
+#      pull-out END time t_end in U(4.2, 5.5) s (v2: t_in0 in U(0.7, 1.0)
+#      with fixed-ish stages made every peak land f56-f94 with near-identical
+#      geometry), plus wider camera bands (standoff 20-30, alt 3.5-7.0,
+#      aim_err +-2.5). Gated at admission: >= peak_span_min frames between
+#      earliest and latest admitted peak, exact 14/14 near-car mix (S9).
+# Everything not named above copies v2 verbatim (lanes, speeds, sway, the
+# two-stage lane change, corridor asserts).
+
+V3_N_FRAMES = 300          # 12.0 s @ 25 Hz
+V3_PROMPT_FRAME = 150      # t_p = 6.0 s, after every crossing completes
+V3_HOLD_FRAME = 150        # camera anchor freeze = prompt frame
+V3_LAG_FRAMES = 110        # RG delivery lag round(4.4 s * 25); P5.13 measured
+                           # acquire_s 4.36-4.56 across 24 cells
+
+
+def author_scenario_v3(seed, n_frames, fps=25.0):
+    rng = np.random.default_rng(seed)
+    h = ROAD_HEADING
+    u = np.array([math.cos(h), math.sin(h)])
+    n = np.array([-math.sin(h), math.cos(h)])
+    t = np.arange(n_frames) / fps
+
+    # white target: constant lane, small sway (v2 bands, verbatim)
+    v_t = rng.uniform(2.2, 3.4)
+    s0_t = rng.uniform(5.0, 12.0)
+    lat_w0 = rng.uniform(-3.0, -2.4)
+    amp_w = rng.uniform(0.10, 0.25)
+    per_w, ph_w = rng.uniform(5.0, 9.0), rng.uniform(0, 2 * math.pi)
+    lat_w = lat_w0 + amp_w * np.sin(2 * math.pi * t / per_w + ph_w)
+    s_w = s0_t + v_t * t
+
+    # z-order coin (mandate 2): near = smaller s (camera trails the convoy).
+    # dv takes the SIGN of ds0 so |gap| can only GROW over the clip (v2's
+    # dv < 0 with ds0 > 0 would shrink the gap below the contact floor).
+    ds_mag = rng.uniform(5.9, 6.9)
+    near_white = bool(rng.random() < 0.5)
+    ds0 = ds_mag if near_white else -ds_mag
+    dv = (1.0 if near_white else -1.0) * rng.uniform(0.0, 0.05)
+    v_d = v_t + dv
+
+    # blue lane change: same two-stage overtake-prep shape as v2, but timed
+    # against a randomized END t_end (mandate 3). Worst-case end 5.5 s stays
+    # >= 0.5 s clear of the prompt; t_in0 floor 0.3 s bounds the sum at 4.9 s.
+    lat_b_a = rng.uniform(0.7, 1.3)        # start: right lane
+    lat_b_b = rng.uniform(-4.8, -4.3)      # end: far-left lane
+    t_end = rng.uniform(4.2, 5.5)          # pull-out completion (s)
+    T_in = rng.uniform(0.9, 1.2)
+    T_hold = rng.uniform(1.2, 1.8)
+    T_out = rng.uniform(1.1, 1.6)
+    t_in0 = max(0.3, t_end - T_in - T_hold - T_out)
+    amp_b = rng.uniform(0.08, 0.20)
+    per_b, ph_b = rng.uniform(5.0, 9.0), rng.uniform(0, 2 * math.pi)
+
+    def sstep(t0, T):
+        x = np.clip((t - t0) / T, 0.0, 1.0)
+        return x * x * (3.0 - 2.0 * x)
+
+    lat_hold = lat_w0
+    lat_b = lat_b_a \
+        + (lat_hold - lat_b_a) * sstep(t_in0, T_in) \
+        + (lat_b_b - lat_hold) * sstep(t_in0 + T_in + T_hold, T_out) \
+        + amp_b * np.sin(2 * math.pi * t / per_b + ph_b)
+    s_b = s0_t + ds0 + v_d * t
+
+    def track(s, lat, v):
+        xy = GRID + np.outer(s, u) + np.outer(lat, n)
+        dlat = np.gradient(lat, 1.0 / fps)
+        yaw = h + np.arctan2(dlat, v)
+        return xy, yaw
+
+    tgt_xy, tgt_yaw = track(s_w, lat_w, v_t)
+    dis_xy, dis_yaw = track(s_b, lat_b, v_d)
+
+    for xy in (tgt_xy, dis_xy):
+        lat_v, s_v = xy @ n, xy @ u
+        assert lat_v.min() >= LAT_SAFE[0] and lat_v.max() <= LAT_SAFE[1], \
+            f"v3 seed {seed}: lat [{lat_v.min():.2f},{lat_v.max():.2f}] outside {LAT_SAFE}"
+        assert s_v.max() <= S_SAFE_MAX, \
+            f"v3 seed {seed}: s_max {s_v.max():.1f} beyond {S_SAFE_MAX}"
+    gap = s_b - s_w
+    assert np.abs(gap).min() >= V2_MIN_GAP_S, \
+        f"v3 seed {seed}: min |ds| {np.abs(gap).min():.2f} < {V2_MIN_GAP_S} (contact risk)"
+    assert (np.sign(gap) == np.sign(gap[0])).all() and gap[0] != 0, \
+        f"v3 seed {seed}: z-order flips mid-clip"
+
+    # camera: v2's low grazing view, wider bands (mandate 3), and the
+    # post-prompt anchor freeze (mandate 1): tracking index j clamps at
+    # V3_HOLD_FRAME while bob/sway keep running on the true clock t[i].
+    mid = (tgt_xy + dis_xy) / 2
+    standoff = rng.uniform(20, 30)
+    alt = rng.uniform(3.5, 7.0)
+    bob_a, bob_p = rng.uniform(0.2, 0.6), rng.uniform(5.0, 11.0)
+    sway_a, sway_p = rng.uniform(0.5, 1.5), rng.uniform(6.0, 13.0)
+    aim_err = rng.uniform(-2.5, 2.5, size=2)
+    cam_pos = np.zeros((n_frames, 3))
+    cam_quat = np.zeros((n_frames, 4))
+    for i in range(n_frames):
+        j = min(i, V3_HOLD_FRAME)
+        p = np.array([*(mid[j] - u * standoff
+                        + n * (sway_a * math.sin(2 * math.pi * t[i] / sway_p))),
+                      alt + bob_a * math.sin(2 * math.pi * t[i] / bob_p)])
+        q, _, _ = look_at(p, [mid[j][0] + aim_err[0], mid[j][1] + aim_err[1], 0.0])
+        cam_pos[i] = p
+        cam_quat[i] = q
+    return {
+        "seed": seed, "n_frames": n_frames, "fps": fps, "profile": "v3",
+        "target": {"name": "car_white", "color": "white", "xy": tgt_xy,
+                   "yaw": tgt_yaw, "v": v_t},
+        "distractor": {"name": "car_blue", "color": "blue", "xy": dis_xy,
+                       "yaw": dis_yaw, "v": v_d},
+        "cam_pos": cam_pos, "cam_quat": cam_quat,
+        "params": {"standoff": standoff, "alt": alt, "aim_err": aim_err.tolist(),
+                   "v_target": v_t, "v_distractor": v_d, "ds0": ds0,
+                   "near": "white" if near_white else "blue",
+                   "lat_b_a": lat_b_a, "lat_b_b": lat_b_b,
+                   "t_in0": t_in0, "T_in": T_in,
+                   "T_hold": T_hold, "T_out": T_out, "t_end": t_end},
     }
 
 
@@ -785,6 +925,162 @@ def screen21_cmd(args):
     return 0
 
 
+# ------------------------------------------- v3 seed screen (P5.17)
+# Per-seed rules S1-S5 keep the v2 thresholds but generalize "the occluded
+# car" to the FAR car (z-order varies by design); S6 is the far-car clear
+# floor; S8 is NEW (the lag-stress mandate): both cars' predicted ZOH
+# self-IoU over the RG lag window must be <= stale_iou_max (a stale delivered
+# box is genuinely wrong), and both cars must stay scoreable (area >=
+# area_min) on every post-prompt frame. Admission adds S7 pairwise diversity
+# (>= div_min vs every already-admitted seed, greedy ascending) and S9 set
+# rules: exact need_per_class near-white/near-blue mix + crossing-peak span
+# >= peak_span_min frames. All pure projection -- no gz, no GPU.
+
+V3_SCREEN = {
+    "peak_iou_min": 0.20, "run_iou15_min": 25, "run_occl50_min": 25,
+    "peak_before_f": V3_PROMPT_FRAME - 25, "tail_iou_max": 0.15,
+    "clear_min": 45, "stale_iou_max": 0.20, "area_min": 150.0,
+    "div_min": 1.1, "need_per_class": 14, "lo": 1, "hi": 300,
+    "peak_span_min": 30,
+}
+# Pinned admission result of v3_bank() over the defaults above (computed
+# offline 2026-07-20, pre-registered in the P5.17 README; selfcheck 6h pins
+# it): 28 seeds, exact 14/14 near-white/near-blue mix, peak_f span 62.
+V3_BANK_PINNED = [2, 3, 6, 7, 8, 13, 17, 18, 21, 28, 32, 42, 48, 57, 68, 69,
+                  70, 74, 89, 91, 92, 98, 101, 103, 104, 112, 116, 122]
+
+
+def v3_roles(sc):
+    """(near_role, far_role) of an authored v3 scenario: the near car (smaller
+    s, closer to the trailing camera) is the occluder; the far car is the
+    occluded one. Matches record()'s per-frame 'nearer' provenance."""
+    if sc["params"]["near"] == "white":
+        return "target", "distractor"
+    return "distractor", "target"
+
+
+def predicted_occl_far(sc, boxes=None):
+    """Predicted per-frame occluded fraction of the FAR car (v3 analogue of
+    predicted_occl_white; the occluded role varies with the z-order coin)."""
+    boxes = boxes or scenario_boxes(sc)
+    near, far = v3_roles(sc)
+    return np.array([_overlap_frac(fb, nb) for fb, nb in
+                     zip(boxes[far], boxes[near])])
+
+
+def v3_crossing_screen(sc):
+    """Offline per-seed screen for one authored v3 scenario (S1-S6 + S8)."""
+    cfg = V3_SCREEN
+    boxes = scenario_boxes(sc)
+    iou = predicted_gtgt_iou(sc, boxes)
+    occ = predicted_occl_far(sc, boxes)
+    near, far = v3_roles(sc)
+    P, L = V3_PROMPT_FRAME, V3_LAG_FRAMES
+    vis_far = np.array([b is not None for b in boxes[far]])
+    clear_far = int(((occ <= 0.05) & vis_far).sum())
+
+    def _area(b):
+        return 0.0 if b is None else (b[2] - b[0]) * (b[3] - b[1])
+
+    stale = {}
+    scoreable = True
+    for role in ("target", "distractor"):
+        b0, b1 = boxes[role][P], boxes[role][P + L]
+        stale[role] = round(_iou2d(b0, b1), 4)
+        scoreable &= all(_area(boxes[role][f]) >= cfg["area_min"]
+                         for f in range(P, sc["n_frames"]))
+    m = {
+        "near": sc["params"]["near"],
+        "peak_iou": round(float(iou.max()), 4),
+        "peak_f": int(iou.argmax()),
+        "run_iou15": _max_run(iou, 0.15),
+        "peak_occl_far": round(float(occ.max()), 4),
+        "run_occl50": _max_run(occ, 0.50),
+        "tail_iou_max": round(float(iou[P:].max()), 4),
+        "clear_far": clear_far,
+        "stale_t": stale["target"], "stale_d": stale["distractor"],
+        "scoreable": scoreable,
+    }
+    m["pass"] = bool(
+        m["peak_iou"] >= cfg["peak_iou_min"]
+        and m["run_iou15"] >= cfg["run_iou15_min"]
+        and m["run_occl50"] >= cfg["run_occl50_min"]
+        and m["peak_f"] <= cfg["peak_before_f"]
+        and m["tail_iou_max"] <= cfg["tail_iou_max"]
+        and m["clear_far"] >= cfg["clear_min"]
+        and m["stale_t"] <= cfg["stale_iou_max"]
+        and m["stale_d"] <= cfg["stale_iou_max"]
+        and m["scoreable"])
+    return m
+
+
+def v3_bank(lo=None, hi=None, need_per_class=None):
+    """v3 offline seed screen + greedy class-balanced admission. Ascending
+    seed order; a passing seed is admitted iff its near-car class quota is
+    open AND min divergence vs every admitted seed >= div_min. Stops when
+    both quotas fill. Returns (admitted, rows). Deterministic, no gz."""
+    cfg = V3_SCREEN
+    lo = cfg["lo"] if lo is None else lo
+    hi = cfg["hi"] if hi is None else hi
+    need = cfg["need_per_class"] if need_per_class is None else need_per_class
+    admitted, adm_scs, rows = [], [], []
+    quota = {"white": need, "blue": need}
+    for seed in range(lo, hi + 1):
+        sc = author_scenario(seed, V3_N_FRAMES, profile="v3")
+        m = v3_crossing_screen(sc)
+        s7 = None
+        if m["pass"] and quota[m["near"]] > 0:
+            dmin = min([scenario_divergence(sc, a) for a in adm_scs],
+                       default=float("inf"))
+            s7 = dmin >= cfg["div_min"]
+            if s7:
+                admitted.append(seed)
+                adm_scs.append(sc)
+                quota[m["near"]] -= 1
+        rows.append({"seed": seed, "s7": s7, "admitted": seed in admitted, **m})
+        if quota["white"] == 0 and quota["blue"] == 0:
+            break
+    return admitted, rows
+
+
+def v3_bank_peak_span(rows):
+    """S9b: span (max-min) of admitted crossing-peak frames."""
+    pk = [r["peak_f"] for r in rows if r["admitted"]]
+    return (max(pk) - min(pk)) if pk else 0
+
+
+def screen3_cmd(args):
+    """Design-time preflight for the P5.17 bank: v3 screen table + admission."""
+    admitted, rows = v3_bank(args.lo, args.hi, args.need_per_class)
+    print(f"{'seed':<6}{'near':<7}{'S1-6':<6}{'S8st':<6}{'S7':<5}{'in':<4}"
+          f"{'peakIoU':<9}{'peak_f':<8}{'run50':<7}{'clear':<7}"
+          f"{'staleT':<8}{'staleD':<8}{'tail':<7}")
+    for r in rows:
+        s8 = "ok" if (r["stale_t"] <= V3_SCREEN["stale_iou_max"]
+                      and r["stale_d"] <= V3_SCREEN["stale_iou_max"]
+                      and r["scoreable"]) else "BAD"
+        print(f"{r['seed']:<6}{r['near']:<7}"
+              f"{('PASS' if r['pass'] else 'fail'):<6}{s8:<6}"
+              f"{('-' if r['s7'] is None else 'ok' if r['s7'] else 'DUP'):<5}"
+              f"{('IN' if r['admitted'] else ''):<4}"
+              f"{r['peak_iou']:<9.3f}{r['peak_f']:<8}{r['run_occl50']:<7}"
+              f"{r['clear_far']:<7}{r['stale_t']:<8.3f}{r['stale_d']:<8.3f}"
+              f"{r['tail_iou_max']:<7.3f}")
+    span = v3_bank_peak_span(rows)
+    nw = sum(1 for r in rows if r["admitted"] and r["near"] == "white")
+    nb = sum(1 for r in rows if r["admitted"] and r["near"] == "blue")
+    print(f"\nadmitted bank ({len(admitted)}): {admitted}")
+    print(f"near-white {nw}, near-blue {nb}, peak_f span {span} "
+          f"(S9 needs {V3_SCREEN['need_per_class']}/{V3_SCREEN['need_per_class']}"
+          f" and span >= {V3_SCREEN['peak_span_min']})")
+    want = 2 * (args.need_per_class or V3_SCREEN["need_per_class"])
+    if len(admitted) < want or span < V3_SCREEN["peak_span_min"]:
+        print("SCREEN3 FAIL: not enough admissible seeds or peak span too "
+              "narrow -- widen --hi or revisit bands")
+        return 1
+    return 0
+
+
 # ---------------------------------------------------------------- validity metrics
 
 def color_mask(bgr, color):
@@ -853,7 +1149,7 @@ def record(args):
     (out / "frames").mkdir(parents=True, exist_ok=True)
     sc = author_scenario(args.seed, args.frames, profile=args.profile)
     pred_boxes, xpeak_f, xpeak_iou = None, None, None
-    if args.profile == "v2":
+    if args.profile in ("v2", "v3"):
         # designed-occlusion provenance: the crossing peak is a design-time
         # fact (pure projection), so the LOOK-AT-IT overlay lands exactly on it
         pred_boxes = scenario_boxes(sc)
@@ -915,10 +1211,10 @@ def record(args):
                 fr, _npx = frag_metric(bgr, bbox, c["color"])
                 if fr is not None:
                     rec["frag"] = round(fr, 4)
-                if args.profile == "v2":
+                if args.profile in ("v2", "v3"):
                     rec["npx"] = _npx  # visible own-colour pixel count (gate G8)
             objs.append(rec)
-        if args.profile == "v2":
+        if args.profile in ("v2", "v3"):
             # occlusion provenance: 'nearer' = closer to the camera than the
             # other car; 'occl' = fraction of OWN GT box covered by the other
             # car's GT box IF the other car is nearer (else 0). This is what
@@ -977,7 +1273,7 @@ def record(args):
             ok_both &= v
         both_vis += ok_both
     v2_extra = {}
-    if args.profile == "v2":
+    if args.profile in ("v2", "v3"):
         # clear-frame partition (occl <= 0.05): the frames where v1-grade
         # integrity thresholds still apply. Occluded-frame fragmentation of the
         # farther car is DESIGNED, not a defect; verdict_p511 is the authority,
@@ -993,10 +1289,12 @@ def record(args):
                         frg_clear[o["id"]].append(o["frag"])
                     if "purity" in o:
                         pur_clear[o["id"]].append(o["purity"])
+        screen_fn = v2_crossing_screen if args.profile == "v2" else v3_crossing_screen
         v2_extra = {
-            "profile": "v2",
-            "v2_screen": v2_crossing_screen(sc),
-            "v2_xpeak_pred_f": xpeak_f, "v2_xpeak_pred_iou": round(xpeak_iou, 4),
+            "profile": args.profile,
+            f"{args.profile}_screen": screen_fn(sc),
+            f"{args.profile}_xpeak_pred_f": xpeak_f,
+            f"{args.profile}_xpeak_pred_iou": round(xpeak_iou, 4),
             "g2_purity_median_clear": {
                 str(k): round(float(np.median(v)), 4) if v else None
                 for k, v in pur_clear.items()},
@@ -1320,6 +1618,49 @@ def selfcheck():
     for s in admitted_21:
         assert predicted_clear_count(scs_21[s]) >= V2_1_SCREEN["clear_min"], s
 
+    # 6h. v3 profile + screen regression pins (P5.17): determinism, corridor +
+    #     no-contact + stable-z-order construction guarantees over a seed
+    #     sweep, the post-prompt camera hold (anchor frozen from f150, bob/
+    #     sway still alive), the z-order coin actually mixing, and the pinned
+    #     bank admission byte-for-byte with its S9 set rules.
+    a3, b3 = author_scenario(7, 300, profile="v3"), author_scenario(7, 300, profile="v3")
+    assert np.array_equal(a3["distractor"]["xy"], b3["distractor"]["xy"])
+    assert np.array_equal(a3["cam_quat"], b3["cam_quat"])
+    nears = set()
+    for sd in range(1, 41):
+        sc = author_scenario(sd, 300, profile="v3")  # internal asserts run here
+        nears.add(sc["params"]["near"])
+        # camera anchor frozen from V3_HOLD_FRAME: the look-at direction at
+        # f200/f299 must match a camera re-aimed at the f150 anchor, and the
+        # xy anchor (pos minus sway) must equal the f150 anchor exactly
+        assert not np.allclose(sc["target"]["xy"][299],
+                               sc["target"]["xy"][150])  # cars still moving
+        swy = sc["cam_pos"][:, :2]
+        hh3 = ROAD_HEADING
+        nn3 = np.array([-math.sin(hh3), math.cos(hh3)])
+        uu3 = np.array([math.cos(hh3), math.sin(hh3)])
+        anchor = swy - np.outer(swy @ nn3, nn3)  # remove lateral (sway) part
+        assert np.allclose(anchor[150] @ uu3, anchor[299] @ uu3, atol=1e-9), sd
+        assert not np.allclose(anchor[100] @ uu3, anchor[150] @ uu3, atol=1e-6), sd
+    assert nears == {"white", "blue"}, nears  # coin mixes within 40 seeds
+    m3 = v3_crossing_screen(author_scenario(2, V3_N_FRAMES, profile="v3"))
+    assert m3["pass"] and m3["near"] == "white", m3
+    m3f = v3_crossing_screen(author_scenario(1, V3_N_FRAMES, profile="v3"))
+    assert not m3f["pass"] and m3f["clear_far"] < V3_SCREEN["clear_min"], m3f
+    admitted_3, rows_3 = v3_bank()
+    assert admitted_3 == V3_BANK_PINNED, admitted_3
+    nw3 = sum(1 for r in rows_3 if r["admitted"] and r["near"] == "white")
+    assert nw3 == 14 and len(admitted_3) == 28, (nw3, len(admitted_3))
+    assert v3_bank_peak_span(rows_3) >= V3_SCREEN["peak_span_min"]
+    scs_3 = [author_scenario(s, V3_N_FRAMES, profile="v3") for s in admitted_3]
+    dmin_3 = min(scenario_divergence(x, y)
+                 for k, x in enumerate(scs_3) for y in scs_3[k + 1:])
+    assert dmin_3 >= 1.0, dmin_3  # G4b floor under the 1.1 screen margin
+    for sc in scs_3:
+        mm = v3_crossing_screen(sc)
+        assert mm["stale_t"] <= V3_SCREEN["stale_iou_max"] \
+            and mm["stale_d"] <= V3_SCREEN["stale_iou_max"] and mm["scoreable"]
+
     # 7. proxy protocol round-trip (needs the gz python libs but NO gz server):
     #    ping->pong, then a request to a nonexistent service must come back
     #    ok=False without crashing the proxy, and the proxy must still answer.
@@ -1348,8 +1689,9 @@ def main():
     r.add_argument("--seed", type=int, required=True)
     r.add_argument("--frames", type=int, default=240)
     r.add_argument("--out", required=True)
-    r.add_argument("--profile", choices=("v1", "v2"), default="v1",
-                   help="v1 = P5.9 bank (frozen); v2 = P5.11 crossing bank")
+    r.add_argument("--profile", choices=("v1", "v2", "v3"), default="v1",
+                   help="v1 = P5.9 bank (frozen); v2 = P5.11 crossing bank; "
+                        "v3 = P5.17 lag-stress bank")
     s = sub.add_parser("screen")  # offline v2 crossing screen (no gz needed)
     s.add_argument("--lo", type=int, default=1)
     s.add_argument("--hi", type=int, default=60)
@@ -1358,6 +1700,10 @@ def main():
     s21.add_argument("--lo", type=int, default=None)
     s21.add_argument("--hi", type=int, default=None)
     s21.add_argument("--need", type=int, default=12)
+    s3 = sub.add_parser("screen3")  # offline v3 screen: S1-S6 + S8 + S7/S9 (P5.17)
+    s3.add_argument("--lo", type=int, default=None)
+    s3.add_argument("--hi", type=int, default=None)
+    s3.add_argument("--need-per-class", type=int, default=None)
     sub.add_parser("selfcheck")
     sub.add_parser("proxy")       # internal: spawned by ProxyClient
     sub.add_parser("killserver")  # kill select_arena gz servers by process group
@@ -1368,6 +1714,8 @@ def main():
         sys.exit(screen_cmd(args))
     elif args.cmd == "screen21":
         sys.exit(screen21_cmd(args))
+    elif args.cmd == "screen3":
+        sys.exit(screen3_cmd(args))
     elif args.cmd == "proxy":
         proxy_main()
     elif args.cmd == "killserver":

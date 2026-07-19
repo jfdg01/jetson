@@ -1,0 +1,109 @@
+[scenegen] frame 0/300 (8.21 fps)
+[scenegen] frame 40/300 (8.69 fps)
+[scenegen] frame 80/300 (8.73 fps)
+[scenegen] frame 120/300 (8.77 fps)
+[scenegen] frame 160/300 (8.76 fps)
+[scenegen] frame 200/300 (8.77 fps)
+[scenegen] frame 240/300 (8.76 fps)
+[scenegen] frame 280/300 (8.77 fps)
+[scenegen] frame 299/300 (8.77 fps)
+{
+  "seed": 98,
+  "frames": 300,
+  "out": "experiments/2026-07-20-bankv3-select/runs/bank/s098",
+  "profile": "v3",
+  "v3_screen": {
+    "near": "white",
+    "peak_iou": 0.4399,
+    "peak_f": 82,
+    "run_iou15": 80,
+    "peak_occl_far": 0.7317,
+    "run_occl50": 60,
+    "tail_iou_max": 0.131,
+    "clear_far": 55,
+    "stale_t": 0.083,
+    "stale_d": 0.1519,
+    "scoreable": true,
+    "pass": true
+  },
+  "v3_xpeak_pred_f": 82,
+  "v3_xpeak_pred_iou": 0.4399,
+  "g2_purity_median_clear": {
+    "0": 0.7344,
+    "1": 0.4903
+  },
+  "g6_frag_p10_clear": {
+    "0": 0.9941,
+    "1": 1.0
+  },
+  "g6_frag_below090_frac_clear": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g6_n_clear": {
+    "0": 300,
+    "1": 55
+  },
+  "wall_loop_s": 34.2,
+  "fps_wall": 8.767,
+  "g1_dead_frames": 0,
+  "g1_identical_consecutive": 0,
+  "g1_stamp_steps_ok": true,
+  "g2_purity_median": {
+    "0": 0.7344,
+    "1": 0.5308
+  },
+  "g2_bg_purity_median": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g3_both_visible_frac": 1.0,
+  "g6_frag_p10": {
+    "0": 0.9941,
+    "1": 1.0
+  },
+  "g6_frag_min": {
+    "0": 0.9912,
+    "1": 0.986
+  },
+  "g6_frag_below090_frac": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g6_frag_n": {
+    "0": 300,
+    "1": 300
+  },
+  "g0_retries_pose": 0,
+  "g0_retries_step": 0,
+  "g0_response_lost": 0,
+  "g0_proxy_restarts": 0,
+  "g0_spawn_warns": [],
+  "params": {
+    "standoff": 22.765346161238224,
+    "alt": 3.5927623747874744,
+    "aim_err": [
+      1.8647293102839688,
+      -0.38855258923259495
+    ],
+    "v_target": 3.332386649214154,
+    "v_distractor": 3.3469098088660116,
+    "ds0": 6.1796764779838504,
+    "near": "white",
+    "lat_b_a": 0.9364955469123513,
+    "lat_b_b": -4.722549907024512,
+    "t_in0": 0.5071212847524107,
+    "T_in": 0.9737721574260148,
+    "T_hold": 1.4383492317785076,
+    "T_out": 1.3112944427051452,
+    "t_end": 4.230537116662078
+  },
+  "versions": {
+    "gz": "8.14.0",
+    "python": "3.12.10",
+    "numpy": "2.4.4",
+    "cv2": "4.13.0"
+  },
+  "cmd": "runners/scenegen.py record --seed 98 --frames 300 --profile v3 --out experiments/2026-07-20-bankv3-select/runs/bank/s098"
+}
+[scenegen] DONE experiments/2026-07-20-bankv3-select/runs/bank/s098

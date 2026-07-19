@@ -1,0 +1,71 @@
+cell        role  DD    dd_class      ddIoU  RG    rg_class        vlm_on  acq_s  delivF  ddCov  rgCov  
+s002_blue   far   PASS  None          0.581  PASS  None            named   4.35   259     1.000  1.000  
+s002_white  near  PASS  None          0.632  PASS  None            named   4.35   259     0.927  0.927  
+s003_blue   far   PASS  None          0.604  PASS  None            named   4.34   259     1.000  1.000  
+s003_white  near  PASS  None          0.605  FAIL  DELIVERY_DRIFT  named   4.34   259     0.627  0.098  
+s006_blue   far   PASS  None          0.552  PASS  None            named   4.34   259     1.000  1.000  
+s006_white  near  PASS  None          0.595  PASS  None            named   4.34   259     1.000  1.000  
+s007_blue   near  PASS  None          0.583  PASS  None            named   4.35   259     1.000  1.000  
+s007_white  far   PASS  None          0.583  PASS  None            named   4.35   259     1.000  1.000  
+s008_blue   far   PASS  None          0.526  PASS  None            named   4.35   259     1.000  1.000  
+s008_white  near  PASS  None          0.582  PASS  None            named   4.35   259     1.000  1.000  
+s013_blue   far   PASS  None          0.512  PASS  None            named   4.34   259     1.000  1.000  
+s013_white  near  PASS  None          0.432  PASS  None            named   4.34   259     1.000  1.000  
+s017_blue   near  PASS  None          0.605  PASS  None            named   4.34   258     1.000  1.000  
+s017_white  far   PASS  None          0.597  PASS  None            named   4.34   259     1.000  1.000  
+s018_blue   near  PASS  None          0.608  PASS  None            named   4.35   259     1.000  1.000  
+s018_white  far   PASS  None          0.639  PASS  None            named   4.35   259     1.000  1.000  
+s021_blue   far   PASS  None          0.539  PASS  None            named   4.33   258     1.000  1.000  
+s021_white  near  PASS  None          0.593  PASS  None            named   4.33   258     1.000  1.000  
+s028_blue   near  PASS  None          0.615  PASS  None            named   4.33   258     1.000  1.000  
+s028_white  far   PASS  None          0.600  PASS  None            named   4.33   258     1.000  1.000  
+s032_blue   near  PASS  None          0.611  PASS  None            named   4.34   259     1.000  1.000  
+s032_white  far   PASS  None          0.631  PASS  None            named   4.34   259     0.940  0.780  
+s042_blue   near  PASS  None          0.614  PASS  None            named   4.35   259     1.000  1.000  
+s042_white  far   PASS  None          0.623  PASS  None            named   4.35   259     1.000  1.000  
+s048_blue   near  PASS  None          0.640  PASS  None            named   4.34   258     1.000  1.000  
+s048_white  far   PASS  None          0.633  PASS  None            named   4.34   258     1.000  1.000  
+s057_blue   near  PASS  None          0.630  PASS  None            named   4.34   259     1.000  1.000  
+s057_white  far   PASS  None          0.622  PASS  None            named   4.34   259     1.000  1.000  
+s068_blue   near  PASS  None          0.564  PASS  None            named   4.36   259     1.000  1.000  
+s068_white  far   PASS  None          0.585  PASS  None            named   4.36   259     1.000  1.000  
+s069_blue   far   PASS  None          0.560  PASS  None            named   4.33   258     1.000  1.000  
+s069_white  near  PASS  None          0.599  PASS  None            named   4.33   258     0.840  1.000  
+s070_blue   far   PASS  None          0.575  PASS  None            named   4.34   259     1.000  1.000  
+s070_white  near  PASS  None          0.599  PASS  None            named   4.34   259     1.000  1.000  
+s074_blue   near  PASS  None          0.600  PASS  None            named   4.34   258     1.000  1.000  
+s074_white  far   PASS  None          0.580  PASS  None            named   4.34   258     1.000  1.000  
+s089_blue   near  PASS  None          0.600  PASS  None            named   4.34   258     1.000  1.000  
+s089_white  far   PASS  None          0.616  PASS  None            named   4.34   258     0.893  1.000  
+s091_blue   near  PASS  None          0.622  PASS  None            named   4.34   258     1.000  1.000  
+s091_white  far   PASS  None          0.619  PASS  None            named   4.34   259     1.000  1.000  
+s092_blue   far   PASS  None          0.569  PASS  None            named   4.34   259     1.000  1.000  
+s092_white  near  PASS  None          0.611  PASS  None            named   4.34   259     1.000  1.000  
+s098_blue   far   PASS  None          0.538  PASS  None            named   4.34   259     1.000  1.000  
+s098_white  near  PASS  None          0.554  PASS  None            named   4.34   259     1.000  1.000  
+s101_blue   far   PASS  None          0.525  PASS  None            named   4.34   258     1.000  1.000  
+s101_white  near  PASS  None          0.569  PASS  None            named   4.34   258     1.000  1.000  
+s103_blue   near  PASS  None          0.621  PASS  None            named   4.35   259     1.000  1.000  
+s103_white  far   PASS  None          0.658  PASS  None            named   4.35   259     1.000  1.000  
+s104_blue   far   PASS  None          0.518  PASS  None            named   4.34   259     1.000  1.000  
+s104_white  near  PASS  None          0.568  PASS  None            named   4.34   259     1.000  1.000  
+s112_blue   far   PASS  None          0.538  PASS  None            named   4.34   259     1.000  1.000  
+s112_white  near  PASS  None          0.598  PASS  None            named   4.35   259     1.000  1.000  
+s116_blue   near  PASS  None          0.623  PASS  None            named   4.34   259     1.000  1.000  
+s116_white  far   PASS  None          0.602  PASS  None            named   4.34   258     1.000  1.000  
+s122_blue   far   PASS  None          0.557  PASS  None            named   4.34   258     1.000  1.000  
+s122_white  near  PASS  None          0.588  PASS  None            named   4.34   258     1.000  1.000  
+
+DD_total 56/56  RG_total 55/56  (health floor 45 = ceil(0.8*56))
+DD by named-car role: far 28/28, near 28/28
+DD fail classes: {}  RG fail classes: {'DELIVERY_DRIFT': 1}
+
+RQ-P5.17a (|DD_total - RG_total| >= 7 of 56): NO (DD 56 vs RG 55, |diff| 1)
+RQ-P5.17b (DIAGNOSTIC, non-gating; far-leg DD fails minus near-leg DD fails >= 3): NO (asym 0) -- YES means the occlusion aftermath, not generic drift, breaks the carry
+OVERALL RQ-P5.17: NO (YES iff branch 1; the visual gate V can only downgrade)
+
+Pre-registered interpretation branches (the matching one applies):
+  [ ] branch 1: DD - RG >= 7: the lag-stress bank reproduces P5.14's real-video delivery-contract separation in sim at n >= 25 -- the staleness mechanism (target moves during the ~4.4 s re-ground lag) is sufficient to separate the contracts, and bank v3 is a working discriminating test-bed for select levers.
+  [ ] branch 2: RG - DD >= 7: prompt-time re-grounding WINS on lag-stress scenes -- the carry through the crossing is the weak link and the VLM repairs it. Inverts the P5.14 delivery-contract conclusion for occluded targets; next lever = hybrid carry + re-ground confirmation.
+  [X] branch 3: No separation, both contracts >= ceil(0.8*n): third consecutive sim contract tie, now at proper n WITH realized staleness and designed crossings. Pre-registered conclusion: sim-select discrimination is CLOSED -- the DD advantage seen on real video (P5.14) is attributable to real-imagery VLM fragility that clean renders cannot reproduce; further select levers must be tested on real video.
+  [ ] branch 4: No separation, at least one contract < ceil(0.8*n): the stack fails upstream of the delivery contract (carry loss on both, or VLM failure on both); diagnose the stack before re-asking the contract question.

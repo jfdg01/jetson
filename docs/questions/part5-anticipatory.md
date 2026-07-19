@@ -436,3 +436,35 @@ opened with the Read tool. Every scored PASS is corroborated by the pixels, both
 failure mode their class claims, no degenerate frame (max single-colour fraction 0.009). The
 wrong-object discovery on `car7:460` was *seen*, not inferred.
 Detail: [`../../experiments/2026-07-19-autodisc-select/README.md`](../../experiments/2026-07-19-autodisc-select/README.md).
+
+## RQ-P5.17 (2026-07-20) — bankv3-select
+
+**RQ-P5.17a (gating):** on a sim bank engineered so the ~4.4 s prompt-time re-ground lag is
+*geometrically costly* (GT box at the deliver frame has IoU <= 0.20 with the prompt-frame box,
+both cars, every clip) and that carries all three P5.13-mandated diversity gates, do the two
+delivery contracts separate by >= 7 cells of 56?
+**Verdict: NO [branch 3 — contracts-equivalent].** DD 56/56 vs RG 55/56, |diff| = 1; both
+clear the health floor 45.
+
+**RQ-P5.17b (diagnostic, non-gating):** are DD failures concentrated on the far leg (named car
+was the occluded one)? **Verdict: NO** — asymmetry 0; DD is 28/28 in both roles, so there are
+no DD failures to attribute to the occlusion aftermath.
+
+This is the **third consecutive sim tie** (P5.10, P5.13, P5.17), and this time both levers the
+P5.13 audit blamed were supplied and *measured*: staleness is realized (median ZOH IoU 0.08 at
+delivery, vs 0.79 in bank v2.1) and the crossings are designed (max GT–GT IoU 0.28–0.44). The
+contracts still do not separate. Per the pre-registered branch-3 text, **sim-select
+discrimination is CLOSED**: the DD advantage measured on real video (P5.14, shadow RG
+disagreeing on 4/12 real cells) is attributed to **real-imagery VLM fragility that clean Gazebo
+renders cannot reproduce** — here RG's VLM grounded the named car correctly on 56/56 cells.
+Select levers move to real video; the v3 bank is retained for stack-level questions (carry
+through occlusion, mask-quality gates, tracker swaps) where clean deterministic renders with
+exact GT are an asset rather than the confound.
+
+Negative result, and a decisive one: it closes a fork the loop had returned to four times.
+
+**Visual gate: PASS.** 19 "looked at" lines — 5 rank-sampled crossing peaks, 5 f150/f225
+recession pairs, the 3 proof figures, 5 select cell triplets and the single failing cell — all
+opened with the Read tool. Every sampled PASS looks like a pass; the one mechanical FAIL looks
+like a real failure.
+Detail: [`../../experiments/2026-07-20-bankv3-select/README.md`](../../experiments/2026-07-20-bankv3-select/README.md).
