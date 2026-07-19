@@ -378,3 +378,46 @@ follow-up trigger; the pre-registered P5.12 v2-discrimination A/B is blocked unt
 Proof: `proof/p511_occlusion_montage.png` (12 genuine crossings), `proof/p511_gate_grid.png`
 (failure partition heatmap, 3/12), `proof/p511_crossing_traces.png` (per-clip IoU/occlusion traces,
 peaks pre-prompt, tails post-prompt).
+
+### P5.12 — bank v2.1 recalibrated designed-crossing scene bank (build gate) (2026-07-19)
+
+Re-run of the identical 16-run P5.11 v2 record matrix over a **v2.1 seed bank** chosen by an offline
+admission screen (S6 predicted-clear-frame floor ≥45, S7 pairwise divergence ≥1.1 m) against two
+floors recalibrated **once, before any v2.1 frame was recorded**, from P5.11's 12-cell visually
+confirmed population (`curation/p511_population.json`): G6c `n_clear` 60→40, G8b `bdom` 0.55→0.40.
+Generator (`author_scenario`, `profile="v2"`, `record()`) untouched. Bank seeds
+`[1, 2, 3, 4, 6, 14, 17, 28, 29, 33, 40, 56]`. RTX 3090, gz sim 8.14.0, 1280×720 @ 25 Hz, 300
+frames/clip, `--profile v2`, fresh server session per run.
+
+| axis | result | detail |
+|---|---|---|
+| Gate runs G0–G6c | **4/4 PASS** | seed101_A/202_B/303_C/101_D all green; fps 7.99–8.26 |
+| G4a determinism (A vs D) | **PASS** | gt byte-identical, frame mean\|diff\| 0.0, frac(>8)=0.0 |
+| G4b seed diversity (15 seeds) | **PASS** | min pairwise scenario divergence **1.11 m ≥ 1.0** at pair (2,29); recorded-f0 faithful 16/16 |
+| G7 screen pin (new) | **PASS** | `sg.v2_1_bank()` reproduces the pinned bank byte-for-byte at verdict time |
+| Bank cells all gates | **12/12 PASS** | vs P5.11's 3/12 on the same generator; 0 INFRA, 0 present-but-failing |
+| G6c margin | min n_clear **57** (bank02) | floor 40; at P5.11's old floor of 60 this defect-free clip would still fail → bank would be 11/12 |
+| G8b margin | min bdom **0.488** (bank05/seed 6) | floor 0.40; this is the exact value that failed P5.11's 0.55 floor, visually confirmed a genuine shallow occlusion |
+| **S6 predicted vs recorded n_clear** | **12/12, delta 0 on every cell** | pure-projection prediction reproduces the recorded G6c pool exactly, incl. all six never-rendered seeds |
+| Visual gate V | **PASS (no downgrade)** | 12 crossing-peaks + 12 post-prompt + 2 gate mid-run + 3 proof figures opened with the Read tool; 12/12 genuine occlusions, **0 render defects** |
+| Wall | **~18 min** for 16 runs | estimate was 30–40 min; 0 retries, 0 gz-transport flake |
+
+**RQ-P5.12 = YES** [12/12 bank; V PASS]. P5.11's NO is confirmed **gate-calibration-bound, not
+render-bound**: the same untouched generator, re-screened offline and re-graded at floors frozen
+before recording, clears the whole bank. The load-bearing evidence is the **delta-0 S6 transfer
+table** — `predicted_clear_count()` computes the recorded `n_clear` exactly on 12/12 cells with no
+renderer in the loop, which makes the screen a legitimate pre-selection rather than a post-hoc
+filter, and it held identically on the six seeds (17, 28, 29, 33, 40, 56) that had never been
+rendered before. The pre-registered hypothesis actually under test ("does the offline screen predict
+render *integrity* on unseen seeds?") passed. Two floors are proven load-bearing rather than
+loosened-to-fit: bank02 (n_clear 57) and bank05 (bdom 0.488) are visually flawless clips that
+P5.11's floors rejected. **Caveat carried forward from looking, not from the numbers:** bank05
+(seed 6) and bank06 (seed 14) are visibly shallower occlusions than the other ten and their
+occlusion window is fragmented (multiple bands in the trace figure) — they pass every gate but carry
+less occlusion stress, and are the first place to look if P5.13's contracts fail to separate.
+Unblocks the deferred **P5.13 v2-discrimination A/B**, which consumes this bank unchanged.
+Proof: `proof/p511_occlusion_montage.png` (12 genuine crossings, one per cell),
+`proof/p511_gate_grid.png` (12/12 all-green, the before/after against P5.11's 3/12),
+`proof/p511_crossing_traces.png` (per-clip IoU traces: peak inside the occlusion window, tail decayed
+before the f150 prompt frame). Detail:
+[`../../experiments/2026-07-17-bankv21-recal/README.md`](../../experiments/2026-07-17-bankv21-recal/README.md).

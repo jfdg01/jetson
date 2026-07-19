@@ -1,7 +1,10 @@
 # P5.12 — Bank v2.1: recalibrated designed-crossing scene bank (build gate, re-run)
 
 **Pre-registered:** 2026-07-19T12:24Z (Madrid wall-clock).
-**Status:** PRE-REGISTERED, not yet run. `runs/` is empty; no cell has been recorded.
+**Run:** 2026-07-19T12:31Z – 2026-07-19T12:49Z (Madrid wall-clock).
+**Status:** COMPLETE — **RQ-P5.12 = YES**. 4/4 gate runs pass, G4a/G4b/G7 pass,
+**12/12 bank cells pass all gates**, 0 INFRA, visual gate V PASS (12/12 genuine
+occlusions, 0 render defects). P5.11's NO confirmed calibration-bound.
 **Machine:** RTX 3090 workstation (Gazebo does not run on the Jetson). No Jetson
 leg — this is a dataset-build gate, no on-device VLM in the RQ.
 **Branch:** `experiment/bankv21-recal` off `main` @ `cce99af` (the P5.11 merge).
@@ -286,72 +289,239 @@ No frame captured = the cell is INVALID, never a log-inferred PASS.
   tail IoU the lowest (0.024) — if any cell is a clean showcase for the
   proof montage, that is the estimate.
 
-## Results (TBD)
+## Results
 
-Fill after the matrix runs. Paste `verdict_p512.py` output **verbatim**.
+**Run:** 2026-07-19T12:31Z – 2026-07-19T12:49Z (Madrid wall-clock), RTX 3090
+workstation, gz sim 8.14.0, `.venv-ft`. All 16 runs completed first attempt —
+**zero retries, zero INFRA cells, zero gz-transport flake.**
 
 ### Gate runs
 
+All four gate runs pass G0/G1/G2c/G3/G5/G6c.
+
 | run | seed | G0 | G1 | G2c | G3 | G5 | G6c | fps | purW/B | wfrag p10 | n_clear |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| seed101_A | 101 | | | | | | | | | | |
-| seed202_B | 202 | | | | | | | | | | |
-| seed303_C | 303 | | | | | | | | | | |
-| seed101_D | 101 | | | | | | | | | | |
+| seed101_A | 101 | PASS | PASS | PASS | PASS | PASS | PASS | 8.06 | 0.692/0.786 | 1.000 | 115 |
+| seed202_B | 202 | PASS | PASS | PASS | PASS | PASS | PASS | 7.99 | 0.807/0.803 | 0.995 | 68 |
+| seed303_C | 303 | PASS | PASS | PASS | PASS | PASS | PASS | 7.99 | 0.731/0.827 | 0.999 | 112 |
+| seed101_D | 101 | PASS | PASS | PASS | PASS | PASS | PASS | 8.26 | 0.692/0.786 | 1.000 | 115 |
+
+Cross-run: **G4a** determinism A vs D `gt_identical=True`, `frame_mean_absdiff
+= 0.0`, `frac_gt8 = 0.0` -> PASS (byte-exact across two fresh server sessions,
+matching P5.9/P5.11). **G4b** min pairwise divergence **1.11 m** at pair (2,
+29) vs the 1.0 m floor -> PASS. **G7** screen pin reproduces `[1, 2, 3, 4, 6,
+14, 17, 28, 29, 33, 40, 56]` -> PASS.
 
 ### Bank cells
 
+**12/12 pass all gates** (G0, G1, G2c, G3, G5, G6c, G8, G9). P5.11 was 3/12.
+
 | run | seed | G0 | G1 | G2c | G3 | G5 | G6c | G8 | G9 | n_clear | n_occ | bdom | xpeak |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| bank01 | 1 | | | | | | | | | | | | |
-| bank02 | 2 | | | | | | | | | | | | |
-| bank03 | 3 | | | | | | | | | | | | |
-| bank04 | 4 | | | | | | | | | | | | |
-| bank05 | 6 | | | | | | | | | | | | |
-| bank06 | 14 | | | | | | | | | | | | |
-| bank07 | 17 | | | | | | | | | | | | |
-| bank08 | 28 | | | | | | | | | | | | |
-| bank09 | 29 | | | | | | | | | | | | |
-| bank10 | 33 | | | | | | | | | | | | |
-| bank11 | 40 | | | | | | | | | | | | |
-| bank12 | 56 | | | | | | | | | | | | |
+| bank01 | 1 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | 80 | 76 | 0.687 | 87 |
+| bank02 | 2 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | 57 | 73 | 0.627 | 74 |
+| bank03 | 3 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | 119 | 69 | 0.600 | 85 |
+| bank04 | 4 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | 96 | 76 | 0.700 | 88 |
+| bank05 | 6 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | 77 | 46 | 0.488 | 69 |
+| bank06 | 14 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | 77 | 45 | 0.541 | 56 |
+| bank07 | 17 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | 112 | 79 | 0.746 | 82 |
+| bank08 | 28 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | 74 | 79 | 0.636 | 92 |
+| bank09 | 29 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | 67 | 93 | 0.668 | 94 |
+| bank10 | 33 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | 112 | 71 | 0.566 | 77 |
+| bank11 | 40 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | 94 | 70 | 0.546 | 83 |
+| bank12 | 56 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | 152 | 83 | 0.608 | 89 |
+
+Both recalibrated floors are load-bearing and both are cleared with margin
+except at their designed edge:
+
+- **G6c `n_clear >= 40`:** population min 57 (bank02). At the *old* 60 floor
+  bank02 (57) would still have failed — i.e. the 60 floor was rejecting clips
+  the offline screen now proves are fine. Under the old floor this bank would
+  be 11/12, not 12/12.
+- **G8b `bdom >= 0.40`:** population min **0.488** (bank05, seed 6) — the exact
+  value that failed P5.11's 0.55 floor. It passes here, and the visual gate
+  below confirms it is a genuine (if shallow) occlusion, not a z-order defect.
 
 ### Predicted-vs-recorded n_clear (the S6 transfer claim)
 
+**The offline prediction transfers exactly: 12/12 cells, delta 0 on every one.**
+This is the strongest single result of the campaign — `predicted_clear_count()`
+is pure projection with no renderer in the loop, yet it reproduces the recorded
+G6c pool byte-for-byte, which is what makes the S6 screen a legitimate
+*pre*-selection rather than a post-hoc filter.
+
 | seed | predicted | recorded | delta |
 |---|---|---|---|
-| 1 | 80 | | |
-| 2 | 57 | | |
-| 3 | 119 | | |
-| 4 | 96 | | |
-| 6 | 77 | | |
-| 14 | 77 | | |
-| 17 | 112 | | |
-| 28 | 74 | | |
-| 29 | 67 | | |
-| 33 | 112 | | |
-| 40 | 94 | | |
-| 56 | 152 | | |
+| 1 | 80 | 80 | 0 |
+| 2 | 57 | 57 | 0 |
+| 3 | 119 | 119 | 0 |
+| 4 | 96 | 96 | 0 |
+| 6 | 77 | 77 | 0 |
+| 14 | 77 | 77 | 0 |
+| 17 | 112 | 112 | 0 |
+| 28 | 74 | 74 | 0 |
+| 29 | 67 | 67 | 0 |
+| 33 | 112 | 112 | 0 |
+| 40 | 94 | 94 | 0 |
+| 56 | 152 | 152 | 0 |
+
+Note this held for the **six never-before-rendered seeds** (17, 28, 29, 33, 40,
+56) exactly as for the six P5.11-known ones — the hypothesis actually under
+test in the pre-registration ("does the offline screen predict render
+integrity on unseen seeds?") is answered YES.
 
 ### Verdict (`verdict_p512.py` output, verbatim)
 
-TBD.
+```
+run          seed G0 G1 G2c G3 G5 G6c G8 G9  fps    purW/B        wfragp10 nclr nocc bdom   xpeak
+seed101_A    101  1  1  1   1  1  1   -  -   8.06   0.692/0.786   1.0    115  60   None   90
+seed202_B    202  1  1  1   1  1  1   -  -   7.99   0.807/0.803   0.995    68   55   None   88
+seed303_C    303  1  1  1   1  1  1   -  -   7.99   0.731/0.827   0.999    112  25   None   89
+seed101_D    101  1  1  1   1  1  1   -  -   8.26   0.692/0.786   1.0    115  60   None   90
+bank01       1    1  1  1   1  1  1   1  1   8.13   0.593/0.792   0.995    80   76   0.687  87
+bank02       2    1  1  1   1  1  1   1  1   8.16   0.838/0.855   0.995    57   73   0.627  74
+bank03       3    1  1  1   1  1  1   1  1   8.11   0.749/0.847   0.997    119  69   0.6    85
+bank04       4    1  1  1   1  1  1   1  1   8.18   0.791/0.799   0.992    96   76   0.7    88
+bank05       6    1  1  1   1  1  1   1  1   8.06   0.808/0.781   0.992    77   46   0.488  69
+bank06       14   1  1  1   1  1  1   1  1   8.12   0.790/0.782   0.993    77   45   0.541  56
+bank07       17   1  1  1   1  1  1   1  1   8.23   0.786/0.828   0.994    112  79   0.746  82
+bank08       28   1  1  1   1  1  1   1  1   8.06   0.613/0.760   0.993    74   79   0.636  92
+bank09       29   1  1  1   1  1  1   1  1   8.19   0.715/0.864   0.999    67   93   0.668  94
+bank10       33   1  1  1   1  1  1   1  1   8.09   0.803/0.817   0.995    112  71   0.566  77
+bank11       40   1  1  1   1  1  1   1  1   8.09   0.610/0.787   1.0    94   70   0.546  83
+bank12       56   1  1  1   1  1  1   1  1   8.21   0.706/0.828   0.993    152  83   0.608  89
+G4a determinism seed101_A vs seed101_D: gt_identical=True frame_mean_absdiff=0.0 (<= 2.0) frac_gt8=0.0 (<= 0.01) -> PASS
+G4b seed diversity (15 seeds, v2): min pairwise scenario divergence 1.11 m (>= 1.0) at pair (2, 29); recorded-f0 faithful=True over 16 runs -> PASS
+G7 screen pin: v2.1 screen admission reproduces the pinned bank: [1, 2, 3, 4, 6, 14, 17, 28, 29, 33, 40, 56] -> PASS
+RQ-P5.12 OVERALL: YES (YES iff 4/4 gate runs pass G0,G1,G2c,G3,G5,G6c AND G4a AND G4b AND G7 AND >= 11/12 bank cells also pass G8,G9 with <= 1 infra loss and 0 gate failures; the visual gate V -- operator opens the named overlay PNGs, including every bank cell's crossing-peak overlay -- can only downgrade this to NO)
+```
 
 ### Visual gate V (what the operator actually saw)
 
-TBD — per-cell, one line each.
+Every PNG below was opened with the Read tool. **Result: V PASS — 12/12 genuine
+designed occlusions, 0 render defects.** The mechanical YES is NOT downgraded.
+
+Reference for VALID (P5.11 probe, `../2026-07-17-bankv2-crossing/curation/probe_seed1/overlay_f0087.png`):
+blue car body drawn in front, white car's roofline a pale sliver above it, both
+green GT boxes stacked and overlapping.
+
+Crossing-peak overlays (`runs/bankNN/overlay_f<xpeak>.png`), one line each:
+
+| cell | seed | frame | what I saw |
+|---|---|---|---|
+| bank01 | 1 | f0087 | Pixel-identical to the P5.11 probe reference. Blue in front, white roofline sliver above, both boxes on the stack. VALID. |
+| bank02 | 2 | f0074 | Blue body in front on the start/finish line, white cabin sliver above-left, boxes overlapping. Cars sit on the road, no kerb clipping. VALID. |
+| bank03 | 3 | f0085 | Blue in front, white roof visible above; slightly more of the white cabin than the probe. Both boxes overlap. VALID. |
+| bank04 | 4 | f0088 | Tightest stack of the set — white almost fully hidden, only a small pale wedge at upper-left. VALID. |
+| bank05 | 6 | f0069 | **Shallowest occlusion in the bank** (bdom 0.488). White cabin is a large white mass sitting above the blue body rather than a thin sliver — white's lower body is genuinely hidden behind blue, so this is a real occlusion, but it is the weakest one and it is visibly weaker than the rest. No defect: white is one contiguous body, not fragments, and both cars are on the road. VALID (weakest). |
+| bank06 | 14 | f0056 | Same character as bank05 — substantial white cabin above the blue. Contiguous, correctly z-ordered, boxes overlap. VALID (weak). |
+| bank07 | 17 | f0082 | Never rendered before. Textbook: strong occlusion, white reduced to a roofline sliver. Cleanest of the six new seeds. VALID. |
+| bank08 | 28 | f0092 | Never rendered before. Blue in front, thin white roof strip above, boxes stacked. VALID. |
+| bank09 | 29 | f0094 | Never rendered before. Blue in front, small white sliver. VALID. |
+| bank10 | 33 | f0077 | Never rendered before. Larger white cabin visible (bdom 0.566) but contiguous and correctly behind blue. VALID. |
+| bank11 | 40 | f0083 | Never rendered before. Blue in front, white roof band above, boxes overlap. VALID. |
+| bank12 | 56 | f0089 | Never rendered before. Blue in front, white sliver above. Clean. VALID. |
+
+Post-prompt overlays (`overlay_f0225.png`), all 12 opened: **all 12 show two
+separated, intact, correctly-boxed cars** — white on the left, blue on the
+right, both fully rendered bodies on the road surface, no sinking, no
+fragmentation, no kerb clipping. In bank01/bank04/bank06/bank09 the two GT
+boxes still touch or slightly overlap at f0225 (the cars have separated but not
+widely); in bank03/bank08/bank11/bank12 they are cleanly disjoint. All are the
+frame class P5.13 delivery will be graded on.
+
+Gate mid-run sanity (`overlay_f0150.png`): **seed101_A** — full-colour track
+scene, two separated cars boxed near frame centre, checkerboard start line in
+the foreground, not black, not one-colour. **seed303_C** — same, camera pose
+differs, both cars intact and boxed. Both VALID.
+
+`make_proof.py` montage: reads as **12 copies of the probe's occlusion**, not
+12 different failure modes — same blue-in-front / white-behind geometry in
+every tile, varying only in stack tightness and camera pose. Gate met.
+
+**One honest caveat surfaced by looking, which the numbers alone understate:**
+bank05 (seed 6) and bank06 (seed 14) are visibly shallower occlusions than the
+other ten, and the crossing-trace figure shows their occlusion window is
+*fragmented* (multiple separate orange bands) rather than one contiguous block.
+They pass every gate and they are genuine occlusions, but if P5.13 finds the
+contracts failing to separate, these two cells are the first place to look —
+they carry less occlusion stress than the bank average.
 
 ### Estimate vs actual
 
-TBD.
+| quantity | estimate | actual | note |
+|---|---|---|---|
+| wall, 16 runs | 30–40 min | **~18 min** (12:31–12:49Z) | Estimate was ~2x pessimistic. Record loop ran ~8.0–8.3 fps as predicted; the world load was faster than the assumed 25 s. |
+| verdict | YES | **YES** | Correct. |
+| bank pass rate | >= 11/12 | **12/12** | Beat the bar. |
+| G4b min divergence | 1.106 m (offline) | **1.11 m** (recorded) | Matches. |
+| S6 predicted vs recorded n_clear | "equals under determinism" | **12/12 delta 0** | Exact, including on all six never-rendered seeds. |
+| INFRA cells | up to 1 tolerated | **0** | No gz-transport flake at all; the P5.7 killer stayed dead. |
+| seed 56 as showcase | highest clear count (152), cleanest | **partly right** | 152 clear frames confirmed and its occlusion is clean, but bank07/seed 17 (bdom 0.746) is the visually strongest occlusion and the better montage showcase. |
+| fail modes if NO | six new seeds render a defect | **did not occur** | The offline screen fully predicted render integrity on unseen seeds — the real hypothesis under test passed. |
+
+Surprises, recorded plainly:
+
+1. **The strongest evidence was the one that cost nothing.** The S6
+   predicted-vs-recorded table came out delta-0 on all 12 cells. That turns
+   "the screen picks plausible seeds" into "the screen computes the recorded
+   statistic exactly", which is a much stronger claim than the
+   pre-registration asserted.
+2. **The old G6c floor of 60 was rejecting a good clip.** bank02 records
+   n_clear 57 and is visually flawless. Under P5.11's floor this bank would be
+   11/12 rather than 12/12 — direct confirmation that the P5.11 NO was
+   calibration-bound, since the same generator produced a defect-free clip that
+   the old threshold refused.
+3. **bank05's 0.488 bdom is the same number that failed P5.11**, now passing,
+   and the frame confirms it was never a defect — it is a shallow but real
+   occlusion. This is exactly the case the recalibration was written for, and
+   it is the one cell where the operator's eyes, not the gate, carry the
+   verdict.
 
 ## Proof deliverables (`proof/`, from `make_proof.py`)
 
-TBD — 3 PNGs, captioned with what each shows and which run/config.
+Reproducible from `runs/*/results.json` via the committed
+`make_proof.py`. All three were opened with the Read tool before being
+captioned. **Filename caveat:** the script is a retarget of P5.11's and still
+emits `p511_*` filenames; the figure *titles* and all content are P5.12. The
+committed script was not edited (executor does not modify committed code) —
+the stale prefix is cosmetic and noted here rather than silently fixed.
+
+1. **`p511_occlusion_montage.png`** — the headline deliverable. 3x4 montage of
+   every bank cell's crossing-peak overlay, captioned with cell / seed / peak
+   frame / GT-GT IoU. Config: bank v2.1, `--profile v2`, 300 frames, 1280x720
+   @ 25 Hz, gz 8.14.0. **Shows:** all 12 clips realize the same designed
+   geometry — blue occluder drawn in front of the white target, white reduced
+   to a roofline sliver, both GT boxes stacked. This is the visual evidence
+   that the P5.11 NO was not render-bound: the renders were always fine.
+   Contrast in stack tightness across tiles (bank04 tightest, bank05 loosest)
+   is the bdom spread made visible.
+2. **`p511_gate_grid.png`** — 12x8 PASS grid, all cells green `P`, titled
+   "12/12 cells pass all". Config: same 12 bank runs, graded by
+   `verdict_p512.py` at the recalibrated floors (`N_CLEAR_FLOOR` 40,
+   `BDOM_FLOOR` 0.40). **Shows:** the recalibrated build gate clears the whole
+   bank — the direct before/after against P5.11's 3/12 on the same generator.
+3. **`p511_crossing_traces.png`** — per-clip recorded GT-GT IoU vs frame, with
+   the `occl >= 0.5` window shaded, the P5.13 prompt frame (f150) dashed, and
+   the peak-floor 0.20 / tail-cap 0.15 lines dotted. Config: same 12 runs.
+   **Shows:** every clip peaks inside its occlusion window and decays to a low
+   tail well before f150, i.e. the designed crossing happens mid-idle and is
+   over by prompt time — the temporal structure P5.13's dual-carry test needs.
+   Also shows the bank05 / bank06 fragmented-occlusion caveat noted above.
 
 ## Status / next step
 
-Pre-registration complete and frozen; code committed and self-checked; nothing
-recorded. **Next step: run the 16-run matrix above**, then verdict, then the
-visual gate, then fill Results and the four ledgers (RESULTS / QUESTIONS /
-DECISIONS Part V, SOURCES not applicable — no new external asset).
+**COMPLETE — RQ-P5.12 = YES.** Bank v2.1 is built, gated and visually
+confirmed: 4/4 gate runs pass, G4a/G4b/G7 pass, 12/12 bank cells pass all
+gates, 0 INFRA, visual gate V PASS (12/12 genuine occlusions, 0 defects). The
+P5.11 NO is confirmed **gate-calibration-bound, not render-bound**.
+
+The bank at `runs/bank01..bank12` (seeds 1, 2, 3, 4, 6, 14, 17, 28, 29, 33, 40,
+56) is the deliverable and is ready to be consumed unchanged.
+
+**Next step: P5.13 — v2 discrimination A/B**, exactly as pre-registered above:
+rerun the P5.10 matrix (`select_p510.py`, contracts DD vs RG, DELIVER_FLOOR
+0.25, MATCH_FLOOR 0.10, dominance rule, Qwen2-VL-2B q8_0 terse on Jetson) over
+this bank with **prompt frame 150**. Success = the contracts separate,
+`|DD_total - RG_total| >= 4` of 24. If they do not separate, check bank05 and
+bank06 first (weakest occlusion stress, per the visual gate).

@@ -257,3 +257,35 @@ constraint, re-derive G8b for shallow seeds), not threshold nudges. The generato
 *capability* is validated (12/12 crossings render + separate as designed); the bank *build gate*
 fails its own calibration. Blocks the pre-registered **P5.12 v2-discrimination A/B** until a v2.1
 bank passes. Detail: [`../../experiments/2026-07-17-bankv2-crossing/README.md`](../../experiments/2026-07-17-bankv2-crossing/README.md).
+
+**RQ-P5.12:** was P5.11's `NO` **gate-calibration-bound rather than render-bound**? Re-run the
+identical 16-run v2 record matrix over a **v2.1 seed bank** chosen by an offline screen that enforces
+the two properties P5.11's gates measured after the fact (per-clip clear-frame supply, pairwise seed
+diversity), against gates recalibrated **once, from the P5.11 recorded population** — and does that
+bank now clear ≥11/12?
+
+**Verdict: YES** [12/12 bank cells pass; V PASS]. `verdict_p512.py`: 4/4 gate runs pass G0–G6c, G4a
+PASS (byte-exact determinism across fresh server sessions, mean\|diff\| 0.0), **G4b PASS** (min
+pairwise scenario divergence 1.11 m ≥ 1.0 at pair 2,29 — the constraint that failed P5.11 at 0.77 m),
+new **G7 PASS** (the screen re-run at verdict time reproduces the pinned bank byte-for-byte, so no
+generator/screen drift between pre-registration and grading), and **12/12 bank cells** pass all gates
+including G8/G9, with 0 INFRA and 0 present-but-failing cells — against P5.11's 3/12 on the *same
+untouched generator*. **Visual gate V PASS**: all 12 crossing-peak overlays, all 12 post-prompt
+overlays, 2 gate mid-run frames and the 3 proof figures were opened with the Read tool; every
+crossing peak is a genuine designed occlusion (blue occluder drawn in front of an intact white
+target, overlapping GT boxes, cars on the road surface), **zero render defects**, V does not
+downgrade. The answer to the RQ is therefore **yes, calibration-bound**: nothing about the renders
+changed, only which seeds were admitted and where two floors sat, and both floors are demonstrably
+load-bearing rather than fitted — bank02 (n_clear 57) and bank05 (bdom 0.488) are visually flawless
+clips that P5.11's floors rejected, and 0.488 is the exact value that failed P5.11's G8b. The
+strongest single result is the **S6 transfer table: predicted vs recorded `n_clear` matches with
+delta 0 on 12/12 cells**, including all six seeds (17, 28, 29, 33, 40, 56) never previously
+rendered — a pure-projection statistic reproducing the recorded pool exactly, which is what
+legitimises the screen as pre-selection rather than post-hoc filtering, and which answers the
+pre-registered hypothesis under test (does the offline screen predict render integrity on unseen
+seeds?) affirmatively. Honest caveat surfaced only by looking: bank05 (seed 6) and bank06 (seed 14)
+are visibly shallower occlusions with fragmented occlusion windows — gate-passing but lower
+occlusion stress than the bank average, and the first suspects if P5.13 fails to separate. Unblocks
+the deferred **P5.13 v2-discrimination A/B** (P5.10's DD-vs-RG matrix on this bank at prompt frame
+150), which consumes this bank unchanged.
+Detail: [`../../experiments/2026-07-17-bankv21-recal/README.md`](../../experiments/2026-07-17-bankv21-recal/README.md).

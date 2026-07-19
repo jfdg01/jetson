@@ -1,0 +1,92 @@
+{
+  "seed": 33,
+  "frames": 300,
+  "out": "experiments/2026-07-17-bankv21-recal/runs/bank10",
+  "profile": "v2",
+  "v2_screen": {
+    "peak_iou": 0.2422,
+    "peak_f": 77,
+    "run_iou15": 58,
+    "peak_occl_white": 0.6042,
+    "run_occl50": 71,
+    "tail_iou_max": 0.0419,
+    "pass": true
+  },
+  "v2_xpeak_pred_f": 77,
+  "v2_xpeak_pred_iou": 0.2422,
+  "g2_purity_median_clear": {
+    "0": 0.8031,
+    "1": 0.8167
+  },
+  "g6_frag_p10_clear": {
+    "0": 0.9946,
+    "1": 1.0
+  },
+  "g6_frag_below090_frac_clear": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g6_n_clear": {
+    "0": 112,
+    "1": 300
+  },
+  "wall_loop_s": 37.1,
+  "fps_wall": 8.092,
+  "g1_dead_frames": 0,
+  "g1_identical_consecutive": 0,
+  "g1_stamp_steps_ok": true,
+  "g2_purity_median": {
+    "0": 0.7085,
+    "1": 0.8167
+  },
+  "g2_bg_purity_median": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g3_both_visible_frac": 1.0,
+  "g6_frag_p10": {
+    "0": 0.9951,
+    "1": 1.0
+  },
+  "g6_frag_min": {
+    "0": 0.9923,
+    "1": 1.0
+  },
+  "g6_frag_below090_frac": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g6_frag_n": {
+    "0": 300,
+    "1": 300
+  },
+  "g0_retries_pose": 0,
+  "g0_retries_step": 0,
+  "g0_response_lost": 0,
+  "g0_proxy_restarts": 0,
+  "g0_spawn_warns": [],
+  "params": {
+    "standoff": 22.08239236900154,
+    "alt": 5.0523496727110455,
+    "aim_err": [
+      -0.6096672772269865,
+      1.296691079786633
+    ],
+    "v_target": 2.7323706843552005,
+    "v_distractor": 2.709523627452422,
+    "ds0": -6.143626382917343,
+    "lat_b_a": 0.8212506746935472,
+    "lat_b_b": -4.541947357348056,
+    "t_in0": 0.7726167674932276,
+    "T_in": 0.9148714725049535,
+    "T_hold": 1.3564592104704016,
+    "T_out": 1.4371152456718481
+  },
+  "versions": {
+    "gz": "8.14.0",
+    "python": "3.12.10",
+    "numpy": "2.4.4",
+    "cv2": "4.13.0"
+  },
+  "cmd": "runners/scenegen.py record --seed 33 --frames 300 --profile v2 --out experiments/2026-07-17-bankv21-recal/runs/bank10"
+}
