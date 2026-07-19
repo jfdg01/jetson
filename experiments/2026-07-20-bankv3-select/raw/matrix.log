@@ -1,0 +1,150 @@
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 43.09it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 29.55it/s]
+[P5.17] s002: carry pass done (7s), cached
+[P5.17] booting Jetson q8_0 server...
+[P5.17 s002_white] DD pass=True (None) iouN=0.6321 | RG pass=True (None) vlm_on=named acq=4.35s deliver=f259
+[P5.17 s002_blue] DD pass=True (None) iouN=0.5812 | RG pass=True (None) vlm_on=named acq=4.35s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.10it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.46it/s]
+[P5.17] s003: carry pass done (5s), cached
+[P5.17 s003_white] DD pass=True (None) iouN=0.6049 | RG pass=False (DELIVERY_DRIFT) vlm_on=named acq=4.34s deliver=f259
+[P5.17 s003_blue] DD pass=True (None) iouN=0.6044 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.47it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.33it/s]
+[P5.17] s006: carry pass done (5s), cached
+[P5.17 s006_white] DD pass=True (None) iouN=0.5952 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+[P5.17 s006_blue] DD pass=True (None) iouN=0.5519 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.22it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.97it/s]
+[P5.17] s007: carry pass done (5s), cached
+[P5.17 s007_white] DD pass=True (None) iouN=0.5833 | RG pass=True (None) vlm_on=named acq=4.35s deliver=f259
+[P5.17 s007_blue] DD pass=True (None) iouN=0.5831 | RG pass=True (None) vlm_on=named acq=4.35s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.95it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.10it/s]
+[P5.17] s008: carry pass done (5s), cached
+[P5.17 s008_white] DD pass=True (None) iouN=0.5819 | RG pass=True (None) vlm_on=named acq=4.35s deliver=f259
+[P5.17 s008_blue] DD pass=True (None) iouN=0.5256 | RG pass=True (None) vlm_on=named acq=4.35s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.48it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 52.56it/s]
+[P5.17] s013: carry pass done (5s), cached
+[P5.17 s013_white] DD pass=True (None) iouN=0.432 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+[P5.17 s013_blue] DD pass=True (None) iouN=0.512 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.09it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.27it/s]
+[P5.17] s017: carry pass done (5s), cached
+[P5.17 s017_white] DD pass=True (None) iouN=0.5972 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+[P5.17 s017_blue] DD pass=True (None) iouN=0.605 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f258
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.25it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.11it/s]
+[P5.17] s018: carry pass done (5s), cached
+[P5.17 s018_white] DD pass=True (None) iouN=0.6388 | RG pass=True (None) vlm_on=named acq=4.35s deliver=f259
+[P5.17 s018_blue] DD pass=True (None) iouN=0.6081 | RG pass=True (None) vlm_on=named acq=4.35s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.00it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.84it/s]
+[P5.17] s021: carry pass done (5s), cached
+[P5.17 s021_white] DD pass=True (None) iouN=0.5925 | RG pass=True (None) vlm_on=named acq=4.33s deliver=f258
+[P5.17 s021_blue] DD pass=True (None) iouN=0.5386 | RG pass=True (None) vlm_on=named acq=4.33s deliver=f258
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.77it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.80it/s]
+[P5.17] s028: carry pass done (5s), cached
+[P5.17 s028_white] DD pass=True (None) iouN=0.5995 | RG pass=True (None) vlm_on=named acq=4.33s deliver=f258
+[P5.17 s028_blue] DD pass=True (None) iouN=0.6149 | RG pass=True (None) vlm_on=named acq=4.33s deliver=f258
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.59it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.53it/s]
+[P5.17] s032: carry pass done (5s), cached
+[P5.17 s032_white] DD pass=True (None) iouN=0.6312 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+[P5.17 s032_blue] DD pass=True (None) iouN=0.6114 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.83it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.98it/s]
+[P5.17] s042: carry pass done (5s), cached
+[P5.17 s042_white] DD pass=True (None) iouN=0.6234 | RG pass=True (None) vlm_on=named acq=4.35s deliver=f259
+[P5.17 s042_blue] DD pass=True (None) iouN=0.6135 | RG pass=True (None) vlm_on=named acq=4.35s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 48.79it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.20it/s]
+[P5.17] s048: carry pass done (5s), cached
+[P5.17 s048_white] DD pass=True (None) iouN=0.6334 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f258
+[P5.17 s048_blue] DD pass=True (None) iouN=0.64 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f258
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.79it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.79it/s]
+[P5.17] s057: carry pass done (5s), cached
+[P5.17 s057_white] DD pass=True (None) iouN=0.6221 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+[P5.17 s057_blue] DD pass=True (None) iouN=0.6296 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.48it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.14it/s]
+[P5.17] s068: carry pass done (5s), cached
+[P5.17 s068_white] DD pass=True (None) iouN=0.5847 | RG pass=True (None) vlm_on=named acq=4.36s deliver=f259
+[P5.17 s068_blue] DD pass=True (None) iouN=0.5642 | RG pass=True (None) vlm_on=named acq=4.36s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.39it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.24it/s]
+[P5.17] s069: carry pass done (5s), cached
+[P5.17 s069_white] DD pass=True (None) iouN=0.5985 | RG pass=True (None) vlm_on=named acq=4.33s deliver=f258
+[P5.17 s069_blue] DD pass=True (None) iouN=0.5596 | RG pass=True (None) vlm_on=named acq=4.33s deliver=f258
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.10it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.61it/s]
+[P5.17] s070: carry pass done (5s), cached
+[P5.17 s070_white] DD pass=True (None) iouN=0.5987 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+[P5.17 s070_blue] DD pass=True (None) iouN=0.5751 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.67it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 52.23it/s]
+[P5.17] s074: carry pass done (5s), cached
+[P5.17 s074_white] DD pass=True (None) iouN=0.5801 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f258
+[P5.17 s074_blue] DD pass=True (None) iouN=0.6004 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f258
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.02it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.37it/s]
+[P5.17] s089: carry pass done (5s), cached
+[P5.17 s089_white] DD pass=True (None) iouN=0.6158 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f258
+[P5.17 s089_blue] DD pass=True (None) iouN=0.6003 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f258
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.33it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.51it/s]
+[P5.17] s091: carry pass done (5s), cached
+[P5.17 s091_white] DD pass=True (None) iouN=0.6188 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+[P5.17 s091_blue] DD pass=True (None) iouN=0.6216 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f258
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.57it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 56.51it/s]
+[P5.17] s092: carry pass done (5s), cached
+[P5.17 s092_white] DD pass=True (None) iouN=0.6105 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+[P5.17 s092_blue] DD pass=True (None) iouN=0.5692 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.30it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.28it/s]
+[P5.17] s098: carry pass done (5s), cached
+[P5.17 s098_white] DD pass=True (None) iouN=0.5538 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+[P5.17 s098_blue] DD pass=True (None) iouN=0.5383 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 52.94it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.00it/s]
+[P5.17] s101: carry pass done (5s), cached
+[P5.17 s101_white] DD pass=True (None) iouN=0.569 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f258
+[P5.17 s101_blue] DD pass=True (None) iouN=0.5251 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f258
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.63it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.58it/s]
+[P5.17] s103: carry pass done (5s), cached
+[P5.17 s103_white] DD pass=True (None) iouN=0.6581 | RG pass=True (None) vlm_on=named acq=4.35s deliver=f259
+[P5.17 s103_blue] DD pass=True (None) iouN=0.6207 | RG pass=True (None) vlm_on=named acq=4.35s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.44it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.11it/s]
+[P5.17] s104: carry pass done (5s), cached
+[P5.17 s104_white] DD pass=True (None) iouN=0.5677 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+[P5.17 s104_blue] DD pass=True (None) iouN=0.5183 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.14it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.06it/s]
+[P5.17] s112: carry pass done (5s), cached
+[P5.17 s112_white] DD pass=True (None) iouN=0.5976 | RG pass=True (None) vlm_on=named acq=4.35s deliver=f259
+[P5.17 s112_blue] DD pass=True (None) iouN=0.5383 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 54.16it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.86it/s]
+[P5.17] s116: carry pass done (5s), cached
+[P5.17 s116_white] DD pass=True (None) iouN=0.6015 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f258
+[P5.17 s116_blue] DD pass=True (None) iouN=0.6225 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f259
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 53.83it/s]
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 55.01it/s]
+[P5.17] s122: carry pass done (5s), cached
+[P5.17 s122_white] DD pass=True (None) iouN=0.5881 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f258
+[P5.17 s122_blue] DD pass=True (None) iouN=0.5568 | RG pass=True (None) vlm_on=named acq=4.34s deliver=f258
+[P5.17] matrix done (vlm reboots: 0)

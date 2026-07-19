@@ -2,7 +2,9 @@
 
 **Pre-registered:** 2026-07-20T00:55Z (Madrid wall clock). Design + patches by
 Fable; Opus runs the matrix and fills Results only — do NOT re-patch code.
-**Status:** PRE-REGISTERED, not yet run.
+**Status:** COMPLETE 2026-07-20T01:45Z — BUILD PASS (28/28), select verdict
+**NO [branch 3 — contracts-equivalent]** (DD 56/56 vs RG 55/56, |diff| 1 < 7).
+Visual gate V PASS on both halves (does not downgrade).
 **Branch:** `experiment/bankv3-select`
 **Rig:** RTX 3090 workstation (Gazebo Sim 8.14.0 headless + SAM2
 sam2.1-hiera-tiny bf16), Jetson Orin Nano 8 GB over `ssh jetson` for the VLM
@@ -353,34 +355,181 @@ and is a publishable close-out, not a wasted run.
 
 ## Results (TBD — Opus fills; do not edit anything above this line except Status)
 
-### Build gate table (paste full `--build` output)
+### Build gate table (full `--build` output)
 
 ```
-(TBD)
+run      seed near  G0 G1 G2c G3 G5 G6c G8 G9 G10 fps    purF/N        ffragp10 nclr nocc ndom   xpeak staleT/D
+s002     2    white 1  1  1   1  1  1   1  1  1   8.84   0.675/0.796   1.0    110  58   0.662  83    0.127/0.16
+s003     3    white 1  1  1   1  1  1   1  1  1   8.80   0.803/0.803   1.0    49   51   0.643  90    0.165/0.137
+s006     6    white 1  1  1   1  1  1   1  1  1   8.79   0.743/0.796   1.0    82   58   0.665  100   0.096/0.181
+s007     7    blue  1  1  1   1  1  1   1  1  1   8.67   0.701/0.766   1.0    109  42   0.513  80    0.027/0.0
+s008     8    white 1  1  1   1  1  1   1  1  1   8.71   0.694/0.768   1.0    86   35   0.508  83    0.06/0.115
+s013     13   white 1  1  1   1  1  1   1  1  1   8.79   0.680/0.730   1.0    115  45   0.585  99    0.032/0.052
+s017     17   blue  1  1  1   1  1  1   1  1  1   8.76   0.596/0.826   0.994    69   86   0.652  87    0.061/0.032
+s018     18   blue  1  1  1   1  1  1   1  1  1   8.66   0.761/0.816   0.993    75   88   0.559  46    0.031/0.037
+s021     21   white 1  1  1   1  1  1   1  1  1   8.84   0.566/0.772   1.0    111  42   0.664  55    0.078/0.097
+s028     28   blue  1  1  1   1  1  1   1  1  1   8.89   0.841/0.807   0.992    63   76   0.804  92    0.177/0.135
+s032     32   blue  1  1  1   1  1  1   1  1  1   8.72   0.701/0.836   0.999    61   80   0.506  47    0.179/0.108
+s042     42   blue  1  1  1   1  1  1   1  1  1   8.70   0.769/0.808   0.999    103  69   0.591  102   0.016/0.012
+s048     48   blue  1  1  1   1  1  1   1  1  1   8.80   0.669/0.851   1.0    96   71   0.664  42    0.163/0.137
+s057     57   blue  1  1  1   1  1  1   1  1  1   8.74   0.690/0.815   0.993    58   74   0.558  88    0.067/0.03
+s068     68   blue  1  1  1   1  1  1   1  1  1   8.62   0.707/0.782   0.993    85   63   0.546  98    0.062/0.001
+s069     69   white 1  1  1   1  1  1   1  1  1   8.86   0.624/0.769   1.0    113  62   0.742  104   0.143/0.178
+s070     70   white 1  1  1   1  1  1   1  1  1   8.79   0.756/0.790   1.0    107  42   0.624  90    0.073/0.114
+s074     74   blue  1  1  1   1  1  1   1  1  1   8.77   0.827/0.790   0.992    54   83   0.695  92    0.064/0.028
+s089     89   blue  1  1  1   1  1  1   1  1  1   8.77   0.644/0.797   1.0    112  79   0.598  98    0.096/0.057
+s091     91   blue  1  1  1   1  1  1   1  1  1   8.80   0.662/0.819   1.0    98   77   0.681  98    0.194/0.143
+s092     92   white 1  1  1   1  1  1   1  1  1   8.75   0.775/0.776   1.0    67   45   0.603  82    0.058/0.099
+s098     98   white 1  1  1   1  1  1   1  1  1   8.77   0.490/0.734   1.0    55   60   0.717  82    0.083/0.152
+s101     101  white 1  1  1   1  1  1   1  1  1   8.79   0.876/0.752   1.0    58   44   0.637  93    0.04/0.064
+s103     103  blue  1  1  1   1  1  1   1  1  1   8.73   0.780/0.856   0.992    59   84   0.62   98    0.113/0.081
+s104     104  white 1  1  1   1  1  1   1  1  1   8.75   0.542/0.736   1.0    71   46   0.592  48    0.026/0.08
+s112     112  white 1  1  1   1  1  1   1  1  1   8.70   0.682/0.780   1.0    199  44   0.55   94    0.109/0.15
+s116     116  blue  1  1  1   1  1  1   1  1  1   8.77   0.682/0.837   0.996    109  80   0.744  64    0.168/0.191
+s122     122  white 1  1  1   1  1  1   1  1  1   8.79   0.711/0.794   1.0    106  53   0.603  99    0.04/0.062
+G4a determinism s002 vs s002_R (seed 2): gt_identical=True frame_mean_absdiff=0.0 (<= 2.0) frac_gt8=0.0 (<= 0.01) -> PASS
+G4a determinism s007 vs s007_R (seed 7): gt_identical=True frame_mean_absdiff=0.0 (<= 2.0) frac_gt8=0.0 (<= 0.01) -> PASS
+G4b seed diversity (28 seeds, v3): min pairwise scenario divergence 1.32 m (>= 1.0) at pair (21, 101); recorded-f0 faithful=True over 30 runs -> PASS
+G7 screen pin: v3 screen admission reproduces the pinned bank: [2, 3, 6, 7, 8, 13, 17, 18, 21, 28, 32, 42, 48, 57, 68, 69, 70, 74, 89, 91, 92, 98, 101, 103, 104, 112, 116, 122] -> PASS
+G11 valid-set diversity: near-white 14 (>= 10), near-blue 14 (>= 10), recorded peak span 62 (>= 30) -> PASS
+P5.17 BUILD: PASS -- 28/28 clips valid, bank_valid.json written (PASS iff >= 25 valid AND G4a x2 AND G4b AND G7 AND G11 AND <= 3 infra; the visual gate V can only downgrade)
 ```
 
 ### Visual gate V — build ("looked at <path>: saw <one line>")
 
-- (TBD × >= 10 lines)
+- looked at `runs/bank/s002/overlay_f0083.png` (peak, near=white): saw two cars mid-road under overlapping green GT boxes, the white car in front of the blue one -- matches `near=white`.
+- looked at `runs/bank/s018/overlay_f0046.png` (peak, near=blue): saw the blue car in front, white behind and partly occluded by it, both boxed -- matches `near=blue`.
+- looked at `runs/bank/s068/overlay_f0098.png` (peak, near=blue): saw a tight blue-in-front crossing, the white car's box mostly hidden behind the blue body -- genuine occlusion, not two side-by-side cars.
+- looked at `runs/bank/s098/overlay_f0082.png` (peak, near=white): saw the white car in front, blue behind and above it in image space -- matches `near=white`.
+- looked at `runs/bank/s122/overlay_f0099.png` (peak, near=white): saw the white car in front at a wider lateral gap than s068 -- the bank spans loose to tight crossings, not one repeated geometry.
+- looked at `runs/bank/s002/overlay_f0150.png` + `overlay_f0225.png`: cars visibly smaller/farther at f225, checkerboard shifted down-frame -- recession real, feed alive.
+- looked at `runs/bank/s018/overlay_f0150.png` + `overlay_f0225.png`: same recession; boxes shrink with the cars and stay on them.
+- looked at `runs/bank/s068/overlay_f0150.png` + `overlay_f0225.png`: same, cars near the vanishing point by f225.
+- looked at `runs/bank/s098/overlay_f0150.png` + `overlay_f0225.png`: same; road surface and barriers render normally (no black frame, no uniform fill).
+- looked at `runs/bank/s122/overlay_f0150.png` + `overlay_f0225.png`: same; the checkerboard sits at a different position than the other four clips at the same frame index, so these are genuinely different scenarios, not one clip copied.
+- looked at `proof/p517_peak_montage.png`: 28 labelled peak tiles, every tile shows two boxed cars, **no red border on any tile** (all 28 valid) -- consistent with the build table.
+- looked at `proof/p517_staleness.png`: bank v3 median ZOH IoU **0.08** at the f260 deliver line with every per-seed curve under 0.20, vs bank v2.1 median **~0.79** -- the lag-stress mechanism this bank was built for is measured, not asserted.
+- looked at `proof/p517_dd_vs_rg_cells.png`: 28 x 4 grid, all green except a single red at (s003, RG white) -- matches DD 56/56, RG 55/56 exactly.
 
-### Select verdict (paste full output incl. branch marks)
+### Select verdict (full output incl. branch marks)
 
 ```
-(TBD)
+cell        role  DD    dd_class      ddIoU  RG    rg_class        vlm_on  acq_s  delivF  ddCov  rgCov  
+s002_blue   far   PASS  None          0.581  PASS  None            named   4.35   259     1.000  1.000  
+s002_white  near  PASS  None          0.632  PASS  None            named   4.35   259     0.927  0.927  
+s003_blue   far   PASS  None          0.604  PASS  None            named   4.34   259     1.000  1.000  
+s003_white  near  PASS  None          0.605  FAIL  DELIVERY_DRIFT  named   4.34   259     0.627  0.098  
+s006_blue   far   PASS  None          0.552  PASS  None            named   4.34   259     1.000  1.000  
+s006_white  near  PASS  None          0.595  PASS  None            named   4.34   259     1.000  1.000  
+s007_blue   near  PASS  None          0.583  PASS  None            named   4.35   259     1.000  1.000  
+s007_white  far   PASS  None          0.583  PASS  None            named   4.35   259     1.000  1.000  
+s008_blue   far   PASS  None          0.526  PASS  None            named   4.35   259     1.000  1.000  
+s008_white  near  PASS  None          0.582  PASS  None            named   4.35   259     1.000  1.000  
+s013_blue   far   PASS  None          0.512  PASS  None            named   4.34   259     1.000  1.000  
+s013_white  near  PASS  None          0.432  PASS  None            named   4.34   259     1.000  1.000  
+s017_blue   near  PASS  None          0.605  PASS  None            named   4.34   258     1.000  1.000  
+s017_white  far   PASS  None          0.597  PASS  None            named   4.34   259     1.000  1.000  
+s018_blue   near  PASS  None          0.608  PASS  None            named   4.35   259     1.000  1.000  
+s018_white  far   PASS  None          0.639  PASS  None            named   4.35   259     1.000  1.000  
+s021_blue   far   PASS  None          0.539  PASS  None            named   4.33   258     1.000  1.000  
+s021_white  near  PASS  None          0.593  PASS  None            named   4.33   258     1.000  1.000  
+s028_blue   near  PASS  None          0.615  PASS  None            named   4.33   258     1.000  1.000  
+s028_white  far   PASS  None          0.600  PASS  None            named   4.33   258     1.000  1.000  
+s032_blue   near  PASS  None          0.611  PASS  None            named   4.34   259     1.000  1.000  
+s032_white  far   PASS  None          0.631  PASS  None            named   4.34   259     0.940  0.780  
+s042_blue   near  PASS  None          0.614  PASS  None            named   4.35   259     1.000  1.000  
+s042_white  far   PASS  None          0.623  PASS  None            named   4.35   259     1.000  1.000  
+s048_blue   near  PASS  None          0.640  PASS  None            named   4.34   258     1.000  1.000  
+s048_white  far   PASS  None          0.633  PASS  None            named   4.34   258     1.000  1.000  
+s057_blue   near  PASS  None          0.630  PASS  None            named   4.34   259     1.000  1.000  
+s057_white  far   PASS  None          0.622  PASS  None            named   4.34   259     1.000  1.000  
+s068_blue   near  PASS  None          0.564  PASS  None            named   4.36   259     1.000  1.000  
+s068_white  far   PASS  None          0.585  PASS  None            named   4.36   259     1.000  1.000  
+s069_blue   far   PASS  None          0.560  PASS  None            named   4.33   258     1.000  1.000  
+s069_white  near  PASS  None          0.599  PASS  None            named   4.33   258     0.840  1.000  
+s070_blue   far   PASS  None          0.575  PASS  None            named   4.34   259     1.000  1.000  
+s070_white  near  PASS  None          0.599  PASS  None            named   4.34   259     1.000  1.000  
+s074_blue   near  PASS  None          0.600  PASS  None            named   4.34   258     1.000  1.000  
+s074_white  far   PASS  None          0.580  PASS  None            named   4.34   258     1.000  1.000  
+s089_blue   near  PASS  None          0.600  PASS  None            named   4.34   258     1.000  1.000  
+s089_white  far   PASS  None          0.616  PASS  None            named   4.34   258     0.893  1.000  
+s091_blue   near  PASS  None          0.622  PASS  None            named   4.34   258     1.000  1.000  
+s091_white  far   PASS  None          0.619  PASS  None            named   4.34   259     1.000  1.000  
+s092_blue   far   PASS  None          0.569  PASS  None            named   4.34   259     1.000  1.000  
+s092_white  near  PASS  None          0.611  PASS  None            named   4.34   259     1.000  1.000  
+s098_blue   far   PASS  None          0.538  PASS  None            named   4.34   259     1.000  1.000  
+s098_white  near  PASS  None          0.554  PASS  None            named   4.34   259     1.000  1.000  
+s101_blue   far   PASS  None          0.525  PASS  None            named   4.34   258     1.000  1.000  
+s101_white  near  PASS  None          0.569  PASS  None            named   4.34   258     1.000  1.000  
+s103_blue   near  PASS  None          0.621  PASS  None            named   4.35   259     1.000  1.000  
+s103_white  far   PASS  None          0.658  PASS  None            named   4.35   259     1.000  1.000  
+s104_blue   far   PASS  None          0.518  PASS  None            named   4.34   259     1.000  1.000  
+s104_white  near  PASS  None          0.568  PASS  None            named   4.34   259     1.000  1.000  
+s112_blue   far   PASS  None          0.538  PASS  None            named   4.34   259     1.000  1.000  
+s112_white  near  PASS  None          0.598  PASS  None            named   4.35   259     1.000  1.000  
+s116_blue   near  PASS  None          0.623  PASS  None            named   4.34   259     1.000  1.000  
+s116_white  far   PASS  None          0.602  PASS  None            named   4.34   258     1.000  1.000  
+s122_blue   far   PASS  None          0.557  PASS  None            named   4.34   258     1.000  1.000  
+s122_white  near  PASS  None          0.588  PASS  None            named   4.34   258     1.000  1.000  
+
+DD_total 56/56  RG_total 55/56  (health floor 45 = ceil(0.8*56))
+DD by named-car role: far 28/28, near 28/28
+DD fail classes: {}  RG fail classes: {'DELIVERY_DRIFT': 1}
+
+RQ-P5.17a (|DD_total - RG_total| >= 7 of 56): NO (DD 56 vs RG 55, |diff| 1)
+RQ-P5.17b (DIAGNOSTIC, non-gating; far-leg DD fails minus near-leg DD fails >= 3): NO (asym 0) -- YES means the occlusion aftermath, not generic drift, breaks the carry
+OVERALL RQ-P5.17: NO (YES iff branch 1; the visual gate V can only downgrade)
+
+Pre-registered interpretation branches (the matching one applies):
+  [ ] branch 1: DD - RG >= 7: the lag-stress bank reproduces P5.14's real-video delivery-contract separation in sim at n >= 25 -- the staleness mechanism (target moves during the ~4.4 s re-ground lag) is sufficient to separate the contracts, and bank v3 is a working discriminating test-bed for select levers.
+  [ ] branch 2: RG - DD >= 7: prompt-time re-grounding WINS on lag-stress scenes -- the carry through the crossing is the weak link and the VLM repairs it. Inverts the P5.14 delivery-contract conclusion for occluded targets; next lever = hybrid carry + re-ground confirmation.
+  [X] branch 3: No separation, both contracts >= ceil(0.8*n): third consecutive sim contract tie, now at proper n WITH realized staleness and designed crossings. Pre-registered conclusion: sim-select discrimination is CLOSED -- the DD advantage seen on real video (P5.14) is attributable to real-imagery VLM fragility that clean renders cannot reproduce; further select levers must be tested on real video.
+  [ ] branch 4: No separation, at least one contract < ceil(0.8*n): the stack fails upstream of the delivery contract (carry loss on both, or VLM failure on both); diagnose the stack before re-asking the contract question.
 ```
 
 ### Visual gate V — select
 
-- (TBD)
+- looked at `runs/s002_white/overlay_dd_f0150.png`: green delivered box on the white car inside the red namedGT -- DD hands over the carried box with no lag. `overlay_vlm_f0150.png`: yellow VLM box on the white car (correct car). `overlay_rg_f0259.png`: green box on the white car **at its f259 position** (both cars visibly farther than at f150), not stranded at the f150 spot. PASS.
+- looked at `runs/s018_white/{overlay_dd_f0150,overlay_vlm_f0150,overlay_rg_f0259}.png`: same pattern; the blue car is the near one here and neither box drifts onto it. PASS.
+- looked at `runs/s068_white/{overlay_dd_f0150,overlay_vlm_f0150,overlay_rg_f0259}.png`: same; this is the tightest crossing sampled and the carry still holds the white car through it. PASS.
+- looked at `runs/s098_white/{overlay_dd_f0150,overlay_vlm_f0150,overlay_rg_f0259}.png`: same. PASS.
+- looked at `runs/s122_white/{overlay_dd_f0150,overlay_vlm_f0150,overlay_rg_f0258}.png`: same. PASS.
+- **Failing cell** `runs/s003_white/overlay_rg_f0259.png`: the delivered green box is blown up to a huge region covering the road, the right barrier and the checkerboard, while the white car sits far to the left under its red namedGT -- a genuine mask blow-up during the 4.34 s re-ground lag, correctly classed `DELIVERY_DRIFT` (rgCov 0.098). The same clip's `overlay_dd_f0150.png` shows a tight green box on the white car (DD PASS) and `overlay_vlm_f0150.png` a correct yellow box on the white car, so the failure is in RG's post-grounding carry, not in the VLM pick.
+- V verdict: **PASS on both halves -- no downgrade.** Every sampled PASS cell looks like a pass, and the one mechanical FAIL looks like a real failure.
 
 ### Estimate vs actual
 
 | Piece | Estimated | Actual |
 |---|---|---|
-| record runs | ~40 min | (TBD) |
-| select matrix | ~20–25 min | (TBD) |
-| total wall | ~1 h 20 | (TBD) |
+| record runs | ~40 min | **~31 min** (30 runs, 8.62–8.89 fps; one `s103` renderer stall, retried once per the pre-registered infra rule, passed) |
+| select matrix | ~20–25 min | **~7 min** (56 cells, 0 INFRA, 0 VLM reboots) |
+| total wall | ~1 h 20 | **~44 min** (EXEC-START 01:01Z, proof written 01:44Z) |
 
 ### Verdict
 
-**RQ-P5.17a: (TBD YES/NO [branch])**  RQ-P5.17b: (TBD)  Infra: (TBD count)
+**RQ-P5.17a: NO [branch 3 -- contracts-equivalent].** DD 56/56 vs RG 55/56,
+|diff| = 1, far below the pre-registered separation of 7; both contracts clear
+the health floor 45 = ceil(0.8 x 56). **RQ-P5.17b: NO** (far-leg minus near-leg
+DD failures = 0; DD is 28/28 in both roles, so there is no asymmetry to
+attribute to the occlusion aftermath). **Infra: 0** consumed of the >3 budget
+(the one `s103` renderer stall was resolved by the pre-registered single retry
+and never needed an `.INFRA` marker).
+
+**What this means (pre-registered branch-3 text, applied as written):** this is
+the third consecutive sim contract tie -- now at n = 56 cells with *realized*
+staleness (median ZOH IoU 0.08 at the deliver frame, measured, see
+`proof/p517_staleness.png`) and *designed* crossings (max GT-GT IoU 0.28-0.44,
+which bank v2.1 lacked). Both levers that P5.13's audit blamed for the earlier
+tie have now been supplied, and the contracts still do not separate.
+Pre-registered conclusion: **sim-select discrimination is CLOSED.** The DD
+advantage measured on real video in P5.14 is attributed to real-imagery VLM
+fragility that clean Gazebo renders cannot reproduce -- RG's VLM picked the
+named car correctly on 56/56 sim cells (`vlm_on=named` everywhere), where on
+real UAV123 frames it disagreed with DD on 4/12. Further select levers must be
+tested on real video.
+
+**What the bank is still good for:** the v3 generator, its offline screen, and
+the 28 pinned seeds are a working, deterministic, GT-exact test-bed -- it just
+cannot discriminate *this* question. Reuse it for stack-level questions where
+clean renders are an asset (carry robustness through occlusion, mask-quality
+gates, tracker swaps), not for VLM-fragility questions.

@@ -568,3 +568,45 @@ Proof: `proof/p516_pass_grid.png` (P5.14 vs P5.16, per cell x leg),
 `proof/p516_flip_DSC_WSEL_car7_460_discovery.png` + `..._deliver.png` (negative proof of the
 one flip: wrong silver car at discovery, then no box at delivery).
 Detail: [`../../experiments/2026-07-19-autodisc-select/README.md`](../../experiments/2026-07-19-autodisc-select/README.md).
+
+## P5.17 — bankv3-select: lag-stress sim bank, then the delivery-contract A/B at n = 56 cells
+
+**2026-07-20T01:45Z.** RTX 3090 workstation (Gazebo Sim 8.14.0 headless, ogre2, EGL nvidia ICD)
++ SAM2 `sam2.1-hiera-tiny` bf16; Jetson Orin Nano 8 GB over `ssh jetson` for the VLM leg
+(Qwen2-VL-2B q8_0 terse, llama.cpp, **15W + jetson_clocks** — the only power mode this board
+has). `.venv-ft`: Python 3.12, torch 2.6.0+cu124, opencv 4.13.0, numpy 2.4.4.
+`runners/scenegen.py --profile v3`, 300-frame clips, prompt f150, RG deliver ~f259.
+
+**Build (bank v3): PASS — 28/28 clips valid**, 30 runs recorded at 8.62–8.89 fps.
+G4a determinism `gt_identical=True`, `frame_mean_absdiff=0.0` on both replay pairs;
+G4b min pairwise scenario divergence **1.32 m** (floor 1.0) at pair (21, 101);
+G7 offline screen reproduces the 28 pinned seeds exactly; G11 near-white 14 / near-blue 14,
+recorded peak span 62 (floor 30). Designed crossings: max GT–GT IoU **0.28–0.44** per clip
+(bank v2.1 had none). Realized staleness: median ZOH IoU(GT@f150, GT@f260) = **0.08**, every
+seed <= 0.20 — versus **~0.79** for bank v2.1, the flaw that made the P5.13 lag free.
+
+**Select A/B**, n_cells = 56 (28 clips x 2 named-car roles), health floor 45 = ceil(0.8 x 56):
+
+| contract | total | far leg | near leg | fail classes | acquire |
+|---|---|---|---|---|---|
+| **DD** (direct delivery of the warm carry) | **56/56** | 28/28 | 28/28 | none | 0.00 s |
+| **RG** (prompt-time re-ground) | **55/56** | — | — | `DELIVERY_DRIFT` x1 (`s003_white`) | 4.33–4.36 s |
+
+|DD − RG| = **1**, against a pre-registered separation threshold of 7 → **branch 3**.
+RG's VLM picked the named car on **56/56** cells (`vlm_on=named` everywhere) — no sim-gap in
+grounding. Matrix wall ~7 min, **0 INFRA**, 0 VLM reboots; one `s103` renderer stall during
+recording resolved by the pre-registered single retry.
+
+**Visual gate V: PASS on both halves** (13 build lines + 6 select lines, all opened with the
+Read tool; V can only downgrade and did not). The sole FAIL was *seen*: `s003_white` RG at f259
+has the delivered box blown up over road, barrier and checkerboard while the car sits far left
+under its GT — a real mask blow-up during the re-ground lag, not a scoring artifact.
+
+Estimate vs actual: record runs ~40 min est / **~31 min**; select matrix ~20–25 min est /
+**~7 min**; total ~1 h 20 est / **~44 min**. Design-time prediction was **branch 1** at modest
+margin; the outcome was branch 3, the pre-named live alternative.
+
+Proof: `proof/p517_peak_montage.png` (28 labelled crossing peaks, no invalid tiles),
+`proof/p517_staleness.png` (v3 vs v2.1 ZOH staleness — why this bank makes the lag cost real),
+`proof/p517_dd_vs_rg_cells.png` (56-cell paired outcome grid, one red).
+Detail: [`../../experiments/2026-07-20-bankv3-select/README.md`](../../experiments/2026-07-20-bankv3-select/README.md).

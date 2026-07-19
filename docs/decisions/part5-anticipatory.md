@@ -479,3 +479,33 @@ flips P5.8's failing gate — disclosed, deliberate, grounded in third-party-che
   oracle back in through the side door and invalidate the experiment. **Given up:** the ability
   to reject a wrong-object discovery — which is precisely how `car7:460` failed, and that
   failure is the honest cost of the rule.
+
+### P5.17 bankv3-select (2026-07-20)
+
+- **Built a third sim bank (v3) rather than accepting the P5.13 tie at face value.** **Why:**
+  the P5.13 audit had a specific, testable explanation for the tie — the post-crossing segment
+  was near-static, so the target moved <16 px over the 109-frame delivery lag and RG's lag was
+  *free*. That is a bank defect, not a finding, and closing the sim fork without fixing it
+  would have been closing it on a confound. **Given up:** ~44 min of wall-clock and one loop
+  cycle that could have gone to a real-video lever. **Verdict on the decision:** worth it — the
+  tie reproduced at n = 56 with the defect provably removed (median ZOH IoU 0.08 vs 0.79), so
+  the close-out is now attributable instead of confounded.
+- **Pre-registered a health floor and four exhaustive interpretation branches before the run.**
+  **Why:** a tie is only informative if "tie with both arms healthy" (branch 3, close the fork)
+  is distinguished up front from "tie because the stack failed on both" (branch 4, diagnose the
+  stack) — deciding that after seeing 56/56 vs 55/56 would be post-hoc. **Given up:** the
+  freedom to reinterpret a surprising result; branch 3 fired as written and was applied
+  verbatim.
+- **Closed the sim fork for select questions; kept the bank for stack questions.** **Why:**
+  three banks in a row tie the delivery contracts while real UAV123 video separated them for
+  free (P5.14), and the mechanism is now visible — RG's VLM grounds the named car on 56/56
+  clean renders but disagreed on 4/12 real frames, so what DD actually buys is immunity to
+  *real-imagery* grounding fragility, which a clean render cannot exhibit by construction.
+  **Given up:** the deterministic, GT-exact, cheap-to-scale test-bed for every future select
+  lever; those must now be paid for in real-video annotation. The generator, its offline screen
+  and the 28 pinned seeds stay committed and reusable for carry/mask/tracker questions.
+- **Charged the one `s103` renderer stall to the pre-registered infra rule (retry once with a
+  fresh server) instead of the INFRA budget.** **Why:** the rule was written before the run
+  precisely for this known gz-transport flake; consuming budget for a first retry would have
+  made the >3 INFRA allowance unreachable in practice. **Given up:** nothing measurable — the
+  retry produced a clip that passes all 10 build gates and G4a determinism.
