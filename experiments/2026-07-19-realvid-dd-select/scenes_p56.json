@@ -1,0 +1,59 @@
+{
+  "comment": "P5.6 frozen scene set: the 6 P5.5 scenes verbatim (clip, f0, t_p, MC captions, distractor_box seed) with ONE addition per scene: distractor_gt_prompt = hand-annotated pixel box of the TRUE distractor object at the prompt frame (prompt = f0 + t_p*30, frame file = prompt+1 as %06d.jpg, 1280x720). These boxes strengthen the SWAP criterion: the delivered box must be ON the named distractor (IoU >= 0.25), not merely off the target. Annotated 2026-07-14 by Fable on 10px-grid zoom renders committed under curation/ (prompt_<clip>_<frame>_z.jpg, regenerable via annotate_p56.py); the P5.5 old_* M-arm caption fields are dropped (P5.5 falsified the caption lever: M == MC). gating=false marks the car3:200 control (kept: under direct delivery its P5.3/P5.4 'resolution-bound' WSEL failure is predicted to FLIP, showing that family was a re-grounding artifact).",
+  "scenes": [
+    {
+      "clip": "car10", "f0": 240, "t_p": 8.0,
+      "target_caption": "the white car",
+      "distractor_caption": "the black car in front of the white car",
+      "distractor_box": [540, 253, 600, 311],
+      "distractor_gt_prompt": [614, 193, 636, 209],
+      "gating": true,
+      "note": "P5.5 MC SWAP failed carry-drift NO_MATCH here, but the audit shows the carried box [616,194,635,208] at f480 IS the true black car in front of the white target (hand GT [614,193,636,209]); the select-time VLM boxed the OTHER dark car further ahead [602,187,614,202]. The IoU-match loses an identity distinction the carry got right -- the P5.6 headline cell. See curation/prompt_car10_480_z.jpg."
+    },
+    {
+      "clip": "car10", "f0": 615, "t_p": 8.0,
+      "target_caption": "the white car in front of the white van",
+      "distractor_caption": "the white van",
+      "distractor_box": [588, 455, 715, 700],
+      "distractor_gt_prompt": [618, 350, 694, 462],
+      "gating": true,
+      "note": "P5.5 MC WSEL failed NO_MATCH (VLM grounded a different white car [576,259,602,281]) while the target carry sat on GT (IoU ~0.97 at f855). Direct delivery bypasses that re-grounding. Van hand GT at f855 from curation/prompt_car10_855_z.jpg."
+    },
+    {
+      "clip": "car9", "f0": 300, "t_p": 8.0,
+      "target_caption": "the silver car",
+      "distractor_caption": "the black car",
+      "distractor_box": [588, 528, 660, 672],
+      "distractor_gt_prompt": [632, 60, 658, 81],
+      "gating": true,
+      "note": "Regression guard: both legs passed P5.3/P5.5. Black car hand GT at f540 from curation/prompt_car9_540_z.jpg (carried box [636,63,658,81] fits it, IoU ~0.73 vs hand GT)."
+    },
+    {
+      "clip": "car7", "f0": 460, "t_p": 8.0,
+      "target_caption": "the silver car",
+      "distractor_caption": "the black car",
+      "distractor_box": [900, 308, 1000, 352],
+      "distractor_gt_prompt": [660, 595, 780, 650],
+      "gating": true,
+      "note": "The surviving hard-drift cell: in P5.5 MC the distractor carry ended at the frame edge [0,407,41,424] despite two accepted drift-centered ROI re-anchors (window cannot see the true object once the carry has left it). PRE-REGISTERED PREDICTION: this cell FAILS the strengthened SWAP check under direct delivery too (carry-off-object) -- the 4/5 bar tolerates exactly this one. Black car hand GT at f700 from curation/prompt_car7_700_z.jpg. Target GT NaN patch ~f900 (scorer skips NaN frames)."
+    },
+    {
+      "clip": "car9", "f0": 560, "t_p": 6.0,
+      "target_caption": "the silver car",
+      "distractor_caption": "the dark red car",
+      "distractor_box": [578, 522, 624, 598],
+      "distractor_gt_prompt": [561, 120, 592, 147],
+      "gating": true,
+      "note": "Tightest SWAP cell: P5.5 carried box [573,124,590,138] at f740 vs hand GT [561,120,592,147] gives IoU ~0.28 -- just over the 0.25 floor. ~30x27 px receding maroon sedan. curation/prompt_car9_740_z.jpg."
+    },
+    {
+      "clip": "car3", "f0": 200, "t_p": 8.0,
+      "target_caption": "the red car",
+      "distractor_caption": "the white car",
+      "distractor_box": [388, 538, 420, 602],
+      "distractor_gt_prompt": [344, 200, 366, 240],
+      "gating": false,
+      "note": "NON-GATING control, kept from P5.3/P5.4/P5.5 where WSEL always failed 'resolution-bound' (~16x40 px target mis-grounded by the VLM). Under direct delivery no VLM grounding happens at select: the P5.5 target carry sat at IoU ~0.77 vs GT at f440, so WSEL is predicted to FLIP to PASS -- evidence the 'resolution' family was a re-grounding artifact, not a carry limit. White car hand GT at f440 from curation/prompt_car3_440_z.jpg."
+    }
+  ]
+}
