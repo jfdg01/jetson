@@ -506,6 +506,72 @@ on empty road. No black frames, no >99%-one-colour frames, no stale GT observed.
 
 ---
 
+## Orchestrator audit (2026-07-19T13:35Z, at merge)
+
+Verdict reproduced independently (`verdict_p513.py` re-run: DD 24/24, RG 23/24,
+branch 3). Four `results.json` spot-checked against the table. Three proof PNGs
+and the headline overlay opened with the Read tool: genuine Gazebo renders (sky,
+grass banks, control building, checkered start line, guardrails), boxes on cars,
+none black or duplicated. The `DELIVERY_DRIFT` mask leak is plainly visible in
+`p513_headline_dd_vs_rg.png`. **Visual gate V: PASS** (non-operative — V can only
+downgrade a YES, and this is a NO).
+
+**The executor's bank09_white diagnosis is confirmed** against the raw JSON:
+`vlm_iou_named` 0.735, `match_ious` {0: 0.665, 1: 0.0}, `selection` 0 — the VLM
+grounded and matched the correct object. `delivered_box` leaks
+`[560,292,629,342]` → `[560,292,1248,615]`, `iou_named` 0.021. `cov_dd.frac_lock`
+is 0.787 on the same cell, so the carry was already degrading; DD escapes only
+because it delivers at f150, before the leak. **The contract-attributable
+difference is 0, not 1.** This does not move the verdict (NO and branch 3 at
+either value), so no threshold was reinterpreted.
+
+### A limitation no gate measures (measured here, NOT a post-hoc explanation)
+
+This is recorded the same way P5.12's uniformity caveat was: as a measurement fed
+forward to the next pre-registration, **not** as a third explanation for this
+null. The frozen branch-3 rule was followed as written — explanation (ii),
+bank05/bank06 weakness, is contradicted by the data (both weakest-crossing clips
+passed identically to the strongest), which leaves (i), crossing-peak uniformity
+and constant z-order.
+
+Beyond that: **the post-crossing segment is nearly frozen in image space.** Over
+the 109 frames (4.4 s) between the f150 prompt and the f259 RG delivery, the
+target box centre moves 0.4–15.6 px horizontally and <= 2.4 px vertically, with
+area ratio 0.81–1.03. For contrast, the same box travels ~90–115 px horizontally
+over f0→f150.
+
+| clip | dcx f150→f259 | dcy | area ratio | dcx f0→f150 |
+|---|---|---|---|---|
+| bank01 | 2.5 | 0.9 | 0.95 | 102.6 |
+| bank02 | 7.9 | 2.3 | 0.95 | 95.9 |
+| bank03 | 11.6 | 1.1 | 0.81 | 94.5 |
+| bank04 | 3.4 | 2.1 | 1.02 | 97.4 |
+| bank05 | 9.6 | 2.4 | 0.98 | 115.2 |
+| bank06 | 1.1 | 1.5 | 0.94 | 96.5 |
+| bank07 | 0.4 | 1.1 | 0.89 | 102.8 |
+| bank08 | 15.6 | 0.8 | 0.89 | 91.8 |
+| bank09 | 1.7 | 0.3 | 1.01 | 94.2 |
+| bank10 | 6.8 | 2.2 | 1.03 | 102.0 |
+| bank11 | 10.0 | 1.0 | 0.94 | 90.0 |
+| bank12 | 2.7 | 1.5 | 1.03 | 103.2 |
+
+Consequence: RG's ~4.4 s delivery lag is nearly free on this bank, because the
+frame it grounds on and the frame it delivers into are almost the same picture.
+That removes the one axis on which the two contracts provably differ — DD
+delivers at t=0, RG at t≈4.4 s — and it is a sufficient reason for a tie
+independent of the crossing design. It also means "the carry survived 109 frames"
+is a weaker claim than it sounds.
+
+**Mandatory for P5.14's pre-registration, before it runs:** the bank's
+post-prompt segment must move enough that delivery lag has a measurable cost, and
+that must be a *pre-registered, gated* quantity — a minimum target displacement
+between the prompt frame and the expected delivery frame, alongside the
+crossing-peak diversity and z-order gates that explanation (i) calls for. Two
+campaigns have now tied at ceiling; the shared cause across both is that nothing
+in the graded window is hard.
+
+---
+
 ## Definition of done
 
 1. This README filled — Results, estimate-vs-actual, what broke.
