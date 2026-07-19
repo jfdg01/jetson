@@ -1,0 +1,184 @@
+{
+  "arm": "DD",
+  "leg": "SWAP",
+  "scene": {
+    "clip": "car7",
+    "f0": 460,
+    "t_p": 8.0,
+    "target_caption": "the silver car",
+    "distractor_caption": "the black car",
+    "distractor_box": [
+      900,
+      308,
+      1000,
+      352
+    ],
+    "distractor_gt_prompt": [
+      660,
+      595,
+      780,
+      650
+    ],
+    "gating": true,
+    "note": "The surviving hard-drift cell: in P5.5 MC the distractor carry ended at the frame edge [0,407,41,424] despite two accepted drift-centered ROI re-anchors (window cannot see the true object once the carry has left it). PRE-REGISTERED PREDICTION: this cell FAILS the strengthened SWAP check under direct delivery too (carry-off-object) -- the 4/5 bar tolerates exactly this one. Black car hand GT at f700 from curation/prompt_car7_700_z.jpg. Target GT NaN patch ~f900 (scorer skips NaN frames)."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 21.8,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "dist_floor": 0.25,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "pass": false,
+  "swap_weak_pass": true,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 268,
+    "deliver_frame": 700,
+    "deliver_iou": 0.0,
+    "window": [
+      700,
+      1000
+    ],
+    "leg": "SWAP",
+    "selection": "distractor",
+    "selection_correct": true,
+    "acquire_s": 0.0,
+    "deliver_iou_distractor": 0.0
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 460,
+    "t_p": 8.0,
+    "prompt_frame": 700,
+    "reanchor": [
+      {
+        "frame": 550,
+        "win": [
+          434,
+          221,
+          690,
+          477
+        ],
+        "crop_wh": [
+          512,
+          512
+        ],
+        "prior": [
+          547.0,
+          343.0,
+          577.0,
+          356.0
+        ],
+        "raw": [
+          556.9,
+          343.9,
+          572.2,
+          361.8
+        ],
+        "accepted": true,
+        "new_box": [
+          556.9,
+          343.9,
+          572.2,
+          361.8
+        ]
+      },
+      {
+        "frame": 625,
+        "win": [
+          170,
+          256,
+          426,
+          512
+        ],
+        "crop_wh": [
+          512,
+          512
+        ],
+        "prior": [
+          271.0,
+          368.0,
+          326.0,
+          400.0
+        ],
+        "raw": [
+          267.3,
+          371.2,
+          326.2,
+          404.5
+        ],
+        "accepted": true,
+        "new_box": [
+          267.3,
+          371.2,
+          326.2,
+          404.5
+        ]
+      }
+    ],
+    "acquire_s": 0.0,
+    "caption": "the black car",
+    "selected": "distractor",
+    "cand_at_prompt": {
+      "target": [
+        818.0,
+        532.0,
+        895.0,
+        608.0
+      ],
+      "distractor": [
+        0.0,
+        407.0,
+        41.0,
+        424.0
+      ]
+    },
+    "deliver_frame": 700,
+    "shadow": {
+      "acquire_s": 4.51,
+      "vlm_box": [
+        678.4,
+        597.6,
+        780.8,
+        648.0
+      ],
+      "match_ious": {
+        "target": 0.0,
+        "distractor": 0.0
+      },
+      "selected": null
+    }
+  },
+  "events": [
+    [
+      23.333,
+      [
+        0.0,
+        407.0,
+        41.0,
+        424.0
+      ]
+    ],
+    [
+      23.388,
+      [
+        0.0,
+        407.0,
+        41.0,
+        419.0
+      ]
+    ]
+  ]
+}

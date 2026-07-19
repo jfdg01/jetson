@@ -383,3 +383,45 @@ flips P5.8's failing gate — disclosed, deliberate, grounded in third-party-che
   post-hoc story, and the P5.12 audit pre-committed against exactly that. **Given up:** any
   post-hoc explanation that might be true but was not named in advance — it can be proposed as a new
   pre-registration, not as a reading of this run.
+
+## P5.14 — realvid-dd-select
+
+- **Overrode the standing "harden the bank to v2" steer and unparked P5.6 on real UAV123.**
+  **Why:** the steer deferred P5.6 "unless the audit overrides", and the picked direction had been
+  executed to completion — bank v2.1 built and validated (P5.12 YES), the discrimination A/B run on
+  it (P5.13) — returning a second consecutive DD==RG ceiling tie (24/24 vs 24/24 on v1, then 24/24
+  vs 23/24 on v2.1 with the single discordant cell attributable to carry decay, not contract). Four
+  cycles of scene-data work had produced no contract separation, while the separation already
+  existed in *recorded* real-video results (RG measured WSEL 3–4/5, SWAP 2–3/5 on these exact
+  scenes in P5.3/P5.5). **Given up:** the sim arc's momentum, and the chance that a third bank
+  would finally separate the contracts. **Vindicated in the event:** the shadow re-ground
+  disagreed with DD on 4/12 real-video cells — the separation the banks could not manufacture.
+- **Rejected bank v3 (the competing candidate) this cycle, but pre-named its mandatory gates.**
+  **Why:** a third bank cycle needed re-authored trajectories and a recalibrated kerb-safe corridor
+  — a multi-session build before any contract evidence arrives — with a demonstrated risk of a third
+  ceiling tie, since SAM2 and the fine-tuned VLM are simply strong on clean 25 fps renders.
+  **Given up:** the controlled, GT-for-free setting that a sim provides. **Carried forward as
+  binding on any future sim-bank pre-registration** (so they cannot be reinvented post-hoc): a
+  **minimum post-prompt target displacement** gate over the delivery window (P5.13's delivery lag
+  was free because the target moved <16 px in 109 frames), **z-order variation** (in bank v2.1 the
+  target was the nearer car in 0/300 frames of every clip), and **crossing-peak diversity**.
+- **Imported the parked P5.6 rig byte-unchanged rather than rewriting it, and kept its frozen
+  thresholds.** **Why:** the bar (WSEL >= 4/5, SWAP >= 4/5 strengthened) was pre-registered
+  2026-07-14, four campaigns before the sim results that motivated unparking; re-authoring the rig
+  or re-deriving the thresholds now would make the YES unfalsifiable — "the bar moved after we saw
+  the data" is the exact criticism a positive result invites. **Given up:** tidier code and the
+  `p56` lineage labels leaking into P5.14 output (`verdict_p56.py` prints `RQ-P5.6a/b`); the
+  provenance section documents the equivalence instead of renaming. **Only new code:**
+  `dump_frames_p514.py`, which closes the rig's pre-"Look at it" gap (it wrote only `overlay.mp4`,
+  which the Read tool cannot open).
+- **Kept the strengthened SWAP rule even though it is harder than every historical bar.**
+  **Why:** the old off-target-only rule passes any box that misses the target, including one on
+  empty road — it would have scored `car7:460` a pass on a junk carry. Reporting the weak rule as a
+  non-gating diagnostic (6/6 weak vs 5/6 strong) makes the flattery visible instead of inheriting
+  it. **Given up:** comparability with the historical SWAP numbers at face value; the pass grid
+  carries an explicit note that the DD row is scored under the stricter rule.
+- **Did not rescue the marginal cell or rerun anything.** `car9:560` SWAP passed at 0.2843 against a
+  0.25 floor and `car7:460` failed outright; both stand as first-scored, per the pre-registered
+  "never rerun a scored cell" rule. **Why:** n=1 deterministic replay, and a rerun after seeing the
+  margin is selection. **Given up:** a tighter estimate of where the carry sits on that cell —
+  recorded instead as the named risk that a small carry regression flips a second cell.
