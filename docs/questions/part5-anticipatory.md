@@ -376,3 +376,32 @@ than resolved silently: `viz_late` is sampled 5–6 s *after* the deliver frame,
 correctly-delivered distractor may have driven to the frame edge — a future pre-registration should
 gate on the deliver frame itself.
 Detail: [`../../experiments/2026-07-19-realvid-dd-select/README.md`](../../experiments/2026-07-19-realvid-dd-select/README.md).
+
+### RQ-P5.15a / RQ-P5.15b — does a warm carry survive a long idle window, and does the deployed re-anchor lever extend it? (2026-07-19)
+
+**RQ-P5.15a (gating): YES — decisively, not marginally.** An unmaintained SAM2 carry seeded
+at GT[0] and stepped at the deployed 6.15 Hz idle budget is still on-target (IoU >= 0.25 vs
+UAV123 GT) on **24 of 25** clips at a 16 s idle horizon — floor was 18/25 — and on **24/25**
+at 24 s, three times the longest idle any prior Part V result used. Surviving cells are at
+IoU 0.6–0.97, so the margin is real rather than threshold-hugging. The single failure,
+`car7`, dies at f270 in a palm-occluded roundabout and never recovers. **Consequence for the
+arc:** the carry is *not* the fragile component over a long idle window, which retires the
+assumption underneath P5.14's "carry quality on real video is the next binding constraint"
+and the assumption that P5.2's WARM 21/25 at ~8 s was carry-bound — those four losses were in
+select/delivery, not the tracker. Long idle windows are therefore cheap, which unblocks the
+deferred auto-discovery cycle (dropping P5.14's oracle seeds) that needs one.
+
+**RQ-P5.15b: N/A by the pre-registered ceiling** (PLAIN@24s 24 >= 22, no headroom). The
+non-gating measurement is the interesting one and is negative: **the deployed idle re-anchor
+lever makes long-idle carry worse**, 22/25 vs 24/25 at both 16 s and 24 s. All 100 re-anchor
+rounds were accepted (the P5.5 accept rule carries no IoU floor) and they cost `car10`,
+`car3` and `person10` while rescuing `car7` — net -2. P5.5's "accepted 16/16, never harmed a
+cell" was true only over an 8 s window; given enough rounds, generic-caption re-grounding with
+no identity constraint lands on some *other* object of the class.
+
+**Visual gate: PASS.** All 25 `PLAIN_*/h16.png` (the RQ-a claim frames — the rig dumps the
+scoring frames themselves, closing the P5.14 `viz_late` gap), all 5 `death.png`, and all 4
+MAINT/PLAIN h24 disagreement frames were opened with the Read tool. Every alive/dead flag
+matches its pixels; the identity-swap mechanism was *seen* (green box on a different car /
+a different person beside the red GT box), not inferred from IoU.
+Detail: [`../../experiments/2026-07-19-carry-horizon/README.md`](../../experiments/2026-07-19-carry-horizon/README.md).

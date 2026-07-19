@@ -425,3 +425,28 @@ flips P5.8's failing gate — disclosed, deliberate, grounded in third-party-che
   "never rerun a scored cell" rule. **Why:** n=1 deterministic replay, and a rerun after seeing the
   margin is selection. **Given up:** a tighter estimate of where the carry sits on that cell —
   recorded instead as the named risk that a small carry regression flips a second cell.
+
+## P5.15 — carry-horizon (2026-07-19)
+
+- **Measured carry survival instead of re-running the DD select at a long idle.** **Why:** the
+  competing candidate (P5.14's WSEL/SWAP legs at t_p = 16/24 s) was rejected *by looking* at the
+  actual prompt frames: two cells exceed their clip length (`car7:460` needs f1240 of 1033,
+  `car10:615@24s` f1635 of 1405), and in the rest the hand-annotated distractor has left the FOV
+  or is no longer re-identifiable by 16–24 s. **Finding worth carrying forward: UAV123's
+  two-candidate geometry dissolves within ~16 s** — long-idle *select* cannot be tested honestly
+  on this dataset, but long-idle *carry* can, since every clip has per-frame GT for its single
+  target. **Given up:** a direct long-idle test of the winning P5.14 contract.
+- **Kept the P5.5 re-anchor accept rule verbatim (no IoU floor) even though it lost clips.**
+  **Why:** the arm is a controlled test of the *deployed* lever; adding a floor mid-run would
+  measure a lever that does not exist and would have hidden the identity-swap failure mode.
+  **Given up:** a flattering MAINT number. What we got instead is the first evidence that the
+  deployed lever is a liability past ~8 s of idle, which is a deployment-relevant negative.
+- **Did not gate on RQ-b despite MAINT losing.** **Why:** the ceiling rule (PLAIN@24s >= 22 ->
+  N/A) was frozen before the run precisely so a lever could not be scored on a saturated
+  baseline; it fired, so the MAINT result is reported as a non-gating diagnostic. **Given up:**
+  claiming a measured "re-anchor harms" verdict at gating strength — it needs its own
+  pre-registration on a set where PLAIN is not saturated.
+- **Carry-health gate should key on box area, not colour.** **Why:** over 150 horizon points
+  `area_ratio` separates alive from dead (median 1.039 vs 0.163) while `hist_corr` is flat
+  (0.742 both) and is undefined when the box vanishes. **Given up:** the appearance-similarity
+  health signal, which several earlier proposals assumed would work.

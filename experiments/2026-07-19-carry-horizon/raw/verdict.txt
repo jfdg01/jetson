@@ -1,0 +1,62 @@
+P5.15 carry-horizon verdict
+
+-- PLAIN (25/25 cells) --
+  bike1        h8=ALIVE(0.821@f240)  h16=ALIVE(0.894@f480)  h24=ALIVE(0.911@f720)  death=None
+  boat2        h8=ALIVE(0.938@f240)  h16=ALIVE(0.916@f480)  h24=ALIVE(0.963@f720)  death=None
+  boat3        h8=ALIVE(0.973@f240)  h16=ALIVE(0.885@f480)  h24=ALIVE(0.807@f720)  death=None
+  car10        h8=ALIVE(0.815@f240)  h16=ALIVE(0.799@f480)  h24=ALIVE(0.791@f720)  death=None
+  car14        h8=ALIVE(0.734@f240)  h16=ALIVE(0.794@f480)  h24=ALIVE(0.679@f720)  death=None
+  car17        h8=ALIVE(0.977@f240)  h16=ALIVE(0.950@f480)  h24=ALIVE(0.973@f720)  death=None
+  car18        h8=ALIVE(0.938@f240)  h16=ALIVE(0.871@f480)  h24=ALIVE(0.939@f720)  death=270
+  car1_s       h8=ALIVE(0.615@f240)  h16=ALIVE(0.717@f480)  h24=ALIVE(0.669@f720)  death=570
+  car3         h8=ALIVE(0.662@f240)  h16=ALIVE(0.693@f480)  h24=ALIVE(0.613@f720)  death=None
+  car3_s       h8=ALIVE(0.884@f240)  h16=ALIVE(0.765@f480)  h24=ALIVE(0.853@f720)  death=None
+  car4_s       h8=ALIVE(0.874@f240)  h16=ALIVE(0.928@f480)  h24=ALIVE(0.868@f720)  death=None
+  car7         h8=ALIVE(0.322@f228)  h16=dead(0.000@f480)  h24=dead(0.000@f720)  death=270
+  car9         h8=ALIVE(0.875@f240)  h16=ALIVE(0.810@f480)  h24=ALIVE(0.888@f720)  death=None
+  person1      h8=ALIVE(0.839@f240)  h16=ALIVE(0.922@f480)  h24=ALIVE(0.722@f720)  death=None
+  person10     h8=ALIVE(0.856@f270)  h16=ALIVE(0.950@f480)  h24=ALIVE(0.873@f720)  death=None
+  person13     h8=ALIVE(0.857@f240)  h16=ALIVE(0.801@f480)  h24=ALIVE(0.634@f720)  death=None
+  person15     h8=ALIVE(0.662@f240)  h16=ALIVE(0.863@f480)  h24=ALIVE(0.835@f720)  death=None
+  person18     h8=ALIVE(0.669@f240)  h16=ALIVE(0.741@f480)  h24=ALIVE(0.877@f720)  death=None
+  person1_s    h8=ALIVE(0.864@f240)  h16=ALIVE(0.828@f480)  h24=ALIVE(0.779@f720)  death=170
+  person20     h8=ALIVE(0.876@f240)  h16=ALIVE(0.861@f480)  h24=ALIVE(0.888@f720)  death=75
+  person6      h8=ALIVE(0.930@f240)  h16=ALIVE(0.790@f480)  h24=ALIVE(0.912@f720)  death=None
+  wakeboard2   h8=ALIVE(0.798@f240)  h16=ALIVE(0.764@f480)  h24=ALIVE(0.448@f720)  death=None
+  wakeboard3   h8=ALIVE(0.574@f240)  h16=ALIVE(0.676@f480)  h24=ALIVE(0.728@f720)  death=None
+  wakeboard6   h8=ALIVE(0.843@f240)  h16=ALIVE(0.862@f480)  h24=ALIVE(0.893@f720)  death=None
+  wakeboard8   h8=ALIVE(0.706@f240)  h16=ALIVE(0.799@f480)  h24=ALIVE(0.857@f720)  death=None
+
+-- MAINT (25/25 cells) --
+  bike1        h8=ALIVE(0.651@f240)  h16=ALIVE(0.860@f480)  h24=ALIVE(0.598@f720)  death=None
+  boat2        h8=ALIVE(0.938@f240)  h16=ALIVE(0.915@f480)  h24=ALIVE(0.963@f720)  death=None
+  boat3        h8=ALIVE(0.969@f240)  h16=ALIVE(0.903@f480)  h24=ALIVE(0.812@f720)  death=None
+  car10        h8=ALIVE(0.815@f240)  h16=dead(0.000@f480)  h24=dead(0.000@f720)  death=330
+  car14        h8=ALIVE(0.693@f240)  h16=ALIVE(0.794@f480)  h24=ALIVE(0.663@f720)  death=None
+  car17        h8=ALIVE(0.977@f240)  h16=ALIVE(0.945@f480)  h24=ALIVE(0.575@f720)  death=None
+  car18        h8=ALIVE(0.931@f240)  h16=ALIVE(0.864@f480)  h24=ALIVE(0.924@f720)  death=None
+  car1_s       h8=ALIVE(0.823@f240)  h16=ALIVE(0.681@f480)  h24=ALIVE(0.704@f720)  death=None
+  car3         h8=ALIVE(0.662@f240)  h16=dead(0.000@f480)  h24=dead(0.000@f720)  death=330
+  car3_s       h8=ALIVE(0.887@f240)  h16=ALIVE(0.551@f480)  h24=ALIVE(0.845@f720)  death=None
+  car4_s       h8=ALIVE(0.864@f240)  h16=ALIVE(0.898@f480)  h24=ALIVE(0.680@f720)  death=595
+  car7         h8=dead(0.000@f228)  h16=ALIVE(0.609@f480)  h24=ALIVE(0.873@f720)  death=165
+  car9         h8=ALIVE(0.879@f240)  h16=dead(0.000@f480)  h24=ALIVE(0.864@f720)  death=330
+  person1      h8=ALIVE(0.847@f240)  h16=ALIVE(0.911@f480)  h24=ALIVE(0.736@f720)  death=None
+  person10     h8=ALIVE(0.875@f270)  h16=ALIVE(0.950@f480)  h24=dead(0.000@f720)  death=665
+  person13     h8=ALIVE(0.857@f240)  h16=ALIVE(0.767@f480)  h24=ALIVE(0.646@f720)  death=None
+  person15     h8=ALIVE(0.654@f240)  h16=ALIVE(0.863@f480)  h24=ALIVE(0.877@f720)  death=None
+  person18     h8=ALIVE(0.668@f240)  h16=ALIVE(0.731@f480)  h24=ALIVE(0.885@f720)  death=None
+  person1_s    h8=ALIVE(0.864@f240)  h16=ALIVE(0.808@f480)  h24=ALIVE(0.779@f720)  death=None
+  person20     h8=ALIVE(0.867@f240)  h16=ALIVE(0.858@f480)  h24=ALIVE(0.881@f720)  death=75
+  person6      h8=ALIVE(0.965@f240)  h16=ALIVE(0.790@f480)  h24=ALIVE(0.902@f720)  death=None
+  wakeboard2   h8=ALIVE(0.614@f240)  h16=ALIVE(0.776@f480)  h24=ALIVE(0.618@f720)  death=None
+  wakeboard3   h8=ALIVE(0.596@f240)  h16=ALIVE(0.617@f480)  h24=ALIVE(0.709@f720)  death=None
+  wakeboard6   h8=ALIVE(0.816@f240)  h16=ALIVE(0.862@f480)  h24=ALIVE(0.919@f720)  death=None
+  wakeboard8   h8=ALIVE(0.755@f240)  h16=ALIVE(0.799@f480)  h24=ALIVE(0.764@f720)  death=None
+
+PLAIN alive: h8=25  h16=24  h24=24  (N/A: {'8': 0, '16': 0, '24': 0})
+MAINT alive: h8=24  h16=22  h24=22  (N/A: {'8': 0, '16': 0, '24': 0})
+
+RQ-P5.15a: PLAIN alive@16s 24/25 vs floor 18 -> YES
+RQ-P5.15b: N/A (ceiling: PLAIN@24s 24 >= 22)
+VERDICT: YES

@@ -1,0 +1,54 @@
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 50.03it/s]
+/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/gara/jetson/.venv-ft/lib/python3.12/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[P5.15 PLAIN car10] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=9.3s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 35.21it/s]
+[P5.15 PLAIN car3] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.1s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 48.22it/s]
+[P5.15 PLAIN car9] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.5s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 51.03it/s]
+[P5.15 PLAIN car14] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.1s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 47.29it/s]
+[P5.15 PLAIN car7] alive={'8': True, '16': False, '24': False} death=270 reanchor=[] wall=8.2s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 49.32it/s]
+[P5.15 PLAIN boat2] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.1s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 50.61it/s]
+[P5.15 PLAIN boat3] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.2s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 48.80it/s]
+[P5.15 PLAIN person15] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.1s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 49.25it/s]
+[P5.15 PLAIN bike1] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.1s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 49.16it/s]
+[P5.15 PLAIN person13] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.3s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 52.08it/s]
+[P5.15 PLAIN person6] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.0s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 49.55it/s]
+[P5.15 PLAIN person1] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.0s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 48.64it/s]
+[P5.15 PLAIN wakeboard8] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.3s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 50.51it/s]
+[P5.15 PLAIN wakeboard3] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.2s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 50.27it/s]
+[P5.15 PLAIN car18] alive={'8': True, '16': True, '24': True} death=270 reanchor=[] wall=8.2s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 51.46it/s]
+[P5.15 PLAIN car17] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.1s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 44.73it/s]
+[P5.15 PLAIN car4_s] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.3s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 45.22it/s]
+[P5.15 PLAIN car1_s] alive={'8': True, '16': True, '24': True} death=570 reanchor=[] wall=8.2s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 47.83it/s]
+[P5.15 PLAIN car3_s] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=9.1s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 49.53it/s]
+[P5.15 PLAIN person18] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.2s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 51.84it/s]
+[P5.15 PLAIN person20] alive={'8': True, '16': True, '24': True} death=75 reanchor=[] wall=8.3s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 46.90it/s]
+[P5.15 PLAIN person10] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.9s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 45.18it/s]
+[P5.15 PLAIN person1_s] alive={'8': True, '16': True, '24': True} death=170 reanchor=[] wall=8.8s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 49.35it/s]
+[P5.15 PLAIN wakeboard6] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=8.6s
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 50.55it/s]
+[P5.15 PLAIN wakeboard2] alive={'8': True, '16': True, '24': True} death=None reanchor=[] wall=9.0s

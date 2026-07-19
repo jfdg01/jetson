@@ -1,7 +1,7 @@
 # P5.15 — carry-horizon: how long does a warm carry survive on real video, and does the deployed re-anchor lever extend it?
 
 **Pre-registered:** 2026-07-19T14:10Z (Madrid wall clock)
-**Status:** PRE-REGISTERED, not yet run.
+**Status:** COMPLETE — run 2026-07-19T14:15Z–14:28Z. **OVERALL: YES** (RQ-P5.15a PLAIN alive@16s = 24/25 vs floor 18; RQ-P5.15b N/A by ceiling). Visual gate PASS on all 25 h16 frames + 5 death frames + 4 MAINT/PLAIN h24 disagreement frames.
 **Roles:** design + patches by Fable; Opus runs the matrix and fills Results only — do NOT re-patch code.
 **Branch:** `experiment/carry-horizon` (off `main` @ `7685c0e`, the P5.14 merge)
 
@@ -195,24 +195,88 @@ Opus MUST, before writing any verdict into this README:
    numbers.
 5. No frame for a scored cell -> that cell is INVALID ("cannot verify, no frame").
 
-## 6. Results (TBD — Opus fills after the run)
+## 6. Results
 
-Run date/time (Madrid): TBD. Versions actual: TBD. Jetson mode line: TBD.
-Wall clock actual vs estimate: TBD.
+Run date/time (Madrid): 2026-07-19T14:15Z–14:28Z. Versions actual: python 3.12.10,
+torch 2.6.0+cu124, transformers 4.57.6 (`.venv-ft`); SAM2 `facebook/sam2.1-hiera-tiny`
+on the RTX 3090; VLM `phase3-terse100eos-1024-q8_0.gguf` on the Jetson via llama.cpp.
+Jetson mode line: `NV Power Mode: 15W` (`nvpmodel -q` -> mode 0; this board has no MAXN)
++ `jetson_clocks`. n=1 deterministic, 50/50 cells scored, 0 INVALID, 0 N/A horizons.
 
-| clip | cat | PLAIN h8 | PLAIN h16 | PLAIN h24 | MAINT h8 | MAINT h16 | MAINT h24 | PLAIN death f | MAINT reanchor accepted |
-|---|---|---|---|---|---|---|---|---|---|
-| car10 | car | TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| ... (25 rows, one per clip; cell = ALIVE/dead/N-A with IoU) | | | | | | | | | |
+Wall clock actual vs estimate: **PLAIN 209 s total (8.4 s/cell)** vs est. 15–25 min;
+**MAINT 412 s total (16.5 s/cell, incl. 100 Jetson VLM crop calls)** vs est. 20–35 min;
+whole matrix **~10 min** vs est. 35–60 min. Second cycle running ~4x under estimate.
 
-- PLAIN alive counts h8/h16/h24: TBD / TBD / TBD
-- MAINT alive counts h8/h16/h24: TBD / TBD / TBD
-- **RQ-P5.15a:** TBD (floor 18/25 at 16 s) -> **verdict TBD**
-- **RQ-P5.15b:** TBD (MAINT@24s >= PLAIN@24s + 3, ceiling 22)
-- Per-category survival: TBD
-- Health-signal separation (hist_corr / area_ratio, alive vs dead cells): TBD
-- Estimate-vs-actual (runtime, expected numbers): TBD
-- Visual verification log (which PNGs opened, any mismatch): TBD
+Per-cell numbers: `raw/verdict.txt` (verbatim, both arms, IoU + scoring frame + death
+frame). Summary:
+
+| | h8 | h16 | h24 |
+|---|---|---|---|
+| **PLAIN** alive | 25/25 | **24/25** | 24/25 |
+| **MAINT** alive | 24/25 | 22/25 | 22/25 |
+
+- **RQ-P5.15a:** PLAIN alive@16s **24/25** vs floor 18/25 -> **YES**. The single death is
+  `car7` (dies at f270, never recovers; a roundabout occlusion behind palms). Every other
+  clip is still on-target at 24 s, most at IoU 0.6–0.97.
+- **RQ-P5.15b:** **N/A by the pre-registered ceiling** (PLAIN@24s 24 >= 22). Non-gating but
+  the striking number: MAINT is **worse** than PLAIN at every horizon (24/22/22 vs
+  25/24/24). Re-anchor accepted **100/100** rounds (the P5.5 accept rule has no IoU
+  floor) and **cost 3 net clips**: `car10`, `car3`, `person10` were alive under PLAIN and
+  dead under MAINT because an accepted re-anchor moved the carry onto a *different
+  same-class object* (verified by looking — see below). It rescued exactly one clip,
+  `car7` (PLAIN dead@16s/24s, MAINT alive 0.609/0.873). Fable pre-registered this exact
+  risk ("MAINT may anchor onto a different same-class object — that is data, not a bug").
+- Per-category PLAIN survival @16s: bike 1/1, boat 2/2, car 9/10, person 8/8,
+  wakeboard 4/4. Only the car category loses a clip.
+- Health-signal separation (all 150 horizon points): `area_ratio` separates cleanly —
+  median 1.039 alive (n=141) vs 0.163 dead (n=9); `hist_corr` does not (mean 0.742 both,
+  and it is None on 2 dead points where no box exists). A cheap carry-health gate should
+  use box-area collapse, not colour histogram.
+- Estimate-vs-actual on numbers: Fable predicted PLAIN @16s 17–20 (a "marginal YES") and
+  RQ-b YES. **Both predictions were wrong in the same direction**: the unmaintained carry
+  is far more durable than the Part V record implied (24/25, not 17–20), and the deployed
+  maintenance lever *hurts* rather than helps at long idle.
+
+### Visual verification log (all gating frames opened with the Read tool)
+
+1. **All 25 `runs/PLAIN_<clip>/h16.png`** — each shows the green carry box on the target
+   overlapping the red GT box, matching the recorded IoU/alive flag. `PLAIN_car7/h16.png`
+   shows the GT red box on a white car at a roundabout with **no green box** — the death
+   is real. No mismatch between any PNG and its cell verdict.
+2. **All 5 `death.png`** (PLAIN `car7` f270, `car18` f270, `car1_s` f570, `person1_s`
+   f170, `person20` f75) — every one shows a genuinely off-object carry: `car7` green box
+   drifted onto empty road; the other four show the mask leaking into a large background
+   region around the target. The four non-`car7` clips recover afterwards (alive at all
+   horizons), so "death" here is a transient-loss diagnostic, not a terminal state.
+3. **All 4 MAINT/PLAIN h24 disagreement frames** — `MAINT_car10/h24.png`: green box on a
+   *different car* two vehicles ahead of the red GT car. `MAINT_car3/h24.png`: green box
+   on a different car up-road. `MAINT_person10/h24.png`: green box on a *different person*
+   below the red GT person. `MAINT_car7/h24.png`: green box correctly on the GT car (the
+   one rescue). The identity-swap mechanism is visible, not inferred.
+4. **The three `proof/*.png`** — the alive grid, the arm bars and the decay curves all
+   reproduce `raw/verdict.txt` cell-for-cell (25/24/24 vs 24/22/22, floor line at 18).
+
+### What broke / what surprised
+
+- Nothing crashed; the resumable path was never exercised. Selfcheck green, 0 INVALID.
+- **The surprise is the size of the margin.** Part V's whole framing assumed the carry is
+  the fragile part over a long idle window; at 24 s of unmaintained carry it is not
+  (24/25). The P5.2 WARM 21/25 at ~8 s was therefore *not* carry-bound — those four
+  failures were in the select/delivery stage, not the tracker.
+- **The deployed idle re-anchor lever is now a measured liability at long idle.** P5.5
+  accepted 16/16 rounds and "never harmed one" over an 8 s window; over 24 s the same
+  no-IoU-floor accept rule nets -2 clips. It is generic-caption re-grounding with no
+  identity constraint, so given enough rounds it will find some object of the class.
+
+### Proof deliverables (committed)
+
+| File | What it shows | Run/config |
+|---|---|---|
+| `proof/p515_arms.png` | the headline: clips alive vs horizon, both arms, RQ-a floor line at 18 — PLAIN 25/24/24, MAINT 24/22/22 | both arms, all 25 clips, 15W + jetson_clocks |
+| `proof/p515_alive_grid.png` | per-clip x per-horizon IoU grid, green=alive/red=dead — every gating number in one figure | both arms |
+| `proof/p515_decay.png` | PLAIN per-step IoU traces by category over the full 24 s — shows the transient dips (the recorded "deaths") that recover, and `car7` falling to 0 and staying there | PLAIN arm |
+| `proof/p515_maint_car10_h24_IDENTITY_SWAP.png` | **proof of the negative:** MAINT re-anchor moved the carry onto a different car; green box two vehicles ahead of the red GT car at 24 s | MAINT `car10`, re-anchors accepted at f165/330/495/660 |
+| `proof/p515_plain_car7_h16_DEAD.png` | the one RQ-a failure, verified visually: red GT on the white car, no green carry box | PLAIN `car7` h16 (f480) |
 
 ## 7. Ledger updates on completion (Opus)
 
