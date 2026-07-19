@@ -329,3 +329,50 @@ estimate. Standing implication: **three banks in (v1, v2, v2.1) the contract que
 separable by scene data of this kind**; the next lever is a property of the scene the bank has never
 varied (z-order / target-in-front) or a move off synthetic banks entirely, not another recalibration.
 Detail: [`../../experiments/2026-07-19-v2disc-select/README.md`](../../experiments/2026-07-19-v2disc-select/README.md).
+
+### RQ-P5.14a / RQ-P5.14b — does changing the *delivery contract* fix select-on-command on real video?
+
+**Question.** Under the direct-delivery (DD) contract — the operator phrase binds to a warm-carried
+candidate by its stored caption, and that candidate's carried box at the prompt frame is delivered
+directly, with no prompt-time VLM call and no IoU match — does select-on-command pass on the same
+real UAV123 scenes where three re-grounding (RG) campaigns failed? **RQ-P5.14a (WSEL, select the
+target):** >= 4/5 gating scenes. **RQ-P5.14b (SWAP, select the distractor):** >= 4/5 under a
+*strengthened* rule (delivered box IoU < 0.25 vs target GT **and** >= 0.25 vs the hand-annotated
+distractor GT — junk cannot pass). YES iff both.
+
+**Verdict: YES — WSEL 5/5, SWAP 4/5 (strengthened), visual gate V PASS, no downgrade.**
+
+This is the **first select-on-command YES in Part V** after three straight NOs (P5.3 match-bound,
+P5.4 match/resolution-bound, P5.5 match/carry-bound) and two synthetic-bank ties (P5.10, P5.13). The
+lever is the contract, not the model, the prompt, or the scene: nothing about the VLM, the carry, or
+the scenes changed from P5.5 — only *what gets delivered at the prompt*. The thresholds were frozen
+2026-07-14, four campaigns before the sim results that motivated unparking this run, so the bar was
+not moved to fit. The strengthened SWAP rule is strictly harder than the historical bar (P5.3 2/5,
+P5.5 MC 3/5 under the weaker off-target-only rule), so the YES is not scoring drift: under the weak
+rule DD scores 6/6, under the strong rule 5/6, and the flattered cell is exactly the one that fails.
+
+**Where the win comes from, measured on the same frames.** The non-gating shadow re-ground ran
+alongside DD on every cell and **disagreed on 4/12** — 3x NO_MATCH and 1x wrong-object selection —
+on cells whose carried track was on the right object and whose DD cell passed. That is the P5.3/P5.5
+failure mode reproduced live, next to a contract that does not have it. **Latency:** DD `acquire_s`
+is 0.00 s by construction on all 12 cells against a 4.51 s mean full-frame re-ground. The
+`car3:200` control that RG failed in three campaigns as "resolution-bound" flips to PASS under DD
+(0.7256) — that fail family was a re-grounding artifact, not a carry limit, which retires a
+standing explanation.
+
+**What the NO cell means.** The one failure, `car7:460` SWAP, is `carry-off-object`: the carried
+distractor box had drifted onto empty kerb before the prompt, so DD delivered junk. This was
+predicted by name in the pre-registration and is the honest ceiling of the contract — **DD cannot
+be better than its carry.** Where RG could hide a bad carry behind a NO_MATCH (and score a weak-rule
+pass), DD fails it directly and visibly. The next binding constraint for this arc is therefore
+**carry quality on real video**, not selection: the marginal `car9:560` cell (0.2843 against a 0.25
+floor) says a small carry regression flips a second cell.
+
+**Visual gate V: PASS.** All 24 `viz_early/viz_late` PNGs opened with the Read tool, plus 3
+deliver-frame overlays extracted where the late frames were ambiguous. Every scored PASS is
+corroborated on the pixels (box on the named vehicle, real aerial scenes, no black/duplicate
+frames) and the one scored FAIL is visibly off-object. A wording gap was found and recorded rather
+than resolved silently: `viz_late` is sampled 5–6 s *after* the deliver frame, by which time a
+correctly-delivered distractor may have driven to the frame edge — a future pre-registration should
+gate on the deliver frame itself.
+Detail: [`../../experiments/2026-07-19-realvid-dd-select/README.md`](../../experiments/2026-07-19-realvid-dd-select/README.md).

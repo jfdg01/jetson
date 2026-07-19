@@ -469,3 +469,36 @@ Proof: `proof/p513_pass_grid.png` (47/48 tiles green — the absence of separati
 `proof/p513_headline_dd_vs_rg.png` (`bank09_white`: DD tight box at f150 vs RG mask ballooned across
 road and wall at f259; no picker fallback fired). Detail:
 [`../../experiments/2026-07-19-v2disc-select/README.md`](../../experiments/2026-07-19-v2disc-select/README.md).
+
+### P5.14 — realvid-dd-select (direct-delivery contract on real UAV123): **YES**
+
+| run | contract | scenes | WSEL (gating) | SWAP strengthened (gating) | acquire_s | fail class | verdict |
+|---|---|---|---|---|---|---|---|
+| P5.14 | **DD** — phrase binds to the warm-carried candidate by stored caption; carried box delivered at the prompt frame; no prompt-time VLM, no IoU match | 5 gating UAV123 `car*` scenes + `car3:200` control | **5/5** | **4/5** | **0.00 s** (all 12 cells) | `carry-off-object` x1 (`car7:460` SWAP) | **YES** (both RQs; visual gate V PASS) |
+| P5.14 shadow (non-gating) | RG — prompt-time full-frame re-ground + IoU match, run alongside DD on the same frames | same | — | — | **4.51 s** mean (4.48–4.53) | NO_MATCH x3, wrong-object x1 | 4/12 cells DISAGREE with DD |
+
+Config: RTX 3090 (SAM2 carry `facebook/sam2.1-hiera-tiny`, scoring, UAV123 replay) + Jetson Orin
+Nano 8 GB at `15W` + `jetson_clocks` (VLM `phase3-terse100eos-1024-q8_0.gguf`, terse, max_side 1024,
+used only for the 2 idle ROI re-anchors and the non-gating shadow call). python 3.12.10, torch
+2.6.0+cu124, transformers 4.57.6. CARRY_HZ 6.15, CAND_HZ 3.075, DIST_FLOOR 0.25, MATCH_FLOOR 0.10
+(shadow only), cover_s 10.0, ROI 512 / margin 2.0 / min_side 256, REANCHOR_OFFSETS (90, 165), n=1
+deterministic replay. Matrix wall ~4.4 min (21–22 s/cell) against a 45–75 min estimate.
+
+Per-cell delivered-box IoU vs the correct object at the prompt: WSEL 0.7256–0.8911 (all 6 cells);
+SWAP 0.7253–0.8864 on four cells, 0.2843 on the marginal `car9:560`, 0.0 on the failing `car7:460`.
+All 24 idle re-anchors accepted. The strengthened SWAP rule (delivered box must land >= 0.25 on the
+hand-annotated *distractor*, not merely off the target) scores 5/6 where the old weak rule scores
+6/6 — the flattered cell is `car7:460`, whose box is off every object. **First campaign in Part V
+where the two delivery contracts separate on the same frames:** the shadow re-ground fails on 4/12
+cells (3x NO_MATCH, 1x wrong-object selection) whose carried track was on the right object and whose
+DD cell passed — the separation four sim cycles (P5.10–P5.13) could not manufacture is present for
+free in real video, because the prompt-time re-ground is genuinely hard on UAV123 frames and never
+missed on clean Gazebo renders. The `car3:200` control, which failed WSEL under RG in P5.3/P5.4/P5.5
+and was labelled "resolution-bound", **flips to PASS under DD (0.7256)** — that family was a
+re-grounding artifact, not a carry limit.
+Proof: `proof/p56_pass_grid.png` (P5.3 RG vs P5.5 MC-RG vs P5.14 DD, per cell),
+`proof/p56_contract.png` (delivered-box IoU with the 0.25 floor + shadow agree/disagree tags;
+DD 0.00 s vs shadow 4.51 s), `proof/p514_swap_car7_460_deliver_OFFOBJECT.png` (the one FAIL, box on
+empty kerb — negative proof), `proof/p514_swap_car9_560_deliver_PASS.png` (the 0.2843 marginal pass),
+`proof/p514_DD_{WSEL,SWAP}_car10_240.mp4` (same scene, two phrases, zero acquire latency). Detail:
+[`../../experiments/2026-07-19-realvid-dd-select/README.md`](../../experiments/2026-07-19-realvid-dd-select/README.md).

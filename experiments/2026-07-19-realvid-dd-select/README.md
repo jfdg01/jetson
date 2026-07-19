@@ -2,7 +2,7 @@
 
 **Pre-registered:** 2026-07-19T14:05Z (Madrid wall-clock). Design + patches by Fable; **Opus runs
 the matrix and fills Results only — do NOT re-patch code.**
-**Status:** PRE-REGISTERED, not yet run.
+**Status:** COMPLETE — run 2026-07-19T13:35Z–13:51Z. **OVERALL: YES** (WSEL 5/5, SWAP 4/5 strengthened; visual gate V PASS, no downgrade).
 **Branch:** `experiment/realvid-dd-select` (off `main` @ `0e7308e`, the P5.13 merge).
 **Part:** V — anticipatory grounding / warm-start acquire.
 **Rig:** RTX 3090 workstation (SAM2 carry, scoring, UAV123 frames) + Jetson Orin Nano 8 GB
@@ -228,28 +228,110 @@ A wrong estimate is content — record estimate-vs-actual in Results wherever th
 
 ## Results (TBD — Opus fills; do not edit anything above this line except checkboxes)
 
-Run date/time: **TBD**. Versions (from a `results.json`): **TBD**. Matrix wall: **TBD**.
+Run date/time: **2026-07-19T13:35Z–13:51Z** (Madrid wall-clock). Rig: RTX 3090 workstation +
+Jetson Orin Nano 8 GB at `15W` + `jetson_clocks` (R1 returned `POWER_OK`).
+Versions: python 3.12.10, torch 2.6.0+cu124, transformers 4.57.6, SAM2 =
+`facebook/sam2.1-hiera-tiny` (as predicted in the stale-assumption check — the old
+`sam2-hiera-small` doc mention is wrong), VLM = `phase3-terse100eos-1024-q8_0.gguf` (Jetson
+llama.cpp, terse, max_side 1024), branch commit `7b51b7c`. Constants as pre-registered
+(CARRY_HZ 6.15, CAND_HZ 3.075, MATCH_FLOOR 0.10 shadow-only, DIST_FLOOR 0.25, cover_s 10.0,
+ROI 512 / margin 2.0 / min_side 256, REANCHOR_OFFSETS (90, 165)).
+**Matrix wall: ~4.4 min total** (12 cells, 21–22 s each) — see estimate-vs-actual below.
 
 | cell | pass | weak_pass (SWAP) | deliver_iou (vs target GT) | deliver_iou_distractor | coverage | reanchor accepted | shadow_sel (agree?) | fail_class | V (what I saw) |
 |---|---|---|---|---|---|---|---|---|---|
-| DD_WSEL_car10_240 | | — | | — | | | | | |
-| DD_SWAP_car10_240 | | | | | | | | | |
-| DD_WSEL_car10_615 | | — | | — | | | | | |
-| DD_SWAP_car10_615 | | | | | | | | | |
-| DD_WSEL_car9_300 | | — | | — | | | | | |
-| DD_SWAP_car9_300 | | | | | | | | | |
-| DD_WSEL_car7_460 | | — | | — | | | | | |
-| DD_SWAP_car7_460 | | | | | | | | | |
-| DD_WSEL_car9_560 | | — | | — | | | | | |
-| DD_SWAP_car9_560 | | | | | | | | | |
-| DD_WSEL_car3_200 (control) | | — | | — | | | | | |
-| DD_SWAP_car3_200 (control) | | | | | | | | | |
+| DD_WSEL_car10_240 | PASS | — | 0.7988 | 0.0 | 1.0 | [True, True] | target (agree) | — | real palm-lined highway; green delivered box on the white target car, red GT boxed around it, lock persists to f=645 |
+| DD_SWAP_car10_240 | PASS | True | 0.0 | 0.7557 | 0.0 | [True, True] | None (DISAGREE) | — | green box on the *other* car up-road, red GT on the target untouched — correct distractor delivery |
+| DD_WSEL_car10_615 | PASS | — | 0.8679 | 0.0207 | 1.0 | [True, True] | None (DISAGREE) | — | green on target, red GT concentric, held at f=1020 |
+| DD_SWAP_car10_615 | PASS | True | 0.0 | 0.8758 | 0.0 | [True, True] | distractor (agree) | — | green on the dark distractor car, red GT on the white target — two distinct vehicles, unambiguous |
+| DD_WSEL_car9_300 | PASS | — | 0.8402 | 0.0 | 0.9733 | [True, True] | target (agree) | — | green on target at f=705, red GT concentric |
+| DD_SWAP_car9_300 | PASS | True | 0.0 | 0.7253 | 0.0 | [True, True] | distractor (agree) | — | deliver frame f=540 opened: green box on the distant lead car (the distractor), red GT on the target below. Later f=705 the green box sits at the top frame edge — the distractor is *receding up-road and exiting the FOV*, not drifting to junk |
+| DD_WSEL_car7_460 | PASS | — | 0.8911 | 0.0 | 1.0 | [True, True] | target (agree) | — | roundabout scene, green on the white target car at f=865 |
+| DD_SWAP_car7_460 | **FAIL** | True | 0.0 | 0.0 | 0.0 | [True, True] | None (DISAGREE) | `carry-off-object` | deliver frame f=700 opened: blue distractor GT is on the dark car at the roundabout, the green delivered box is on **empty kerb/vegetation at the far-left frame edge** — the failure is plainly visible, exactly the predicted junk carry |
+| DD_WSEL_car9_560 | PASS | — | 0.8637 | 0.0 | 0.97 | [True, True] | target (agree) | — | green on target at f=920, red GT concentric, white distractor alongside left un-boxed |
+| DD_SWAP_car9_560 | PASS (marginal) | True | 0.0 | 0.2843 | 0.0 | [True, True] | distractor (agree) | — | deliver frame f=740 opened: green box sits *inside* the blue distractor GT on the distant lead car (green slightly smaller — hence the marginal 0.2843), red GT on the target below. f=920 shows it at the top edge as the distractor exits the FOV |
+| DD_WSEL_car3_200 (control) | PASS | — | 0.7256 | 0.0 | 0.9367 | [True, True] | distractor (DISAGREE) | — | top-down golf-course road; green on target at f=605, red GT concentric — **flipped to PASS as predicted** |
+| DD_SWAP_car3_200 (control) | PASS | True | 0.0 | 0.8864 | 0.0 | [True, True] | distractor (agree) | — | green on a different car up-road from the red-GT target |
 
-- **RQ-P5.14a (WSEL >= 4/5 gating): TBD**
-- **RQ-P5.14b (SWAP >= 4/5 gating, strengthened): TBD**
-- **OVERALL RQ-P5.14: TBD** (verdict_p56.py output verbatim below)
-- Weak-vs-strong SWAP gap: TBD. Shadow agreement table: TBD. Estimate-vs-actual: TBD.
-- What broke / what surprised: TBD.
+- **RQ-P5.14a (WSEL >= 4/5 gating): 5/5 -> YES**
+- **RQ-P5.14b (SWAP >= 4/5 gating, strengthened): 4/5 -> YES**
+- **OVERALL RQ-P5.14: YES**, and the visual gate V did not downgrade it (all 24 `viz_*.png`
+  opened with the Read tool, plus 3 deliver-frame overlays extracted for the SWAP cells whose
+  late frames were ambiguous; every scored PASS is corroborated on the pixels and the one
+  scored FAIL is visibly off-object).
+
+`verdict_p56.py` output (verbatim, also in `raw/verdict.txt`):
+
+```
+cell                   pass  weak   d_iou d_dist    cov reanchor       fail_class / reason
+----------------------------------------------------------------------------------------------------
+DD_SWAP_car10_240      True  True     0.0 0.7557    0.0 [True, True]
+DD_SWAP_car10_615      True  True     0.0 0.8758    0.0 [True, True]
+DD_SWAP_car3_200       True  True     0.0 0.8864    0.0 [True, True]
+DD_SWAP_car7_460       False True     0.0    0.0    0.0 [True, True]   carry-off-object:
+DD_SWAP_car9_300       True  True     0.0 0.7253    0.0 [True, True]
+DD_SWAP_car9_560       True  True     0.0 0.2843    0.0 [True, True]
+DD_WSEL_car10_240      True  None  0.7988    0.0    1.0 [True, True]
+DD_WSEL_car10_615      True  None  0.8679 0.0207    1.0 [True, True]
+DD_WSEL_car3_200       True  None  0.7256    0.0 0.9367 [True, True]
+DD_WSEL_car7_460       True  None  0.8911    0.0    1.0 [True, True]
+DD_WSEL_car9_300       True  None  0.8402    0.0 0.9733 [True, True]
+DD_WSEL_car9_560       True  None  0.8637    0.0   0.97 [True, True]
+
+RQ-P5.6a (DD WSEL >= 4/5 gating): 5/5 -> YES
+RQ-P5.6b (DD SWAP >= 4/5 gating, strengthened): 4/5 -> YES
+OVERALL: YES
+```
+
+(The script prints the `P5.6` lineage tag; `RQ-P5.6a/b` ≡ `RQ-P5.14a/b`, per the provenance
+section — the rig was imported byte-unchanged and its internal labels were not touched.)
+
+**Weak-vs-strong SWAP gap.** Weak rule (old P5.3/P5.5 off-target-only) 6/6 vs strengthened 5/6.
+The single cell the old rule flattered is `car7:460`: its delivered box is off *every* object,
+so "not on the target" was trivially satisfied. The strengthened rule (must also land >= 0.25
+on the hand-annotated distractor) is what catches it. This is the honest-scoring point the
+pre-registration predicted, confirmed.
+
+**Shadow re-ground (non-gating — the real-data DD-vs-RG attribution).** 4 of 12 cells DISAGREE
+with DD: `DD_SWAP_car10_240` (shadow `None`), `DD_SWAP_car7_460` (`None`),
+`DD_WSEL_car10_615` (`None`), `DD_WSEL_car3_200` (selected `distractor` — a wrong-object
+selection, not just a miss). Three of the four disagreements are the prompt-time re-ground
+returning **NO_MATCH**, i.e. the exact P5.3/P5.5 failure mode, on scenes where the carried box
+was on the right object and DD passed. **Latency:** DD `acquire_s = 0.00` on all 12 cells by
+construction, vs shadow full-frame re-ground mean **4.51 s** (min 4.48, max 4.53).
+
+**Estimate-vs-actual.**
+
+| quantity | estimate | actual | note |
+|---|---|---|---|
+| matrix wall (R2) | 45–75 min | **~4.4 min** (21–22 s/cell) | badly over-estimated: the Jetson q8_0 server is booted/reused once and each cell makes only 2 idle ROI re-anchors + 1 shadow call, and the 10 s coverage window is replayed from disk, not realtime |
+| WSEL gating | 5/5 | **5/5** | exact |
+| SWAP gating | 4/5, car7:460 the fail | **4/5, car7:460 the fail** | exact, including the named cell and its `carry-off-object` class |
+| car9:560 SWAP margin | ~0.28 vs 0.25 floor | **0.2843** | exact; it remains the one cell a small carry regression would flip |
+| car3:200 control WSEL | flips to PASS | **PASS** (0.7256) | confirms the P5.3/P5.4 "resolution-bound" family was a re-grounding artifact, not a carry limit |
+| shadow latency | 4.5–5 s | **4.51 s mean** | exact |
+| overall | YES | **YES** | — |
+| INFRA / crashes | 0 | **0** | no retries, no aborts, no INVALID cells |
+
+**What broke / what surprised.**
+- Nothing broke: 12/12 cells scored first time, no crash, no hang, no rerun.
+- The pre-registered predictions were correct cell-for-cell, including the named failure and
+  the marginal cell's IoU to two decimals — unusual, and worth flagging as such: the design was
+  written against an audit of the P5.5 raw runs, so the "prediction" was well-informed rather
+  than a blind forecast. It is evidence the rig is deterministic, not evidence of foresight.
+- The surprise is on the **shadow** side, not the DD side: the re-ground contract fails
+  (`None` / wrong object) on 4/12 cells *whose carried track was fine*. That is the contract
+  separation four sim cycles (P5.10–P5.13) tried and failed to manufacture, present in the real
+  video for free — because on real UAV123 frames the prompt-time VLM re-ground is genuinely
+  hard, while on clean Gazebo renders it never missed.
+- Ambiguity found in the visual-gate wording (recorded, not silently resolved): the README says
+  `viz_late` "should show the same lock persisting", but `viz_late` is sampled at 75% of the
+  overlay — 5–6 s *after* the deliver frame — and in two SWAP cells (`car9:300`, `car9:560`)
+  the correctly-delivered distractor had by then driven up-road to the frame edge. Read
+  literally, that could have been called a V contradiction and flipped the verdict to NO. It was
+  resolved by extracting and opening the actual **deliver-frame** overlays (the frame the score
+  is computed on), which show the box correctly on the distractor. A future pre-registration
+  should dump the deliver frame itself as the gating PNG, not a fixed 25%/75% sample.
 
 ## Definition of done
 
@@ -269,3 +351,13 @@ Run date/time: **TBD**. Versions (from a `results.json`): **TBD**. Matrix wall: 
    `p514_<cell>.mp4`.
 7. Committed on `experiment/realvid-dd-select`; **not merged** (the orchestrator audits, then
    merges).
+
+## Proof deliverables (committed, `proof/`)
+
+| file | what it shows | run / config |
+|---|---|---|
+| `p56_pass_grid.png` | per-cell PASS/FAIL for P5.3 RG vs P5.5 MC-RG vs **P5.14 DD**, WSEL and SWAP side by side. DD's row is green everywhere except `car7:460` SWAP; the two rows above it carry the historical NOs. The numbers-are-the-point figure for the contract change. | this campaign + the committed P5.3/P5.5 `runs/` |
+| `p56_contract.png` | left: delivered-box IoU vs the *correct* object at the prompt, per cell, with the 0.25 floor and shadow agree/disagree tags (`s` / `S!`); right: select latency — DD 0.00 s vs shadow full-frame re-ground ~4.51 s on every cell. | same |
+| `p514_swap_car7_460_deliver_OFFOBJECT.png` | **negative proof.** The one FAIL, at its deliver frame f=700: blue distractor GT on the dark car at the roundabout, green delivered box on empty kerb at the far-left edge. A junk carry fails DD *directly* — no delivery contract can rescue it. | `runs/DD_SWAP_car7_460`, DD SWAP |
+| `p514_swap_car9_560_deliver_PASS.png` | the marginal PASS at f=740: green delivered box inside the blue distractor GT (IoU 0.2843, floor 0.25) — shows what "just over the bar" looks like on the pixels. | `runs/DD_SWAP_car9_560`, DD SWAP |
+| `p514_DD_WSEL_car10_240.mp4` / `p514_DD_SWAP_car10_240.mp4` | behaviour clips of the same scene under the two operator phrases: the delivered box lands on the target in WSEL and on the distractor in SWAP, both at zero acquire latency. Re-encoded to 854px/CRF 28 from `runs/*/overlay.mp4` for size. | `runs/DD_{WSEL,SWAP}_car10_240` |

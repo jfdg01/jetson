@@ -1,0 +1,40 @@
+cell                   pass  weak   d_iou d_dist    cov reanchor       fail_class / reason
+----------------------------------------------------------------------------------------------------
+DD_SWAP_car10_240      True  True     0.0 0.7557    0.0 [True, True]   
+DD_SWAP_car10_615      True  True     0.0 0.8758    0.0 [True, True]   
+DD_SWAP_car3_200       True  True     0.0 0.8864    0.0 [True, True]   
+DD_SWAP_car7_460       False True     0.0    0.0    0.0 [True, True]   carry-off-object: 
+DD_SWAP_car9_300       True  True     0.0 0.7253    0.0 [True, True]   
+DD_SWAP_car9_560       True  True     0.0 0.2843    0.0 [True, True]   
+DD_WSEL_car10_240      True  None  0.7988    0.0    1.0 [True, True]   
+DD_WSEL_car10_615      True  None  0.8679 0.0207    1.0 [True, True]   
+DD_WSEL_car3_200       True  None  0.7256    0.0 0.9367 [True, True]   
+DD_WSEL_car7_460       True  None  0.8911    0.0    1.0 [True, True]   
+DD_WSEL_car9_300       True  None  0.8402    0.0 0.9733 [True, True]   
+DD_WSEL_car9_560       True  None  0.8637    0.0   0.97 [True, True]   
+
+RQ-P5.6a (DD WSEL >= 4/5 gating): 5/5 -> YES
+RQ-P5.6b (DD SWAP >= 4/5 gating, strengthened): 4/5 -> YES
+OVERALL: YES
+
+Weak-rule SWAP (old P5.3/P5.5 off-target-only rule, non-gating): 6/6 vs strengthened 5/6 -- the gap is what the old rule flattered.
+
+Shadow re-ground (what the P5.5 contract would have selected at the prompt; non-gating):
+  DD_SWAP_car10_240      shadow_sel=None        (DISAGREE) shadow_acquire_s=4.5
+  DD_SWAP_car10_615      shadow_sel=distractor  (agree) shadow_acquire_s=4.49
+  DD_SWAP_car3_200       shadow_sel=distractor  (agree) shadow_acquire_s=4.52
+  DD_SWAP_car7_460       shadow_sel=None        (DISAGREE) shadow_acquire_s=4.51
+  DD_SWAP_car9_300       shadow_sel=distractor  (agree) shadow_acquire_s=4.48
+  DD_SWAP_car9_560       shadow_sel=distractor  (agree) shadow_acquire_s=4.53
+  DD_WSEL_car10_240      shadow_sel=target      (agree) shadow_acquire_s=4.5
+  DD_WSEL_car10_615      shadow_sel=None        (DISAGREE) shadow_acquire_s=4.49
+  DD_WSEL_car3_200       shadow_sel=distractor  (DISAGREE) shadow_acquire_s=4.52
+  DD_WSEL_car7_460       shadow_sel=target      (agree) shadow_acquire_s=4.51
+  DD_WSEL_car9_300       shadow_sel=target      (agree) shadow_acquire_s=4.52
+  DD_WSEL_car9_560       shadow_sel=target      (agree) shadow_acquire_s=4.53
+
+Latency: direct delivery acquire_s = 0.00 for all cells (by construction) vs shadow full-frame re-ground mean 4.51s over 12 cells.
+
+car3:200 control (non-gating; P5.3/P5.4/P5.5 WSEL always failed 'resolution-bound' -- predicted to FLIP under DD):
+  DD_SWAP_car3_200: pass=True 
+  DD_WSEL_car3_200: pass=True 
