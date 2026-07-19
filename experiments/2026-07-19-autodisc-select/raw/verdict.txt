@@ -1,0 +1,69 @@
+cell                     pass  weak   d_iou d_dist    cov seedIoU calls done_f fail_class / reason
+------------------------------------------------------------------------------------------------------------
+DSC_SWAP_car10_240       True  True     0.0 0.7557    0.0  0.6828     2    360 
+DSC_SWAP_car10_615       True  True     0.0 0.8758    0.0  0.5209     2    736 
+DSC_SWAP_car3_200        True  True     0.0 0.8864    0.0  0.5376     2    320 
+DSC_SWAP_car7_460        False True     0.0    0.0    0.0     0.0     2    580 off-distractor: 
+DSC_SWAP_car9_300        True  True     0.0 0.7253    0.0  0.8039     2    423 
+DSC_SWAP_car9_560        True  True     0.0 0.4779    0.0  0.6274     2    681 
+DSC_WSEL_car10_240       True  None  0.6771    0.0    1.0  0.6828     2    360 
+DSC_WSEL_car10_615       True  None  0.8889 0.0202    1.0  0.5209     2    736 
+DSC_WSEL_car3_200        True  None  0.6667    0.0   0.94  0.5376     2    320 
+DSC_WSEL_car7_460        False None    None   None    0.0     0.0     2    580 lost-track: selected track lost during idle
+DSC_WSEL_car9_300        True  None  0.8402    0.0 0.9767  0.8039     2    423 
+DSC_WSEL_car9_560        True  None  0.9116    0.0   0.97  0.6274     2    681 
+
+Discovery call log per cell (cand-initial, outcome):
+  DSC_SWAP_car10_240       [('T', 'accepted'), ('D', 'accepted')]  reanchor=['in-discovery', True]
+  DSC_SWAP_car10_615       [('T', 'accepted'), ('D', 'accepted')]  reanchor=['in-discovery', True]
+  DSC_SWAP_car3_200        [('T', 'accepted'), ('D', 'accepted')]  reanchor=['in-discovery', True]
+  DSC_SWAP_car7_460        [('T', 'accepted'), ('D', 'accepted')]  reanchor=['in-discovery', True]
+  DSC_SWAP_car9_300        [('T', 'accepted'), ('D', 'accepted')]  reanchor=['in-discovery', True]
+  DSC_SWAP_car9_560        [('T', 'accepted'), ('D', 'accepted')]  reanchor=['in-discovery', True]
+  DSC_WSEL_car10_240       [('T', 'accepted'), ('D', 'accepted')]  reanchor=['in-discovery', True]
+  DSC_WSEL_car10_615       [('T', 'accepted'), ('D', 'accepted')]  reanchor=['in-discovery', True]
+  DSC_WSEL_car3_200        [('T', 'accepted'), ('D', 'accepted')]  reanchor=['in-discovery', True]
+  DSC_WSEL_car7_460        [('T', 'accepted'), ('D', 'accepted')]  reanchor=['in-discovery', True]
+  DSC_WSEL_car9_300        [('T', 'accepted'), ('D', 'accepted')]  reanchor=['in-discovery', True]
+  DSC_WSEL_car9_560        [('T', 'accepted'), ('D', 'accepted')]  reanchor=['in-discovery', True]
+
+RQ-P5.16a (DSC WSEL >= 4/5 gating): 4/5 -> YES
+RQ-P5.16b (DSC SWAP >= 4/5 gating, strengthened): 4/5 -> YES
+OVERALL (before visual gate): YES
+
+Oracle delta (P5.14 oracle-seeded pass vs P5.16 discovered pass; the cost of removing the seed oracle):
+  DSC_SWAP_car10_240       P5.14=True  P5.16=True 
+  DSC_SWAP_car10_615       P5.14=True  P5.16=True 
+  DSC_SWAP_car3_200        P5.14=True  P5.16=True 
+  DSC_SWAP_car7_460        P5.14=False P5.16=False
+  DSC_SWAP_car9_300        P5.14=True  P5.16=True 
+  DSC_SWAP_car9_560        P5.14=True  P5.16=True 
+  DSC_WSEL_car10_240       P5.14=True  P5.16=True 
+  DSC_WSEL_car10_615       P5.14=True  P5.16=True 
+  DSC_WSEL_car3_200        P5.14=True  P5.16=True 
+  DSC_WSEL_car7_460        P5.14=True  P5.16=False  <-- LOST to discovery
+  DSC_WSEL_car9_300        P5.14=True  P5.16=True 
+  DSC_WSEL_car9_560        P5.14=True  P5.16=True 
+  flips: 1/12
+
+Weak-rule SWAP (non-gating): 6/6 vs strengthened 5/6
+
+Shadow re-ground (non-gating):
+  DSC_SWAP_car10_240       shadow_sel=None        (DISAGREE) shadow_acquire_s=4.5
+  DSC_SWAP_car10_615       shadow_sel=distractor  (agree) shadow_acquire_s=4.49
+  DSC_SWAP_car3_200        shadow_sel=distractor  (agree) shadow_acquire_s=4.52
+  DSC_SWAP_car7_460        shadow_sel=None        (DISAGREE) shadow_acquire_s=4.51
+  DSC_SWAP_car9_300        shadow_sel=distractor  (agree) shadow_acquire_s=4.48
+  DSC_SWAP_car9_560        shadow_sel=distractor  (agree) shadow_acquire_s=4.53
+  DSC_WSEL_car10_240       shadow_sel=target      (agree) shadow_acquire_s=4.5
+  DSC_WSEL_car10_615       shadow_sel=None        (DISAGREE) shadow_acquire_s=4.49
+  DSC_WSEL_car3_200        shadow_sel=distractor  (DISAGREE) shadow_acquire_s=4.52
+  DSC_WSEL_car7_460        shadow_sel=None        (DISAGREE) shadow_acquire_s=None
+  DSC_WSEL_car9_300        shadow_sel=target      (agree) shadow_acquire_s=4.52
+  DSC_WSEL_car9_560        shadow_sel=target      (agree) shadow_acquire_s=4.53
+
+car3:200 control (non-gating; passed under P5.14 oracle seeds -- pre-registered prediction: WSEL flips back to FAIL under discovery):
+  DSC_SWAP_car3_200: pass=True 
+  DSC_WSEL_car3_200: pass=True 
+
+Wall: mean 29s/cell, max 30s, total 5.7 min

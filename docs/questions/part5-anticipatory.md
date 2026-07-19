@@ -405,3 +405,34 @@ MAINT/PLAIN h24 disagreement frames were opened with the Read tool. Every alive/
 matches its pixels; the identity-swap mechanism was *seen* (green box on a different car /
 a different person beside the red GT box), not inferred from IoU.
 Detail: [`../../experiments/2026-07-19-carry-horizon/README.md`](../../experiments/2026-07-19-carry-horizon/README.md).
+
+### P5.16 — autodisc-select (2026-07-19T15:03Z) — **YES**
+
+**RQ-P5.16a** — With candidate seeds discovered by the deployed VLM during the idle window
+instead of taken from ground truth, does WSEL still pass on >= 4 of the 5 gating scenes?
+**YES, 4/5.**
+
+**RQ-P5.16b** — Does SWAP still pass the strengthened rule (delivered box IoU < 0.25 vs target
+GT AND >= 0.25 vs distractor GT) on >= 4 of the 5 gating scenes? **YES, 4/5.**
+
+**OVERALL: YES.** The P5.14 select result was **not oracle-propped.** Replacing GT seeding with
+autonomous idle-window discovery costs exactly **one cell out of twelve** (`car7:460` WSEL);
+the other ten gating/control cells are unchanged, including the `car3:200` control that was
+pre-registered as likely to flip back to FAIL and did not. Discovery itself never failed
+mechanically: 24/24 calls accepted at 4.51 s mean latency, both captions fitting the ~2-slot
+budget in all 12 cells. This removes the largest external-validity asterisk on the Part V
+headline — the warm-start select arc now runs end-to-end with **no ground truth anywhere in the
+loop**, at `acquire_s = 0.00` against a 4.5 s re-ground that disagrees with it on 4/12 cells.
+
+The one loss is instructive and is **not** a carry or delivery failure: at the discovery frame
+`car7:460` has two adjacent silver cars, "the silver car" is genuinely ambiguous, the VLM
+grounds the wrong one (`seed_iou_gt` 0.0), and that carry is lost during idle. The next binding
+constraint for this arc is therefore **referring-expression disambiguation at discovery time**,
+not tracking. Note the mechanical fail class (`lost-track`) mislabels this — future
+pre-registrations should classify on seed correctness before track outcome.
+
+**Visual gate: PASS.** All 24 gating PNGs (12 `deliver.png` + 12 `discovery_<selected>.png`)
+opened with the Read tool. Every scored PASS is corroborated by the pixels, both FAILs show the
+failure mode their class claims, no degenerate frame (max single-colour fraction 0.009). The
+wrong-object discovery on `car7:460` was *seen*, not inferred.
+Detail: [`../../experiments/2026-07-19-autodisc-select/README.md`](../../experiments/2026-07-19-autodisc-select/README.md).
