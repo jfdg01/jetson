@@ -421,3 +421,51 @@ Proof: `proof/p512_occlusion_montage.png` (12 genuine crossings, one per cell),
 `proof/p512_crossing_traces.png` (per-clip IoU traces: peak inside the occlusion window, tail decayed
 before the f150 prompt frame). Detail:
 [`../../experiments/2026-07-17-bankv21-recal/README.md`](../../experiments/2026-07-17-bankv21-recal/README.md).
+
+### P5.13 — v2 discrimination A/B: DD vs RG on the bank v2.1 crossing bank (2026-07-19)
+
+Config: bank v2.1 (`experiments/2026-07-17-bankv21-recal/runs/bank01..bank12`, consumed unchanged),
+12 clips x 2 legs = 24 cells, 300 frames @ 25 fps 1280x720, prompt frame **f150 (t=6.0 s, after every
+crossing; peaks f56-f94)**. Both contracts scored inside every cell off one shared SAM2 carry pass, so
+DD and RG are paired by construction. PASS = `iou_named >= 0.25` and `iou_named > iou_other`.
+Rig: RTX 3090 workstation (frames, carry, scoring) + Jetson Orin Nano 8 GB `15W` + `jetson_clocks`
+(VLM only, Qwen2-VL-2B Q8_0 terse on `llama-server` :18080 over an SSH tunnel; one PNG per cell crosses
+the wire). torch 2.6.0+cu124 / numpy 2.4.4 / cv2 4.13.0 / python 3.12.10 / `facebook/sam2.1-hiera-tiny`.
+
+| contract | white | blue | total |
+|---|---|---|---|
+| DD (direct delivery of the carried track, no VLM at prompt time) | 12/12 | 12/12 | **24/24** |
+| RG (prompt-time re-ground + IoU match, floor 0.10) | 11/12 | 12/12 | **23/24** |
+
+| metric | value | note |
+|---|---|---|
+| RQ-P5.13a `\|DD - RG\| >= 4` | **NO** (\|24 - 23\| = 1) | primary, gating; symmetric margin, carried at 4/24 from P5.11/P5.12 |
+| RQ-P5.13b `blue_DD - white_DD >= 3` | NO (12 - 12 = 0) | diagnostic, non-gating |
+| branch fired | **3** — no separation, both >= 20/24 | bank still does not discriminate |
+| DD fail classes | none, 0/24 | no `CARRY_LOST`, no `CARRY_SWITCH`, no `CARRY_DRIFT` anywhere |
+| RG fail classes | `DELIVERY_DRIFT` x1 (`bank09_white`) | VLM grounded correctly (`vlm_iou_named` 0.735, match 0.665, `selection` 0); the mask leaked between f150 and the f259 delivery |
+| DD IoU at f150 | 0.462-0.643, all 24 cells | tight band, all well over the 0.25 floor |
+| VLM acquire | 4.34-4.38 s (est. 4.4 s) | no `OVERRUN` despite the tighter 5.96 s ceiling |
+| INFRA cells / VLM reboots | **0 / 0** | 24/24 cells completed in one pass, no resume |
+| Wall | **~3.4 min** for 24 cells | estimate was 6-12 min; warm Jetson + per-clip carry cache shared by both legs |
+| Visual gate V | PASS (non-operative) | 3 proof PNGs + 4 per-cell overlays opened with the Read tool; genuine renders, boxes on the cars, no black/blank frames. V can only downgrade a YES. |
+
+**RQ-P5.13 = NO** [branch 3; contracts do not separate, 24 vs 23 of 24]. The pre-registered
+prediction was the opposite direction (RG > DD, on the theory that the crossing costs the carry) and
+it was **wrong**: SAM2's carry survived all 12 designed crossings with zero fails and a tight IoU
+band, so DD ceilinged. RG's single loss is not a grounding loss — the VLM found and matched the right
+object, and the cell failed because the delivered mask leaked off the white car during RG's 109-frame
+delivery lag, which makes the 24-vs-23 gap even less contract-informative than it looks. Per the
+frozen branch-3 caveat the two pre-registered explanations apply in order: (i) crossing-peak
+uniformity + constant z-order (white-box centre y std 6.1 px; white is the nearer car in **0/300
+frames in every clip**, so the bank never renders the target in front), then (ii) bank05/bank06's
+weaker occlusion stress (peak GT-GT IoU 0.217/0.251 vs 0.352). The DD result does not localise to
+(ii) — the two weakest-crossing clips passed exactly like the strongest — which points at (i), the
+geometry that has no gate. No third explanation is offered, per the pre-registration. This is the
+fourth cycle spent on scene data rather than contracts, and the second consecutive DD==RG ceiling
+(P5.10 was 24/24 vs 24/24 on bank v1).
+Proof: `proof/p513_pass_grid.png` (47/48 tiles green — the absence of separation),
+`proof/p513_failclass.png` (DD panel empty, RG panel one `DELIVERY_DRIFT` bar),
+`proof/p513_headline_dd_vs_rg.png` (`bank09_white`: DD tight box at f150 vs RG mask ballooned across
+road and wall at f259; no picker fallback fired). Detail:
+[`../../experiments/2026-07-19-v2disc-select/README.md`](../../experiments/2026-07-19-v2disc-select/README.md).

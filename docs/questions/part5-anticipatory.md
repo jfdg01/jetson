@@ -289,3 +289,43 @@ occlusion stress than the bank average, and the first suspects if P5.13 fails to
 the deferred **P5.13 v2-discrimination A/B** (P5.10's DD-vs-RG matrix on this bank at prompt frame
 150), which consumes this bank unchanged.
 Detail: [`../../experiments/2026-07-17-bankv21-recal/README.md`](../../experiments/2026-07-17-bankv21-recal/README.md).
+
+### P5.13 — v2 discrimination A/B: DD vs RG on the bank v2.1 crossing bank (2026-07-19)
+
+**RQ-P5.13a (primary, gating).** On a scene bank whose clips contain a *designed crossing/occlusion*
+between the two candidate cars, do the two delivery contracts — DD (direct delivery of the carried
+track, no VLM at prompt time) and RG (prompt-time re-grounding through the VLM plus IoU match) —
+**separate**, i.e. is `|DD_total - RG_total| >= 4` of 24 cells?
+**RQ-P5.13b (secondary, diagnostic, non-gating).** Is any separation driven by the designed
+occlusion, i.e. is `blue_DD - white_DD >= 3` of 12? (White is the occluded target in 12/12 clips,
+blue is never occluded, so the legs are an internal control.)
+
+**Verdict: NO** [branch 3; no separation, both contracts >= 20/24]. **DD 24/24, RG 23/24, |diff| 1 <
+4.** RQ-P5.13b also NO (12 - 12 = 0), which is uninformative here because DD ceilinged on both legs.
+The pre-registered prediction ran the *other* way — RG > DD, on the theory that DD must carry
+identity through the ~f81 crossing while RG sees a clean scene at the f150 prompt frame — and it was
+**wrong**: SAM2's carry survived every designed crossing, 0/24 DD fails, no `CARRY_LOST`, no
+`CARRY_SWITCH`, `ddIoU` in a tight 0.462-0.643 band. This is why the margin was pre-registered
+symmetric (`|DD - RG| >= 4`) rather than P5.10's directional `DD >= RG + 4`: the threshold had to be
+able to fire in the direction the experimenter did *not* expect, and in the event it fired in
+neither. RG's single loss (`bank09_white`) is **not** a grounding loss — `vlm_on=named`,
+`vlm_iou_named` 0.735, `match_ious` {track0 0.665, track1 0.0}, `selection` 0, all correct — the cell
+fails `DELIVERY_DRIFT` because the delivered mask leaks from `[560,292,629,342]` to
+`[560,292,1248,615]` over RG's 109-frame delivery lag, i.e. it is a *carry* failure inside the RG
+leg, charged to RG only because RG delivers later. Corrected for that, both contracts are effectively
+at ceiling and the honest reading is DD == RG for the second campaign running (P5.10: 24/24 vs 24/24
+on bank v1). Per the frozen branch-3 caveat, the two pre-registered explanations in order: (i)
+crossing-peak uniformity + constant z-order — white-box centre y std 6.1 px, and **white is the
+nearer car in 0/300 frames in every clip**, so the bank never renders the target *in front* and every
+"occlusion" is the target being occluded from a near-constant screen position; then (ii) bank05/bank06's
+weaker occlusion stress (peak GT-GT IoU 0.217/0.251 vs 0.352 for bank07). The evidence does not
+localise to (ii) — the two weakest-crossing clips passed exactly like the strongest, and DD had zero
+fails bank-wide — so (i) is where it points, and (i) is the one property with no gate on it. No third
+explanation is derived post-hoc, as pre-registered. **Visual gate V: PASS (non-operative, since V can
+only downgrade a YES)** — 3 proof PNGs and 4 per-cell overlays opened with the Read tool; genuine
+Gazebo renders, delivered/GT/VLM boxes on the cars not on empty road, no black or duplicate frames.
+Operationally clean: 0 INFRA cells, 0 VLM reboots, 24/24 in one pass, ~3.4 min against a 6-12 min
+estimate. Standing implication: **three banks in (v1, v2, v2.1) the contract question is still not
+separable by scene data of this kind**; the next lever is a property of the scene the bank has never
+varied (z-order / target-in-front) or a move off synthetic banks entirely, not another recalibration.
+Detail: [`../../experiments/2026-07-19-v2disc-select/README.md`](../../experiments/2026-07-19-v2disc-select/README.md).
