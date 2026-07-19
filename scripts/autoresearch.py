@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Autonomous research burner (2026-07-14 run).
+"""Autonomous research burner (2026-07-14 run; generalized 2026-07-20).
 
 One cron tick = at most one `next-experiment` cycle. Cron wraps this in `flock -n`
 so only one cycle runs at a time; ticks that land while a cycle is running are
@@ -10,25 +10,34 @@ Model split: this fires `claude -p --model opus` (the loop driver / workhorse);
 the next-experiment skill itself spawns Fable (model:fable) for per-cycle design.
 
 Guards (checked every tick, cheapest first):
-  1. .claude/autoresearch.STOP present  -> kill switch, do nothing.
-  2. now >= DEADLINE                     -> remove our crontab line, stop forever.
-  3. loop-budget <= 0                    -> runaway cap hit, do nothing until reseeded.
+  1. .claude/autoresearch.STOP present   -> kill switch, do nothing.
+  2. .claude/autoresearch.deadline unset -> fail closed, do nothing (see DEADLINE_FILE).
+  3. now >= that deadline                -> remove our crontab line, stop forever.
+  4. loop-budget <= 0                    -> runaway cap hit, do nothing until reseeded.
 Survives 5h-window token exhaustion for free: a cycle that runs out of tokens just
-fails/returns; the next tick after the window resets starts a fresh cycle.
+fails/returns; the next tick after the window resets starts a fresh cycle, and the
+prompt tells the driver to run the loop-focus resume protocol before redesigning
+anything (that is what stops a rate-limit kill from double-spending the budget).
 
 stdlib only on purpose — no venv needed so cron stays trivial.
 """
 import subprocess, time, datetime, pathlib
 
 REPO = pathlib.Path("/home/gara/jetson")
-DEADLINE = 1784131200          # 2026-07-15 18:00 CEST (Wed), Madrid wall-clock
 CLAUDE = "/home/gara/.local/bin/claude"
-CYCLE_TIMEOUT = 4 * 3600       # ponytail: 4h hard cap on a stuck cycle; kill + retry next tick
+# ponytail: 11h > the 10h per-experiment hard cap in .claude/loop-focus, so a legitimately
+# long matrix is never killed mid-run. Trade: a genuinely hung cycle burns up to 11h.
+CYCLE_TIMEOUT = 11 * 3600
 DOTC = REPO / ".claude"
 LOG = DOTC / "autoresearch.log"
 STOP = DOTC / "autoresearch.STOP"
 BUDGET = DOTC / "loop-budget"
 LOGDIR = DOTC / "autoresearch-logs"
+# Deadline lives in a file, not a constant: a hardcoded past date silently disables the
+# loop (it did, 2026-07-19). Missing/unparseable file = fail closed and say so, so the
+# failure mode is a logged skip, never a burn nobody authorized. Extend the run with:
+#   date -d '2026-07-21 18:00' -Is > .claude/autoresearch.deadline
+DEADLINE_FILE = DOTC / "autoresearch.deadline"
 
 PROMPT = (
     "Run the next-experiment skill now to execute exactly ONE autonomous research "
@@ -40,8 +49,22 @@ PROMPT = (
     "every mechanical call yourself per the skill's verdict rules. Honor .claude/"
     "loop-focus verbatim (it may tell you to run a deep-research cycle first when a "
     "method gap blocks the RQ). A FAIL verdict is a valid result and still merges. When "
-    "this single cycle's merge (or a clean process-failure stop) is done, end your turn."
+    "this single cycle's merge (or a clean process-failure stop) is done, end your turn. "
+    "Before spawning Fable, run the RESUME AFTER TOKEN EXHAUSTION protocol at the bottom "
+    "of .claude/loop-focus: a previous cycle may have been killed mid-flight by the 5h-"
+    "window rate limit. Classify the state from .claude/loop.log + the experiment/* "
+    "branches and resume it; do NOT redesign over a surviving pre-registration, and never "
+    "decrement the budget twice for one slug."
 )
+
+
+def deadline():
+    """Epoch seconds, or None if unset/unreadable (caller fails closed)."""
+    try:
+        return datetime.datetime.fromisoformat(
+            DEADLINE_FILE.read_text().strip()).astimezone().timestamp()
+    except Exception:
+        return None
 
 
 def log(msg):
@@ -52,8 +75,10 @@ def log(msg):
 
 
 def disable_cron():
+    """Drop our own crontab line — match on __file__ so a renamed copy still disarms."""
+    me = pathlib.Path(__file__).name
     cur = subprocess.run(["crontab", "-l"], capture_output=True, text=True).stdout
-    kept = [l for l in cur.splitlines() if "autoresearch.py" not in l]
+    kept = [l for l in cur.splitlines() if me not in l]
     subprocess.run(["crontab", "-"], input="\n".join(kept) + "\n", text=True)
 
 
@@ -61,7 +86,12 @@ def main():
     if STOP.exists():
         log("STOP file present, skipping tick")
         return
-    if time.time() >= DEADLINE:
+    dl = deadline()
+    if dl is None:
+        log(f"no usable deadline in {DEADLINE_FILE.name}, skipping tick (write an ISO "
+            f"timestamp there to arm the run)")
+        return
+    if time.time() >= dl:
         log("DEADLINE reached: disabling cron, stopping run")
         disable_cron()
         return

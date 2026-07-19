@@ -74,3 +74,4 @@ runners/_gz_feed.log
 .claude/autoresearch.log
 .claude/autoresearch-logs/
 .claude/autoresearch.STOP
+.claude/autoresearch.deadline
