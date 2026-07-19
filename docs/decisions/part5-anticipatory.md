@@ -310,3 +310,29 @@ flips P5.8's failing gate — disclosed, deliberate, grounded in third-party-che
   v2` on every record, one fresh gz server per run, killserver remaining:0 before+after each),
   0 INFRA / 0 INCOMPLETE / 0 reruns, 13.6 min wall. Did not merge, push, or touch main. The
   pre-registered P5.12 v2-discrimination A/B is blocked until a v2.1 bank passes this gate.
+
+### P5.12 — bank v2.1 recalibrated build gate (2026-07-19)
+
+- **Kept bank05 (seed 6, bdom 0.488) and bank06 (seed 14) in the bank despite them being visibly
+  the two weakest occlusions.** Both pass every pre-registered gate; the visual gate confirmed both
+  are genuine occlusions (white's lower body hidden behind blue, contiguous bodies, correct z-order)
+  rather than defects. **Why:** the pre-registration's binding rule is that *no threshold may move
+  during or after the run* — and dropping a gate-passing, visually-confirmed cell because the
+  operator judged it "weak" is the same threshold-fitting the campaign was designed to avoid, just
+  applied by eye instead of by number. The gate is the authority; the eye can only downgrade a
+  *defect*, and there was none. **Given up:** the bank carries two cells with below-average
+  occlusion stress and a fragmented occlusion window. Recorded explicitly in the README and the
+  ledgers so that if P5.13's contracts fail to separate, these two cells are the first place to
+  look — rather than the finding being silently absorbed into a "the bank was fine" claim.
+- **`make_proof.py`'s stale `p511_*` output filenames: logged by the executor, fixed at audit.** The
+  three proof PNGs are P5.12 content (titles and data correct) but were written as
+  `p511_occlusion_montage.png` etc., because the script is a retarget of P5.11's. **Why the executor
+  left it:** the executor role does not modify committed core code mid-campaign, and a rename mid-run
+  would break the pre-registered reproducibility chain from `runs/*/results.json` to the committed
+  figures. **Why the orchestrator then fixed it before merging:** P5.11's `proof/` contains three
+  PNGs with byte-identical names, so a thesis citation of `p511_occlusion_montage.png` is ambiguous
+  between two campaigns with opposite verdicts (3/12 vs 12/12). Renamed to `p512_*` with the script
+  and all ledger references updated; figure content unchanged. **Given up:** nothing material — the
+  division of labour held (executor logged rather than silently patched), which is what made the
+  wart visible at audit. Documented rather than silently fixed, so the
+  discrepancy is on the record instead of being a future reader's puzzle.

@@ -1,0 +1,102 @@
+[scenegen] frame 0/300 (7.77 fps)
+[scenegen] frame 40/300 (8.08 fps)
+[scenegen] frame 80/300 (8.00 fps)
+[scenegen] frame 120/300 (8.08 fps)
+[scenegen] frame 160/300 (8.07 fps)
+[scenegen] frame 200/300 (8.10 fps)
+[scenegen] frame 240/300 (8.12 fps)
+[scenegen] frame 280/300 (8.19 fps)
+[scenegen] frame 299/300 (8.21 fps)
+{
+  "seed": 56,
+  "frames": 300,
+  "out": "experiments/2026-07-17-bankv21-recal/runs/bank12",
+  "profile": "v2",
+  "v2_screen": {
+    "peak_iou": 0.275,
+    "peak_f": 89,
+    "run_iou15": 67,
+    "peak_occl_white": 0.6599,
+    "run_occl50": 83,
+    "tail_iou_max": 0.0236,
+    "pass": true
+  },
+  "v2_xpeak_pred_f": 89,
+  "v2_xpeak_pred_iou": 0.275,
+  "g2_purity_median_clear": {
+    "0": 0.7056,
+    "1": 0.8284
+  },
+  "g6_frag_p10_clear": {
+    "0": 0.9929,
+    "1": 1.0
+  },
+  "g6_frag_below090_frac_clear": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g6_n_clear": {
+    "0": 152,
+    "1": 300
+  },
+  "wall_loop_s": 36.6,
+  "fps_wall": 8.207,
+  "g1_dead_frames": 0,
+  "g1_identical_consecutive": 0,
+  "g1_stamp_steps_ok": true,
+  "g2_purity_median": {
+    "0": 0.7061,
+    "1": 0.8284
+  },
+  "g2_bg_purity_median": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g3_both_visible_frac": 1.0,
+  "g6_frag_p10": {
+    "0": 0.9933,
+    "1": 1.0
+  },
+  "g6_frag_min": {
+    "0": 0.9899,
+    "1": 1.0
+  },
+  "g6_frag_below090_frac": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g6_frag_n": {
+    "0": 300,
+    "1": 300
+  },
+  "g0_retries_pose": 0,
+  "g0_retries_step": 0,
+  "g0_response_lost": 0,
+  "g0_proxy_restarts": 0,
+  "g0_spawn_warns": [],
+  "params": {
+    "standoff": 22.79557746695061,
+    "alt": 4.572293637106821,
+    "aim_err": [
+      -0.8280678672883489,
+      0.3241863513392995
+    ],
+    "v_target": 3.071351259956248,
+    "v_distractor": 3.0393148352272243,
+    "ds0": -6.293368829402401,
+    "lat_b_a": 1.0534001425826343,
+    "lat_b_b": -4.669487209039677,
+    "t_in0": 0.7091786895459914,
+    "T_in": 1.0780457549253522,
+    "T_hold": 1.7388111456791695,
+    "T_out": 1.3253932339649828
+  },
+  "versions": {
+    "gz": "8.14.0",
+    "python": "3.12.10",
+    "numpy": "2.4.4",
+    "cv2": "4.13.0"
+  },
+  "cmd": "runners/scenegen.py record --seed 56 --frames 300 --profile v2 --out experiments/2026-07-17-bankv21-recal/runs/bank12"
+}
+[scenegen] DONE experiments/2026-07-17-bankv21-recal/runs/bank12

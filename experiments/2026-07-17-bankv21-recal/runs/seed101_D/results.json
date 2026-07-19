@@ -1,0 +1,92 @@
+{
+  "seed": 101,
+  "frames": 300,
+  "out": "experiments/2026-07-17-bankv21-recal/runs/seed101_D",
+  "profile": "v2",
+  "v2_screen": {
+    "peak_iou": 0.2674,
+    "peak_f": 90,
+    "run_iou15": 66,
+    "peak_occl_white": 0.6018,
+    "run_occl50": 44,
+    "tail_iou_max": 0.0507,
+    "pass": true
+  },
+  "v2_xpeak_pred_f": 90,
+  "v2_xpeak_pred_iou": 0.2674,
+  "g2_purity_median_clear": {
+    "0": 0.6921,
+    "1": 0.7859
+  },
+  "g6_frag_p10_clear": {
+    "0": 0.9996,
+    "1": 1.0
+  },
+  "g6_frag_below090_frac_clear": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g6_n_clear": {
+    "0": 115,
+    "1": 300
+  },
+  "wall_loop_s": 36.3,
+  "fps_wall": 8.255,
+  "g1_dead_frames": 0,
+  "g1_identical_consecutive": 0,
+  "g1_stamp_steps_ok": true,
+  "g2_purity_median": {
+    "0": 0.6875,
+    "1": 0.7859
+  },
+  "g2_bg_purity_median": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g3_both_visible_frac": 1.0,
+  "g6_frag_p10": {
+    "0": 0.9955,
+    "1": 1.0
+  },
+  "g6_frag_min": {
+    "0": 0.9892,
+    "1": 1.0
+  },
+  "g6_frag_below090_frac": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g6_frag_n": {
+    "0": 300,
+    "1": 300
+  },
+  "g0_retries_pose": 0,
+  "g0_retries_step": 0,
+  "g0_response_lost": 0,
+  "g0_proxy_restarts": 0,
+  "g0_spawn_warns": [],
+  "params": {
+    "standoff": 23.418716148859613,
+    "alt": 5.30394603892081,
+    "aim_err": [
+      -0.7487723990108989,
+      1.0228891146235606
+    ],
+    "v_target": 3.3322390067326646,
+    "v_distractor": 3.300445928047191,
+    "ds0": -6.030668455321431,
+    "lat_b_a": 1.2839060887797364,
+    "lat_b_b": -4.6877378346324345,
+    "t_in0": 0.9416487603784366,
+    "T_in": 1.1042688693842533,
+    "T_hold": 1.53553026061285,
+    "T_out": 1.312322188220404
+  },
+  "versions": {
+    "gz": "8.14.0",
+    "python": "3.12.10",
+    "numpy": "2.4.4",
+    "cv2": "4.13.0"
+  },
+  "cmd": "runners/scenegen.py record --seed 101 --frames 300 --profile v2 --out experiments/2026-07-17-bankv21-recal/runs/seed101_D"
+}

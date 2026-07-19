@@ -1,0 +1,181 @@
+{
+  "source": "P5.11 experiments/2026-07-17-bankv2-crossing/runs/bank01..bank12",
+  "visual_status": "all 12 crossing-peak overlays opened with the Read tool in P5.11: genuine designed occlusions, 0 render defects",
+  "probe_seed1": {
+    "n_clear": 80,
+    "bdom": 0.687,
+    "wfrag_p10": 0.995
+  },
+  "cells": [
+    {
+      "run": "bank01",
+      "seed": 1,
+      "n_clear": 80,
+      "n_occ": 76,
+      "bdom": 0.687,
+      "wfrag_p10": 0.995,
+      "xpeak_f": 87,
+      "old_g6c_pass": true,
+      "old_g8_pass": true
+    },
+    {
+      "run": "bank02",
+      "seed": 2,
+      "n_clear": 57,
+      "n_occ": 73,
+      "bdom": 0.627,
+      "wfrag_p10": 0.995,
+      "xpeak_f": 74,
+      "old_g6c_pass": false,
+      "old_g8_pass": true
+    },
+    {
+      "run": "bank03",
+      "seed": 3,
+      "n_clear": 119,
+      "n_occ": 69,
+      "bdom": 0.6,
+      "wfrag_p10": 0.997,
+      "xpeak_f": 85,
+      "old_g6c_pass": true,
+      "old_g8_pass": true
+    },
+    {
+      "run": "bank04",
+      "seed": 4,
+      "n_clear": 96,
+      "n_occ": 76,
+      "bdom": 0.7,
+      "wfrag_p10": 0.992,
+      "xpeak_f": 88,
+      "old_g6c_pass": true,
+      "old_g8_pass": true
+    },
+    {
+      "run": "bank05",
+      "seed": 5,
+      "n_clear": 26,
+      "n_occ": 60,
+      "bdom": 0.554,
+      "wfrag_p10": 0.994,
+      "xpeak_f": 87,
+      "old_g6c_pass": false,
+      "old_g8_pass": true
+    },
+    {
+      "run": "bank06",
+      "seed": 6,
+      "n_clear": 77,
+      "n_occ": 46,
+      "bdom": 0.488,
+      "wfrag_p10": 0.992,
+      "xpeak_f": 69,
+      "old_g6c_pass": true,
+      "old_g8_pass": false
+    },
+    {
+      "run": "bank07",
+      "seed": 7,
+      "n_clear": 41,
+      "n_occ": 61,
+      "bdom": 0.555,
+      "wfrag_p10": 1.0,
+      "xpeak_f": 80,
+      "old_g6c_pass": false,
+      "old_g8_pass": true
+    },
+    {
+      "run": "bank08",
+      "seed": 8,
+      "n_clear": 23,
+      "n_occ": 71,
+      "bdom": 0.557,
+      "wfrag_p10": 0.994,
+      "xpeak_f": 45,
+      "old_g6c_pass": false,
+      "old_g8_pass": true
+    },
+    {
+      "run": "bank09",
+      "seed": 9,
+      "n_clear": 32,
+      "n_occ": 66,
+      "bdom": 0.598,
+      "wfrag_p10": 0.997,
+      "xpeak_f": 44,
+      "old_g6c_pass": false,
+      "old_g8_pass": true
+    },
+    {
+      "run": "bank10",
+      "seed": 10,
+      "n_clear": 27,
+      "n_occ": 86,
+      "bdom": 0.7,
+      "wfrag_p10": 0.99,
+      "xpeak_f": 89,
+      "old_g6c_pass": false,
+      "old_g8_pass": true
+    },
+    {
+      "run": "bank11",
+      "seed": 13,
+      "n_clear": 23,
+      "n_occ": 40,
+      "bdom": 0.487,
+      "wfrag_p10": 0.999,
+      "xpeak_f": 84,
+      "old_g6c_pass": false,
+      "old_g8_pass": false
+    },
+    {
+      "run": "bank12",
+      "seed": 14,
+      "n_clear": 77,
+      "n_occ": 45,
+      "bdom": 0.541,
+      "wfrag_p10": 0.993,
+      "xpeak_f": 56,
+      "old_g6c_pass": true,
+      "old_g8_pass": false
+    }
+  ],
+  "derived_floors": {
+    "g6c_n_clear": {
+      "old": 60,
+      "new": 40,
+      "population": [
+        23,
+        23,
+        26,
+        27,
+        32,
+        41,
+        57,
+        77,
+        77,
+        80,
+        96,
+        119
+      ]
+    },
+    "g8b_bdom": {
+      "old": 0.55,
+      "new": 0.4,
+      "population": [
+        0.487,
+        0.488,
+        0.541,
+        0.554,
+        0.555,
+        0.557,
+        0.598,
+        0.6,
+        0.627,
+        0.687,
+        0.7,
+        0.7
+      ]
+    }
+  }
+}
