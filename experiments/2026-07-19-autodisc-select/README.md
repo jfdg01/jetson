@@ -2,7 +2,9 @@
 
 **Pre-registered:** 2026-07-19T14:55Z (Madrid wall clock). Design + patches by Fable; Opus runs
 the matrix and fills Results only — do NOT re-patch code.
-**Status:** PRE-REGISTERED, not yet run.
+**Status:** COMPLETE — run 2026-07-19T15:00Z–15:03Z. **OVERALL: YES** (RQ-P5.16a WSEL 4/5,
+RQ-P5.16b SWAP 4/5 strengthened; V PASS on all 24 gating frames, no downgrade). The seed oracle
+is removable: 1 flip out of 12 cells, and the P5.14 headline survives with VLM-discovered seeds.
 **Branch:** `experiment/autodisc-select` off `main` @ `6a26e62`.
 **Hardware:** RTX 3090 host (SAM2 carry, bf16) + Jetson Orin Nano 8 GB over `ssh jetson`
 (VLM: discovery calls + idle ROI re-anchors + non-gating shadow call), `15W` + `jetson_clocks`.
@@ -209,40 +211,104 @@ FAIL cell's frames must show the failure mode the class claims (negative proof �
   under discovery (its P5.14 PASS was oracle-seed-dependent). Hazard cells most likely to fail
   WSEL: car7:460, car10:615 (see hazards above).
 
-## Results (TBD)
+## Results
 
-Status: PRE-REGISTERED, not yet run. Next step: Opus runs R0–R5 above.
+Run 2026-07-19T15:00Z–15:03Z on `experiment/autodisc-select` @ `848da94`. R0 selfcheck green
+(`select_p53` / `select_p55` / `select_p56` / `discover_p516` all OK). No aborts, no crashes, no
+INVALID cells; 12/12 cells scored, n=1 deterministic.
 
-| cell | pass | weak | d_iou | d_dist | cov | seed_iou_gt | disc calls (outcome) | done_f | fail class / reason | what I saw (deliver.png + discovery png) |
+**Versions / config:** python 3.12.10, torch 2.6.0+cu124, transformers 4.57.6 (`.venv-ft`, RTX
+3090). VLM = `phase3-terse100eos-1024-q8_0.gguf` + `mmproj-phase3-terse100eos-1024-f16.gguf`
+(llama.cpp on Jetson Orin Nano, `NV Power Mode: 15W` mode 0 + `jetson_clocks`), MAX_SIDE 1024.
+Carry = SAM2 `facebook/sam2.1-hiera-tiny`, CARRY_HZ 6.15 / CAND_HZ 3.075. Frozen constants:
+DS_OFFSET 150, IOU_SAME 0.5, MATCH_FLOOR 0.1, DIST_FLOOR 0.25, ROI_MARGIN 2.0, ROI_MIN_SIDE 256,
+ROI_RES 512, reanchor offsets [90, 165], cover_s 10.0, UAV123 1280x720 @ 30 fps.
+
+| cell | pass | weak | d_iou | d_dist | cov | seed_iou_gt | disc calls (T,D outcome) | done_f | fail class / reason | what I saw (deliver.png + discovery png) |
 |---|---|---|---|---|---|---|---|---|---|---|
-| DSC_WSEL_car10_240 | | | | | | | | | | |
-| DSC_SWAP_car10_240 | | | | | | | | | | |
-| DSC_WSEL_car10_615 | | | | | | | | | | |
-| DSC_SWAP_car10_615 | | | | | | | | | | |
-| DSC_WSEL_car9_300 | | | | | | | | | | |
-| DSC_SWAP_car9_300 | | | | | | | | | | |
-| DSC_WSEL_car7_460 | | | | | | | | | | |
-| DSC_SWAP_car7_460 | | | | | | | | | | |
-| DSC_WSEL_car9_560 | | | | | | | | | | |
-| DSC_SWAP_car9_560 | | | | | | | | | | |
-| DSC_WSEL_car3_200 (control) | | | | | | | | | | |
-| DSC_SWAP_car3_200 (control) | | | | | | | | | | |
+| DSC_WSEL_car10_240 | PASS | – | 0.6771 | 0.0 | 1.00 | 0.6828 | accepted, accepted | 360 | – | deliver f=480: green on the white car, red GT overlapping, blue distractor GT on the dark car ahead. discovery f=90: green on the white car, red GT overlapping. Correct. |
+| DSC_SWAP_car10_240 | PASS | weak-too | 0.0 | 0.7557 | 0.0 | 0.6828 | accepted, accepted | 360 | – | deliver f=480: green on the dark car ahead, red target GT on the white car — cleanly separated. discovery f=225: green on the dark car beside a white car ("the black car in front of the white car"). Correct. |
+| DSC_WSEL_car10_615 | PASS | – | 0.8889 | 0.0202 | 1.00 | 0.5209 | accepted, accepted | 736 | – | deliver f=855: green on the small car ahead of the white van (blue GT = the van). discovery f=465: green on the white car, red GT overlapping. Correct — the pre-registered "relatum absent at ds" hazard did not bite. |
+| DSC_SWAP_car10_615 | PASS | weak-too | 0.0 | 0.8758 | 0.0 | 0.5209 | accepted, accepted | 736 | – | deliver f=855: green on the white van (blue GT overlapping), red GT on the small car ahead. discovery f=600: green on the white van as it enters the frame bottom-right, partially cut by the frame edge — still the right object, and the carry held it. |
+| DSC_WSEL_car9_300 | PASS | – | 0.8402 | 0.0 | 0.9767 | 0.8039 | accepted, accepted | 423 | – | deliver f=540: green on the silver car, red GT overlapping; blue distractor GT far up the road. discovery f=150: green on the silver car. Correct (best seed of the run). |
+| DSC_SWAP_car9_300 | PASS | weak-too | 0.0 | 0.7253 | 0.0 | 0.8039 | accepted, accepted | 423 | – | deliver f=540: green far up the road on the distractor, red GT on the silver car mid-frame. discovery f=286: green on the black car at frame bottom-left. Correct. |
+| **DSC_WSEL_car7_460** | **FAIL** | – | – | – | 0.0 | **0.0** | accepted, accepted | 580 | lost-track: selected track lost during idle | discovery f=310 "the silver car": green on a **different** silver car (upper, by the parking lot) while the red target GT sits on the silver car below it — the pre-registered two-silver-cars ambiguity. The wrong carry then dies, so deliver f=700 has **no green box** at all (red/blue GTs on the roundabout). Wrong-object *discovery*, surfaced as a lost track. |
+| **DSC_SWAP_car7_460** | **FAIL** | weak-too | 0.0 | 0.0 | 0.0 | 0.0 | accepted, accepted | 580 | off-distractor | discovery f=445 "the black car": green on a dark car on the **far right road**, not the blue-GT dark car in the roundabout. deliver f=700: green stranded at the left frame edge, nowhere near the blue GT. Class `off-distractor` matches the pixels exactly. |
+| DSC_WSEL_car9_560 | PASS | – | 0.9116 | 0.0 | 0.97 | 0.6274 | accepted, accepted | 681 | – | deliver f=740: green on the silver car, red GT overlapping. discovery f=410: green on the silver car. Correct despite the tightest window. |
+| DSC_SWAP_car9_560 | PASS | weak-too | 0.0 | 0.4779 | 0.0 | 0.6274 | accepted, accepted | 681 | – | deliver f=740: green inside the blue distractor GT up the road (0.4779 — the run's tightest pass, box smaller than GT but on the object). discovery f=546: green on the dark red car. Correct. |
+| DSC_WSEL_car3_200 (control) | PASS | – | 0.6667 | 0.0 | 0.94 | 0.5376 | accepted, accepted | 320 | – | deliver f=440: green on the red car, red GT overlapping, blue GT on the car ahead. discovery f=50: green on the red car. Correct — **did not flip**, against the pre-registered prediction. |
+| DSC_SWAP_car3_200 (control) | PASS | weak-too | 0.0 | 0.8864 | 0.0 | 0.5376 | accepted, accepted | 320 | – | deliver f=440: green on the distractor (blue GT under it), red GT on the red car below. discovery f=185: green on the light-coloured car. Correct. |
 
-- RQ-P5.16a: _/5 → TBD. RQ-P5.16b: _/5 → TBD. V: TBD. **OVERALL: TBD.**
-- Oracle-delta table (verbatim from verdict): TBD.
-- Estimate-vs-actual (runtime + predictions): TBD.
-- Versions (from one results.json) + power mode: TBD.
+- **RQ-P5.16a: 4/5 gating WSEL PASS → YES** (floor 4). **RQ-P5.16b: 4/5 gating SWAP PASS,
+  strengthened rule → YES** (floor 4). **V: PASS** — all 24 gating PNGs opened with the Read
+  tool; every scored PASS is corroborated by its frames, both FAILs show the failure mode their
+  class claims, no black/degenerate frame (max single-colour fraction 0.009 across all 24).
+  **OVERALL: YES.**
+- **Oracle delta — 1 flip in 12 cells** (verbatim from `raw/verdict.txt`): only
+  `DSC_WSEL_car7_460` was LOST to discovery (P5.14 PASS → P5.16 FAIL). `DSC_SWAP_car7_460` was
+  already FAIL under the oracle. All ten other cells are unchanged. **This is the headline: the
+  P5.14 select YES was not oracle-propped — removing GT seeding costs exactly one cell, and that
+  cell is the one whose caption is genuinely ambiguous in the pixels.**
+- **Discovery worked in every cell:** 24/24 VLM calls accepted (0 invalid, 0 duplicate-rejected,
+  0 in-flight-at-prompt, 0 `discovery-failed` legs), mean full-frame latency **4.51 s**
+  (min 4.49, max 4.56, n=24) — dead-on the pre-registered 4.4–4.6 s. Both captions completed in
+  exactly 2 slots, finishing 120 frames (4.0 s) before the prompt in 10 cells and 59 frames
+  (2.0 s) before it in the two `car9:560` cells. The budget was tight but never binding.
+- **Seed quality (target, IoU vs GT at the accept frame):** 0.52–0.80 on the five cells where
+  discovery found the right car (median 0.63), and **0.0** on `car7:460` — the numeric
+  fingerprint of wrong-object discovery, agreeing with the picture.
+- **Both re-anchor boundaries behaved as designed:** in all 12 cells the f0+90 boundary fell
+  inside discovery and was skipped-and-recorded (`in-discovery`), and the f0+165 boundary fired
+  and was accepted. No re-anchor harmed a cell here (idle is only ~8 s; contrast P5.15, where
+  the same rule cost 2 clips over 24 s).
+- **Shadow re-ground (non-gating): disagreed with direct delivery on 4/12 cells** — 3x
+  `NO_MATCH` (car10:240 SWAP, car10:615 WSEL, car7:460 SWAP/WSEL) and 1x wrong-object
+  (car3:200 WSEL picked the distractor). Shadow acquire 4.48–4.53 s vs **acquire_s = 0.00 s**
+  for delivery. Same magnitude of separation P5.14 measured (4/12), now with no GT anywhere in
+  the loop.
+- **Weak-vs-strengthened SWAP:** 6/6 weak, 5/6 strengthened — the strengthened rule is still
+  doing work (it is what makes `car7:460` SWAP a FAIL rather than a pass on a junk box).
+- **Estimate-vs-actual.** Runtime: estimated 35–60 s/cell and 8–15 min for the matrix; actual
+  **mean 29 s/cell, max 30 s**, matrix **5.7 min**, whole run incl. verdict + proof ~7 min. Third
+  consecutive over-estimate, but by ~1.5x rather than the ~4x of the previous two — the
+  calibration note landed. Predictions: **wrong in the useful direction.** Fable predicted
+  OVERALL **NO** (WSEL 3–4/5, SWAP 2–4/5) and a `car3:200` control flip; actual is YES 4/5 + 4/5
+  with the control holding. Of the three named hazard cells, only `car7:460` failed —
+  `car10:615` (absent relatum) and `car9:560` (tightest window) both passed. Discovery was
+  predicted to complete in "~4–5 of 6 scenes per leg"; it completed in **6/6**.
 
-## Deliverables (proof/, committed — after the run)
+## What broke / what surprised
 
-1. `proof/p516_pass_grid.png` — P5.14 oracle-seeded vs P5.16 discovered, per cell x leg (R5).
-2. `proof/p516_discovery.png` — discovery timelines per cell (R5).
-3. Mechanical copy rule, no judgment: for every gating cell whose pass FLIPPED vs P5.14 (the
-   verdict's oracle-delta table), copy its `deliver.png` to
-   `proof/p516_flip_<cell>_deliver.png` and, if it exists, the selected candidate's discovery
-   PNG to `proof/p516_flip_<cell>_discovery.png` (cap: 4 cells, lowest d_iou first). If ZERO
-   flips, copy `runs/DSC_WSEL_car9_300/deliver.png` + `discovery_target.png` instead as the
-   no-oracle-needed headline evidence. Caption each in this README.
+- **Nothing broke.** No crash, no Jetson boot flake, no hang, no retry — the abort criteria were
+  never exercised.
+- **The surprise is how cheap the oracle was.** The pre-registered expectation was that GT
+  seeding was load-bearing; it is worth one cell out of twelve. The idle window is long enough
+  that a 4.5 s full-frame VLM call per caption is affordable *and* the resulting seed (IoU
+  0.52–0.80, not 1.0) is good enough for SAM2 to carry — consistent with P5.15's finding that
+  the carry is robust.
+- **`car7:460` fails for a language reason, not a vision or tracking one.** Two adjacent silver
+  cars make "the silver car" genuinely ambiguous at ds; the VLM's answer is defensible, the
+  scene's phrasing is not. The mechanical fail class (`lost-track`) understates this — the loss
+  is downstream of a wrong-object discovery, which only the frames and `seed_iou_gt = 0.0`
+  reveal. **A future pre-registration should classify on seed correctness before track outcome.**
+- **The control did not flip**, so the P5.14 `car3:200` PASS is not oracle-dependent either.
+  That retires the last piece of the old "resolution-bound" story for this cell.
+
+## Deliverables (proof/, committed)
+
+1. `proof/p516_pass_grid.png` — P5.14 oracle-seeded vs P5.16 discovered, per cell x leg. Shows
+   the whole result in one figure: the two rows are identical except `car7:460` WSEL. Opened and
+   verified.
+2. `proof/p516_discovery.png` — discovery timelines per cell (frames relative to f0). Shows the
+   two accepted calls (T then D) landing inside the idle window in all 12 cells, the skipped
+   first re-anchor and the accepted second. Opened and verified.
+3. `proof/p516_flip_DSC_WSEL_car7_460_discovery.png` — **negative proof, the single flip.**
+   Discovery frame f=310 for "the silver car": the green VLM box is on the wrong silver car
+   (upper, by the parking lot); the red target GT is on the silver car below. `seed_iou_gt` 0.0.
+4. `proof/p516_flip_DSC_WSEL_car7_460_deliver.png` — the consequence at the prompt frame f=700:
+   **no green box at all** (the wrong carry was lost during idle), red target GT and blue
+   distractor GT alone on the roundabout. This is what the mechanical class `lost-track` looks
+   like when its actual cause is upstream, in discovery.
 
 ## Ledger updates (Opus, after Results are filled)
 

@@ -1,0 +1,362 @@
+{
+  "arm": "DSC",
+  "leg": "SWAP",
+  "scene": {
+    "clip": "car9",
+    "f0": 300,
+    "t_p": 8.0,
+    "target_caption": "the silver car",
+    "distractor_caption": "the black car",
+    "distractor_box": [
+      588,
+      528,
+      660,
+      672
+    ],
+    "distractor_gt_prompt": [
+      632,
+      60,
+      658,
+      81
+    ],
+    "gating": true,
+    "note": "Regression guard: both legs passed P5.3/P5.5. Black car hand GT at f540 from curation/prompt_car9_540_z.jpg (carried box [636,63,658,81] fits it, IoU ~0.73 vs hand GT)."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 30.1,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "dist_floor": 0.25,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "ds_offset": 150,
+  "iou_same": 0.5,
+  "pass": true,
+  "swap_weak_pass": true,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 300,
+    "deliver_frame": 540,
+    "deliver_iou": 0.0,
+    "window": [
+      540,
+      840
+    ],
+    "leg": "SWAP",
+    "selection": "distractor",
+    "selection_correct": true,
+    "acquire_s": 0.0,
+    "deliver_iou_distractor": 0.7253
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 300,
+    "t_p": 8.0,
+    "prompt_frame": 540,
+    "ds": 150,
+    "reanchor": [
+      {
+        "frame": 390,
+        "skipped": "in-discovery"
+      },
+      {
+        "frame": 465,
+        "win": [
+          508,
+          42,
+          764,
+          298
+        ],
+        "crop_wh": [
+          512,
+          512
+        ],
+        "prior": [
+          623.0,
+          157.0,
+          648.0,
+          184.0
+        ],
+        "raw": [
+          630.9,
+          164.9,
+          648.8,
+          190.5
+        ],
+        "accepted": true,
+        "new_box": [
+          630.9,
+          164.9,
+          648.8,
+          190.5
+        ]
+      }
+    ],
+    "discovery": [
+      {
+        "cand": "target",
+        "caption": "the silver car",
+        "call_frame": 150,
+        "return_frame": 286,
+        "latency_s": 4.53,
+        "outcome": "accepted",
+        "box": [
+          550.4,
+          460.8,
+          601.6,
+          561.6
+        ],
+        "seed_iou_gt": 0.8039
+      },
+      {
+        "cand": "distractor",
+        "caption": "the black car",
+        "call_frame": 286,
+        "return_frame": 423,
+        "latency_s": 4.56,
+        "outcome": "accepted",
+        "box": [
+          588.8,
+          597.6,
+          665.6,
+          720.0
+        ]
+      }
+    ],
+    "discovery_done_frame": 423,
+    "acquire_s": 0.0,
+    "caption": "the black car",
+    "selected": "distractor",
+    "cand_at_prompt": {
+      "target": [
+        642.0,
+        381.0,
+        679.0,
+        435.0
+      ],
+      "distractor": [
+        636.0,
+        63.0,
+        658.0,
+        81.0
+      ]
+    },
+    "deliver_frame": 540,
+    "shadow": {
+      "acquire_s": 4.48,
+      "vlm_box": [
+        627.2,
+        57.6,
+        652.8,
+        79.2
+      ],
+      "match_ious": {
+        "target": 0.0,
+        "distractor": 0.4021
+      },
+      "selected": "distractor"
+    }
+  },
+  "events": [
+    [
+      18.0,
+      [
+        636.0,
+        63.0,
+        658.0,
+        81.0
+      ]
+    ],
+    [
+      18.057,
+      [
+        636.0,
+        63.0,
+        658.0,
+        80.0
+      ]
+    ],
+    [
+      18.222,
+      [
+        636.0,
+        59.0,
+        657.0,
+        78.0
+      ]
+    ],
+    [
+      18.389,
+      [
+        636.0,
+        54.0,
+        658.0,
+        72.0
+      ]
+    ],
+    [
+      18.554,
+      [
+        635.0,
+        49.0,
+        658.0,
+        67.0
+      ]
+    ],
+    [
+      18.72,
+      [
+        636.0,
+        44.0,
+        657.0,
+        62.0
+      ]
+    ],
+    [
+      18.884,
+      [
+        635.0,
+        41.0,
+        657.0,
+        57.0
+      ]
+    ],
+    [
+      19.049,
+      [
+        634.0,
+        36.0,
+        655.0,
+        52.0
+      ]
+    ],
+    [
+      19.213,
+      [
+        634.0,
+        32.0,
+        655.0,
+        47.0
+      ]
+    ],
+    [
+      19.379,
+      [
+        633.0,
+        29.0,
+        653.0,
+        43.0
+      ]
+    ],
+    [
+      19.545,
+      [
+        632.0,
+        25.0,
+        652.0,
+        39.0
+      ]
+    ],
+    [
+      19.71,
+      [
+        633.0,
+        21.0,
+        651.0,
+        35.0
+      ]
+    ],
+    [
+      19.875,
+      [
+        632.0,
+        17.0,
+        651.0,
+        31.0
+      ]
+    ],
+    [
+      20.04,
+      [
+        631.0,
+        13.0,
+        650.0,
+        28.0
+      ]
+    ],
+    [
+      20.205,
+      [
+        631.0,
+        10.0,
+        648.0,
+        24.0
+      ]
+    ],
+    [
+      20.37,
+      [
+        630.0,
+        6.0,
+        648.0,
+        20.0
+      ]
+    ],
+    [
+      20.538,
+      [
+        629.0,
+        3.0,
+        647.0,
+        17.0
+      ]
+    ],
+    [
+      20.701,
+      [
+        626.0,
+        0.0,
+        645.0,
+        13.0
+      ]
+    ],
+    [
+      20.867,
+      [
+        626.0,
+        0.0,
+        645.0,
+        11.0
+      ]
+    ],
+    [
+      21.031,
+      [
+        626.0,
+        0.0,
+        643.0,
+        8.0
+      ]
+    ],
+    [
+      21.196,
+      [
+        625.0,
+        0.0,
+        640.0,
+        3.0
+      ]
+    ]
+  ]
+}

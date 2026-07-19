@@ -533,3 +533,38 @@ Proof: `proof/p515_arms.png` (survival vs horizon, both arms, floor line),
 `proof/p515_maint_car10_h24_IDENTITY_SWAP.png` (negative proof: re-anchor moved onto a
 different car), `proof/p515_plain_car7_h16_DEAD.png` (the one RQ-a failure).
 Detail: [`../../experiments/2026-07-19-carry-horizon/README.md`](../../experiments/2026-07-19-carry-horizon/README.md).
+
+### P5.16 — autodisc-select (2026-07-19T15:03Z)
+
+Direct-delivery select with the **seed oracle removed**: both candidate carries are seeded by
+the deployed Jetson VLM itself during the idle window (discovery starts at f0-150, target
+caption first, accept = parseable + in-frame + IoU < 0.5 vs the other carry). No ground truth
+anywhere in the loop. Everything else imported byte-identical from P5.14 `select_p56`.
+Rig: RTX 3090 (SAM2 `facebook/sam2.1-hiera-tiny`, CARRY_HZ 6.15 / CAND_HZ 3.075) + Jetson Orin
+Nano `phase3-terse100eos-1024-q8_0.gguf`, MAX_SIDE 1024, `15W` mode 0 + `jetson_clocks`.
+python 3.12.10 / torch 2.6.0+cu124 / transformers 4.57.6. DS_OFFSET 150, IOU_SAME 0.5,
+DIST_FLOOR 0.25, ROI 2.0/256/512, reanchor [90,165], cover_s 10.0. n=1 deterministic, 6 scenes
+x 2 legs, UAV123 1280x720 @ 30 fps.
+
+| leg | gating PASS | vs P5.14 (oracle seeds) | control car3:200 |
+|---|---|---|---|
+| WSEL (select warm target) | **4/5** | 5/5 — lost `car7:460` | PASS (predicted to flip; did not) |
+| SWAP (select warm distractor, strengthened) | **4/5** | 4/5 — unchanged | PASS |
+
+**Oracle delta = 1 flip in 12 cells.** Discovery accepted **24/24** VLM calls (0 invalid, 0
+duplicate, 0 in-flight-at-prompt, 0 `discovery-failed` legs) at mean full-frame latency
+**4.51 s** (min 4.49 / max 4.56, n=24), both captions completing 2.0–4.0 s before the prompt.
+Target seed IoU vs GT 0.52–0.80 (median 0.63) where discovery was correct, **0.0** on the one
+failure. Delivery `acquire_s = 0.00` vs shadow re-ground 4.48–4.53 s; the non-gating shadow
+**disagreed on 4/12 cells** (3x NO_MATCH, 1x wrong-object) — same separation as P5.14, now with
+no GT in the loop. Weak-vs-strengthened SWAP 6/6 vs 5/6. Both re-anchor boundaries behaved as
+designed (f0+90 skipped `in-discovery` in all 12, f0+165 accepted in all 12, none harmful over
+this ~8 s idle). Matrix wall 5.7 min, mean 29 s/cell.
+The single failure `car7:460` is a **language** failure, not vision or tracking: two adjacent
+silver cars make "the silver car" ambiguous at the discovery frame, the VLM grounds the wrong
+one (`seed_iou_gt` 0.0), that carry dies during idle and the cell scores `lost-track`.
+Proof: `proof/p516_pass_grid.png` (P5.14 vs P5.16, per cell x leg),
+`proof/p516_discovery.png` (discovery call timelines),
+`proof/p516_flip_DSC_WSEL_car7_460_discovery.png` + `..._deliver.png` (negative proof of the
+one flip: wrong silver car at discovery, then no box at delivery).
+Detail: [`../../experiments/2026-07-19-autodisc-select/README.md`](../../experiments/2026-07-19-autodisc-select/README.md).

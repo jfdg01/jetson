@@ -450,3 +450,32 @@ flips P5.8's failing gate — disclosed, deliberate, grounded in third-party-che
   `area_ratio` separates alive from dead (median 1.039 vs 0.163) while `hist_corr` is flat
   (0.742 both) and is undefined when the box vanishes. **Given up:** the appearance-similarity
   health signal, which several earlier proposals assumed would work.
+
+### P5.16 — autodisc-select (2026-07-19T15:03Z)
+
+- **Attacked the seed oracle rather than the P5.15 re-anchor finding or a third sim bank.**
+  **Why:** P5.14's first select YES seeded both carries from ground truth (target from
+  `gt[f0]`, distractor from a hand box) — the largest unearned assumption in the Part V
+  headline — and P5.15 had just shown the carry survives 24 s idle unmaintained, so a seed
+  planted early in the idle window would still be alive at the prompt. **Given up:** (a) a
+  carry-health-gate / IoU-floored re-anchor fix for P5.15's identity-swap finding — low
+  leverage, the mechanism is already measured and the unmaintained carry needs no maintenance
+  at these horizons; (b) sim bank v3 with z-order/displacement gates — third rejection of the
+  sim fork, since two banks in a row tied the contracts (P5.10, P5.13) while real video
+  separated them for free (P5.14). The bank-v3 gates stay carried forward, unexecuted.
+- **Changed exactly one factor (seed provenance) and imported everything else byte-identical.**
+  **Why:** the whole value of the run is attributing any delta to the oracle; re-tuning
+  delivery, captions or maintenance at the same time would have made a 1-cell flip
+  uninterpretable. **Given up:** obvious co-improvements (e.g. a retry budget, an identity
+  constraint on re-anchor) that would have made the numbers look better without being
+  attributable.
+- **Kept caption→candidate binding as string equality on the two known phrases.** **Why:**
+  free-phrase binding is a separate factor and mixing it in would confound the seed-provenance
+  question. **Given up:** testing the operator-facing language surface; that is now the natural
+  next cycle, and `car7:460` says referring-expression *disambiguation* is where it will bite.
+- **Discovery accept rule uses no ground truth at all** — parseable + in-frame + IoU < 0.5 vs
+  the other carry (a distinctness guard), with rejection requeuing the caption at the back and
+  an in-flight-at-prompt call discarded. **Why:** any GT-derived accept test would smuggle the
+  oracle back in through the side door and invalidate the experiment. **Given up:** the ability
+  to reject a wrong-object discovery — which is precisely how `car7:460` failed, and that
+  failure is the honest cost of the rule.
