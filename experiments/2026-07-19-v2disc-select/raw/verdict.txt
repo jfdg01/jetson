@@ -1,0 +1,39 @@
+cell          DD    dd_class      ddIoU  RG    rg_class        vlm_on  acq_s  delivF  ddCov  rgCov  
+bank01_blue   PASS  None          0.597  PASS  None            named   4.35   259     1.000  1.000  
+bank01_white  PASS  None          0.565  PASS  None            named   4.36   259     0.980  0.927  
+bank02_blue   PASS  None          0.639  PASS  None            named   4.36   259     1.000  1.000  
+bank02_white  PASS  None          0.643  PASS  None            named   4.38   260     1.000  1.000  
+bank03_blue   PASS  None          0.641  PASS  None            named   4.37   259     1.000  1.000  
+bank03_white  PASS  None          0.604  PASS  None            named   4.37   259     1.000  1.000  
+bank04_blue   PASS  None          0.462  PASS  None            named   4.35   259     1.000  1.000  
+bank04_white  PASS  None          0.596  PASS  None            named   4.36   259     1.000  1.000  
+bank05_blue   PASS  None          0.614  PASS  None            named   4.36   259     1.000  1.000  
+bank05_white  PASS  None          0.624  PASS  None            named   4.37   259     1.000  1.000  
+bank06_blue   PASS  None          0.617  PASS  None            named   4.36   259     1.000  1.000  
+bank06_white  PASS  None          0.584  PASS  None            named   4.37   259     0.947  0.805  
+bank07_blue   PASS  None          0.622  PASS  None            named   4.35   259     1.000  1.000  
+bank07_white  PASS  None          0.632  PASS  None            named   4.36   259     1.000  1.000  
+bank08_blue   PASS  None          0.575  PASS  None            named   4.36   259     1.000  1.000  
+bank08_white  PASS  None          0.545  PASS  None            named   4.37   259     1.000  1.000  
+bank09_blue   PASS  None          0.642  PASS  None            named   4.35   259     1.000  1.000  
+bank09_white  PASS  None          0.638  FAIL  DELIVERY_DRIFT  named   4.36   259     0.787  0.683  
+bank10_blue   PASS  None          0.487  PASS  None            named   4.34   259     1.000  1.000  
+bank10_white  PASS  None          0.608  PASS  None            named   4.34   259     1.000  1.000  
+bank11_blue   PASS  None          0.603  PASS  None            named   4.36   259     1.000  1.000  
+bank11_white  PASS  None          0.586  PASS  None            named   4.37   259     1.000  1.000  
+bank12_blue   PASS  None          0.643  PASS  None            named   4.36   259     1.000  1.000  
+bank12_white  PASS  None          0.638  PASS  None            named   4.36   259     1.000  1.000  
+
+DD per leg: white 12/12, blue 12/12  -> DD_total 24/24
+RG per leg: white 11/12, blue 12/12  -> RG_total 23/24
+DD fail classes: {}  RG fail classes: {'DELIVERY_DRIFT': 1}
+
+RQ-P5.13a (|DD_total - RG_total| >= 4 of 24): NO (DD 24 vs RG 23, |diff| 1)
+RQ-P5.13b (blue-leg DD - white-leg DD >= 3 of 12; DIAGNOSTIC, does NOT gate the overall verdict): NO (blue 12/12 - white 12/12 = 0)
+OVERALL RQ-P5.13: NO (YES iff a; the visual gate V is checked by the operator on the overlay PNGs and can only downgrade this to NO)
+
+Pre-registered interpretation branches (the matching one applies):
+  [ ] branch 1: DD > RG by >= 4: direct delivery beats prompt-time re-grounding even through a designed crossing -- the carry survives occlusion and the VLM re-ground is the weak link. Next lever = unpark P5.6 (direct delivery on real UAV123).
+  [ ] branch 2: RG > DD by >= 4: the designed crossing BREAKS the carry and prompt-time re-grounding repairs identity. First result favouring RG; it inverts the Part V warm-start premise for occluded targets and the next lever is a hybrid (carry + re-ground confirmation), not more scene data.
+  [X] branch 3: No separation, both contracts >= 20/24: the bank still does not discriminate. Check the two PRE-REGISTERED explanations in this order -- (i) crossing-peak uniformity + constant z-order (P5.12 audit: white-box centre y std 6.1 px, white nearer in 0/300 frames in every clip), then (ii) bank05/bank06 weaker occlusion stress (max GT-GT IoU 0.217/0.251 vs 0.352 for bank07). Do NOT derive a third explanation post-hoc.
+  [ ] branch 4: No separation, at least one contract < 20/24: the stack fails at f150 for reasons upstream of the delivery contract (carry loss on both, or VLM failure on both); diagnose the stack before re-asking the contract question.

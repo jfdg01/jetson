@@ -336,3 +336,50 @@ flips P5.8's failing gate — disclosed, deliberate, grounded in third-party-che
   division of labour held (executor logged rather than silently patched), which is what made the
   wart visible at audit. Documented rather than silently fixed, so the
   discrepancy is on the record instead of being a future reader's puzzle.
+
+### P5.13 — v2 discrimination A/B: DD vs RG on the bank v2.1 crossing bank (2026-07-19)
+
+- **Replaced P5.10's directional margin `DD_total >= RG_total + 4` with a symmetric
+  `|DD_total - RG_total| >= 4`.** **Why:** P5.10's threshold could only fire if direct delivery won,
+  which was the experimenter's expectation at the time. P5.13's own pre-registered prediction ran the
+  *opposite* way (RG > DD, because DD must carry identity through the designed crossing while RG sees
+  a clean scene at f150), and a threshold that can only fire in the expected direction is not a test —
+  it is a confirmation. The magnitude (4 of 24) was carried forward unchanged from the P5.11 and P5.12
+  pre-registrations specifically so that the bar was not being moved at the same time as its shape.
+  **Given up:** a directional threshold would have been marginally more sensitive to the one
+  hypothesis actually under test; the symmetric version spends that sensitivity on being falsifiable
+  in both directions. In the event this mattered less than expected — the observed margin was 1, far
+  from either edge — but the prediction *was* wrong (DD went 24/24), which is exactly the case the
+  symmetric form was chosen to cover.
+- **Moved the prompt frame from P5.10's f75 (t=3.0 s) to f150 (t=6.0 s).** **Why:** bank v2.1's
+  crossings peak between f56 and f94, so f75 lands *inside* the occlusion window. Grading both
+  contracts mid-occlusion would make a null uninterpretable — a contract failure would be
+  indistinguishable from "we asked at the worst possible moment". f150 is after every crossing and
+  every clip is separated by then (GT-GT IoU <= 0.084), which is the intended design: **the carry must
+  survive the crossing, the VLM sees a clean scene.** **Given up:** the overrun ceiling tightens from
+  6.56 s to 5.96 s, and `cov_*` window shrinks 165 -> 150 frames so raw coverage `n` is not comparable
+  to P5.10's (compare `frac_lock` only). Both consequences were pre-registered as non-bugs; neither
+  bit (measured acquire 4.34-4.38 s, no `OVERRUN`).
+- **Kept `select_p513.py` a forward copy of the byte-frozen `select_p510.py` with only four
+  constants changed** (`N_FRAMES` 240->300, prompt 3.0 s/f75 -> 6.0 s/f150, bank path, and the
+  mechanical selfcheck/preflight literals). No new fail classes, no new scoring rules. **Why:** so a
+  P5.13-vs-P5.10 delta is attributable to the bank and the prompt frame and *not* to the grader. This
+  is what makes "P5.10 got 24/24 vs 24/24, P5.13 got 24/24 vs 23/24" a comparable pair of numbers
+  rather than two unrelated runs. **Given up:** the chance to fix things noticed since P5.10 —
+  notably that `DELIVERY_DRIFT` charges a mid-carry mask leak to the RG contract purely because RG
+  delivers 109 frames later than DD. That asymmetry is real, it produced the run's only failure
+  (`bank09_white`), and it is recorded rather than patched mid-campaign.
+- **Did not widen the bank before running.** **Why:** n=12 is what P5.12 validated, and the
+  pre-registration names in advance which explanations to check if the contracts fail to separate;
+  adding clips before knowing which explanation holds is guessing. **Given up:** statistical power. In
+  the event the result was not power-limited — DD had *zero* fails of 24, which no plausible sample
+  size rescues into a separation.
+- **Branch-3 explanations honoured as pre-registered, with no third one added.** Branch 3 fired, and
+  the two named explanations were checked in the frozen order: (i) crossing-peak uniformity +
+  constant z-order (white is the nearer car in 0/300 frames in every clip — the bank never renders
+  the target in front), then (ii) bank05/bank06's weaker occlusion stress. The evidence points at (i)
+  and not (ii), because the two weakest-crossing clips passed identically to the strongest.
+  **Why this is a decision and not just a result:** the temptation at a null is to invent a better
+  post-hoc story, and the P5.12 audit pre-committed against exactly that. **Given up:** any
+  post-hoc explanation that might be true but was not named in advance — it can be proposed as a new
+  pre-registration, not as a reading of this run.
