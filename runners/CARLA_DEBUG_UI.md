@@ -223,6 +223,28 @@ reads `world.get_actors()`, but only to colour the box and count locks.
 > `track["actor"]` — the moment control reads the actor, the loop is GT-driven and every
 > number from it is worthless.
 
+**The starting grid is deterministic, the traffic is not.** `spawn_vehicles()` draws from a
+private `random.Random(SPAWN_SEED)` over blueprints sorted by id, so the same seed puts the
+same 50 models on the same 50 spawn points on every run — verified 3/3 identical plans
+(model + point + server-accepted flag) at n=50 on 0.9.16, 2026-07-20T21:05Z. What it does
+*not* buy is repeatable driving: the traffic manager's `set_random_device_seed()` cannot be
+used here. Calling it while vehicles are batch-registered times out `register_vehicle` after
+2000 ms and then aborts the client process with `Responding error from function
+set_actor_simulate_physics: Actor could not be found in the registry` — a core dump, not an
+exception. Reproduced at both 20 and 50 cars; removing the seed call fixes it. Repeatable
+traffic needs synchronous mode, which this rig deliberately does not use (see above).
+
+Two conditions on the determinism: the world must be otherwise empty (an occupied spawn
+point is rejected server-side, so re-spawning on top of an old fleet is a different fleet),
+and the count must be the same — the draw is sequential, so 30 cars is a prefix of 50, not a
+subset chosen the same way. Startup auto-spawns `--auto-spawn` (default 50) on a fresh
+server, which is the case that holds.
+
+**Hand cars back to nobody before destroying them.** `clear()` calls `set_autopilot(False)`
+on every vehicle and lets a tick land before `DestroyActor`. Without it the traffic manager
+keeps stepping an actor that is already gone and the resulting server-side error aborts the
+UI process. Same crash as above, reached from the other end.
+
 ## Findings (what we learned)
 
 1. **Headless costs nothing here.** The UI reads an attached RGB sensor, never the

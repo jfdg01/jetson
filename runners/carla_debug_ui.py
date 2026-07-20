@@ -42,6 +42,12 @@ CAM_HZ = 5.0
 # frame. Two sensors would double the render cost to show the same pixels.
 LIVE_HZ = 30.0
 FEED_EVERY = round(LIVE_HZ / CAM_HZ)
+# Same seed every run, so "the scene" means one scene across sessions. Only holds
+# on a world with no other traffic in it -- an occupied spawn point is rejected
+# server-side and silently drops that car, so re-spawn on top of an old fleet is
+# not the same fleet. Startup loads a fresh server, which is the case that counts.
+SPAWN_SEED = 1234
+AUTO_SPAWN = 50   # vehicles spawned once on startup; --auto-spawn 0 to skip
 # Replaying every buffered frame drains at (carry_fps - CAM_HZ), which measured
 # 4.9 frames/s -> 7.5 s to catch up, by which time the target had left frame.
 # Stride S consumes S*carry_fps, so S=3 drains ~25 frames/s instead. The cost is
@@ -318,6 +324,8 @@ def main():
                     help="where grounded overlays are written")
     ap.add_argument("--carla", default=CARLA_SH,
                     help="CarlaUE4.sh to launch if nothing answers on the port")
+    ap.add_argument("--auto-spawn", type=int, default=AUTO_SPAWN,
+                    help="vehicles to spawn on startup (0 = none)")
     ap.add_argument("--selftest", action="store_true",
                     help="spawn, check they move, clear, exit")
     args = ap.parse_args()
@@ -405,12 +413,23 @@ def main():
 
     def spawn_vehicles(n):
         world = client.get_world()
-        bps = world.get_blueprint_library().filter("vehicle.*")
+        # Deterministic placement: a private Random seeded per call (so click
+        # order cannot shift the draw) and blueprints sorted by id (filter()
+        # order is not a documented guarantee). Same seed -> same models at the
+        # same spawn points, every run.
+        # No traffic-manager seed: set_random_device_seed() with vehicles being
+        # batch-registered times out 'register_vehicle' and then aborts the
+        # client ("Actor could not be found in the registry"), measured on
+        # 0.9.16 async mode. Driving is therefore NOT repeatable -- identical
+        # starting grid, diverging traffic. Sync mode is what that would need.
+        rng = random.Random(SPAWN_SEED)
+        bps = sorted(world.get_blueprint_library().filter("vehicle.*"),
+                     key=lambda b: b.id)
         points = world.get_map().get_spawn_points()
-        random.shuffle(points)
+        rng.shuffle(points)
         n = min(n, len(points))
         tm_port = client.get_trafficmanager().get_port()
-        batch = [carla.command.SpawnActor(random.choice(bps), p).then(
+        batch = [carla.command.SpawnActor(rng.choice(bps), p).then(
                      carla.command.SetAutopilot(carla.command.FutureActor,
                                                 True, tm_port))
                  for p in points[:n]]
@@ -456,9 +475,18 @@ def main():
 
     def clear():
         world = client.get_world()
+        port = client.get_trafficmanager().get_port()
         for a in world.get_actors(spawned):
             if a.type_id.startswith("controller"):
                 a.stop()  # stop before destroy or the walker keeps its command
+            elif a.type_id.startswith("vehicle"):
+                # Destroying a car the traffic manager still drives makes the TM
+                # call set_actor_simulate_physics on a gone actor, and that error
+                # comes back as an uncaught std::runtime_error that aborts *this*
+                # process (core dump, measured at 50 cars on 0.9.16). Hand the
+                # car back first, then let the tick land before destroying.
+                a.set_autopilot(False, port)
+        world.wait_for_tick()
         res = client.apply_batch_sync(
             [carla.command.DestroyActor(x) for x in spawned], True)
         failed = [r.error for r in res if r.error]
@@ -987,6 +1015,12 @@ def main():
         show_preview()
         root.after(int(DT * 1000), tick)
     tick()
+
+    if args.auto_spawn and not args.selftest:
+        # after() not a direct call: bg() needs the loop running to post its result
+        # back, and the spawn itself is ~50 round-trips we do not want blocking the
+        # first frame.
+        root.after(200, lambda: bg(status, spawn_vehicles, args.auto_spawn))
 
     if args.selftest:
         root.withdraw()  # runs the real widgets, shows no window
