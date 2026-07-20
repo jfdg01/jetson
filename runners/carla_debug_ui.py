@@ -646,6 +646,8 @@ def main():
         from sam2.sam2_video_predictor import SAM2VideoPredictor
         from stream_carry import MODEL, StreamCarry
 
+        import grounding.sam2_cc  # noqa: F401  restores SAM2's mask hole-filling
+
         if backend.get("pred") is None:
             backend["pred"] = SAM2VideoPredictor.from_pretrained(MODEL)
         with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
