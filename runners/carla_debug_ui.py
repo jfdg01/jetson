@@ -8,7 +8,9 @@ import collections
 import math
 import os
 import random
+import re
 import signal
+import statistics
 import subprocess
 import sys
 import threading
@@ -52,9 +54,86 @@ CARRY_DIR = "experiments/2026-07-01-temporal-acquire-carry"   # StreamCarry live
 MAX_CAM_W = 1920
 THUMB_W = 300          # what the Jetson sees stays a thumbnail at any window size
 CARLA_SH = "/home/gara/carla/CARLA_0.9.16/CarlaUE4.sh"
+# ASSIST mode: yaw/pitch to keep the tracked box centred. The knob is the fraction
+# of the OUTSTANDING correction spent per second, so the view eases in and never
+# snaps -- 3.0 spends ~95% of it in a second. Raise it if the camera lags a fast
+# target, lower it if a track switch (the box jumping across frame) whips the view.
+# ponytail: P only. Add D only if you slow it down enough to ring.
+ASSIST_RATE = 3.0
+# CHASE: box area is the only range signal we have -- no depth, no target pose.
+# Hold it at a setpoint instead of merely reacting to shrinkage: too small and the
+# VLM has no pixels to re-ground with, too large and normal relative motion walks
+# the target off the frame edge. Forward when it is under size, backward when over.
+# 0.012 = a car at ~125 px long edge, ~17 m slant range. Not a guess: the 429-sample
+# native arm of experiments/2026-06-30-roi-sr-upscale puts grounding IoU@0.25 at
+# 59.1% under 30 px, 88.9% at 90-150 px and 93.5% past 150 -- the knee is 90-150 and
+# everything above it costs range for +4.6pp. Calibrated FOR CARS: this is an area
+# setpoint, so a fixed fraction means a different standoff per target class (a truck
+# is held at 33 m, a pedestrian at 6 m). See CARLA_DEBUG_UI.md.
+CHASE_TARGET_FRAC = 0.012
+CHASE_SPEED = 6.0           # m/s cap in the ground plane, either direction
+CHASE_HIST = 5              # measurements median-filtered into one area reading
+# Error is in LOG area because area falls as 1/d^2: one log unit is a fixed ratio
+# of range whether the target is near or far, so a single gain behaves the same
+# everywhere. GAIN is m/s per log unit; 0.15 is +-16% of area, inside the mask's
+# own breathing, and without it the drone hunts back and forth on nothing.
+CHASE_GAIN = 5.0
+CHASE_DEADBAND = 0.15
+# How long a latched speed survives without a new box. One 5 Hz feed period is
+# 0.2 s, so this tolerates a couple of dropped measurements and no more.
+CHASE_STALE = 0.6
 REMOTE_DIR = "/home/jfdg/grounding"
 REMOTE_GGUF = f"{REMOTE_DIR}/phase3-terse100eos-1024-q8_0.gguf"
 REMOTE_MMPROJ = f"{REMOTE_DIR}/mmproj-phase3-terse100eos-1024-f16.gguf"
+
+
+def center_delta(box, w=CAM_W, h=CAM_H, fov=CAM_FOV):
+    """Box (pixels of the CAM_W x CAM_H feed) -> (dyaw, dpitch) degrees, in FULL.
+
+    The whole rotation that would put this box in the middle of the frame, not a
+    per-tick step -- ease() decides how fast it is actually spent. The feed is
+    always CAM_W x CAM_H whatever the window does, so pixel error maps to angle
+    through one fixed focal length. +yaw is right in CARLA, +pitch is up, and image
+    y grows downward -- hence the sign flip on pitch.
+    """
+    px, py = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
+    f = w / (2.0 * math.tan(math.radians(fov) / 2.0))
+    return (math.degrees(math.atan2(px - w / 2, f)),
+            -math.degrees(math.atan2(py - h / 2, f)))
+
+
+def ease(remaining, dt):
+    """How much of an outstanding correction to spend this tick.
+
+    min(1.0, ...) is what makes this dt-correct AND overshoot-proof in one step: a
+    stalled tick spends the whole remainder and stops, it never swings past.
+    """
+    close = min(1.0, ASSIST_RATE * dt)
+    return remaining[0] * close, remaining[1] * close
+
+
+def chase_speed(areas, frame_area=CAM_W * CAM_H):
+    """Recent box areas -> ground speed in m/s. + closes, - backs off, 0 holds.
+
+    Area, not width or height: a box that shrinks in one axis only is usually the
+    target turning, not receding. The MEDIAN of the recent measurements, not the
+    latest, so one blown-up mask cannot punch the drone across the street --
+    median over mean because the failure it guards against is exactly an outlier.
+    """
+    if len(areas) <= CHASE_HIST or min(areas) <= 0:
+        return 0.0                     # not enough history to trust a reading yet
+    err = math.log(CHASE_TARGET_FRAC * frame_area / statistics.median(areas))
+    if abs(err) < CHASE_DEADBAND:
+        return 0.0
+    return max(-CHASE_SPEED, min(CHASE_SPEED, CHASE_GAIN * err))
+
+
+def ground_forward(yaw_deg):
+    """Unit heading in the XY plane. Pitch is deliberately dropped: the camera
+    looks down at the target but the vehicle flies level, so a nose-down aim must
+    not translate into a descent. Height is held by never touching z."""
+    y = math.radians(yaw_deg)
+    return carla.Location(math.cos(y), math.sin(y), 0.0)
 
 
 def project(world_loc, cam_tf, w=CAM_W, h=CAM_H, fov=CAM_FOV):
@@ -123,6 +202,32 @@ def ensure_carla(host, port, sh, wait=300):
     got = try_connect(2.0)
     if got is not None:
         return got, None
+    # A CARLA that crashed or was half-killed keeps the RPC port LISTENING while
+    # answering nothing. Spawning on top of that gives a server that cannot bind,
+    # and the wait loop below then burns the full timeout for no reason -- which is
+    # exactly the "it hangs at 'starting headless CARLA'" symptom. A healthy server
+    # answers in milliseconds, so a bound-but-silent port is dead by definition:
+    # clear it, but only if it really is a CARLA, never some unrelated service.
+    pid, name = port_owner(port)
+    if pid is not None:
+        if "CarlaUE4" not in name:
+            raise SystemExit(f"port {port} is held by {name} (pid {pid}), not CARLA")
+        print(f"clearing dead CARLA on {port} (pid {pid}, listening but not "
+              f"answering)", flush=True)
+        for sig in (signal.SIGTERM, signal.SIGKILL):
+            try:
+                os.kill(pid, sig)
+            except ProcessLookupError:
+                break
+            for _ in range(80):          # 8 s per signal
+                time.sleep(0.1)
+                if port_owner(port)[0] != pid:
+                    break
+            else:
+                continue
+            break
+        if port_owner(port)[0] == pid:
+            raise SystemExit(f"could not free port {port} from pid {pid}")
     if not Path(sh).exists():
         raise SystemExit(f"nothing on {host}:{port} and no CarlaUE4.sh at {sh}")
     print(f"starting headless CARLA: {sh}", flush=True)
@@ -138,30 +243,71 @@ def ensure_carla(host, port, sh, wait=300):
         if got is not None:
             print("CARLA up", flush=True)
             return got, proc
+        # the launcher exiting means the server is never coming: fail in seconds
+        # with the reason, instead of sitting out the whole timeout
+        if proc.poll() is not None:
+            raise SystemExit(f"CarlaUE4.sh exited with {proc.returncode} while "
+                             f"starting -- run it by hand to see why")
         time.sleep(2.0)
     stop_carla(proc)          # do not leave a half-booted server behind
     raise SystemExit(f"CARLA did not answer on {port} within {wait}s")
 
 
+def group_alive(pgid):
+    """Is anything still in this process group? signal 0 = existence check only."""
+    try:
+        os.killpg(pgid, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True          # exists, just not ours to signal
+
+
+def port_owner(port):
+    """(pid, name) of whoever is LISTENING on port, or (None, None).
+
+    ss over lsof/psutil: it is installed everywhere and this needs one line of it.
+    """
+    try:
+        out = subprocess.run(["ss", "-lptnH", f"sport = :{port}"],
+                             capture_output=True, text=True, timeout=5).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None, None
+    m = re.search(r'users:\(\("([^"]+)".*?pid=(\d+)', out)
+    return (int(m.group(2)), m.group(1)) if m else (None, None)
+
+
 def stop_carla(proc):
-    """TERM the server's process group, then KILL what ignored it."""
-    if proc is None or proc.poll() is not None:
+    """TERM the server's process group, then KILL what ignored it.
+
+    Waiting on `proc` is the trap this function was written around: proc is the
+    CarlaUE4.sh launcher, a /bin/sh that dies the instant it is signalled, while
+    the CarlaUE4-Linux-Shipping binary it forked takes seconds -- or never does.
+    Returning when the SHELL exits left that binary orphaned, still holding the RPC
+    port but no longer answering it, so the next launch found a dead socket, started
+    a second server that could not bind, and hung in ensure_carla's wait loop.
+    So: reap the launcher, then wait on the GROUP, and escalate for real.
+    """
+    if proc is None:
         return
     try:
         pgid = os.getpgid(proc.pid)
     except ProcessLookupError:
         return
     print("stopping CARLA", flush=True)
-    for sig, grace in ((signal.SIGTERM, 5.0), (signal.SIGKILL, 2.0)):
+    for sig, grace in ((signal.SIGTERM, 8.0), (signal.SIGKILL, 5.0)):
         try:
             os.killpg(pgid, sig)
         except ProcessLookupError:
             return
         deadline = time.time() + grace
         while time.time() < deadline:
-            if proc.poll() is not None:
+            proc.poll()      # reap the launcher, else its zombie counts as "alive"
+            if not group_alive(pgid):
                 return
             time.sleep(0.1)
+    print(f"WARNING: CARLA process group {pgid} survived SIGKILL", flush=True)
 
 
 def main():
@@ -357,7 +503,17 @@ def main():
     pause_btn = tk.Button(row, text="pause", command=toggle_pause)
     pause_btn.pack(side=tk.LEFT, padx=(6, 0))
 
+    # Teardown has exactly one caller: the tick. Everything that wants to quit --
+    # the X button, SIGINT, SIGTERM -- only raises this flag. A signal lands in the
+    # middle of whatever bytecode is running, which is usually inside tick(), and
+    # destroying the widgets from there returns into a half-finished callback that
+    # then touches a dead widget: "invalid command name .!frame.!scale".
+    closing = {"want": False, "done": False}
+
     def unpause_on_exit():
+        if closing["done"]:
+            return
+        closing["done"] = True
         # a server we started dies with the window, so its sync-mode state is moot;
         # one that was already running is someone else's and must be handed back
         # unpaused -- left in sync mode with no ticker it hangs the next client
@@ -369,7 +525,10 @@ def main():
         root.destroy()
         stop_carla(carla_proc)   # no-op unless this process launched it
 
-    root.protocol("WM_DELETE_WINDOW", unpause_on_exit)
+    def request_close(*_):
+        closing["want"] = True
+
+    root.protocol("WM_DELETE_WINDOW", request_close)
 
     # CarlaUE4's own WASD fly speed is a UE4 viewport setting with no RPC, so
     # instead we drive the spectator ourselves. Keys work while THIS window has
@@ -380,8 +539,8 @@ def main():
     # The keys go to whichever widget has focus, and the thing you want to fly is
     # the picture -- so the image labels ARE the focus target (wired below, once
     # they exist). Focusing there also keeps wasd out of the Spinbox and Combobox.
-    tk.Label(bar, text="click the view to fly:  wasd/qe, arrows look, space pause").pack(
-        side=tk.LEFT, padx=(16, 0))
+    tk.Label(bar, text="click the view to fly:  wasd/qe, arrows look, space pause, "
+                       "t assist").pack(side=tk.LEFT, padx=(16, 0))
     speed = tk.Scale(bar, from_=1, to=300, orient=tk.HORIZONTAL, length=140,
                      showvalue=True, label=None, sliderlength=16)
     speed.set(45)
@@ -393,9 +552,16 @@ def main():
     backend = {"be": None}   # lazy: booting llama-server on the Jetson costs ~1 min
 
     # box is in PIXELS of the live frame, kept current by the follow thread; tick()
-    # only ever reads it, so no lock -- a dict assign is atomic under the GIL.
+    # only ever reads it, so no lock for the read -- a dict assign is atomic under
+    # the GIL. The lock exists for one thing: drop lands while the follow thread is
+    # inside a ~200 ms carry.step(), so without it that step's box is published
+    # AFTER drop cleared it and the stale square stays on screen forever.
+    # "stamp" counts published boxes. ASSIST needs it to tell a NEW measurement from
+    # the same one sitting there: a box that stopped updating (occlusion) is a fixed
+    # pixel error, and steering on it every tick is an integrator with no feedback.
     track = {"box": None, "msg": "", "lag": 0, "stop": None, "actor": None,
-             "hits": 0, "steps": 0}
+             "hits": 0, "steps": 0, "stamp": 0}
+    track_lock = threading.Lock()
     resize = {"job": None}
 
     def _pixels(box, w, h):
@@ -429,7 +595,11 @@ def main():
 
         h, w = seed.shape[:2]
         seed_box = _pixels(box, w, h)
-        track["box"] = seed_box            # stale, but shows immediately
+        with track_lock:                   # dropped during the ~4.5 s grounding?
+            if stop.is_set():              # then this box is not wanted on screen
+                return
+            track["box"] = seed_box        # stale, but shows immediately
+            track["stamp"] += 1
         track["msg"] = f"grounded in {vlm_s:.1f}s, catching up..."
 
         # The box describes frame seed_n; the world is already ~vlm_s*CAM_HZ frames
@@ -458,12 +628,19 @@ def main():
                 cursor = n
                 track["lag"] = live_n - cursor
                 if b is not None and cam["sensor"] is not None:
-                    track["box"] = [int(v) for v in b]
-                    track["actor"] = match_actor(client.get_world(),
-                                                 cam["sensor"].get_transform(),
-                                                 track["box"])
-                    track["hits"] += track["actor"] is not None
-                    track["steps"] += 1
+                    box = [int(v) for v in b]
+                    actor = match_actor(client.get_world(),
+                                        cam["sensor"].get_transform(), box)
+                    # publish only if this thread is still the live one: a drop that
+                    # landed during the step above must win, or its cleared box
+                    # comes straight back and the square never leaves the screen
+                    with track_lock:
+                        if stop.is_set():
+                            break
+                        track["box"], track["actor"] = box, actor
+                        track["stamp"] += 1
+                        track["hits"] += actor is not None
+                        track["steps"] += 1
                 if caught_at is None and track["lag"] <= 1:
                     caught_at = time.time() - t0
                     track["msg"] = (f"vlm {vlm_s:.1f}s + catchup "
@@ -472,7 +649,8 @@ def main():
                     # lock% is the honest signal: box on a real car, or drifted
                     track["msg"] = (f"tracking, lag {track['lag']}, lock "
                                     f"{track['hits']}/{track['steps']}")
-        track["msg"] = "stopped"
+        # no "stopped" message here: the only way out of that loop is stop being
+        # set, i.e. a drop or a new follow, and both have already said their piece
 
     grow = tk.Frame(root)
     grow.pack(side=tk.TOP, fill=tk.X, padx=8, pady=(0, 6))
@@ -483,21 +661,33 @@ def main():
     gstatus = tk.Label(grow, text="", anchor=tk.W)
 
     def do_follow(_event=None):
-        if track["stop"] is not None:
-            track["stop"].set()          # one target at a time
-        track["stop"] = threading.Event()
-        track["box"] = None
+        with track_lock:                 # same handover as do_drop
+            if track["stop"] is not None:
+                track["stop"].set()      # one target at a time
+            track["stop"] = threading.Event()
+            track["box"], track["actor"] = None, None
         threading.Thread(target=follow, daemon=True,
                          args=(caption_entry.get(), track["stop"])).start()
 
     def do_drop():
-        if track["stop"] is not None:
-            track["stop"].set()
-        track["box"], track["msg"] = None, "dropped"
+        # set the event INSIDE the lock, so a follow thread holding it is either
+        # already past its publish (and this clear wins) or blocked before its
+        # stop check (and it will see the set and bail without publishing)
+        with track_lock:
+            if track["stop"] is not None:
+                track["stop"].set()
+            track["box"], track["actor"], track["msg"] = None, None, "dropped"
 
     caption_entry.bind("<Return>", do_follow)
     tk.Button(grow, text="follow", command=do_follow).pack(side=tk.LEFT, padx=(4, 0))
     tk.Button(grow, text="drop", command=do_drop).pack(side=tk.LEFT, padx=(4, 0))
+    # Two modes, one flag. MANUAL (off) = the operator has sole authority. ASSIST
+    # (on) = the model also steers, and its only authority is aim: it pans the
+    # tracked box to centre and never touches position. Operator keys are still live
+    # in both, and an arrow key outranks the model for as long as it is held.
+    assist = tk.BooleanVar(value=False)
+    tk.Checkbutton(grow, text="assist: centre on target", variable=assist).pack(
+        side=tk.LEFT, padx=(12, 0))
     gstatus.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(16, 0))
 
     # Live feed with the track drawn on it. In-memory PPM into PhotoImage runs at
@@ -592,6 +782,12 @@ def main():
                 toggle_pause()
                 held.add(k)      # after the toggle: it clears held on the way past
             return
+        # same autorepeat guard as space -- a held t must toggle once, not 30 times
+        if k == "t":
+            if k not in held:
+                assist.set(not assist.get())
+                held.add(k)
+            return
         # paused means paused: the spectator still accepts set_transform while the
         # world is frozen, so keys held now would fly it blind and the view would
         # jump on resume
@@ -619,6 +815,9 @@ def main():
 
     DT = 1 / 60          # how often the tick is SCHEDULED; fly() measures the real one
     fly_t = {"last": None}
+    # outstanding ASSIST correction in degrees, and the box stamp it came from
+    aim = {"yaw": 0.0, "pitch": 0.0, "stamp": -1, "chase": False, "seen": 0.0,
+           "areas": collections.deque(maxlen=CHASE_HIST + 1)}
     MOVE = {"w": (1, 0, 0), "s": (-1, 0, 0), "a": (0, -1, 0), "d": (0, 1, 0),
             "e": (0, 0, 1), "q": (0, 0, -1)}
     LOOK = {"left": (-1, 0), "right": (1, 0), "up": (0, 1), "down": (0, -1)}
@@ -703,7 +902,31 @@ def main():
         if busy["on"]:
             fly_t["last"] = None
             return  # mid-load the spectator handle is stale, set_transform raises
-        if not held:
+        now = time.time()
+        # ASSIST charges the aim budget once per NEW box and then spends it down.
+        # A box that stopped updating (occluded target, dead track) is therefore
+        # worth exactly one correction, not a correction every tick: the camera
+        # turns to where the target last was, stops, and waits for the tracker.
+        # Steering on a repeated box is an open loop -- moving the camera does not
+        # change the stale pixels, so the error never shrinks and the view sweeps
+        # off until the target is out of frame and can never be re-found.
+        if not assist.get() or paused["on"] or track["box"] is None:
+            aim["yaw"] = aim["pitch"] = 0.0
+            aim["chase"] = 0.0
+            aim["areas"].clear()   # a dropped/reacquired target has no history
+        elif track["stamp"] != aim["stamp"]:
+            aim["stamp"] = track["stamp"]
+            b = track["box"]
+            aim["yaw"], aim["pitch"] = center_delta(b)
+            aim["areas"].append(max(b[2] - b[0], 0) * max(b[3] - b[1], 0))
+            aim["chase"], aim["seen"] = chase_speed(aim["areas"]), now
+        # Same failure the aim budget guards against, one rung worse: a frozen box
+        # is a latched speed and the copter keeps flying at a target it can no
+        # longer see. Aim self-limits (it spends a finite budget); chase does not,
+        # so it gets a hard stale timeout instead.
+        if aim["chase"] and now - aim["seen"] > CHASE_STALE:
+            aim["chase"] = 0.0
+        if not held and not (aim["yaw"] or aim["pitch"] or aim["chase"]):
             cam["t"] = None  # resync next time, the view may have moved elsewhere
             fly_t["last"] = None
             return
@@ -711,7 +934,6 @@ def main():
         # preview, so its real period swings with window size and load -- assuming
         # 60 Hz made the camera crawl at 1080p and made the slider speed depend on
         # how big the window was. Uneven steps are what "choppy" actually is.
-        now = time.time()
         dt = min(now - fly_t["last"], 0.1) if fly_t["last"] else 1 / 60
         fly_t["last"] = now
         # keep the pose local: get_world()/get_transform() are RPC round-trips
@@ -725,20 +947,42 @@ def main():
         for k in held & MOVE.keys():
             f, r, u = MOVE[k]
             t.location += (fwd * f + right * r + up * u) * step
-        for k in held & LOOK.keys():
+        looking = held & LOOK.keys()
+        for k in looking:
             dyaw, dpitch = LOOK[k]
             t.rotation.yaw += dyaw * 90 * dt
             t.rotation.pitch = max(-89, min(89, t.rotation.pitch + dpitch * 90 * dt))
+        # the operator wins the tie: while an arrow is held the model does not fight
+        # it, otherwise the two would sum and the view would crawl against the input
+        if not looking:
+            dyaw, dpitch = ease((aim["yaw"], aim["pitch"]), dt)
+            t.rotation.yaw += dyaw
+            t.rotation.pitch = max(-89, min(89, t.rotation.pitch + dpitch))
+            aim["yaw"] -= dyaw          # spent: what is left is what still owes
+            aim["pitch"] -= dpitch
+        # CHASE flies level along the current heading, signed: + closes, - backs
+        # off. Unlike aim it is NOT one-shot per box, because closing genuinely
+        # does change the pixels -- the box grows toward the setpoint, the error
+        # shrinks, and it settles on its own. A real closed loop where aim on a
+        # frozen box is an open one.
+        # The operator wins the same tie as with look: a held wasd outranks it.
+        if aim["chase"] and not (held & MOVE.keys()):
+            t.location += ground_forward(t.rotation.yaw) * (aim["chase"] * dt)
         cam["spec"].set_transform(t)
 
     # Tk blocks in C, so SIGINT only lands while Python bytecode runs -- the
     # tick gives the interpreter that chance, and flies the spectator.
-    # ponytail: no cleanup to do, the client holds no world state.
     # SIGTERM too: a kill while paused would leave the server in sync mode with
     # nothing ticking it, which hangs the next client that connects
     for sig in (signal.SIGINT, signal.SIGTERM):
-        signal.signal(sig, lambda *_: unpause_on_exit())
+        signal.signal(sig, request_close)
+
     def tick():
+        # the one place teardown runs: nothing is half-executed here, so the
+        # widgets are safe to destroy and no later callback can touch them
+        if closing["want"]:
+            unpause_on_exit()
+            return
         fly()
         show_preview()
         root.after(int(DT * 1000), tick)
