@@ -308,16 +308,28 @@ def teardown(client, cams, vehicles):
 def clip_plan(i, seed=SEED):
     """Deterministic per-clip camera flight. Altitude is swept on purpose: the
     range/size envelope downstream needs targets at a spread of pixel sizes, and a
-    bank captured at one altitude cannot answer it."""
+    bank captured at one altitude cannot answer it.
+
+    The camera is anchored to a TARGET VEHICLE, not to a map coordinate. The first
+    attempt sampled n0/e0 uniformly in a 120 m box and produced a bank in which
+    77-80% of frames contained no on-screen target at all: a nadir camera dropped
+    at a random point over a city sees rooftops, and Town10's traffic lives on a
+    thin road network. Anchoring on a car puts targets in frame by construction,
+    and it is also the geometry P6.2 actually needs -- a copter above a vehicle it
+    is trying to follow. `track_gain` 0 is a fixed camera the traffic drives
+    through; 1.0 is a perfect follower; between them the target drifts across the
+    frame, which is the interesting case for a tracker.
+    """
     rng = random.Random(seed + i * 7919)
     return {
         "clip": f"clip{i:02d}",
         "alt": [40.0, 60.0, 80.0, 100.0, 120.0][i % 5],
-        "n0": rng.uniform(-60, 60), "e0": rng.uniform(-60, 60),
+        "target_rank": i,                    # which spawned vehicle to sit above
+        "track_gain": [1.0, 0.0, 0.6][i % 3],
         "heading": rng.uniform(0, 360),
-        "speed": rng.choice([0.0, 4.0, 8.0, 12.0]),
+        "speed": rng.choice([0.0, 4.0, 8.0]),   # camera drift on top of tracking
         "yaw": rng.uniform(0, 360),
-        "vehicles": 40,
+        "vehicles": 80,
         "seed": seed + i,
     }
 
@@ -351,17 +363,27 @@ def capture_clip(client, plan, out, seconds, dt=FIXED_DT, max_frames=None):
     env = env_car_cache(world)
     assert env, "no static Car meshes found -- ParkedVehicles layer missing?"
 
+    # anchor on a vehicle rather than on a map coordinate -- see clip_plan
+    target = sorted(vehicles, key=lambda v: v.id)[plan["target_rank"] % len(vehicles)]
+    t_loc = target.get_transform().location
+    n0, e0 = t_loc.x, t_loc.y
+
     n_ticks = min(int(seconds / dt), max_frames or 10 ** 9)
     hdg = math.radians(plan["heading"])
-    cams = spawn_cams(world, nadir(plan["n0"], plan["e0"], plan["alt"], plan["yaw"]))
+    cams = spawn_cams(world, nadir(n0, e0, plan["alt"], plan["yaw"]))
 
     n, mid, last, t0 = 0, None, None, time.time()
+    onscreen = []
     try:
         with (d / "gt.jsonl").open("w") as fh:
             for i in range(n_ticks):
                 t = i * dt
-                cn = plan["n0"] + plan["speed"] * t * math.cos(hdg)
-                ce = plan["e0"] + plan["speed"] * t * math.sin(hdg)
+                # follow the target by track_gain, plus a constant drift on top
+                tl = target.get_transform().location
+                cn = (n0 + plan["track_gain"] * (tl.x - n0)
+                      + plan["speed"] * t * math.cos(hdg))
+                ce = (e0 + plan["track_gain"] * (tl.y - e0)
+                      + plan["speed"] * t * math.sin(hdg))
                 cams[0][0].set_transform(nadir(cn, ce, plan["alt"], plan["yaw"]))
                 cams[1][0].set_transform(nadir(cn, ce, plan["alt"], plan["yaw"]))
                 bgr, tags, tick = grab(world, cams)
@@ -380,6 +402,8 @@ def capture_clip(client, plan, out, seconds, dt=FIXED_DT, max_frames=None):
                                 round(real_tf.rotation.roll, 2)],
                     "gt": rows}) + "\n")
                 n += 1
+                onscreen.append(sum(1 for g in rows
+                                    if g["kind"] == "vehicle" and g["box_vis"]))
                 if i == n_ticks // 2:
                     mid = bgr.copy()
                     cv2.imwrite(str(d / "mid.png"), bgr)
@@ -392,16 +416,26 @@ def capture_clip(client, plan, out, seconds, dt=FIXED_DT, max_frames=None):
     hz = n / max(1e-6, time.time() - t0)
     dom = dominant_frac(mid if mid is not None else last)
     identical = bool(np.array_equal(mid, last)) if mid is not None else True
+    cov = float(np.mean([c > 0 for c in onscreen])) if onscreen else 0.0
     man = {**plan, "mode": "sync", "town": TOWN, "dt": dt, "frames": n,
            "spawned": len(vehicles), "n_static_cars": len(env),
+           "target_id": int(target.id), "target_type": target.type_id,
+           "cam_start": [round(n0, 2), round(e0, 2)],
+           "coverage": round(cov, 4),
+           "onscreen_mean": round(float(np.mean(onscreen)) if onscreen else 0.0, 2),
            "capture_hz": round(hz, 2), "power_limit_w": pl,
            "dominant_frac": round(dom, 4), "mid_last_identical": identical,
            "cam_wh_fov": [W, H, FOV], "complete": True}
     assert dom < 0.99, f"{plan['clip']}: blank render (dominant {dom:.3f})"
     assert not identical, f"{plan['clip']}: mid and last frame identical (dead feed)"
+    # the assert that the first attempt lacked: it captured 25 well-formed clips in
+    # which 77-80% of frames held no target at all, and every log read like success
+    assert cov >= 0.5, (
+        f"{plan['clip']}: only {cov:.1%} of frames contain an on-screen vehicle -- "
+        f"a GT bank without targets is not a GT bank")
     man_p.write_text(json.dumps(man, indent=2))
     print(f"  {plan['clip']}: {n} frames, {hz:.1f} Hz, {len(vehicles)} veh, "
-          f"{len(env)} static, dom {dom:.3f}")
+          f"{len(env)} static, dom {dom:.3f}, cov {cov:.0%}")
     return man
 
 
