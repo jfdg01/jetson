@@ -494,3 +494,32 @@ the residual carry weakness is imagery-specific, not category-general.
 downgrades; the late-entry mechanism was *seen* (VLM green box on the red Mustang when asked for
 an absent black SUV) before it was named.
 Detail: [`../../experiments/2026-07-20-n25-select/README.md`](../../experiments/2026-07-20-n25-select/README.md).
+
+### RQ-P5.19 (late-entry-rescue, 2026-07-20)
+
+**Does fixing the frame-misaligned discovery distinctness guard (dedup at the frame the VLM saw),
+plus a bounded grace delivery for the in-flight discovery call (acquire_s <= 2.0 s), lift
+strengthened SWAP to the pre-registered bar at n=26 on the frozen P5.18 scene set — without
+regressing WSEL?**
+
+**YES [late-entry-rescued] — branch 1.** WSEL **22/26** (bar 20, baseline 22, zero flips either
+direction) and strengthened SWAP **20/26** (bar 20, baseline 17, **delta +3** vs MIN_SEP +2). The
+P5.18 NO was **harness-bound, not capability-bound**: its distinctness guard compared boxes across
+a ~138-frame call window and fired 0 times in 108 discovery calls; aligned at the VLM's own frame
+it fires 8 times, and bounded grace honours the already-computed in-flight discovery at
+**0.367-0.600 s** instead of discarding it. The Part V select claim stands at real n.
+
+The result lands *exactly* on the bar (the pre-registered "genuine coin flip"), clearing MIN_SEP by
+one cell — so it is a real but narrow effect, and the honest reading is "the named mechanism was
+worth ~3 of the 9 SWAP misses", not "select is solved".
+
+Two unpredicted negatives, both recorded rather than smoothed: the **non-gating control regressed**
+(grace delivered a tight box on the target, iou_t 0.679) so the pre-registered "regression floor
+~0" is falsified and **grace precision was only 2/4** — when wrong it delivers confidently rather
+than abstaining; and **aligned dedup inherits carry drift** (it compares against carried boxes, not
+GT, so `bike1:450` still admitted a duplicate). Both point the next constraint at the same place:
+carry quality, which now owns a clean 8 of the 10 residual failures.
+
+**Visual gate: PASS.** 21/21 mechanically-required cells opened with the Read tool, zero
+downgrades.
+Detail: [`../../experiments/2026-07-20-late-entry-rescue/README.md`](../../experiments/2026-07-20-late-entry-rescue/README.md).

@@ -1,0 +1,112 @@
+{
+  "audited": [
+    "DSC_SWAP_bike1_2250",
+    "DSC_SWAP_bike1_450",
+    "DSC_SWAP_car10_850",
+    "DSC_SWAP_car18_150",
+    "DSC_SWAP_car3_1050",
+    "DSC_SWAP_car3_200",
+    "DSC_SWAP_car7_460",
+    "DSC_SWAP_car9_1150",
+    "DSC_SWAP_car9_950",
+    "DSC_SWAP_person10_450",
+    "DSC_SWAP_person15_150",
+    "DSC_SWAP_person20_1050",
+    "DSC_SWAP_wakeboard3_150",
+    "DSC_WSEL_bike1_2250",
+    "DSC_WSEL_car3_1050",
+    "DSC_WSEL_car7_460",
+    "DSC_WSEL_car9_1150",
+    "DSC_WSEL_car9_950",
+    "DSC_WSEL_person20_1050",
+    "DSC_WSEL_wakeboard8_450",
+    "DSC_WSEL_wakeboard8_750"
+  ],
+  "downgrades": [],
+  "notes": [
+    {
+      "cell": "DSC_SWAP_car18_150",
+      "seen": "FLIP (grace, acquire_s=0.367). discovery_distractor.png f=268: green VLM box on a genuinely small dark SUV far up the road top-right -- NOT the red Mustang, which is P5.18's failure mode on this exact cell. grace_deliver.png f=401: green box squarely on the black SUV (people standing beside it), red target GT on the red Mustang well separated, blue stale distractor GT offset up-right as labelled. Genuine rescue, confirmed PASS."
+    },
+    {
+      "cell": "DSC_SWAP_person10_450",
+      "seen": "FLIP (grace, acquire_s=0.6). discovery_distractor.png f=572: green VLM box on the light/white-shirted man -- the named distractor. grace_deliver.png f=708: green on the white-shirted man, red target GT on the dark-blue-shirted person clearly separate, blue stale distractor GT offset below-right. Genuine rescue, confirmed PASS."
+    },
+    {
+      "cell": "DSC_SWAP_bike1_2250",
+      "seen": "FLIP (aligned dedup + retry re-seed, NOT grace). deliver.png f=2490: green box on the yellow-shirt rider (distractor), red target GT on the blue-shirt rider. iou_d 0.704, off target. Confirmed PASS."
+    },
+    {
+      "cell": "DSC_SWAP_bike1_450",
+      "seen": "FAIL, and the key caveat. discovery_distractor.png f=569: phrase is 'the cyclist in the yellow shirt' but the ONLY rider in frame is the blue-shirt one -- the VLM boxed the TARGET, as the pre-registration predicted (distractor genuinely absent). BUT the aligned dedup did NOT reject it and grace delivered anyway: grace_deliver.png f=703 shows a tight green box on the blue-shirt rider, coincident with red target GT (iou_t 0.865), while the real yellow-shirt cyclist has since entered bottom-left. Pre-registered as a bucket conversion with NO flip -- it did not flip, but it failed as a confident wrong delivery rather than an honest discovery-failed."
+    },
+    {
+      "cell": "DSC_SWAP_car3_200",
+      "seen": "CONTROL (non-gating) REGRESSION. Grace fired (acquire_s=0.5) and grace_deliver.png f=455 shows a tight green box on the SAME car as the red target GT (iou_t 0.679), with the blue stale distractor GT on the silver car above. P5.18 passed this cell (iou_d 0.886); P5.19 fails it. Does not affect the gating verdict but falsifies the pre-registered 'regression floor ~0'."
+    },
+    {
+      "cell": "DSC_SWAP_car9_950",
+      "seen": "WATCH CELL, did not recover. deliver.png f=1190: green box sits inside the red target GT on the same white car; the dark distractor (blue GT) below is untouched. iou_t 0.317 / iou_d 0.0, bit-identical to P5.18. Confirmed FAIL."
+    },
+    {
+      "cell": "DSC_SWAP_car7_460",
+      "seen": "deliver.png f=700: green box far left on kerb/background, on no object at all. Red target GT on the white car, blue distractor GT on the dark car. Carry drift to background. Confirmed FAIL (pre-registered out-of-reach bucket)."
+    },
+    {
+      "cell": "DSC_SWAP_car9_1150",
+      "seen": "deliver.png f=1390: green box on a THIRD distant vehicle far up the road, neither the red-GT white car nor the blue-GT dark car. Confirmed FAIL, carry drift to a third object."
+    },
+    {
+      "cell": "DSC_SWAP_wakeboard3_150",
+      "seen": "deliver.png f=390: green box at the extreme right frame edge on open water/horizon, nothing there. Red GT on the wakeboarder, blue GT on the boat. Confirmed FAIL, carry drift off-scene."
+    },
+    {
+      "cell": "DSC_SWAP_car3_1050",
+      "seen": "deliver.png f=1290: green box on roadside vegetation immediately right of the red target GT car; blue distractor GT on the dark car below. On neither object. Confirmed FAIL, carry drift."
+    },
+    {
+      "cell": "DSC_WSEL_car3_1050",
+      "seen": "deliver.png f=1290: green box far up the road on empty asphalt, red target GT on the red car well below. Confirmed FAIL, carry drift to background."
+    },
+    {
+      "cell": "DSC_WSEL_car9_1150",
+      "seen": "deliver.png f=1390: green box on a distant vehicle near the top of frame, red target GT on the white car mid-frame. Confirmed FAIL, drift to a third vehicle."
+    },
+    {
+      "cell": "DSC_WSEL_car7_460",
+      "seen": "deliver.png f=700: NO green box drawn at all (iou_t/iou_d = None) -- 'selected track lost during idle', nothing delivered. Confirmed FAIL, honest non-delivery."
+    },
+    {
+      "cell": "DSC_WSEL_car9_950",
+      "seen": "deliver.png f=1190: NO green box (iou None) -- track lost during idle. Red GT on the white car, blue GT on the dark car. Confirmed FAIL, honest non-delivery."
+    },
+    {
+      "cell": "DSC_WSEL_bike1_2250",
+      "seen": "deliver.png f=2490: green box on the blue-shirt rider (target), red GT slightly larger (includes the bike frame), iou_t 0.410. Correct object. Confirmed PASS."
+    },
+    {
+      "cell": "DSC_WSEL_person20_1050",
+      "seen": "deliver.png f=1290: green box on the man in the white hat and dark suit (target), coincident with red GT (iou_t 0.896); blue distractor GT on the two pedestrians to the right, untouched. Confirmed PASS."
+    },
+    {
+      "cell": "DSC_SWAP_person20_1050",
+      "seen": "deliver.png f=1290: green box on the two right-hand pedestrians, enclosing the blue distractor GT (iou_d 0.641), and clearly off the red target GT on the hat/suit man (iou_t 0.0). The mask is LOOSE -- it merges the woman in white with the backpacked man rather than isolating the annotated distractor -- but it is on the named distractor and off the target, so it clears the pre-registered rule. Noted, not downgraded."
+    },
+    {
+      "cell": "DSC_WSEL_wakeboard8_450",
+      "seen": "deliver.png f=690: small green box on the wakeboarder (target) coincident with red GT (iou_t 0.632); blue distractor GT on the tow boat, untouched. Confirmed PASS."
+    },
+    {
+      "cell": "DSC_WSEL_wakeboard8_750",
+      "seen": "deliver.png f=990: green box on the wakeboarder in the wake, red GT coincident (iou_t 0.854); blue GT on the boat ahead. Confirmed PASS."
+    },
+    {
+      "cell": "DSC_SWAP_car10_850",
+      "seen": "deliver.png f=1090: green box on the white van (distractor, iou_d 0.971), red target GT on the silver car below it, separate. Confirmed PASS."
+    },
+    {
+      "cell": "DSC_SWAP_person15_150",
+      "seen": "deliver.png f=390: green box on the person in the maroon/red top (distractor, iou_d 0.787), red target GT on the green-shirted person up the path. Confirmed PASS."
+    }
+  ]
+}
