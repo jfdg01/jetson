@@ -374,10 +374,14 @@ close-out.
    downstream consumer picking a follow clip needs to see it. Computable post-hoc from `gt.jsonl`,
    so no re-capture; do it as one backfill pass over all clips, not a mid-run code change.
    Independently visible in `proof/bank-gt-overlay.png`: no yellow anchor box in the frame.
-3. **Purge the four committed `gt.jsonl` blobs (113 MB) from branch history.** The forward fix
-   landed (`642237d`); these predate it. Deferred deliberately: rewriting history while an
-   unattended capture is in flight risks the run to reclaim 113 MB on an unmerged, unpushed,
-   local-only branch. Do it once the driver is idle and before any merge to `main`.
+3. ~~**Purge the four committed `gt.jsonl` blobs (113 MB) from branch history.**~~ **DONE**
+   2026-07-21T01:52Z, once the capture was idle. `git filter-branch --index-filter` over
+   `main..HEAD` only, so `main` is untouched; 23 commits preserved, and `git diff
+   backup..HEAD` was empty — the final tree is unchanged, only the intermediate blobs are gone.
+   Worktree `gt.jsonl` files were never at risk and are still on disk (4.7 GB). `.git` 600 MB to
+   526 MB; the largest objects now are pre-existing Part IV/V proof `.mp4`s, not this campaign.
+   Safe to do this way precisely because the branch was unmerged, unpushed and local-only —
+   which is also why it was deferred rather than attempted under a running capture.
 4. ~~Fill Results, append `docs/results/part6-flight.md`, caption the proof deliverables.~~
    **DONE.** All three ledgers written, five deliverables captioned above.
 5. **Add `sidx`, a spawn-index identity key, on the next re-capture.** Promoted from "deferred,
