@@ -11,4 +11,5 @@
 | II | [`docs/results/part2-rebuild.md`](docs/results/part2-rebuild.md) | v2 single-frame grounding, Phases 0–4 |
 | III | [`docs/results/part3-permanence.md`](docs/results/part3-permanence.md) | v3 persistent tracking, T0–T4 + latency levers |
 | IV | [`docs/results/part4-end-to-end.md`](docs/results/part4-end-to-end.md) | end-to-end workflow refinement (E18–E23 acquire arc, closed) |
-| V | [`docs/results/part5-anticipatory.md`](docs/results/part5-anticipatory.md) | **in progress** — anticipatory grounding / warm-start acquire |
+| V | [`docs/results/part5-anticipatory.md`](docs/results/part5-anticipatory.md) | anticipatory grounding / warm-start acquire (paused at P5.20) |
+| VI | [`docs/results/part6-flight.md`](docs/results/part6-flight.md) | **in progress** — closed-loop flight (the drone actually moves) |

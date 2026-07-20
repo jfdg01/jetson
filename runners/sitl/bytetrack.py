@@ -205,6 +205,23 @@ class ByteTracker:
             unmatched_t  = list(range(len(self._tracks)))
             unmatched_hd = list(range(len(high_dets)))
 
+        # --- Round 1b: leftover high-conf detections vs LOST tracks (re-find) ---
+        # Without this, a lost track can only be recovered by a LOW-score
+        # detection in round 2. A sparse score=1.0 source (oracle inject, VLM)
+        # therefore spawns a brand-new ID on every single detection: no track
+        # ever receives a second measurement, so its velocity stays 0 and the
+        # "Kalman coast" silently degrades to zero-order hold. Found 2026-07-20
+        # in P6.0 -- 40 IDs in a 40 s run at 1 Hz injection.
+        if self._lost and unmatched_hd:
+            cand = [high_dets[j] for j in unmatched_hd]
+            m1b, _, unm1b = _hungarian(
+                1.0 - _iou_matrix(self._lost, cand), HIGH_IOU_THR)
+            for ti, di in m1b:
+                self._lost[ti].update(cand[di])   # update() resets .lost to 0
+            for ti, _ in sorted(m1b, reverse=True):
+                self._tracks.append(self._lost.pop(ti))
+            unmatched_hd = [unmatched_hd[j] for j in unm1b]
+
         # --- Round 2: unmatched active tracks + lost tracks vs low-conf dets ---
         n_active_r2 = len(unmatched_t)
         r2_tracks = [self._tracks[i] for i in unmatched_t] + self._lost
@@ -304,6 +321,31 @@ def _test_new_track_after_loss():
     print(f"  re-detection test PASS  first_id={first_id}  new_id={new_id}")
 
 
+def _test_sparse_high_conf_keeps_id():
+    """1 Hz score=1.0 source at 20 Hz must keep ONE id and learn velocity.
+
+    Regression for the P6.0 ID-churn bug: before round 1b, every injection
+    spawned a new id (40 ids in a 40 s run), so no track ever saw a second
+    measurement and the coast was zero-order hold.
+    """
+    tracker = ByteTracker()
+    det = {"cx": 100.0, "cy": 240.0, "w": 60.0, "h": 100.0, "score": 1.0}
+    ids, coast_cx = set(), []
+    for frame in range(100):                      # 5 s at 20 Hz
+        # target drifts 5 px/s -> 0.25 px/frame, well inside HIGH_IOU_THR
+        dets = [{**det, "cx": 100.0 + frame * 0.25}] if frame % 20 == 0 else []
+        tracks = tracker.update(dets)
+        assert tracks, f"frame {frame}: track dropped"
+        ids.add(tracks[0].id)
+        if frame > 40 and frame % 20 != 0:
+            coast_cx.append(tracks[0].bbox["cx"])
+    assert ids == {1}, f"id churn: expected one id, got {sorted(ids)}"
+    assert coast_cx[-1] > coast_cx[0], \
+        f"coast is zero-order hold: cx {coast_cx[0]:.2f} -> {coast_cx[-1]:.2f}"
+    print(f"  sparse-high-conf test PASS  ids={sorted(ids)}  "
+          f"coast cx {coast_cx[0]:.2f} -> {coast_cx[-1]:.2f} (moving)")
+
+
 def _test_iou():
     a = {"cx": 50, "cy": 50, "w": 100, "h": 100}
     b = {"cx": 50, "cy": 50, "w": 100, "h": 100}
@@ -319,4 +361,5 @@ if __name__ == "__main__":
     _test_single_track_no_loss()
     _test_kalman_prediction()
     _test_new_track_after_loss()
+    _test_sparse_high_conf_keeps_id()
     print("all bytetrack tests passed")

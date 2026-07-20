@@ -91,8 +91,20 @@ Full writeup: [`experiments/2026-06-14-stage1-baseline/phase-c-vlm.md`](../../ex
 
 | Mode | Platform | Key metrics | Result |
 |---|---|---|---|
-| inject-oracle Branch-1 | x86_64 SITL | hz=19.99 px_err=89.4 valid=100% | **PASS** |
-| vlm zero-shot Branch-2 | SITL + Jetson SmolVLM-500M Q8_0 | hz=19.99 px_err=190.5 valid=12.5% track_cov=21% | **negative (expected)** |
+| inject-oracle Branch-1 | x86_64 SITL | hz=19.99 ~~px_err=89.4~~ valid=100% | **PASS** (integration) |
+| ~~vlm zero-shot Branch-2~~ | SITL + Jetson SmolVLM-500M Q8_0 | ~~hz=19.99 px_err=190.5 valid=12.5% track_cov=21%~~ | **RETRACTED 2026-07-20** |
+
+> **⚠ Retracted 2026-07-20 by P6.0** ([`../results/part6-flight.md`](part6-flight.md), full detail in
+> [`experiments/2026-07-20-p60-flight-rig/README.md`](../../experiments/2026-07-20-p60-flight-rig/README.md)).
+> **Branch-2 is withdrawn:** the Gazebo camera was aimed at the **sky** (pitch −π/2 instead of +π/2)
+> for this entire campaign, so the frame was flat gray — 100.0% one colour, mean 218, std 0.0. The
+> VLM was grounding an NL expression in a blank image; those numbers measure a broken render, not
+> the model. **RQ-S1.4 → UNANSWERED.** Not re-run: SmolVLM-500M was eliminated in the Part IV bake-off.
+> **Branch-1's px_err 89.4 is also withdrawn** — a separate ByteTrack defect (lost tracks could only
+> be re-found by a *low*-score detection, so its 1 Hz `score=1.0` injections spawned a new ID every
+> time and the Kalman coast degraded to zero-order hold) inflated it. Branch-1's integration PASS
+> stands; the pixel-error figure does not. Phase B is unaffected (25 Hz synchronous oracle → a
+> detection every frame → no track ever went lost).
 
 ---
 

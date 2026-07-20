@@ -44,6 +44,22 @@
 > **Not re-run.** Re-running Branch-2 would measure SmolVLM-500M, a backbone eliminated in
 > the Part IV bake-off and superseded by the deployed Qwen2-VL-2B. The corrected rig is
 > carried into Part VI instead. Recorded, not silently patched.
+>
+> ## ⚠ SECOND CAVEAT, same date — Branch-1's pixel error is also withdrawn
+>
+> P6.0 found a second defect in the same rig: `ByteTracker.update()` matched **lost** tracks only
+> in round 2, against *low*-score detections. Branch-1 injects the oracle at 1 Hz with
+> `score=1.0`, so every injection fell through to "create new track" instead of reviving the
+> existing one. Consequence: a new track ID per detection, no track ever received a second
+> measurement, Kalman velocity stayed 0, and the advertised coast degraded to **zero-order hold** —
+> the box froze between detections while the target moved. The reported **px_err 89.4 is inflated
+> by this defect and is withdrawn**; on the fixed tracker the same class of run measures 36.0 px
+> vs 64.7 px pre-fix. "0 track losses" was also vacuous: a track never died, it was continuously
+> replaced. **Branch-1's PASS still stands** — it gates loop rate, coast length, and re-seed time,
+> none of which turn on the pixel-error magnitude. Fixed in `runners/sitl/bytetrack.py`
+> (round-1b re-find + regression test). **Phase B is unaffected:** its ~25 Hz synchronous oracle
+> supplied a detection every frame, so no track ever went lost. Detail:
+> [`../2026-07-20-p60-flight-rig/README.md`](../2026-07-20-p60-flight-rig/README.md).
 
 ---
 
