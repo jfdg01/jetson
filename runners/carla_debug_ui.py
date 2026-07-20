@@ -134,12 +134,20 @@ def chase_speed(areas, frame_area=CAM_W * CAM_H):
     return max(-CHASE_SPEED, min(CHASE_SPEED, CHASE_GAIN * err))
 
 
-def ground_forward(yaw_deg):
-    """Unit heading in the XY plane. Pitch is deliberately dropped: the camera
-    looks down at the target but the vehicle flies level, so a nose-down aim must
-    not translate into a descent. Height is held by never touching z."""
-    y = math.radians(yaw_deg)
-    return carla.Location(math.cos(y), math.sin(y), 0.0)
+def boresight(pitch_deg, yaw_deg):
+    """Unit vector along where the camera is LOOKING, pitch included.
+
+    The ground frame was wrong for chase: flying level toward a target that is
+    below you closes the ground distance without closing the slant range, so the
+    box need not grow. Since ASSIST already parks the target at frame centre,
+    the boresight IS the line to the target -- move along it and it gets bigger.
+    ponytail: no floor guard, a nose-down chase descends. Add a min-AGL clamp
+    when the copter actually needs to survive the approach.
+    """
+    p, y = math.radians(pitch_deg), math.radians(yaw_deg)
+    return carla.Location(math.cos(p) * math.cos(y),
+                          math.cos(p) * math.sin(y),
+                          math.sin(p))
 
 
 def project(world_loc, cam_tf, w=CAM_W, h=CAM_H, fov=CAM_FOV):
@@ -988,14 +996,14 @@ def main():
             t.rotation.pitch = max(-89, min(89, t.rotation.pitch + dpitch))
             aim["yaw"] -= dyaw          # spent: what is left is what still owes
             aim["pitch"] -= dpitch
-        # CHASE flies level along the current heading, signed: + closes, - backs
+        # CHASE flies along the boresight, signed: + closes, - backs
         # off. Unlike aim it is NOT one-shot per box, because closing genuinely
         # does change the pixels -- the box grows toward the setpoint, the error
         # shrinks, and it settles on its own. A real closed loop where aim on a
         # frozen box is an open one.
         # The operator wins the same tie as with look: a held wasd outranks it.
         if aim["chase"] and not (held & MOVE.keys()):
-            t.location += ground_forward(t.rotation.yaw) * (aim["chase"] * dt)
+            t.location += boresight(t.rotation.pitch, t.rotation.yaw) * (aim["chase"] * dt)
         cam["spec"].set_transform(t)
 
     # Tk blocks in C, so SIGINT only lands while Python bytecode runs -- the

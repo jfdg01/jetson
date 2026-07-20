@@ -60,9 +60,13 @@ The error is taken in **log area**, because area falls as 1/d² — one log unit
 ratio of range whether the target is near or far, so a single gain behaves identically at
 every distance. Output is `CHASE_GAIN` m/s per log unit, clamped to ±`CHASE_SPEED`.
 
-Motion is in the **ground frame**: `ground_forward(yaw)` drops the pitch, so the camera
-can look down at a target on the road while the copter flies level. Altitude is held by
-construction — nothing in this path ever writes `z`.
+Motion is along the **boresight**: `boresight(pitch, yaw)` is the direction the camera is
+actually looking. The earlier ground frame dropped the pitch to hold altitude, but that
+closed *ground* distance rather than *slant range*, so a target below the copter need not
+grow at all. Since ASSIST already parks the target at frame centre, the boresight is the
+line to the target — flying down it is what makes the box bigger. The cost is that
+altitude is no longer held by construction: a nose-down chase descends, and there is no
+floor guard yet (`ponytail:` in `boresight`).
 
 Unlike aim, CHASE is *not* charged once per box; it stays latched between measurements.
 That is correct, because moving genuinely does change the pixels — the box grows toward

@@ -144,18 +144,19 @@ def test_it_converges_on_a_static_target():
     assert abs(d - 60.0) < 60.0 * 0.15, f"settled at {d:.1f} m, wanted ~60"
 
 
-def test_chase_holds_altitude_whatever_the_camera_pitch():
-    """The whole point of the ground frame: aiming down must not fly the copter
-    into the road. ground_forward only ever knows the yaw."""
-    for yaw in (0.0, 37.0, -90.0, 180.0):
-        v = ui.ground_forward(yaw)
-        assert v.z == 0.0
-        assert abs(math.hypot(v.x, v.y) - 1.0) < 1e-6   # Location is float32
+def test_boresight_is_a_unit_vector_that_descends_when_aimed_down():
+    """Chase now flies where it looks, so a nose-down aim MUST have -z -- that
+    is what closes slant range on a target below. The old ground frame did not."""
+    for pitch, yaw in ((0.0, 0.0), (-30.0, 37.0), (-89.0, -90.0), (15.0, 180.0)):
+        v = ui.boresight(pitch, yaw)
+        assert abs(math.sqrt(v.x ** 2 + v.y ** 2 + v.z ** 2) - 1.0) < 1e-6
+    assert ui.boresight(-45.0, 0.0).z < -0.7        # aimed down, flies down
+    assert ui.boresight(0.0, 0.0).z == 0.0          # level aim, level flight
 
 
-def test_chase_heading_follows_yaw():
-    assert ui.ground_forward(0.0).x > 0.99          # +x at yaw 0
-    assert ui.ground_forward(90.0).y > 0.99         # +y is right in CARLA
+def test_boresight_heading_follows_yaw():
+    assert ui.boresight(0.0, 0.0).x > 0.99          # +x at yaw 0
+    assert ui.boresight(0.0, 90.0).y > 0.99         # +y is right in CARLA
 
 
 if __name__ == "__main__":
