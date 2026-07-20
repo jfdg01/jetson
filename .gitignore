@@ -78,3 +78,9 @@ runners/_gz_feed.log
 
 # showcase clips are large; stills + README are tracked
 showcase/**/*.mp4
+
+# SITL run droppings -- sim_vehicle.py writes these into whatever cwd it is launched from
+/mav.parm
+/mav.tlog*
+/logs/
+/terrain/
