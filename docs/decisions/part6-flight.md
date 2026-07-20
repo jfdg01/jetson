@@ -205,3 +205,29 @@ the world, the vehicle model, and the runner around a plugin that is installed b
   `experiment/carla-gt-bank` and this campaign claims no `P<part>.<n>` id, per the slate's ruling
   that the diagnostics stay "unnumbered candidates until one is promoted". *Gate verdicts are not
   results*, and this campaign produces only gate verdicts and an artifact.
+- **Keep the GT bank out of git; treat the seeded runner as the record.**
+  `.gitignore:41` whitelists `gt.jsonl` under `experiments/*/runs/`, a rule written when a
+  `gt.jsonl` was small. This campaign's is 31.7 MB per clip, so the 25-clip bank would have put
+  **793 MB into a 593 MB `.git`**. It is also written incrementally, and a `git add -A` mid-capture
+  had already committed a **truncated clip03** (17.9 MB against 32.4 MB on disk) that still parses
+  as valid JSONL — well-formed and wrong, the failure mode this campaign exists to detect. Excluded
+  with a rule scoped to this campaign rather than a change to the global one other campaigns
+  depend on. *What justifies it:* the bank is deterministic from `--seed`, so the runner plus the
+  committed per-clip `manifest.json` reproduce it; the thesis artifacts are the manifests and the
+  `proof/` figures, not 793 MB of JSONL. *Given up:* byte-level reproducibility of *this particular*
+  capture if CARLA's determinism ever drifts across versions, and the ability to re-derive figures
+  without a CARLA install. *Deferred:* 113 MB of already-committed blobs stay in branch history
+  until the driver is idle — rewriting history under a running unattended capture is the worse
+  trade on an unmerged, unpushed, local-only branch.
+- **Resolve the camera-pose-lag question offline instead of paying for a live probe.** An
+  adversarial review flagged that GT is projected from the camera actor transform read *after*
+  `world.tick()`, which if stale would put every box one frame of camera motion behind its pixels —
+  the P5.13 zero-order-hold class, invisible in any log. Rather than queue a live
+  `image.transform` probe behind the capture, the `track_gain 0.0` clips answer it directly: their
+  commanded camera path is a closed form in the frame index, so the logged pose can be scored
+  against the command at frame `i` and at `i-1`. Both clips say **current**, by an order of
+  magnitude (0.359/0.178 cm vs 1.910/2.239 cm on a 2.09 cm step). *Given up:* the exact residual —
+  whether the *render* lagged the actor transform — which is instead **bounded** at one camera step
+  in pixels, worst case 3.35 px. *Why it is recorded:* the check cost nothing, needed no server,
+  and turned a blocking re-capture question into a bounded one; `check_pose_lag.py` is committed so
+  it re-runs on any future bank.
