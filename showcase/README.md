@@ -93,5 +93,14 @@ The clips are copies, renamed. Originals and their `results.json` are at
 `experiments/2026-07-20-carry-capacity/runs/T/<cell>/`, where `<cell>` is
 `DSC_{WSEL,SWAP}_<clip>_<prompt frame>` — e.g. `works/01` is `DSC_WSEL_car18_150`.
 
-The `.mp4` files total ~203 MB and are gitignored; the `.png` stills (~11 MB) are tracked,
+The `.mp4` files total ~123 MB and are gitignored; the `.png` stills (~11 MB) are tracked,
 so this README stays readable from a clone without the video.
+
+The originals are written by OpenCV with the `mp4v` fourcc (MPEG-4 Part 2), which no
+browser and no Electron app can decode — VS Code, Chrome and Slack all show a black frame
+or "an error occurred while loading the video". The copies here were transcoded to H.264
+so they play anywhere:
+
+    ffmpeg -i in.mp4 -c:v libx264 -preset slow -crf 20 -pix_fmt yuv420p -movflags +faststart out.mp4
+
+Do the same to anything pulled out of `experiments/*/runs/` for a slide or a demo.
