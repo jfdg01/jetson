@@ -21,7 +21,7 @@ anything (that is what stops a rate-limit kill from double-spending the budget).
 
 stdlib only on purpose — no venv needed so cron stays trivial.
 """
-import subprocess, time, datetime, pathlib
+import re, subprocess, time, datetime, pathlib
 
 REPO = pathlib.Path("/home/gara/jetson")
 CLAUDE = "/home/gara/.local/bin/claude"
@@ -38,6 +38,12 @@ LOGDIR = DOTC / "autoresearch-logs"
 # failure mode is a logged skip, never a burn nobody authorized. Extend the run with:
 #   date -d '2026-07-21 18:00' -Is > .claude/autoresearch.deadline
 DEADLINE_FILE = DOTC / "autoresearch.deadline"
+# When the 5h window is spent, `claude -p` prints "You've hit your session limit - resets
+# 9:40am (Europe/Madrid)" and exits in ~2s having sent nothing. Costs no tokens, but on
+# 2026-07-20 it made 55 of 86 ticks no-ops, which reads exactly like a crash loop in the
+# log and hides a real one. Park until the reset clock the server told us.
+RESUME_AT = DOTC / "autoresearch.resume-at"
+LIMIT_RE = re.compile(r"session limit.*?resets\s+(\d{1,2}:\d{2}\s*[ap]m)", re.I | re.S)
 
 PROMPT = (
     "Run the next-experiment skill now to execute exactly ONE autonomous research "
@@ -71,6 +77,28 @@ def deadline():
         return None
 
 
+def session_limit_reset(text, now=None):
+    """Reset time from the CLI's session-limit line, or None. Only the TAIL is searched:
+    the message is the last thing printed before exit, and scanning the whole cycle log
+    would false-positive on the driver merely reading a log that quotes it."""
+    m = LIMIT_RE.search(text[-500:])
+    if not m:
+        return None
+    now = now or datetime.datetime.now().astimezone()
+    t = datetime.datetime.strptime(m.group(1).replace(" ", "").lower(), "%I:%M%p").time()
+    when = now.replace(hour=t.hour, minute=t.minute, second=0, microsecond=0)
+    return when + datetime.timedelta(days=1) if when <= now else when
+
+
+def parked_until():
+    """Epoch seconds we are parked until, or 0. Unparseable = not parked (fail open —
+    a bad park file must never be able to silently stop an authorized run)."""
+    try:
+        return datetime.datetime.fromisoformat(RESUME_AT.read_text().strip()).timestamp()
+    except Exception:
+        return 0
+
+
 def log(msg):
     ts = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
     LOG.parent.mkdir(exist_ok=True)
@@ -90,6 +118,8 @@ def main():
     if STOP.exists():
         log("STOP file present, skipping tick")
         return
+    if time.time() < parked_until():
+        return  # silent: the park was logged once when it was set
     dl = deadline()
     if dl is None:
         log(f"no usable deadline in {DEADLINE_FILE.name}, skipping tick (write an ISO "
@@ -119,6 +149,12 @@ def main():
                 cwd=str(REPO), timeout=CYCLE_TIMEOUT,
                 stdout=out, stderr=subprocess.STDOUT)
         log(f"CYCLE-END rc={r.returncode} dur={int(time.time())-t0}s")
+        if r.returncode != 0:
+            when = session_limit_reset(cyclelog.read_text())
+            if when:
+                RESUME_AT.write_text(when.isoformat())
+                log(f"SESSION-LIMIT: parking ticks until {when.isoformat(timespec='minutes')}"
+                    f" (rm {RESUME_AT.name} to resume early)")
     except subprocess.TimeoutExpired:
         log(f"CYCLE-TIMEOUT after {CYCLE_TIMEOUT}s, killed")
 
