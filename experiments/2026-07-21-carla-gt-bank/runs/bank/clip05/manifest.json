@@ -31,5 +31,6 @@
     480,
     90
   ],
-  "complete": true
+  "complete": true,
+  "target_in_frame_frac": 1.0
 }
