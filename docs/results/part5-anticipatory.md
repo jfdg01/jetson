@@ -610,3 +610,53 @@ Proof: `proof/p517_peak_montage.png` (28 labelled crossing peaks, no invalid til
 `proof/p517_staleness.png` (v3 vs v2.1 ZOH staleness — why this bank makes the lag cost real),
 `proof/p517_dd_vs_rg_cells.png` (56-cell paired outcome grid, one red).
 Detail: [`../../experiments/2026-07-20-bankv3-select/README.md`](../../experiments/2026-07-20-bankv3-select/README.md).
+
+### P5.18 — n25-select: the GT-free select claim at real n (2026-07-20)
+
+**RQ-P5.18:** does the GT-free warm-start select result (P5.16) hold at statistically conclusive
+n on real video? **Verdict: NO [SWAP-bound]** (branch 2, verbatim):
+`P5.18 VERDICT branch 2: NO [SWAP-bound]: WSEL 22/26 passes, SWAP 17/26 < 20`
+
+Same frozen P5.16 harness, byte-identical, zero patches — the single factor is the scene set
+(5 -> 26 gating scenes per leg, 13 clips, 4 UAV123 categories). 54 cells, all scored, 0 INVALID,
+0 retries. Rig: RTX 3090 (`.venv-ft` python 3.12.10 / torch 2.6.0+cu124 / transformers 4.57.6)
++ Jetson Orin Nano 8 GB `NV Power Mode: 15W` + `jetson_clocks`, VLM
+`phase3-terse100eos-1024-q8_0.gguf` MAX_SIDE 1024, carry SAM2 `sam2.1-hiera-tiny` bf16.
+
+| leg | bar | result | verdict |
+|---|---|---|---|
+| WSEL (phrase names the idle-tracked target) | >= 20/26 | **22/26** | clears |
+| strengthened SWAP (phrase names the distractor) | >= 20/26 | **17/26** | **misses by 3** |
+| weak SWAP (off-target only, non-gating) | — | 21/26 | — |
+| control car3:200, both legs | — | pass/pass | — |
+
+Per-family: car **6/10** WSEL, 5/10 SWAP · bike1 6/6, 4/6 · person 3/3, 2/3 · wakeboard 7/7, 6/7.
+**All four WSEL failures are cars; non-car WSEL is 16/16.** The pre-registered family-collapse
+worry (bike1, wakeboard) did not materialise — the car family collapsed instead, in three
+clips of small low-contrast sedans on shadow-banded palm roads.
+
+Buckets (13 failing cells): `off-distractor` 4 · `on-target-not-distractor` 3 · `carry-loss` 3 ·
+`carry-quality` 2 · `discovery` 1. SWAP failures strictly contain WSEL failures; **3 of the 5
+SWAP-only failures are distractor-side discovery problems** — when the distractor has not yet
+entered frame at the discovery call the VLM has no abstain path, grounds the target instead, and
+the "distractor" track is seeded on the target at birth.
+
+**Delivery quality is bimodal:** passes 0.40-0.97 IoU, failures all at 0.00 or nothing delivered,
+nothing near the 0.25 floor — so threshold tuning cannot recover the SWAP leg. Non-gating:
+discovery 102/104 accepted (mean 4.77 s); delivery `acquire_s` **0.00 s on every cell** vs shadow
+re-ground **4.68 s** — the P5.14 latency advantage reproduces at n=26 and is not what failed.
+Shadow agreement 38/48.
+
+Estimate vs actual: predicted **branch 1 (YES)** with WSEL 22-24 / SWAP 20-22; actual WSEL 22
+(inside the band) and SWAP **17** (below it) -> branch 2, which the pre-registration had named as
+the live alternative "if late-entry discovery fails broadly on the distractor side". Matrix
+~26 min vs 27-35 min est.
+
+**Visual gate: PASS, 19/19 required cells opened with the Read tool, ZERO downgrades** — every
+numeric pass sits on the correct object, every numeric fail is visibly wrong (two cells show the
+VLM boxing the target when asked for an absent distractor; three show no delivered box at all).
+
+Proof: `proof/pass_matrix.png` (per-scene PASS/FAIL grid both legs), `proof/deliver_iou.png`
+(the bimodality figure, floors drawn), `proof/deliver_headline.png` (worst *passing* SWAP cell,
+car9:560 iou_d 0.478).
+Detail: [`../../experiments/2026-07-20-n25-select/README.md`](../../experiments/2026-07-20-n25-select/README.md).

@@ -1,0 +1,409 @@
+{
+  "arm": "DSC",
+  "leg": "SWAP",
+  "scene": {
+    "clip": "person15",
+    "f0": 150,
+    "t_p": 8.0,
+    "target_caption": "the man in the green shirt",
+    "distractor_caption": "the man in the red shirt",
+    "distractor_gt_prompt": [
+      281,
+      312,
+      324,
+      389
+    ],
+    "gating": true,
+    "note": "NEW. Pair enters late in the window, near-static once present (pre-registered late-entry discovery risk)."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 31.1,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "dist_floor": 0.25,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "ds_offset": 150,
+  "iou_same": 0.5,
+  "pass": true,
+  "swap_weak_pass": true,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 300,
+    "deliver_frame": 390,
+    "deliver_iou": 0.0,
+    "window": [
+      390,
+      690
+    ],
+    "leg": "SWAP",
+    "selection": "distractor",
+    "selection_correct": true,
+    "acquire_s": 0.0,
+    "deliver_iou_distractor": 0.6978
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 150,
+    "t_p": 8.0,
+    "prompt_frame": 390,
+    "ds": 0,
+    "reanchor": [
+      {
+        "frame": 240,
+        "skipped": "in-discovery"
+      },
+      {
+        "frame": 315,
+        "skipped": "in-discovery"
+      }
+    ],
+    "discovery": [
+      {
+        "cand": "target",
+        "caption": "the man in the green shirt",
+        "call_frame": 0,
+        "return_frame": 136,
+        "latency_s": 4.55,
+        "outcome": "accepted",
+        "box": [
+          614.4,
+          172.8,
+          640.0,
+          252.0
+        ],
+        "seed_iou_gt": 0.6773
+      },
+      {
+        "cand": "distractor",
+        "caption": "the man in the red shirt",
+        "call_frame": 136,
+        "return_frame": 362,
+        "latency_s": 7.53,
+        "outcome": "accepted",
+        "box": [
+          601.6,
+          43.2,
+          640.0,
+          115.2
+        ]
+      }
+    ],
+    "discovery_done_frame": 362,
+    "acquire_s": 0.0,
+    "caption": "the man in the red shirt",
+    "selected": "distractor",
+    "cand_at_prompt": {
+      "target": [
+        611.0,
+        153.0,
+        638.0,
+        232.0
+      ],
+      "distractor": [
+        281.0,
+        313.0,
+        339.0,
+        393.0
+      ]
+    },
+    "deliver_frame": 390,
+    "shadow": {
+      "acquire_s": 4.73,
+      "vlm_box": [
+        268.8,
+        309.6,
+        320.0,
+        381.6
+      ],
+      "match_ious": {
+        "target": 0.0,
+        "distractor": 0.4734
+      },
+      "selected": "distractor"
+    }
+  },
+  "events": [
+    [
+      13.0,
+      [
+        281.0,
+        313.0,
+        339.0,
+        393.0
+      ]
+    ],
+    [
+      13.056,
+      [
+        281.0,
+        313.0,
+        338.0,
+        392.0
+      ]
+    ],
+    [
+      13.227,
+      [
+        273.0,
+        318.0,
+        331.0,
+        398.0
+      ]
+    ],
+    [
+      13.387,
+      [
+        262.0,
+        325.0,
+        319.0,
+        404.0
+      ]
+    ],
+    [
+      13.558,
+      [
+        251.0,
+        332.0,
+        313.0,
+        411.0
+      ]
+    ],
+    [
+      13.717,
+      [
+        241.0,
+        339.0,
+        297.0,
+        419.0
+      ]
+    ],
+    [
+      13.888,
+      [
+        230.0,
+        346.0,
+        287.0,
+        427.0
+      ]
+    ],
+    [
+      14.048,
+      [
+        221.0,
+        353.0,
+        271.0,
+        433.0
+      ]
+    ],
+    [
+      14.218,
+      [
+        209.0,
+        361.0,
+        266.0,
+        443.0
+      ]
+    ],
+    [
+      14.406,
+      [
+        199.0,
+        370.0,
+        255.0,
+        453.0
+      ]
+    ],
+    [
+      14.567,
+      [
+        187.0,
+        378.0,
+        244.0,
+        466.0
+      ]
+    ],
+    [
+      14.733,
+      [
+        174.0,
+        388.0,
+        234.0,
+        473.0
+      ]
+    ],
+    [
+      14.907,
+      [
+        161.0,
+        398.0,
+        222.0,
+        482.0
+      ]
+    ],
+    [
+      15.064,
+      [
+        148.0,
+        409.0,
+        211.0,
+        493.0
+      ]
+    ],
+    [
+      15.236,
+      [
+        135.0,
+        419.0,
+        201.0,
+        503.0
+      ]
+    ],
+    [
+      15.396,
+      [
+        123.0,
+        429.0,
+        189.0,
+        513.0
+      ]
+    ],
+    [
+      15.57,
+      [
+        110.0,
+        440.0,
+        178.0,
+        524.0
+      ]
+    ],
+    [
+      15.706,
+      [
+        96.0,
+        453.0,
+        167.0,
+        538.0
+      ]
+    ],
+    [
+      15.874,
+      [
+        83.0,
+        466.0,
+        155.0,
+        550.0
+      ]
+    ],
+    [
+      16.034,
+      [
+        68.0,
+        479.0,
+        139.0,
+        565.0
+      ]
+    ],
+    [
+      16.205,
+      [
+        54.0,
+        492.0,
+        128.0,
+        578.0
+      ]
+    ],
+    [
+      16.365,
+      [
+        41.0,
+        506.0,
+        109.0,
+        590.0
+      ]
+    ],
+    [
+      16.536,
+      [
+        25.0,
+        519.0,
+        96.0,
+        604.0
+      ]
+    ],
+    [
+      16.696,
+      [
+        11.0,
+        533.0,
+        89.0,
+        619.0
+      ]
+    ],
+    [
+      16.867,
+      [
+        0.0,
+        549.0,
+        75.0,
+        636.0
+      ]
+    ],
+    [
+      17.027,
+      [
+        0.0,
+        574.0,
+        52.0,
+        653.0
+      ]
+    ],
+    [
+      17.198,
+      [
+        0.0,
+        591.0,
+        48.0,
+        670.0
+      ]
+    ],
+    [
+      17.358,
+      [
+        0.0,
+        613.0,
+        38.0,
+        688.0
+      ]
+    ],
+    [
+      17.529,
+      [
+        0.0,
+        653.0,
+        17.0,
+        699.0
+      ]
+    ],
+    [
+      17.688,
+      [
+        0.0,
+        687.0,
+        15.0,
+        708.0
+      ]
+    ]
+  ]
+}

@@ -2,7 +2,8 @@
 
 **Pre-registered:** 2026-07-20T02:45Z (Madrid wall clock). Design + patches by Fable; Opus runs
 the matrix and fills Results only — do NOT re-patch code.
-**Status:** PRE-REGISTERED, not yet run.
+**Status:** COMPLETE (2026-07-20T05:15Z) — **NO [SWAP-bound]**, branch 2. WSEL 22/26 clears the
+bar, strengthened SWAP 17/26 misses it. See Results.
 **Branch:** `experiment/n25-select`.
 **Rig:** RTX 3090 workstation (`.venv-ft`: python 3.12.10, torch 2.6.0+cu124, transformers
 4.57.6) + Jetson Orin Nano 8 GB over `ssh jetson` (llama.cpp q8_0, `NV Power Mode: 15W` mode 0 +
@@ -221,27 +222,144 @@ into Results, QUESTIONS and the merge commit.
   of its scenes on one leg), say so explicitly in Results — the composition caveat above
   pre-registers that reading.
 
-## Results (TBD)
+## Results
 
-**Run:** (date, branch, commit) — **Verdict:** (branch + verbatim line)
+**Run:** 2026-07-20T05:15Z, branch `experiment/n25-select`, pre-reg commit `246f11a`.
+**Status:** COMPLETE. Matrix 54/54 cells scored, zero INVALID, zero retries fired.
 
-**Versions / config:** (copy the P5.16-style block: python/torch/transformers, VLM ggufs,
-power mode from `nvpmodel -q`, SAM2, frozen constants — confirm they match the header)
+**Verdict (verbatim from `verdict_p518.py`, the sole authority):**
 
-| cell | pass | weak | d_iou | d_dist | cov | disc (T,D) | fail bucket | what I saw (PNG) |
-|---|---|---|---|---|---|---|---|---|
-| (54 rows, or the failing + audited subset with a summary line for clean passes) | | | | | | | | |
+```
+P5.18 VERDICT branch 2: NO [SWAP-bound]: WSEL 22/26 passes, SWAP 17/26 < 20
+```
 
-**Counts:** WSEL _/26, strengthened SWAP _/26 (bar 20/26), weak SWAP _/26, control WSEL
-pass/fail, shadow agreement _/52.
+**Versions / config:** python 3.12.10, torch 2.6.0+cu124, transformers 4.57.6 (`.venv-ft`,
+RTX 3090). VLM `phase3-terse100eos-1024-q8_0.gguf` + `mmproj-phase3-terse100eos-1024-f16.gguf`,
+MAX_SIDE 1024, served from the Jetson Orin Nano 8 GB over `ssh jetson` — `nvpmodel -q` reports
+`NV Power Mode: 15W` (mode 0) + `jetson_clocks`, matching the header. Carry = SAM2
+`facebook/sam2.1-hiera-tiny` bf16. Data = UAV123 @ 1280x720 30 fps. Frozen constants recorded in
+every `results.json` and confirmed unchanged from the header (DS_OFFSET 150, IOU_SAME 0.5,
+CARRY_HZ 6.15, CAND_HZ 3.075, MATCH_FLOOR 0.1, DIST_FLOOR 0.25, APP_TAU 12.0, LOSS_S 1.0,
+ROI_MARGIN 2.0, ROI_MIN_SIDE 256, ROI_RES 512, REANCHOR_OFFSETS [90,165], cover_s 10.0).
+Harness byte-identical P5.16 (`discover_p516.py`), zero patches — the single factor is the
+scene set.
 
-**Failure buckets:** (per bucket: count, cells, per-family breakdown for bike1/wakeboard)
+### Failing cells (all 13) + the audited passing sample
 
-**Estimate-vs-actual:** (runtime; predicted vs actual branch and counts; which predicted
-failure families actually bit)
+`what I saw` is what the pixels showed when I opened the PNG with the Read tool — all 19
+required audit cells were opened; full per-cell notes in `visual_downgrades.json`.
 
-**Proof deliverables:** `proof/pass_matrix.png`, `proof/deliver_iou.png`,
-`proof/deliver_headline.png` (captions: what it shows, which run/config).
+| cell | pass | weak | d_iou | d_dist | cov | fail bucket | what I saw (PNG) |
+|---|---|---|---|---|---|---|---|
+| WSEL car7:460 | FAIL | — | none | — | 0.00 | carry-loss | **No green box at all.** Nothing delivered; target track lost during idle. |
+| SWAP car7:460 | FAIL | weak | 0.00 | 0.00 | 0.00 | off-distractor | Green stranded on the far-**left kerb/planter** at the frame edge, off both cars. The carried P5.6 prediction, bit exactly. |
+| WSEL car9:950 | FAIL | — | none | — | 0.00 | carry-loss | **No green box at all.** Target track lost. |
+| SWAP car9:950 | FAIL | — | 0.32 | 0.00 | 0.84 | on-target-not-distractor | Discovery was **correct** (green on the black car beside the silver); by delivery green had drifted forward onto the **silver target** while the real black car trails under the blue box. Identity drift. |
+| WSEL car9:1150 | FAIL | — | 0.00 | — | 0.00 | carry-quality | Green is a tiny box near the intersection at the **top** of frame, nowhere near the target. |
+| SWAP car9:1150 | FAIL | weak | 0.00 | 0.00 | 0.00 | off-distractor | Green on a **third vehicle** up the road, off both target and distractor. |
+| WSEL car3:1050 | FAIL | — | 0.00 | — | 0.00 | carry-quality | Green far up the **empty road**, well ahead of the target. |
+| SWAP car3:1050 | FAIL | weak | 0.05 | 0.00 | 0.17 | off-distractor | Green slid off the car onto **roadside vegetation** beside the target GT. |
+| SWAP car18:150 | FAIL | — | 0.58 | 0.00 | 1.00 | on-target-not-distractor | **Late-entry wrong-object discovery.** Asked for "the black SUV" at f=134, the VLM boxed the **red Mustang** (the target) — the SUV is not in frame yet. Distractor track seeded on the target at birth. |
+| SWAP bike1:450 | FAIL | — | 0.59 | 0.00 | 0.92 | on-target-not-distractor | Same **late-entry** failure: asked for "the cyclist in the yellow shirt" at f=435, green boxed the **blue-shirt rider** (target); yellow rider not yet in frame. |
+| SWAP bike1:2250 | FAIL | — | none | — | 0.00 | discovery | **`discovery_distractor.png` absent** (outcome `in_flight`) — the VLM call had not returned by the prompt frame. No green box delivered. |
+| SWAP person10:450 | FAIL | — | none | — | 0.00 | carry-loss | **No green box at all.** Discovery accepted, carry lost before delivery. |
+| SWAP wakeboard3:150 | FAIL | weak | 0.00 | 0.00 | 0.00 | off-distractor | Smallest distractor in the set; delivery off it (predicted at-risk cell). |
+| WSEL person20:1050 | pass | — | 0.90 | — | 1.00 | — | Green tight on the **hatted man in the suit**, red GT coincident. Mandated backstop — clean. |
+| SWAP person20:1050 | pass | weak | 0.00 | 0.64 | 0.01 | — | Green covers the **backpack man** (blue box) and is clearly off the target. **Caveat:** the box is loose enough to absorb the adjacent woman — but it is *not centred* on her and the man is fully enclosed, so the pre-registered downgrade condition is not met. Recorded as the marginal cell it is. |
+| SWAP car10:850 | pass | weak | 0.00 | 0.97 | 0.00 | — | Green tight on the **white van** (distractor), target silver car further down the road. Textbook. |
+| SWAP bike1:750 | pass | weak | 0.00 | 0.61 | 0.00 | — | Green tight on the **yellow-shirt rider**. Same pair that fails at f0=450 — here both riders are already in frame at discovery. |
+| SWAP wakeboard6:150 | pass | weak | 0.00 | 0.75 | 0.00 | — | Green on the **speedboat** (distractor), tiny wakeboarder target out on the wake. |
+| WSEL wakeboard8:750 | pass | — | 0.85 | — | 0.68 | — | Green tight on the **wakeboarder**; water glare did not break it. |
+| WSEL bike1:2250 | pass | — | 0.41 | — | 1.00 | — | Green on the **blue-shirt rider**, hugging the body not the bicycle — which is why IoU is only 0.41 against a GT that includes the bike. Correct object. |
+| **41 unaudited passing cells** | pass | — | — | — | — | — | Not individually opened (outside the mechanically-required audit set); their numeric passes stand. |
+
+**Counts:** WSEL **22/26**, strengthened SWAP **17/26** (bar 20/26), weak SWAP 21/26, control
+car3:200 **passes on both legs**, shadow agreement 38/48 (the shadow re-ground selected *nothing*
+in 9/48). Valid cells 26/26 per leg — no n-underflow. **Visual audit: 19/19 cells opened, ZERO
+downgrades** — every numeric pass I opened sits on the correct object and every numeric fail is
+visibly wrong.
+
+**Failure buckets** (13 failing cells): `off-distractor` 4 (SWAP car7:460, car9:1150, car3:1050,
+wakeboard3:150) · `on-target-not-distractor` 3 (SWAP car9:950, car18:150, bike1:450) ·
+`carry-loss` 3 (WSEL car7:460, WSEL car9:950, SWAP person10:450) · `carry-quality` 2 (WSEL
+car9:1150, car3:1050) · `discovery` 1 (SWAP bike1:2250).
+
+**Per-family breakdown — the headline structural finding.** The pre-registration asked for this
+table so a family-wide collapse would be visible as such. One happened, but **not in the families
+that were flagged**:
+
+| family | gating scenes | WSEL | SWAP |
+|---|---|---|---|
+| car | 10 | **6/10** | **5/10** |
+| bike1 | 6 | 6/6 | 4/6 |
+| person | 3 | 3/3 | 2/3 |
+| wakeboard | 7 | 7/7 | 6/7 |
+| **total** | **26** | **22/26** | **17/26** |
+
+**All four WSEL failures are cars**, and non-car WSEL is a clean **16/16**. The pre-registered
+worry was a bike1 or wakeboard family collapse (>= 4 of one family on one leg); neither happened
+(bike1 6/6, wakeboard 7/7 on WSEL). The car family carried the failure instead, concentrated in
+three clips (car7, car9 x2, car3) — small, low-contrast sedans on palm-lined roads with heavy
+shadow banding, where SAM2 has the least appearance signal to hold identity on.
+
+**Two mechanisms, cleanly separated by the visual audit:**
+
+1. **SWAP failures strictly contain WSEL failures.** All 4 WSEL failures also fail SWAP, plus 5
+   SWAP-only failures. The SWAP-only set is where the leg is lost, and **3 of those 5 are
+   distractor-side discovery problems** (car18:150 and bike1:450 = late-entry wrong-object
+   discovery; bike1:2250 = discovery still in flight at the prompt). This is exactly the
+   asymmetry the pre-registration named: the target is always present at the discovery frame,
+   the distractor often is not. When the distractor has not yet entered frame, the VLM has no
+   abstain path and grounds the nearest same-class object — the target — so the "distractor"
+   track is seeded on the target at birth and delivery can never be correct.
+2. **Delivery quality is bimodal — there are no near-misses.** Passing cells cluster at IoU
+   0.40–0.97; every failing cell is at 0.00 or delivered nothing at all (see `deliver_iou.png`).
+   No cell sits near the 0.25 floor. **Threshold tuning therefore cannot recover this leg** —
+   the failures are catastrophic (track lost, or locked on the wrong object), not marginal.
+
+**Non-gating diagnostics.** Discovery: 102/104 candidate calls accepted (2 `in_flight` at the
+prompt), mean accepted latency 4.77 s (min 4.38, max 8.56). Delivery `acquire_s` = **0.00 s on
+every cell** vs the shadow prompt-time re-ground at mean **4.68 s** — the direct-delivery
+contract's latency advantage from P5.14 reproduces at n=26 and is not what failed here.
+
+**Estimate-vs-actual.**
+
+| | predicted | actual |
+|---|---|---|
+| branch | **1 (YES)**, sub-saturation | **2 — NO [SWAP-bound]** |
+| WSEL | 22–24 / 26 | **22/26** — inside the predicted band |
+| SWAP | 20–22 / 26 | **17/26** — 3 below the band, and below the bar |
+| matrix runtime | 27–35 min | **~26 min** (52 gating cells, mean 29.3 s/cell, max 35.7 s) |
+
+The WSEL prediction was exactly right; **the SWAP prediction was wrong, and that is the result.**
+The pre-registration named branch 2 as "the plausible alternative … if late-entry discovery fails
+broadly on the distractor side" — that is precisely what fired. Named at-risk cells that bit:
+car7:460 SWAP (the carried P5.6 carry-off-object prediction, dead on), car18:150 and bike1:450
+(the late-entry set), wakeboard3:150 (smallest distractor, within the predicted 0–2 wakeboard
+failures). Named at-risk cells that did *not* bite: bike1:750, person15:150. Unpredicted: the
+car-family concentration, which is the single biggest lesson in the run.
+
+**What this does and does not overturn.** It does **not** overturn warm-start delivery: WSEL
+22/26 (0.85) clears the bar and the P5.14 latency advantage reproduces. It **does** overturn the
+n=5 SWAP claim — P5.16 reported SWAP 4/5 (0.80) and the true rate at n=26 is 0.65, comfortably
+inside what 4/5 could not distinguish. **The n=5 anecdote was optimistic; the sample-size rule
+earned its keep on its first application.**
+
+**Proof deliverables** (all three opened with the Read tool before this section was written):
+
+- `proof/pass_matrix.png` — per-scene PASS/FAIL grid, both legs, n=26 gating + control.
+  Shows the verdict's shape at a glance: the car block red on both legs, bike1/person/wakeboard
+  green on WSEL, and the SWAP-only failures (orange = weak-only) scattered across families.
+  Config: GT-free P5.16 harness, UAV123, Jetson 15W + jetson_clocks.
+- `proof/deliver_iou.png` — delivery IoU per gating cell, WSEL vs target GT and SWAP vs the hand
+  distractor GT, with MATCH_FLOOR 0.10 and DIST_FLOOR 0.25 drawn. **This is the bimodality
+  figure**: green passes sit 0.40–0.97, red failures all at 0.00 / no-delivery, nothing near the
+  floors.
+- `proof/deliver_headline.png` — mechanically the *worst passing* SWAP cell (car9:560,
+  iou_d 0.478). What I saw: the green delivered box sits on the small distant white car with the
+  blue distractor hand box beneath it, and is clearly off the red target GT (the silver car under
+  the road-sign gantry). A genuine but low-margin pass — this is what the bottom of the passing
+  distribution actually looks like.
 
 ## Definition of done (Opus, after the verdict)
 
