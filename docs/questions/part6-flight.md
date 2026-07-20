@@ -72,3 +72,48 @@ The flight world was worse than easy: `iris_runway.sdf` has four entities and no
 kind, confirmed live by flying to `XYZ [141.237 216.871 100.192]` and getting nothing but sky at
 every commanded gimbal pitch (frames viewed, `proof/gaz-empty-world-*.png`). The cause was not the
 camera — at Y=216 m the copter was 167 m past the edge of the only surface in the world.
+
+## CARLA GT capture bank (unnumbered infrastructure, 2026-07-21)
+
+This campaign asks no research question and claims no number. It builds the artifact P6.2 needs
+and answers three build gates plus four API questions. **Gate verdicts are not results.**
+
+**Q-BANK-1 — Is `EnvironmentObject.bounding_box` world-space or object-local?** **WORLD.**
+`get_world_vertices()` takes `carla.Transform()` (the identity); passing the object's own transform
+doubles every coordinate. An *Actor*'s box is the opposite — local, and does take
+`get_transform()`. The two buckets need different calls, and the wrong guess is silent: all 29
+parked-car boxes land somewhere plausible. Settled live, `runners/carla_probe_gt.py`, committed
+`2d0917a`.
+
+**Q-BANK-2 — In synchronous mode, does the image delivered for a tick carry that tick's frame id?**
+**Yes, delta 0 on 40/40**, and now asserted every frame in `grab()` rather than trusted. An
+off-by-one would make every GT box one frame stale — the exact defect P5.13 was charged with, and
+invisible in any log.
+
+**Q-BANK-3 — Does 0.9.16 offer any occlusion or depth test?** **Yes, `world.cast_ray` exists** and
+returns labelled hits, so slate hazard 2.3c is buildable rather than merely deferrable. Not used
+tonight: the cheaper stand-in is a semantic-segmentation camera at the same pose, whose per-row
+`veh_fill` column says what fraction of each GT box is actually vehicle pixels.
+
+**G-A — does the projected GT land on the target?** **PASS, by looking.** Overlays at 25/40/60/85/
+120 m were opened with the Read tool; the reference box sits on the car at every altitude, all 8
+vertices project, and the measured pixel area matches the analytic nadir prediction to within
+1.02-1.11x while decreasing monotonically. The gate was deliberately strengthened past the slate's
+own rule first — see DECISIONS, monotonic shrink alone passes a misplaced box.
+
+**G-B — do static parked meshes exist outside `get_actors()`?** **Yes, 29 of them, CLOSED before
+the run.** `world.get_environment_objects(carla.CityObjectLabel.Car)` returns 29 `Car` meshes that
+`get_actors().filter('vehicle.*')` never sees, so a mask drifting onto a parked car is a *loss*,
+not a *swap*, and the taxonomy needs the fourth bucket. The bank writes both buckets into every
+`gt.jsonl` row with a `kind` field, so the distinction is available to any consumer rather than
+being re-derived.
+
+**G-C — does pairing survive an environment-object toggle?** See RESULTS.
+
+**What the night actually taught, which no gate asked.** The first bank was **well-formed and
+empty**: 25 clips' worth of correct actor counts, passing blank-render and dead-feed asserts, and
+77-80% of frames with no on-screen target at all. G-A could not catch it, because G-A aims the
+camera at a known reference car and is therefore blind to whether the *sampling policy* finds cars.
+The fix (anchor each clip on a vehicle) matters less than the guard: **target coverage is now a
+measured, asserted per-clip field**. The general form is this repo's standing rule — a check that
+only verifies the pixels are *valid* will not notice that they are *uninteresting*.
