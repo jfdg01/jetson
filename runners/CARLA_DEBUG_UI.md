@@ -101,7 +101,7 @@ a single blown-up mask, which is exactly what a median rejects and a mean does n
 | `CHASE_TARGET_FRAC` | 0.012 | wanted box area as a fraction of frame — a car at ~125x50 px, ~17 m |
 | `CHASE_GAIN` | 5.0 | m/s per log unit of area error, before range scaling |
 | `CHASE_SPEED` | 30.0 | speed cap; also the floor-escape climb rate |
-| `CHASE_FLOOR` | 10.0 | min altitude (world z ≈ AGL) before the escape latches |
+| `CHASE_FLOOR` | 5.0 | min altitude (world z ≈ AGL) before the escape latches |
 | `CHASE_CLIMB` | 15.0 | how far above the floor the escape climbs to |
 | `CHASE_DEADBAND` | 0.15 | log-area hold band — ±16% of area, ±7.8% of range |
 | `CHASE_HIST` | 5 | measurements median-filtered into one reading |
@@ -172,12 +172,15 @@ a car at 17 m, a motorcycle at 11 m, a pedestrian at 6.3 m. The person-following
 literature servos on bbox *height* for exactly this reason. The value here is calibrated
 for cars; treat it as such until something needs otherwise.
 
-**The floor can fight the setpoint on a steep approach — untested.** 0.012 holds a car at
+**The floor can fight the setpoint on a shallow approach — untested.** 0.012 holds a car at
 17.3 m *slant* range, and altitude at that range is `17.3·sin(pitch)`: fine at a 45° look
-down (12.2 m), under `CHASE_FLOOR` past about 35°. A steeper approach would then latch a
-climb to 25 m, shrink the box, and re-command a close — a limit cycle. Whether it actually
-happens depends on where ASSIST parks the pitch, which nothing here measures yet. If it
-shows up, the fix is a floor below the setpoint geometry, not a bigger climb.
+down (12.2 m), but it falls below the floor as the look flattens out. The escape then
+latches a climb, which shrinks the box, which re-commands a close — a limit cycle. Whether
+it happens depends on where ASSIST parks the pitch, which nothing here measures yet. The
+fix is a floor below the setpoint geometry, not a bigger climb, and lowering `CHASE_FLOOR`
+10.0 → 5.0 (2026-07-20T22:55Z, on request) moves the breach from anything shallower than
+35.3° to anything shallower than 16.8°. Untested in flight; it buys headroom, it does not
+prove the cycle gone.
 
 ### One correction per measurement, not per tick
 
@@ -363,6 +366,87 @@ UI process. Same crash as above, reached from the other end.
     *Not a bug:* `UserWarning: cannot import name '_C' from 'sam2'` on the first
     follow. Upstream SAM2 without its compiled extension; it disables one mask
     post-processing step and is explicitly documented as safe to ignore.
+
+## Follow trace (2026-07-20T22:15Z)
+
+Added after a manual session where the box drifted off a blue car onto scenery, then
+onto a white van, while the status bar read `lock 584/633` — 92%. Two separate lies:
+
+1. `match_actor` returns *any* vehicle whose projected centre lands in the box, so a
+   van inside the box read as locked. The identity of the followed car was never
+   checked.
+2. The lock counter was cumulative over the whole follow, so a few hundred bad frames
+   hid behind the good ones that preceded them.
+
+Both are fixed and instrumented:
+
+- **Identity lock.** The target's actor id is adopted at catch-up (`lag<=1`), not at
+  the seed — the seed box describes a frame ~4.5 s old, so asking at seed time names
+  whatever has since driven into that rectangle. Green now means *that* actor.
+- **Drift flag.** `DRIFT_S = 5.0` s continuously off-target (wrong actor or no actor)
+  turns the status bar red, prints `DRIFT Ns off target`, and writes `drift-<n>.png`.
+- **Rolling lock.** Status shows `lock <hits>/60` over the last 60 steps, cumulative
+  in parens.
+- **Trace.** Every follow writes `<out>/trace-<seed_n>/trace.jsonl`: per step
+  `n, box, area_ratio, aspect, actor, actor_type, on_target, lag, lock60`, plus
+  `ground / identity / switch / drift / lost / live / end` events. PNGs are written at
+  the seed, at every actor-identity change, and at each drift flag.
+- **Reader.** `.venv-ft/bin/python runners/carla_trace.py <trace.jsonl>` prints the
+  ground, identity, switches, drift episodes and box bloat with the PNG paths. No
+  argument runs its self-check.
+
+`area_ratio` is the one for the first failure mode (mask bloat off the car onto a
+billboard); `drift` + `switch` are for the second (track ends up on another vehicle).
+
+Not done: nothing re-grounds. A drifted track stays drifted until the operator hits
+drop and follow — the flag says so rather than fixing it. ASSIST also keeps steering
+on a flagged box.
+
+## Dark theme (2026-07-20T23:10Z)
+
+`apply_dark(root)`, one call after `tk.Tk()`. The video panes were `#1e1e1e` from the
+start; a white control strip around them is what the eye adapts to, and then the
+render you are judging looks underexposed. Palette: `DARK #1e1e1e`, `DARK_HI #2d2d2d`,
+`TEXT #e0e0e0`, `ACCENT #3fbf5f` (focus ring, same green as an on-target box),
+`ALERT #ff6b6b` (the drift banner).
+
+Three separate mechanisms, because Tk has three:
+
+- `tk_setPalette` — every classic Tk widget in one call, including already-built ones.
+- `ttk.Style` with theme `clam` — ttk's default theme ignores colour options outright,
+  so the Combobox needs the theme swap before `configure` does anything.
+- `option_add` — the Combobox *dropdown* (a plain Tk Listbox the theme never reaches),
+  plus `Entry`/`Spinbox` backgrounds and `Checkbutton.selectColor`. These last two are
+  the contrast a flat dark palette loses: a text field must look like a hole you can
+  type in, and an unchecked box defaults to a white square louder than anything else
+  on screen. `option_add` only affects widgets created after the call.
+
+Verified by screenshot, not by reading the code: the control strip was rendered with
+the real `apply_dark` under a throwaway harness and grabbed with `ffmpeg -f x11grab`.
+The first grab is what showed the invisible entries and the white checkbox.
+
+## Hot reload (2026-07-20T22:40Z)
+
+`r` + Enter in the launching terminal re-execs the script and leaves CARLA running.
+`q` + Enter quits normally (kills the server if this process started it). Booting
+CARLA costs 10-30 s plus one round-trip per spawned car, and none of that is what
+you are editing.
+
+Four things it has to get right, all of them in `reload_argv` / `unpause_on_exit`:
+
+- **`--auto-spawn 0` is forced.** The old cars live in the server, not in the UI, so
+  respawning would stack another batch on every reload.
+- **The camera sensor is destroyed first.** It is an actor, and the server survives —
+  without this each reload leaks a sensor that keeps rendering.
+- **The server's pgid rides along** in `--adopt-pgid`. `execv` keeps our PID so the
+  process group is still ours to signal, but the `Popen` object is gone; without the
+  handoff the last exit orphans the server. `stop_carla` takes a bare pgid for this.
+- **A paused world is unpaused before the exec**, same as handing it to any other
+  client: sync mode with nothing ticking hangs the next connection.
+
+Line-buffered, not raw single-key — cbreak would mean restoring termios on every exit
+path including the crashes, to save one keystroke. `tests/test_reload_argv.py` covers
+the argv rewrite headless.
 
 ## What this cannot tell you
 

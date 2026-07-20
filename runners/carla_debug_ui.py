@@ -5,6 +5,7 @@
 """
 import argparse
 import collections
+import json
 import math
 import os
 import random
@@ -82,7 +83,11 @@ CHASE_SPEED = 30.0          # m/s cap along the boresight, either direction
 # climbs once breached. CARLA world z, and Town10's ground is ~0, so it doubles
 # as AGL. ponytail: flat-ground assumption. Raycast the terrain if a map with
 # real relief shows up.
-CHASE_FLOOR = 10.0
+CHASE_FLOOR = 5.0
+# One palette for the whole panel. DARK matches the video panes, which were dark
+# from the start; ACCENT is the focus ring and doubles as the "box is on target"
+# green so the two read as the same signal.
+DARK, DARK_HI, TEXT, ACCENT, ALERT = "#1e1e1e", "#2d2d2d", "#e0e0e0", "#3fbf5f", "#ff6b6b"
 CHASE_CLIMB = 15.0
 CHASE_HIST = 5              # measurements median-filtered into one area reading
 # Error is in LOG area because area falls as 1/d^2: one log unit is a fixed ratio
@@ -188,22 +193,55 @@ def project(world_loc, cam_tf, w=CAM_W, h=CAM_H, fov=CAM_FOV):
     return (f * x / z + w / 2.0, f * y / z + h / 2.0)
 
 
+# How long the box may sit on the wrong vehicle (or on no vehicle at all) before
+# the UI calls it drift. Long enough to ride out an occlusion or a bad frame or
+# two, short enough that the operator is not steering a lie: at 5 Hz that is ~25
+# consecutive bad measurements, which is not a glitch.
+DRIFT_S = 5.0
+
+
+# How much of the smaller of (tracker box, actor's projected box) must overlap
+# before we call it the same vehicle. Low on purpose: a mask clipped by a pole or
+# a banner keeps only part of the vehicle, and that is still a lock, not a drift.
+MATCH_OVERLAP = 0.30
+
+
+def actor_box(v, cam_tf):
+    """The actor's 3D bounding box projected to an axis-aligned pixel box."""
+    pts = [project(p, cam_tf)
+           for p in v.bounding_box.get_world_vertices(v.get_transform())]
+    pts = [p for p in pts if p is not None]
+    if len(pts) < 8:                      # partly behind the camera: not a match
+        return None
+    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    return (min(xs), min(ys), max(xs), max(ys))
+
+
 def match_actor(world, cam_tf, box):
-    """Which vehicle, if any, sits inside the tracker's box. None means drifted.
+    """Which vehicle, if any, the tracker's box is on. None means drifted.
 
     The correctness check the throughput asserts could not give -- and it only
     reads the world, it draws nothing. Overlays go on the frames we receive, not
     into the engine, so the render stays the render.
+
+    Overlap, not point-in-box: the mesh origin of a truck sits well outside a
+    tight box drawn around its cargo body, so the old point test called a
+    pixel-perfect lock a drift and never recovered.
     """
-    best, best_d = None, 1e9
-    cx, cy = (box[0] + box[2]) / 2.0, (box[1] + box[3]) / 2.0
+    best, best_o = None, MATCH_OVERLAP
     for v in world.get_actors().filter("vehicle.*"):
-        p = project(v.get_location(), cam_tf)
-        if p is None or not (box[0] <= p[0] <= box[2] and box[1] <= p[1] <= box[3]):
+        a = actor_box(v, cam_tf)
+        if a is None:
             continue
-        d = math.hypot(p[0] - cx, p[1] - cy)
-        if d < best_d:
-            best, best_d = v, d
+        iw = min(a[2], box[2]) - max(a[0], box[0])
+        ih = min(a[3], box[3]) - max(a[1], box[1])
+        if iw <= 0 or ih <= 0:
+            continue
+        smaller = min((a[2] - a[0]) * (a[3] - a[1]),
+                      (box[2] - box[0]) * (box[3] - box[1]))
+        o = iw * ih / max(1.0, smaller)
+        if o > best_o:
+            best, best_o = v, o
     return best
 
 
@@ -318,6 +356,64 @@ def port_owner(port):
     return (int(m.group(2)), m.group(1)) if m else (None, None)
 
 
+def apply_dark(root):
+    """Dark chrome to match the video panes, which were #1e1e1e from the start.
+
+    A white control strip around a night-lit render is what the eye adapts to, and
+    then the frame you are supposed to be judging looks underexposed.
+
+    tk_setPalette does every classic Tk widget in one call, including ones already
+    built. ttk is a separate world: its default theme ignores colour options
+    outright, so the Combobox needs "clam" plus its dropdown styled through the
+    option database -- that list is a plain Tk Listbox the theme never reaches.
+    """
+    root.tk_setPalette(background=DARK, foreground=TEXT,
+                       activeBackground=DARK_HI, activeForeground=TEXT,
+                       highlightBackground=DARK, highlightColor=ACCENT,
+                       selectBackground=ACCENT, selectForeground=DARK,
+                       insertBackground=TEXT, troughColor=DARK_HI,
+                       disabledForeground="#6a6a6a")
+    style = ttk.Style()
+    style.theme_use("clam")
+    style.configure("TCombobox", fieldbackground=DARK_HI, background=DARK_HI,
+                    foreground=TEXT, arrowcolor=TEXT, bordercolor=DARK_HI)
+    style.map("TCombobox", fieldbackground=[("readonly", DARK_HI)],
+              selectbackground=[("readonly", DARK_HI)],
+              selectforeground=[("readonly", TEXT)])
+    for k, v in (("background", DARK_HI), ("foreground", TEXT),
+                 ("selectBackground", ACCENT), ("selectForeground", DARK)):
+        root.option_add(f"*TCombobox*Listbox.{k}", v)
+    # The palette paints one background everywhere, which loses the two places a
+    # flat dark UI needs contrast: a text field has to look like a hole you can type
+    # in, and an unchecked box defaults to a white square that grabs the eye harder
+    # than anything on screen. Both only reach widgets built after this call.
+    for cls in ("Entry", "Spinbox"):
+        root.option_add(f"*{cls}.background", DARK_HI)
+        root.option_add(f"*{cls}.highlightBackground", DARK_HI)
+    root.option_add("*Checkbutton.selectColor", DARK_HI)
+
+
+def reload_argv(argv, pgid):
+    """argv for a hot reload's re-exec.
+
+    Two edits. Auto-spawn goes to 0: the old process's cars are still in the world
+    (they live in the server, not in us), so respawning would stack another batch
+    every reload. And the server's process group rides along, because execv keeps
+    our PID -- the group is still ours to signal -- but not our Popen object.
+    """
+    out, skip = [], False
+    for a in argv:
+        if skip:
+            skip = False
+            continue
+        if a in ("--auto-spawn", "--adopt-pgid"):
+            skip = True
+        elif not a.startswith(("--auto-spawn=", "--adopt-pgid=")):
+            out.append(a)
+    out += ["--auto-spawn", "0"]
+    return out + (["--adopt-pgid", str(pgid)] if pgid else [])
+
+
 def stop_carla(proc):
     """TERM the server's process group, then KILL what ignored it.
 
@@ -331,10 +427,22 @@ def stop_carla(proc):
     """
     if proc is None:
         return
-    try:
-        pgid = os.getpgid(proc.pid)
-    except ProcessLookupError:
-        return
+    if isinstance(proc, int):
+        # adopted across a hot reload: we have the group but not the Popen, so the
+        # launcher shell is reaped by number instead of by object
+        pgid = proc
+
+        def reap():
+            try:
+                os.waitpid(-1, os.WNOHANG)
+            except ChildProcessError:
+                pass
+    else:
+        try:
+            pgid = os.getpgid(proc.pid)
+        except ProcessLookupError:
+            return
+        reap = proc.poll
     print("stopping CARLA", flush=True)
     for sig, grace in ((signal.SIGTERM, 8.0), (signal.SIGKILL, 5.0)):
         try:
@@ -343,11 +451,34 @@ def stop_carla(proc):
             return
         deadline = time.time() + grace
         while time.time() < deadline:
-            proc.poll()      # reap the launcher, else its zombie counts as "alive"
+            reap()           # reap the launcher, else its zombie counts as "alive"
             if not group_alive(pgid):
                 return
             time.sleep(0.1)
     print(f"WARNING: CARLA process group {pgid} survived SIGKILL", flush=True)
+
+
+_TM = []
+
+
+def traffic_manager(client):
+    """The one traffic manager for this process.
+
+    get_trafficmanager() does not fetch a TM, it *creates* an RPC server on
+    port 8000. A second carla_debug_ui.py against the same CARLA finds the
+    port already owned by the first and raises 'bind error' -- from whatever
+    button happened to call it, which on the Tk main thread is a raw traceback
+    and a dead button. One acquire, checked at startup, turns that into a
+    sentence.
+    """
+    if not _TM:
+        try:
+            _TM.append(client.get_trafficmanager())
+        except RuntimeError as e:
+            raise SystemExit(
+                "traffic-manager port 8000 is busy -- another carla_debug_ui.py "
+                f"is already running against this server ({e})") from e
+    return _TM[0]
 
 
 def main():
@@ -360,17 +491,26 @@ def main():
                     help="CarlaUE4.sh to launch if nothing answers on the port")
     ap.add_argument("--auto-spawn", type=int, default=AUTO_SPAWN,
                     help="vehicles to spawn on startup (0 = none)")
+    ap.add_argument("--adopt-pgid", type=int, default=0,
+                    help="internal: server process group inherited from a hot reload")
     ap.add_argument("--selftest", action="store_true",
                     help="spawn, check they move, clear, exit")
     args = ap.parse_args()
 
     client, carla_proc = ensure_carla(args.host, args.port, args.carla)
+    # ensure_carla returns None for a server it did not start, which after a hot
+    # reload is our own from one execv ago -- take it back so the last exit still
+    # cleans up instead of orphaning it
+    if carla_proc is None and args.adopt_pgid and group_alive(args.adopt_pgid):
+        carla_proc = args.adopt_pgid
     client.set_timeout(60.0)  # load_world blocks for ~10-30s
+    traffic_manager(client)   # fail here, not on the first button press
     # basename only: get_available_maps returns /Game/Carla/Maps/Town10HD_Opt
     maps = sorted(m.split("/")[-1] for m in client.get_available_maps())
 
     root = tk.Tk()
     root.title("CARLA debug")
+    apply_dark(root)
     # Start maximised so the sensor picks the full-screen resolution on the first
     # attach. mutter ignores -zoomed when it is set before the window is mapped,
     # so an explicit screen-sized geometry is the one that actually takes.
@@ -462,7 +602,7 @@ def main():
         points = world.get_map().get_spawn_points()
         rng.shuffle(points)
         n = min(n, len(points))
-        tm_port = client.get_trafficmanager().get_port()
+        tm_port = traffic_manager(client).get_port()
         batch = [carla.command.SpawnActor(rng.choice(bps), p).then(
                      carla.command.SetAutopilot(carla.command.FutureActor,
                                                 True, tm_port))
@@ -509,7 +649,7 @@ def main():
 
     def clear():
         world = client.get_world()
-        port = client.get_trafficmanager().get_port()
+        port = traffic_manager(client).get_port()
         for a in world.get_actors(spawned):
             if a.type_id.startswith("controller"):
                 a.stop()  # stop before destroy or the walker keeps its command
@@ -549,7 +689,7 @@ def main():
     def toggle_pause():
         world = client.get_world()
         settings = world.get_settings()
-        tm = client.get_trafficmanager()
+        tm = traffic_manager(client)
         want = not paused["on"]
         settings.synchronous_mode = want
         # a sync world with no fixed step warns on every apply; 20 Hz is only what
@@ -570,7 +710,7 @@ def main():
     # middle of whatever bytecode is running, which is usually inside tick(), and
     # destroying the widgets from there returns into a half-finished callback that
     # then touches a dead widget: "invalid command name .!frame.!scale".
-    closing = {"want": False, "done": False}
+    closing = {"want": False, "done": False, "reload": False}
 
     def unpause_on_exit():
         if closing["done"]:
@@ -578,12 +718,29 @@ def main():
         closing["done"] = True
         # a server we started dies with the window, so its sync-mode state is moot;
         # one that was already running is someone else's and must be handed back
-        # unpaused -- left in sync mode with no ticker it hangs the next client
-        if paused["on"] and carla_proc is None:
+        # unpaused -- left in sync mode with no ticker it hangs the next client.
+        # A reload counts as handing it back: the next process would connect to a
+        # sync-mode server with nothing ticking it and hang on the first world call.
+        if paused["on"] and (carla_proc is None or closing["reload"]):
             try:
                 toggle_pause()
             except RuntimeError:
                 pass
+        if closing["reload"]:
+            # the camera is an actor in the server, and the server survives -- so
+            # without this every reload leaks a sensor that still renders
+            try:
+                if cam["sensor"] is not None:
+                    cam["sensor"].stop()
+                    cam["sensor"].destroy()
+            except RuntimeError:
+                pass
+            root.destroy()
+            pgid = carla_proc if isinstance(carla_proc, int) else (
+                os.getpgid(carla_proc.pid) if carla_proc else 0)
+            print("reloading UI, leaving CARLA up", flush=True)
+            os.execv(sys.executable,          # never returns
+                     [sys.executable, *reload_argv(sys.argv, pgid)])
         root.destroy()
         stop_carla(carla_proc)   # no-op unless this process launched it
 
@@ -591,6 +748,24 @@ def main():
         closing["want"] = True
 
     root.protocol("WM_DELETE_WINDOW", request_close)
+
+    # Hot reload: 'r' + Enter in the launching terminal re-execs this script and
+    # leaves the server, its world and its cars alone -- CARLA costs 10-30 s to boot
+    # plus a spawn round-trip per car, and none of that is what you are editing.
+    # Line-buffered, not raw single-key: cbreak means restoring termios on every
+    # exit path including the crash ones, for one saved keystroke.
+    def watch_stdin():
+        for line in sys.stdin:
+            cmd = line.strip().lower()
+            if cmd in ("r", "q"):
+                closing["reload"] = cmd == "r"
+                closing["want"] = True   # teardown still happens only in tick()
+                return
+
+    if sys.stdin and sys.stdin.isatty():
+        threading.Thread(target=watch_stdin, daemon=True).start()
+        print("press r + Enter to reload the UI (CARLA stays up), q to quit",
+              flush=True)
 
     # CarlaUE4's own WASD fly speed is a UE4 viewport setting with no RPC, so
     # instead we drive the spectator ourselves. Keys work while THIS window has
@@ -622,7 +797,7 @@ def main():
     # the same one sitting there: a box that stopped updating (occlusion) is a fixed
     # pixel error, and steering on it every tick is an integrator with no feedback.
     track = {"box": None, "msg": "", "lag": 0, "stop": None, "actor": None,
-             "hits": 0, "steps": 0, "stamp": 0}
+             "hits": 0, "steps": 0, "stamp": 0, "on_target": False, "drift": None}
     track_lock = threading.Lock()
     resize = {"job": None}
 
@@ -646,13 +821,28 @@ def main():
         out_dir.mkdir(parents=True, exist_ok=True)
         shot = out_dir / "frame.png"
         cv2.imwrite(str(shot), seed)
+        # One trace per follow. Every carry step is a line; the seed frame and every
+        # frame where the matched actor CHANGES gets a PNG next to it. That pair --
+        # the row that shows the switch and the picture of it -- is the whole point:
+        # a drift or a target swap is unarguable from the log alone.
+        tdir = out_dir / f"trace-{seed_n}"
+        tdir.mkdir(parents=True, exist_ok=True)
+        trace = (tdir / "trace.jsonl").open("w", buffering=1)
+
+        def emit(**row):
+            trace.write(json.dumps(row) + "\n")
+
+        cv2.imwrite(str(tdir / f"seed-{seed_n}.png"), seed)
         track["msg"] = f"grounding {caption!r}..."
         t0 = time.time()
         raw = backend["be"].generate(str(shot), caption)
         vlm_s = time.time() - t0
         box = parse_bbox(raw)
+        emit(ev="ground", caption=caption, seed_n=seed_n, vlm_s=round(vlm_s, 3),
+             raw=raw[:200], box=box)
         if box is None:
             track["msg"] = f"NO_MATCH in {vlm_s:.1f}s (raw {raw!r:.40})"
+            trace.close()
             return
 
         h, w = seed.shape[:2]
@@ -679,6 +869,18 @@ def main():
         with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
             carry = StreamCarry(backend["pred"], seed[:, :, ::-1], seed_box)
             cursor, caught_at = seed_n, None
+            seed_area = max(1, (seed_box[2] - seed_box[0]) * (seed_box[3] - seed_box[1]))
+            # Cumulative lock% is the metric that hid this bug: a box that has been
+            # right for 400 frames and wrong for the last 100 still reads 80%. The
+            # rolling window is what actually falls when the track drifts.
+            recent = collections.deque(maxlen=60)
+            prev_id = None
+            # The target's identity is adopted at catch-up, not at the seed: the seed
+            # box describes frame seed_n but match_actor reads the world NOW, and
+            # ~4.5 s of ego + target motion separate the two, so asking at seed time
+            # names whatever has since driven into that rectangle. At lag<=1 the box
+            # and the world are the same instant, which is the first honest answer.
+            seed_id, bad_since, flagged = None, None, False
             while not stop.is_set():
                 with frame_lock:
                     pending = [(n, f) for n, f in backlog if n > cursor]
@@ -691,28 +893,78 @@ def main():
                 _, b = carry.step(frame[:, :, ::-1])
                 cursor = n
                 track["lag"] = live_n - cursor
-                if b is not None and cam["sensor"] is not None:
+                if b is None:
+                    emit(ev="lost", n=n, lag=track["lag"])
+                elif cam["sensor"] is not None:
                     box = [int(v) for v in b]
                     actor = match_actor(client.get_world(),
                                         cam["sensor"].get_transform(), box)
                     # publish only if this thread is still the live one: a drop that
                     # landed during the step above must win, or its cleared box
                     # comes straight back and the square never leaves the screen
+                    aid = actor.id if actor is not None else None
+                    if seed_id is None and track["lag"] <= 1 and aid is not None:
+                        seed_id = aid
+                        emit(ev="identity", n=n, actor=aid, actor_type=actor.type_id)
+                    # green means THE target, not "some car is in the box" -- the old
+                    # test read locked on a white van while following a blue car
+                    on_target = aid is not None and (seed_id is None or aid == seed_id)
+
+                    now = time.time()
+                    if on_target:
+                        bad_since, flagged = None, False
+                        track["drift"] = None
+                    else:
+                        bad_since = bad_since or now
+                        held = now - bad_since
+                        track["drift"] = held if held >= DRIFT_S else None
+                        if held >= DRIFT_S and not flagged:
+                            flagged = True   # once per drift episode, not per frame
+                            cv2.imwrite(str(tdir / f"drift-{n}.png"),
+                                        draw_overlay(frame.copy(), box, caption, False))
+                            emit(ev="drift", n=n, held_s=round(held, 2),
+                                 want=seed_id, got=aid,
+                                 got_type=actor.type_id if actor is not None else None)
+
                     with track_lock:
                         if stop.is_set():
                             break
                         track["box"], track["actor"] = box, actor
+                        track["on_target"] = on_target
                         track["stamp"] += 1
-                        track["hits"] += actor is not None
+                        track["hits"] += on_target
                         track["steps"] += 1
+                    recent.append(on_target)
+                    area = (box[2] - box[0]) * (box[3] - box[1])
+                    emit(ev="step", n=n, lag=track["lag"], box=box,
+                         area_ratio=round(area / seed_area, 3),
+                         aspect=round((box[2] - box[0]) / max(1, box[3] - box[1]), 3),
+                         actor=aid, on_target=on_target,
+                         actor_type=actor.type_id if actor is not None else None,
+                         lock60=sum(recent))
+                    if aid != prev_id:
+                        # the switch itself, with the picture that proves it
+                        cv2.imwrite(str(tdir / f"switch-{n}.png"),
+                                    draw_overlay(frame.copy(), box, caption,
+                                                 actor is not None))
+                        emit(ev="switch", n=n, was=prev_id, now=aid)
+                        prev_id = aid
                 if caught_at is None and track["lag"] <= 1:
                     caught_at = time.time() - t0
                     track["msg"] = (f"vlm {vlm_s:.1f}s + catchup "
                                     f"{caught_at - vlm_s:.1f}s, now live")
+                    emit(ev="live", n=n, catchup_s=round(caught_at - vlm_s, 3))
                 elif caught_at is not None:
-                    # lock% is the honest signal: box on a real car, or drifted
-                    track["msg"] = (f"tracking, lag {track['lag']}, lock "
-                                    f"{track['hits']}/{track['steps']}")
+                    # rolling lock is the honest signal, cumulative hides the drift
+                    d = track["drift"]
+                    track["msg"] = (
+                        (f"DRIFT {d:.0f}s off target -- drop and re-follow.  "
+                         if d else "")
+                        + f"tracking, lag {track['lag']}, lock "
+                          f"{sum(recent)}/{len(recent)} "
+                          f"({track['hits']}/{track['steps']} all)")
+        emit(ev="end", n=cursor)
+        trace.close()
         # no "stopped" message here: the only way out of that loop is stop being
         # set, i.e. a drop or a new follow, and both have already said their piece
 
@@ -730,6 +982,7 @@ def main():
                 track["stop"].set()      # one target at a time
             track["stop"] = threading.Event()
             track["box"], track["actor"] = None, None
+            track["on_target"], track["drift"] = False, None
         threading.Thread(target=follow, daemon=True,
                          args=(caption_entry.get(), track["stop"])).start()
 
@@ -741,6 +994,7 @@ def main():
             if track["stop"] is not None:
                 track["stop"].set()
             track["box"], track["actor"], track["msg"] = None, None, "dropped"
+            track["on_target"], track["drift"] = False, None
 
     caption_entry.bind("<Return>", do_follow)
     tk.Button(grow, text="follow", command=do_follow).pack(side=tk.LEFT, padx=(4, 0))
@@ -762,20 +1016,20 @@ def main():
                "t": time.time(), "n0": 0, "fps": 0.0}
     # grid, not pack: the weights are what make a resize redistribute the space.
     # 3:1 keeps the flown view dominant and the Jetson feed a thumbnail at any size.
-    views = tk.Frame(root, bg="#1e1e1e")
+    views = tk.Frame(root, bg=DARK)
     views.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
     # the thumbnail is a FIXED width, not a fraction: a 3:1 weight handed it 500 px
     # on a 2000 px window, which is not a thumbnail. Big view takes all the slack.
     views.columnconfigure(0, weight=1)
     views.columnconfigure(1, weight=0, minsize=THUMB_W + 12)
     views.rowconfigure(0, weight=1)
-    big = tk.Label(views, bg="#1e1e1e")
+    big = tk.Label(views, bg=DARK)
     big.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
-    col = tk.Frame(views, bg="#1e1e1e")
+    col = tk.Frame(views, bg=DARK)
     col.grid(row=0, column=1, sticky="nsew", padx=(0, 8), pady=8)
     tk.Label(col, text=f"what the Jetson sees -- {CAM_HZ:.0f} Hz, VLM + tracker",
-             bg="#1e1e1e", fg="#dddddd").pack(anchor=tk.W)
-    small_lbl = tk.Label(col, bg="#1e1e1e")
+             bg=DARK, fg=TEXT).pack(anchor=tk.W)
+    small_lbl = tk.Label(col, bg=DARK)
     small_lbl.pack(fill=tk.BOTH, expand=True, anchor=tk.N)
 
     def _photo(bgr, widget, drop=0, fixed_w=None):
@@ -810,7 +1064,7 @@ def main():
                 lf, preview["ln"] = lf.copy(), live["n"]
             if ff is not None:
                 ff, preview["fn"] = ff.copy(), latest["n"]
-        box, locked = track["box"], track["actor"] is not None
+        box, locked = track["box"], track["on_target"]
         if lf is not None:
             # the box is up to one feed period stale here -- it was measured on
             # the 5 Hz frame, drawn on the 60 Hz one. Same camera, so it lines up.
@@ -830,7 +1084,8 @@ def main():
                 n = live["n"]
             preview["fps"] = (n - preview["n0"]) / dt
             preview["t"], preview["n0"] = time.time(), n
-        gstatus.config(text=f"{preview['fps']:.0f} Hz live  {track['msg']}")
+        gstatus.config(text=f"{preview['fps']:.0f} Hz live  {track['msg']}",
+                       fg=ALERT if track["drift"] else TEXT)
 
     def on_press(e):
         k = e.keysym.lower()
@@ -871,7 +1126,7 @@ def main():
     # spectator keeps drifting after you click away.
     for w in (big, small_lbl):
         w.config(takefocus=True, highlightthickness=3,
-                 highlightbackground="#1e1e1e", highlightcolor="#3fbf5f")
+                 highlightbackground=DARK, highlightcolor=ACCENT)
         w.bind("<Button-1>", lambda e, w=w: w.focus_set())
         w.bind("<FocusOut>", lambda e: held.clear())
         w.bind("<KeyPress>", on_press)
