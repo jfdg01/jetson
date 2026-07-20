@@ -1,0 +1,139 @@
+{
+  "arm": "DSC",
+  "leg": "SWAP",
+  "scene": {
+    "clip": "person10",
+    "f0": 450,
+    "t_p": 8.0,
+    "target_caption": "the man in the blue shirt",
+    "distractor_caption": "the man in the white shirt",
+    "distractor_gt_prompt": [
+      558,
+      612,
+      600,
+      700
+    ],
+    "gating": true,
+    "note": "NEW. Distractor enters late (pre-registered discovery risk); near the frame bottom edge at prompt f690."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 16.5,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "dist_floor": 0.25,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "ds_offset": 150,
+  "iou_same": 0.5,
+  "pass": false,
+  "swap_weak_pass": false,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "n_scored": 0,
+    "deliver_frame": 690,
+    "selection": null,
+    "selection_correct": false,
+    "reason": "selected track lost during idle",
+    "leg": "SWAP"
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 450,
+    "t_p": 8.0,
+    "prompt_frame": 690,
+    "ds": 300,
+    "reanchor": [
+      {
+        "frame": 540,
+        "skipped": "in-discovery"
+      },
+      {
+        "frame": 615,
+        "win": [
+          702,
+          590,
+          958,
+          720
+        ],
+        "crop_wh": [
+          512,
+          260
+        ],
+        "prior": [
+          814.0,
+          716.0,
+          846.0,
+          720.0
+        ],
+        "raw": [
+          714.8,
+          591.3,
+          717.4,
+          593.9
+        ],
+        "accepted": true,
+        "new_box": [
+          714.8,
+          591.3,
+          717.4,
+          593.9
+        ]
+      }
+    ],
+    "discovery": [
+      {
+        "cand": "target",
+        "caption": "the man in the blue shirt",
+        "call_frame": 300,
+        "return_frame": 436,
+        "latency_s": 4.53,
+        "outcome": "accepted",
+        "box": [
+          652.8,
+          489.6,
+          716.8,
+          597.6
+        ],
+        "seed_iou_gt": 0.7638
+      },
+      {
+        "cand": "distractor",
+        "caption": "the man in the white shirt",
+        "call_frame": 436,
+        "return_frame": 572,
+        "latency_s": 4.54,
+        "outcome": "accepted",
+        "box": [
+          422.4,
+          345.6,
+          473.6,
+          432.0
+        ]
+      }
+    ],
+    "discovery_done_frame": 572,
+    "acquire_s": 0.0,
+    "caption": "the man in the white shirt",
+    "selected": "distractor",
+    "cand_at_prompt": {
+      "target": [
+        610.0,
+        516.0,
+        650.0,
+        605.0
+      ],
+      "distractor": null
+    }
+  },
+  "events": []
+}

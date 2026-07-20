@@ -1,0 +1,392 @@
+{
+  "arm": "DSC",
+  "leg": "WSEL",
+  "scene": {
+    "clip": "car3",
+    "f0": 1050,
+    "t_p": 8.0,
+    "target_caption": "the red car",
+    "distractor_caption": "the black car behind the red car",
+    "distractor_gt_prompt": [
+      355,
+      470,
+      387,
+      505
+    ],
+    "gating": true,
+    "note": "NEW. Same red target as the car3:200 control but 850 frames later at larger scale; trailing black car well separated at prompt f1290."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 30.0,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "dist_floor": 0.25,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "ds_offset": 150,
+  "iou_same": 0.5,
+  "pass": false,
+  "swap_weak_pass": null,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 300,
+    "deliver_frame": 1290,
+    "deliver_iou": 0.0,
+    "window": [
+      1290,
+      1590
+    ],
+    "leg": "WSEL",
+    "selection": "target",
+    "selection_correct": true,
+    "acquire_s": 0.0,
+    "deliver_iou_distractor": 0.0
+  },
+  "meta": {
+    "leg": "WSEL",
+    "f0": 1050,
+    "t_p": 8.0,
+    "prompt_frame": 1290,
+    "ds": 900,
+    "reanchor": [
+      {
+        "frame": 1140,
+        "skipped": "in-discovery"
+      },
+      {
+        "frame": 1215,
+        "win": [
+          294,
+          300,
+          550,
+          556
+        ],
+        "crop_wh": [
+          512,
+          512
+        ],
+        "prior": [
+          410.0,
+          413.0,
+          433.0,
+          443.0
+        ],
+        "raw": [
+          422.0,
+          425.4,
+          429.7,
+          443.4
+        ],
+        "accepted": true,
+        "new_box": [
+          422.0,
+          425.4,
+          429.7,
+          443.4
+        ]
+      }
+    ],
+    "discovery": [
+      {
+        "cand": "target",
+        "caption": "the red car",
+        "call_frame": 900,
+        "return_frame": 1036,
+        "latency_s": 4.52,
+        "outcome": "accepted",
+        "box": [
+          320.0,
+          655.2,
+          358.4,
+          705.6
+        ],
+        "seed_iou_gt": 0.0
+      },
+      {
+        "cand": "distractor",
+        "caption": "the black car behind the red car",
+        "call_frame": 1036,
+        "return_frame": 1172,
+        "latency_s": 4.52,
+        "outcome": "accepted",
+        "box": [
+          409.6,
+          388.8,
+          435.2,
+          417.6
+        ]
+      }
+    ],
+    "discovery_done_frame": 1172,
+    "acquire_s": 0.0,
+    "caption": "the red car",
+    "selected": "target",
+    "cand_at_prompt": {
+      "target": [
+        438.0,
+        95.0,
+        452.0,
+        106.0
+      ],
+      "distractor": [
+        417.0,
+        426.0,
+        433.0,
+        447.0
+      ]
+    },
+    "deliver_frame": 1290,
+    "shadow": {
+      "acquire_s": 4.52,
+      "vlm_box": [
+        435.2,
+        93.6,
+        448.0,
+        108.0
+      ],
+      "match_ious": {
+        "target": 0.4818,
+        "distractor": 0.0
+      },
+      "selected": "target"
+    }
+  },
+  "events": [
+    [
+      43.0,
+      [
+        438.0,
+        95.0,
+        452.0,
+        106.0
+      ]
+    ],
+    [
+      43.055,
+      [
+        438.0,
+        95.0,
+        452.0,
+        106.0
+      ]
+    ],
+    [
+      43.233,
+      [
+        437.0,
+        93.0,
+        450.0,
+        104.0
+      ]
+    ],
+    [
+      43.399,
+      [
+        438.0,
+        87.0,
+        452.0,
+        98.0
+      ]
+    ],
+    [
+      43.565,
+      [
+        436.0,
+        83.0,
+        451.0,
+        95.0
+      ]
+    ],
+    [
+      43.73,
+      [
+        436.0,
+        81.0,
+        449.0,
+        92.0
+      ]
+    ],
+    [
+      43.897,
+      [
+        436.0,
+        77.0,
+        451.0,
+        87.0
+      ]
+    ],
+    [
+      44.063,
+      [
+        436.0,
+        73.0,
+        450.0,
+        84.0
+      ]
+    ],
+    [
+      44.228,
+      [
+        435.0,
+        71.0,
+        449.0,
+        81.0
+      ]
+    ],
+    [
+      44.394,
+      [
+        435.0,
+        67.0,
+        450.0,
+        78.0
+      ]
+    ],
+    [
+      44.559,
+      [
+        434.0,
+        63.0,
+        449.0,
+        74.0
+      ]
+    ],
+    [
+      44.725,
+      [
+        432.0,
+        60.0,
+        448.0,
+        71.0
+      ]
+    ],
+    [
+      44.891,
+      [
+        434.0,
+        56.0,
+        448.0,
+        67.0
+      ]
+    ],
+    [
+      45.056,
+      [
+        432.0,
+        54.0,
+        448.0,
+        64.0
+      ]
+    ],
+    [
+      45.222,
+      [
+        433.0,
+        51.0,
+        447.0,
+        61.0
+      ]
+    ],
+    [
+      45.388,
+      [
+        432.0,
+        48.0,
+        449.0,
+        58.0
+      ]
+    ],
+    [
+      45.553,
+      [
+        432.0,
+        45.0,
+        447.0,
+        54.0
+      ]
+    ],
+    [
+      45.72,
+      [
+        431.0,
+        42.0,
+        445.0,
+        52.0
+      ]
+    ],
+    [
+      45.884,
+      [
+        431.0,
+        39.0,
+        448.0,
+        48.0
+      ]
+    ],
+    [
+      46.049,
+      [
+        430.0,
+        33.0,
+        444.0,
+        42.0
+      ]
+    ],
+    [
+      46.217,
+      [
+        429.0,
+        27.0,
+        443.0,
+        37.0
+      ]
+    ],
+    [
+      46.383,
+      [
+        428.0,
+        22.0,
+        442.0,
+        31.0
+      ]
+    ],
+    [
+      46.549,
+      [
+        427.0,
+        14.0,
+        442.0,
+        24.0
+      ]
+    ],
+    [
+      46.714,
+      [
+        426.0,
+        5.0,
+        443.0,
+        16.0
+      ]
+    ],
+    [
+      46.88,
+      [
+        425.0,
+        0.0,
+        441.0,
+        7.0
+      ]
+    ]
+  ]
+}

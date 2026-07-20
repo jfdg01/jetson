@@ -509,3 +509,34 @@ flips P5.8's failing gate — disclosed, deliberate, grounded in third-party-che
   precisely for this known gz-transport flake; consuming budget for a first retry would have
   made the >3 INFRA allowance unreachable in practice. **Given up:** nothing measurable — the
   retry produced a clip that passes all 10 build gates and G4a determinism.
+
+## P5.18 — n25-select (2026-07-20)
+
+- **Re-powered the existing P5.16 claim instead of testing a new lever.** **Why:** P5.14/P5.16
+  are the load-bearing Part V select YESes and both gated on n=5 per leg, which the standing
+  sample-size rule calls an anecdote; a claim that cannot survive its own re-measurement is not
+  thesis-grade, and the pipeline was frozen byte-identical so the scene set is the single factor.
+  **Given up:** a cycle's GPU time that could have tested a new lever — and the answer was that
+  the SWAP half of the claim does not survive, which retroactively justifies the spend.
+  **Vindicated:** the rule caught a real 0.80 -> 0.65 optimism gap on its first application.
+- **Ran the GT-free (P5.16) variant rather than the GT-seeded (P5.14) one.** **Why:** P5.16
+  showed the seed oracle is worth ~1 cell in 12, and the GT-free pipeline is the deployable one,
+  so it is the one worth powering. **Given up:** direct comparability with P5.14's exact numbers.
+- **Kept the SWAP failure as a select failure rather than re-scoping the leg.** **Why:** 3 of the
+  5 SWAP-only failures are late-entry discovery — the distractor is not in frame when the idle
+  window opens — and it is tempting to call those "out of scope" and re-gate on scenes where both
+  candidates are present at discovery. That would be scoring the pipeline on the scenes it
+  happens to win. Late entry is the *normal* case for an operator who names an object that flies
+  into view; excluding it would make the metric describe a world the drone does not fly in.
+  **Given up:** a verdict that would have read YES. Recorded as the honest NO instead.
+- **Retained SWAP person20:1050 as a pass despite a loose delivered box.** **Why:** the
+  pre-registered downgrade condition was specific ("a green box *centred on the woman*"); the box
+  fully encloses the backpack man and its centre falls inside his hand box, it is merely loose
+  enough to absorb an adjacent overlapping pedestrian. Downgrading on a rule the cell does not
+  meet would be as much a scoring error as missing one. **Given up:** nothing — the cell does not
+  change the branch (SWAP 16/26 would also be a NO); the looseness is recorded as a caveat.
+- **Named the residual carry weakness as imagery-specific, not category-general.** **Why:** all
+  four WSEL failures are cars and non-car WSEL is 16/16 — the failing clips are small
+  low-contrast sedans on shadow-banded palm roads, where SAM2 has least appearance signal.
+  **Given up:** the simpler "carry is getting weaker at longer idle" story, which the data does
+  not support (bike1, person and wakeboard all hold at the same idle window).

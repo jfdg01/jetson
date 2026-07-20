@@ -1,0 +1,186 @@
+{
+  "arm": "DSC",
+  "leg": "SWAP",
+  "scene": {
+    "clip": "car7",
+    "f0": 460,
+    "t_p": 8.0,
+    "target_caption": "the silver car",
+    "distractor_caption": "the black car",
+    "distractor_box": [
+      900,
+      308,
+      1000,
+      352
+    ],
+    "distractor_gt_prompt": [
+      660,
+      595,
+      780,
+      650
+    ],
+    "gating": true,
+    "note": "LEGACY, the surviving hard-drift cell. PRE-REGISTERED PREDICTION (carried from P5.6): this cell FAILS the strengthened SWAP check under direct delivery (carry-off-object; in P5.5 the distractor carry ended at the frame edge despite two accepted ROI re-anchors). Target GT NaN patch ~f900 (scorer skips NaN frames)."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 29.8,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "dist_floor": 0.25,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "ds_offset": 150,
+  "iou_same": 0.5,
+  "pass": false,
+  "swap_weak_pass": true,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 268,
+    "deliver_frame": 700,
+    "deliver_iou": 0.0,
+    "window": [
+      700,
+      1000
+    ],
+    "leg": "SWAP",
+    "selection": "distractor",
+    "selection_correct": true,
+    "acquire_s": 0.0,
+    "deliver_iou_distractor": 0.0
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 460,
+    "t_p": 8.0,
+    "prompt_frame": 700,
+    "ds": 310,
+    "reanchor": [
+      {
+        "frame": 550,
+        "skipped": "in-discovery"
+      },
+      {
+        "frame": 625,
+        "win": [
+          164,
+          256,
+          420,
+          512
+        ],
+        "crop_wh": [
+          512,
+          512
+        ],
+        "prior": [
+          257.0,
+          368.0,
+          326.0,
+          401.0
+        ],
+        "raw": [
+          253.6,
+          368.6,
+          327.8,
+          407.0
+        ],
+        "accepted": true,
+        "new_box": [
+          253.6,
+          368.6,
+          327.8,
+          407.0
+        ]
+      }
+    ],
+    "discovery": [
+      {
+        "cand": "target",
+        "caption": "the silver car",
+        "call_frame": 310,
+        "return_frame": 445,
+        "latency_s": 4.5,
+        "outcome": "accepted",
+        "box": [
+          550.4,
+          180.0,
+          588.8,
+          223.2
+        ],
+        "seed_iou_gt": 0.0
+      },
+      {
+        "cand": "distractor",
+        "caption": "the black car",
+        "call_frame": 445,
+        "return_frame": 580,
+        "latency_s": 4.5,
+        "outcome": "accepted",
+        "box": [
+          985.6,
+          309.6,
+          1075.2,
+          338.4
+        ]
+      }
+    ],
+    "discovery_done_frame": 580,
+    "acquire_s": 0.0,
+    "caption": "the black car",
+    "selected": "distractor",
+    "cand_at_prompt": {
+      "target": null,
+      "distractor": [
+        0.0,
+        407.0,
+        42.0,
+        424.0
+      ]
+    },
+    "deliver_frame": 700,
+    "shadow": {
+      "acquire_s": 4.51,
+      "vlm_box": [
+        678.4,
+        597.6,
+        780.8,
+        648.0
+      ],
+      "match_ious": {
+        "target": 0.0,
+        "distractor": 0.0
+      },
+      "selected": null
+    }
+  },
+  "events": [
+    [
+      23.333,
+      [
+        0.0,
+        407.0,
+        42.0,
+        424.0
+      ]
+    ],
+    [
+      23.389,
+      [
+        0.0,
+        407.0,
+        42.0,
+        418.0
+      ]
+    ]
+  ]
+}

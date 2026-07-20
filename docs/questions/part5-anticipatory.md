@@ -468,3 +468,29 @@ recession pairs, the 3 proof figures, 5 select cell triplets and the single fail
 opened with the Read tool. Every sampled PASS looks like a pass; the one mechanical FAIL looks
 like a real failure.
 Detail: [`../../experiments/2026-07-20-bankv3-select/README.md`](../../experiments/2026-07-20-bankv3-select/README.md).
+
+### RQ-P5.18 — does the GT-free warm-start select result hold at statistically conclusive n on real video?
+
+**NO [SWAP-bound]** — WSEL 22/26 clears the 20/26 bar, strengthened SWAP **17/26** misses it, on
+the byte-identical P5.16 pipeline re-powered from 5 to 26 gating scenes per leg.
+
+The half that survives is the load-bearing half: warm-start **delivery** holds (WSEL 0.85, and
+`acquire_s` 0.00 s vs the 4.68 s shadow re-ground, so P5.14's latency advantage reproduces at
+n=26). The half that dies is **select under a competing same-class candidate**: P5.16 reported
+SWAP 4/5 = 0.80; the true rate at n=26 is 0.65, comfortably inside what 4/5 could never have
+distinguished. The n=5 anecdote was optimistic — the standing sample-size rule paid for itself on
+its first application.
+
+Two mechanisms, separated by the visual audit and both new: (1) **late-entry discovery** — SWAP
+carries all the distractor-side risk because the target is always present at the discovery frame
+and the distractor often is not; with no abstain path the VLM grounds the nearest same-class
+object (the target), seeding the "distractor" track on the target at birth (3 of the 5 SWAP-only
+failures). (2) **the failure is catastrophic, not marginal** — delivery IoU is bimodal (passes
+0.40-0.97, failures 0.00 or nothing delivered, nothing near the floor), so no threshold retune
+recovers this leg. Also unpredicted: **all four WSEL failures are cars** (non-car WSEL 16/16), so
+the residual carry weakness is imagery-specific, not category-general.
+
+**Visual gate: PASS.** 19/19 mechanically-required cells opened with the Read tool, zero
+downgrades; the late-entry mechanism was *seen* (VLM green box on the red Mustang when asked for
+an absent black SUV) before it was named.
+Detail: [`../../experiments/2026-07-20-n25-select/README.md`](../../experiments/2026-07-20-n25-select/README.md).

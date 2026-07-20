@@ -1,0 +1,104 @@
+{
+  "arm": "DSC",
+  "leg": "SWAP",
+  "scene": {
+    "clip": "bike1",
+    "f0": 2250,
+    "t_p": 8.0,
+    "target_caption": "the cyclist in the blue shirt",
+    "distractor_caption": "the cyclist in the yellow shirt",
+    "distractor_gt_prompt": [
+      814,
+      285,
+      1055,
+      522
+    ],
+    "gating": true,
+    "note": "NEW. STRONG scene: both present at both ends, distractor very large at prompt f2490. bike1 pair scene 5 of 6."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 16.0,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "dist_floor": 0.25,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "ds_offset": 150,
+  "iou_same": 0.5,
+  "pass": false,
+  "swap_weak_pass": false,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "n_scored": 0,
+    "deliver_frame": 2490,
+    "selection": null,
+    "selection_correct": false,
+    "reason": "discovery-failed:distractor",
+    "leg": "SWAP"
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 2250,
+    "t_p": 8.0,
+    "prompt_frame": 2490,
+    "ds": 2100,
+    "reanchor": [
+      {
+        "frame": 2340,
+        "skipped": "in-discovery"
+      },
+      {
+        "frame": 2415,
+        "skipped": "in-discovery"
+      }
+    ],
+    "discovery": [
+      {
+        "cand": "target",
+        "caption": "the cyclist in the blue shirt",
+        "call_frame": 2100,
+        "return_frame": 2357,
+        "latency_s": 8.56,
+        "outcome": "accepted",
+        "box": [
+          704.0,
+          158.4,
+          729.6,
+          244.8
+        ],
+        "seed_iou_gt": 0.4883
+      },
+      {
+        "cand": "distractor",
+        "caption": "the cyclist in the yellow shirt",
+        "call_frame": 2357,
+        "return_frame": 2497,
+        "latency_s": 4.66,
+        "outcome": "in_flight_at_prompt"
+      }
+    ],
+    "discovery_done_frame": 2490,
+    "acquire_s": 0.0,
+    "caption": "the cyclist in the yellow shirt",
+    "selected": "distractor",
+    "cand_at_prompt": {
+      "target": [
+        368.0,
+        72.0,
+        475.0,
+        344.0
+      ]
+    }
+  },
+  "events": []
+}
