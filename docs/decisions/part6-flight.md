@@ -111,3 +111,36 @@ the world, the vehicle model, and the runner around a plugin that is installed b
 - **Score P6.1 as a capability gate, n=1 per configuration.** Same carve-out as P6.0: the n>=25
   sample-size rule governs *gating experimental arms*, and "does the renderer render" is not one.
   P6.2 is a real arm and gets the full treatment.
+- ★ **Run the CARLA renderer async and pace it to wall time, instead of driving it with
+  `world.tick()`.** Synchronous mode makes the client the clock master, which is wrong here twice
+  over: SITL is already a clock master and runs in wall-clock real time, so there were two of them;
+  and sim time then only advances on `tick()`, so a 4.5 s VLM acquire costs **zero sim seconds** and
+  the delivery lag that Parts IV and V exist to measure stops existing. Async gives one clock for
+  all three (sim == wall == SITL); `fixed_delta_seconds` stays as a substep cap and the camera gets
+  an explicit `sensor_tick`. *Given up:* tick-level determinism — two runs of the same seed are no
+  longer frame-comparable. *Kept:* reproducibility via `SEED` + logged tracks + n>=25, which is the
+  same standard every Part V number was held to. Bit-exact replay would need full lockstep, already
+  rejected above. *Note the shape:* sync mode would have produced a **better-looking** acquire
+  latency by making the cost of thinking free — the third vacuous-metric near-miss in Part VI after
+  P6.0's "0 track losses" and P6.1's `slave_err_*`.
+- **Build an interactive manual-flight UI (`runners/carla_debug_ui.py`) as infrastructure, not as an
+  experiment.** Every Part V select number came from replayed video; before P6.2 puts the select in a
+  control loop, there is value in a human flying the camera and watching the tracker respond.
+  Documented in `runners/CARLA_DEBUG_UI.md`. *Deliberately not* given an `experiments/` campaign, an
+  RQ or a ledger row: manual flying produces impressions, and this repo's rule is that a number
+  carries its config and its n. *Given up:* the tempting shortcut of citing "it follows well when I
+  fly it" as evidence. The one measured figure on this rig stays 5/23 lock at 960x540; converting
+  manual impressions into a result means a scripted flight logging `(frame_n, box, actor_id, lock)`
+  at n>=25.
+- **Keep the tracker's box chain ground-truth-free, and say so in the tool doc.** `track["box"]` is
+  written only by the VLM and by `carry.step()`; `match_actor()` reads the world purely to colour
+  the overlay and count locks. *Consequence recorded up front:* a P6.2 controller must key off
+  `track["box"]` and never `track["actor"]`, or the loop is GT-driven and every number from it is
+  worthless. *Also flagged:* the green/red box colour **is** GT-derived, so "the box was green" is
+  not independent evidence that the box was on the car.
+- **Draw overlays on received frames, never into the engine.** An earlier revision had
+  `unproject()`/`draw_box_2d()` painting boxes via `world.debug.*`; both are deleted. A box rendered
+  into the world becomes part of the image the model is asked to ground, which corrupts the view
+  under test. *Given up:* the convenience of seeing the box in any CARLA viewport. *Same family as*
+  the Phase C sky-camera defect — a rendering choice that silently changes what the experiment
+  measures while every log still reads like success.
