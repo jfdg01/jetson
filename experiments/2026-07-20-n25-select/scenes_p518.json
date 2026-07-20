@@ -1,0 +1,227 @@
+{
+  "comment": "P5.18 frozen scene set: the 6 P5.16 scenes verbatim (incl. the car3:200 non-gating control and the car7:460 pre-registered predicted-FAIL cell) + 21 NEW hand-curated UAV123 scenes, for 26 gating scenes per leg (n >= 25 human rule). Every new scene: t_p 8.0 (prompt = f0 + 240), discovery start ds = f0 - 150, distractor_gt_prompt hand-annotated 2026-07-20 by Fable on 10-px-grid nearest-neighbour zooms (curation/zoom_<clip>_<promptframe>.png, regenerable via curate_p518.py zoom); scene viability checked on 2-up ds/prompt renders (curation/scene_<clip>_<f0>.png). Frame file for index i is (i+1) as %06d.jpg, 1280x720. Curation drops recorded in the README (car9:1350 identity-unresolvable; car3:650/850, car7:150/250, person13:300, wakeboard6:600 + whole-clip rejects). Composition caveats: bike1 contributes 6 scenes of one recurring blue-vs-yellow rider pair; the wakeboard family contributes 7 scenes of one recurring boarder-vs-boat pair; several scenes carry pre-registered late-entry discovery risk (distractor absent at ds).",
+  "scenes": [
+    {
+      "clip": "car10", "f0": 240, "t_p": 8.0,
+      "target_caption": "the white car",
+      "distractor_caption": "the black car in front of the white car",
+      "distractor_box": [540, 253, 600, 311],
+      "distractor_gt_prompt": [614, 193, 636, 209],
+      "gating": true,
+      "note": "LEGACY (P5.6/P5.14/P5.16 verbatim). P5.5 MC SWAP failed carry-drift NO_MATCH here, but the audit shows the carried box [616,194,635,208] at f480 IS the true black car in front of the white target (hand GT [614,193,636,209]); the select-time VLM boxed the OTHER dark car further ahead [602,187,614,202]. The IoU-match loses an identity distinction the carry got right. See 2026-07-14-directdeliver-select/curation/prompt_car10_480_z.jpg."
+    },
+    {
+      "clip": "car10", "f0": 615, "t_p": 8.0,
+      "target_caption": "the white car in front of the white van",
+      "distractor_caption": "the white van",
+      "distractor_box": [588, 455, 715, 700],
+      "distractor_gt_prompt": [618, 350, 694, 462],
+      "gating": true,
+      "note": "LEGACY. P5.5 MC WSEL failed NO_MATCH (VLM grounded a different white car) while the target carry sat on GT (IoU ~0.97 at f855). Direct delivery bypasses that re-grounding."
+    },
+    {
+      "clip": "car9", "f0": 300, "t_p": 8.0,
+      "target_caption": "the silver car",
+      "distractor_caption": "the black car",
+      "distractor_box": [588, 528, 660, 672],
+      "distractor_gt_prompt": [632, 60, 658, 81],
+      "gating": true,
+      "note": "LEGACY. Regression guard: both legs passed P5.3/P5.5/P5.14/P5.16."
+    },
+    {
+      "clip": "car7", "f0": 460, "t_p": 8.0,
+      "target_caption": "the silver car",
+      "distractor_caption": "the black car",
+      "distractor_box": [900, 308, 1000, 352],
+      "distractor_gt_prompt": [660, 595, 780, 650],
+      "gating": true,
+      "note": "LEGACY, the surviving hard-drift cell. PRE-REGISTERED PREDICTION (carried from P5.6): this cell FAILS the strengthened SWAP check under direct delivery (carry-off-object; in P5.5 the distractor carry ended at the frame edge despite two accepted ROI re-anchors). Target GT NaN patch ~f900 (scorer skips NaN frames)."
+    },
+    {
+      "clip": "car9", "f0": 560, "t_p": 6.0,
+      "target_caption": "the silver car",
+      "distractor_caption": "the dark red car",
+      "distractor_box": [578, 522, 624, 598],
+      "distractor_gt_prompt": [561, 120, 592, 147],
+      "gating": true,
+      "note": "LEGACY, tightest SWAP cell: P5.5 carried box vs hand GT IoU ~0.28, just over the 0.25 floor. ~30x27 px receding maroon sedan. t_p 6.0 kept as-run (frozen)."
+    },
+    {
+      "clip": "car3", "f0": 200, "t_p": 8.0,
+      "target_caption": "the red car",
+      "distractor_caption": "the white car",
+      "distractor_box": [388, 538, 420, 602],
+      "distractor_gt_prompt": [344, 200, 366, 240],
+      "gating": false,
+      "note": "LEGACY NON-GATING control, kept from P5.3-P5.16: under direct delivery the historical 'resolution-bound' WSEL failure is predicted to stay flipped to PASS (re-grounding artifact, not a carry limit)."
+    },
+    {
+      "clip": "car9", "f0": 950, "t_p": 8.0,
+      "target_caption": "the silver car",
+      "distractor_caption": "the black car",
+      "distractor_gt_prompt": [528, 590, 576, 670],
+      "gating": true,
+      "note": "NEW. Target GT at ds=800 sits under the road-sign gantry (partially occluded at discovery start, emerges during the window) -- pre-registered discovery-risk cell: the ds-frame VLM call may miss it. Trailing black car large and clear at prompt f1190."
+    },
+    {
+      "clip": "car9", "f0": 1150, "t_p": 8.0,
+      "target_caption": "the silver car",
+      "distractor_caption": "the black car behind the silver car",
+      "distractor_gt_prompt": [516, 400, 562, 462],
+      "gating": true,
+      "note": "NEW. A second dark car ahead of the target exists; the caption's 'behind' clause is the spatial disambiguator (referring-expression load on the discovery VLM, same failure family as P5.16's one loss). Trailing black car enters the window late-ish."
+    },
+    {
+      "clip": "car3", "f0": 1050, "t_p": 8.0,
+      "target_caption": "the red car",
+      "distractor_caption": "the black car behind the red car",
+      "distractor_gt_prompt": [355, 470, 387, 505],
+      "gating": true,
+      "note": "NEW. Same red target as the car3:200 control but 850 frames later at larger scale; trailing black car well separated at prompt f1290."
+    },
+    {
+      "clip": "car10", "f0": 850, "t_p": 8.0,
+      "target_caption": "the white car in front of the white van",
+      "distractor_caption": "the white van",
+      "distractor_gt_prompt": [566, 278, 600, 322],
+      "gating": true,
+      "note": "NEW. Same physical white van as legacy car10:615's distractor, 235 frames later (same-clip spacing 235 >= 200). Same-colour same-direction pair; caption disambiguation is spatial ('in front of')."
+    },
+    {
+      "clip": "car18", "f0": 150, "t_p": 8.0,
+      "target_caption": "the red car",
+      "distractor_caption": "the black SUV",
+      "distractor_gt_prompt": [1052, 313, 1148, 388],
+      "gating": true,
+      "note": "NEW. SUV (parked, tailgate open, static) + bystanders enter mid-window -- pre-registered late-entry discovery risk: distractor not visible at ds=0, must be discovered on a later loop pass. Only usable car18 window (clip is 1211 frames)."
+    },
+    {
+      "clip": "bike1", "f0": 450, "t_p": 8.0,
+      "target_caption": "the cyclist in the blue shirt",
+      "distractor_caption": "the cyclist in the yellow shirt",
+      "distractor_gt_prompt": [298, 478, 408, 640],
+      "gating": true,
+      "note": "NEW. Distractor ABSENT at ds=300 (late entry, pre-registered discovery risk). Rider+bike full extent per UAV123 GT convention. bike1 pair scene 1 of 6."
+    },
+    {
+      "clip": "bike1", "f0": 750, "t_p": 8.0,
+      "target_caption": "the cyclist in the blue shirt",
+      "distractor_caption": "the cyclist in the yellow shirt",
+      "distractor_gt_prompt": [534, 484, 600, 600],
+      "gating": true,
+      "note": "NEW. Distractor absent at ds=600 (late entry, pre-registered discovery risk). bike1 pair scene 2 of 6."
+    },
+    {
+      "clip": "bike1", "f0": 1050, "t_p": 8.0,
+      "target_caption": "the cyclist in the blue shirt",
+      "distractor_caption": "the cyclist in the yellow shirt",
+      "distractor_gt_prompt": [404, 246, 442, 316],
+      "gating": true,
+      "note": "NEW. STRONG scene: both riders present at both ends of the window, plus a runner as an in-frame third object (distractor-confusion pressure). bike1 pair scene 3 of 6."
+    },
+    {
+      "clip": "bike1", "f0": 1950, "t_p": 8.0,
+      "target_caption": "the cyclist in the blue shirt",
+      "distractor_caption": "the cyclist in the yellow shirt",
+      "distractor_gt_prompt": [745, 169, 793, 252],
+      "gating": true,
+      "note": "NEW. Distractor at the frame top edge at ds=1800 (edge-entry risk for discovery and carry seeding). bike1 pair scene 4 of 6."
+    },
+    {
+      "clip": "bike1", "f0": 2250, "t_p": 8.0,
+      "target_caption": "the cyclist in the blue shirt",
+      "distractor_caption": "the cyclist in the yellow shirt",
+      "distractor_gt_prompt": [814, 285, 1055, 522],
+      "gating": true,
+      "note": "NEW. STRONG scene: both present at both ends, distractor very large at prompt f2490. bike1 pair scene 5 of 6."
+    },
+    {
+      "clip": "bike1", "f0": 2450, "t_p": 8.0,
+      "target_caption": "the cyclist in the blue shirt",
+      "distractor_caption": "the cyclist in the yellow shirt",
+      "distractor_gt_prompt": [782, 255, 970, 490],
+      "gating": true,
+      "note": "NEW. STRONG scene, 200 frames after bike1:2250 (spacing rule is >= 200, legal). bike1 pair scene 6 of 6."
+    },
+    {
+      "clip": "person20", "f0": 1050, "t_p": 8.0,
+      "target_caption": "the man in the black suit",
+      "distractor_caption": "the person with the black backpack",
+      "distractor_gt_prompt": [700, 356, 780, 566],
+      "gating": true,
+      "note": "NEW, BORDERLINE-OVERLAP caveat: the backpack man walks beside a woman; the man box was tightened to [700,356,780,566] so a wrong-neighbour (woman) delivery scores IoU 0.234 < 0.25 and mechanically fails. Delivered-box deliver.png visual audit is MANDATORY for this cell in both legs (downgrade-only). Pair enters ~f1100 (late entry)."
+    },
+    {
+      "clip": "person10", "f0": 450, "t_p": 8.0,
+      "target_caption": "the man in the blue shirt",
+      "distractor_caption": "the man in the white shirt",
+      "distractor_gt_prompt": [558, 612, 600, 700],
+      "gating": true,
+      "note": "NEW. Distractor enters late (pre-registered discovery risk); near the frame bottom edge at prompt f690."
+    },
+    {
+      "clip": "person15", "f0": 150, "t_p": 8.0,
+      "target_caption": "the man in the green shirt",
+      "distractor_caption": "the man in the red shirt",
+      "distractor_gt_prompt": [281, 312, 324, 389],
+      "gating": true,
+      "note": "NEW. Pair enters late in the window, near-static once present (pre-registered late-entry discovery risk)."
+    },
+    {
+      "clip": "wakeboard6", "f0": 150, "t_p": 8.0,
+      "target_caption": "the wakeboarder",
+      "distractor_caption": "the white boat",
+      "distractor_gt_prompt": [893, 458, 1048, 530],
+      "gating": true,
+      "note": "NEW. Cross-class pair (person vs boat) -- easiest caption family, hardest imagery (water glare, wake). Boat box excludes wake/spray. wakeboard family scene 1 of 7."
+    },
+    {
+      "clip": "wakeboard6", "f0": 350, "t_p": 8.0,
+      "target_caption": "the wakeboarder",
+      "distractor_caption": "the white boat",
+      "distractor_gt_prompt": [698, 285, 888, 363],
+      "gating": true,
+      "note": "NEW. 200 frames after wakeboard6:150 (legal spacing). wakeboard family scene 2 of 7."
+    },
+    {
+      "clip": "wakeboard8", "f0": 150, "t_p": 8.0,
+      "target_caption": "the wakeboarder",
+      "distractor_caption": "the white boat",
+      "distractor_gt_prompt": [303, 242, 420, 290],
+      "gating": true,
+      "note": "NEW. wakeboard family scene 3 of 7."
+    },
+    {
+      "clip": "wakeboard8", "f0": 450, "t_p": 8.0,
+      "target_caption": "the wakeboarder",
+      "distractor_caption": "the white boat",
+      "distractor_gt_prompt": [375, 326, 500, 380],
+      "gating": true,
+      "note": "NEW. First zoom annotation attempt missed the boat entirely (centre estimate off by ~180 px, crop showed only water); re-rendered wide and re-annotated -- recorded as a look-at-it catch. wakeboard family scene 4 of 7."
+    },
+    {
+      "clip": "wakeboard8", "f0": 750, "t_p": 8.0,
+      "target_caption": "the wakeboarder",
+      "distractor_caption": "the white boat",
+      "distractor_gt_prompt": [684, 121, 775, 187],
+      "gating": true,
+      "note": "NEW. Wake spray initially mistaken for hull during annotation; re-centred zoom fixed the box. Boat box excludes spray. wakeboard family scene 5 of 7."
+    },
+    {
+      "clip": "wakeboard2", "f0": 150, "t_p": 8.0,
+      "target_caption": "the wakeboarder",
+      "distractor_caption": "the white boat",
+      "distractor_gt_prompt": [567, 12, 760, 195],
+      "gating": true,
+      "note": "NEW. Boat partially at the frame top edge at prompt f390. wakeboard family scene 6 of 7."
+    },
+    {
+      "clip": "wakeboard3", "f0": 150, "t_p": 8.0,
+      "target_caption": "the wakeboarder",
+      "distractor_caption": "the white boat",
+      "distractor_gt_prompt": [501, 264, 552, 302],
+      "gating": true,
+      "note": "NEW. Small distant boat (~51x38 px) -- smallest wakeboard distractor. wakeboard family scene 7 of 7."
+    }
+  ]
+}
