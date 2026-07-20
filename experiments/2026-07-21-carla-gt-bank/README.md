@@ -150,7 +150,48 @@ Each is a measured failure mode from this repo, not a hypothetical.
 
 ### What did not work
 
-TBD — negative results are content.
+**1. Uniform random camera placement produced a bank with no targets in it.** The first
+`clip_plan` sampled the camera at `n0, e0 ~ U(-60, 60)` and swept altitude. It captured clips that
+passed every check in place at the time — 1200 frames each, `dominant_frac` 0.002, mid frame not
+identical to last, exactly 40 vehicle ids and 29 environment ids, 30 Hz — and **77-80% of frames
+contained no on-screen vehicle at all**:
+
+| clip | alt | on-screen mean | frames with zero targets |
+|---|---|---|---|
+| clip00 | 40 m | 0.67 | 916/1200 |
+| clip01 | 60 m | 2.35 | 926/1200 |
+| clip02 | 80 m | 2.31 | 959/1200 |
+| clip03 | 100 m | 25.45 | 0/1200 |
+
+A nadir camera dropped at a random point over a city sees rooftops; Town10's traffic lives on a
+thin road network, and clip03 was simply lucky. Nothing in any log said so. It was found by
+overlaying `gt.jsonl` on a captured frame and looking at it, which is the rule working as
+intended — and the earlier G-A gate did not catch it, because G-A deliberately points the camera
+at a known reference car and so is blind to whether the *sampling policy* finds cars.
+
+Fixed by anchoring each clip on a spawned vehicle (`target_rank`), which puts targets in frame by
+construction and is also the geometry P6.2 needs: a copter above the car it is following.
+`track_gain` sweeps 0.0 / 0.6 / 1.0 so the target sits still in frame, drifts across it, or is
+tracked. Vehicles raised 40 to 80. **Coverage is now measured per clip and asserted `>= 0.5`** —
+the check that was missing, now impossible to omit silently.
+
+**2. Expressing camera drift as a velocity did not survive a change of clip length.** The first fix
+kept a `speed` in m/s. At 8 m/s a 20 s smoke test drifts 160 m and looks fine; the real 60 s clip
+drifts 480 m and walks the camera off a ~400 m map. clip00 came back at 22.8% coverage and the new
+assert caught it. Drift is now a **total displacement in metres** over the clip (`drift_m`,
+0/25/50), so it is bounded by construction and independent of clip length. *Lesson recorded:* a
+smoke test that shortens the run does not exercise anything that accumulates with time.
+
+**3. Two agents, one GPU.** Covered in DECISIONS: the in-flight autoresearch cycle read this
+campaign's freshly-committed script and ran `--gate-c` against the same server, killing the bank
+capture 0.9 min in with `_queue.Empty`. A STOP file that blocks new ticks is not isolation from a
+worker already running.
+
+**4. Killing a sync-mode client leaves the server unusable.** `pkill` on a capture holding the
+world in `synchronous_mode` left CARLA wedged; the next run core-dumped, and a later one failed
+with `trying to create rpc server for traffic manager; but the system failed to create because of
+bind error` — a stale client still holding Traffic Manager port 8000. Recovery is `pkill -9 -f
+CarlaUE4`, confirm with `ss -ltnp | grep -E ':8000|:2100'`, and kill the holding pid explicitly.
 
 ## Proof deliverables
 
