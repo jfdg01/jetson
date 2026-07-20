@@ -86,7 +86,7 @@ def bank_figure():
     if not mans:
         return None
     m = [json.loads(p.read_text()) for p in mans]
-    fig, ax = plt.subplots(1, 2, figsize=(11, 4))
+    fig, ax = plt.subplots(1, 3, figsize=(15, 4))
 
     ax[0].bar(range(len(m)), [x["capture_hz"] for x in m], color="#3b6ea5")
     mean = float(np.mean([x["capture_hz"] for x in m]))
@@ -129,6 +129,29 @@ def bank_figure():
                   title="Target pixel size vs altitude")
         ax[1].legend(fontsize=8)
         ax[1].grid(alpha=0.3, axis="y")
+
+    # Third: the sweep the bank is actually built around. coverage says "a vehicle
+    # is on screen" and is 100% everywhere, which tells a consumer nothing; the
+    # anchor-target fraction separates cleanly by track_gain, so the three arms are
+    # three regimes and not one blurred one.
+    gains = sorted({x["track_gain"] for x in m})
+    if all("target_in_frame_frac" in x for x in m) and gains:
+        for j, g in enumerate(gains):
+            v = [x["target_in_frame_frac"] * 100 for x in m if x["track_gain"] == g]
+            ax[2].scatter([j] * len(v), v, s=36, alpha=0.75, color="#3b6ea5",
+                          zorder=3)
+        ax[2].scatter([], [], s=36, color="#3b6ea5", label="one clip")
+        ax[2].plot(range(len(gains)),
+                   [float(np.mean([x["coverage"] * 100 for x in m
+                                   if x["track_gain"] == g])) for g in gains],
+                   "s--", color="crimson", ms=5, label="coverage (any vehicle)")
+        ax[2].set_xticks(range(len(gains)), [f"{g:.1f}" for g in gains])
+        ax[2].set_ylim(-4, 104)
+        ax[2].set(xlabel="track_gain (camera follows the anchor)",
+                  ylabel="% of frames",
+                  title="Anchor in frame vs any vehicle in frame")
+        ax[2].legend(fontsize=8, loc="lower right")
+        ax[2].grid(alpha=0.3, axis="y")
 
     fig.tight_layout()
     out = PROOF / "bank-capture-and-target-size.png"

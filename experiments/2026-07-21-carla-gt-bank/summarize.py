@@ -12,7 +12,9 @@ for p in sorted(root.glob("clip*/manifest.json")):
     rows.append(m)
     print(f"{m['clip']} alt{m['alt']:4.0f} gain{m['track_gain']:4.1f} "
           f"drift{m['drift_m']:4.0f}m cov {m['coverage']:6.1%} "
-          f"onscreen {m['onscreen_mean']:5.2f} {m['capture_hz']:5.1f}Hz "
+          f"onscreen {m['onscreen_mean']:5.2f} "
+          f"tgt {m.get('target_in_frame_frac', float('nan')):6.1%} "
+          f"{m['capture_hz']:5.1f}Hz "
           f"{m['frames']:5d}f {m['target_type']}")
 if rows:
     print(f"-- {len(rows)} clips, mean cov "
