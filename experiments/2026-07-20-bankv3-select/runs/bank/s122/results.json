@@ -1,0 +1,99 @@
+{
+  "seed": 122,
+  "frames": 300,
+  "out": "experiments/2026-07-20-bankv3-select/runs/bank/s122",
+  "profile": "v3",
+  "v3_screen": {
+    "near": "white",
+    "peak_iou": 0.3466,
+    "peak_f": 99,
+    "run_iou15": 72,
+    "peak_occl_far": 0.6154,
+    "run_occl50": 53,
+    "tail_iou_max": 0.052,
+    "clear_far": 106,
+    "stale_t": 0.0403,
+    "stale_d": 0.062,
+    "scoreable": true,
+    "pass": true
+  },
+  "v3_xpeak_pred_f": 99,
+  "v3_xpeak_pred_iou": 0.3466,
+  "g2_purity_median_clear": {
+    "0": 0.7938,
+    "1": 0.7112
+  },
+  "g6_frag_p10_clear": {
+    "0": 0.9925,
+    "1": 1.0
+  },
+  "g6_frag_below090_frac_clear": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g6_n_clear": {
+    "0": 300,
+    "1": 106
+  },
+  "wall_loop_s": 34.1,
+  "fps_wall": 8.794,
+  "g1_dead_frames": 0,
+  "g1_identical_consecutive": 0,
+  "g1_stamp_steps_ok": true,
+  "g2_purity_median": {
+    "0": 0.7938,
+    "1": 0.6239
+  },
+  "g2_bg_purity_median": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g3_both_visible_frac": 1.0,
+  "g6_frag_p10": {
+    "0": 0.9925,
+    "1": 1.0
+  },
+  "g6_frag_min": {
+    "0": 0.9908,
+    "1": 1.0
+  },
+  "g6_frag_below090_frac": {
+    "0": 0.0,
+    "1": 0.0
+  },
+  "g6_frag_n": {
+    "0": 300,
+    "1": 300
+  },
+  "g0_retries_pose": 0,
+  "g0_retries_step": 0,
+  "g0_response_lost": 0,
+  "g0_proxy_restarts": 0,
+  "g0_spawn_warns": [],
+  "params": {
+    "standoff": 21.015365812970465,
+    "alt": 3.7896589248970587,
+    "aim_err": [
+      -1.0450594023331206,
+      1.6739183910779012
+    ],
+    "v_target": 3.190423092394145,
+    "v_distractor": 3.235762432115923,
+    "ds0": 6.672515954936592,
+    "near": "white",
+    "lat_b_a": 1.2548472996657236,
+    "lat_b_b": -4.783996365882315,
+    "t_in0": 1.129607265110827,
+    "T_in": 1.0901470331263696,
+    "T_hold": 1.2847560325479979,
+    "T_out": 1.5218705382583124,
+    "t_end": 5.026380869043507
+  },
+  "versions": {
+    "gz": "8.14.0",
+    "python": "3.12.10",
+    "numpy": "2.4.4",
+    "cv2": "4.13.0"
+  },
+  "cmd": "runners/scenegen.py record --seed 122 --frames 300 --profile v3 --out experiments/2026-07-20-bankv3-select/runs/bank/s122"
+}
