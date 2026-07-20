@@ -349,7 +349,7 @@ def main():
     # The keys go to whichever widget has focus, and the thing you want to fly is
     # the picture -- so the image labels ARE the focus target (wired below, once
     # they exist). Focusing there also keeps wasd out of the Spinbox and Combobox.
-    tk.Label(bar, text="click the view to fly:  wasd/qe, arrows look").pack(
+    tk.Label(bar, text="click the view to fly:  wasd/qe, arrows look, space pause").pack(
         side=tk.LEFT, padx=(16, 0))
     speed = tk.Scale(bar, from_=1, to=300, orient=tk.HORIZONTAL, length=140,
                      showvalue=True, label=None, sliderlength=16)
@@ -546,14 +546,24 @@ def main():
         gstatus.config(text=f"{preview['fps']:.0f} Hz live  {track['msg']}")
 
     def on_press(e):
+        k = e.keysym.lower()
+        if k in pending:  # autorepeat, not a real release
+            root.after_cancel(pending.pop(k))
+        # space toggles pause, so it must be handled BEFORE the paused gate below or
+        # it would only ever pause and never resume. Bound on the views rather than
+        # on root, or every space typed into the caption box would freeze the sim.
+        # held-as-repeat-guard: X11 autorepeat fires press events while the key is
+        # down, which would toggle dozens of times per hold.
+        if k == "space":
+            if k not in held:
+                toggle_pause()
+                held.add(k)      # after the toggle: it clears held on the way past
+            return
         # paused means paused: the spectator still accepts set_transform while the
         # world is frozen, so keys held now would fly it blind and the view would
         # jump on resume
         if paused["on"]:
             return
-        k = e.keysym.lower()
-        if k in pending:  # autorepeat, not a real release
-            root.after_cancel(pending.pop(k))
         held.add(k)
 
     def on_release(e):
