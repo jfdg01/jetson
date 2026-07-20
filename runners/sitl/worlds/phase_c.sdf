@@ -63,8 +63,12 @@
          ================================================================= -->
     <model name="downward_cam">
       <static>true</static>  <!-- kinematic: pose driven by set_pose (follow controller), no gravity -->
-      <!-- Initial pose: x=0 y=0 z=10, roll=0 pitch=-1.5707963 yaw=0 -->
-      <pose>0 0 10 0 -1.5707963 0</pose>
+      <!-- Initial pose: x=0 y=0 z=10, roll=0 pitch=+1.5707963 yaw=0 -->
+      <!-- R_y(theta) maps +X to (cos t, 0, -sin t): pitch=+pi/2 -> (0,0,-1) = DOWN.
+           This was -pi/2 from 5426ed0 until 2026-07-20, which points the camera at
+           the SKY and renders a flat gray frame -- see the Phase C caveat in
+           experiments/2026-06-14-stage1-baseline/phase-c-vlm.md. -->
+      <pose>0 0 10 0 1.5707963 0</pose>
       <link name="cam_link">
         <!-- negligible inertia; we move the whole model via set_pose -->
         <inertial>

@@ -82,9 +82,9 @@
 - **More:** `experiments/2026-06-14-stage1-baseline/`
 
 ### RQ-S1.4 — Replacing the oracle with the best zero-shot VLM, how much does tracking degrade?   [Part I · Stage 1 baseline]
-- **Answer:** Catastrophically (pre-registered negative) — live SmolVLM-500M gives 12.5% valid-box rate, 190.5 px mean error (vs 12.9 px oracle, +1380%), 20.7% track coverage, 19 track losses; no run completes without loss.
-- **Why it matters:** Quantifies the closed-loop cost of zero-shot perception and confirms Stage 2 fine-tuning is mandatory, not optional.
-- **More:** `experiments/2026-06-14-stage1-baseline/`
+- **Answer: RETRACTED 2026-07-20 — UNANSWERED (confounded run).** ~~Catastrophically (pre-registered negative) — live SmolVLM-500M gives 12.5% valid-box rate, 190.5 px mean error (vs 12.9 px oracle, +1380%), 20.7% track coverage, 19 track losses; no run completes without loss.~~ The Phase C Gazebo camera was aimed at the **sky**, not the ground, for the whole campaign (pitch −π/2 instead of +π/2, in both `phase_c.sdf` and `run_phase_c.py`, from the original commit `5426ed0`). At −π/2 the render is a flat gray frame, 100.0% one colour — verified empirically 2026-07-20. The VLM was grounding on a blank image, so every Branch-2 perception number measures nothing. Found during Part VI P6.0 bring-up; fixed the same day.
+- **Why it matters:** The degraded metrics looked exactly like the pre-registered expected outcome, so a broken render was indistinguishable from a confirmed hypothesis — and no frame was ever saved or viewed. This is the motivating case for the **"Look at it" rule** (CLAUDE.md `03d37bb`), added a month later. The downstream claim it supported ("Stage 2 fine-tune is load-bearing") survives on independent Part II evidence, not on this run. Not re-run: SmolVLM-500M was eliminated in the Part IV bake-off.
+- **More:** `experiments/2026-06-14-stage1-baseline/phase-c-vlm.md` (caveat block at top)
 
 ### Q-vlm-1 — Can a VLM running entirely on the Orin Nano meet the 0.5–2 Hz latency AND grounding quality needed for a drone command loop?   [Part I · VLM feasibility]
 - **Answer:** Only borderline — SmolVLM hits 3 Hz but grounds poorly; Gemma-3-4B grounds well (correct class+colour) but is unusable at 0.10 Hz; Gemma-4-E2B is the best trade-off at 0.49 Hz / 4616 MB with only partial grounding.

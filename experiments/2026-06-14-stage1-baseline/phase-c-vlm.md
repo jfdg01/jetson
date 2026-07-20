@@ -4,6 +4,47 @@
 **Status:** COMPLETE — Branch-1 PASS · Branch-2 negative (pre-registered expected outcome)
 **Answers:** RQ-S1.4 — "Replacing oracle with best zero-shot VLM: how much does tracking degrade?"
 
+> ## ⚠ CAVEAT ADDED 2026-07-20T13:05Z — Branch-2 is CONFOUNDED (the camera pointed at the sky)
+>
+> Found during Part VI P6.0 flight-rig bring-up. **The Gazebo camera in `phase_c.sdf` was
+> aimed upward, not down, for this entire campaign.** Both the world pose
+> (`<pose>0 0 10 0 -1.5707963 0</pose>`) and the runtime override
+> (`run_phase_c.py: _update_gz_pose("downward_cam", ..., -math.pi/2, ...)`) used
+> pitch = **−π/2**. `R_y(θ)` maps the camera's +X view axis to `(cos θ, 0, −sin θ)`, so
+> −π/2 gives `(0, 0, +1)` = **up**; +π/2 is down. Both values were wrong from the
+> original Phase C commit `5426ed0` and were never changed.
+>
+> Verified empirically on 2026-07-20 (Gazebo 8.14.0, same world, same code path): at
+> −π/2 the camera renders a **flat gray frame, 100.0% one colour** (mean 218, std 0.0);
+> at +π/2 it renders the green ground plane and the orange target rover. Fixed in both
+> places on this date.
+>
+> **What this invalidates:** every Branch-2 (live VLM) perception number below —
+> valid_rate 12.5%, px_err 190.5, track_cov 20.7%, the 19 track losses, and the
+> conclusion *"zero-shot SmolVLM-500M cannot sustain closed-loop tracking"*. The VLM was
+> grounding an NL expression in a blank gray image; the 12.5% "valid" parses are boxes
+> hallucinated over empty pixels. **RQ-S1.4 is therefore UNANSWERED by this run**, and the
+> claim "Stage 2 fine-tune is load-bearing" — while it happens to be supported by later,
+> independent evidence (Part II Phase 3/4 on RefDrone) — does **not** follow from Branch-2.
+>
+> **What still stands:** Branch-1 (`--inject-oracle`) never renders a frame, so its PASS
+> is unaffected. Phase A's RefDrone parse rate is a dataset eval, unaffected. Oracle
+> coverage is a geometric projection of SITL world state, computed independently of
+> pixels — but it is *interpreted* above as a consequence of tracking failure, and that
+> interpretation inherits the confound.
+>
+> **Why it went unnoticed:** no frame from this run was ever saved or viewed — the raw
+> artifacts are CSVs of numbers only. The run exited 0, wrote well-formed files, and the
+> degraded metrics looked exactly like the pre-registered expected outcome ("zero-shot
+> VLM will do badly"), so a broken render was indistinguishable from a confirmed
+> hypothesis. This is the precise failure that motivated the **"Look at it" rule** later
+> added to CLAUDE.md (`03d37bb`, 2026-07-17) — a month after this run. `run_phase_c.py`
+> now dumps a mid-run PNG and warns loudly when a frame is >99% one colour.
+>
+> **Not re-run.** Re-running Branch-2 would measure SmolVLM-500M, a backbone eliminated in
+> the Part IV bake-off and superseded by the deployed Qwen2-VL-2B. The corrected rig is
+> carried into Part VI instead. Recorded, not silently patched.
+
 ---
 
 ## What changed from Phase B

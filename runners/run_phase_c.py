@@ -326,6 +326,11 @@ def _start_gazebo(log_path: Path) -> subprocess.Popen:
     env = os.environ.copy()
     env["GZ_SIM_SYSTEM_PLUGIN_PATH"] = str(ARDUPILOT_GZ_BUILD)
     env["GZ_SIM_RESOURCE_PATH"] = str(ARDUPILOT_GZ_BUILD.parent)
+    # Headless camera sensors render through EGL and ignore DISPLAY; glvnd
+    # defaults to mesa on this box and yields BLACK frames. See
+    # runners/sitl/GAZEBO_LIVE_FEED.md finding 1.
+    env.setdefault("__EGL_VENDOR_LIBRARY_FILENAMES",
+                   "/usr/share/glvnd/egl_vendor.d/10_nvidia.json")
     cmd = ["gz", "sim", "-s", "-r", str(GZ_WORLD_SDF)]
     log_path.parent.mkdir(parents=True, exist_ok=True)
     log_file = open(log_path, "w")
@@ -350,6 +355,32 @@ def _setup_gz_node() -> None:
 
     _gz_node.subscribe(image_pb2.Image, GZ_CAM_TOPIC, _on_image)
     print(f"[gazebo] subscribed to {GZ_CAM_TOPIC}")
+
+
+def _dump_gz_frame(path: Path) -> bool:
+    """Write the latest Gazebo frame to PNG. Returns True if one was written.
+
+    Also asserts the classic silent-render failure: a frame that is >99% one
+    colour is a broken render (a camera aimed at the sky, an unlit scene), not
+    a legitimately uniform view. Loud, because it exits 0 otherwise.
+    """
+    with _gz_frame_lock:
+        data, w, h = (_gz_latest_frame.get("data"), _gz_latest_frame.get("w"),
+                      _gz_latest_frame.get("h"))
+    if not data or not w or not h:
+        return False
+    import numpy as np  # noqa: PLC0415
+    import cv2          # noqa: PLC0415
+    img = np.frombuffer(data, dtype=np.uint8).reshape(h, w, 3)
+    cv2.imwrite(str(path), cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+    _, counts = np.unique(img.reshape(-1, 3), axis=0, return_counts=True)
+    dom = counts.max() / counts.sum()
+    print(f"[gazebo] mid-run frame -> {path.name}  dominant_colour={dom:.3f}")
+    if dom > 0.99:
+        print(f"[gazebo] WARNING: frame is {dom:.1%} one colour — the render is "
+              f"broken (check the camera pitch sign / scene lighting), NOT a "
+              f"valid view. Any perception number from this run is invalid.")
+    return True
 
 
 def _wait_gazebo(timeout: float = 30.0) -> bool:
@@ -718,6 +749,7 @@ def run_trial(
     prev_track_id  = None
     last_det_ts    = 0.0
     coasting_count = 0   # consecutive frames without a new detection
+    frame_dumped   = False
     gap_ended_t    = None
     reseed_found   = False
 
@@ -758,13 +790,21 @@ def run_trial(
             _update_gz_pose(
                 "downward_cam",
                 copter_ned[1], copter_ned[0], -copter_ned[2],
-                0.0, -math.pi / 2, 0.0,
+                # +pi/2 is DOWN (R_y maps +X to (cos t, 0, -sin t)). Was -pi/2
+                # until 2026-07-20, which aimed the camera at the sky.
+                0.0, math.pi / 2, 0.0,
             )
             _update_gz_pose(
                 "target_rover",
                 rover_ned[1], rover_ned[0], 0.5,
                 0.0, 0.0, 0.0,
             )
+
+        # --- Mid-run frame dump (CLAUDE.md "look at it": every sim run leaves a
+        #     viewable frame, taken mid-run because frame 0 is routinely black). ---
+        if not frame_dumped and t_elapsed >= duration_s / 2:
+            frame_dumped = _dump_gz_frame(csv_path.with_name(
+                csv_path.stem + "-midrun.png"))
 
         # --- Coasting counter ---
         if is_new_det:
@@ -1055,6 +1095,9 @@ def main():
                         help="NL expression for VLM grounding")
     parser.add_argument("--vlm-model",  default=DEFAULT_VLM_MODEL,
                         help="Override VLM GGUF path on Jetson")
+    parser.add_argument("--gazebo", action="store_true",
+                        help="render Gazebo frames even under --inject-oracle "
+                             "(oracle-driven flight with real pixels)")
     parser.add_argument("--skip-server", action="store_true",
                         help="Assume llama-server already running on Jetson")
     parser.add_argument("--dry-run",     action="store_true")
@@ -1080,10 +1123,13 @@ def main():
 
     # Override output directory if requested (Stage 2 re-run)
     if args.out_dir:
-        global RESULTS_DIR, PHASE_C_MD, RAW_DIR
+        global RESULTS_DIR, PHASE_C_MD, RAW_DIR, RESULTS_MD
         RESULTS_DIR = Path(args.out_dir)
         PHASE_C_MD  = RESULTS_DIR / "phase-c-vlm.md"
         RAW_DIR     = RESULTS_DIR / "raw"
+        # ponytail: --out-dir means a scratch run, so keep it out of the repo
+        # ledger too (the root RESULTS.md is a pure redirect table now).
+        RESULTS_MD  = RESULTS_DIR / "RESULTS.md"
 
     _expression = args.expression
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M UTC")
@@ -1117,8 +1163,8 @@ def main():
     slot         = LatestDetectionSlot()
 
     try:
-        # ---- Gazebo (live VLM mode only) ----
-        if not args.inject_oracle and not args.dry_run:
+        # ---- Gazebo (live VLM mode, or --gazebo to render under oracle control) ----
+        if (args.gazebo or not args.inject_oracle) and not args.dry_run:
             if not GZ_WORLD_SDF.exists():
                 sys.exit(f"ERROR: Gazebo world not found: {GZ_WORLD_SDF}")
             gz_log = RAW_DIR / f"phase-c-{ts}-gz.log"
