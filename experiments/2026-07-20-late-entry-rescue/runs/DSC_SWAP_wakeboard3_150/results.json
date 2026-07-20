@@ -1,0 +1,183 @@
+{
+  "arm": "DSC",
+  "leg": "SWAP",
+  "scene": {
+    "clip": "wakeboard3",
+    "f0": 150,
+    "t_p": 8.0,
+    "target_caption": "the wakeboarder",
+    "distractor_caption": "the white boat",
+    "distractor_gt_prompt": [
+      501,
+      264,
+      552,
+      302
+    ],
+    "gating": true,
+    "note": "NEW. Small distant boat (~51x38 px) -- smallest wakeboard distractor. wakeboard family scene 7 of 7."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 29.2,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "dist_floor": 0.25,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "ds_offset": 150,
+  "iou_same": 0.5,
+  "pass": false,
+  "swap_weak_pass": true,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 300,
+    "deliver_frame": 390,
+    "deliver_iou": 0.0,
+    "window": [
+      390,
+      690
+    ],
+    "leg": "SWAP",
+    "selection": "distractor",
+    "selection_correct": true,
+    "acquire_s": 0.0,
+    "deliver_iou_distractor": 0.0
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 150,
+    "t_p": 8.0,
+    "prompt_frame": 390,
+    "ds": 0,
+    "reanchor": [
+      {
+        "frame": 240,
+        "skipped": "in-discovery"
+      },
+      {
+        "frame": 315,
+        "win": [
+          1078,
+          163,
+          1280,
+          419
+        ],
+        "crop_wh": [
+          404,
+          512
+        ],
+        "prior": [
+          1180.0,
+          284.0,
+          1232.0,
+          298.0
+        ],
+        "raw": [
+          1140.6,
+          268.0,
+          1142.6,
+          273.1
+        ],
+        "accepted": true,
+        "new_box": [
+          1140.6,
+          268.0,
+          1142.6,
+          273.1
+        ]
+      }
+    ],
+    "discovery": [
+      {
+        "cand": "target",
+        "caption": "the wakeboarder",
+        "call_frame": 0,
+        "return_frame": 133,
+        "latency_s": 4.43,
+        "outcome": "accepted",
+        "box": [
+          512.0,
+          439.2,
+          550.4,
+          496.8
+        ],
+        "aligned_iou_max": 0.0,
+        "seed_iou_gt": 0.4331
+      },
+      {
+        "cand": "distractor",
+        "caption": "the white boat",
+        "call_frame": 133,
+        "return_frame": 266,
+        "latency_s": 4.42,
+        "outcome": "accepted",
+        "box": [
+          576.0,
+          144.0,
+          614.4,
+          158.4
+        ],
+        "aligned_iou_max": 0.0
+      }
+    ],
+    "discovery_done_frame": 266,
+    "acquire_s": 0.0,
+    "caption": "the white boat",
+    "selected": "distractor",
+    "cand_at_prompt": {
+      "target": [
+        662.0,
+        309.0,
+        676.0,
+        329.0
+      ],
+      "distractor": [
+        1269.0,
+        282.0,
+        1280.0,
+        291.0
+      ]
+    },
+    "deliver_frame": 390,
+    "shadow": {
+      "acquire_s": 4.42,
+      "vlm_box": [
+        512.0,
+        266.4,
+        563.2,
+        309.6
+      ],
+      "match_ious": {
+        "target": 0.0,
+        "distractor": 0.0
+      },
+      "selected": null
+    }
+  },
+  "events": [
+    [
+      13.0,
+      [
+        1269.0,
+        282.0,
+        1280.0,
+        291.0
+      ]
+    ]
+  ],
+  "p519": {
+    "patch": "late-entry-rescue",
+    "aligned_dedup": true,
+    "grace_max_s": 2.0
+  }
+}

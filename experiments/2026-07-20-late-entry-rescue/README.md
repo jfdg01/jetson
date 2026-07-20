@@ -2,7 +2,8 @@
 
 **Pre-registered:** 2026-07-20T05:40Z (Madrid wall clock). Design + patches by Fable; Opus runs
 the matrix and fills Results only — do NOT re-patch code.
-**Status:** PRE-REGISTERED, not yet run.
+**Status:** COMPLETE 2026-07-20T06:20Z — **branch 1, YES [late-entry-rescued]**
+(WSEL 22/26, strengthened SWAP 20/26 vs bar 20/26, baseline 17, delta +3).
 **Branch:** `experiment/late-entry-rescue`.
 **Rig:** RTX 3090 workstation (`.venv-ft`: python 3.12.10, torch 2.6.0+cu124, transformers
 4.57.6) + Jetson Orin Nano 8 GB over `ssh jetson` (llama.cpp q8_0, `NV Power Mode: 15W` mode 0 +
@@ -269,25 +270,163 @@ the two proxy-guard cells whose recovery is least certain), weak-SWAP count, con
 - Grace fires on ~2–4 SWAP cells with acquire_s 0.23–0.8 s; dedup fires on ~4–8 cells;
   bike1:450 converts bucket (off-distractor -> discovery) without flipping.
 
-## Results (TBD — Opus fills after the run)
+## Results (filled 2026-07-20T06:20Z)
+
+**VERDICT: branch 1 — YES [late-entry-rescued].** `verdict_p519.py` is the sole authority; it
+re-derived the frozen P5.18 baseline (WSEL 22 / SWAP 17) without drift, confirmed all 54 cells
+carry the `p519` patch marker, and enforced the 21-cell visual audit before speaking.
 
 | leg | pass | bar | baseline (P5.18) | delta | verdict branch |
 |---|---|---|---|---|---|
-| WSEL | ?/26 | 20/26 | 22/26 | ? | ? |
-| SWAP (strengthened) | ?/26 | 20/26 | 17/26 | ? (MIN_SEP +2) | ? |
+| WSEL | **22/26** | 20/26 | 22/26 | +0 | clears, no regression |
+| SWAP (strengthened) | **20/26** | 20/26 | 17/26 | **+3** (MIN_SEP +2) | clears |
 
-Per-cell flip table (recovered / regressed, with mechanism attribution): TBD from
-verdict.json.
+26/26 valid cells per leg, 0 INVALID, 0 retries. The result lands exactly on the bar — the
+pre-registered "genuine coin flip" — and clears MIN_SEP by one cell.
 
-Grace census (cell, acquire_s, pass) and dedup-fire census: TBD.
+### Per-cell flip table (3 recovered, 0 regressed among gating cells)
 
-Watch cells (car9:950, person10:450 SWAP): TBD.
+| cell | P5.18 | P5.19 | mechanism | pre-registered prediction |
+|---|---|---|---|---|
+| DSC_SWAP_car18_150 | FAIL (wrong seed, 0.854@fs) | **PASS** | grace, acquire_s 0.367 | "coin flip" — won |
+| DSC_SWAP_person10_450 | FAIL (wrong seed + carry lost) | **PASS** | grace, acquire_s 0.600 | "flip medium-low" — won |
+| DSC_SWAP_bike1_2250 | FAIL (in-flight discarded) | **PASS** | aligned dedup + retry re-seed | "flip HIGH" — won |
+| DSC_SWAP_car9_950 | FAIL (wrong seed 0.770@fs) | FAIL (iou_t 0.317, bit-identical) | dedup did not fire | "flip medium-high" — lost |
+| DSC_SWAP_bike1_450 | FAIL (wrong seed 0.727@fs) | FAIL (graced onto target, iou_t 0.865) | grace mis-fired | "bucket conversion, NO flip" — no flip, but see caveat |
+| car7:460, car9:1150, car3:1050, wakeboard3:150 (SWAP) | FAIL | FAIL | carry drift, out of reach | correctly predicted to remain FAIL |
 
-Visual audit notes (one line per audited cell, what was SEEN): TBD.
+WSEL is untouched cell-for-cell (22 → 22, zero flips either direction), confirming the
+pre-registered claim that the aligned guard cannot fire on the first (target) discovery call.
 
-`nvpmodel -q` output + versions + wall-clock: TBD.
+### Grace census — 4 fired, 0 refused, and only half of them were right
 
-Estimate-vs-actual: TBD.
+| cell | acquire_s | delivered on | pass |
+|---|---|---|---|
+| DSC_SWAP_car18_150 | 0.367 | the black SUV (correct) | **PASS** |
+| DSC_SWAP_person10_450 | 0.600 | the white-shirted man (correct) | **PASS** |
+| DSC_SWAP_bike1_450 | 0.433 | **the target** (iou_t 0.865) | FAIL |
+| DSC_SWAP_car3_200 (control) | 0.500 | **the target** (iou_t 0.679) | FAIL (was PASS in P5.18) |
+
+Grace delivers at **0.367–0.600 s**, ~8–12x faster than the 4.68 s cold re-ground it replaces —
+the latency claim holds and beat the pre-registered 0.23–0.8 s estimate's midpoint.
+
+**But grace precision in this matrix is 2/4.** When it is wrong it does not abstain: it delivers
+a *tight, confident* box on the wrong object (0.865 and 0.679 IoU on the target). Neither wrong
+grace inflated the pass count — both scored FAIL under the strengthened rule — so the verdict is
+uncontaminated. The mechanism is nonetheless a **silent-failure risk in deployment**, where no GT
+exists to catch it: the operator gets a crisp lock on the wrong vehicle.
+
+### Dedup census — the dead guard is now live
+
+Aligned dedup fired in **8 cells** (P5.18: 0 in 108 calls). Discovery outcomes across 54 cells:
+accepted 106 → 100, duplicate-reject 0 → 8, in-flight 2 → 4, graced 0 → 4, grace-refused 0.
+Recovery ceiling was +4; realised +3.
+
+### The regression the pre-registration did not predict
+
+`DSC_SWAP_car3_200` is the **non-gating control** and it went PASS → FAIL. Grace fired and put a
+tight box on the target instead of the distractor. It does not touch the verdict (non-gating),
+but it falsifies the pre-registered "regression floor ~0": grace has a real, if small, downside
+tail. Recorded here rather than buried because a control cell regressing is exactly the kind of
+result that is tempting to omit.
+
+### The aligned dedup's own limitation (found by looking)
+
+`bike1:450` was expected to convert to an honest `discovery-failed`. It did not: the guard let it
+through and grace delivered onto the target. Reason: the guard compares the VLM box against the
+**carried** boxes, not against GT. The pre-registration's +4 ceiling was computed with a *GT*
+proxy (IoU 0.727 vs target GT at fs). When the carry itself has drifted off the target, an
+aligned guard still sees no overlap and admits the duplicate. **Aligned dedup is only as good as
+the carry it compares against** — which is the same carry-quality constraint that owns the
+remaining failures.
+
+### Watch cells
+
+- `DSC_SWAP_car9_950` — did **not** recover; dedup never fired, delivery bit-identical to P5.18
+  (iou_t 0.317). The GT-proxy census predicted a fire here; the real carry-referenced guard did
+  not agree.
+- `DSC_SWAP_person10_450` — recovered via grace, as hoped despite the stacked double failure.
+
+### Visual audit (21 cells opened with the Read tool — full notes in `visual_downgrades.json`)
+
+**0 downgrades.** Every passing cell audited showed the green delivered box on the correct
+object. Highlights of what was actually seen:
+
+- `DSC_SWAP_car18_150` discovery f=268: green VLM box on a genuinely small dark SUV far up the
+  road — **not** the red Mustang, which was P5.18's exact failure. Grace deliver f=401: green
+  squarely on the black SUV, red target GT on the Mustang, well separated. The headline rescue.
+- `DSC_SWAP_person10_450` discovery f=572: green on the light-shirted man (the named distractor);
+  deliver f=708 green on him, red GT on the dark-blue-shirted person. Clean.
+- `DSC_SWAP_bike1_450` discovery f=569: the phrase names "the cyclist in the yellow shirt" but
+  the **only** rider in frame is the blue-shirt one, and the VLM boxed him — the distractor is
+  genuinely absent, as pre-registered. Grace then delivered onto him anyway.
+- `DSC_SWAP_car9_950` deliver f=1190: green box sits *inside* the red target GT on the same white
+  car; the dark distractor below untouched.
+- `DSC_SWAP_car7_460` deliver f=700: green box on kerb/background, on no object at all.
+- `DSC_SWAP_wakeboard3_150` deliver f=390: green box at the extreme frame edge on open water.
+- `DSC_WSEL_car7_460` / `DSC_WSEL_car9_950` deliver: **no green box at all** — track lost during
+  idle, honest non-delivery.
+- `DSC_SWAP_person20_1050` deliver f=1290: box is on the named distractor and off the target
+  (clears the rule) but **loose** — it merges two adjacent pedestrians rather than isolating the
+  annotated one. Noted, not downgraded.
+
+### Rig, versions, wall-clock
+
+- Jetson `sudo nvpmodel -q` → `NV Power Mode: 15W`, mode `0` (+ `jetson_clocks`).
+- `.venv-ft`: Python 3.12.10, torch 2.6.0+cu124, transformers 4.57.6. VLM
+  `phase3-terse100eos-1024-q8_0.gguf` + `mmproj-...-f16.gguf`, MAX_SIDE 1024. SAM2
+  `facebook/sam2.1-hiera-tiny` bf16. UAV123 @ 1280x720, 30 fps.
+- Matrix compute: **26.4 min** summed over 54 cells (mean 29.3 s/cell). Elapsed span was longer:
+  the run was interrupted and resumed across several driver cycles by the 5 h rate-limit window
+  (see `.claude/loop.log`); per-cell snapshot dirs made this a no-op resume, and the final driver
+  found 54/54 `results.json` already written.
+
+### Estimate-vs-actual
+
+| quantity | estimate | actual | note |
+|---|---|---|---|
+| matrix runtime | 28–40 min | **26.4 min** compute | slightly under; the extra VLM call was cheaper than budgeted |
+| verdict branch | 1 (YES) at SWAP 20–21 | **branch 1, SWAP 20** | landed at the bottom of the predicted band, exactly on the bar |
+| WSEL | ~22 | **22** | exact |
+| dedup fires | ~4–8 cells | **8 cells** | top of band |
+| grace fires | ~2–4 SWAP cells | **4** | top of band |
+| grace acquire_s | 0.23–0.8 s | **0.367–0.600 s** | inside band |
+| recovery | +2..4, median ~20 | **+3** | exact median |
+| regression floor | ~0 | **1 (the non-gating control)** | **estimate wrong** — see above |
+| bike1:450 | bucket conversion, no flip | no flip, but via a *graced wrong delivery*, not an honest discovery-failed | **mechanism wrong**, count right |
+
+### What broke / what to carry forward
+
+Nothing broke operationally: R0 gates green, 54/54 cells scored, 0 INVALID, 0 retries, 0 hangs.
+The substantive negatives are the two above (control regression; aligned dedup inherits carry
+drift). The remaining 6 SWAP and 4 WSEL failures are now a **clean** carry-quality bucket —
+which was one of the stated reasons to fix discovery integrity first: wrong-seed cells no longer
+contaminate the drift measurement. Every remaining failure is either carry drift onto background
+or a third object (6 cells), or an honest carry loss during idle (2 cells), or a genuinely absent
+referent (bike1:450).
+
+## Proof deliverables (`proof/`, all committed)
+
+All four are reproducible from `runs/*/results.json` via the committed `make_proof.py` (the
+grace frame is copied straight out of `runs/`). All four were opened with the Read tool before
+being committed.
+
+1. **`discovery_headline.png`** — the before/after that names the whole result. LEFT: P5.18
+   `DSC_SWAP_car18_150` discovery f=134, phrase "the black SUV", green VLM box on **the red
+   Mustang** — the misaligned guard accepted a distractor track born on the target. RIGHT: P5.19
+   same cell, f=268, green box on the actual black SUV far up the road. Config: DSC arm, SWAP
+   leg, aligned dedup + grace.
+2. **`paired_flip.png`** — per-scene 4-column grid (P5.18 WSEL / P5.19 WSEL / P5.18 SWAP / P5.19
+   SWAP) over all 27 scenes; green=pass, red=fail, black outline=flip, G=grace delivery. Shows
+   the 3 SWAP recoveries, the untouched WSEL columns, and the one outlined red G in the
+   car3:200 control row — the regression. Built from both campaigns' `results.json`.
+3. **`dedup_census.png`** — discovery-call outcomes, P5.18 vs P5.19 over 54 cells: the
+   distinctness guard going from **0 fires in 108 calls** (frame-misaligned, structurally dead)
+   to 8 duplicate-rejects, plus 4 graced deliveries and 0 grace refusals.
+4. **`grace_deliver_car18_150.png`** — the single best graced delivery (`DSC_SWAP_car18_150`,
+   f=401, acquire_s=0.367): green delivered box on the black SUV, red target GT on the Mustang,
+   blue stale prompt-frame distractor GT labelled as stale. This is what a 0.367 s bounded-grace
+   delivery looks like against the 4.68 s cold re-ground it replaces.
 
 ## Definition of done (Opus)
 

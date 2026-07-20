@@ -660,3 +660,44 @@ Proof: `proof/pass_matrix.png` (per-scene PASS/FAIL grid both legs), `proof/deli
 (the bimodality figure, floors drawn), `proof/deliver_headline.png` (worst *passing* SWAP cell,
 car9:560 iou_d 0.478).
 Detail: [`../../experiments/2026-07-20-n25-select/README.md`](../../experiments/2026-07-20-n25-select/README.md).
+
+### P5.19 — late-entry-rescue: aligned discovery dedup + bounded grace delivery (2026-07-20)
+
+| leg | pass | bar | baseline (P5.18) | delta | verdict |
+|---|---|---|---|---|---|
+| WSEL | **22/26** | 20/26 | 22/26 | +0 | clears, zero flips either direction |
+| SWAP (strengthened) | **20/26** | 20/26 | 17/26 | **+3** (MIN_SEP +2) | clears — **branch 1 YES [late-entry-rescued]** |
+
+Rig: RTX 3090 (`.venv-ft` python 3.12.10, torch 2.6.0+cu124, transformers 4.57.6) + Jetson Orin
+Nano 8 GB, `NV Power Mode: 15W` mode 0 + `jetson_clocks`; VLM `phase3-terse100eos-1024-q8_0.gguf`
+MAX_SIDE 1024; SAM2 `sam2.1-hiera-tiny` bf16; UAV123 @ 1280x720 30 fps. 54 cells, 26/26 valid per
+leg, 0 INVALID, 0 retries. Matrix compute 26.4 min (mean 29.3 s/cell) vs 28-40 min est.
+
+Single factor vs the frozen P5.18 baseline: two coupled patches to late-entry discovery
+integrity — (1) dedup evaluated against carried boxes **snapshotted at the frame the VLM saw**
+(P5.18's guard compared post-catch-up boxes and fired 0 times in 108 calls), (2) **bounded grace**
+delivery of the in-flight discovery when it lands within 2.0 s of the prompt.
+
+Mechanism counts: aligned dedup fired **8** cells (was 0); grace fired **4**, refused 0, with
+**acquire_s 0.367-0.600 s** vs the 4.68 s cold re-ground it replaces. Recoveries: car18:150 and
+person10:450 (grace), bike1:2250 (dedup + retry re-seed). Zero gating regressions.
+
+Two negatives worth carrying: (a) the **non-gating control car3:200 regressed** PASS -> FAIL —
+grace put a tight box on the target (iou_t 0.679), falsifying the pre-registered "regression floor
+~0"; **grace precision was 2/4**, and when wrong it delivers a *confident* wrong box rather than
+abstaining (a silent-failure risk where no GT exists). (b) `bike1:450` was predicted to convert to
+an honest discovery-failed and did not — the guard compares against the **carry**, not GT, so a
+drifted carry still admits a duplicate. Aligned dedup is only as good as the carry it references.
+
+**Visual gate: PASS, 21/21 required cells opened with the Read tool, ZERO downgrades.** Every
+passing cell shows the delivered box on the correct object; the headline rescue was *seen* (green
+VLM box on the actual black SUV, where P5.18 boxed the red Mustang) before it was counted.
+
+Residual failures are now a clean carry-quality bucket: 6 cells drift onto background or a third
+object, 2 are honest carry losses during idle, 1 (bike1:450) has a genuinely absent referent.
+
+Proof: `proof/discovery_headline.png` (P5.18 Mustang vs P5.19 SUV, the before/after),
+`proof/paired_flip.png` (4-column paired grid, flips outlined, G=grace),
+`proof/dedup_census.png` (guard 0 -> 8 fires), `proof/grace_deliver_car18_150.png` (a 0.367 s
+graced delivery).
+Detail: [`../../experiments/2026-07-20-late-entry-rescue/README.md`](../../experiments/2026-07-20-late-entry-rescue/README.md).

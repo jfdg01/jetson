@@ -540,3 +540,39 @@ flips P5.8's failing gate — disclosed, deliberate, grounded in third-party-che
   low-contrast sedans on shadow-banded palm roads, where SAM2 has least appearance signal.
   **Given up:** the simpler "carry is getting weaker at longer idle" story, which the data does
   not support (bike1, person and wakeboard all hold at the same idle window).
+
+### P5.19 late-entry-rescue (2026-07-20)
+
+- **Fixed the named P5.18 mechanism (late-entry discovery integrity) rather than the larger
+  carry-drift family.** **Why:** the misaligned guard was a *provable harness bug* with a visually
+  confirmed recovery ceiling (+4), near-zero predicted regression risk, and a clean paired design
+  at n=26 in ~30 min. Fixing it first also *decontaminates* the carry-drift measurement, since
+  wrong-seed cells were being charged to the drift bucket. **Given up:** a cycle spent on
+  mechanism (b), the bigger family (8 of 13 leg-failures) — deferred, and now cleanly isolated.
+- **Bundled grace with aligned dedup instead of shipping dedup alone.** **Why:** schedule
+  arithmetic predetermined dedup-only to a NO — the 13 s idle window fits only 2 completed VLM
+  slots, so any post-reject retry is still in flight at the prompt and P5.16 discards it. Dedup
+  alone converts wrong deliveries into honest `discovery-failed`: same FAIL count, better buckets,
+  no recovery. Grace is what makes the RQ live, and both patches are the same mechanism (late-entry
+  discovery integrity), so the A/B stays single-factor. **Given up:** the cleaner one-patch
+  attribution — mitigated by per-flip mechanism attribution in `verdict.json` (2 grace, 1 dedup).
+- **Counted the two wrong grace deliveries as FAIL and reported grace precision as 2/4.** **Why:**
+  the strengthened SWAP rule already scores them FAIL on the geometry, but the *interesting* fact
+  is not the count — it is that a wrong grace produces a tight, high-IoU box on the wrong object
+  (0.865, 0.679) rather than abstaining. In deployment there is no GT to catch that, so it is a
+  silent failure, and reporting only "SWAP 20/26, +3" would have hidden it. **Given up:** a
+  cleaner-looking YES narrative.
+- **Reported the non-gating control regression (car3:200 PASS -> FAIL) prominently.** **Why:** it
+  falsifies an explicit pre-registered estimate ("regression floor ~0"), and a control cell
+  regressing is precisely what a reader needs to weigh a result that lands exactly on its bar.
+  **Given up:** nothing — it is non-gating and does not move the branch.
+- **Retained SWAP person20:1050 as a pass despite a loose delivered box** (consistent with the
+  identical P5.18 call). **Why:** the box is on the named distractor and off the target, which is
+  the pre-registered rule; it merely merges an adjacent overlapping pedestrian. Downgrading on a
+  rule the cell meets would be a scoring error. **Given up:** nothing — recorded as a caveat.
+- **Named the aligned guard's own limitation rather than claiming the fix is complete.** **Why:**
+  the guard compares the VLM box against *carried* boxes, not GT; the pre-registration's +4 ceiling
+  used a GT proxy. When the carry has already drifted, an aligned guard still sees no overlap and
+  admits the duplicate (`bike1:450`). So dedup quality is bounded by carry quality. **Given up:**
+  the tidier claim that discovery integrity is now solved — it is bounded by the same constraint
+  that owns the residual failures.
