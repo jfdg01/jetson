@@ -1,0 +1,267 @@
+{
+  "arm": "DSC",
+  "leg": "SWAP",
+  "scene": {
+    "clip": "car18",
+    "f0": 150,
+    "t_p": 8.0,
+    "target_caption": "the red car",
+    "distractor_caption": "the black SUV",
+    "distractor_gt_prompt": [
+      1052,
+      313,
+      1148,
+      388
+    ],
+    "gating": true,
+    "note": "NEW. SUV (parked, tailgate open, static) + bystanders enter mid-window -- pre-registered late-entry discovery risk: distractor not visible at ds=0, must be discovered on a later loop pass. Only usable car18 window (clip is 1211 frames)."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 31.4,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "dist_floor": 0.25,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "ds_offset": 150,
+  "iou_same": 0.5,
+  "pass": true,
+  "swap_weak_pass": true,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 300,
+    "deliver_frame": 400,
+    "deliver_iou": 0.0,
+    "window": [
+      400,
+      700
+    ],
+    "leg": "SWAP",
+    "selection": "distractor",
+    "selection_correct": true,
+    "acquire_s": 0.333,
+    "deliver_iou_distractor": 0.8658
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 150,
+    "t_p": 8.0,
+    "prompt_frame": 390,
+    "ds": 0,
+    "reanchor": [
+      {
+        "frame": 240,
+        "skipped": "in-discovery"
+      },
+      {
+        "frame": 315,
+        "skipped": "in-discovery"
+      }
+    ],
+    "discovery": [
+      {
+        "cand": "target",
+        "caption": "the red car",
+        "call_frame": 0,
+        "return_frame": 134,
+        "latency_s": 4.46,
+        "outcome": "accepted",
+        "box": [
+          268.8,
+          280.8,
+          371.2,
+          331.2
+        ],
+        "aligned_iou_max": 0.0,
+        "seed_iou_gt": 0.6677
+      },
+      {
+        "cand": "distractor",
+        "caption": "the black SUV",
+        "call_frame": 134,
+        "return_frame": 267,
+        "latency_s": 4.45,
+        "outcome": "duplicate_reject",
+        "box": [
+          614.4,
+          201.6,
+          819.2,
+          352.8
+        ],
+        "dup_iou": 0.8926,
+        "dup_vs": "target"
+      },
+      {
+        "cand": "distractor",
+        "caption": "the black SUV",
+        "call_frame": 267,
+        "return_frame": 400,
+        "latency_s": 4.44,
+        "outcome": "accepted",
+        "pending_valid": true,
+        "pending_dup": false,
+        "box": [
+          1100.8,
+          72.0,
+          1126.4,
+          93.6
+        ],
+        "aligned_iou_max": 0.0,
+        "graced": true
+      }
+    ],
+    "discovery_done_frame": 390,
+    "acquire_s": 0.333,
+    "caption": "the black SUV",
+    "selected": "distractor",
+    "cand_at_prompt": {
+      "target": [
+        702.0,
+        283.0,
+        803.0,
+        332.0
+      ],
+      "distractor": [
+        1041.0,
+        312.0,
+        1149.0,
+        389.0
+      ]
+    },
+    "grace": {
+      "fired": true,
+      "fs": 267,
+      "fr": 400,
+      "latency_s": 4.44,
+      "acquire_s": 0.333,
+      "vbox": [
+        1100.8,
+        72.0,
+        1126.4,
+        93.6
+      ],
+      "box_at_prompt": [
+        1041.0,
+        312.0,
+        1149.0,
+        389.0
+      ],
+      "box_at_deliver": [
+        974.0,
+        349.0,
+        1087.0,
+        441.0
+      ]
+    },
+    "deliver_frame": 400,
+    "shadow": {
+      "acquire_s": 4.47,
+      "vlm_box": [
+        1036.8,
+        309.6,
+        1139.2,
+        396.0
+      ],
+      "match_ious": {
+        "target": 0.0,
+        "distractor": 0.7875
+      },
+      "selected": "distractor"
+    }
+  },
+  "events": [
+    [
+      13.333,
+      [
+        974.0,
+        349.0,
+        1087.0,
+        441.0
+      ]
+    ],
+    [
+      13.39,
+      [
+        973.0,
+        348.0,
+        1087.0,
+        441.0
+      ]
+    ],
+    [
+      13.555,
+      [
+        938.0,
+        367.0,
+        1059.0,
+        469.0
+      ]
+    ],
+    [
+      13.72,
+      [
+        883.0,
+        402.0,
+        1019.0,
+        521.0
+      ]
+    ],
+    [
+      13.885,
+      [
+        814.0,
+        448.0,
+        972.0,
+        587.0
+      ]
+    ],
+    [
+      14.05,
+      [
+        729.0,
+        510.0,
+        918.0,
+        681.0
+      ]
+    ],
+    [
+      14.215,
+      [
+        605.0,
+        584.0,
+        849.0,
+        720.0
+      ]
+    ],
+    [
+      14.38,
+      [
+        613.0,
+        674.0,
+        760.0,
+        720.0
+      ]
+    ]
+  ],
+  "p520": {
+    "arm": "S",
+    "sam2_model": "facebook/sam2.1-hiera-small",
+    "equal_stride": true
+  },
+  "p519": {
+    "patch": "late-entry-rescue",
+    "aligned_dedup": true,
+    "grace_max_s": 2.0
+  }
+}

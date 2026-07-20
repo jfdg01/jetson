@@ -1,0 +1,437 @@
+{
+  "arm": "DSC",
+  "leg": "SWAP",
+  "scene": {
+    "clip": "car9",
+    "f0": 560,
+    "t_p": 6.0,
+    "target_caption": "the silver car",
+    "distractor_caption": "the dark red car",
+    "distractor_box": [
+      578,
+      522,
+      624,
+      598
+    ],
+    "distractor_gt_prompt": [
+      561,
+      120,
+      592,
+      147
+    ],
+    "gating": true,
+    "note": "LEGACY, tightest SWAP cell: P5.5 carried box vs hand GT IoU ~0.28, just over the 0.25 floor. ~30x27 px receding maroon sedan. t_p 6.0 kept as-run (frozen)."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 29.4,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "dist_floor": 0.25,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "ds_offset": 150,
+  "iou_same": 0.5,
+  "pass": true,
+  "swap_weak_pass": true,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 300,
+    "deliver_frame": 740,
+    "deliver_iou": 0.0,
+    "window": [
+      740,
+      1040
+    ],
+    "leg": "SWAP",
+    "selection": "distractor",
+    "selection_correct": true,
+    "acquire_s": 0.0,
+    "deliver_iou_distractor": 0.4779
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 560,
+    "t_p": 6.0,
+    "prompt_frame": 740,
+    "ds": 410,
+    "reanchor": [
+      {
+        "frame": 650,
+        "skipped": "in-discovery"
+      },
+      {
+        "frame": 725,
+        "win": [
+          454,
+          30,
+          710,
+          286
+        ],
+        "crop_wh": [
+          512,
+          512
+        ],
+        "prior": [
+          572.0,
+          146.0,
+          593.0,
+          171.0
+        ],
+        "raw": [
+          574.3,
+          150.3,
+          592.2,
+          170.8
+        ],
+        "accepted": true,
+        "new_box": [
+          574.3,
+          150.3,
+          592.2,
+          170.8
+        ]
+      }
+    ],
+    "discovery": [
+      {
+        "cand": "target",
+        "caption": "the silver car",
+        "call_frame": 410,
+        "return_frame": 545,
+        "latency_s": 4.51,
+        "outcome": "accepted",
+        "box": [
+          652.8,
+          410.4,
+          691.2,
+          468.0
+        ],
+        "aligned_iou_max": 0.0,
+        "seed_iou_gt": 0.6274
+      },
+      {
+        "cand": "distractor",
+        "caption": "the dark red car",
+        "call_frame": 545,
+        "return_frame": 680,
+        "latency_s": 4.51,
+        "outcome": "accepted",
+        "box": [
+          588.8,
+          576.0,
+          640.0,
+          662.4
+        ],
+        "aligned_iou_max": 0.0
+      }
+    ],
+    "discovery_done_frame": 680,
+    "acquire_s": 0.0,
+    "caption": "the dark red car",
+    "selected": "distractor",
+    "cand_at_prompt": {
+      "target": [
+        592.0,
+        420.0,
+        630.0,
+        480.0
+      ],
+      "distractor": [
+        572.0,
+        124.0,
+        592.0,
+        144.0
+      ]
+    },
+    "deliver_frame": 740,
+    "shadow": {
+      "acquire_s": 4.52,
+      "vlm_box": [
+        563.2,
+        122.4,
+        588.8,
+        151.2
+      ],
+      "match_ious": {
+        "target": 0.0,
+        "distractor": 0.4193
+      },
+      "selected": "distractor"
+    }
+  },
+  "events": [
+    [
+      24.667,
+      [
+        572.0,
+        124.0,
+        592.0,
+        144.0
+      ]
+    ],
+    [
+      24.719,
+      [
+        572.0,
+        124.0,
+        592.0,
+        144.0
+      ]
+    ],
+    [
+      24.884,
+      [
+        570.0,
+        118.0,
+        592.0,
+        138.0
+      ]
+    ],
+    [
+      25.052,
+      [
+        571.0,
+        111.0,
+        591.0,
+        131.0
+      ]
+    ],
+    [
+      25.223,
+      [
+        572.0,
+        103.0,
+        591.0,
+        123.0
+      ]
+    ],
+    [
+      25.391,
+      [
+        570.0,
+        96.0,
+        592.0,
+        116.0
+      ]
+    ],
+    [
+      25.549,
+      [
+        571.0,
+        90.0,
+        591.0,
+        109.0
+      ]
+    ],
+    [
+      25.716,
+      [
+        571.0,
+        83.0,
+        591.0,
+        102.0
+      ]
+    ],
+    [
+      25.885,
+      [
+        571.0,
+        77.0,
+        591.0,
+        95.0
+      ]
+    ],
+    [
+      26.045,
+      [
+        571.0,
+        71.0,
+        590.0,
+        89.0
+      ]
+    ],
+    [
+      26.21,
+      [
+        570.0,
+        64.0,
+        588.0,
+        81.0
+      ]
+    ],
+    [
+      26.373,
+      [
+        571.0,
+        59.0,
+        589.0,
+        76.0
+      ]
+    ],
+    [
+      26.548,
+      [
+        571.0,
+        53.0,
+        589.0,
+        70.0
+      ]
+    ],
+    [
+      26.713,
+      [
+        572.0,
+        48.0,
+        589.0,
+        65.0
+      ]
+    ],
+    [
+      26.878,
+      [
+        572.0,
+        43.0,
+        588.0,
+        59.0
+      ]
+    ],
+    [
+      27.044,
+      [
+        572.0,
+        37.0,
+        588.0,
+        54.0
+      ]
+    ],
+    [
+      27.209,
+      [
+        573.0,
+        33.0,
+        590.0,
+        49.0
+      ]
+    ],
+    [
+      27.373,
+      [
+        573.0,
+        28.0,
+        590.0,
+        44.0
+      ]
+    ],
+    [
+      27.54,
+      [
+        574.0,
+        23.0,
+        591.0,
+        39.0
+      ]
+    ],
+    [
+      27.705,
+      [
+        574.0,
+        18.0,
+        592.0,
+        34.0
+      ]
+    ],
+    [
+      27.869,
+      [
+        575.0,
+        14.0,
+        591.0,
+        30.0
+      ]
+    ],
+    [
+      28.034,
+      [
+        575.0,
+        9.0,
+        593.0,
+        25.0
+      ]
+    ],
+    [
+      28.201,
+      [
+        576.0,
+        6.0,
+        593.0,
+        21.0
+      ]
+    ],
+    [
+      28.364,
+      [
+        576.0,
+        3.0,
+        594.0,
+        16.0
+      ]
+    ],
+    [
+      28.53,
+      [
+        577.0,
+        0.0,
+        593.0,
+        13.0
+      ]
+    ],
+    [
+      28.696,
+      [
+        577.0,
+        0.0,
+        594.0,
+        9.0
+      ]
+    ],
+    [
+      28.86,
+      [
+        577.0,
+        0.0,
+        594.0,
+        6.0
+      ]
+    ],
+    [
+      29.025,
+      [
+        582.0,
+        0.0,
+        594.0,
+        2.0
+      ]
+    ]
+  ],
+  "p520": {
+    "arm": "T",
+    "sam2_model": "facebook/sam2.1-hiera-tiny",
+    "equal_stride": true
+  },
+  "p519": {
+    "patch": "late-entry-rescue",
+    "aligned_dedup": true,
+    "grace_max_s": 2.0
+  }
+}
