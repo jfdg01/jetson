@@ -97,7 +97,10 @@ def bank_figure():
               title=f"Capture rate, {len(m)} clips @ 200 W cap")
     ax[0].legend(fontsize=8)
 
-    # sample GT areas: every 40th frame is plenty and keeps this script quick
+    # sample GT areas: every 40th frame is plenty and keeps this script quick.
+    # Only fully-in-frame boxes count. A box clipped by the frame edge reports a
+    # smaller area than it projects to, and low altitude clips the most, so mixing
+    # them in flattens the curve and hides whether the projection obeys 1/z^2.
     by_alt = {}
     for p in mans:
         alt = json.loads(p.read_text())["alt"]
@@ -105,15 +108,26 @@ def bank_figure():
             if i % 40:
                 continue
             for g in json.loads(line)["gt"]:
-                if g.get("area_vis_px", 0) > 1.0:
-                    by_alt.setdefault(alt, []).append(g["area_vis_px"])
+                whole = (g["n_proj"] == 8
+                         and g.get("area_vis_px", 0) >= g["area_px"] - 0.5)
+                if whole and g["area_px"] > 1.0:
+                    by_alt.setdefault(alt, []).append(g["area_px"])
     alts = sorted(by_alt)
     if alts:
         ax[1].boxplot([by_alt[a] for a in alts], tick_labels=[f"{int(a)}" for a in alts],
                       showfliers=False)
+        # 1/z^2 anchored on the lowest altitude's median: the projection is analytic,
+        # so this is a check the bank has to pass, not a trend line fitted to it
+        med0 = float(np.median(by_alt[alts[0]]))
+        ax[1].plot(range(1, len(alts) + 1),
+                   [med0 * (alts[0] / a) ** 2 for a in alts],
+                   "o--", color="crimson", ms=4,
+                   label=f"1/z^2 from {int(alts[0])} m median")
         ax[1].set_yscale("log")
-        ax[1].set(xlabel="camera altitude (m)", ylabel="on-screen GT box area (px^2)",
+        ax[1].set(xlabel="camera altitude (m)",
+                  ylabel="projected GT box area (px^2), fully in frame",
                   title="Target pixel size vs altitude")
+        ax[1].legend(fontsize=8)
         ax[1].grid(alpha=0.3, axis="y")
 
     fig.tight_layout()
