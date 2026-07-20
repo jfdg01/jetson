@@ -562,16 +562,27 @@ def gate_c(client, out, n_frames=40, n_vehicles=40):
         try:
             for _ in range(n_frames):
                 bgr, _tags, _ = grab(world, cams)
-            pos = sorted((v.id, round(v.get_location().x, 3),
-                          round(v.get_location().y, 3)) for v in vehicles)
+            # Key on SPAWN INDEX, not v.id. Actor ids are assigned by the server
+            # and do not restart at a fixed value across `load_world`, so a tuple
+            # carrying v.id differs between two runs even when every car is in
+            # exactly the same place -- which made this gate report FAIL for the
+            # same-config repeat compared against itself. setup_world fills
+            # `vehicles` by walking a seeded shuffle of the spawn points, so the
+            # index is stable across runs and the id is not.
+            pos = [(i, round(v.get_location().x, 3), round(v.get_location().y, 3))
+                   for i, v in enumerate(vehicles)]
+            # kept only so the results file shows the old key failing beside the
+            # new one passing -- the difference IS the finding
+            pos_by_id = sorted((v.id, round(v.get_location().x, 3),
+                                round(v.get_location().y, 3)) for v in vehicles)
         finally:
             teardown(client, cams, vehicles)
         cv2.imwrite(str(d / f"{tag}.png"), bgr)
-        return bgr, pos, ticks
+        return bgr, pos, pos_by_id, ticks
 
-    a, pos_a, t_a = run_once("baseline_a")
-    b, pos_b, t_b = run_once("baseline_b")           # same config, repeat
-    c, pos_c, t_c = run_once("toggled", toggle=True)  # toggle then restore
+    a, pos_a, id_a, t_a = run_once("baseline_a")
+    b, pos_b, id_b, t_b = run_once("baseline_b")      # same config, repeat
+    c, pos_c, id_c, t_c = run_once("toggled", toggle=True)   # toggle then restore
     # the check that keeps the fix above from silently regressing: unequal ticks
     # make every downstream comparison meaningless
     assert t_a == t_b == t_c, f"arms ticked unequally: {t_a}/{t_b}/{t_c}"
@@ -587,6 +598,9 @@ def gate_c(client, out, n_frames=40, n_vehicles=40):
            "tm_positions_identical_same_config": pos_same,
            "tm_positions_identical_after_toggle": pos_toggle,
            "n_vehicles_compared": len(pos_a),
+           "same_counts": len(pos_a) == len(pos_b) == len(pos_c),
+           "actor_id_key_same_config": (id_a == id_b),
+           "actor_id_key_after_toggle": (id_a == id_c),
            "verdict": "PASS" if (toggled <= max(same_cfg, 1e-9) and floor_ok
                                  and pos_same and pos_toggle) else "FAIL"}
     (d / "results.json").write_text(json.dumps(res, indent=2))
