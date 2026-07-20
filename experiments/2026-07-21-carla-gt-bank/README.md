@@ -125,8 +125,17 @@ Each is a measured failure mode from this repo, not a hypothetical.
   2026-07-22T10:00 and no STOP file, and cycle pid 360646 was mid-flight at 00:27. Two
   autonomous drivers cannot share one GPU and one CARLA server, and it merges to `main`.
   Guard: `.claude/autoresearch.STOP` armed at 2026-07-21T00:27Z (gitignored, local-only;
-  delete the file to resume). The in-flight cycle was left to finish rather than corrupt its
-  branch.
+  delete the file to resume). The STOP file blocks *new* ticks only — it is checked first thing
+  in the tick (`scripts/autoresearch.py:118`) and is invisible to a worker already running. The
+  in-flight cycle was initially left alone, then **killed outright at 2026-07-21T00:40Z** (pids
+  360643/360644/360646 + children) once it proved it would not coexist: it read this campaign's
+  freshly-committed script, ran `--gate-c` against the same server on port 2100, reloaded the
+  world under the bank capture and killed it with `_queue.Empty` 0.9 min in. Two further reasons
+  it had to go, not just be waited out: the operator's instruction for the night was
+  opus-only agents and its driver prompt spawns a `model:fable` design subagent, and it merges
+  to `main`. Collateral: it had checked out `experiment/p63-carla-gt-bank` in the shared
+  worktree, so three of this campaign's commits landed on that branch; verified linear on top of
+  `main` and renamed to `experiment/carla-gt-bank`. Nothing lost.
 - **Jetson canary.** Not applicable tonight (no Jetson in the loop). Required for any later
   arm that grounds through the tunnel: if `ssh -N -L` dies mid-sweep, every subsequent
   `generate` returns nothing and the run produces a full set of NO_MATCH results *that look
