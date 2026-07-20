@@ -523,3 +523,42 @@ carry quality, which now owns a clean 8 of the 10 residual failures.
 **Visual gate: PASS.** 21/21 mechanically-required cells opened with the Read tool, zero
 downgrades.
 Detail: [`../../experiments/2026-07-20-late-entry-rescue/README.md`](../../experiments/2026-07-20-late-entry-rescue/README.md).
+
+### RQ-P5.20a / RQ-P5.20b (carry-capacity, 2026-07-20)
+
+**a) Does swapping the SAM2 carry checkpoint from `hiera-tiny` (38.9M) to `hiera-small` (46M) —
+nothing else changed — recover at least +3 of the carry-owned select failures on the frozen n=26
+scene set? b) Does P5.19's bar-exact YES replicate when the baseline arm is re-run?**
+
+**a) NO [capacity-flat]. b) YES [p519-replicates]. Branch 3.** Arm S (hiera-small) scores WSEL
+22/26 and strengthened SWAP 19/26 against arm T's (hiera-tiny) 22/26 and 20/26 —
+**paired_delta -1** over all 52 both-valid pairs, against a pre-registered MIN_SEP of +3. Zero
+cells recovered; one regressed. Arm T reproduces P5.19's committed `{WSEL 22, SWAP 20}`
+**cell-for-cell, 0 flips**.
+
+The two answers matter in opposite directions and that is the point of having run them together.
+**(b) buys confidence:** P5.19 landed *exactly* on its bar, the classic shape of a lucky roll, and
+a bit-identical re-run at the cell level says it was not one — the Part V select claim at real n
+stands on a reproducible result, and the harness is deterministic at this seed.
+
+**(a) closes a lever.** "The carry drifts, so use a bigger tracker" is the obvious next move and it
+is now falsified with a paired design on the same scenes: the residual failures are **not
+capacity-bound**. The visual audit (42/42 required cells opened, 0 downgrades) shows why — the
+failures are a car-family block whose shape is *identical* across checkpoints: two cells where the
+carry is lost outright during idle and delivers no box at all, two where it delivers a box drifted
+onto empty asphalt. Both checkpoints fail the same way on the same cars. The single S-vs-T flip was
+a **regression**: hiera-small's mask bloated across two vehicles (iou_d 0.9714 -> 0.2314), which is
+a small but real warning that more capacity can cost boundary discipline on small aerial objects.
+
+Corollary worth carrying: under equal-stride emulation the heavier checkpoint cost **no extra wall
+clock** (26.3 vs 26.4 min), so this NO is not "we couldn't afford the bigger model" — it is "the
+bigger model, run for free, does not help". And because gate a failed, the deployment bill a YES
+would have owed (TensorRT export + co-resident FPS gate on the Jetson) is never incurred.
+
+The next constraint therefore stays exactly where P5.19 left it — **carry quality on real
+video** — but with one lever now removed: it must be attacked by changing *what the carry sees or
+how it is re-anchored*, not by making the tracker bigger.
+
+**Visual gate: PASS.** 42/42 mechanically-required cells opened with the Read tool, zero
+downgrades.
+Detail: [`../../experiments/2026-07-20-carry-capacity/README.md`](../../experiments/2026-07-20-carry-capacity/README.md).

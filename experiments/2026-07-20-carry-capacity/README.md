@@ -2,7 +2,10 @@
 
 **Pre-registered:** 2026-07-20T10:05Z (Madrid wall clock). Design + patches by
 Fable; Opus runs the matrix and fills Results only — do **NOT** re-patch code.
-**Status:** PRE-REGISTERED, not yet run.
+**Status:** COMPLETE — **branch 3, `NO [capacity-flat, p519-replicates]`**.
+Gate a (capacity) FAIL: paired_delta **−1** on 52/52 pairs, min_sep +3.
+Gate b (replication) PASS: arm T lands WSEL 22/26, SWAP 20/26 — reproducing
+P5.19 cell-for-cell (0 flips). Run 2026-07-20T11:20Z.
 **Branch:** `experiment/carry-capacity` off `main` @ `4678f98` (P5.19 merge).
 **Machines:** RTX 3090 workstation (SAM2 carry + orchestration, local repo) +
 Jetson Orin Nano over `ssh jetson` (VLM discovery / ROI re-anchor / shadow
@@ -321,33 +324,113 @@ are demotion-only; nothing can be upgraded visually.
   capacity-flat, with the replication answer deciding which. Either is
   thesis content: it would close "just use a bigger tracker" with data.
 
-## Results (TBD — Opus fills; every number carries its config)
+## Results (filled by Opus; every number carries its config)
 
-Run date/time: TBD. Jetson `nvpmodel -q`: TBD. R0 gates: TBD.
+Run date/time: **2026-07-20T10:02Z → 2026-07-20T11:16Z** (Madrid wall-clock),
+arms run strictly sequentially (both contend for the single Jetson VLM).
+Jetson `nvpmodel -q`: **`NV Power Mode: 15W`** + `jetson_clocks` applied.
+VLM: llama.cpp q8_0 `phase3-terse100eos-1024` on the Jetson; carry + harness
+on the 3090; equal-stride emulation on (`equal_stride: true` stamped in every
+`results.json`), so local carry compute never consumes clip time and the
+checkpoint is the single factor. R0 gates: all three selfchecks OK,
+`facebook/sam2.1-hiera-small` cached, power mode confirmed. All 108 cells ran
+(54 per arm); zero INVALID, zero crashes, zero aborts.
 
 | arm | SAM2 checkpoint | WSEL /26 | SWAP /26 | total /52 | valid WSEL/SWAP | wall (min) |
 |---|---|---|---|---|---|---|
-| T | sam2.1-hiera-tiny | TBD | TBD | TBD | TBD | TBD |
-| S | sam2.1-hiera-small | TBD | TBD | TBD | TBD | TBD |
+| T | sam2.1-hiera-tiny (38.9M) | 22 | 20 | 42 | 26/26 | 26.4 |
+| S | sam2.1-hiera-small (46M) | 22 | 19 | 41 | 26/26 | 26.3 |
 
-- paired_delta (S−T, both-valid pairs): TBD (min_sep +3) → **gate a: TBD**
-- T vs bar 20/26 both legs → **gate b: TBD**
-- **Branch: TBD — verdict: TBD**
-- Recovered cells (cid, T-bucket, carry-attributed?): TBD
-- Regressed cells: TBD
-- T-vs-P5.19 flip census (replication noise): TBD
-- Grace census (per arm: fired/refused, precision): TBD; control car3:200
-  both arms: TBD
-- Visual audit: N cells opened, downgrades: TBD
-- Estimate-vs-actual divergences: TBD
+- paired_delta (S−T, both-valid pairs): **−1** over **52/52** pairs
+  (min_sep +3) → **gate a (capacity): FAIL**
+- T vs bar 20/26 both legs (22 and 20) → **gate b (replication): PASS**
+- **Branch 3 — verdict: `NO [capacity-flat, p519-replicates]`.** No
+  `[capacity-hurts]` sub-tag: paired_delta −1 is well inside the ±3 min_sep,
+  i.e. the arms are statistically indistinguishable, not merely un-improved.
+- Recovered cells: **none (0)**. `carry_attributed_recoveries = 0`. The
+  pre-registered honesty clause ("if a ≥ +3 but recoveries are mostly
+  `discovery`-bucket, say the lift is not carry-attributable") is moot —
+  there is no lift to attribute.
+- Regressed cells: **1 — `DSC_SWAP_car10_850`** (S bucket `off-distractor`,
+  not a visual downgrade). T delivers a tight box on the white van
+  (iou_d 0.9714); S delivers a **bloated** box spanning the van down to the
+  silver car (iou_d 0.2314, iou_t 0.044). Visible mask bloat from the larger
+  checkpoint — see `proof/flip_evidence.png`.
+- T-vs-P5.19 flip census (replication noise): **0 flips.** Arm T reproduces
+  P5.19's committed reference `{WSEL: 22, SWAP: 20}` **cell-for-cell**, not
+  just count-for-count. The harness is deterministic at this seed and P5.19's
+  bar-exact SWAP 20 was not a lucky roll.
+- Grace census: T fired 4 (2 pass, 2 fail → precision 2/4), S fired 3
+  (2 pass, 1 fail → 2/3). Both P5.19 saves replicate in both arms —
+  `car18_150` (green tight on the black SUV distractor, acquire_s 0.367 T /
+  0.333 S) and `person10_450` (green tight on the white-shirt distractor,
+  0.633 T / 0.600 S). Both P5.19 grace failures also replicate: `bike1_450`
+  puts a confident green box on the **same** cyclist as the red target GT in
+  both arms (0.433 both). Control `car3:200`: WSEL passes in both arms
+  (iou_t 0.6392 T / 0.6625 S, box on the correct red-target car); SWAP fails
+  in both — T via a wrong-object grace at 0.5 s, S via
+  `discovery-failed:distractor` (no grace fired). Same FAIL, different
+  failure mode; non-gating, and it reproduces P5.19's control regression.
+- Aligned dedup fired on **8 cells in each arm** (P5.19's aligned count),
+  confirming the alignment fix is checkpoint-independent.
+- Weak-SWAP (non-gating looser criterion): **24/26 in both arms** — the
+  strengthened bar is what separates, and it separates identically.
+- Visual audit: **42 cells opened** with the Read tool (the verdict script's
+  full computed set), **0 downgrades**. What the pixels show, and this is the
+  finding: the residual failures are a **car-family carry-drift block that is
+  bit-for-bit the same shape in both arms**. `car7_460` and `car9_950` WSEL
+  deliver **no box at all** in either arm (`carry-loss`, track lost during
+  idle); `car9_1150` and `car3_1050` WSEL deliver the box **drifted onto
+  empty asphalt** in either arm (`carry-quality`, iou_t 0.00). Their SWAP
+  legs fail identically, with only tiny numeric jitter proving the arms are
+  genuinely independent runs (e.g. `car9_950` iou_t 0.3172 T vs 0.2897 S;
+  `car3_1050` 0.0508 T vs 0.0615 S). One audited caveat carried over from
+  P5.19 and **not** downgraded, for consistency with that precedent:
+  `S/DSC_SWAP_person20_1050` scores iou_d 0.3293 (vs 0.6412 in T) with the
+  box leaking onto an adjacent pedestrian — a loose box on the named
+  distractor, not a wrong object, so it stays a pass under the frozen
+  IoU@0.25 rule.
+- Estimate-vs-actual divergences:
+  - Wall **beat** the estimate: predicted ~55–65 min matrix, actual **52.7
+    min** of cell time (T 26.4 vs "~27" predicted — dead on; S 26.3 vs
+    "~28–35" predicted — the heavier checkpoint cost **nothing**, because
+    equal-stride emulation means carry compute never enters the clip clock).
+    That null is itself evidence the A/B was clean.
+  - Arm T replication: predicted WSEL 22 ± 1, SWAP 19 ± 2 with P(gate b) ~0.5
+    — actual 22 / 20, gate b PASS, and 0 cell-level flips. The design's
+    stated uncertainty about P5.19's bar-exact SWAP was **more pessimistic
+    than reality**.
+  - Arm S vs T: predicted +2..+5 if drift is capacity-bound (P ~0.4), 0 ± 2
+    if not — actual **−1**, squarely in the "not capacity-bound" band.
+  - The design's "most likely single outcome (honest guess, not a hope):
+    branch 3 or 4" called it: **branch 3**.
 
 ## Deliverables (DoD 7)
 
-`proof/ab_counts.png`, `proof/paired_grid_ts.png`, `proof/flip_evidence.png`
-(from `make_proof.py`; commit + caption each here with what it shows and
-which runs). If there are zero S-vs-T flips, `flip_evidence.png` is skipped
-— commit the two figures plus one curated per-cell claim PNG (`git add -f`)
-of the most informative residual failure, captioned.
+All three committed, generated by `make_proof.py` from `runs/*/results.json`
++ `runs/verdict.json` (reproducible; no hand-editing). All three were opened
+with the Read tool and cross-checked against `runs/verdict.json`.
+
+1. **`proof/ab_counts.png`** — the headline null. Passing gating cells per
+   arm per leg (T hiera-tiny grey, S hiera-small blue) against the frozen
+   bar 20/26 (red dashed) and P5.19's committed reference (black dotted).
+   WSEL 22 = 22; SWAP 20 vs 19. The bigger checkpoint buys nothing and the
+   black dotted line sits exactly on arm T's bars — replication, visually.
+   Runs: `runs/T/*`, `runs/S/*`, config as in Results above.
+2. **`proof/paired_grid_ts.png`** — the negative result's real content: the
+   per-scene pass map for all 4 arm×leg columns over the 26 gating scenes.
+   The red cells form a **car-family block** (`car7:460`, `car9:950`,
+   `car9:1150`, `car3:1050`) that is byte-for-byte the same in the T and S
+   columns — carry drift is not capacity-bound. Exactly one black-outlined
+   flip in the whole grid (`car10:850` SWAP, green in T, red in S), and the
+   4 `G` grace cells are marked. This is the figure that shows a bigger
+   tracker does not move the failures.
+3. **`proof/flip_evidence.png`** — the single flip, side by side at the same
+   frame (f=1090, `DSC_SWAP_car10_850`). Left T: green box tight on the
+   white van, iou_d 0.9714, PASS. Right S: green box **bloated**, spanning
+   the van down to the silver car, iou_d 0.2314 / iou_t 0.044, FAIL. Proof
+   that the one difference capacity made on this set was a **regression**
+   from mask bloat, not a recovery.
 
 ## Executor definition of done
 

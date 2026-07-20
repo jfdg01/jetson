@@ -1,0 +1,440 @@
+{
+  "arm": "DSC",
+  "leg": "SWAP",
+  "scene": {
+    "clip": "person15",
+    "f0": 150,
+    "t_p": 8.0,
+    "target_caption": "the man in the green shirt",
+    "distractor_caption": "the man in the red shirt",
+    "distractor_gt_prompt": [
+      281,
+      312,
+      324,
+      389
+    ],
+    "gating": true,
+    "note": "NEW. Pair enters late in the window, near-static once present (pre-registered late-entry discovery risk)."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 30.0,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "dist_floor": 0.25,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "ds_offset": 150,
+  "iou_same": 0.5,
+  "pass": true,
+  "swap_weak_pass": true,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 300,
+    "deliver_frame": 390,
+    "deliver_iou": 0.0,
+    "window": [
+      390,
+      690
+    ],
+    "leg": "SWAP",
+    "selection": "distractor",
+    "selection_correct": true,
+    "acquire_s": 0.0,
+    "deliver_iou_distractor": 0.8593
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 150,
+    "t_p": 8.0,
+    "prompt_frame": 390,
+    "ds": 0,
+    "reanchor": [
+      {
+        "frame": 240,
+        "skipped": "in-discovery"
+      },
+      {
+        "frame": 315,
+        "win": [
+          278,
+          134,
+          534,
+          390
+        ],
+        "crop_wh": [
+          512,
+          512
+        ],
+        "prior": [
+          383.0,
+          223.0,
+          430.0,
+          301.0
+        ],
+        "raw": [
+          383.0,
+          223.6,
+          418.8,
+          303.0
+        ],
+        "accepted": true,
+        "new_box": [
+          383.0,
+          223.6,
+          418.8,
+          303.0
+        ]
+      }
+    ],
+    "discovery": [
+      {
+        "cand": "target",
+        "caption": "the man in the green shirt",
+        "call_frame": 0,
+        "return_frame": 136,
+        "latency_s": 4.53,
+        "outcome": "accepted",
+        "box": [
+          614.4,
+          172.8,
+          640.0,
+          252.0
+        ],
+        "aligned_iou_max": 0.0,
+        "seed_iou_gt": 0.6773
+      },
+      {
+        "cand": "distractor",
+        "caption": "the man in the red shirt",
+        "call_frame": 136,
+        "return_frame": 270,
+        "latency_s": 4.48,
+        "outcome": "accepted",
+        "box": [
+          601.6,
+          43.2,
+          640.0,
+          115.2
+        ],
+        "aligned_iou_max": 0.0
+      }
+    ],
+    "discovery_done_frame": 270,
+    "acquire_s": 0.0,
+    "caption": "the man in the red shirt",
+    "selected": "distractor",
+    "cand_at_prompt": {
+      "target": [
+        612.0,
+        153.0,
+        638.0,
+        233.0
+      ],
+      "distractor": [
+        280.0,
+        313.0,
+        327.0,
+        393.0
+      ]
+    },
+    "deliver_frame": 390,
+    "shadow": {
+      "acquire_s": 4.54,
+      "vlm_box": [
+        268.8,
+        309.6,
+        320.0,
+        381.6
+      ],
+      "match_ious": {
+        "target": 0.0,
+        "distractor": 0.5835
+      },
+      "selected": "distractor"
+    }
+  },
+  "events": [
+    [
+      13.0,
+      [
+        280.0,
+        313.0,
+        327.0,
+        393.0
+      ]
+    ],
+    [
+      13.058,
+      [
+        280.0,
+        313.0,
+        326.0,
+        393.0
+      ]
+    ],
+    [
+      13.223,
+      [
+        273.0,
+        319.0,
+        321.0,
+        398.0
+      ]
+    ],
+    [
+      13.388,
+      [
+        262.0,
+        325.0,
+        310.0,
+        404.0
+      ]
+    ],
+    [
+      13.554,
+      [
+        251.0,
+        332.0,
+        303.0,
+        412.0
+      ]
+    ],
+    [
+      13.719,
+      [
+        241.0,
+        339.0,
+        295.0,
+        419.0
+      ]
+    ],
+    [
+      13.884,
+      [
+        230.0,
+        346.0,
+        282.0,
+        427.0
+      ]
+    ],
+    [
+      14.05,
+      [
+        221.0,
+        353.0,
+        271.0,
+        434.0
+      ]
+    ],
+    [
+      14.215,
+      [
+        210.0,
+        361.0,
+        263.0,
+        443.0
+      ]
+    ],
+    [
+      14.38,
+      [
+        199.0,
+        370.0,
+        250.0,
+        454.0
+      ]
+    ],
+    [
+      14.546,
+      [
+        187.0,
+        379.0,
+        239.0,
+        465.0
+      ]
+    ],
+    [
+      14.711,
+      [
+        175.0,
+        388.0,
+        233.0,
+        473.0
+      ]
+    ],
+    [
+      14.876,
+      [
+        162.0,
+        398.0,
+        221.0,
+        482.0
+      ]
+    ],
+    [
+      15.042,
+      [
+        148.0,
+        409.0,
+        206.0,
+        493.0
+      ]
+    ],
+    [
+      15.207,
+      [
+        136.0,
+        419.0,
+        193.0,
+        504.0
+      ]
+    ],
+    [
+      15.372,
+      [
+        123.0,
+        430.0,
+        187.0,
+        513.0
+      ]
+    ],
+    [
+      15.538,
+      [
+        110.0,
+        440.0,
+        175.0,
+        522.0
+      ]
+    ],
+    [
+      15.703,
+      [
+        97.0,
+        453.0,
+        162.0,
+        537.0
+      ]
+    ],
+    [
+      15.87,
+      [
+        83.0,
+        466.0,
+        149.0,
+        549.0
+      ]
+    ],
+    [
+      16.034,
+      [
+        69.0,
+        479.0,
+        134.0,
+        563.0
+      ]
+    ],
+    [
+      16.199,
+      [
+        54.0,
+        492.0,
+        125.0,
+        577.0
+      ]
+    ],
+    [
+      16.364,
+      [
+        41.0,
+        506.0,
+        109.0,
+        589.0
+      ]
+    ],
+    [
+      16.529,
+      [
+        26.0,
+        519.0,
+        98.0,
+        602.0
+      ]
+    ],
+    [
+      16.695,
+      [
+        10.0,
+        533.0,
+        80.0,
+        618.0
+      ]
+    ],
+    [
+      16.86,
+      [
+        0.0,
+        550.0,
+        68.0,
+        634.0
+      ]
+    ],
+    [
+      17.026,
+      [
+        0.0,
+        573.0,
+        55.0,
+        652.0
+      ]
+    ],
+    [
+      17.192,
+      [
+        0.0,
+        590.0,
+        39.0,
+        666.0
+      ]
+    ],
+    [
+      17.358,
+      [
+        0.0,
+        608.0,
+        37.0,
+        686.0
+      ]
+    ],
+    [
+      17.523,
+      [
+        0.0,
+        654.0,
+        18.0,
+        697.0
+      ]
+    ]
+  ],
+  "p520": {
+    "arm": "S",
+    "sam2_model": "facebook/sam2.1-hiera-small",
+    "equal_stride": true
+  },
+  "p519": {
+    "patch": "late-entry-rescue",
+    "aligned_dedup": true,
+    "grace_max_s": 2.0
+  }
+}

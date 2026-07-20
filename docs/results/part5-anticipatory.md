@@ -701,3 +701,59 @@ Proof: `proof/discovery_headline.png` (P5.18 Mustang vs P5.19 SUV, the before/af
 `proof/dedup_census.png` (guard 0 -> 8 fires), `proof/grace_deliver_car18_150.png` (a 0.367 s
 graced delivery).
 Detail: [`../../experiments/2026-07-20-late-entry-rescue/README.md`](../../experiments/2026-07-20-late-entry-rescue/README.md).
+
+### P5.20 — carry-capacity: does a bigger SAM2 recover the carry-owned failures? (2026-07-20)
+
+Paired single-factor A/B, same harness / same 26 gating scenes / same seed, only the SAM2
+checkpoint swapped:
+
+| arm | SAM2 checkpoint | WSEL /26 | SWAP /26 | total /52 | wall (min) |
+|---|---|---|---|---|---|
+| T | `sam2.1-hiera-tiny` (38.9M) | **22** | **20** | 42 | 26.4 |
+| S | `sam2.1-hiera-small` (46M) | **22** | **19** | 41 | 26.3 |
+
+**paired_delta (S-T) = -1** over 52/52 both-valid pairs, against a pre-registered MIN_SEP of
+**+3** -> **gate a (capacity) FAIL**. Arm T lands 22 and 20, both >= bar 20 -> **gate b
+(replication) PASS**. **Branch 3: `NO [capacity-flat, p519-replicates]`.** No `[capacity-hurts]`
+sub-tag — -1 is inside MIN_SEP, so the arms are indistinguishable, not merely un-improved.
+
+Rig: RTX 3090 (`.venv-ft` python 3.12.10, torch 2.6.0+cu124, transformers 4.57.6) + Jetson Orin
+Nano 8 GB, `NV Power Mode: 15W` mode 0 + `jetson_clocks`; VLM `phase3-terse100eos-1024-q8_0.gguf`
+MAX_SIDE 1024; UAV123 @ 1280x720 30 fps; **equal-stride emulation on** (the frame clock advances
+only by measured Jetson VLM latencies), so local carry compute never consumes clip time and the
+checkpoint is genuinely the only factor. 108 cells (54/arm), 26/26 valid per arm per leg, 0
+INVALID, 0 crashes. Matrix 52.7 min vs 55-65 min est; **arm S cost the same wall as arm T** (26.3
+vs 26.4) — under equal-stride the heavier checkpoint is free, which is itself evidence the A/B
+was clean.
+
+**Recovered cells: 0** (`carry_attributed_recoveries = 0`). **Regressed: 1** —
+`DSC_SWAP_car10_850`, where T puts a tight box on the white van (iou_d 0.9714) and S puts a
+**bloated** box spanning the van down to the silver car (iou_d 0.2314, iou_t 0.044). The only
+thing capacity changed on this set was a regression from mask bloat.
+
+**Replication is exact.** Arm T reproduces P5.19's committed reference `{WSEL 22, SWAP 20}`
+**cell-for-cell — 0 flips**, not merely count-for-count. P5.19's bar-exact SWAP 20 was not a lucky
+roll, and the harness is deterministic at this seed. Aligned dedup fired 8 cells in **both** arms
+(checkpoint-independent); weak-SWAP is 24/26 in both; grace precision 2/4 (T) and 2/3 (S), with
+both P5.19 saves (`car18:150` 0.367/0.333 s, `person10:450` 0.633/0.600 s) and both P5.19 grace
+failures replicating in both arms. Control `car3:200` WSEL passes in both (iou_t 0.6392 T / 0.6625
+S), SWAP fails in both — T via a wrong-object grace at 0.5 s, S via `discovery-failed:distractor`;
+same FAIL, different mechanism, non-gating.
+
+**Visual gate: PASS, 42/42 required cells opened with the Read tool, ZERO downgrades.** The pixels
+carry the finding: the residual failures are a **car-family carry-drift block with the same shape
+in both arms**. `car7:460` and `car9:950` WSEL deliver **no box at all** in either arm (carry lost
+during idle); `car9:1150` and `car3:1050` WSEL deliver the box **drifted onto empty asphalt** in
+either arm (iou_t 0.00). Tiny numeric jitter between arms on the paired SWAP legs (`car9:950`
+iou_t 0.3172 T vs 0.2897 S) confirms these are genuinely independent runs converging on the same
+failure, not a duplicated result.
+
+Deployment note: this NO is *cheap* — because gate a failed, the pre-registered follow-up cost
+(an E1-style TensorRT export + co-resident FPS gate for hiera-small on the Jetson) is never
+incurred. A capacity YES would have owed that work before it could be deployed.
+
+Proof: `proof/ab_counts.png` (the headline null, both bars against bar 20 and the P5.19 reference),
+`proof/paired_grid_ts.png` (4-column per-scene pass map — the car-family red block is identical in
+T and S, exactly one outlined flip), `proof/flip_evidence.png` (the one flip side by side at
+f=1090: tight 0.9714 in T vs bloated 0.2314 in S).
+Detail: [`../../experiments/2026-07-20-carry-capacity/README.md`](../../experiments/2026-07-20-carry-capacity/README.md).

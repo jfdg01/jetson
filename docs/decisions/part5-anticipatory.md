@@ -576,3 +576,48 @@ flips P5.8's failing gate — disclosed, deliberate, grounded in third-party-che
   admits the duplicate (`bike1:450`). So dedup quality is bounded by carry quality. **Given up:**
   the tidier claim that discovery integrity is now solved — it is bounded by the same constraint
   that owns the residual failures.
+
+## P5.20 carry-capacity (2026-07-20)
+
+- **Probed carry *capacity* first, ahead of ROI-zoom carry, a higher carry rate, and an
+  area-ratio abstain gate.** **Why:** P5.19 left carry quality owning 8 of the 10 residual
+  failures, and a checkpoint swap is the only one of the four that is a genuine single-factor A/B
+  with zero new code — it either removes "just use a bigger tracker" from the board or hands back
+  a lever for free. The other three each need new machinery, and running them first would leave
+  the cheap null untested underneath. **Given up:** a cycle that could have produced a positive
+  result; the ROI-zoom carry lever is now the standing next candidate, unblocked by this NO.
+- **Bought replication in the same run rather than as a separate cycle.** **Why:** P5.19 cleared
+  its bar *exactly* (SWAP 20/26 vs bar 20), which is indistinguishable from a lucky roll without a
+  re-run — and any capacity result read against a baseline that might itself be noise would be
+  uninterpretable. Making the baseline arm a full re-run of P5.19's config gave both answers for
+  one matrix. It paid: 0 cell-level flips. **Given up:** ~26 min of GPU (free — it fit inside the
+  1 h target) and the option of spending arm T on a third checkpoint.
+- **Rejected `hiera-base-plus` / `hiera-large` as the capacity arm.** **Why:** neither can be
+  co-resident with the q8_0 VLM on an 8 GB Orin Nano, so a YES on either would be undeployable and
+  therefore not thesis content for this system. `hiera-small` is the largest checkpoint that could
+  actually ship. **Given up:** the chance that capacity helps only at a much larger size — but
+  that finding would be unusable here anyway, and the observed *regression* direction argues
+  against it.
+- **Pre-registered a MIN_SEP of +3 and honoured it at delta -1 without re-reading the threshold.**
+  **Why:** a paired 52-cell A/B has real cell-level noise (the arms differ by tiny IoU jitter on
+  identical failures); a delta of -1 is inside that noise and must be reported as
+  *indistinguishable*, not as "capacity hurts". Hence branch 3 with **no** `[capacity-hurts]`
+  sub-tag, even though the sole flip was a regression. **Given up:** a more dramatic headline that
+  the data does not support.
+- **Reported the single flip as a regression, prominently, despite it being 1 cell of 52.**
+  **Why:** it is the only place capacity changed anything, and the mechanism is informative —
+  hiera-small's mask **bloated** across two vehicles (iou_d 0.9714 -> 0.2314) on a small aerial
+  target. A reader deciding whether to revisit capacity later needs to know the one observed
+  effect pointed the wrong way. **Given up:** nothing; it is charged symmetrically by the paired
+  design.
+- **Retained `S/DSC_SWAP_person20_1050` as a pass despite a looser box than T's** (iou_d 0.3293 vs
+  0.6412), consistent with the identical P5.18/P5.19 calls. **Why:** the box is on the named
+  distractor and off the target, which is the frozen IoU@0.25 rule; it merely leaks onto an
+  adjacent pedestrian. Downgrading a cell that meets the rule — in the direction that would make
+  the capacity arm look worse — would be a scoring error even though it disfavours the hypothesis.
+  **Given up:** nothing; recorded as an audited caveat.
+- **Deferred the TensorRT/co-residency question rather than answering it.** **Why:** the
+  pre-registration made deployment of hiera-small contingent on a follow-up E1-style export + FPS
+  gate. Gate a failed, so that work is correctly never done — but the record must say the capacity
+  arm was evaluated **only** for accuracy under equal-stride emulation, not for on-device
+  feasibility. **Given up:** an on-device number for hiera-small, which no longer has a use.

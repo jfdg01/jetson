@@ -79,6 +79,13 @@ the per-experiment README is the source of truth. Append; newest at the bottom.
 - **SAM2.1 (hiera-tiny)** — `facebook/sam2.1-hiera-tiny` · `sam2==1.1.0` ·
   https://github.com/facebookresearch/sam2 — zero-shot memory-carry tier of the temporal
   acquire-carry campaign (video predictor: box prompt → per-frame mask propagation).
+- **SAM2.1 (hiera-small)** — `facebook/sam2.1-hiera-small` · `sam2==1.1.0` ·
+  https://huggingface.co/facebook/sam2.1-hiera-small — larger (46M vs 38.9M params) carry
+  checkpoint used **only** as the capacity arm of the P5.20 A/B
+  ([`experiments/2026-07-20-carry-capacity/`](experiments/2026-07-20-carry-capacity/README.md)).
+  Not deployed: it recovered zero failures (paired delta −1) and was never TensorRT-exported or
+  FPS-gated for Jetson co-residency. Largest checkpoint that could plausibly co-reside with the
+  q8_0 VLM on 8 GB — base-plus/large were rejected at design time as undeployable.
 
 - **UAV123** — aerial single-object-tracking benchmark (Mueller et al., ECCV 2016) ·
   https://cemse.kaust.edu.sa/ivul/uav123 · mirror
