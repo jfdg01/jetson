@@ -77,7 +77,13 @@ ASSIST_RATE = 3.0
 # setpoint, so a fixed fraction means a different standoff per target class (a truck
 # is held at 33 m, a pedestrian at 6 m). See CARLA_DEBUG_UI.md.
 CHASE_TARGET_FRAC = 0.012
-CHASE_SPEED = 6.0           # m/s cap in the ground plane, either direction
+CHASE_SPEED = 30.0          # m/s cap along the boresight, either direction
+# Min altitude the chase is allowed to reach, and how far above it the escape
+# climbs once breached. CARLA world z, and Town10's ground is ~0, so it doubles
+# as AGL. ponytail: flat-ground assumption. Raycast the terrain if a map with
+# real relief shows up.
+CHASE_FLOOR = 10.0
+CHASE_CLIMB = 15.0
 CHASE_HIST = 5              # measurements median-filtered into one area reading
 # Error is in LOG area because area falls as 1/d^2: one log unit is a fixed ratio
 # of range whether the target is near or far, so a single gain behaves the same
@@ -131,7 +137,28 @@ def chase_speed(areas, frame_area=CAM_W * CAM_H):
     err = math.log(CHASE_TARGET_FRAC * frame_area / statistics.median(areas))
     if abs(err) < CHASE_DEADBAND:
         return 0.0
-    return max(-CHASE_SPEED, min(CHASE_SPEED, CHASE_GAIN * err))
+    # Scale with RANGE, not with the log error alone: area ~ 1/d^2, so
+    # sqrt(target_area/area) = exp(err/2) is exactly how many times further out
+    # the target is than the setpoint. A tiny box is a far target and gets a
+    # fast approach; a big one is close and gets a gentle one. Without it every
+    # range crawled in at the same few m/s and a 300 m target never arrived.
+    return max(-CHASE_SPEED, min(CHASE_SPEED,
+                                 CHASE_GAIN * err * math.exp(err / 2)))
+
+
+def floor_climb(z, dt, goal):
+    """Vertical metres to add this tick, and the latched goal -> (dz, goal).
+
+    Dipping under CHASE_FLOOR latches a climb to CHASE_FLOOR + CHASE_CLIMB and
+    holds it until reached. Latched, not a bare clamp: a nose-down chase is still
+    commanding descent, so an escape that stopped the instant it cleared the floor
+    would sink straight back and buzz along it.
+    """
+    if z < CHASE_FLOOR:
+        goal = CHASE_FLOOR + CHASE_CLIMB
+    if goal is None or z >= goal:
+        return 0.0, None
+    return min(goal - z, CHASE_SPEED * dt), goal
 
 
 def boresight(pitch_deg, yaw_deg):
@@ -141,8 +168,7 @@ def boresight(pitch_deg, yaw_deg):
     below you closes the ground distance without closing the slant range, so the
     box need not grow. Since ASSIST already parks the target at frame centre,
     the boresight IS the line to the target -- move along it and it gets bigger.
-    ponytail: no floor guard, a nose-down chase descends. Add a min-AGL clamp
-    when the copter actually needs to survive the approach.
+    A nose-down chase therefore descends -- floor_climb() is the min-AGL guard.
     """
     p, y = math.radians(pitch_deg), math.radians(yaw_deg)
     return carla.Location(math.cos(p) * math.cos(y),
@@ -855,6 +881,7 @@ def main():
     fly_t = {"last": None}
     # outstanding ASSIST correction in degrees, and the box stamp it came from
     aim = {"yaw": 0.0, "pitch": 0.0, "stamp": -1, "chase": False, "seen": 0.0,
+           "floor": None,
            "areas": collections.deque(maxlen=CHASE_HIST + 1)}
     MOVE = {"w": (1, 0, 0), "s": (-1, 0, 0), "a": (0, -1, 0), "d": (0, 1, 0),
             "e": (0, 0, 1), "q": (0, 0, -1)}
@@ -964,7 +991,8 @@ def main():
         # so it gets a hard stale timeout instead.
         if aim["chase"] and now - aim["seen"] > CHASE_STALE:
             aim["chase"] = 0.0
-        if not held and not (aim["yaw"] or aim["pitch"] or aim["chase"]):
+        if not held and not (aim["yaw"] or aim["pitch"] or aim["chase"]
+                             or aim["floor"]):
             cam["t"] = None  # resync next time, the view may have moved elsewhere
             fly_t["last"] = None
             return
@@ -1006,6 +1034,13 @@ def main():
         # The operator wins the same tie as with look: a held wasd outranks it.
         if aim["chase"] and not (held & MOVE.keys()):
             t.location += boresight(t.rotation.pitch, t.rotation.yaw) * (aim["chase"] * dt)
+        # Min-AGL escape, same operator-wins tie: flying the camera low by hand is
+        # a deliberate act, sinking into the road on a nose-down chase is not.
+        if not (held & MOVE.keys()):
+            dz, aim["floor"] = floor_climb(t.location.z, dt, aim["floor"])
+            t.location.z += dz
+        else:
+            aim["floor"] = None
         cam["spec"].set_transform(t)
 
     # Tk blocks in C, so SIGINT only lands while Python bytecode runs -- the

@@ -114,10 +114,17 @@ def test_deadband_swallows_mask_jitter():
     assert ui.chase_speed(_hist(WANT / math.exp(ui.CHASE_DEADBAND / 2))) == 0.0
 
 
-def test_speed_is_capped_both_ways():
-    """A target 100x off setpoint must not command an unflyable lunge."""
+def test_closing_speed_is_capped():
+    """A target 100x under setpoint must not command an unflyable lunge."""
     assert ui.chase_speed(_hist(WANT / 100)) == ui.CHASE_SPEED
-    assert ui.chase_speed(_hist(WANT * 100)) == -ui.CHASE_SPEED
+
+
+def test_backing_off_is_range_limited_not_capped():
+    """The cap is one-sided in practice: 100x OVER setpoint means 10x too CLOSE,
+    and range scaling makes a retreat from close range gentle by construction."""
+    back = ui.chase_speed(_hist(WANT * 100))
+    assert -ui.CHASE_SPEED < back < 0
+    assert abs(back) < abs(ui.chase_speed(_hist(WANT * 4)))   # closer, slower
 
 
 def test_one_blown_up_mask_does_not_move_the_drone():
@@ -142,6 +149,44 @@ def test_it_converges_on_a_static_target():
                             else areas) * (1 / 60)
         assert d > 1.0, "flew through the target"
     assert abs(d - 60.0) < 60.0 * 0.15, f"settled at {d:.1f} m, wanted ~60"
+
+
+def test_far_target_is_chased_faster_than_a_near_one():
+    """Range scaling, both under setpoint and both under the cap: the smaller box
+    is the further target and must get more speed than the log error alone gives."""
+    near, far = ui.chase_speed(_hist(WANT / 2)), ui.chase_speed(_hist(WANT / 6))
+    assert ui.CHASE_SPEED > far > near > 0
+    assert far / near > (math.log(6) / math.log(2)) * 1.5   # not merely log-linear
+
+
+def test_speed_tracks_range_not_just_the_area_error():
+    """The scale factor IS the range ratio: exp(err/2) = sqrt(target/area), so a
+    target 2x further out than the setpoint is chased at 2x the log-only speed."""
+    for ratio in (1.5, 2.0, 2.5):          # range multiples of the setpoint
+        area = WANT / ratio ** 2
+        err = math.log(WANT / area)
+        assert abs(ui.chase_speed(_hist(area)) - ui.CHASE_GAIN * err * ratio) < 1e-9
+
+
+def test_floor_climb_is_inert_above_the_floor():
+    for z in (ui.CHASE_FLOOR, ui.CHASE_FLOOR + 1, 100.0):
+        assert ui.floor_climb(z, DT, None) == (0.0, None)
+
+
+def test_floor_breach_latches_a_climb_to_floor_plus_climb():
+    """Below the floor it climbs, and keeps climbing past the floor to the goal --
+    a bare clamp would release at 10 m and the nose-down chase would sink back."""
+    z, goal, want = 4.0, None, ui.CHASE_FLOOR + ui.CHASE_CLIMB
+    for _ in range(int(30 / DT)):
+        dz, goal = ui.floor_climb(z, DT, goal)
+        z += dz
+        assert z <= want + 1e-9, "climbed past the goal"
+    assert abs(z - want) < 1e-6 and goal is None
+
+
+def test_floor_climb_never_overshoots_however_long_the_tick():
+    dz, _ = ui.floor_climb(4.0, 1e9, None)
+    assert abs(4.0 + dz - (ui.CHASE_FLOOR + ui.CHASE_CLIMB)) < 1e-9
 
 
 def test_boresight_is_a_unit_vector_that_descends_when_aimed_down():

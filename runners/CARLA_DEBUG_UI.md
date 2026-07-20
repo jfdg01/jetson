@@ -40,7 +40,8 @@ Who flies the camera is one flag — the `assist: centre on target` checkbox, or
 - **MANUAL (default).** The operator has sole authority. The model grounds and tracks;
   it draws a box and moves nothing.
 - **ASSIST.** The model steers too: it *aims* (`center_delta` pans the tracked box to
-  the middle of the frame) and it *closes* (CHASE, below). It never climbs or descends.
+  the middle of the frame) and it *closes* (CHASE, below). It flies the boresight, so it
+  does change altitude — bounded below by the floor escape.
 
 Operator input is live in both modes; in ASSIST an arrow key **outranks** aim, and a
 held `wasd` outranks CHASE, for as long as it is held (otherwise the two sum and the
@@ -60,13 +61,28 @@ The error is taken in **log area**, because area falls as 1/d² — one log unit
 ratio of range whether the target is near or far, so a single gain behaves identically at
 every distance. Output is `CHASE_GAIN` m/s per log unit, clamped to ±`CHASE_SPEED`.
 
+That log error alone commands the same few m/s at every range, which crawls in from far
+out, so it is **scaled by range**: `exp(err/2)` = `sqrt(target_area/area)` is exactly how
+many times further out than the setpoint the target is (again because area ~ 1/d²). A
+small box is a far target and gets a fast approach; a big one is close and gets a gentle
+one. Speed is therefore `CHASE_GAIN · err · exp(err/2)`, still clamped to ±`CHASE_SPEED`.
+The clamp is **one-sided in practice**: a hugely oversized box means the copter is very
+*close*, and the same range scaling makes that retreat slow by construction, so only the
+closing branch ever saturates.
+
 Motion is along the **boresight**: `boresight(pitch, yaw)` is the direction the camera is
 actually looking. The earlier ground frame dropped the pitch to hold altitude, but that
 closed *ground* distance rather than *slant range*, so a target below the copter need not
 grow at all. Since ASSIST already parks the target at frame centre, the boresight is the
 line to the target — flying down it is what makes the box bigger. The cost is that
-altitude is no longer held by construction: a nose-down chase descends, and there is no
-floor guard yet (`ponytail:` in `boresight`).
+altitude is no longer held by construction: a nose-down chase descends. `floor_climb()`
+is the guard. Dipping below `CHASE_FLOOR` **latches** a climb to
+`CHASE_FLOOR + CHASE_CLIMB` and holds it until reached; a bare clamp would release at the
+floor and, since the chase is still commanding descent, sink straight back and buzz along
+it. A held `wasd` outranks the escape and clears the latch — flying the camera low by
+hand is deliberate, sinking into the road is not. `z` is CARLA world z and Town10's ground
+is ~0, so it doubles as AGL; a map with real relief needs a terrain raycast
+(`ponytail:` in the constants).
 
 Unlike aim, CHASE is *not* charged once per box; it stays latched between measurements.
 That is correct, because moving genuinely does change the pixels — the box grows toward
@@ -83,8 +99,10 @@ a single blown-up mask, which is exactly what a median rejects and a mean does n
 | knob | value | what it is |
 |---|---|---|
 | `CHASE_TARGET_FRAC` | 0.012 | wanted box area as a fraction of frame — a car at ~125x50 px, ~17 m |
-| `CHASE_GAIN` | 5.0 | m/s per log unit of area error |
-| `CHASE_SPEED` | 6.0 | speed cap, both directions |
+| `CHASE_GAIN` | 5.0 | m/s per log unit of area error, before range scaling |
+| `CHASE_SPEED` | 30.0 | speed cap; also the floor-escape climb rate |
+| `CHASE_FLOOR` | 10.0 | min altitude (world z ≈ AGL) before the escape latches |
+| `CHASE_CLIMB` | 15.0 | how far above the floor the escape climbs to |
 | `CHASE_DEADBAND` | 0.15 | log-area hold band — ±16% of area, ±7.8% of range |
 | `CHASE_HIST` | 5 | measurements median-filtered into one reading |
 
@@ -142,7 +160,7 @@ And **the repo has never run a target-size sweep.** Closing this properly means 
 `CHASE_TARGET_FRAC` ∈ {0.004, 0.008, 0.012, 0.020, 0.040} in the rig at n≥25 per arm,
 scoring re-ground IoU and track-loss rate.
 
-### Two consequences worth flagging
+### Three consequences worth flagging
 
 **P6.1's 60 m working altitude is incompatible with grounding at this size.** At 60 m
 slant range a car is 36 px long edge / frac 0.0010 — below every knee measured, in
@@ -153,6 +171,13 @@ ROI crop. This bears on P6.2 directly.
 a car at 17 m, a motorcycle at 11 m, a pedestrian at 6.3 m. The person-following
 literature servos on bbox *height* for exactly this reason. The value here is calibrated
 for cars; treat it as such until something needs otherwise.
+
+**The floor can fight the setpoint on a steep approach — untested.** 0.012 holds a car at
+17.3 m *slant* range, and altitude at that range is `17.3·sin(pitch)`: fine at a 45° look
+down (12.2 m), under `CHASE_FLOOR` past about 35°. A steeper approach would then latch a
+climb to 25 m, shrink the box, and re-command a close — a limit cycle. Whether it actually
+happens depends on where ASSIST parks the pitch, which nothing here measures yet. If it
+shows up, the fix is a floor below the setpoint geometry, not a bigger climb.
 
 ### One correction per measurement, not per tick
 
