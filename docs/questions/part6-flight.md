@@ -108,7 +108,18 @@ not a *swap*, and the taxonomy needs the fourth bucket. The bank writes both buc
 `gt.jsonl` row with a `kind` field, so the distinction is available to any consumer rather than
 being re-derived.
 
-**G-C — does pairing survive an environment-object toggle?** See RESULTS.
+**G-C — does pairing survive an environment-object toggle?** **PASS, and the more useful answer is
+that CARLA's traffic *is* reproducible.** Toggle-restore frame difference 0.084 against a
+same-config repeat baseline of 0.142, both ~60x under the 8.0 floor, and all 40 Traffic Manager
+vehicle positions identical across `load_world` at a fixed seed. Byte-identical was deliberately
+*not* the bar — TAA, motion blur and auto-exposure carry state, so it fails for reasons unrelated
+to layers and then gets softened until it stops gating.
+
+The gate first reported **FAIL against its own same-config repeat**, which determinism cannot
+explain and which was therefore a bug in the gate: it keyed each vehicle on `v.id`, and
+server-assigned actor ids do not restart at a fixed value across `load_world`. Re-keyed on spawn
+index, it passes. Recorded as run, this campaign would have answered "no, CARLA traffic is not
+reproducible" on the strength of a broken dictionary key — see RESULTS.
 
 **What the night actually taught, which no gate asked.** The first bank was **well-formed and
 empty**: 25 clips' worth of correct actor counts, passing blank-render and dead-feed asserts, and

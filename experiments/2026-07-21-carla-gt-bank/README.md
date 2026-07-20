@@ -1,6 +1,7 @@
 # CARLA GT capture bank — Part VI infrastructure (unnumbered)
 
-**Status:** pre-registered 2026-07-21T00:30Z, run in progress.
+**Status:** pre-registered 2026-07-21T00:30Z, **complete 2026-07-21T01:42Z**. Bank built (25 clips
+/ 30 000 frames / 4.7 GB), G-A PASS, G-B CLOSED, G-C PASS.
 **Claims no experimental number.** This is the artifact-producing night described in
 `experiments/PART6-SLATE-carla-gt.md` section 6: build a deterministic CARLA ground-truth
 bank, verify three gates, and stop. No VLM, no SAM2, no Jetson, no closed loop.
@@ -94,17 +95,26 @@ both excluded. Its decision rule stays as pre-registered in `PART6-SLATE:133-137
 
 | step | estimate | actual |
 |---|---|---|
-| 0 pre-flight guards | 0.5 h | see Results |
-| 1 capture script | 2.0 h | |
-| 2 G-A overlay + look | 0.25 h | |
-| 3 G-B write-up | 0.1 h | |
-| 4 bank: 25 clips x 60 s | 1.0 h | |
-| 5 G-C toggle re-capture | 0.5 h | |
-| **total** | **~4.4 h** | |
+| 0 pre-flight guards | 0.5 h | not separately timed |
+| 1 capture script | 2.0 h | ~0.2 h to first working runner (`00:28` pre-reg to `00:36`), then ~0.5 h of fixes |
+| 2 G-A overlay + look | 0.25 h | ~0.2 h, incl. one reflow after the montage proved unreadable |
+| 3 G-B write-up | 0.1 h | ~0.1 h (closed pre-run) |
+| 4 bank: 25 clips x 60 s | 1.0 h | **36.5 min** |
+| 5 G-C toggle re-capture | 0.5 h | ~0.5 h, of which most was debugging a FAIL that was the gate's own bug |
+| **total** | **~4.4 h** | **~1.25 h** (`00:28` pre-registration to `01:42` close-out) |
 
 Estimated capture wall-clock is the number most likely to be wrong: 86 Hz was measured with
 10 vehicles and no JPG encoding. With 40 vehicles plus disk writes, an estimated 25-40 Hz
 sustained is more honest, putting the bank nearer 20-30 min of ticking.
+
+*Filled in after the run:* the flagged number was indeed the wrong one, but wrong in both
+directions at once. Sustained rate came in at **15.9 Hz** — below even the pessimistic 25-40 Hz
+revision, because that revision still assumed 40 vehicles and the bank runs 80 — while the bank
+*finished* in 36.5 min, inside the original 1.0 h. The two errors were independent: the rate
+estimate mis-modelled per-frame cost, the duration estimate over-budgeted per-clip setup. The
+overall 3.5x overestimate of total effort is the ordinary one — steps 1 and 5 were where the time
+actually went, and both went there for reasons no estimate anticipated (a sampling policy that
+found no cars; a gate that failed against itself).
 
 ## Operational guards
 
@@ -141,25 +151,79 @@ Each is a measured failure mode from this repo, not a hypothetical.
   `generate` returns nothing and the run produces a full set of NO_MATCH results *that look
   like a scientific finding* — the exact shape of the sky-camera bug.
 
-## Results (TBD)
+## Results
+
+All three gates resolved. **The bank is built and usable; no experimental number is claimed.**
 
 ### Gate verdicts
 
 | gate | verdict | evidence |
 |---|---|---|
-| G-A | TBD | |
-| G-B | TBD | |
-| G-C | TBD | |
+| G-A | **PASS** | `runs/gate_a/results.json`, `proof/gate-a-gt-overlay-altitudes.png` (five overlays, **opened and viewed**) |
+| G-B | **CLOSED** (pre-run) | 29 static `Car` meshes returned by `get_environment_objects` are absent from `get_actors()`; fourth taxonomy bucket added |
+| G-C | **PASS** | `runs/gate_c/results.json`, `proof/gate-c-repeatability.png` |
+
+**G-A.** A reference vehicle (`SM_Mustang_prop4_SM_0`, extent `[2.359, 0.947, 0.65]` m) viewed
+from a nadir camera at 25 / 40 / 60 / 85 / 120 m. All 8 vertices project at every altitude
+(`n_proj: 8`), the box area decreases monotonically with altitude, and measured area tracks the
+analytic nadir prediction `area ~ 1/z^2`:
+
+| altitude | 25 m | 40 m | 60 m | 85 m | 120 m |
+|---|---|---|---|---|---|
+| measured / predicted area | 1.113 | 1.068 | 1.045 | 1.032 | 1.023 |
+| `veh_fill` (semantic-seg overlap) | 0.910 | 0.927 | 0.902 | 0.889 | 0.785 |
+
+The ratio exceeds 1 and **converges toward 1 as altitude rises**, which is the correct signature
+rather than a defect: the analytic term is a point-target nadir approximation, so the residual is
+the perspective spread of a box with real height, and that spread shrinks with range. A ratio
+drifting *away* from 1 would have been the failure. `veh_fill` falling at 120 m is the axis-aligned
+box enclosing more non-vehicle pixels as the target shrinks — the reason `veh_fill` is a filterable
+column and not an assert.
 
 ### Bank
 
 | field | value |
 |---|---|
-| clips | TBD |
-| frames/clip | TBD |
-| sustained capture Hz @200 W | TBD |
-| bank size on disk | TBD |
-| determinism check | TBD |
+| clips | **25** (n>=25 rule satisfied for any consumer) |
+| frames/clip | 1200 (60 s @ 20 Hz sim) |
+| total frames | **30 000** |
+| sustained capture Hz @200 W | **15.88 Hz mean**, range 12.5-18.8 |
+| bank size on disk | **4.7 GB** (uncommitted; regenerate from the seeded runner) |
+| coverage (a vehicle on screen) | min **0.989**, mean 1.000, all clips >= the 0.5 assert |
+| determinism check | G-C: all 40 TM vehicle positions reproduce exactly across `load_world` at a fixed seed |
+
+Capture rate falls monotonically with altitude — 18.1 Hz mean at 40 m against 13.9 Hz at 120 m —
+because a higher camera puts more vehicles on screen (9.8 to 38.0 mean on-screen boxes), and both
+per-actor GT projection and JPEG encoding scale with that. The 20 Hz sim-real-time line is only
+cleared at the lowest altitudes, so **the bank captures slower than real time and is not a
+real-time claim.**
+
+`track_gain` behaves as designed at its extreme and blurs in the middle. Measured
+`target_in_frame_frac` (the anchor target, not merely *a* vehicle):
+
+| `track_gain` | clips | anchor in frame |
+|---|---|---|
+| 1.0 (camera tracks anchor) | 9 | 100% on all 9 |
+| 0.6 (partial follow) | 8 | 42.8 - 100% |
+| 0.0 (fixed camera) | 8 | 12.8 - 87.8% |
+
+Only `gain 1.0` is a clean regime. **0.6 and 0.0 overlap heavily** and are not separable arms — an
+earlier note in this campaign called these "three distinct regimes" on the strength of the first 8
+clips; at n=25 that is wrong and is corrected here. A consumer selecting clips must filter on the
+measured `target_in_frame_frac`, not on `track_gain`.
+
+### Estimate vs actual
+
+| step | estimate | actual |
+|---|---|---|
+| 4 bank: 25 clips x 60 s | 1.0 h | **36.5 min** (~1.46 min/clip) |
+| sustained capture rate | 25-40 Hz | **15.9 Hz** |
+
+The wall-clock estimate was flagged up front as the one most likely to be wrong, and it was — but
+in the opposite direction from the rate error. The rate estimate was 1.6-2.5x optimistic (the 86.1
+Hz probe used 10 vehicles and no JPG encoding; the bank runs 80 with encoding), yet the bank still
+finished in 61% of the estimated time, because the estimate had also over-budgeted setup and
+world-reload overhead per clip.
 
 ### What did not work
 
@@ -200,7 +264,43 @@ campaign's freshly-committed script and ran `--gate-c` against the same server, 
 capture 0.9 min in with `_queue.Empty`. A STOP file that blocks new ticks is not isolation from a
 worker already running.
 
-**4. Killing a sync-mode client leaves the server unusable.** `pkill` on a capture holding the
+**4. G-C reported FAIL against its own repeat, and the bug was in the gate, not CARLA.** First
+real run: `same-config 0.136, toggle-restore 0.127, TM identical same=False toggled=False -> FAIL`.
+The pixel rule passed; the position rule failed *between two runs of the identical config*, which
+is not a thing determinism can explain. Cause: the comparison keyed each vehicle on `v.id`, and
+**CARLA's server-assigned actor ids do not restart at a fixed value across `load_world`**, so two
+byte-identical worlds produce different id tuples. Re-keyed on spawn index (stable, because
+`setup_world` walks a seeded shuffle of spawn points) and the gate passes: `same=True
+toggled=True`. Both keys are kept in `results.json` and drawn in the proof figure, because the
+disagreement is the finding. **Had this been recorded as run, the campaign would have published
+"CARLA traffic is not reproducible" on the strength of a broken dictionary key** — a wrong negative
+that would have justified abandoning seeded determinism for all of Part VI. It also promotes the
+deferred `sidx` item below from a nicety to a known correctness gap: `gt.jsonl` rows carry actor
+ids, so they are valid *within* a clip and must not be used to pair identities *across* runs.
+
+**5. A near-miss caught before it ran: the G-C toggle arm was going to tick 8 times more than its
+baseline.** In the first draft only the toggle arm ticked (4 settle ticks either side of the layer
+toggle); the baselines ticked zero. That advances the toggled world 0.4 s of traffic further than
+the arm it is compared against, so the positions could not match and the pixels could not either.
+It would have produced a confident FAIL reading as "toggling environment objects breaks pairing"
+while measuring nothing but one arm running longer. Fixed pre-run by paying the same 8 ticks in
+every arm, with `assert t_a == t_b == t_c` so the symmetry cannot silently regress.
+
+**6. 793 MB of `gt.jsonl` headed into git, one blob of it truncated mid-write.** The repo's
+`.gitignore` whitelists `experiments/*/runs/**/gt.jsonl` — sound when a GT file was kilobytes, but
+this campaign writes 31.7 MB per clip. A routine `git add -A experiments/` tracked four of them,
+and `clip03/gt.jsonl` was committed **while the capture was still appending to it**: 17 958 255
+bytes in git against 32 419 508 on disk. Truncated, still valid JSONL, and therefore silently
+short — nothing downstream would have raised an error, it would just have seen a shorter clip.
+Fixed with a campaign-scoped ignore rule plus `git rm --cached` (`642237d`). *Lesson recorded:*
+never `git add` a directory an unattended writer is still writing into.
+
+**7. `night_driver.json` reports `all_ok: true` for a FAILED gate.** The field tracks subprocess
+exit codes, and a gate that runs cleanly to a FAIL verdict exits 0. The driver's own summary is
+therefore not a verdict and must not be read as one — verdicts live in each `runs/*/results.json`.
+Not fixed tonight (the driver is finished); recorded so the next session does not trust it.
+
+**8. Killing a sync-mode client leaves the server unusable.** `pkill` on a capture holding the
 world in `synchronous_mode` left CARLA wedged; the next run core-dumped, and a later one failed
 with `trying to create rpc server for traffic manager; but the system failed to create because of
 bind error` — a stale client still holding Traffic Manager port 8000. Recovery is `pkill -9 -f
@@ -208,13 +308,38 @@ CarlaUE4`, confirm with `ss -ltnp | grep -E ':8000|:2100'`, and kill the holding
 
 ## Proof deliverables
 
-`proof/` (curated, out of `raw/`):
+`proof/` (curated, out of `raw/`). All four regenerate from `make_proof.py` off `runs/`, with no
+live server.
 
 1. `probe-nadir-town10.png` — the viewed nadir frame that confirms pitch -90 aims at the
    ground and not the sky, at 60 m over `Town10HD_Opt`. Camera-sign regression evidence: the
    Phase C camera aimed at the sky for a month on the opposite sign.
-2. TBD — G-A overlay montage (GT boxes on real frames, near/far/high-pitch).
-3. TBD — a figure, since the numbers are the point for G-C.
+2. `gate-a-gt-overlay-altitudes.png` — **G-A, PASS.** The same reference vehicle
+   (`SM_Mustang_prop4_SM_0`) with its projected 8-vertex GT box drawn on the real render at 25 /
+   40 / 60 / 85 / 120 m, laid out 3x2. Each panel carries its own `pred` vs `meas` area, so the
+   `1/z^2` agreement is legible per-panel rather than only in the results file. This is the
+   deliverable for a gate whose entire content is that a human-or-agent opened the frames; a
+   passing `results.json` alone would not have satisfied it. From `runs/gate_a/`.
+3. `bank-gt-overlay.png` — **the artifact itself**, not the gate rig: GT projected onto a real
+   captured bank frame (`clip01`, 60 m, `track_gain 0.0`, frame 600). Colour is the finding —
+   green/cyan are actors and static meshes, yellow is the clip's anchor target, **red marks
+   `veh_fill < 0.25`**, i.e. a geometrically correct box sitting on pixels that are not a vehicle
+   (cars occluded behind buildings, hazard 2.3c). Corner-projected GT cannot see occlusion; this
+   column makes it filterable. Note there is **no yellow box in this frame** — `clip01`'s anchor
+   is in frame on only 12.8% of frames, which is what motivated `target_in_frame_frac`.
+4. `bank-capture-and-target-size.png` — the bank's three quantitative claims, as a figure because
+   the numbers are the point. Left: per-clip sustained rate against the 20 Hz sim-real-time line
+   (mean 15.9 Hz at the 200 W cap — the bank does not capture in real time). Middle: projected GT
+   box area against altitude for fully-in-frame boxes only, with a `1/z^2` curve anchored on the
+   40 m median; the projection is analytic, so this is a check the bank must pass, not a fitted
+   trend. Right: `target_in_frame_frac` per clip by `track_gain`, with mean coverage overlaid —
+   the panel that shows coverage reading ~100% everywhere while the anchor target ranges down to
+   12.8%, and that `gain 0.6` and `gain 0.0` overlap rather than separating.
+5. `gate-c-repeatability.png` — **G-C, PASS.** Same-config repeat (0.142) and layer-toggle-restore
+   (0.084) mean frame difference, both ~60x under the 8.0 floor, on a log axis because on a linear
+   one both bars vanish. Annotated with the half that cost the debug cycle: all 40 vehicle
+   positions reproduce across `load_world` under a spawn-index key and *do not* under an actor-id
+   key, which is why the gate first reported FAIL against its own repeat.
 
 ## Next step
 
@@ -241,7 +366,8 @@ close-out.
    the fixed-camera clips. So it is bounded and small even under the hypothesis the data argues
    against. A live `image.transform` probe would close it exactly; it is no longer blocking and
    cannot invalidate the artifact.
-2. **Backfill `target_in_frame_frac` into every manifest.** Coverage asserts that *a* vehicle is
+2. ~~**Backfill `target_in_frame_frac` into every manifest.**~~ **DONE** (`3398c2b`,
+   `backfill_target_frac.py`, idempotent). Coverage asserts that *a* vehicle is
    on screen, not that *the* anchor target is. On `clip01` (`track_gain 0.0`, fixed camera) the
    anchor is in frame on ~13% of frames while coverage still reads 100%, because other traffic
    drives through. That is a legitimate regime -- it is what the `gain 0.0` arm is for -- but a
@@ -252,10 +378,22 @@ close-out.
    landed (`642237d`); these predate it. Deferred deliberately: rewriting history while an
    unattended capture is in flight risks the run to reclaim 113 MB on an unmerged, unpushed,
    local-only branch. Do it once the driver is idle and before any merge to `main`.
-4. Fill Results, append `docs/results/part6-flight.md` (the last of the three ledgers still
-   unwritten), and caption the proof deliverables.
-5. Hand the bank to P6.2's extraction session.
+4. ~~Fill Results, append `docs/results/part6-flight.md`, caption the proof deliverables.~~
+   **DONE.** All three ledgers written, five deliverables captioned above.
+5. **Add `sidx`, a spawn-index identity key, on the next re-capture.** Promoted from "deferred,
+   not lost" to a known correctness gap by G-C (item 4 in *What did not work*): `gt.jsonl` rows
+   carry **server-assigned actor ids, which CARLA does not reproduce across `load_world`**. Ids
+   are therefore valid *within* a clip and must not be used to pair identities *across* runs —
+   which is exactly what a paired A/B on the same seed would want to do. Adding the field needs a
+   re-capture (36.5 min), so it is recorded rather than paid for tonight; any consumer doing
+   cross-run pairing must add it first.
+6. Hand the bank to P6.2's extraction session.
 
-Deferred, not lost: `sidx` (a spawn-index identity key stable across runs, since rows currently
-carry server-assigned actor ids) would need a re-capture to add, so it is recorded here rather
-than paid for tonight.
+Two loose ends for whoever picks this up, neither blocking:
+
+- **`.claude/autoresearch.STOP` is still armed** (since 2026-07-21T00:27Z; the in-flight cycle was
+  killed at 00:40Z). It is gitignored and local-only. Delete the file to resume autoresearch. It
+  was left armed deliberately: the GPU and the CARLA port are still this campaign's until someone
+  decides otherwise.
+- **The 3090 is still capped at 200 W** (`nvidia-smi -pl 200`), as requested for fan noise.
+  Non-persistent — it resets on driver reload. Every rate number in this README carries it.
