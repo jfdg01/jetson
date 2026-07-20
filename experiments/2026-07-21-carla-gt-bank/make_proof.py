@@ -179,17 +179,36 @@ def gate_c_figure():
     if not p.exists():
         return None
     r = json.loads(p.read_text())
-    fig, ax = plt.subplots(figsize=(5.5, 4))
+    fig, ax = plt.subplots(figsize=(6.5, 4.2))
     vals = [r["same_config_meanabsdiff"], r["toggle_restore_meanabsdiff"]]
     ax.bar(["same config\n(repeat)", "layer toggle\n+ restore"], vals,
            color=["#3b6ea5", "#c05640"])
     ax.axhline(r["floor"], color="grey", ls=":", label=f"floor {r['floor']}")
     for i, v in enumerate(vals):
         ax.text(i, v, f"{v:.3f}", ha="center", va="bottom", fontsize=9)
-    ax.set(ylabel="mean |frame difference| (8-bit levels)",
+    # log scale or the result is invisible: on a linear axis both bars are
+    # slivers on the baseline and the figure shows nothing except the floor.
+    # The finding IS the margin -- ~60x under -- so the axis has to show it.
+    ax.set_yscale("log")
+    ax.set_ylim(0.01, r["floor"] * 3)
+    ax.set(ylabel="mean |frame difference| (8-bit levels, log)",
            title=f"G-C repeatability -- {r.get('verdict', '?')}")
-    ax.legend(fontsize=8)
-    fig.tight_layout()
+    ax.legend(fontsize=8, loc="upper right")
+    # The pixel bars are the easy half. The half that actually cost a debug cycle
+    # is the identity key: this same gate reported FAIL against its own repeat
+    # until the comparison stopped keying on server-assigned actor ids.
+    def yn(b):
+        return "yes" if b else "NO "
+    key = (f"do all {r['n_vehicles_compared']} vehicle positions reproduce across"
+           " `load_world`?\n"
+           f"  spawn-index key   same-config {yn(r['tm_positions_identical_same_config'])}"
+           f"   after-toggle {yn(r['tm_positions_identical_after_toggle'])}\n"
+           f"  actor-id key      same-config {yn(r['actor_id_key_same_config'])}"
+           f"   after-toggle {yn(r['actor_id_key_after_toggle'])}"
+           "   (ids get reassigned)")
+    ax.text(0.0, -0.30, key, transform=ax.transAxes, fontsize=7.5,
+            family="monospace", va="top")
+    fig.subplots_adjust(bottom=0.34)
     out = PROOF / "gate-c-repeatability.png"
     fig.savefig(out, dpi=140)
     return out
