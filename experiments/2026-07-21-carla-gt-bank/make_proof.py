@@ -28,9 +28,22 @@ def gate_a_montage():
         return None
     ims = [cv2.imread(str(p)) for p in src]
     h = min(i.shape[0] for i in ims)
-    strip = np.hstack([cv2.resize(i, (int(i.shape[1] * h / i.shape[0]), h)) for i in ims])
+    ims = [cv2.resize(i, (int(i.shape[1] * h / i.shape[0]), h)) for i in ims]
+    # grid, not a strip: five panels side by side is a 3200x480 sliver whose
+    # per-panel "pred N meas N" caption -- the actual evidence -- is unreadable at
+    # any size a thesis page will print it
+    cols = 3
+    w = max(i.shape[1] for i in ims)
+    # white, not black: a black cell in a figure reads as a failed render, and
+    # this repo's own rule says a frame that is one flat colour IS a failure
+    pad = np.full((h, w, 3), 255, np.uint8)
+    cells = [cv2.copyMakeBorder(i, 0, 0, 0, w - i.shape[1], cv2.BORDER_CONSTANT)
+             for i in ims]
+    rows = [cells[r:r + cols] for r in range(0, len(cells), cols)]
+    rows[-1] += [pad] * (cols - len(rows[-1]))
+    grid = np.vstack([np.hstack(r) for r in rows])
     out = PROOF / "gate-a-gt-overlay-altitudes.png"
-    cv2.imwrite(str(out), strip)
+    cv2.imwrite(str(out), grid)
     return out
 
 
