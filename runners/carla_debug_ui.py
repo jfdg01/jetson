@@ -24,9 +24,11 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from grounding.contract import COORD_SCALE, parse_bbox
 
-# What the operator flies IS the drone camera, so the frame the VLM grounds must
-# be the frame on screen. FOV matches CarlaUE4's viewport default -- a mismatch
-# means the model is shown a wider or narrower picture than the one pointed at.
+# What the operator flies IS the drone camera: the frame on screen and the frame
+# the VLM grounds come from this one sensor, so they cannot disagree. FOV used to
+# have to match CarlaUE4's viewport default, back when the operator watched the
+# viewport; headless removed that constraint, so 90 is inherited rather than
+# chosen and is an untested lever on lock rate.
 CAM_W, CAM_H, CAM_FOV = 960, 540, 90
 # 5 Hz feed. The catch-up only converges if the tracker outruns the camera:
 # SAM2.1-hiera-tiny is 14.4 FPS @1024 on the 3090, so at 5 Hz a ~20-frame backlog
