@@ -1,0 +1,36 @@
+{
+  "clip": "clip21",
+  "alt": 60.0,
+  "target_rank": 21,
+  "track_gain": 1.0,
+  "heading": 122.44300688415895,
+  "drift_m": 0.0,
+  "yaw": 75.2579007922383,
+  "vehicles": 80,
+  "seed": 20260742,
+  "mode": "sync",
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "frames": 1200,
+  "spawned": 80,
+  "n_static_cars": 29,
+  "target_id": 2716,
+  "target_type": "vehicle.bmw.grandtourer",
+  "cam_start": [
+    -2.85,
+    -68.05
+  ],
+  "coverage": 1.0,
+  "onscreen_mean": 19.04,
+  "capture_hz": 16.68,
+  "power_limit_w": 200.0,
+  "dominant_frac": 0.0049,
+  "mid_last_identical": false,
+  "cam_wh_fov": [
+    640,
+    480,
+    90
+  ],
+  "complete": true,
+  "target_in_frame_frac": 1.0
+}

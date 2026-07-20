@@ -1,0 +1,36 @@
+{
+  "clip": "clip20",
+  "alt": 40.0,
+  "target_rank": 20,
+  "track_gain": 0.6,
+  "heading": 11.341952377360652,
+  "drift_m": 0.0,
+  "yaw": 300.59210991601776,
+  "vehicles": 80,
+  "seed": 20260741,
+  "mode": "sync",
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "frames": 1200,
+  "spawned": 80,
+  "n_static_cars": 29,
+  "target_id": 2610,
+  "target_type": "vehicle.lincoln.mkz_2017",
+  "cam_start": [
+    -41.83,
+    -16.98
+  ],
+  "coverage": 0.9892,
+  "onscreen_mean": 7.91,
+  "capture_hz": 17.75,
+  "power_limit_w": 200.0,
+  "dominant_frac": 0.0082,
+  "mid_last_identical": false,
+  "cam_wh_fov": [
+    640,
+    480,
+    90
+  ],
+  "complete": true,
+  "target_in_frame_frac": 0.7217
+}

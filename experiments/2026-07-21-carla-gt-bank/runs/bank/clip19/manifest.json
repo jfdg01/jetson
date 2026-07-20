@@ -1,0 +1,36 @@
+{
+  "clip": "clip19",
+  "alt": 120.0,
+  "target_rank": 19,
+  "track_gain": 0.0,
+  "heading": 164.24666927136204,
+  "drift_m": 50.0,
+  "yaw": 87.16511326982989,
+  "vehicles": 80,
+  "seed": 20260740,
+  "mode": "sync",
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "frames": 1200,
+  "spawned": 80,
+  "n_static_cars": 29,
+  "target_id": 2504,
+  "target_type": "vehicle.nissan.micra",
+  "cam_start": [
+    2.93,
+    130.21
+  ],
+  "coverage": 1.0,
+  "onscreen_mean": 24.65,
+  "capture_hz": 14.49,
+  "power_limit_w": 200.0,
+  "dominant_frac": 0.0041,
+  "mid_last_identical": false,
+  "cam_wh_fov": [
+    640,
+    480,
+    90
+  ],
+  "complete": true,
+  "target_in_frame_frac": 0.7292
+}

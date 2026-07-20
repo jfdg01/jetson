@@ -1,0 +1,36 @@
+{
+  "clip": "clip09",
+  "alt": 120.0,
+  "target_rank": 9,
+  "track_gain": 1.0,
+  "heading": 118.77875761243051,
+  "drift_m": 0.0,
+  "yaw": 170.2724856512355,
+  "vehicles": 80,
+  "seed": 20260730,
+  "mode": "sync",
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "frames": 1200,
+  "spawned": 80,
+  "n_static_cars": 29,
+  "target_id": 1444,
+  "target_type": "vehicle.tesla.cybertruck",
+  "cam_start": [
+    -103.15,
+    -15.6
+  ],
+  "coverage": 1.0,
+  "onscreen_mean": 34.09,
+  "capture_hz": 14.38,
+  "power_limit_w": 200.0,
+  "dominant_frac": 0.0031,
+  "mid_last_identical": false,
+  "cam_wh_fov": [
+    640,
+    480,
+    90
+  ],
+  "complete": true,
+  "target_in_frame_frac": 1.0
+}

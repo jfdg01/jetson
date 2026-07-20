@@ -1,0 +1,36 @@
+{
+  "clip": "clip24",
+  "alt": 120.0,
+  "target_rank": 24,
+  "track_gain": 1.0,
+  "heading": 84.49445006555025,
+  "drift_m": 25.0,
+  "yaw": 51.97571282483433,
+  "vehicles": 80,
+  "seed": 20260745,
+  "mode": "sync",
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "frames": 1200,
+  "spawned": 80,
+  "n_static_cars": 29,
+  "target_id": 3033,
+  "target_type": "vehicle.ford.ambulance",
+  "cam_start": [
+    -67.25,
+    27.96
+  ],
+  "coverage": 1.0,
+  "onscreen_mean": 54.67,
+  "capture_hz": 12.52,
+  "power_limit_w": 200.0,
+  "dominant_frac": 0.0068,
+  "mid_last_identical": false,
+  "cam_wh_fov": [
+    640,
+    480,
+    90
+  ],
+  "complete": true,
+  "target_in_frame_frac": 1.0
+}

@@ -1,0 +1,15 @@
+{
+  "gate": "G-C",
+  "floor": 8.0,
+  "same_config_meanabsdiff": 0.1418,
+  "toggle_restore_meanabsdiff": 0.0836,
+  "pixel_rule_ok": true,
+  "same_config_floor_ok": true,
+  "tm_positions_identical_same_config": true,
+  "tm_positions_identical_after_toggle": true,
+  "n_vehicles_compared": 40,
+  "same_counts": true,
+  "actor_id_key_same_config": false,
+  "actor_id_key_after_toggle": false,
+  "verdict": "PASS"
+}

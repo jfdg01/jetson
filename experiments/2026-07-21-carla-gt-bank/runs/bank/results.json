@@ -1,0 +1,10 @@
+{
+  "clips": 25,
+  "mode": "sync",
+  "seed": 20260721,
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "total_frames": 30000,
+  "mean_capture_hz": 15.88,
+  "power_limit_w": 200.0
+}
