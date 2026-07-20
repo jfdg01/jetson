@@ -26,3 +26,5 @@ num2words  # SmolVLM (arm E) processor hard-dep
 einops  # Florence-2 (arm D) remote modeling code
 timm  # Florence-2 (arm D) DaViT vision tower
 sam2  # SAM2.1 memory-carry tracker (temporal-acquire-carry Phase 0)
+carla==0.9.16  # CARLA client API (P6.1 renderer swap); server is a separate 8.3 GB package, not pip
+matplotlib  # proof figures (make_proof.py); P6.1 onward

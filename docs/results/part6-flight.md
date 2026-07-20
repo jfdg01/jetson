@@ -53,3 +53,42 @@ track_cov 20.7%, 19 track losses — are **withdrawn**: the VLM was grounding in
 image. Phase C **Branch-1**'s px_err 89.4 is inflated by defect 2 and should not be quoted as a
 tracking-quality figure (its integration PASS stands). **Phase B is unaffected** — its ~25 Hz
 synchronous oracle gave a detection every frame, so no track ever went lost.
+
+### P6.1 — CARLA renderer swap (2026-07-20)
+
+Detail: [`../../experiments/2026-07-20-p61-carla-renderer/README.md`](../../experiments/2026-07-20-p61-carla-renderer/README.md).
+Config: 3090 workstation (no Jetson — the CARLA server needs a desktop GPU, so nothing here is a
+deployment number); CARLA server + client 0.9.16 packaged Linux release, `Town10HD_Opt`,
+640x480 @ 90 deg FOV, `fixed_delta_seconds=0.05`, traffic-manager seed 20260720;
+ArduCopter 4.6.3 (`92b0cd788e`) SITL as physics, `--no-mavproxy`; `runners/carla_render.py`,
+n=1 per configuration (capability gate, not a statistical claim).
+
+**Gate verdict: YES** — G1 server · G2 render · G3 pose slaving · G4 traffic · G5 rate all pass.
+G6 (grounding, pre-registered **non-gating**) **NOT RUN**.
+
+| gate | verdict | measured |
+|---|---|---|
+| G1 server | PASS | server 0.9.16 == client 0.9.16, `Town10HD_Opt`, 155 spawn points, 41 vehicle blueprints, 599 ticks |
+| G2 render | PASS | dominant-colour fraction **0.005–0.026** (gate < 0.99), frames opened with the Read tool |
+| G3 pose slaving | PASS | copter flew **0 → 84.4 m north** under its own GUIDED control at a held 60.0 m; content at ticks 150/300/599 distinct and consistent with position; nadir `pitch=-90` confirmed by viewed frame |
+| G4 traffic | PASS | **40/40** vehicles spawned with autopilot; first vs last frame not byte-identical |
+| G5 rate | PASS | **48.1 Hz** mean (gate >= 20 Hz, 2.4x the P6.0 control rate); 5/599 ticks under 15 Hz, all in the first ~5 s of cold shader compilation |
+| G6 grounding | **NOT RUN** | deployed checkpoint `runners/runs/v2/phase3-terse100eos-1024` absent from this machine |
+
+Sizing observation (non-gating, pre-registration input for P6.2): at 90 deg FOV nadir, a car is
+~10 px at 100 m, ~25x50 px at 60 m, and at 30 m the frame is mostly building facade. **60 m is the
+working altitude for P6.2.**
+
+**`slave_err_mean_m = 0.000` in `results.json` is vacuous — do not cite it.** CARLA's free camera is
+a kinematic actor, so `get_transform()` returns exactly what `set_transform()` was handed; the
+metric compares a number against itself. Same failure shape as P6.0's "0 track losses". What
+evidences G3 is that the *pose source* moved 84.4 m under closed-loop autopilot control and the
+*rendered content* changed accordingly across three frames that were opened and viewed.
+
+**Estimate vs actual.** Render rate landed mid-range as predicted (48.1 vs 30–60 Hz estimated) and
+the renderer swap was uneventful. The 2–4 h estimate ran to ~5 h and the ~150-line runner estimate
+to 387 lines, all of it in the unforeseen risk: driving SITL without MAVProxy. Eight silent
+failures, chief among them that ArduPilot streams almost nothing to a GCS that never requests it —
+`LOCAL_POSITION_NED` never arrived and the pose consumer read its initial value forever, which
+would have rendered a **frozen camera over a moving world at exit 0**. That is the P6.1 analogue
+of the Phase C sky camera. Full list in the campaign README.

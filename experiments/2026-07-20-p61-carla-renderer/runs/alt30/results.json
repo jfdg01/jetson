@@ -1,0 +1,24 @@
+{
+  "town": "Town10HD_Opt",
+  "vehicles": 40,
+  "ticks": 160,
+  "pitch_deg": -90.0,
+  "pose_source": "scripted",
+  "dominant_frac": 0.02564453125,
+  "frames_identical": false,
+  "mean_hz": 39.7656789998164,
+  "ticks_under_15hz": 5,
+  "frames_received": 159,
+  "pose_first": [
+    0.0,
+    0.0,
+    -30.0,
+    0.0
+  ],
+  "pose_last": [
+    23.85,
+    0.0,
+    -30.0,
+    0.0
+  ]
+}

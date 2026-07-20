@@ -110,3 +110,16 @@ the per-experiment README is the source of truth. Append; newest at the bottom.
   [`runners/sitl/worlds/select_arena.sdf`](runners/sitl/worlds/select_arena.sdf)). P5.7 found its
   `gz service` CLI request path unreliable under per-frame churn (~0.42%/call `RecvSrvRequest() ...
   Host unreachable`), which is what blocked that campaign — see the experiment README.
+
+- **CARLA 0.9.16** (Dosovitskiy, Ros, Codevilla, López, Koltun — *CARLA: An Open Urban Driving
+  Simulator*, CoRL 2017; originating at CVC Barcelona) · https://carla.org ·
+  paper https://arxiv.org/abs/1711.03938 · packaged Linux release
+  `CARLA_0.9.16.tar.gz` (8346095504 bytes) from https://tiny.carla.org/carla-0-9-16-linux,
+  installed to `~/carla/CARLA_0.9.16/` (outside the repo); client `carla==0.9.16` (cp312 wheel,
+  zero transitive deps) pinned in `requirements-ft.txt`
+  → [`experiments/2026-07-20-p61-carla-renderer/`](experiments/2026-07-20-p61-carla-renderer/README.md)
+  — the Part VI renderer, replacing Gazebo as the pose-slaved view. Used for its photoreal Unreal
+  Engine towns (`Town10HD_Opt`), autonomous traffic manager, and Python API; SITL remains the
+  physics and the control stack is unchanged. **Version note:** 0.9.16 is the first release with
+  cp312 wheels (0.9.15 stops at cp310), and 0.10.0 has a newer tag but an *older* release date
+  (2024-12-19 vs 2025-09-16) and moved to UE5 with a reduced map set.
