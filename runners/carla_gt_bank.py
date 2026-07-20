@@ -169,6 +169,10 @@ def env_car_cache(world):
             for o in world.get_environment_objects(carla.CityObjectLabel.Car)]
 
 
+def _round_opt(v, nd):
+    return None if v is None else round(v, nd)
+
+
 def _row(kind, oid, name, b, n_proj, loc, cam_loc, tags, w, h):
     vis = clip_to_frame(b, w, h)
     return {
@@ -179,8 +183,10 @@ def _row(kind, oid, name, b, n_proj, loc, cam_loc, tags, w, h):
         "area_vis_px": round(box_area(vis), 1) if vis else 0.0,
         "n_proj": n_proj,                     # <8 means partly behind the camera
         "partial": n_proj < 8,
-        "veh_fill": (round(veh_fill(tags, vis, w, h), 4)
-                     if (tags is not None and vis) else None),
+        # a clipped box can still be sub-pixel after int truncation, and veh_fill
+        # says None for that -- so ask it, do not infer it from `vis`
+        "veh_fill": _round_opt(veh_fill(tags, vis, w, h)
+                               if (tags is not None and vis) else None, 4),
         "range_m": round(math.dist((loc.x, loc.y, loc.z),
                                    (cam_loc.x, cam_loc.y, cam_loc.z)), 2),
     }
