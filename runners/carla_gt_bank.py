@@ -539,14 +539,24 @@ def gate_c(client, out, n_frames=40, n_vehicles=40):
     def run_once(tag, toggle=False):
         world, _tm, vehicles = setup_world(client, TOWN, n_vehicles, SEED)
         env = env_car_cache(world)
+        ids = {o["id"] for o in env[:5]}
+        # Every arm pays the same 8 settle ticks. The toggle needs them to take
+        # effect, but if only the toggle arm ticks them it advances the traffic
+        # 0.4 s further than its own baseline -- so the TM positions could not
+        # match and the pixels could not either, and the gate would FAIL and read
+        # as "toggling environment objects breaks pairing" when all it measured
+        # was one arm running longer than the other.
+        ticks = 0
         if toggle:
-            ids = {o["id"] for o in env[:5]}
             world.enable_environment_objects(ids, False)
-            for _ in range(4):
-                world.tick()
+        for _ in range(4):
+            world.tick()
+            ticks += 1
+        if toggle:
             world.enable_environment_objects(ids, True)      # restore
-            for _ in range(4):
-                world.tick()
+        for _ in range(4):
+            world.tick()
+            ticks += 1
         cams = spawn_cams(world, nadir(0.0, 0.0, 70.0))
         bgr = None
         try:
@@ -557,11 +567,14 @@ def gate_c(client, out, n_frames=40, n_vehicles=40):
         finally:
             teardown(client, cams, vehicles)
         cv2.imwrite(str(d / f"{tag}.png"), bgr)
-        return bgr, pos
+        return bgr, pos, ticks
 
-    a, pos_a = run_once("baseline_a")
-    b, pos_b = run_once("baseline_b")                # same config, repeat
-    c, pos_c = run_once("toggled", toggle=True)      # toggle then restore
+    a, pos_a, t_a = run_once("baseline_a")
+    b, pos_b, t_b = run_once("baseline_b")           # same config, repeat
+    c, pos_c, t_c = run_once("toggled", toggle=True)  # toggle then restore
+    # the check that keeps the fix above from silently regressing: unequal ticks
+    # make every downstream comparison meaningless
+    assert t_a == t_b == t_c, f"arms ticked unequally: {t_a}/{t_b}/{t_c}"
 
     same_cfg, toggled = mean_absdiff(a, b), mean_absdiff(a, c)
     pos_same, pos_toggle = (pos_a == pos_b), (pos_a == pos_c)
