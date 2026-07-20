@@ -35,7 +35,14 @@ import numpy as np
 TOWN = "Town10HD_Opt"        # ponytail: the release's default photoreal town. Swap via --town.
 W, H, FOV = 640, 480, 90
 FIXED_DT = 0.05              # 20 Hz, matches the P6.0 control loop
-SEED = 20260720              # determinism: same traffic layout every run
+SEED = 20260720              # same traffic layout + TM decisions every run
+
+# ponytail: async, not synchronous. Sync makes the CLIENT the clock master, but
+# SITL already is one and runs in wall-clock real time -- and worse, sim time then
+# only advances on world.tick(), so a 4.5 s VLM acquire costs ZERO sim seconds and
+# the delivery lag that Parts IV/V exist to measure stops existing. Reproducibility
+# comes from SEED + logged tracks + n>=25, not from tick determinism (bit-exact
+# replay needs full lockstep, rejected in docs/decisions/part6-flight.md).
 
 _latest = {"bgr": None, "n": 0}
 _lock = threading.Lock()
@@ -114,12 +121,12 @@ class MavlinkPose:
 def setup_world(client, town, n_vehicles):
     world = client.load_world(town)
     settings = world.get_settings()
-    settings.synchronous_mode = True
-    settings.fixed_delta_seconds = FIXED_DT
+    settings.synchronous_mode = False
+    settings.fixed_delta_seconds = FIXED_DT   # substep cap, not a pace
     world.apply_settings(settings)
 
     tm = client.get_trafficmanager(8000)
-    tm.set_synchronous_mode(True)
+    tm.set_synchronous_mode(False)
     tm.set_random_device_seed(SEED)
 
     rng = random.Random(SEED)
@@ -140,6 +147,7 @@ def setup_world(client, town, n_vehicles):
     cam_bp.set_attribute("image_size_x", str(W))
     cam_bp.set_attribute("image_size_y", str(H))
     cam_bp.set_attribute("fov", str(FOV))
+    cam_bp.set_attribute("sensor_tick", str(FIXED_DT))   # 20 Hz frame delivery
     cam = world.spawn_actor(cam_bp, ned_to_carla(*scripted_pose(0.0)))
     cam.listen(_on_image)
     return world, cam, vehicles
@@ -167,7 +175,11 @@ def run(args):
         t = i * FIXED_DT
         ned = pose_fn(t)
         cam.set_transform(ned_to_carla(*ned, pitch_deg=args.pitch))
-        world.tick()
+        # async: the server renders on its own clock, so pace to wall time instead
+        # of driving it. Sim time == wall time == SITL time, one clock for all three.
+        slack = (t0 + (i + 1) * FIXED_DT) - time.time()
+        if slack > 0:
+            time.sleep(slack)
         stamps.append(time.time())
         poses.append(ned)
         # what the SERVER actually placed the camera at -- asking CARLA rather than
@@ -187,9 +199,6 @@ def run(args):
     cam.stop()
     cam.destroy()
     client.apply_batch([carla.command.DestroyActor(v) for v in vehicles])
-    settings = world.get_settings()
-    settings.synchronous_mode = False
-    world.apply_settings(settings)
 
     # --- gates ---
     res = {"town": args.town, "vehicles": len(vehicles), "ticks": n_ticks,
