@@ -216,19 +216,48 @@ Run 2026-07-20T18:20Z–19:05Z. Raw: `runs/g1-scripted/`, `runs/alt60/`, `runs/a
 pose-slaved, the control stack is untouched, and the world now contains a photoreal town with 40
 autonomously-driven vehicles rendering at more than twice the P6.0 control rate.
 
-### G6 could not be run — and that is a P6.2 blocker
+### G6 was not run — but the reason first recorded was wrong
 
-G6 was pre-registered as "run **the deployed Qwen2-VL-2B** on CARLA frames". That checkpoint,
-`runners/runs/v2/phase3-terse100eos-1024`, **does not exist on this machine**. `runners/runs/**` is
-gitignored (`.gitignore:25`, manifests only), there are no `.safetensors` anywhere under `~`, and
-the HF cache holds only SAM2 and CLIP. The base `Qwen/Qwen2-VL-2B-Instruct` *is* fetchable, but it
-is a different model (~15% IoU@0.25 per the Phase-0c note in `contract.py`, against ~63% for the
-deployed terse checkpoint), so running it and reporting the number would not answer the question
-asked and would not be comparable to P5.17's 56/56.
+**As first written (2026-07-20T19:05Z):** G6 was pre-registered as "run **the deployed
+Qwen2-VL-2B** on CARLA frames". The checkpoint `runners/runs/v2/phase3-terse100eos-1024` does not
+exist on this machine — `runners/runs/**` is gitignored (`.gitignore:25`, manifests only), there
+are no `.safetensors` anywhere under `~`, and the HF cache holds only SAM2 and CLIP. Substituting
+base `Qwen/Qwen2-VL-2B-Instruct` (~15% IoU@0.25 per the Phase-0c note in `contract.py`, against
+~63% for the deployed terse checkpoint) would answer a different question, so G6 was recorded NOT
+RUN and called a hard blocker for P6.2.
 
-Recorded as NOT RUN rather than substituted. **The pre-registered G6 prediction therefore stands
-untested** and is carried into its own arm. This is a hard blocker for P6.2, which cannot ground
-anything until the checkpoint is restored or retrained.
+**Correction (2026-07-20T20:10Z): the checkpoint was never missing, and P6.2 is not blocked.**
+Prompted to check the Jetson, it is there, in the deployment format, at exactly the paths the
+repo's own constants point at:
+
+```
+/home/jfdg/grounding/phase3-terse100eos-1024-q8_0.gguf         1646571200 B, 2026-06-26
+/home/jfdg/grounding/mmproj-phase3-terse100eos-1024-f16.gguf   1334666400 B, 2026-06-26
+```
+
+matching `_REMOTE_MODELS['q8_0']` / `_REMOTE_MMPROJ` / `_DEFAULT_REMOTE_DIR = /home/jfdg/grounding`
+(`grounding/deploy/video.py:48-52`, `grounding/deploy/serve.py:27`), with `llama-server` built at
+`/home/jfdg/llama.cpp/build/bin/`.
+
+**And P5.17 grounded through those same two files.** `select_p517.py:397-403` constructs a
+`JetsonBackend` over `ssh jetson`, not an `HFBackend` — so the 56/56 that G6 was supposed to be
+comparable against was itself measured on the Jetson GGUF. Running G6 that way is not a
+substitution, it is the *matching* configuration.
+
+**What is actually missing** is only the merged HF/safetensors *training-format* directory, which
+`HFBackend` would load and which nothing in the Part V select arc uses. Losing it costs the ability
+to resume LoRA training or re-export, not the ability to ground.
+
+**The error was searching for the wrong artifact.** `find -name "*.safetensors"` on both machines
+returns nothing and reads as "the model is gone", when the deployed artifact is a `.gguf` and the
+question was always about the deployed model. The failure mode is worth recording: a search whose
+*negative* result is confidently wrong because the search term encoded an assumption about format
+that the deployment had already moved past. Same family as the vacuous metrics above — a check that
+cannot see the thing it is checking for.
+
+G6 remains **NOT RUN** — this correction landed after the campaign closed, and G6 is a non-gating
+observation that the pre-registration says needs its own arm at n>=25. It is now unblocked work,
+not a blocker.
 
 ### The slaving-error metric is vacuous — do not cite it
 
@@ -347,9 +376,14 @@ Still open, and still blocking the select-and-follow arm (now P6.2):
 
 ## Residuals added by P6.1
 
-- **G6 untested — the deployed grounding checkpoint is missing** (see above). Hard blocker for
-  P6.2. Either restore `runners/runs/v2/phase3-terse100eos-1024` or retrain it; until then no
-  grounding number can be produced on any renderer.
+- **G6 untested.** ~~The deployed grounding checkpoint is missing~~ — **corrected
+  2026-07-20T20:10Z, see above:** the deployed Q8_0 GGUF is on the Jetson at
+  `/home/jfdg/grounding/`, P5.17 grounded through it via `JetsonBackend`, and P6.2 is **not**
+  blocked. G6 stays NOT RUN because the correction landed after the campaign closed and it is a
+  non-gating observation the pre-registration assigns to its own n>=25 arm.
+- **The merged HF/safetensors training-format checkpoint is genuinely gone** (no `.safetensors` on
+  either machine). Costs LoRA resumption and re-export, not grounding. Worth a deliberate decision:
+  accept it, or re-export from the GGUF path / retrain.
 - The `slave_err_*` fields in `results.json` are vacuous by construction. Left in place, flagged
   here; do not cite them.
 - CARLA has weather and time-of-day and this campaign used neither — every frame is the default
@@ -379,7 +413,13 @@ venv was first on PATH and demanded `empy` be installed *there*.
 
 **COMPLETE — YES.** G1–G5 pass with viewed evidence; G6 not run (checkpoint absent).
 
-**Next: P6.2 closed-loop select-and-follow**, blocked until the grounding checkpoint is restored.
-When it unblocks, P6.2 inherits from here: 60 m working altitude, `Town10HD_Opt`, 40 autonomous
-vehicles, seed 20260720, and `runners/sitl_fly_leg.py` for the arm/takeoff sequence. The four P6.0
-residuals above are still open and still apply.
+**Next: P6.2 closed-loop select-and-follow. Not blocked** (correction 2026-07-20T20:10Z — the
+deployed model is on the Jetson). P6.2 inherits from here: 60 m working altitude, `Town10HD_Opt`,
+40 autonomous vehicles, seed 20260720, `runners/sitl_fly_leg.py` for the arm/takeoff sequence, and
+`JetsonBackend` against `/home/jfdg/grounding/phase3-terse100eos-1024-q8_0.gguf` — the same
+grounding path P5.17 used, which makes its 56/56 the direct comparison. The four P6.0 residuals
+above are still open and still apply.
+
+Grounding now runs on the actual edge device while the renderer runs on the 3090, so P6.2 gets a
+real deployment latency figure rather than a 3090 one — but the ssh round-trip is in the loop and
+must be reported as part of it.

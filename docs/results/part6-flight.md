@@ -73,7 +73,7 @@ G6 (grounding, pre-registered **non-gating**) **NOT RUN**.
 | G3 pose slaving | PASS | copter flew **0 → 84.4 m north** under its own GUIDED control at a held 60.0 m; content at ticks 150/300/599 distinct and consistent with position; nadir `pitch=-90` confirmed by viewed frame |
 | G4 traffic | PASS | **40/40** vehicles spawned with autopilot; first vs last frame not byte-identical |
 | G5 rate | PASS | **48.1 Hz** mean (gate >= 20 Hz, 2.4x the P6.0 control rate); 5/599 ticks under 15 Hz, all in the first ~5 s of cold shader compilation |
-| G6 grounding | **NOT RUN** | deployed checkpoint `runners/runs/v2/phase3-terse100eos-1024` absent from this machine |
+| G6 grounding | **NOT RUN** | see the correction below — first recorded as blocked by a missing checkpoint, which was wrong |
 
 Sizing observation (non-gating, pre-registration input for P6.2): at 90 deg FOV nadir, a car is
 ~10 px at 100 m, ~25x50 px at 60 m, and at 30 m the frame is mostly building facade. **60 m is the
@@ -92,3 +92,17 @@ failures, chief among them that ArduPilot streams almost nothing to a GCS that n
 `LOCAL_POSITION_NED` never arrived and the pose consumer read its initial value forever, which
 would have rendered a **frozen camera over a moving world at exit 0**. That is the P6.1 analogue
 of the Phase C sky camera. Full list in the campaign README.
+
+**Correction 2026-07-20T20:10Z — the G6 blocker was not real.** G6 was recorded NOT RUN because
+`runners/runs/v2/phase3-terse100eos-1024` is absent from the 3090 and a `.safetensors` search
+returned nothing on either machine. The deployed model was on the Jetson the whole time, in
+deployment format, at the paths the repo's own constants point at:
+`/home/jfdg/grounding/phase3-terse100eos-1024-q8_0.gguf` + its `mmproj` (both 2026-06-26), matching
+`_REMOTE_MODELS`/`_REMOTE_MMPROJ`/`_DEFAULT_REMOTE_DIR` (`grounding/deploy/video.py:48-52`,
+`grounding/deploy/serve.py:27`), with `llama-server` built at `/home/jfdg/llama.cpp/build/bin/`.
+**P5.17 grounded through those same files** (`select_p517.py:397-403` builds a `JetsonBackend`, not
+an `HFBackend`), so its 56/56 is a Jetson-GGUF number and running G6 that way is the *matching*
+configuration, not a substitution. Only the merged HF/safetensors training-format directory is
+genuinely lost — that costs LoRA resumption and re-export, not grounding. G6 stays NOT RUN (the
+correction postdates the campaign, and the pre-registration assigns it its own n>=25 arm), but it
+is unblocked work rather than a blocker. **P6.2 is not blocked.**

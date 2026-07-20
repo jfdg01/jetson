@@ -72,12 +72,31 @@ the world, the vehicle model, and the runner around a plugin that is installed b
   transitive dependencies (verified by `uv pip install --dry-run`), so it cannot perturb the pinned
   torch/transformers/opencv set every Part II–V number was measured against. *Given up:* nothing
   identified.
-- ★ **Record G6 as NOT RUN rather than substitute the base model.** The deployed checkpoint is
-  missing, and running base `Qwen/Qwen2-VL-2B-Instruct` in its place would have produced a real
-  number that answers a different question (~15% vs ~63% IoU@0.25) and is not comparable to
-  P5.17's 56/56. *Given up:* a filled cell in the results table, and a tested pre-registration.
-  *Kept:* the prediction stays falsifiable, and the missing checkpoint is surfaced as a P6.2
-  blocker instead of being quietly papered over.
+- ★ **Record G6 as NOT RUN rather than substitute the base model.** Running base
+  `Qwen/Qwen2-VL-2B-Instruct` in place of the deployed checkpoint would have produced a real number
+  that answers a different question (~15% vs ~63% IoU@0.25) and is not comparable to P5.17's 56/56.
+  *Given up:* a filled cell in the results table, and a tested pre-registration. *Kept:* the
+  prediction stays falsifiable. **The decision stands; the stated reason was wrong** — see the
+  correction below. Refusing the substitution was right for reasons that survive the correction,
+  which is the only thing that kept a bad premise from producing a bad number.
+- ★ **Correction 2026-07-20T20:10Z — do not trust a negative search whose term encodes a format
+  assumption.** G6 was called blocked by a missing checkpoint. The deployed model was on the Jetson
+  the whole time as `/home/jfdg/grounding/phase3-terse100eos-1024-q8_0.gguf` + `mmproj`, at exactly
+  the paths `grounding/deploy/{video,serve}.py` point at, and **P5.17 grounded through those same
+  files** via `JetsonBackend`. The search was `find -name "*.safetensors"`, which cannot see a
+  `.gguf`; its empty result was read as absence of the model rather than absence of the *training*
+  format. *Recorded as content, not just fixed:* this is the same family as the vacuous metrics in
+  P6.0 and P6.1 — a check that cannot observe the thing it claims to rule out, returning a
+  confident answer. The difference is that a vacuous metric reads as success and this read as
+  failure; both are unfalsifiable from inside the check. **Standing rule for this repo: before
+  declaring an artifact missing, search the deployment format on the deployment host, and check
+  which backend the comparison experiment actually used.**
+- **Accept the loss of the merged HF/safetensors training directory, for now.** It exists on
+  neither machine. It is needed to resume LoRA training or re-export to new quantisations; it is
+  *not* needed to ground, because every Part V select number came from the Jetson GGUF. *Given up:*
+  cheap re-export and fine-tuning resumption — re-obtaining either means retraining. *Deferred:*
+  whether to retrain now or when a re-export is actually wanted. Flagged in the P6.1 README
+  residuals so the decision is made deliberately rather than discovered later.
 - **Name the vacuous slaving-error metric instead of deleting or citing it.** `slave_err_*` is
   identically zero because CARLA's free camera is kinematic — it compares a number against itself.
   Deleting it hides that the check was attempted; citing it fabricates a result. It stays in

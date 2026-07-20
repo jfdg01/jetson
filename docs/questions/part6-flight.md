@@ -55,12 +55,16 @@ vehicles) · G5 rate (48.1 Hz mean, 2.4x the P6.0 control rate). SITL remains th
 renderer remains pose-slaved, `run_phase_c.py` / `bytetrack.py` / the PID are untouched.
 
 **G6 stays open.** "Does the deployed Qwen2-VL-2B ground CARLA frames worse than the 56/56 it
-managed on Gazebo but better than on UAV123?" was pre-registered as a non-gating observation and
-is **NOT RUN**: the deployed checkpoint `runners/runs/v2/phase3-terse100eos-1024` is not on this
-machine (`runners/runs/**` is gitignored, no `.safetensors` anywhere under `~`). The base
-`Qwen/Qwen2-VL-2B-Instruct` was **not** substituted — at ~15% vs ~63% IoU@0.25 it answers a
-different question and is not comparable to P5.17's 56/56. The prediction therefore stands
-untested, and this is a hard blocker for P6.2.
+managed on Gazebo but better than on UAV123?" was pre-registered as a non-gating observation and is
+**NOT RUN**. The prediction stands untested and is carried into its own n>=25 arm.
+
+**Correction 2026-07-20T20:10Z:** the reason first recorded for G6 being unrunnable was wrong. The
+deployed model was on the Jetson all along as `phase3-terse100eos-1024-q8_0.gguf` + `mmproj`, at
+exactly the paths `grounding/deploy/video.py:48-52` points at, and **P5.17 grounded through those
+same files** via `JetsonBackend` (`select_p517.py:397-403`). The error was searching for
+`.safetensors` — the deployed artifact is a `.gguf`, so a negative search result read as "the model
+is gone" when the search term itself encoded a stale assumption about format. Only the merged
+HF/safetensors *training* directory is genuinely lost. **P6.2 is not blocked.**
 
 **Why this gate existed at all.** P5.17 closed sim-select discrimination at n=56 with RG's VLM
 grounding **56/56 clean Gazebo renders** — the recorded reading was that the sim is too *easy*.
