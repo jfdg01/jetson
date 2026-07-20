@@ -123,3 +123,23 @@ the per-experiment README is the source of truth. Append; newest at the bottom.
   physics and the control stack is unchanged. **Version note:** 0.9.16 is the first release with
   cp312 wheels (0.9.15 stops at cp310), and 0.10.0 has a newer tag but an *older* release date
   (2024-12-19 vs 2025-09-16) and moved to UE5 with a reduced map set.
+
+- **"A Step-by-Step Guide to Creating a Robust Autonomous Drone Testing Pipeline"** (Jiang, Deng,
+  Schroder et al., Macquarie University; arXiv 2506.11400v1, 2025) ·
+  https://arxiv.org/abs/2506.11400 · https://arxiv.org/html/2506.11400v1
+  → [`experiments/PART6-PROPOSAL-closed-loop-flight.md`](experiments/PART6-PROPOSAL-closed-loop-flight.md)
+  — **methodology reference only, no numbers taken from it.** A guide/survey paper (not a results
+  paper: no latency, throughput or accuracy tables) proposing a four-stage drone validation pipeline
+  — SIL (AirSim + Unreal + ROS) -> HIL (real PX4/ArduPilot flight controller, simulated sensors) ->
+  controlled indoor real-world (safety nets + motion capture) -> in-field. Used here for two things:
+  (1) it names the stage Part VI occupies — the `run_phase_c.py` rig (ArduCopter SITL as physics,
+  CARLA as pose-slaved renderer, VLM->ByteTrack->PID->MAVLink closed) is textbook **SIL**, and
+  Parts I-V sat *below* SIL entirely (replayed video, no vehicle in the loop), which is the gap P6.2
+  closes; (2) its limitations section independently states the sim-to-real caveat this repo already
+  measured — simulators "rely on generalized models rather than detailed, system-specific
+  characterizations", and data-driven perception modules resist formal verification — matching the
+  P5.17 finding that the reference contract grounds 56/56 clean sim renders, so sim select results
+  do not transfer to real imagery. **Not adopted:** its perception is fiducial (ArUco) + TPH-YOLOv5,
+  with no open-vocabulary or VLM grounding; its SIL simulator choice (AirSim) is superseded here by
+  CARLA per P6.1; and its HIL stage needs Pixhawk hardware this project does not have and P6.2 does
+  not require.
