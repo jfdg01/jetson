@@ -83,6 +83,27 @@ reads `world.get_actors()`, but only to colour the box and count locks.
 6. **FOV is a free knob now.** It once had to match CarlaUE4's viewport default, because
    the operator was looking at the viewport. Headless removed that constraint. 90 deg is
    inherited, not chosen, and is an untested lever on lock rate.
+7. **`t.MaxFPS` via `-ExecCmds` does nothing.** Measured: the server free-runs at **190 Hz**
+   (step 5.3 ms) with the flag set to 30. The rate in the status line is `sensor_tick`
+   frame *delivery*, a different knob. If a real cap on GPU draw is wanted, this flag is
+   not it — and nothing currently caps the world clock.
+8. **The tick both paints and flies, so display cost became fly cost.** `fly()` used a
+   nominal 1/60 s step while the tick actually ran at ~18 Hz at 1080p: holding `w` with
+   the slider at 45 m/s moved the camera at **13.3 m/s**, with 64% of sampled intervals
+   showing no movement at all — that is what "choppy" was. Two fixes: `fly()` moves by
+   *measured* elapsed time (clamped at 100 ms so a stall cannot teleport the camera), and
+   the display path uses PIL `ImageTk` over Tk's PPM parser (28.8 ms to 7.5 at 1080p —
+   Tk was parsing a 5 MB text blob every frame) plus `cvtColor` over `[:, :, ::-1]`
+   (6.3 ms to 0.3). After: 44.6 m/s measured against a 45 m/s slider, tick ~41 Hz.
+   *Ceiling:* one Tk thread still paints and flies, so a big enough window still steals
+   from the fly rate — the dt fix makes speed correct, not the loop fast.
+9. **Closing the window kills the server, but only one this process started.**
+   `ensure_carla` returns the `Popen` or `None`; `stop_carla` TERMs the process group
+   (`CarlaUE4.sh` forks the real binary, so signalling the launcher alone leaves it
+   running) then KILLs the remainder. A CARLA you started with `carlahl` is left alone,
+   and gets handed back unpaused. *Not covered:* a hard crash. `xdotool windowclose`
+   destroys the window, which aborts Tk with an X error and skips every Python cleanup
+   handler — the server is orphaned. Use `killcarla` for that.
 
 ## What this cannot tell you
 

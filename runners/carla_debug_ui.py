@@ -6,6 +6,7 @@
 import argparse
 import collections
 import math
+import os
 import random
 import signal
 import subprocess
@@ -18,6 +19,7 @@ import traceback
 from pathlib import Path
 
 import carla
+from PIL import Image, ImageTk
 import cv2
 import numpy as np
 
@@ -103,6 +105,9 @@ def ensure_carla(host, port, sh, wait=300):
 
     Headless is the right default here: the UI never reads the viewport, it reads
     an attached RGB sensor, so the on-screen window was pure GPU cost.
+
+    Returns (client, proc). proc is None when CARLA was already running -- closing
+    the UI kills only a server it started itself, never one you launched.
     """
     # a fresh Client per attempt: one that has already timed out stays unhappy,
     # which is what made a CARLA that WAS coming up look like one that never did
@@ -117,22 +122,46 @@ def ensure_carla(host, port, sh, wait=300):
 
     got = try_connect(2.0)
     if got is not None:
-        return got
+        return got, None
     if not Path(sh).exists():
         raise SystemExit(f"nothing on {host}:{port} and no CarlaUE4.sh at {sh}")
     print(f"starting headless CARLA: {sh}", flush=True)
-    subprocess.Popen([sh, "-RenderOffScreen", "-quality-level=Epic",
-                      f"-carla-rpc-port={port}", "-ExecCmds=t.MaxFPS 30"],
-                     cwd=str(Path(sh).parent),
-                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # own session: CarlaUE4.sh forks the actual UE4 binary, so the thing to signal
+    # on exit is the whole process group, not the launcher shell that outlives it
+    proc = subprocess.Popen([sh, "-RenderOffScreen", "-quality-level=Epic",
+                             f"-carla-rpc-port={port}", "-ExecCmds=t.MaxFPS 30"],
+                            cwd=str(Path(sh).parent), start_new_session=True,
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     deadline = time.time() + wait
     while time.time() < deadline:
         got = try_connect(5.0)
         if got is not None:
             print("CARLA up", flush=True)
-            return got
+            return got, proc
         time.sleep(2.0)
+    stop_carla(proc)          # do not leave a half-booted server behind
     raise SystemExit(f"CARLA did not answer on {port} within {wait}s")
+
+
+def stop_carla(proc):
+    """TERM the server's process group, then KILL what ignored it."""
+    if proc is None or proc.poll() is not None:
+        return
+    try:
+        pgid = os.getpgid(proc.pid)
+    except ProcessLookupError:
+        return
+    print("stopping CARLA", flush=True)
+    for sig, grace in ((signal.SIGTERM, 5.0), (signal.SIGKILL, 2.0)):
+        try:
+            os.killpg(pgid, sig)
+        except ProcessLookupError:
+            return
+        deadline = time.time() + grace
+        while time.time() < deadline:
+            if proc.poll() is not None:
+                return
+            time.sleep(0.1)
 
 
 def main():
@@ -147,7 +176,7 @@ def main():
                     help="spawn, check they move, clear, exit")
     args = ap.parse_args()
 
-    client = ensure_carla(args.host, args.port, args.carla)
+    client, carla_proc = ensure_carla(args.host, args.port, args.carla)
     client.set_timeout(60.0)  # load_world blocks for ~10-30s
     # basename only: get_available_maps returns /Game/Carla/Maps/Town10HD_Opt
     maps = sorted(m.split("/")[-1] for m in client.get_available_maps())
@@ -329,14 +358,16 @@ def main():
     pause_btn.pack(side=tk.LEFT, padx=(6, 0))
 
     def unpause_on_exit():
-        # a server left in sync mode with no ticker hangs the next client that
-        # connects -- never leave it that way, even on a crash
-        if paused["on"]:
+        # a server we started dies with the window, so its sync-mode state is moot;
+        # one that was already running is someone else's and must be handed back
+        # unpaused -- left in sync mode with no ticker it hangs the next client
+        if paused["on"] and carla_proc is None:
             try:
                 toggle_pause()
             except RuntimeError:
                 pass
         root.destroy()
+        stop_carla(carla_proc)   # no-op unless this process launched it
 
     root.protocol("WM_DELETE_WINDOW", unpause_on_exit)
 
@@ -510,10 +541,12 @@ def main():
             bgr = cv2.resize(bgr, (max(int(w * s), 1), max(int(h * s), 1)),
                              interpolation=cv2.INTER_AREA if s < 1
                              else cv2.INTER_LINEAR)
-        rgb = np.ascontiguousarray(bgr[:, :, ::-1])
-        h, w = rgb.shape[:2]
-        return tk.PhotoImage(data=b"P6\n%d %d\n255\n" % (w, h) + rgb.tobytes(),
-                             format="PPM")
+        # PIL over Tk's own PPM path: at 1080p, parsing a 5 MB PPM blob costs
+        # 28 ms and ImageTk costs 7.5. That 20 ms was the single biggest item in
+        # the tick, and the tick is what flies the camera -- see fly().
+        # cvtColor over bgr[:, :, ::-1] for the same reason: 0.3 ms vs 6.3.
+        return ImageTk.PhotoImage(Image.fromarray(
+            cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)))
 
     def show_preview():
         with frame_lock:
@@ -584,7 +617,8 @@ def main():
         w.bind("<KeyPress>", on_press)
         w.bind("<KeyRelease>", on_release)
 
-    DT = 1 / 60
+    DT = 1 / 60          # how often the tick is SCHEDULED; fly() measures the real one
+    fly_t = {"last": None}
     MOVE = {"w": (1, 0, 0), "s": (-1, 0, 0), "a": (0, -1, 0), "d": (0, 1, 0),
             "e": (0, 0, 1), "q": (0, 0, -1)}
     LOOK = {"left": (-1, 0), "right": (1, 0), "up": (0, 1), "down": (0, -1)}
@@ -667,10 +701,19 @@ def main():
 
     def fly():
         if busy["on"]:
+            fly_t["last"] = None
             return  # mid-load the spectator handle is stale, set_transform raises
         if not held:
             cam["t"] = None  # resync next time, the view may have moved elsewhere
+            fly_t["last"] = None
             return
+        # Move by MEASURED time, not by a nominal 1/60. The tick also paints the
+        # preview, so its real period swings with window size and load -- assuming
+        # 60 Hz made the camera crawl at 1080p and made the slider speed depend on
+        # how big the window was. Uneven steps are what "choppy" actually is.
+        now = time.time()
+        dt = min(now - fly_t["last"], 0.1) if fly_t["last"] else 1 / 60
+        fly_t["last"] = now
         # keep the pose local: get_world()/get_transform() are RPC round-trips
         # and doing them per frame is what made this choppy. Only push.
         if cam["t"] is None:
@@ -678,14 +721,14 @@ def main():
         t = cam["t"]
         fwd, right, up = (t.get_forward_vector(), t.get_right_vector(),
                           t.get_up_vector())
-        step = speed.get() * DT
+        step = speed.get() * dt
         for k in held & MOVE.keys():
             f, r, u = MOVE[k]
             t.location += (fwd * f + right * r + up * u) * step
         for k in held & LOOK.keys():
             dyaw, dpitch = LOOK[k]
-            t.rotation.yaw += dyaw * 90 * DT
-            t.rotation.pitch = max(-89, min(89, t.rotation.pitch + dpitch * 90 * DT))
+            t.rotation.yaw += dyaw * 90 * dt
+            t.rotation.pitch = max(-89, min(89, t.rotation.pitch + dpitch * 90 * dt))
         cam["spec"].set_transform(t)
 
     # Tk blocks in C, so SIGINT only lands while Python bytecode runs -- the
@@ -710,6 +753,9 @@ def main():
         root.mainloop()
     except KeyboardInterrupt:
         root.destroy()
+    finally:
+        # every exit path, not just the X button. stop_carla is idempotent.
+        stop_carla(carla_proc)
 
 
 def selftest(*a):
