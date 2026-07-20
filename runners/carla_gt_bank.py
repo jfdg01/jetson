@@ -327,7 +327,11 @@ def clip_plan(i, seed=SEED):
         "target_rank": i,                    # which spawned vehicle to sit above
         "track_gain": [1.0, 0.0, 0.6][i % 3],
         "heading": rng.uniform(0, 360),
-        "speed": rng.choice([0.0, 4.0, 8.0]),   # camera drift on top of tracking
+        # TOTAL drift over the clip, in metres -- not a velocity. A velocity does
+        # not survive a change of clip length: 8 m/s looks harmless in a 20 s smoke
+        # test and walks the camera 480 m off a 400 m map in the 60 s real clip,
+        # which is how clip00 first came back at 22.8% coverage.
+        "drift_m": rng.choice([0.0, 25.0, 50.0]),
         "yaw": rng.uniform(0, 360),
         "vehicles": 80,
         "seed": seed + i,
@@ -378,12 +382,11 @@ def capture_clip(client, plan, out, seconds, dt=FIXED_DT, max_frames=None):
         with (d / "gt.jsonl").open("w") as fh:
             for i in range(n_ticks):
                 t = i * dt
-                # follow the target by track_gain, plus a constant drift on top
+                # follow the target by track_gain, plus a bounded drift on top
                 tl = target.get_transform().location
-                cn = (n0 + plan["track_gain"] * (tl.x - n0)
-                      + plan["speed"] * t * math.cos(hdg))
-                ce = (e0 + plan["track_gain"] * (tl.y - e0)
-                      + plan["speed"] * t * math.sin(hdg))
+                drift = plan["drift_m"] * (i / max(1, n_ticks - 1))
+                cn = n0 + plan["track_gain"] * (tl.x - n0) + drift * math.cos(hdg)
+                ce = e0 + plan["track_gain"] * (tl.y - e0) + drift * math.sin(hdg)
                 cams[0][0].set_transform(nadir(cn, ce, plan["alt"], plan["yaw"]))
                 cams[1][0].set_transform(nadir(cn, ce, plan["alt"], plan["yaw"]))
                 bgr, tags, tick = grab(world, cams)
@@ -563,7 +566,8 @@ def gate_c(client, out, n_frames=40, n_vehicles=40):
     same_cfg, toggled = mean_absdiff(a, b), mean_absdiff(a, c)
     pos_same, pos_toggle = (pos_a == pos_b), (pos_a == pos_c)
     floor_ok = same_cfg < 8.0
-    res = {"gate": "G-C", "same_config_meanabsdiff": round(same_cfg, 4),
+    res = {"gate": "G-C", "floor": 8.0,
+           "same_config_meanabsdiff": round(same_cfg, 4),
            "toggle_restore_meanabsdiff": round(toggled, 4),
            "pixel_rule_ok": toggled <= max(same_cfg, 1e-9),
            "same_config_floor_ok": floor_ok,

@@ -91,12 +91,10 @@ def gate_c_figure():
         return None
     r = json.loads(p.read_text())
     fig, ax = plt.subplots(figsize=(5.5, 4))
-    keys = ["same_config_diff", "toggled_diff"]
-    vals = [r.get(k, 0.0) for k in keys]
+    vals = [r["same_config_meanabsdiff"], r["toggle_restore_meanabsdiff"]]
     ax.bar(["same config\n(repeat)", "layer toggle\n+ restore"], vals,
            color=["#3b6ea5", "#c05640"])
-    ax.axhline(r.get("floor", 8.0), color="grey", ls=":",
-               label=f"noise floor {r.get('floor', 8.0)}")
+    ax.axhline(r["floor"], color="grey", ls=":", label=f"floor {r['floor']}")
     for i, v in enumerate(vals):
         ax.text(i, v, f"{v:.3f}", ha="center", va="bottom", fontsize=9)
     ax.set(ylabel="mean |frame difference| (8-bit levels)",
