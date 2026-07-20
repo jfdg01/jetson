@@ -75,3 +75,6 @@ runners/_gz_feed.log
 .claude/autoresearch-logs/
 .claude/autoresearch.STOP
 .claude/autoresearch.deadline
+
+# showcase clips are large; stills + README are tracked
+showcase/**/*.mp4
