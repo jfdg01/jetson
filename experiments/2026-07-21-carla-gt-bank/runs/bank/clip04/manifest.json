@@ -1,0 +1,35 @@
+{
+  "clip": "clip04",
+  "alt": 120.0,
+  "target_rank": 4,
+  "track_gain": 0.0,
+  "heading": 77.423964262526,
+  "drift_m": 25.0,
+  "yaw": 278.08891490910844,
+  "vehicles": 80,
+  "seed": 20260725,
+  "mode": "sync",
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "frames": 1200,
+  "spawned": 80,
+  "n_static_cars": 29,
+  "target_id": 914,
+  "target_type": "vehicle.audi.tt",
+  "cam_start": [
+    -113.65,
+    -13.81
+  ],
+  "coverage": 1.0,
+  "onscreen_mean": 41.26,
+  "capture_hz": 14.12,
+  "power_limit_w": 200.0,
+  "dominant_frac": 0.0047,
+  "mid_last_identical": false,
+  "cam_wh_fov": [
+    640,
+    480,
+    90
+  ],
+  "complete": true
+}

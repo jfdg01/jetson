@@ -218,6 +218,31 @@ CarlaUE4`, confirm with `ss -ltnp | grep -E ':8000|:2100'`, and kill the holding
 
 ## Next step
 
-Fill Results, append the Part VI ledgers (`docs/results/part6-flight.md`,
-`docs/questions/part6-flight.md`, `docs/decisions/part6-flight.md`), cut the remaining proof
-deliverables, and hand the bank to P6.2's extraction session.
+Ordered, and blocking on the server going idle where noted. An adversarial review of the runner
+(10-agent workflow, 2026-07-21T01:05Z) raised the first three; the rest is the campaign's own
+close-out.
+
+1. **[BLOCKING, needs idle server] Probe `image.transform` against `cam.get_transform()`.**
+   `gt_rows` projects from the camera actor's *current* transform, but the sensor image carries
+   the pose it was actually rendered from. If those differ by a tick, every GT box in the bank is
+   stale by one frame of camera motion -- the same one-frame-stale class the Part IV arc already
+   ate once. Probe the delta before deciding whether a 35 min re-capture is owed. This is the one
+   open question that can invalidate the artifact.
+2. **Backfill `target_in_frame_frac` into every manifest.** Coverage asserts that *a* vehicle is
+   on screen, not that *the* anchor target is. On `clip01` (`track_gain 0.0`, fixed camera) the
+   anchor is in frame on ~13% of frames while coverage still reads 100%, because other traffic
+   drives through. That is a legitimate regime -- it is what the `gain 0.0` arm is for -- but a
+   downstream consumer picking a follow clip needs to see it. Computable post-hoc from `gt.jsonl`,
+   so no re-capture; do it as one backfill pass over all clips, not a mid-run code change.
+   Independently visible in `proof/bank-gt-overlay.png`: no yellow anchor box in the frame.
+3. **Purge the four committed `gt.jsonl` blobs (113 MB) from branch history.** The forward fix
+   landed (`642237d`); these predate it. Deferred deliberately: rewriting history while an
+   unattended capture is in flight risks the run to reclaim 113 MB on an unmerged, unpushed,
+   local-only branch. Do it once the driver is idle and before any merge to `main`.
+4. Fill Results, append `docs/results/part6-flight.md` (the last of the three ledgers still
+   unwritten), and caption the proof deliverables.
+5. Hand the bank to P6.2's extraction session.
+
+Deferred, not lost: `sidx` (a spawn-index identity key stable across runs, since rows currently
+carry server-assigned actor ids) would need a re-capture to add, so it is recorded here rather
+than paid for tonight.

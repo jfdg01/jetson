@@ -1,0 +1,35 @@
+{
+  "clip": "clip05",
+  "alt": 40.0,
+  "target_rank": 5,
+  "track_gain": 0.6,
+  "heading": 162.5975202512828,
+  "drift_m": 25.0,
+  "yaw": 126.86744848648078,
+  "vehicles": 80,
+  "seed": 20260726,
+  "mode": "sync",
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "frames": 1200,
+  "spawned": 80,
+  "n_static_cars": 29,
+  "target_id": 1020,
+  "target_type": "vehicle.mercedes.sprinter",
+  "cam_start": [
+    -52.14,
+    -39.8
+  ],
+  "coverage": 1.0,
+  "onscreen_mean": 13.57,
+  "capture_hz": 18.06,
+  "power_limit_w": 200.0,
+  "dominant_frac": 0.0387,
+  "mid_last_identical": false,
+  "cam_wh_fov": [
+    640,
+    480,
+    90
+  ],
+  "complete": true
+}
