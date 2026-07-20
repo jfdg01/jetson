@@ -34,6 +34,45 @@ def gate_a_montage():
     return out
 
 
+def bank_overlay(clip="clip01", frame_idx=600):
+    """GT drawn on a real captured bank frame -- the artifact itself, not the gate
+    rig. Colour IS the finding: cyan/green boxes are static meshes and actors,
+    yellow is the clip's anchor target, and RED marks veh_fill < 0.25, i.e. a
+    geometrically-correct box sitting on pixels that are not a vehicle. Those are
+    cars occluded behind buildings (hazard 2.3c), which corner-projected GT cannot
+    see and this column makes filterable.
+    """
+    d = RUNS / "bank" / clip
+    if not (d / "manifest.json").exists():
+        return None
+    man = json.loads((d / "manifest.json").read_text())
+    lines = (d / "gt.jsonl").read_text().splitlines()
+    rec = json.loads(lines[min(frame_idx, len(lines) - 1)])
+    im = cv2.imread(str(d / "frames" / f"{rec['i']:05d}.jpg"))
+    if im is None:
+        return None
+    for g in rec["gt"]:
+        if not g["box_vis"]:
+            continue
+        x1, y1, x2, y2 = (int(v) for v in g["box_vis"])
+        f = g["veh_fill"]
+        col = (0, 255, 0) if g["kind"] == "vehicle" else (255, 180, 0)
+        if f is not None and f < 0.25:
+            col = (0, 0, 255)
+        if g["id"] == man.get("target_id"):
+            col = (0, 255, 255)
+        cv2.rectangle(im, (x1, y1), (x2, y2), col, 2)
+        cv2.putText(im, f"{f:.2f}" if f is not None else "-", (x1, y1 - 3),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.35, col, 1)
+    on = sum(1 for g in rec["gt"] if g["box_vis"])
+    cv2.putText(im, f"{clip} alt {man['alt']:.0f}m gain {man['track_gain']} "
+                    f"frame {rec['i']} on-screen {on}", (8, 20),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+    out = PROOF / "bank-gt-overlay.png"
+    cv2.imwrite(str(out), im)
+    return out
+
+
 def bank_figure():
     """The numbers are the point here, so this is a figure and not a clip.
 
@@ -108,7 +147,8 @@ def gate_c_figure():
 
 if __name__ == "__main__":
     PROOF.mkdir(exist_ok=True)
-    made = [f for f in (gate_a_montage(), bank_figure(), gate_c_figure()) if f]
+    made = [f for f in (gate_a_montage(), bank_overlay(), bank_figure(),
+                        gate_c_figure()) if f]
     for f in made:
         print(f"wrote {f}")
     if not made:

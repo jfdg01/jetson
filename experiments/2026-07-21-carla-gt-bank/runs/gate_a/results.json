@@ -1,0 +1,77 @@
+{
+  "gate": "G-A",
+  "ref": "SM_Mustang_prop4_SM_0",
+  "ref_extent": [
+    2.359,
+    0.947,
+    0.65
+  ],
+  "records": [
+    {
+      "alt": 25.0,
+      "z": 25.0,
+      "area": 1629.8,
+      "n_proj": 8,
+      "veh_fill": 0.91,
+      "pred_area": 1464.5,
+      "ratio": 1.113,
+      "n_gt": 41,
+      "png": "experiments/2026-07-21-carla-gt-bank/runs/gate_a/gt_alt025.png"
+    },
+    {
+      "alt": 40.0,
+      "z": 40.0,
+      "area": 611.2,
+      "n_proj": 8,
+      "veh_fill": 0.9265,
+      "pred_area": 572.1,
+      "ratio": 1.068,
+      "n_gt": 41,
+      "png": "experiments/2026-07-21-carla-gt-bank/runs/gate_a/gt_alt040.png"
+    },
+    {
+      "alt": 60.0,
+      "z": 60.0,
+      "area": 265.7,
+      "n_proj": 8,
+      "veh_fill": 0.9021,
+      "pred_area": 254.3,
+      "ratio": 1.045,
+      "n_gt": 41,
+      "png": "experiments/2026-07-21-carla-gt-bank/runs/gate_a/gt_alt060.png"
+    },
+    {
+      "alt": 85.0,
+      "z": 85.0,
+      "area": 130.7,
+      "n_proj": 8,
+      "veh_fill": 0.8889,
+      "pred_area": 126.7,
+      "ratio": 1.032,
+      "n_gt": 41,
+      "png": "experiments/2026-07-21-carla-gt-bank/runs/gate_a/gt_alt085.png"
+    },
+    {
+      "alt": 120.0,
+      "z": 120.0,
+      "area": 65.0,
+      "n_proj": 8,
+      "veh_fill": 0.7846,
+      "pred_area": 63.6,
+      "ratio": 1.023,
+      "n_gt": 41,
+      "png": "experiments/2026-07-21-carla-gt-bank/runs/gate_a/gt_alt120.png"
+    }
+  ],
+  "monotonic_decreasing": true,
+  "ratios": [
+    1.113,
+    1.068,
+    1.045,
+    1.032,
+    1.023
+  ],
+  "analytic_scale_ok": true,
+  "verdict": "PASS",
+  "note": "NOT satisfied until the overlays are opened and viewed"
+}

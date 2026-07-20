@@ -48,6 +48,10 @@ Restrictions honoured tonight, each a recorded decision rather than a preference
 | camera | 640x480, FOV 90, nadir (pitch -90, confirmed by a viewed frame) |
 | venv | `.venv-ft` |
 | date | 2026-07-21 |
+| clips | 25 x 60 s at `fixed_delta_seconds` 0.05 (20 Hz sim) = 1200 frames each |
+| traffic | 80 autopilot vehicles, `tm.set_random_device_seed(seed)`, 29 static `Car` meshes |
+| camera plan | anchored on a spawned vehicle (`target_rank`), `track_gain` 0.0 / 0.6 / 1.0, bounded drift `drift_m` 0 / 25 / 50 m over the clip, altitude swept 40-120 m |
+| detachment | `setsid nohup runners/night_driver.py`, per-step retries, resumable (a clip with a complete manifest is skipped) |
 
 **The 200 W cap is part of every rate number below.** CARLA at Epic alone draws 172 W against
 that 200 W ceiling, so the cap is binding, not decorative.
