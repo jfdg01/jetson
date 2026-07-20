@@ -222,12 +222,25 @@ Ordered, and blocking on the server going idle where noted. An adversarial revie
 (10-agent workflow, 2026-07-21T01:05Z) raised the first three; the rest is the campaign's own
 close-out.
 
-1. **[BLOCKING, needs idle server] Probe `image.transform` against `cam.get_transform()`.**
-   `gt_rows` projects from the camera actor's *current* transform, but the sensor image carries
-   the pose it was actually rendered from. If those differ by a tick, every GT box in the bank is
-   stale by one frame of camera motion -- the same one-frame-stale class the Part IV arc already
-   ate once. Probe the delta before deciding whether a 35 min re-capture is owed. This is the one
-   open question that can invalidate the artifact.
+1. ~~**[BLOCKING] Probe `image.transform` against `cam.get_transform()`.**~~ **RESOLVED offline,
+   no re-capture owed** (`check_pose_lag.py`, 2026-07-21T01:20Z). The worry was that `gt_rows`
+   projects from the camera actor's transform read after `world.tick()`, which would put every GT
+   box one frame of camera motion behind its pixels -- the P5.13 zero-order-hold class, invisible
+   in any log. It needed no server: on `track_gain 0.0` clips the commanded camera path is a
+   closed form in the frame index alone, so the logged pose can be scored against both the pose
+   commanded at frame `i` and at frame `i-1`. Both such clips answer unambiguously:
+
+   | clip | commanded step | vs commanded(i) | vs commanded(i-1) | verdict |
+   |---|---|---|---|---|
+   | clip01 | 2.09 cm | **0.359 cm** | 1.910 cm | CURRENT |
+   | clip04 | 2.09 cm | **0.178 cm** | 2.239 cm | CURRENT |
+
+   The logged pose is the current frame's. The residual this cannot settle -- whether the
+   *render* lagged the actor transform -- is bounded by converting one camera step to pixels at
+   each clip's altitude: **worst case 3.35 px** (clip00, 40 m, `gain 1.0`), and under 0.15 px on
+   the fixed-camera clips. So it is bounded and small even under the hypothesis the data argues
+   against. A live `image.transform` probe would close it exactly; it is no longer blocking and
+   cannot invalidate the artifact.
 2. **Backfill `target_in_frame_frac` into every manifest.** Coverage asserts that *a* vehicle is
    on screen, not that *the* anchor target is. On `clip01` (`track_gain 0.0`, fixed camera) the
    anchor is in frame on ~13% of frames while coverage still reads 100%, because other traffic
