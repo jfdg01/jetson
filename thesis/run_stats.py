@@ -1,0 +1,230 @@
+#!/usr/bin/env python3
+"""Regenerate the retroactive statistics report and its figure.
+
+    .venv-ft/bin/python thesis/run_stats.py
+
+Reads the claim registry at thesis/claims.json, runs the test each claim's
+DESIGN calls for (see grounding/stats.py), and writes:
+
+    thesis/stats-report.md          the table, with Holm-corrected p-values
+    thesis/proof/stats-power.png    which designs could ever have reached alpha
+    thesis/proof/stats-forest.png   effect sizes with 95% Wilson intervals
+
+The report is a derived artifact. Edit claims.json, never the report.
+
+Every claim in the registry carries `data_status`. Claims marked `missing` are
+not tested; they are listed in the backlog section with the command that would
+regenerate them. That list is the honest output of this script and the reason it
+prints a non-zero count at the end.
+"""
+
+from __future__ import annotations
+
+import json
+import sys
+from datetime import datetime
+from pathlib import Path
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from grounding.stats import (  # noqa: E402
+    Claim, evaluate, holm_bonferroni, min_discordant_for_significance, wilson_ci,
+)
+
+THESIS = Path(__file__).resolve().parent
+REGISTRY = THESIS / "claims.json"
+PROOF = THESIS / "proof"
+
+
+def stamp() -> str:
+    return datetime.now().strftime("%Y-%m-%dT%H:%MZ")
+
+
+def load_claims() -> tuple[list[Claim], list[dict]]:
+    reg = json.loads(REGISTRY.read_text())
+    claims = [Claim(**{k: v for k, v in c.items() if k != "rerun"}) for c in reg["claims"]]
+    backlog = [c for c in reg["claims"] if c.get("rerun")]
+    return claims, backlog
+
+
+def figure_power(claims: list[Claim], outcomes: dict) -> Path:
+    """Which designs could ever have reached alpha, plotted against their n.
+
+    This is the figure that makes the point no table makes as fast: a wall of
+    campaigns sitting at n <= 6, below the line where significance becomes
+    reachable at all.
+    """
+    paired = [c for c in claims if c.design == "paired-binary"]
+    paired.sort(key=lambda c: c.n_effective)
+    if not paired:
+        return None
+
+    fig, ax = plt.subplots(figsize=(9, max(3.5, 0.32 * len(paired))))
+    ys = range(len(paired))
+    colors = ["#c0392b" if min_discordant_for_significance(c.n_effective) is None
+              else "#27ae60" for c in paired]
+    ax.barh(list(ys), [c.n_effective for c in paired], color=colors, height=0.62)
+    ax.axvline(6, color="#2c3e50", ls="--", lw=1.4)
+    ax.text(6.15, len(paired) - 0.4, "n = 6: el minimo con el que\nalpha = 0,05 es alcanzable",
+            fontsize=8, va="top", color="#2c3e50")
+    ax.set_yticks(list(ys))
+    ax.set_yticklabels([c.id for c in paired], fontsize=8)
+    ax.set_xlabel("pares independientes (n efectivo)")
+    ax.set_title("Disenos pareados: cuales podian alcanzar significacion\n"
+                 "rojo = imposible con cualquier resultado", fontsize=10)
+    ax.grid(axis="x", alpha=0.25)
+    fig.tight_layout()
+    out = PROOF / "stats-power.png"
+    fig.savefig(out, dpi=160)
+    plt.close(fig)
+    return out
+
+
+def figure_forest(claims: list[Claim], outcomes: dict) -> Path:
+    """Point estimates with 95% Wilson intervals, for every claim with counts."""
+    rows = []
+    for c in claims:
+        if c.data_status == "missing":
+            continue
+        if c.design == "single-arm-binary" or c.design == "descriptive":
+            k, n = c.counts.get("k"), c.counts.get("n")
+            if k is None or not n:
+                continue
+            rows.append((c.id, k / n, wilson_ci(k, n), c.gate_p))
+        elif c.design == "paired-binary" and "k1" in c.counts and "n" in c.counts:
+            n = c.counts["n"]
+            rows.append((c.id + " (A)", c.counts["k1"] / n, wilson_ci(c.counts["k1"], n), None))
+            rows.append((c.id + " (B)", c.counts["k2"] / n, wilson_ci(c.counts["k2"], n), None))
+    if not rows:
+        return None
+
+    fig, ax = plt.subplots(figsize=(9, max(3.5, 0.34 * len(rows))))
+    for i, (label, est, (lo, hi), gate) in enumerate(rows):
+        ax.plot([lo, hi], [i, i], color="#34495e", lw=1.6)
+        ax.plot([est], [i], "o", color="#2980b9", ms=5)
+        if gate is not None:
+            ax.plot([gate], [i], "|", color="#c0392b", ms=14, mew=2)
+    ax.set_yticks(range(len(rows)))
+    ax.set_yticklabels([r[0] for r in rows], fontsize=8)
+    ax.set_xlim(0, 1)
+    ax.set_xlabel("proporcion de exito (IC 95 % de Wilson)")
+    ax.set_title("Tamano de efecto e incertidumbre real\n"
+                 "barra roja = puerta pre-registrada", fontsize=10)
+    ax.grid(axis="x", alpha=0.25)
+    fig.tight_layout()
+    out = PROOF / "stats-forest.png"
+    fig.savefig(out, dpi=160)
+    plt.close(fig)
+    return out
+
+
+def main() -> int:
+    PROOF.mkdir(exist_ok=True)
+    claims, backlog = load_claims()
+    outcomes = {c.id: evaluate(c) for c in claims}
+    holm = holm_bonferroni({cid: o.p_value for cid, o in outcomes.items()})
+
+    lines = [
+        "---",
+        "title: Resultados estadisticos retroactivos",
+        "subtitle: Cada afirmacion con puerta de las Partes I-VI, re-analizada",
+        "author: Javier Francisco Dibo Gomez",
+        f"comment: Generado por thesis/run_stats.py, {stamp()}",
+        "locale: es",
+        "---",
+        "",
+        "## Como leer esta tabla",
+        "",
+        "Generada por `thesis/run_stats.py` desde `thesis/claims.json`. No se edita",
+        "a mano. El metodo y las reglas de rechazo estan en",
+        "`thesis/01-metodo-estadistico.md`.",
+        "",
+        "`p` indefinido no significa 'sin efecto': significa que no hubo prueba,",
+        "casi siempre por 0 pares discordantes. `alcanzable = no` significa que el",
+        "diseno no podia llegar a alpha = 0,05 con ningun resultado posible.",
+        "",
+        "<!-- caption: Re-analisis exacto de las afirmaciones con puerta, con correccion de Holm-Bonferroni -->",
+        "",
+        "| Afirmacion | Parte | Diseno | n efectivo | Prueba | p | p (Holm) | Alcanzable | Lectura |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    for c in claims:
+        o = outcomes[c.id]
+        p = "indefinido" if o.p_value != o.p_value else f"{o.p_value:.4g}"
+        ph = holm[c.id]["p_holm"]
+        ph_s = "—" if ph != ph else f"{ph:.4g}"
+        lines.append(
+            f"| {c.id} | {c.part} | {c.design} | {c.n_effective} | {o.test} | "
+            f"{p} | {ph_s} | {'si' if o.could_ever_reach_alpha else '**no**'} | {o.reading} |"
+        )
+
+    # --- what survives -----------------------------------------------------
+    survives = [c.id for c in claims if holm[c.id]["reject"]]
+    undefined = [c.id for c in claims if outcomes[c.id].p_value != outcomes[c.id].p_value
+                 and c.data_status != "missing"]
+    unreachable = [c.id for c in claims if not outcomes[c.id].could_ever_reach_alpha
+                   and c.data_status != "missing"]
+    missing = [c.id for c in claims if c.data_status == "missing"]
+
+    lines += [
+        "",
+        "## Que sobrevive",
+        "",
+        f"- **Significativas tras correccion de Holm ({len(survives)}):** "
+        + (", ".join(survives) if survives else "ninguna"),
+        f"- **Sin prueba posible, 0 pares discordantes ({len(undefined)}):** "
+        + (", ".join(undefined) if undefined else "ninguna"),
+        f"- **Diseno incapaz de alcanzar alpha ({len(unreachable)}):** "
+        + (", ".join(unreachable) if unreachable else "ninguna"),
+        f"- **Sin datos crudos, en cola de re-ejecucion ({len(missing)}):** "
+        + (", ".join(missing) if missing else "ninguna"),
+        "",
+    ]
+
+    if backlog:
+        lines += [
+            "## Cola de re-ejecucion",
+            "",
+            "Afirmaciones cuyos datos por elemento no sobreviven. No se defienden en",
+            "el TFM hasta que se re-ejecuten.",
+            "",
+            "<!-- caption: Trabajo de re-ejecucion necesario para hacer defendible cada afirmacion sin datos -->",
+            "",
+            "| Afirmacion | Que falta | Coste | Comando |",
+            "|---|---|---|---|",
+        ]
+        for b in backlog:
+            r = b["rerun"]
+            cmd = f"`{r['command']}`" if r.get("command") else "sin comando registrado"
+            lines.append(f"| {b['id']} | {r['missing']} | {r['cost']} | {cmd} |")
+        lines.append("")
+
+    f1 = figure_power(claims, outcomes)
+    f2 = figure_forest(claims, outcomes)
+    if f1 or f2:
+        lines += ["## Figuras", ""]
+        if f1:
+            lines += ["<!-- caption: Disenos pareados por n efectivo; en rojo los que no podian alcanzar significacion con ningun resultado -->",
+                      "", f"![]({f1.relative_to(THESIS)})", ""]
+        if f2:
+            lines += ["<!-- caption: Proporciones observadas con intervalo de Wilson al 95 %; la barra roja marca la puerta pre-registrada -->",
+                      "", f"![]({f2.relative_to(THESIS)})", ""]
+
+    (THESIS / "stats-report.md").write_text("\n".join(lines) + "\n")
+
+    print(f"[{stamp()}] {len(claims)} claims analysed")
+    print(f"  significant after Holm : {len(survives)}")
+    print(f"  no test possible       : {len(undefined)}")
+    print(f"  design could not reach : {len(unreachable)}")
+    print(f"  missing raw data       : {len(missing)}")
+    for c in claims:
+        print("  " + outcomes[c.id].line())
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
