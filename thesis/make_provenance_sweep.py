@@ -28,6 +28,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SWEEP = HERE / "provenance-sweep.json"
+RESOLUTIONS = HERE / "provenance-resolutions.json"
 OUT = HERE / "provenance-sweep.md"
 
 TAG_ORDER = ["CONTRADICTED", "UNVERIFIED", "MISLEADING", "VERIFIED"]
@@ -51,7 +52,11 @@ def esc(s: str) -> str:
 def render() -> str:
     data = json.loads(SWEEP.read_text())
     agents = data["agents"]
-    rows = [r for a in agents for r in a["rows"]]
+    # Positional id, stable because the sweep rows are frozen (see r21_queue.py).
+    rows = [dict(r, row_id=f"{ai}.{ri}")
+            for ai, a in enumerate(agents) for ri, r in enumerate(a["rows"])]
+    res = (json.loads(RESOLUTIONS.read_text())["resolutions"]
+           if RESOLUTIONS.exists() else {})
     tags = Counter(r["tag"] for r in rows)
     n_found = sum(a["n_numbers_found"] for a in agents)
 
@@ -85,6 +90,16 @@ def render() -> str:
     add("a CONTRADICTED number is wrong in print, a MISLEADING one is a sentence that")
     add("has to be rewritten, an UNVERIFIED one needs a re-run or a deletion.")
     add("")
+    if res:
+        queue = [r for r in rows if r["tag"] in ("MISLEADING", "UNVERIFIED")]
+        fixed = sum(1 for r in queue if res.get(r["row_id"], {}).get("status") == "fixed")
+        acc = sum(1 for r in queue if res.get(r["row_id"], {}).get("status") == "accepted")
+        add(f"**R-21 status: {fixed} rewritten in place, {acc} accepted with a stated")
+        add(f"reason, {len(queue) - fixed - acc} still open** of {len(queue)} queued. Per-row")
+        add("detail is in the Resolutions section at the bottom; the finding rows above are")
+        add("left exactly as the agents wrote them, because a dated audit that gets edited")
+        add("once its findings are fixed stops being evidence that they were ever there.")
+        add("")
 
     add("## Scope covered")
     add("")
@@ -114,6 +129,26 @@ def render() -> str:
                     f"| {esc(r['artifact_value'])[:260]} "
                     f"| {esc(r['note'])} |"
                 )
+            add("")
+
+    if res:
+        add("## Resolutions (R-21)")
+        add("")
+        add("`fixed` = the sentence was rewritten in the cited file. `accepted` = the row")
+        add("stands as published, for the reason given. Source: `provenance-resolutions.json`.")
+        add("")
+        by_id = {r["row_id"]: r for r in rows}
+        for f in FILE_ORDER:
+            sel = [(rid, v) for rid, v in sorted(res.items(), key=lambda kv: kv[0])
+                   if by_id.get(rid, {}).get("file") == f]
+            if not sel:
+                continue
+            add(f"### `{f}`")
+            add("")
+            add("| Row | Tag | Status | What was done |")
+            add("|---|---|---|---|")
+            for rid, v in sel:
+                add(f"| {rid} | {by_id[rid]['tag']} | **{v['status']}** | {esc(v['detail'])} |")
             add("")
 
     return "\n".join(L) + "\n"
