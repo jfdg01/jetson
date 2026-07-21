@@ -2,13 +2,18 @@
 unit_id: model-capability-sweep-01
 campaign: 2026-06-13-model-capability-sweep
 title: "Qwen2.5-0.5B-Instruct Q4_K_M @ 15W locked"
-status: TODO
+status: DONE
 created: 2026-06-13
 ---
 
 # Unit 01: Qwen2.5-0.5B-Instruct Q4_K_M @ 15 W locked
 
-> Executed by a fresh, isolated session via `runners/run-unit.sh`. Your only context is
+> **DONE — this unit ran and its results are in `docs/results/part1-exploratory.md`**
+> (row matching this unit number, Part-I model-capability sweep). The `status:` field above
+> read `TODO` until 2026-07-21T18:20Z because `run-unit.sh` was never written and the card
+> was executed by hand, so nothing ever wrote the status back. Do not re-run.
+>
+> Executed by a fresh, isolated session via `run-unit.sh` (never written; run by hand). Your only context is
 > `CLAUDE.md` + this card. Methodology: `runners/README.md`. Design / RQs / hypotheses:
 > `experiments/2026-06-13-model-capability-sweep.md` (read for context; do NOT edit its structure).
 
