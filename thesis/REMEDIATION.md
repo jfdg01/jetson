@@ -25,9 +25,21 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-9 | Regenerate `stats-report.md` from the corrected registry | — | TODO |
 | R-10 | Vacuous-metric audit | R-7 | TODO |
 | R-11 | Thesis section: multi-agent development as method | — | TODO |
+| R-12 | Render `caveats` into `stats-report.md` | R-9 | TODO |
+| R-13 | Detector baseline (OWLv2 on the Orin) | — | TODO |
+| R-14 | ROI on-device Q8_0 re-run | R-9 | TODO |
+| R-15 | Per-item jsonl in `grounding/eval/harness.py` | R-14 | TODO |
+| R-16 | SAM2 co-residency characterisation (reframed campaign) | — | TODO |
+| R-17 | Fix E2–E4 rig prose | R-7 | TODO |
+| R-18 | Rebalance `thesis/00-esquema.md` to the surviving evidence | R-9 | TODO |
 
-Tasks derived from the sufficiency audit (`wf_b81c3191-d12`, 4/5 auditors returned
-at time of writing) get appended as R-12+ when it lands.
+R-12..R-18 come from the sufficiency audit (`wf_b81c3191-d12`, 6 agents,
+2026-07-21T21:05Z). **Verdict: the thesis is sufficient — YES, without running a
+single new experiment.** Six defensible contributions survive the correction, four
+measured on the Orin. What is not sufficient is `thesis/00-esquema.md`, which gives
+14 pages to anticipatory grounding (now resting on one surviving test) and half a
+page to Part I (the only large body of evidence measured wholly on target hardware).
+The work is a rewrite plus three targeted runs, not a rescue.
 
 ---
 
@@ -77,16 +89,46 @@ too small, in the direction that favours us.
 test in `tests/` that fails if any branch of the dispatch skips it.
 **Done when:** that test exists and passes, and R-9 has regenerated the report.
 
-## R-4 — Pseudo-replication rule for `n_effective`
+## R-4 — Pseudo-replication rule for `n_effective` — HIGHEST PRIORITY
 
-Twenty-seven scenes drawn from thirteen distinct clips is not n=27. The registry
-does not currently encode the rule that decides this.
+**This is the most damaging item in the repository.** Not because the correction is
+large, but because of its shape.
 
-**Expected output:** the rule written into `thesis/01-metodo-estadistico.md` (in
-Spanish, with the worked example), and `n_effective` + `independence_note` updated
-for every claim it touches.
-**Done when:** `test_deflated_claims_explain_themselves` passes and every claim
-whose rows share a source clip has `n_effective < n_rows`.
+Verified 2026-07-21, three ways:
+
+1. `experiments/2026-07-20-n25-select/scenes_p518.json` holds 27 scenes drawn from
+   **13 distinct clips**. `bike1` alone contributes 6; the wakeboard family
+   contributes 7. The file's own `comment` field says so in as many words:
+   "bike1 contributes 6 scenes of one recurring blue-vs-yellow rider pair".
+2. Every comparable claim in the registry **is** deflated for exactly this:
+   P5.14 5→3 ("cut from only THREE distinct UAV123 clips"), P5.16 5→3, P5.2a 25→23,
+   P3-carry 186→93, P2 claims 439→316. Forty-nine claims carry a deflation.
+3. P5.18 and P5.19 sit at **26→26**. Their `independence_note` discusses a
+   *different* independence problem (re-measurement overlap with P5.16) and never
+   mentions the clip clustering. P5.20 deflates 52→26 for the two-leg pairing and
+   then also stops short of the clip rule.
+
+So the rule was applied in 49 places and dropped in the 4 places where it would have
+cost the headline. Whether that was motivated or merely inattentive is not
+determinable and does not matter: the pattern is directionally self-serving, and an
+examiner who finds it before we volunteer it will read it as concealment.
+**Volunteer it in the text.**
+
+**One correction to the audit, in our favour, and state it precisely.** The audit
+says deflation makes P5.19's result "unreachable by construction". Checked: P5.19's
+SWAP claim is `b=3, c=0`, which is `p=0.25` at the *full* n=26 — it was never
+statistically significant, so deflation cannot demote it from significant to
+non-significant. It was a **pre-registered gate** (20/26 cells), not a p-value. What
+deflation removes is the bar-exact margin: 20/26 → 10/13, and 17/26 → 8/13.
+Correct claim: "we could not distinguish the arms; the gate cleared at a margin that
+does not survive the clip clustering."
+
+**Expected output:** the rule written into `thesis/01-metodo-estadistico.md` (Spanish,
+full diacritics, with the P5.18 bank as the worked example); `n_effective` corrected
+to 13 for P5.18/P5.19/P5.20 with an honest `independence_note`; those three verdicts
+and their ledger entries rewritten.
+**Done when:** no claim in the registry has rows sharing a source clip without a
+deflation, and a test asserts it.
 
 ## R-5 — Shadow-RG re-analysis
 
@@ -196,3 +238,174 @@ advisor before drafting long.
 citing specific incidents from this repo with commit hashes, not generalities.
 **Done when:** drafted, placed, and every incident it cites resolves to a commit or
 an experiment README.
+
+---
+
+## R-12 — Render `caveats` into the report
+
+`thesis/run_stats.py` never reads the `caveats` field. Verified: `grep -c caveat
+thesis/run_stats.py` returns **0**, and `grep -c definicional thesis/stats-report.md`
+returns **0**. All 65 claims carry an author-written caveat — roughly 19k characters,
+including "THE ONE NUMBER THAT MUST NOT BE CITED" and "lowering a threshold and then
+reporting that more cells clear it is not an effect" — and **none of it reaches the
+generated report.**
+
+The disclosures were all written. The pipeline silently drops them. Anyone who diffs
+`claims.json` against `stats-report.md` sees concealment where there is only a
+rendering bug. ~20 lines to fix, and it is presentation-fatal until it is.
+
+**Expected output:** caveats rendered per claim in `stats-report.md`; a test that
+fails if any non-empty caveat is absent from the report.
+**Done when:** that test passes.
+
+## R-13 — Detector baseline
+
+**The premise gap, and it is worse than the SAM2 one.** Verified: a repo-wide search
+for YOLO / OWLv2 / OWL-ViT / GroundingDINO across all `*.py` and `*.json` returns
+**nothing**. Hits exist only in `SOURCES.md`, `archive/` and prose.
+
+`experiments/2026-06-14-vlm-feasibility/README.md:7` opens the fork itself —
+"end-to-end VLM vs. decomposed (YOLO grounding + LLM intent)" — and line 188 closes
+it on latency grounds without ever building the YOLO arm. CLIP proposal scoring was
+"falsified at design time", i.e. rejected without being run.
+
+A thesis whose premise is that a 2B VLM is the right tool on a 15 W board never shows
+it beats the cheap alternative at its own task. That is the first question an
+external examiner asks.
+
+Use OWLv2, not YOLOv8n — the task is referring-expression grounding, not fixed-class
+detection, and YOLO would be a strawman. Both outcomes are content: either the
+architecture is justified, or the thesis becomes "when is a VLM worth its cost",
+which is a better thesis.
+
+**Expected output:** an OWLv2 arm on the Orin over the P5.18 cells, same verdict
+script, as a normal pre-registered campaign under `experiments/`.
+**Done when:** the campaign meets the 7-item definition of done in `CLAUDE.md`.
+
+## R-14 — ROI on-device Q8_0 re-run — best hour in the project
+
+`P3-ROI-M2.0-512` is the largest effect in the project (85.2% IoU@0.25, p=7.2e-19)
+**and the config actually deployed** — but it was measured with HF bf16 on the 3090
+against a 62.6% baseline measured on the Orin at Q8_0. A cross-machine,
+cross-quantisation composite standing as the headline number.
+
+The record already flagged this: `experiments/2026-06-25-roi-crop-anchor/README.md:196-198`
+names on-device Q8_0 ROI confirmation as "the one open follow-up before flipping the
+deploy default". The default was flipped anyway.
+
+`evaluate_roi` (`grounding/roi.py:125`) is already backend-agnostic; only `run_grid`
+(`roi.py:201`) hardcodes the HF load. Both arms, n=439, ~51 minutes of Orin wall
+time turns the headline into a paired on-device McNemar on the deployed
+quantisation. `thesis/00-esquema.md:582` lists it as optional. It is not.
+
+**Expected output:** both arms through `JetsonBackend` with per-item dumps; the
+claim re-derived and `machine` set to `jetson-orin-nano-8gb`.
+**Done when:** the registry entry is paired, on-device, and cites the new run.
+
+## R-15 — Per-item jsonl in the eval harness
+
+`grounding/eval/harness.py:34-80` writes aggregates only. That single gap is why 4 of
+the 6 surviving claims are `counts_only` and cannot be re-paired or re-analysed.
+~20 lines. Do it while inside R-14.
+
+**Expected output:** per-item jsonl written by every harness run.
+**Done when:** an R-14 run produces it and a claim is derived from it.
+
+## R-16 — SAM2 co-residency characterisation
+
+The audit confirmed the shape of the gap: `evaluate_roi` is backend-agnostic and
+`JetsonBackend` genuinely boots `llama-server` over `ssh jetson`, so **the VLM half
+has always run on the Orin.** Every P5.16/P5.18/P5.19 discovery call was real
+on-device inference. The only simulated component in the whole select arc is the
+SAM2 carry, rate-capped to a hardcoded constant (`replay_e18.py:46`,
+`CARRY_HZ = 6.15`; `select_p53.py:84`, `CAND_HZ = CARRY_HZ / 2.0`).
+
+**Do not do this to rescue the select result.** That result is not there to rescue —
+see R-5. Re-measuring a dead claim on the right hardware buys nothing.
+
+Do it because the on-device measurements are a first-class result:
+- The `/2` assumption is wrong in the optimistic direction — two independent SAM2
+  states run at **2.87 Hz per candidate, not 3.075**. Every published Part V select
+  number was generated ~7% faster than the hardware delivers.
+- **Memory, not rate, is the binding constraint.** llama-server holds 4.25 GB of
+  7.6; each state's pruned 100-frame ring costs ~675 MB; two candidates leave
+  **80 MB MemAvailable**, three leave 36 MB, swap grows 248→902 MB.
+- Batching candidates as N `obj_id`s in one state gives `tick = 70 + 92n` ms against
+  `162n` separate — 3.93 Hz at n=2, memory flat in n.
+- E1's "co-residency costs 0 FPS" was measured against an *idle* server. Under real
+  grounding load SAM2 is immune (255.0 vs 254.1 ms) but the VLM tail more than
+  doubles (max 1513→3367 ms).
+
+Reframe: not "re-run P5.19 on the Orin" but **"what does a 2B VLM plus a promptable
+video tracker actually cost, co-resident, on 8 GB at 15 W?"** That is a
+device-characterisation chapter in the style of the strongest existing work, and it
+is publishable whichever way the numbers fall.
+
+**Gate it** on the batched-vs-separate mask-IoU parity test (~20 min) first: if SAM2
+enforces cross-object mask constraints inside one state, the batching lever dies and
+memory becomes the wall.
+
+**These bench numbers are second-hand** — measured by an auditor in a session not
+repeated. Re-measure before publishing any of them.
+
+**Expected output:** a pre-registered campaign under `experiments/`, parity gate
+first.
+**Done when:** it meets the 7-item definition of done.
+
+## R-17 — Fix the E2–E4 rig prose
+
+The E2/E3/E4 READMEs claim "Jetson acquire not booted" / "Jetson not needed", but
+`phase3_sitl.py:1203-1206` boots `JetsonBackend` unconditionally with no local-VLM
+fallback. Those campaigns *did* ground through the Orin. The prose is wrong **in our
+own disfavour** — but it reads as carelessness either way, and it is the same
+provenance rot R-7 exists to find.
+
+**Expected output:** corrected prose in the three READMEs, citing the line.
+**Done when:** no experiment README asserts a backend the code contradicts.
+
+## R-18 — Rebalance the outline
+
+`thesis/00-esquema.md` gives 14 pages to anticipatory grounding and half a page to
+Part I. After the correction that ordering is inverted: Chapter 7 rests on **one**
+surviving test (P5.2a), while Part I holds the only substantial body of evidence
+measured wholly on target hardware — 15 models × 5 reps with tok/s, TTFT, J/tok and
+thermals. Part I is correctly absent from `claims.json` (deterministic
+characterisations, not gated proportions) but that is not a reason to under-weight it
+in the document.
+
+Also: **drop P5.12 from the survivor headline voluntarily.** Its own caveat says the
+effect is "partly definicional". The headline becomes "five survive Holm, plus one
+calibration correction reported separately" — and the smaller family marginally
+strengthens the other five. Three auditors reached this independently.
+
+The central argument, as the audit would write it, is a usable starting point:
+
+> On an 8 GB Jetson Orin Nano at 15 W, the binding constraint on natural-language
+> visual grounding for UAV target-following is not model accuracy but the deployment
+> path and the prefill latency it induces: exporting a fine-tuned VLM to the edge
+> runtime — not quantising it — costs ~30 pp of grounding accuracy, the ~4.6 s
+> full-frame anchor that survives that export makes a cold acquire deliver an
+> already-stale box, an ROI crop cuts that prefill 2.7× on-device, and starting the
+> computation before the operator's command rather than after it removes the delivery
+> lag outright (WARM 21/25 vs COLD 5/25, b=16, c=0, p=3.05e-5).
+
+Note what it does not contain: the delivery-contract separation.
+
+**Expected output:** a revised `00-esquema.md` whose page budget matches the
+surviving evidence.
+**Done when:** every chapter's length is justified by claims that survive R-9.
+
+---
+
+## Explicitly NOT to be done
+
+Recorded so a future session does not re-propose them:
+
+- **Do not re-run T2/T3 as specified** — single Bernoulli draws. Widen the clip bank
+  or leave them labelled as pilots.
+- **Do not build bank v4.** The sim arc is correctly closed (P5.17).
+- **Do not retrain to recover the lost safetensors checkpoint.** The deployed GGUF
+  exists, is sha256-mirrored, and still serves. Declare the loss as a limitation.
+- **Do not grow Part VI** beyond "infrastructure built, claim not yet made" until
+  R-12/R-4/R-13/R-14 are done.
+- **Do not port SAM2 in order to rescue P5.19.** See R-16.
