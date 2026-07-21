@@ -194,3 +194,18 @@ and a gate that failed against itself. Also survived: an in-flight autoresearch 
 campaign's freshly-committed script, ran `--gate-c` against the same server on port 2100, reloaded
 the world under the bank capture and killed it with `_queue.Empty` 0.9 min in. **A STOP file that
 blocks new ticks is not isolation from a worker already running.**
+
+**Consumer read-back (added 2026-07-21T02:20Z).** Everything that had touched the bank was either
+the code that wrote it or `make_proof.py` pulling single frames — nobody had loaded a whole clip
+the way P6.2 will, which is the same gap that let the first bank ship 77–80% empty.
+`check_bank.py` closes it: frame/GT alignment, index continuity, `box_vis` inside the image,
+manifest agreeing with independently recomputed `target_in_frame_frac`, coverage above its floor.
+**25/25 clips pass across 897 864 boxes**, which also confirms the backfill rather than trusting
+it. One real defect found: `gt.jsonl` stores 2 dp, so a car 0.002 px inside the frame edge passes
+the exact `x2 > x1` clip test and serialises as `[640.0, y1, 640.0, y2]` — a degenerate box that
+hands a consumer a divide-by-zero IoU. The bug was in serialisation, not geometry, which is why
+every geometric test passed. Fixed at capture time; **the shipped bank predates the fix and carries
+19 of them (2.1e-05)**, too few to move any published number and deliberately not worth a 36.5 min
+recapture that would invalidate the numbers already recorded above. The rate is gated at 1e-4 going
+forward and written down here, because a tolerance nobody records is indistinguishable from a bug
+nobody found.
