@@ -296,16 +296,21 @@ class Outcome:
     reading: str
 
     def line(self) -> str:
-        p = "undefined" if self.p_value != self.p_value else f"{self.p_value:.4g}"
+        p = "indefinido" if self.p_value != self.p_value else f"{self.p_value:.4g}"
         ci = f"[{self.ci[0]:.3f}, {self.ci[1]:.3f}]" if self.ci else "-"
         return f"{self.claim_id:28s} {self.test:18s} n={self.n_effective:<4d} p={p:<10s} CI95={ci:16s} {self.reading}"
 
 
 def evaluate(claim: Claim) -> Outcome:
-    """Run the right test for the claim's design, or refuse and say why."""
+    """Run the right test for the claim's design, or refuse and say why.
+
+    Code and docstrings here are English; every string that ends up in front of
+    a reader is Spanish, because the only consumer is a Spanish thesis and a
+    table with English cells in a Spanish document is a defect, not a detail.
+    """
     if claim.data_status == "missing":
-        return Outcome(claim.id, "none", float("nan"), None, claim.n_effective, False,
-                       "NO DATA - cannot be defended; queued for re-run")
+        return Outcome(claim.id, "ninguna", float("nan"), None, claim.n_effective, False,
+                       "SIN DATOS - no se defiende; en cola de re-ejecución")
 
     if claim.design == "paired-binary":
         b, c = claim.counts["b"], claim.counts["c"]
@@ -313,39 +318,39 @@ def evaluate(claim: Claim) -> Outcome:
         floor = min_discordant_for_significance(claim.n_effective)
         reachable = floor is not None
         if b + c == 0:
-            reading = ("0 discordant pairs - the arms are indistinguishable on this data. "
-                       "Not equality; absence of a test.")
+            reading = ("0 pares discordantes - los brazos son indistinguibles con estos datos. "
+                       "No es equivalencia; es ausencia de prueba.")
         elif not reachable:
-            reading = (f"n={claim.n_effective} pairs cannot reach alpha=0.05 two-sided "
-                       "even if every pair flipped. Design is underpowered by construction.")
+            reading = (f"n={claim.n_effective} pares no alcanzan alpha=0,05 bilateral "
+                       "ni volteando todos. Diseño sin potencia por construcción.")
         elif p <= 0.05:
-            reading = f"significant (b={b}, c={c})"
+            reading = f"significativa (b={b}, c={c})"
         else:
-            reading = (f"not significant (b={b}, c={c}); needed >={floor} one-way discordant, "
-                       f"had {max(b, c)}")
-        return Outcome(claim.id, "McNemar exact", p, None, claim.n_effective, reachable, reading)
+            reading = (f"no significativa (b={b}, c={c}); hacían falta >={floor} discordantes "
+                       f"en una dirección, hubo {max(b, c)}")
+        return Outcome(claim.id, "McNemar exacta", p, None, claim.n_effective, reachable, reading)
 
     if claim.design == "single-arm-binary":
         k_obs, n_obs = claim.counts["k"], claim.counts["n"]
         k, n = deflate_to_effective(k_obs, n_obs, claim.n_effective)
         ci = wilson_ci(k, n)
-        note = "" if n == n_obs else f" [deflated from {k_obs}/{n_obs}: see independence_note]"
+        note = "" if n == n_obs else f" [deflactado desde {k_obs}/{n_obs}: ver independence_note]"
         if claim.gate_p is None:
-            return Outcome(claim.id, "Wilson CI", float("nan"), ci, claim.n_effective, False,
-                           "no pre-registered gate; interval only" + note)
+            return Outcome(claim.id, "IC de Wilson", float("nan"), ci, claim.n_effective, False,
+                           "sin puerta pre-registrada; solo intervalo" + note)
         p = binomial_gate_test(k, n, claim.gate_p, "greater")
         need = min_successes_for_gate(n, claim.gate_p)
         reachable = need is not None and need <= n
-        reading = (f"{k_obs}/{n_obs} vs gate {claim.gate_p:.2f}; "
-                   + (f"needed >={need}/{n} for alpha=0.05" if need is not None
-                      else "no k could have reached alpha") + note)
-        return Outcome(claim.id, "binomial exact", p, ci, claim.n_effective, reachable, reading)
+        reading = (f"{k_obs}/{n_obs} contra puerta {claim.gate_p:.2f}; "
+                   + (f"hacían falta >={need}/{n} para alpha=0,05" if need is not None
+                      else "ningún k habría alcanzado alpha") + note)
+        return Outcome(claim.id, "binomial exacta", p, ci, claim.n_effective, reachable, reading)
 
     if claim.design == "unpaired-binary":
         c = claim.counts
         p = fisher_exact(c["k1"], c["n1"], c["k2"], c["n2"])
-        return Outcome(claim.id, "Fisher exact", p, None, claim.n_effective, True,
-                       f"{c['k1']}/{c['n1']} vs {c['k2']}/{c['n2']} (independent groups)")
+        return Outcome(claim.id, "Fisher exacta", p, None, claim.n_effective, True,
+                       f"{c['k1']}/{c['n1']} contra {c['k2']}/{c['n2']} (grupos independientes)")
 
     if claim.design == "paired-continuous":
         # Needs the per-item values. Several campaigns stored only a median or a
@@ -353,20 +358,21 @@ def evaluate(claim: Claim) -> Outcome:
         # those - so this refuses rather than inventing one.
         x, y = claim.counts.get("x"), claim.counts.get("y")
         if not x or not y:
-            return Outcome(claim.id, "none", float("nan"), None, claim.n_effective, False,
-                           "only summary statistics survive; per-item values needed for a test")
+            return Outcome(claim.id, "ninguna", float("nan"), None, claim.n_effective, False,
+                           "solo sobreviven estadísticos agregados; hacen falta los valores "
+                           "por elemento para una prueba")
         r = paired_continuous(x, y)
-        return Outcome(claim.id, "Wilcoxon signed-rank", r["p_value"], r["ci95_median_diff"],
+        return Outcome(claim.id, "Wilcoxon rangos con signo", r["p_value"], r["ci95_median_diff"],
                        claim.n_effective, True,
-                       f"median paired difference {r['median_diff']:.4g}")
+                       f"diferencia pareada mediana {r['median_diff']:.4g}")
 
     if claim.design == "descriptive":
         k_obs, n_obs = claim.counts.get("k", 0), claim.counts.get("n", 0)
         k, n = deflate_to_effective(k_obs, n_obs, claim.n_effective) if n_obs else (0, 0)
         ci = wilson_ci(k, n) if n else None
-        note = "" if n == n_obs else f" [deflated from {k_obs}/{n_obs}]"
-        return Outcome(claim.id, "descriptive", float("nan"), ci, claim.n_effective, False,
-                       "descriptive only - no hypothesis was pre-registered" + note)
+        note = "" if n == n_obs else f" [deflactado desde {k_obs}/{n_obs}]"
+        return Outcome(claim.id, "descriptiva", float("nan"), ci, claim.n_effective, False,
+                       "solo descriptiva - no se pre-registró ninguna hipótesis" + note)
 
     raise ValueError(f"unhandled design: {claim.design}")
 

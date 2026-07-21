@@ -40,6 +40,17 @@ THESIS = Path(__file__).resolve().parent
 REGISTRY = THESIS / "claims.json"
 PROOF = THESIS / "proof"
 
+# The registry keys stay English and code-like so they are stable identifiers;
+# only the rendered table is Spanish. A Spanish table with English cells reads
+# as a translation someone abandoned halfway.
+DESIGN_ES = {
+    "paired-binary": "binario pareado",
+    "single-arm-binary": "binario de un brazo",
+    "unpaired-binary": "binario no pareado",
+    "paired-continuous": "continuo pareado",
+    "descriptive": "descriptivo",
+}
+
 
 def stamp() -> str:
     return datetime.now().strftime("%Y-%m-%dT%H:%MZ")
@@ -72,7 +83,7 @@ def figure_power(claims: list[Claim], outcomes: dict) -> Path:
     ax.axvline(6, color="#2c3e50", ls="--", lw=1.4)
     # Anchored to the axes, not to the data, so a long claim list cannot push
     # the label on top of a bar.
-    ax.text(0.99, 0.02, "linea: n = 6, el minimo con el que alpha = 0,05 es alcanzable",
+    ax.text(0.99, 0.02, "línea: n = 6, el mínimo con el que alpha = 0,05 es alcanzable",
             transform=ax.transAxes, fontsize=8, ha="right", va="bottom", color="#2c3e50",
             bbox=dict(boxstyle="round,pad=0.35", fc="white", ec="#bdc3c7", alpha=0.9))
     ax.set_yticks(list(ys))
@@ -83,8 +94,8 @@ def figure_power(claims: list[Claim], outcomes: dict) -> Path:
     ax.set_xlim(0.8, 400)
     ax.set_xticks([1, 2, 3, 6, 12, 25, 50, 100, 300])
     ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    ax.set_xlabel("pares independientes (n efectivo, escala logaritmica)")
-    ax.set_title("Disenos pareados: cuales podian alcanzar significacion\n"
+    ax.set_xlabel("pares independientes (n efectivo, escala logarítmica)")
+    ax.set_title("Diseños pareados: cuáles podían alcanzar significación\n"
                  "rojo = imposible con cualquier resultado", fontsize=10)
     ax.grid(axis="x", alpha=0.25)
     fig.tight_layout()
@@ -120,9 +131,9 @@ def figure_forest(claims: list[Claim], outcomes: dict) -> Path:
     ax.set_yticks(range(len(rows)))
     ax.set_yticklabels([r[0] for r in rows], fontsize=8)
     ax.set_xlim(0, 1)
-    ax.set_xlabel("proporcion de exito (IC 95 % de Wilson)")
+    ax.set_xlabel("proporción de éxito (IC 95 % de Wilson)")
     ax.set_title("Puertas pre-registradas contra la incertidumbre real\n"
-                 "punto = proporcion observada; barra roja = puerta; IC al 95 % sobre n efectivo",
+                 "punto = proporción observada; barra roja = puerta; IC al 95 % sobre n efectivo",
                  fontsize=10)
     ax.grid(axis="x", alpha=0.25)
     fig.tight_layout()
@@ -140,26 +151,26 @@ def main() -> int:
 
     lines = [
         "---",
-        "title: Resultados estadisticos retroactivos",
-        "subtitle: Cada afirmacion con puerta de las Partes I-VI, re-analizada",
-        "author: Javier Francisco Dibo Gomez",
+        "title: Resultados estadísticos retroactivos",
+        "subtitle: Cada afirmación con puerta de las Partes I-VI, re-analizada",
+        "author: Javier Francisco Dibo Gómez",
         f"comment: Generado por thesis/run_stats.py, {stamp()}",
         "locale: es",
         "---",
         "",
-        "## Como leer esta tabla",
+        "## Cómo leer esta tabla",
         "",
         "Generada por `thesis/run_stats.py` desde `thesis/claims.json`. No se edita",
-        "a mano. El metodo y las reglas de rechazo estan en",
+        "a mano. El método y las reglas de rechazo están en",
         "`thesis/01-metodo-estadistico.md`.",
         "",
         "`p` indefinido no significa 'sin efecto': significa que no hubo prueba,",
         "casi siempre por 0 pares discordantes. `alcanzable = no` significa que el",
-        "diseno no podia llegar a alpha = 0,05 con ningun resultado posible.",
+        "diseño no podía llegar a alpha = 0,05 con ningún resultado posible.",
         "",
-        "<!-- caption: Re-analisis exacto de las afirmaciones con puerta, con correccion de Holm-Bonferroni -->",
+        "<!-- caption: Re-análisis exacto de las afirmaciones con puerta, con corrección de Holm-Bonferroni -->",
         "",
-        "| Afirmacion | Parte | Diseno | n efectivo | Prueba | p | p (Holm) | Alcanzable | Lectura |",
+        "| Afirmación | Parte | Diseño | n efectivo | Prueba | p | p (Holm) | Alcanzable | Lectura |",
         "|---|---|---|---|---|---|---|---|---|",
     ]
     for c in claims:
@@ -168,8 +179,8 @@ def main() -> int:
         ph = holm[c.id]["p_holm"]
         ph_s = "—" if ph != ph else f"{ph:.4g}"
         lines.append(
-            f"| {c.id} | {c.part} | {c.design} | {c.n_effective} | {o.test} | "
-            f"{p} | {ph_s} | {'si' if o.could_ever_reach_alpha else '**no**'} | {o.reading} |"
+            f"| {c.id} | {c.part} | {DESIGN_ES.get(c.design, c.design)} | {c.n_effective} | {o.test} | "
+            f"{p} | {ph_s} | {'sí' if o.could_ever_reach_alpha else '**no**'} | {o.reading} |"
         )
 
     # --- what survives -----------------------------------------------------
@@ -182,29 +193,29 @@ def main() -> int:
 
     lines += [
         "",
-        "## Que sobrevive",
+        "## Qué sobrevive",
         "",
-        f"- **Significativas tras correccion de Holm ({len(survives)}):** "
+        f"- **Significativas tras corrección de Holm ({len(survives)}):** "
         + (", ".join(survives) if survives else "ninguna"),
         f"- **Sin prueba posible, 0 pares discordantes ({len(undefined)}):** "
         + (", ".join(undefined) if undefined else "ninguna"),
-        f"- **Diseno incapaz de alcanzar alpha ({len(unreachable)}):** "
+        f"- **Diseño incapaz de alcanzar alpha ({len(unreachable)}):** "
         + (", ".join(unreachable) if unreachable else "ninguna"),
-        f"- **Sin datos crudos, en cola de re-ejecucion ({len(missing)}):** "
+        f"- **Sin datos crudos, en cola de re-ejecución ({len(missing)}):** "
         + (", ".join(missing) if missing else "ninguna"),
         "",
     ]
 
     if backlog:
         lines += [
-            "## Cola de re-ejecucion",
+            "## Cola de re-ejecución",
             "",
             "Afirmaciones cuyos datos por elemento no sobreviven. No se defienden en",
             "el TFM hasta que se re-ejecuten.",
             "",
-            "<!-- caption: Trabajo de re-ejecucion necesario para hacer defendible cada afirmacion sin datos -->",
+            "<!-- caption: Trabajo de re-ejecución necesario para hacer defendible cada afirmación sin datos -->",
             "",
-            "| Afirmacion | Que falta | Coste | Comando |",
+            "| Afirmación | Qué falta | Coste | Comando |",
             "|---|---|---|---|",
         ]
         for b in backlog:
@@ -218,7 +229,7 @@ def main() -> int:
     if f1 or f2:
         lines += ["## Figuras", ""]
         if f1:
-            lines += ["<!-- caption: Disenos pareados por n efectivo; en rojo los que no podian alcanzar significacion con ningun resultado -->",
+            lines += ["<!-- caption: Diseños pareados por n efectivo; en rojo los que no podían alcanzar significación con ningún resultado -->",
                       "", f"![]({f1.relative_to(THESIS)})", ""]
         if f2:
             lines += ["<!-- caption: Proporciones observadas con intervalo de Wilson al 95 %; la barra roja marca la puerta pre-registrada -->",

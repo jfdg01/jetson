@@ -189,19 +189,19 @@ def _claim(**kw):
 def test_tie_reports_absence_of_a_test():
     out = evaluate(_claim(id="P5.10", n_rows=24, n_effective=24, counts={"b": 0, "c": 0}))
     assert math.isnan(out.p_value)
-    assert "absence of a test" in out.reading
+    assert "ausencia de prueba" in out.reading
 
 
 def test_underpowered_design_is_flagged_even_when_it_looks_decisive():
     out = evaluate(_claim(id="P5.14", counts={"b": 4, "c": 0}))
     assert not out.could_ever_reach_alpha
-    assert "underpowered by construction" in out.reading
+    assert "sin potencia por construcción" in out.reading
 
 
 def test_missing_data_is_queued_not_tested():
     out = evaluate(_claim(data_status="missing"))
     assert math.isnan(out.p_value)
-    assert "re-run" in out.reading
+    assert "re-ejecución" in out.reading
 
 
 def test_single_arm_against_a_gate():
