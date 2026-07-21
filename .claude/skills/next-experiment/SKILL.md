@@ -65,8 +65,8 @@ each cycle. Every cycle boundary is stamped in `.claude/loop.log` (see Step 1).
   handling"). Missing or empty = no theme, pick purely by leverage. You pass it verbatim into
   the Fable brief; you never enforce it yourself.
 - The 2–3 most recent `experiments/*/README.md` (Status, Results, verdict sections).
-- The current Part's ledger docs: `docs/questions/part4-*.md`, `docs/results/part4-*.md`,
-  `docs/decisions/part4-*.md` (adjust the Part number to whatever is in progress).
+- The current Part's ledger docs. Resolve the Part number from `CLAUDE.md` ("Project parts")
+  rather than hardcoding it, then read `docs/{questions,results,decisions}/part<N>-*.md`.
 
 You read status yourself so you can (a) hand Fable exact file pointers and (b) later run the
 matrix from the README. You do NOT audit or pick the RQ — that is Fable's call in Step 2.
@@ -121,9 +121,12 @@ The Fable design brief (put this in the subagent prompt, filled with the concret
 > - **Run matrix:** exact copy-pasteable commands (full flags), power mode, versions, rig
 >   (which machine, whether the Jetson is needed), per-run snapshot dirs under `runs/`, and
 >   known gotchas (e.g. outputs clobbered between runs — snapshot immediately). Ensure the
->   commands **record video** of the runs the deliverables need — the 2–3 before/after (or
->   proof-of-failure) clips are part of the definition of done, and Opus can only clip footage
->   the matrix actually captured. Say which runs to record and where the raw video lands.
+>   matrix captures whatever the 2–3 deliverables need (CLAUDE.md DoD-7) — **clip when the
+>   behaviour is the point, figure when the numbers are the point**, and a purely quantitative
+>   result may be all figures. If clips are the right form, the matrix must record video,
+>   because Opus can only clip footage it actually captured; if figures are, the matrix must
+>   write the per-run `results.json` a `make_proof.py` can plot from. Say which runs produce
+>   which, and where the raw video or JSON lands.
 > - **Visual verification (mandatory for any render/sim/camera/overlay work; CLAUDE.md "Look at
 >   it"):** the matrix must dump inspectable PNG frames (mid-run, not frame 0) into each
 >   `runs/<id>/`, and the README must name the exact files Opus is to open with the Read tool
@@ -176,14 +179,18 @@ Work from `experiments/<dir>/README.md` alone. Stamp the start:
   a rule is ambiguous, that is a process failure (record it, stop, do not merge).
 - Append the RESULTS row(s), the QUESTIONS verdict (per-Part doc, not root), and the
   DECISIONS entry if one was drafted. Every number carries its config (power mode, flags, ctx).
-- Cut the **2–3 video deliverables** (definition-of-done item 7) from the recorded footage —
-  before/after if positive, proof-of-failure if negative — into `experiments/<dir>/proof/`
-  (curated clips only, not `raw/`) and link + caption them in the README (what each shows,
-  which run/config).
-- Commit everything on `experiment/<slug>` — Results, ledger rows, **and the video
-  deliverables** — with a one-line `E<n> <slug>: <verdict>` message. `git status` clean after
-  (the clips are checked in, not left untracked). A FAIL verdict is a normal result and still
-  gets committed.
+- Produce the **2–3 thesis deliverables** (definition-of-done item 7) into
+  `experiments/<dir>/proof/` — curated evidence only, never a copy of `raw/` — and link +
+  caption each in the README (what it shows, which run/config). Clips when the behaviour is
+  the point (locks, drifts, switches), cut from the recorded footage: before/after if
+  positive, proof-of-failure if negative. Figures when the numbers are the point (per-clip
+  IoU, latency, PASS rate, a sweep curve), as PNGs from a committed `make_proof.py` that
+  replots from `runs/*/results.json` — the script is committed too, or the figure is not
+  reproducible.
+- Commit everything on `experiment/<slug>` — Results, ledger rows, **and the deliverables**
+  (plus `make_proof.py` if there are figures) — with a one-line `E<n> <slug>: <verdict>`
+  message. `git status` clean after (deliverables are checked in, not left untracked). A FAIL
+  verdict is a normal result and still gets committed.
 
 If the matrix crashes, a rig is missing, or a run hangs past the README's abort criteria,
 stop and record it plainly in the README Status line — do not paper over it, do not merge.

@@ -20,8 +20,9 @@ Do this, in order:
    thrash, load errors, anomalies: these are REQUIRED results, never silently dropped. If the
    run errors out, that is a valid outcome — record it.
 6. Fulfil the Output contract precisely: write the raw logs to the stated paths, write the
-   detail block into the campaign's `experiments/*.md`, and append exactly one row to `RESULTS.md`
-   (append, never overwrite). Report the config next to every number.
+   detail block into the campaign's `experiments/*.md`, and append exactly one row to the
+   per-Part ledger `docs/results/part<N>-*.md` — **not** to `RESULTS.md`, which is a redirect
+   index and takes no rows (append, never overwrite). Report the config next to every number.
 7. Set the run card `status:` to DONE (clean success) or FAILED (ran but errored/OOM/throttle,
    with the negative result documented).
 8. STOP. Your job was this ONE unit. Do NOT start another unit, do NOT edit other run cards,

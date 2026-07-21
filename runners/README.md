@@ -1,5 +1,17 @@
 # Experiments — isolated-session execution methodology
 
+> **STATUS 2026-07-21T18:05Z — historical, for the Part-I campaigns only.** The
+> cold-session card runner described below was **never built**: `run-unit.sh` and
+> `run-campaign.sh` do not exist and no commit ever added them (the Part-I campaigns were
+> driven by hand). The *methodology* section is real and is thesis content — it is the
+> control that later became the `next-experiment` skill and `scripts/autoresearch.py`. The
+> *usage* section is a specification of a tool that was never written. Kept rather than
+> deleted because the design is cited by the thesis section on multi-agent development
+> (REMEDIATION R-11); do not follow it as instructions.
+>
+> Current experiment loop: `.claude/skills/next-experiment/SKILL.md`. Current ledger rules:
+> `CLAUDE.md`. Where the two disagree with anything below, they win.
+
 This directory defines **how experiments are run**, not their results (those live in
 `experiments/` and `RESULTS.md`). It is a **general, reusable methodology**: every campaign
 in this testbed is decomposed into independent **units**, and **each unit is executed by a
@@ -56,21 +68,26 @@ sort into run order.
   variable is which card (`{{RUNCARD}}`). It encodes the restrictions: do only this unit,
   capture failures, fulfil the output contract, then **STOP**; if anything is ambiguous, set
   `status: BLOCKED` and stop — **don't guess**.
-- [`run-unit.sh`](run-unit.sh) — spawn one fresh `claude -p` session for one card.
-- [`run-campaign.sh`](run-campaign.sh) — iterate a campaign's cards in order, each in its own
-  fresh session, skipping `DONE`, halting on `FAILED`/`BLOCKED`. Resumable.
+- `run-unit.sh` — **never written.** Was to spawn one fresh `claude -p` session for one card.
+- `run-campaign.sh` — **never written.** Was to iterate a campaign's cards in order, each in
+  its own fresh session, skipping `DONE`, halting on `FAILED`/`BLOCKED`, resumable.
 
-## Usage
+## Usage — SPECIFICATION ONLY, THESE COMMANDS DO NOT RUN
+
+Neither script exists on disk. The block below is the interface that was designed and never
+implemented; it is left as a record of the design, not as something to copy-paste. (The
+one-unit line is additionally malformed — it is missing the `/` before `01-qwen2.5`, which is
+itself evidence it was never executed.)
 
 ```bash
 # one unit, fresh session:
-runners/run-unit.sh runners/campaigns/2026-06-13-model-capability-sweep01-qwen2.5-0.5b-instruct.md
+runners/run-unit.sh runners/campaigns/2026-06-13-model-capability-sweep/01-qwen2.5-0.5b-instruct.md
 
 # whole campaign, sequential, resumable (skips DONE, stops on FAILED/BLOCKED):
 runners/run-campaign.sh runners/campaigns/2026-06-13-model-capability-sweep
 ```
 
-Overridable env vars: `CLAUDE_MODEL` (default `sonnet`), `CLAUDE_PERM` (default
+Overridable env vars, as designed: `CLAUDE_MODEL` (default `sonnet`), `CLAUDE_PERM` (default
 `bypassPermissions`).
 
 ### Permissions / autonomy note
@@ -89,8 +106,11 @@ allowlist instead. Never point this at an untrusted repo or device.
 2. Create `campaigns/<campaign>/` and write one card per unit from
    `_template.runcard.md` — the *how*, concretized (exact commands, exact model, exact
    output paths). Keep one variable changing across cards.
-3. Run with `run-campaign.sh`. Each card's session appends its result to `RESULTS.md` and a
-   detail block to the campaign's `experiments/*.md`, then sets its own `status:`.
+3. Run the cards. (`run-campaign.sh` was the intended driver and does not exist — the Part-I
+   campaigns were run by hand; today this is the `next-experiment` skill's job.) Each card's
+   session appends its result row to the **per-Part ledger doc**, `docs/results/part<N>-*.md`
+   — never to `RESULTS.md`, which is a thin redirect index — plus a detail block to the
+   campaign's `experiments/*.md`, then sets its own `status:`.
 
 ## Lifecycle of a unit `status:`
 

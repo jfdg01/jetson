@@ -1,7 +1,17 @@
 # Temporal follow — acquire-once + memory-carry ("follow the white car")
 
 **Date:** 2026-07-01T15:05Z (pre-registration) · **Branch:** `experiment/temporal-carry` (off `main` @ `a2fd695`)
-**Status:** Phase 0 **PASS** (RQ-T.1) · demo committed · **Phase 2 RUNNING** (Jetson benches done, 512 accuracy re-eval sweeping on the 3090). Phases 1, 3 pending.
+**Status:** **CAMPAIGN COMPLETE** 2026-07-02 (`00aa244`) — all phases run. Phase 0 PASS (RQ-T.1),
+Phase 2 verdict = **RQ-T.2 marginal FAIL at 768** (accuracy holds at 0.830, rate 4.89 FPS misses
+the ≥5 gate), Phase 3b on-device = both behavioral legs PASS (in-FOV 1.000, validated relock),
+rate leg 4.1/5 marginal FAIL exactly as pre-registered. Superseded on the rate leg by
+[E1 (TensorRT SAM2 encoder)](../2026-07-02-carry-trt-export/README.md), which lifted the same
+768 carry to 6.15 FPS co-resident and re-ran 3b at 5.0/5 PASS.
+<!-- This header read "Phase 2 RUNNING · Phases 1, 3 pending" until 2026-07-21T18:10Z, three
+     weeks after the campaign finished and while its own log below said "CAMPAIGN PHASES
+     COMPLETE". A stale status header is the cheapest way to make a fresh session redo
+     finished work. -->
+
 **Train box (reserved lever only):** local RTX 3090 24 GB, `.venv-ft`, python 3.12.10, torch 2.6.0+cu124, transformers 4.57.6, peft 0.19.1 (git_sha `6d9d3a2` at draft).
 **Deploy / latency box:** Jetson Orin Nano 8 GB @ **15 W** (`nvpmodel -m 0` + `jetson_clocks`).
 **Stack-native runtime:** llama.cpp `57fe1f0` CUDA sm_87 (`llama-server`, Q8_0, ngl=99) for the acquire VLM. Memory-carry runtime = TensorRT/ONNX (off-stack, same export path as the bake-off's arms C/D — recorded per phase).

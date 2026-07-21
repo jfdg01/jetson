@@ -56,7 +56,8 @@ ssh jetson 'sudo nvpmodel -m 0 && sudo jetson_clocks && tegrastats --interval 10
 - [ ] Detail block appended to `experiments/<date>-<campaign>.md` with EVERY mandatory metric
       field from `CLAUDE.md` (pp, tg, TTFT, peak mem + swap flag, idle/mean/peak W, temp +
       throttle, tok/s·W⁻¹, J/token) and the config next to each number.
-- [ ] Exactly one row appended to `RESULTS.md` (append-only).
+- [ ] Exactly one row appended to `docs/results/part<N>-*.md` (append-only). Not `RESULTS.md`
+      — the root file is a redirect index and takes no rows.
 - [ ] This card `status:` set to DONE or FAILED.
 
 ## Done criteria

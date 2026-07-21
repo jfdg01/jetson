@@ -25,7 +25,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-9 | Regenerate `stats-report.md` from the corrected registry | — | TODO |
 | R-10 | Vacuous-metric audit | R-7 | TODO |
 | R-11 | Thesis section: multi-agent development as method | — | TODO |
-| R-12 | Render `caveats` into `stats-report.md` | R-9 | TODO |
+| R-12 | Render `caveats` into `stats-report.md` | R-9 | **DONE** `5b6f7ab` |
 | R-13 | Detector baseline (OWLv2 on the Orin) | — | TODO |
 | R-14 | ROI on-device Q8_0 re-run | R-9 | TODO |
 | R-15 | Per-item jsonl in `grounding/eval/harness.py` | R-14 | TODO |
@@ -33,6 +33,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-17 | Fix E2–E4 rig prose | R-7 | TODO |
 | R-18 | Rebalance `thesis/00-esquema.md` to the surviving evidence | R-9 | TODO |
 | R-19 | Stale-verdict sweep of the first-read surfaces | after R-4 | TODO |
+| R-20 | Translate the 65 `caveats` to Spanish | R-12 | IN PROGRESS |
 
 R-12..R-18 come from the sufficiency audit (`wf_b81c3191-d12`, 6 agents,
 2026-07-21T21:05Z). **Verdict: the thesis is sufficient — YES, without running a
@@ -272,6 +273,39 @@ rendering bug. ~20 lines to fix, and it is presentation-fatal until it is.
 **Expected output:** caveats rendered per claim in `stats-report.md`; a test that
 fails if any non-empty caveat is absent from the report.
 **Done when:** that test passes.
+
+**DONE** (`5b6f7ab`). Section `## Salvedades por afirmación` renders all 65 verbatim;
+`test_every_caveat_reaches_the_report` fails if any goes missing again. Rendering them
+verbatim rather than summarised is deliberate — a summary would reintroduce the same
+defect in a form nobody would catch.
+
+Landing it surfaced a second, separate defect, split out as **R-20**: the caveat text is
+English inside a Spanish deliverable. That is a different bug with a different fix, so it
+did not hold up the rendering.
+
+## R-20 — Translate the 65 `caveats` to Spanish
+
+`thesis/stats-report.md` carries `locale: es`, a Spanish title block, and a Spanish table;
+as of R-12 it also carries 19,073 characters of English. Fixing this at render time was
+rejected: a translation layer in `run_stats.py` means the registry and the deliverable
+disagree about what the caveat says, and the registry is the source of truth. The
+`caveats` fields in `thesis/claims.json` are translated in place instead.
+
+This is the most sensitive prose in the repository — every caveat is an admission against
+the claim it annotates. A translation that reads *softer* than the original is a worse
+defect than the untranslated English, because the untranslated English is at least
+honest. So the pass is translate-then-adversarially-verify against five named failure
+modes (softening, dropped clauses, number/identifier drift, missing diacritics, meaning
+inversion), not a bulk rewrite.
+
+Numeric literals keep their `.` separator verbatim so they still match the registry counts
+and the generated table; identifiers, paths, arm labels and model names stay untranslated.
+
+**Expected output:** all 65 `caveats` in Spanish with full diacritics; the verifier's
+defect list and its resolution recorded here.
+**Done when:** `test_every_caveat_reaches_the_report` still passes after regeneration
+(it compares registry text against report text, so a partial translation breaks it), and
+an NFD fold over the report finds no unaccented Spanish.
 
 ## R-13 — Detector baseline
 

@@ -1,6 +1,10 @@
 # P6.1 — CARLA renderer swap (capability gate)
 
-**Status:** COMPLETE 2026-07-20T19:05Z — **YES**, G1–G5 all pass. G6 **NOT RUN** (blocker, see below).
+**Status:** COMPLETE 2026-07-20T19:05Z — **YES**, G1–G5 all pass. G6 **NOT RUN** — non-gating, and
+**not a blocker**: the "missing checkpoint" reason first recorded here was wrong and was corrected
+2026-07-20T20:10Z (the deployed model is on the Jetson at
+`/home/jfdg/grounding/phase3-terse100eos-1024-q8_0.gguf`). See "G6 was not run — but the reason
+first recorded was wrong" below. **P6.2 is not blocked.**
 **Campaign dir:** `experiments/2026-07-20-p61-carla-renderer/`
 **Part:** VI (v6 closed-loop flight). Predecessor: [P6.0 flight-rig gate](../2026-07-20-p60-flight-rig/README.md).
 
@@ -210,7 +214,7 @@ Run 2026-07-20T18:20Z–19:05Z. Raw: `runs/g1-scripted/`, `runs/alt60/`, `runs/a
 | G3 pose slaving | **PASS** | copter flew **0 → 84.4 m north** under its own GUIDED control at a held 60.0 m; frame content at tick 150 / 300 / 599 is distinct and consistent with the reported position | nadir sign confirmed by viewed frame |
 | G4 traffic | **PASS** | **40/40** vehicles spawned with autopilot; first and last frames not byte-identical; traffic visibly moved between viewed frames | |
 | G5 rate | **PASS** | **48.1 Hz** mean (gate >= 20 Hz); 5/599 ticks under 15 Hz, all in the first ~5 s | the sub-15 Hz ticks are cold shader compilation, not steady-state |
-| G6 grounding (non-gating) | **NOT RUN** | — | **the deployed checkpoint is not on this machine** — see below |
+| G6 grounding (non-gating) | **NOT RUN** | — | non-gating; the "checkpoint not on this machine" reason first recorded here was **wrong**, corrected below |
 
 **Overall: YES.** The renderer swap works. SITL remains the physics, the renderer remains
 pose-slaved, the control stack is untouched, and the world now contains a photoreal town with 40
@@ -295,7 +299,7 @@ would otherwise have been guessed.
 | Runner implementation | ~150 lines | 229 lines (`carla_render.py`) + 158 (`sitl_fly_leg.py`) | **2.6x over.** The overrun is entirely `sitl_fly_leg.py`, which was not foreseen at all — see below |
 | Render rate at 640x480 | 30–60 Hz | **48.1 Hz** | mid-range, as predicted |
 | Total wall time | 2–4 h | ~5 h | over, all of it in the MAVLink bring-up |
-| G6 prediction | worse than Gazebo's 56/56, better than UAV123 | **untested** | checkpoint absent |
+| G6 prediction | worse than Gazebo's 56/56, better than UAV123 | **untested** | not run; correction landed after close (checkpoint is NOT absent) |
 
 The runtime estimate missed because the pre-registration assumed the *renderer* was the risk. It
 was not — CARLA worked on essentially the first try. The risk was the thing not written down:
@@ -411,7 +415,9 @@ venv was first on PATH and demanded `empy` be installed *there*.
 
 ## Status / next step
 
-**COMPLETE — YES.** G1–G5 pass with viewed evidence; G6 not run (checkpoint absent).
+**COMPLETE — YES.** G1–G5 pass with viewed evidence; G6 not run — non-gating, and left not-run
+because the correction landed after the campaign closed, **not** because the checkpoint is absent
+(it is not absent; that reason was wrong).
 
 **Next: P6.2 closed-loop select-and-follow. Not blocked** (correction 2026-07-20T20:10Z — the
 deployed model is on the Jetson). P6.2 inherits from here: 60 m working altitude, `Town10HD_Opt`,
