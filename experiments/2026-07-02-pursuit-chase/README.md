@@ -170,7 +170,7 @@ which pursuit cannot touch.
 
 1. Fill Results above (table + diagnostics + estimate-vs-actual).
 2. Append one RESULTS row per run under Part IV in `docs/results/part4-end-to-end.md`
-   (config string: `local-VLM, 3090 carry @1024, loss-gate motion, dr pursuit, 75 s`).
+   (config string as logged: `local-VLM, 3090 carry @1024, loss-gate motion, dr pursuit, 75 s` — `local-VLM` there denotes local *carry*; the anchor ran on the Orin, see R-17).
 3. Append the RQ-E5 verdict (one entry, one-line verdict per sub-question if split) in
    `docs/questions/part4-end-to-end.md` — the per-Part doc, never the root.
 4. Append a DECISIONS entry in `docs/decisions/part4-end-to-end.md`: chose pursuit DR over

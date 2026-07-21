@@ -65,7 +65,7 @@ submit-tick frame (0, 16), not the resolve-tick frame (2, 20), plus a `gate_box`
 
 ## Run matrix (executor: this is the whole job — ~5 SITL trials, ~1 h)
 
-Same rig as E2/E3: local-VLM path (Jetson **not** needed; do NOT pass `--remote-carry`), local 3090
+Same rig as E2/E3: Jetson Q8_0 anchor over ssh, carry on the 3090 (do NOT pass `--remote-carry`), local 3090
 carry @1024. `run_e4.sh` drives it and snapshots per run (the trial CSV/mp4 are overwritten each
 run — the E2/E3 clobber gotcha; the script copies immediately). Two stages:
 
@@ -138,8 +138,8 @@ precedent.)`
 
 ## Results (filled 2026-07-02T22:05Z)
 
-Ran `bash run_e4.sh` (Stage 1) then `GATE=motion bash run_e4.sh --stage2`. All 5 trials, local-VLM
-path, 3090 carry @1024, 75 s each. Raw per-run in `runs/{s1-none,s1-score,s1-motion,ladder-1.0,ladder-1.5}/`.
+Ran `bash run_e4.sh` (Stage 1) then `GATE=motion bash run_e4.sh --stage2`. All 5 trials, Jetson Q8_0 acquire over ssh
++ 3090 carry @1024, 75 s each. Raw per-run in `runs/{s1-none,s1-score,s1-motion,ladder-1.0,ladder-1.5}/`.
 
 **Stage 1 — gate selection @ 0.5 m/s:**
 

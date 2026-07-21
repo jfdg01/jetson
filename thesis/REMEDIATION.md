@@ -30,7 +30,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-14 | ROI on-device Q8_0 re-run | R-9 | TODO |
 | R-15 | Per-item jsonl in `grounding/eval/harness.py` | R-14 | TODO |
 | R-16 | SAM2 co-residency characterisation (reframed campaign) | — | TODO |
-| R-17 | Fix E2–E4 rig prose | R-7 | TODO |
+| R-17 | Fix E2–E4 rig prose | R-7 | **DONE** |
 | R-18 | Rebalance `thesis/00-esquema.md` to the surviving evidence | R-9 | TODO |
 | R-19 | Stale-verdict sweep of the first-read surfaces | after R-4 | **DONE** |
 | R-20 | Translate the 65 `caveats` to Spanish | R-12 | **DONE** |
@@ -688,6 +688,30 @@ provenance rot R-7 exists to find.
 
 **Expected output:** corrected prose in the three READMEs, citing the line.
 **Done when:** no experiment README asserts a backend the code contradicts.
+
+### What landed (2026-07-21T19:20Z)
+
+The root cause is a label, not three typos. In this rig `local-VLM` meant **local
+carry** — `--remote-carry` off, so SAM2 stays on the 3090 — and it was read by
+later READMEs as *the VLM is local*. From there E2 wrote "Jetson acquire not
+booted", E3 "Jetson not needed", E4 "Jetson **not** needed", each citing the one
+before it. E5 and E6 inherited the same label but happened to spell out what it
+meant, which is why they are right and the first three are wrong.
+
+`phase3_sitl.py` constructs `JetsonBackend(..., ssh_host="jetson")` with no
+condition and no local fallback branch, and prints `[3] booting Jetson q8_0
+server...` before every run. There is no `--remote` flag, so E2's pre-registered
+instruction to "record which" path was used had exactly one possible answer.
+`runs/speed-1.0/results.json` records `n_acquire_attempts: 32`, so inference ran.
+
+Fixed in the three offending READMEs plus the four surviving ambiguous uses
+(E3's and E5's config strings, E4's run line, and four lines of
+`docs/results/part4-end-to-end.md`). Where the string is a *logged* config value
+it is kept verbatim and annotated rather than rewritten, since the log says what
+it says.
+
+Worth keeping in the thesis: this error ran **against** us for three campaigns —
+the anchor was on-device and we published that it was not.
 
 ## R-18 — Rebalance the outline
 

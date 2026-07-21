@@ -124,7 +124,7 @@ marginal-FAIL leg. Raw: `experiments/2026-07-01-temporal-acquire-carry/runs/phas
 ### 2026-07-02 — E2 speed ceiling with levers on ([`experiments/2026-07-02-follow-speed-ceiling/`](../../experiments/2026-07-02-follow-speed-ceiling/README.md))
 
 Integrated SITL follow, levers ON (size-prior validation, dead-reckoning, time-based LossGate),
-real carry (local 3090 SAM2 @1024, local-VLM acquire path), one trial per speed. Gate = in-FOV ≥
+real carry (local 3090 SAM2 @1024, Jetson Q8_0 acquire over ssh), one trial per speed. Gate = in-FOV ≥
 0.90 AND recovered_after_occlusion. Levers-OFF Phase-1 baseline (oracle box) put the ceiling at
 1.0 m/s.
 
@@ -171,7 +171,7 @@ needs occlusion + a same-appearance in-lane decoy during REGROUND. Raw:
 
 ### 2026-07-02 — E4 follow hardening: two E2 binding-mode fixes ([`experiments/2026-07-02-follow-hardening/`](../../experiments/2026-07-02-follow-hardening/README.md))
 
-Same rig as E2 (local-VLM path, 3090 carry @1024, gate = in-FOV ≥ 0.90 AND recovered). Two fixes
+Same rig as E2 (Jetson Q8_0 acquire, 3090 carry @1024, gate = in-FOV ≥ 0.90 AND recovered). Two fixes
 vs E2: **Fix B** (always-on) inits carry on the acquire *submit* frame + replays the buffered gap;
 **Fix A** a trust-aware loss gate demoting an untrusted carry box to `None` so the existing
 REGROUND machinery fires (flag `--loss-gate {none,score,motion}`).
@@ -222,7 +222,7 @@ ceiling, deliberately out of E4 scope. Replay-stall watch item bounded (max loop
 
 ### 2026-07-03 — E5 pursuit-chase ([`experiments/2026-07-02-pursuit-chase/`](../../experiments/2026-07-02-pursuit-chase/README.md))
 
-Config: `local-VLM, 3090 carry @1024, loss-gate motion, dr pursuit, 75 s`. Pursuit DR replaces
+Config: `jetson-acquire, 3090 carry @1024, loss-gate motion, dr pursuit, 75 s` (the config string as logged reads `local-VLM`, which meant local *carry*; see R-17). Pursuit DR replaces
 velocity-matching with position-seeking (`v_est + 0.5·(dead-reckoned pos − copter pos)`, 2.5 m/s
 cap) on the blind branch. Baselines are the E4 Stage-2 `--dr velocity` rows above (not re-run).
 
@@ -248,7 +248,7 @@ exits t=5.71 s at gap 6.14 m, never re-enters (gap → 75.4 m). Raw:
 
 ### 2026-07-03 — E6 first-acquire ([`experiments/2026-07-03-first-acquire/`](../../experiments/2026-07-03-first-acquire/README.md))
 
-Config: `local-VLM, 3090 carry @1024, loss-gate motion, dr pursuit, acquire-hold motion, 75 s`.
+Config: `jetson-acquire, 3090 carry @1024, loss-gate motion, dr pursuit, acquire-hold motion, 75 s` (logged as `local-VLM`; see R-17).
 New lever: **motion-hold acquire** (`--acquire-hold motion`) — before the first lock, servo the PID
 on the largest ego-motion-compensated frame-diff blob, keeping the car in FOV across repeated VLM
 draws until one accepts. acquire_log (per-attempt raw box + accept flag) now captured (E5's blind

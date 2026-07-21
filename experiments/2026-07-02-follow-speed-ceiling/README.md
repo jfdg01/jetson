@@ -2,7 +2,7 @@
 
 **Pre-registered:** 2026-07-02T10:51Z (planning session; executor fills Results only).
 **Status:** DONE 2026-07-02T19:40Z — all three speeds FAIL; levers-on ceiling < 0.5 m/s (below
-Phase 1's oracle levers-off 1.0). See Results. Ran on the 3a rig (local-VLM path, local 3090 carry).
+Phase 1's oracle levers-off 1.0). See Results. Ran on the 3a rig (Jetson Q8_0 anchor over ssh, local 3090 carry). See the rig correction below.
 
 ## Research question
 
@@ -14,8 +14,7 @@ at 0.25 m/s. **Do the levers move the measured ceiling — from 1.0 m/s to what?
 ## Frozen design decisions (do not re-derive)
 
 - **Speeds:** 0.5, 1.0, 1.5 m/s — one SITL trial each, levers ON, on the integrated rig
-  (`phase3_sitl.py`, real Jetson acquire via `--remote` if 3b's server is up, else the local-VLM
-  path 3a used — record which). Phase 1's injected-latency trials are the levers-OFF baseline;
+  (`phase3_sitl.py`; the Jetson anchor is unconditional, so this pre-registered «record which» had only one possible answer — see the rig correction under Results). Phase 1's injected-latency trials are the levers-OFF baseline;
   do NOT rerun them.
 - **Patch 1 — `--speed` flag:** `phase3_sitl.py` line ~40 hardcodes `SPEED = 0.25`. Add
   `--speed` (float, default 0.25) to the argparse, thread it to wherever `SPEED` is read
@@ -55,9 +54,14 @@ finding?"`
 
 ## Results (2026-07-02T19:40Z)
 
-Ran on the local-VLM path (Jetson acquire not booted; `phase3_sitl.py --speed <v>`, no
-`--remote-carry`), local 3090 carry @1024, one trial each. Gate (local path) = in-FOV ≥ 0.90 AND
+Ran with the Jetson Q8_0 anchor and a local 3090 carry @1024 (`phase3_sitl.py --speed <v>`, no
+`--remote-carry`), one trial each.
+
+Gate = in-FOV ≥ 0.90 AND
 recovered_after_occlusion. Sweep runner: `run_e2.sh`. Raw per speed in `runs/speed-<v>/`.
+
+> **Rig correction (2026-07-21, R-17).** In this campaign "local-VLM" meant **local carry**, not a local VLM: `--remote-carry` is off, so SAM2 runs on the 3090. The anchor **always** ran on the Orin. `phase3_sitl.py` constructs `JetsonBackend(..., ssh_host="jetson")` unconditionally with no local fallback branch, and prints `[3] booting Jetson q8_0 server...` before every run; there is no `--remote` flag at all. The label propagated README to README saying the opposite of what the code did — against our own interest, since the anchor was in fact on-device. Artifact-side confirmation: `runs/speed-1.0/results.json` records `n_acquire_attempts: 32`, so inference did run.
+
 
 | speed (m/s) | in-FOV | relock | DR fired | verdict | failure mode |
 |---|---|---|---|---|---|

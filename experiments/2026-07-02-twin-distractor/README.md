@@ -68,7 +68,7 @@ judgment — the E2 precedent.)
 
 ## Executor handoff (prepped 2026-07-02T20:30Z, post-E2 — verified paths)
 
-**Rig:** same as E2 / 3a run 2 — local-VLM path (Jetson not needed; do NOT pass
+**Rig:** same as E2 / 3a run 2 — Jetson Q8_0 anchor over ssh, carry on the 3090 (do NOT pass
 `--remote-carry`), local 3090 carry @1024. Speed is the default 0.25 (E2's `--speed` flag is
 committed; don't pass it). Invocation shape:
 
@@ -118,7 +118,7 @@ boxes within 3× box diagonal) works in normalized coords; no image loading need
 ## Results (2026-07-02T20:35Z)
 
 Run: `bash experiments/2026-07-02-twin-distractor/run_e3.sh` (speed 0.25, levers on, local
-3090 carry @1024, local-VLM acquire). Snapshots in `runs/{s1-crossing,s2-decoy-run{1,2,3}}/`.
+3090 carry @1024, Jetson Q8_0 acquire). Snapshots in `runs/{s1-crossing,s2-decoy-run{1,2,3}}/`.
 All four trials PASS the base gate (in-FOV 1.000, recovered_after_occlusion). The twin verdict
 is a *separate* per-frame identity check (box-center distance to true car vs distractor).
 
