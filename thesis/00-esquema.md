@@ -161,8 +161,8 @@ se escribió para adornar resultados sino porque cambió varios**.
 | Categoría | N | Qué significa |
 |---|---|---|
 | Significativas tras Holm | 6 | Se pueden defender como efectos |
-| Sin prueba posible (0 discordantes o solo agregados) | 26 | No hubo contraste, en ninguna dirección |
-| Diseño incapaz de alcanzar alfa | 33 | Ningún resultado posible habría bastado |
+| Sin prueba posible (0 discordantes o solo agregados) | 30 | No hubo contraste, en ninguna dirección |
+| Diseño incapaz de alcanzar alfa | 35 | Ningún resultado posible habría bastado |
 | Sin datos crudos | 3 | En cola de re-ejecución, no se defienden |
 
 Las seis que sobreviven son la catástrofe de fidelidad de la Parte I, la escalera
@@ -175,7 +175,7 @@ Y tres correcciones que el re-análisis obliga a llevar al texto:
 
 - **Swin2SR no pierde en precisión** (ver Cap. 5). El descarte es por latencia.
 - **La catástrofe de la Parte I es la exportación, no la cuantización.** F16 contra Q8\_0 da b = 17, c = 10, p = 0,25: los 7 pp que el cuaderno atribuye al cuantizado no se distinguen del ruido. La brecha HF contra GGUF, en cambio, es significativa bajo **cualquier** emparejamiento compatible con los marginales (peor caso p = 1,3e-4), que es la forma correcta de defenderla cuando el brazo HF no dejó registro por elemento.
-- **El arrastre a 768 sí pierde precisión frente a 1024** (55 pistas contra 31, p = 0,013). La adopción de 768 nunca fue una afirmación de igualdad: era una cota de tamaño de efecto más una restricción de FPS, y hay que redactarla así.
+- **El arrastre a 768 no pierde precisión medible frente a 1024.** Por pista, 1024 gana 55 veces y 768 gana 31, p = 0,013 — pero las 186 pistas salen de 93 secuencias, y sobre esa unidad independiente la prueba de signos da b = 28, c = 16, **p = 0,096**, que Holm deja en 1. Un borrador anterior de este esquema afirmaba lo contrario (**corregido el 2026-07-21**, R-7): fue el propio re-análisis el que lo desmintió, porque las salvedades del registro se habían escrito antes de la deflación de R-4. La adopción de 768 nunca fue una afirmación de igualdad: era una cota de tamaño de efecto más una restricción de FPS, y hay que redactarla así.
 
 ### La topología real del banco
 
@@ -375,11 +375,15 @@ documento; el unilateral es la mitad y no se usa para decidir nada.
 
 | Resultado | Discordancia | McNemar exacto | Lectura |
 |---|---|---|---|
-| P5.1 WARM 5/6 vs COLD 1/6 | b = 4, c = 0 | p = 0,125 | No significativo por sí solo |
-| P5.2a WARM 21/25 vs COLD 5/25 | b = 16, c = 0 | **p = 3,05e-5** | **El ancla estadística de la parte**; sobrevive a Holm |
+| P5.1 WARM 5/6 vs COLD 1/6 | b = 2, c = 0 | p = 0,5 | No significativo por sí solo |
+| P5.2a WARM 21/25 vs COLD 5/25 | b = 15, c = 0 | **p = 6,10e-5** | **El ancla estadística de la parte**; sobrevive a Holm |
 | P5.10 DD 24/24 vs RG 24/24 | b = 0, c = 0 | **indefinido** | No hubo prueba, no hubo empate demostrado |
-| P5.13 y P5.17 | b = 1, c = 0 | p = 1,0 | No informativo en ninguna dirección |
-| P5.19 SWAP 20/26 vs P5.18 17/26 | b = 3, c = 0 | p = 0,25 | Compatible con el azar |
+| P5.13 y P5.17 | b = 0, c = 0 | **indefinido** | La única celda discordante se colapsa al agrupar por clip |
+| P5.19 SWAP 20/26 vs P5.18 17/26 | b = 2, c = 0 | p = 0,5 | Compatible con el azar |
+
+Todos los b/c de esta tabla son **posteriores a la deflación** por unidad
+independiente (R-4): las cifras sin deflactar, mayores, están en
+`thesis/stats-report.md` entre corchetes en cada fila.
 
 La fila de P5.10 estaba mal agrupada en el borrador anterior de este esquema, y
 la distinción importa: P5.13 y P5.17 **corrieron** una prueba que no separó nada,
@@ -394,11 +398,18 @@ De aquí salen dos consecuencias narrativas:
 ### Advertencia obligatoria sobre P5.19
 
 P5.19 pasa su listón **exactamente**, 20/26 contra un listón de 20. Con tres
-pares discordantes en una sola dirección, McNemar exacto bilateral da **p = 0,25**,
+pares discordantes en una sola dirección, McNemar exacto bilateral da p = 0,25,
 y el intervalo de Wilson al 95 % es [0,579, 0,890], que **cruza el listón de
 0,769**. La mejora es compatible con el azar al tamaño de muestra usado: harían
 falta **seis** pares discordantes en la misma dirección para alcanzar alfa a
 n = 26, y hubo tres.
+
+Y las 26 celdas no son 26 observaciones independientes: salen de **13 videoclips**.
+Deflactada a esa unidad, la discordancia baja a b = 2, c = 0 y **p = 0,5**, y el
+listón pre-registrado de 20/26 se convierte en 10/13 sobre una línea base de 8/13.
+El valor p no empeora de significativo a no significativo — nunca fue significativo.
+Lo que la deflación borra es el margen justo en la barra, que era precisamente el
+argumento que el resultado hacía.
 
 Se presenta como una señal a replicar, no como significativa. Y se argumenta
 **por replicación, no por p**: que P5.20 reprodujera P5.19 celda por celda, sin
@@ -610,6 +621,8 @@ Todo lo marcado como bajo desbloquea la mitad del documento y no exige GPU. La
 puede escribir el Cap. 5 declarando el pendiente en lugar de cerrándolo.
 
 ## Anexos previstos
+
+<!-- caption: Anexos previstos, con el fichero del repositorio que provee cada uno -->
 
 | Anexo | Contenido | Origen |
 |---|---|---|
