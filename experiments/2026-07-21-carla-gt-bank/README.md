@@ -225,6 +225,27 @@ Hz probe used 10 vehicles and no JPG encoding; the bank runs 80 with encoding), 
 finished in 61% of the estimated time, because the estimate had also over-budgeted setup and
 world-reload overhead per clip.
 
+### Consumer read-back (`check_bank.py`)
+
+Everything that had touched the bank was either the code that wrote it or
+`make_proof.py` pulling single frames. Nothing had loaded a whole clip the way P6.2 will, which is
+the same gap that let the first bank ship 77-80% empty. `check_bank.py` closes it — no server, no
+GPU, re-runnable by whoever inherits the bank:
+
+| assertion | result |
+|---|---|
+| every GT row has its `frames/NNNNN.jpg` | 25/25 clips |
+| frame indices are `0..n-1`, no gaps or repeats | 25/25 |
+| `gt.jsonl` line count == `manifest.frames` | 25/25 (1200 each) |
+| `box_vis` inside the image (2 px slack) | 897 864 boxes, 0 outside |
+| manifest `target_in_frame_frac` == recomputed | 25/25 within 0.002 |
+| `coverage >= 0.5` | 25/25 |
+
+The `target_in_frame_frac` row is worth its own line: it re-derives the backfilled field from
+`gt.jsonl` independently, so the backfill is confirmed rather than trusted.
+
+It found one real defect (item 9 below) and no structural ones. **The bank is consumer-readable.**
+
 ### What did not work
 
 **1. Uniform random camera placement produced a bank with no targets in it.** The first
@@ -322,6 +343,21 @@ world in `synchronous_mode` left CARLA wedged; the next run core-dumped, and a l
 with `trying to create rpc server for traffic manager; but the system failed to create because of
 bind error` — a stale client still holding Traffic Manager port 8000. Recovery is `pkill -9 -f
 CarlaUE4`, confirm with `ss -ltnp | grep -E ':8000|:2100'`, and kill the holding pid explicitly.
+
+**9. Frame-edge slivers serialise as degenerate boxes.** `clip_to_frame` is exact and rejects
+zero-area boxes — but `gt.jsonl` stores 2 decimal places, so a car 0.002 px inside the frame edge
+passes `x2 > x1` in float and then writes `[640.0, y1, 640.0, y2]`. A consumer computing IoU
+against that divides by zero, for a target not meaningfully on screen at all. The bug was in
+serialisation, not geometry, which is why every geometric test passed. Fixed in `_row` (drop the
+box at the precision it is stored at) with a test confirmed to fail when the fix is reverted.
+
+**The shipped bank predates the fix and carries 19 such boxes in 897 864 (2.1e-05).** It is *not*
+being recaptured for them: on-screen counts run 9-55 boxes per frame, so 19 across the whole bank
+cannot move any published number, and a 36.5 min recapture would invalidate the numbers already
+written up here for a defect a consumer can filter in one line. `check_bank.py` therefore gates the
+*rate* at 1e-4 (~5x measured) rather than asserting per box — tight enough to trip a real clipping
+regression, loose enough to pass the known artifact. Recorded rather than hidden, because a
+tolerance nobody wrote down is indistinguishable from a bug nobody found.
 
 ## Proof deliverables
 
