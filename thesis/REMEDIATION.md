@@ -953,3 +953,45 @@ Recorded so a future session does not re-propose them:
 - **Do not grow Part VI** beyond "infrastructure built, claim not yet made" until
   R-12/R-4/R-13/R-14 are done.
 - **Do not port SAM2 in order to rescue P5.19.** See R-16.
+
+---
+
+## In-flight at 2026-07-21T22:55Z (session ended on a token budget, not on completion)
+
+Two jobs were running when this session stopped. Neither is finished; neither is lost.
+
+**R-14 — RUNNING on the Orin.** Launched as:
+
+```bash
+PYTHONPATH=. nohup .venv-ft/bin/python experiments/2026-07-21-roi-ondevice/run_r14.py \
+  > experiments/2026-07-21-roi-ondevice/raw/run.log 2>&1 &
+```
+
+Last seen at `84/439 parsed=84 gate_hits=60` on arm A (71% gate rate, consistent with the 63.1%
+control expectation at this sample count). Arm A is ~4.3 s/sample, arm B ~2.0 s/sample, so the
+whole thing is ~50 min from launch. Rows land incrementally in
+`experiments/2026-07-21-roi-ondevice/raw/{items,calls}-{full,roi}.jsonl`, so a dropped tunnel
+leaves a partial arm that is still analysable.
+
+**To resume:** check `pgrep -f run_r14.py`. If the process is gone and
+`experiments/2026-07-21-roi-ondevice/results.json` exists, the run completed — fill in that
+campaign's `## Results (TBD)` table from it, answer RQ-R14.1/2/3, write `make_proof.py` plus the
+three named figures, append RESULTS/QUESTIONS Part III, and add the registry entry. If the
+process is gone and there is no `results.json`, the run died: kill any leaked
+`ssh jetson 'pgrep -a llama-server'` and re-run from scratch. Do not patch a partial arm.
+
+**R-21 — a 6-agent workflow was mid-edit.** Agents had already modified `README.md`,
+`docs/results/part2-rebuild.md`, `part3-permanence.md` and `part4-end-to-end.md`; the part1,
+part5 and part6 agents had not yet landed. **These edits are uncommitted and unreviewed.**
+Before trusting them, `git diff` each file and check the rewrite against the artifact the sweep
+cites — the agents were told to verify before rewriting, but that instruction is not a
+guarantee. `thesis/provenance-resolutions.json` was never written, so
+`thesis/make_provenance_sweep.py` still reports all 74 rows as open; regenerate it only after
+the resolutions file exists.
+
+**R-13 — pre-registered, not started.** `experiments/2026-07-21-detector-baseline/README.md` is
+complete and committed: OWLv2 vs the deployed VLM on the Orin, with the D-full / D-head /
+D-oracle decomposition that keeps it from being a strawman. It is blocked on R-14 (which supplies
+the VLM comparator and is holding the board) and on installing `transformers` into the Jetson's
+existing torch venv. The install path is recorded in that README; the constraint is that
+`~/sam2-bench/.venv` holds the JetPack aarch64 torch wheel and no package manager may replace it.
