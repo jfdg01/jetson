@@ -15,7 +15,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | ID | Task | Blocks | Status |
 |---|---|---|---|
 | R-1 | Scope + disclosure decision on which machine ran what | R-2, R-6 | **DONE** |
-| R-2 | `machine` field on all 65 claims | R-6, R-9 | TODO |
+| R-2 | `machine` field on all 65 claims | R-6, R-9 | **DONE** |
 | R-3 | Fix `paired-binary` skipping deflation in `grounding/stats.py` | R-9 | **DONE** |
 | R-4 | Apply the pseudo-replication rule to `n_effective` | R-9 | **DONE** `1acb332` |
 | R-5 | Shadow-RG re-analysis + Chapter 7 rewording | — | TODO |
@@ -81,14 +81,29 @@ board before adding one.
 `thesis/claims.json` has no way to say where a number came from, which is exactly
 how "todo corre en la placa" survived in `README.md`.
 
-**Precondition:** R-1 (the per-Part table is the input).
-**Expected output:** every claim in `thesis/claims.json` carries `machine` ∈
-`{jetson-orin-nano-8gb, rtx-3090, both, n/a}`, and
-`MAX_CLAIMS_WITHOUT_MACHINE` in `tests/test_thesis_integrity.py` is lowered to 0.
-**Done when:** `make test` is green with the ceiling at 0.
+**Precondition:** R-1 (the per-Part table is the input). — DONE 2026-07-21T18:55Z
 
-Partial credit counts — lower the ceiling to whatever you reach and commit. That is
-what the ratchet is for.
+**Landed.** All 65 claims carry `machine`; `MAX_CLAIMS_WITHOUT_MACHINE` is 0, so the
+ratchet is now a hard rule. `stats-report.md` renders the value as a **Máquina**
+column, which is what makes it readable rather than merely present.
+
+Distribution, and it is the finding: **47 `both`, 13 `rtx-3090`, 3
+`jetson-orin-nano-8gb`, 2 `n/a`.** Only three claims in the whole thesis were measured
+wholly on the board — `P1-S1.2-zeroshot-smolvlm`, `P3-wholeframe-resolution-knee`,
+`P3-E1-TRT-fps`. Everything in the Part IV/V arc is `both`, because the VLM anchor ran
+on the Orin while the SAM2 carry ran on the 3090 under the rate cap. That is not a
+scandal — see D-MACH.1 for why the split is sound — but «todo corre en la placa» cannot
+survive it as written, which is exactly what R-6 has to fix.
+
+Assignment was mechanical from `raw/machine-audit.json` except for 13 judgement calls
+(the three `stage1-baseline` sub-phases on different hosts, the five Part II claims
+that cite `runners/runs/` and so name no campaign, the two `missing` Part III claims,
+and three where the off-device half was only an ssh driver). Each is listed with its
+reason in the R-1 README.
+
+`test_on_device_claims_really_are_on_device` pins the three-claim on-device set by name.
+It is the value that carries the thesis premise, so it should not be able to grow
+quietly.
 
 ## R-3 — `paired-binary` skips deflation
 

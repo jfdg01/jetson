@@ -122,7 +122,7 @@ def test_deflated_claims_explain_themselves(claims):
 # Lower these as the remediation tasks in thesis/REMEDIATION.md land. Never raise
 # one: a rising ceiling is the regression this file exists to prevent.
 
-MAX_CLAIMS_WITHOUT_MACHINE = 65  # R-2. Target 0.
+MAX_CLAIMS_WITHOUT_MACHINE = 0  # R-2. Reached 2026-07-21; this one is now a hard rule.
 
 
 def test_machine_field_coverage_ratchet(claims):
@@ -130,12 +130,14 @@ def test_machine_field_coverage_ratchet(claims):
 
     The thesis premise is edge deployment on a Jetson Orin Nano. A number
     measured on an RTX 3090 does not support that premise, and the registry
-    currently cannot tell the two apart. See HANDOFF.md invariant 3.
+    could not tell the two apart until R-2. See HANDOFF.md invariant 3.
+
+    Ratchet closed at 0 - a new claim without `machine` now fails outright.
     """
     without = [c["id"] for c in claims if not c.get("machine")]
     assert len(without) <= MAX_CLAIMS_WITHOUT_MACHINE, (
         f"{len(without)} claims lack a `machine` field, ceiling is "
-        f"{MAX_CLAIMS_WITHOUT_MACHINE}. Ratchet went the wrong way."
+        f"{MAX_CLAIMS_WITHOUT_MACHINE}. Ratchet went the wrong way: {without[:5]}"
     )
     if len(without) < MAX_CLAIMS_WITHOUT_MACHINE:
         pytest.fail(
@@ -144,6 +146,26 @@ def test_machine_field_coverage_ratchet(claims):
             f"{len(without)} in this file and commit.",
             pytrace=False,
         )
+
+
+def test_on_device_claims_really_are_on_device(claims):
+    """R-2. `jetson-orin-nano-8gb` is the load-bearing value; keep it earned.
+
+    The whole point of the field is that «runs on the board» must be checkable.
+    Only three claims carry it, and each is a number the Orin produced end to
+    end. Anything that leans on the rate-capped 3090 carry is `both`, not
+    Jetson - that distinction is the finding, so pin it.
+    """
+    on_device = {c["id"] for c in claims if c.get("machine") == "jetson-orin-nano-8gb"}
+    assert on_device == {
+        "P1-S1.2-zeroshot-smolvlm",
+        "P3-wholeframe-resolution-knee",
+        "P3-E1-TRT-fps",
+    }, (
+        "the set of wholly-on-device claims changed. If that is deliberate, update "
+        "this test AND experiments/2026-07-21-machine-disclosure/README.md, which is "
+        f"where each assignment is justified. Got: {sorted(on_device)}"
+    )
 
 
 def test_machine_values_are_from_the_known_set(claims):

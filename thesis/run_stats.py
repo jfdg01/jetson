@@ -43,6 +43,13 @@ PROOF = THESIS / "proof"
 # The registry keys stay English and code-like so they are stable identifiers;
 # only the rendered table is Spanish. A Spanish table with English cells reads
 # as a translation someone abandoned halfway.
+MACHINE_ES = {
+    "jetson-orin-nano-8gb": "Jetson",
+    "rtx-3090": "3090",
+    "both": "**ambas**",
+    "n/a": "—",
+}
+
 DESIGN_ES = {
     "paired-binary": "binario pareado",
     "single-arm-binary": "binario de un brazo",
@@ -172,10 +179,17 @@ def main() -> int:
         "casi siempre por 0 pares discordantes. `alcanzable = no` significa que el",
         "diseño no podía llegar a alpha = 0,05 con ningún resultado posible.",
         "",
+        "La columna **Máquina** dice qué hardware produjo el número. `ambas` es la",
+        "respuesta honesta y mayoritaria en las Partes IV-V: el anclaje del VLM corrió",
+        "en la Jetson mientras el arrastre de SAM2 corría en la RTX 3090 con un tope",
+        "de tasa. Sólo tres afirmaciones se midieron íntegramente en la placa. La",
+        "derivación por afirmación está en",
+        "`experiments/2026-07-21-machine-disclosure/README.md`.",
+        "",
         "<!-- caption: Re-análisis exacto de las afirmaciones con puerta, con corrección de Holm-Bonferroni -->",
         "",
-        "| Afirmación | Parte | Diseño | n efectivo | Prueba | p | p (Holm) | Alcanzable | Lectura |",
-        "|---|---|---|---|---|---|---|---|---|",
+        "| Afirmación | Parte | Diseño | Máquina | n efectivo | Prueba | p | p (Holm) | Alcanzable | Lectura |",
+        "|---|---|---|---|---|---|---|---|---|---|",
     ]
     for c in claims:
         o = outcomes[c.id]
@@ -183,7 +197,7 @@ def main() -> int:
         ph = holm[c.id]["p_holm"]
         ph_s = "—" if ph != ph else f"{ph:.4g}"
         lines.append(
-            f"| {c.id} | {c.part} | {DESIGN_ES.get(c.design, c.design)} | {c.n_effective} | {o.test} | "
+            f"| {c.id} | {c.part} | {DESIGN_ES.get(c.design, c.design)} | {MACHINE_ES.get(c.machine, c.machine or '—')} | {c.n_effective} | {o.test} | "
             f"{p} | {ph_s} | {'sí' if o.could_ever_reach_alpha else '**no**'} | {o.reading} |"
         )
 

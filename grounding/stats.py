@@ -283,6 +283,13 @@ class Claim:
     # the machine anchor that lets a test count the distinct source clips itself
     # and refuse an n_effective the data does not support (R-4).
     scene_set: str | None = None
+    # Which machine produced the number (R-2). `both` is the common and honest
+    # answer across Parts IV-V: the VLM anchor ran on the Orin while the SAM2
+    # carry ran on the 3090 under a rate cap. The thesis premise is edge
+    # deployment, so a claim that cannot say where it was measured cannot be
+    # cited in support of it. Derivation per claim:
+    # experiments/2026-07-21-machine-disclosure/README.md.
+    machine: Literal["jetson-orin-nano-8gb", "rtx-3090", "both", "n/a"] | None = None
     # design-specific payload
     counts: dict = field(default_factory=dict)
     gate_p: float | None = None
