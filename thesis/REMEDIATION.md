@@ -33,7 +33,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-17 | Fix E2–E4 rig prose | R-7 | TODO |
 | R-18 | Rebalance `thesis/00-esquema.md` to the surviving evidence | R-9 | TODO |
 | R-19 | Stale-verdict sweep of the first-read surfaces | after R-4 | TODO |
-| R-20 | Translate the 65 `caveats` to Spanish | R-12 | IN PROGRESS |
+| R-20 | Translate the 65 `caveats` to Spanish | R-12 | **DONE** |
 
 R-12..R-18 come from the sufficiency audit (`wf_b81c3191-d12`, 6 agents,
 2026-07-21T21:05Z). **Verdict: the thesis is sufficient — YES, without running a
@@ -306,6 +306,29 @@ defect list and its resolution recorded here.
 **Done when:** `test_every_caveat_reaches_the_report` still passes after regeneration
 (it compares registry text against report text, so a partial translation breaks it), and
 an NFD fold over the report finds no unaccented Spanish.
+
+**DONE** (`6d08507`+). 65/65 translated, three translator agents, three adversarial verifiers
+on the five named failure modes.
+
+*Verifier defects: 2, both minor, both applied.* `E14-identity-hole` — mode E, ungrammatical
+`falló después esa misma pata` (missing preposition). `P5.5-select-generalization` — mode B,
+the object pronoun in "two failures survived **it**" was dropped, which lost the load-bearing
+point that the failures survived *the idle re-anchor* specifically. **Zero softening defects
+(mode A) and zero number drift (mode C) were reported.**
+
+*Independent mechanical checks, not delegated:* numeric-literal multisets identical
+across all 65 pairs (0 drift); no `\d,\d` comma-decimal leak; length ratio ES/EN within
+[0.85, 1.55] for all 65, so nothing was silently dropped or padded; a curated
+unaccented-Spanish scan over the rendered report (`-ción`/`-sión` endings plus the usual
+suspects, with code spans and paths stripped) returns none. `P5.18-n25-wsel` contains no
+accented characters and is correct — none of its words take one.
+
+The English originals are preserved as `caveats_en` in the registry so drift can be audited
+later without git archaeology; `load_claims()` drops the field, so it is provenance and never
+report content.
+
+*Residual:* the translation was verified for meaning-preservation, not blessed by a native
+reader. If a caveat later reads oddly in the defended text, `caveats_en` is the reference.
 
 ## R-13 — Detector baseline
 

@@ -58,7 +58,11 @@ def stamp() -> str:
 
 def load_claims() -> tuple[list[Claim], list[dict]]:
     reg = json.loads(REGISTRY.read_text())
-    claims = [Claim(**{k: v for k, v in c.items() if k != "rerun"}) for c in reg["claims"]]
+    # `caveats_en` is the pre-translation English original, kept in the registry so a
+    # later audit can diff it against the Spanish without git archaeology (R-20). It is
+    # provenance, not report content, so it never reaches Claim.
+    drop = {"rerun", "caveats_en"}
+    claims = [Claim(**{k: v for k, v in c.items() if k not in drop}) for c in reg["claims"]]
     backlog = [c for c in reg["claims"] if c.get("rerun")]
     return claims, backlog
 
