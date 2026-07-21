@@ -78,8 +78,12 @@ Estas son las cifras concretas, todas de este repositorio, todas trazables a un
   de capacidad P6.0 (`f1e58e9`). El más instructivo: ByteTrack solo re-emparejaba
   las pistas perdidas contra detecciones de puntuación baja, de modo que una pista
   perdida nunca se recuperaba — se sustituía por un identificador nuevo. La métrica
-  «0 pérdidas de pista» era **perfecta por estar rota**. El error de píxel pasó de
-  64,7 a 36,0 al arreglarlo.
+  «0 pérdidas de pista» quedó desautorizada de paso. El error de píxel pasó de
+  64,7 a 36,0 al arreglarlo. La auditoría R-10 añadió después el segundo giro: la
+  métrica era vacua, pero **no por el fallo** — sólo se dispara tras 1,5 s sin
+  ninguna detección, y ese caso nunca se dio ni antes ni después. Un agente
+  desautorizó la cifra correcta con el argumento equivocado, y hasta la
+  auditoría eso se leía como diligencia.
 - **Verdictos obsoletos en las superficies de lectura primera** (`751c504`):
   dieciséis memorias, el bloque de la Parte V de `CLAUDE.md` y trece secciones del
   libro de preguntas afirmaban como establecidos resultados que el re-análisis

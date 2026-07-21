@@ -46,7 +46,8 @@ Two rig defects found, both silent for a month:
 2. **ByteTrack never re-found a lost track.** Lost tracks were matched only against *low*-score
    detections, so a sparse `score=1.0` source spawned a new ID on every detection. No track ever
    got a second measurement, so Kalman velocity stayed 0 and the "coast" was zero-order hold.
-   The "0 track losses" metric was vacuous — a track never died, it was continuously replaced.
+   The "0 track losses" metric was vacuous, though **not for the reason first recorded** — see the
+   vacuous-metric audit below.
 
 **Retraction (Part I).** Phase C Branch-2's live-VLM numbers — valid_rate 12.5%, px_err 190.5,
 track_cov 20.7%, 19 track losses — are **withdrawn**: the VLM was grounding in a blank gray
@@ -72,20 +73,96 @@ G6 (grounding, pre-registered **non-gating**) **NOT RUN**.
 | G2 render | PASS | dominant-colour fraction **0.007–0.026** (gate < 0.99), frames opened with the Read tool |
 | G3 pose slaving | PASS | copter flew **0 → 84.4 m north** under its own GUIDED control at a held 60.0 m; content at ticks 150/300/599 distinct and consistent with position; nadir `pitch=-90` confirmed by viewed frame |
 | G4 traffic | PASS | **40/40** vehicles spawned with autopilot; first vs last frame not byte-identical |
-| G5 rate | PASS | **48.1 Hz** mean (gate >= 20 Hz, 2.4x the P6.0 control rate); 5/599 ticks under 15 Hz, all in the first ~5 s of cold shader compilation |
+| G5 rate | PASS | **48.1 Hz** mean — *render-loop wall throughput of a bare client*, no perception in the window (gate >= 20 Hz); 5/599 ticks under 15 Hz, all in the first ~5 s of cold shader compilation. The "2.4x the control rate" reading is withdrawn: see the audit below |
 | G6 grounding | **NOT RUN** | see the correction below — first recorded as blocked by a missing checkpoint, which was wrong |
 
 Sizing observation (non-gating, pre-registration input for P6.2): at 90 deg FOV nadir, a car is
 ~10 px at 100 m, ~25x50 px at 60 m, and at 30 m the frame is mostly building facade. **60 m is the
 working altitude for P6.2.**
 
-**`slave_err_mean_m = 0.000` in `results.json` is vacuous — do not cite it.** CARLA's free camera is
-a kinematic actor, so `get_transform()` returns exactly what `set_transform()` was handed; the
-metric compares a number against itself. Same failure shape as P6.0's "0 track losses". What
-evidences G3 is that the *pose source* moved 84.4 m under closed-loop autopilot control and the
-*rendered content* changed accordingly across three frames that were opened and viewed.
+### Vacuous-metric audit (R-10, 2026-07-21)
 
-**Estimate vs actual.** Render rate landed mid-range as predicted (48.1 vs 30–60 Hz estimated) and
+Three Part-VI numbers were re-derived from the artifacts. All three are worse than the
+ledger said, and two were disowned for the wrong reason.
+
+**`slave_err_*` — vacuous, and the published value is not in the file.** The camera is a
+spawned, unattached `sensor.camera.rgb`: a kinematic actor with no dynamics, so
+`get_transform()` returns the transform `set_transform()` was handed one line earlier
+(`world.tick()` sits between them, so there is not even a sync-mode race to measure). The
+artifact holds `slave_err_mean_m = 1.815e-06`, not `0.000` — the zero is the `:.3f` print
+format, so a reader grepping `results.json` for the published number will not find it. The
+residual is float32 round-trip noise: it does not correlate with per-tick speed (r = +0.02)
+and is 5 orders of magnitude below the 0.143 m the camera moves per tick.
+
+Two things the earlier note missed. The metric reads `.location` only, so **rotation is
+never compared** — and `pose_track[:, 3]` (yaw) holds exactly **one distinct value, 0.0,
+across all 600 ticks**, because `MavlinkPose` fills yaw from a non-blocking `ATTITUDE` poll
+that never delivered, the same silent-stream failure the campaign already documents for
+`LOCAL_POSITION_NED`. Nobody noticed *because* `slave_err` cannot see rotation. The renderer
+was **position-slaved**, not pose-slaved; the consequence is bounded only because the camera
+is fixed nadir.
+
+**A non-vacuous replacement, computed from the committed artifact** (no re-run;
+`pose_staleness.py` in the campaign dir): `MavlinkPose.__call__` drains non-blocking and
+returns `self.last` when no new sample arrived, so every tick with a repeated `pose_track`
+row rendered the camera where the aircraft *was*.
+
+| quantity | value |
+|---|---|
+| render ticks reusing a stale pose | **362 / 599 = 60.4%** |
+| fresh `LOCAL_POSITION_NED` samples | 237 (19.0 Hz) |
+| inter-sample gap, mean / max | 0.053 s / **0.547 s** |
+| aircraft speed, median | 7.21 m/s |
+| implied camera lag, typical / worst | 0.38 m / **3.9 m** |
+
+That is a real, falsifiable, nonzero slaving error, ~6 orders of magnitude larger than the
+metric that was published, and it fails in the right direction when the pose stream stalls.
+It is a **lower bound**: `pose_track` stores no `time_boot_ms`, so the SITL-side
+sensor-to-wire latency is not recoverable from disk.
+
+**48.1 Hz — measurement point stated, and the headroom claim withdrawn.** It is
+`1/mean(diff(wall stamps))` around `set_transform` + `world.tick()` + `get_transform()` in
+`carla_render.py`. No VLM, no SAM2, no ByteTrack, no PID, no JPEG, no transport is inside
+that window — grepping the renderer for any of them returns only comments. It is the CARLA
+server's render+step throughput as seen by a bare client, and it is not a system rate under
+any reading.
+
+Worse, the run was **synchronous mode**: 600 ticks x `fixed_delta_seconds` 0.05 = 30 s of
+simulated time delivered in 12.46 s of wall time, so the sim ran **2.41x faster than real
+time** while SITL, the pose source, ran on the wall clock. The 40 autonomous vehicles
+experienced 30 s of driving while the copter experienced 12.5 s of flight. And
+`48.08 / 19.93 = 2.41` is the *same number* as `30 s / 12.46 s`, because `FIXED_DT` equals
+the control period — so "2.4x the P6.0 control rate" was never headroom, it was a
+restatement of the clock skew. That reading is withdrawn everywhere.
+
+The figure is also **not reproducible from HEAD**: `87a5b48` rewrote the loop to async with
+a wall-clock pacer and `sensor_tick = 0.05`, landing 3.5 h after the results were committed.
+Re-running the documented command today yields ~20 Hz by construction. The as-run code is
+`d925c74:runners/carla_render.py`.
+
+**What still evidences G3** is unchanged and does not depend on any of the above: the pose
+source moved 84.4 m under closed-loop autopilot control and the rendered content changed
+accordingly across three frames that were opened and viewed.
+
+**"0 track losses" (P6.0) — vacuous, but the recorded mechanism is wrong.** The ledger says
+it was vacuous *because of* the ByteTrack re-find bug. It was not. The counter increments
+only when `tracker.update()` returns an empty list, which needs `MAX_LOST_FRAMES = 30`
+frames at `CONTROL_HZ = 20` — **1.5 s with no detection at all**. That branch was equally
+reachable before and after the fix; the bug changed ID churn and Kalman velocity, not the
+emptiness condition. What makes the `0` uninformative is that the 1 Hz `score=1.0` injection
+never produced a 1.5 s drought, and the one run designed to force one (`GAP_INJECT_RUN = 3`)
+never executed — every committed artifact is `run1`. The proof is that the maximally-broken
+pre-fix run (40 IDs, px_err 64.7) and the fixed run (7 IDs, 36.0) **both report 0**: a metric
+identical across a defect that nearly doubled the pixel error has no diagnostic power for the
+property it gated. Honest phrasing: *0 track losses means the detection supply never stalled;
+it is not evidence the loop held the target, before or after the fix.* Related: `LOST_TIMEOUT_S
+= 3.0` in `run_phase_c.py` is dead code — the implemented threshold is 1.5 s, half the
+documented value — and no `results.json` exists for P6.0 at all, so the `0` is prose; it is
+reconstructable from the `track_id` column of the four CSVs, and reconstructing it gives 0
+empty-track frames in all four.
+
+**Estimate vs actual.** Render rate landed mid-range as predicted (48.1 vs 30–60 Hz estimated — but see
+the audit above for what that rate is and is not) and
 the renderer swap was uneventful. The 2–4 h estimate ran to ~5 h and the ~150-line runner estimate
 to 387 lines, all of it in the unforeseen risk: driving SITL without MAVProxy. Eight silent
 failures, chief among them that ArduPilot streams almost nothing to a GCS that never requests it —

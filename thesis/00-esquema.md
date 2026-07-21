@@ -465,18 +465,21 @@ delante de un copter volando — ArduCopter SITL [@ardupilot] como física, CARL
 píxeles pasen a ser consecuencia de la propia salida de control. Es la etapa SIL
 del marco de [@jiang2025dronepipeline].
 
-- **P6.0**, puerta de capacidad: PASS. Encontró un fallo de re-emparejamiento en ByteTrack [@zhang2022bytetrack] que convertía el "coasting de Kalman" en un mantenedor de orden cero y hacía **vacua** la cifra de "0 pérdidas de pista". Error de píxel 64,7 a 36,0.
-- **P6.1**, cambio de renderizador: YES. 48,1 Hz con 40 vehículos autónomos siguiendo un vuelo GUIDED real (0 a 84,4 m a 60 m sobre el terreno), con la pila de control intacta.
+- **P6.0**, puerta de capacidad: PASS. Encontró un fallo de re-emparejamiento en ByteTrack [@zhang2022bytetrack] que convertía el «coasting de Kalman» en un mantenedor de orden cero. Error de píxel 64,7 a 36,0.
+- **P6.1**, cambio de renderizador: YES. 48,1 Hz —tasa del bucle de renderizado, sin percepción dentro de la ventana— con 40 vehículos autónomos siguiendo un vuelo GUIDED real (0 a 84,4 m a 60 m sobre el terreno), con la pila de control intacta.
 - **Banco GT de CARLA** (2026-07-21): 25 clips, 30.000 frames con verdad-terreno por actor proyectada, puertas G-A PASS / G-B CERRADA / G-C PASS.
 
 ### Tres cifras de este capítulo que NO deben citarse
 
-Es el capítulo con más métricas vacuas del proyecto, y todas lo son por la misma
-razón: miden un número contra sí mismo.
+Es el capítulo con más métricas vacuas del proyecto. La auditoría R-10
+(2026-07-21) las revisó una por una contra los artefactos y encontró que **la
+razón que el cuaderno les atribuía era la equivocada en dos de las tres**. Esa
+corrección es en sí misma contenido: una métrica se puede desautorizar por el
+motivo incorrecto y seguir pareciendo bien auditada.
 
-- **`slave_err` = 0,000 m.** La cámara libre de CARLA es un actor cinemático, luego `get_transform()` devuelve exactamente lo que `set_transform()` le acaba de pasar. Se conservó en el `results.json` y se excluyó deliberadamente de la figura para que nadie la confunda con evidencia. Lo que sí evidencia el esclavizado es que la **fuente** de pose recorrió 84,4 m bajo control del autopiloto.
-- **"0 pérdidas de pista" antes del arreglo de P6.0.** Una pista nunca moría: se sustituía continuamente por un ID nuevo. El par antes/después debe presentarse junto o el lector lee el 100 % previo como salud.
-- **Los 48,1 Hz como tasa disponible para trabajo real.** Se midieron a 640x480, 40 vehículos, sin proyección de verdad-terreno ni escritura JPEG y **sin límite de potencia**. El banco GT, en el mismo servidor y mapa pero con 80 vehículos, proyección por actor, escritura JPEG y la GPU limitada a 200 W, sostiene **15,88 Hz**. No son comparables.
+- **`slave_err` = 0,000 m.** La cámara es un `sensor.camera.rgb` sin `attach_to`: un actor cinemático sin dinámica, luego `get_transform()` devuelve exactamente lo que `set_transform()` le acaba de pasar. Tres matices que R-10 añade. Primero, **el 0,000 no está en el fichero**: el artefacto guarda `1,815e-06`, y el cero es el formato de impresión `:.3f`, de modo que quien busque la cifra publicada dentro del `results.json` no la encontrará. Segundo, la métrica sólo lee `.location`, así que **no compara la rotación** — y el guiñada del `pose_track` tiene **un único valor, 0,0, en los 600 ticks**, porque el sondeo `ATTITUDE` nunca entregó nada: el renderizador estaba esclavizado **en posición**, no en pose, y nadie lo vio precisamente porque la métrica es ciega a la rotación. Tercero, **sí existe un sustituto no vacuo y se calcula del artefacto ya comprometido**: los ticks que reutilizan una pose MAVLink caducada son el 60,4 %, el hueco máximo entre muestras frescas es 0,547 s y a 7,21 m/s eso son ~3,9 m de retraso de cámara en el peor caso. Es seis órdenes de magnitud mayor que la cifra publicada.
+- **«0 pérdidas de pista» en P6.0.** El cuaderno lo atribuía al fallo de ByteTrack; **es falso**. El contador sólo se incrementa cuando el rastreador devuelve una lista vacía, lo que exige `MAX_LOST_FRAMES = 30` fotogramas a 20 Hz, es decir **1,5 s sin ninguna detección**, y esa rama era igual de alcanzable antes y después del arreglo. Lo que hace inútil el `0` es que la inyección a 1 Hz nunca produjo una sequía de 1,5 s, y la única ejecución diseñada para forzarla (`GAP_INJECT_RUN = 3`) nunca se lanzó. La prueba está en la propia tabla: la ejecución rota (40 IDs, 64,7 px) y la arreglada (7 IDs, 36,0 px) **reportan ambas 0**. Enunciado correcto: *0 pérdidas de pista significa que el suministro de detecciones nunca se cortó; no es evidencia de que el lazo mantuviera el objetivo.*
+- **Los 48,1 Hz como tasa disponible para trabajo real.** Se midieron a 640x480, 40 vehículos, sin proyección de verdad-terreno ni escritura JPEG y **sin límite de potencia**, y sobre todo **sin percepción dentro de la ventana de medida**: ni VLM, ni SAM2, ni ByteTrack, ni PID. El banco GT, en el mismo servidor y mapa pero con 80 vehículos, proyección por actor, escritura JPEG y la GPU limitada a 200 W, sostiene **15,88 Hz**. No son comparables. Y el «2,4x la tasa de control» queda **retirado**: la ejecución fue en modo síncrono, 600 ticks de 0,05 s de tiempo simulado entregados en 12,46 s de reloj de pared, así que el simulador corrió 2,41x más rápido que el tiempo real mientras SITL, la fuente de pose, iba a reloj de pared. `48,08 / 19,93` y `30 / 12,46` son **el mismo 2,41**: la supuesta holgura era el desfase de reloj reenunciado.
 
 ### Síncrono contra asíncrono: la distinción que hay que declarar siempre
 
@@ -513,7 +516,7 @@ ruido de planificación), no exacta.
 Son aportación metodológica, no anécdota:
 
 - **La cámara apuntaba al cielo.** Un pitch de `+pi/2` en Gazebo es **abajo**, no arriba. Durante toda una fase el log salía limpio, se escribían ficheros bien formados, y la conclusión asociada (RQ-S1.4) hubo que **retirarla**: se había medido a través de una imagen gris plana, 100 % de un solo color. Es el caso concreto que motivó la regla de verificación visual del proyecto. En trabajo de simulación, **un `exit 0` no es evidencia sobre píxeles**.
-- **La métrica vacua.** El fallo de ByteTrack producía "0 pérdidas de pista" precisamente porque las pistas perdidas nunca se re-emparejaban. Una métrica puede ser perfecta por estar rota.
+- **La métrica vacua, y el diagnóstico vacuo de la métrica vacua.** «0 pérdidas de pista» no medía nada, y el cuaderno lo desautorizó por el motivo equivocado: culpó al fallo de ByteTrack cuando el contador exigía 1,5 s sin detección alguna, algo que el arnés nunca produjo ni antes ni después del arreglo. La lección de segundo orden es la útil: **desautorizar una métrica no es lo mismo que entenderla**, y una nota de «no citar esta cifra» puede envejecer tan mal como la cifra.
 
 ## Capítulo 9 — Amenazas a la validez
 

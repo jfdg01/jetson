@@ -98,11 +98,19 @@ the world, the vehicle model, and the runner around a plugin that is installed b
   whether to retrain now or when a re-export is actually wanted. Flagged in the P6.1 README
   residuals so the decision is made deliberately rather than discovered later.
 - **Name the vacuous slaving-error metric instead of deleting or citing it.** `slave_err_*` is
-  identically zero because CARLA's free camera is kinematic — it compares a number against itself.
-  Deleting it hides that the check was attempted; citing it fabricates a result. It stays in
-  `results.json`, is flagged in the README and the results ledger, and is deliberately **not**
-  plotted in the proof figure. *Precedent:* P6.0's "0 track losses", the same failure shape found
-  one experiment earlier.
+  float noise because the camera is an unattached `sensor.camera.rgb`, a kinematic actor — it
+  compares a number against itself. Deleting it hides that the check was attempted; citing it
+  fabricates a result. It stays in `results.json`, is flagged in the README and the results ledger,
+  and is deliberately **not** plotted in the proof figure. *Precedent:* P6.0's "0 track losses",
+  the same failure shape found one experiment earlier.
+- **Replace `slave_err_*` rather than only disowning it (R-10, 2026-07-21).** Naming a vacuous
+  metric is the right *first* move but it leaves the property unmeasured. The audit found the
+  replacement was computable from the already-committed artifact: consecutive identical
+  `pose_track` rows are the ticks that reused a stale MAVLink pose, giving 60.4% stale ticks and a
+  worst-case camera lag of ~3.9 m. *Given up:* nothing — no re-run was needed. *What this changes
+  going forward:* when a metric is disowned as vacuous, the next question is not "is it flagged"
+  but "what on disk measures the thing it was supposed to". Two of the three Part-VI vacuous
+  metrics turned out to have an answer.
 - **Verify every camera-axis sign against a viewed frame before recording any number.** Direct
   consequence of the Phase C sky-camera defect, where `+pi/2` aimed the camera up for a month and
   produced a *confirmed* negative on a blank image. The NED to Unreal mapping turned out correct

@@ -124,7 +124,24 @@ lands in round 1, never matches a lost track, and falls through to "create new t
 - and the advertised "Kalman coast" silently degraded to **zero-order hold** — the box froze
   between detections while the target kept moving.
 
-The "0 track losses" metric was vacuous: a track never *dies*, it is continuously replaced.
+The "0 track losses" metric was vacuous — but **not for this reason**, as the R-10 audit found
+later; see below.
+
+> **R-10 correction (2026-07-21).** The vacuity is real and the attribution above is wrong. The
+> counter increments only when `tracker.update()` returns an *empty* list, which needs
+> `MAX_LOST_FRAMES = 30` frames at `CONTROL_HZ = 20` — **1.5 s with no detection at all**. That
+> branch was equally reachable before and after the re-find fix; the bug changed ID churn and
+> Kalman velocity, not the emptiness condition. What makes the `0` uninformative is that the 1 Hz
+> `score=1.0` injection never produced a 1.5 s drought, and the one run designed to force one
+> (`GAP_INJECT_RUN = 3`) never executed — every committed artifact is `run1`. The decisive
+> evidence is in the Results table: the maximally-broken pre-fix run (40 IDs, px_err 64.7) and the
+> fixed run (7 IDs, 36.0) **both report 0**. A metric identical across a defect that nearly
+> doubled the pixel error has no diagnostic power for the property it gated. Honest phrasing:
+> *0 track losses means the detection supply never stalled; it is not evidence the loop held the
+> target.* Two related defects: `LOST_TIMEOUT_S = 3.0` in `run_phase_c.py` is dead code — the
+> implemented threshold is half the documented value — and no `results.json` exists for this
+> campaign, so every `0` in the tables is prose. It is reconstructable from the `track_id` column
+> of the four CSVs in `raw/`, and reconstructing it gives 0 empty-track frames in all four.
 
 Fix: a round-1b **re-find** step — leftover high-confidence detections are matched against lost
 tracks at `HIGH_IOU_THR` and revive them. This is standard ByteTrack; this implementation had
@@ -173,6 +190,11 @@ This is **not a piloting failure**. The Branch-1 criterion inherited from Phase 
 re-seed-after-forced-gap measurement, which cannot be produced by a short run with zero track
 losses — there is no gap to re-seed from. The gate is unsatisfiable rather than failed. Left
 as-is; P6.1 defines its own gates and does not inherit Branch-1.
+
+R-10 adds the missing half of that sentence: the gap **is** implemented (`GAP_INJECT_RUN = 3`,
+`GAP_DURATION_S = 4.0`), and it never fired because every run here was `--runs 1`. So
+"unsatisfiable" is really "not attempted" — one `--runs 3` invocation would both satisfy Branch-1
+and make the track-loss counter capable of reading nonzero at all.
 
 ---
 

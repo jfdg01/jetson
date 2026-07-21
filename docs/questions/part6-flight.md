@@ -22,7 +22,8 @@ at rate, so Part VI can be built on it?
 **Verdict: PASS, after two fixes.** G1 autopilot leg (connect → GUIDED → arm → 10 m takeoff →
 20 Hz loop → LAND → disarm, unattended) · G2 camera renders a real scene (mid-run frame dominant
 colour 0.751, frame viewed) · G3 loop holds the target (19.93 Hz mean, 100% track coverage,
-0 track losses, 0.25% of ticks under 15 Hz) · G4 module self-tests green. Both fixes were found
+0.25% of ticks under 15 Hz; the "0 track losses" that also appeared here is withdrawn as
+evidence — R-10 found it only detects a >1.5 s detection drought, which this run never had) · G4 module self-tests green. Both fixes were found
 *by the gate*, not before it: the camera pointed at the sky, and ByteTrack never re-found a lost
 track. Post-fix mean pixel error 36.0 px vs 64.7 px pre-fix, same flight, same control rate.
 
@@ -51,8 +52,9 @@ or the control stack, giving Part VI a world that actually contains targets?
 **Verdict: YES.** G1 server (0.9.16 both ends, `Town10HD_Opt`) · G2 render (dominant-colour
 fraction 0.007–0.026, frames viewed) · G3 pose slaving (0 → 84.4 m north under live GUIDED control
 at a held 60.0 m, nadir sign confirmed against a viewed frame) · G4 traffic (40/40 autonomous
-vehicles) · G5 rate (48.1 Hz mean, 2.4x the P6.0 control rate). SITL remains the physics, the
-renderer remains pose-slaved, `run_phase_c.py` / `bytetrack.py` / the PID are untouched.
+vehicles) · G5 rate (48.1 Hz mean render-loop throughput with no perception in the window; the "2.4x the
+P6.0 control rate" reading is withdrawn by R-10 as an artefact of the sync-mode clock skew). SITL remains the physics, the
+renderer remains position-slaved (yaw was never slaved — R-10), `run_phase_c.py` / `bytetrack.py` / the PID are untouched.
 
 **G6 stays open.** "Does the deployed Qwen2-VL-2B ground CARLA frames worse than the 56/56 it
 managed on Gazebo but better than on UAV123?" was pre-registered as a non-gating observation and is

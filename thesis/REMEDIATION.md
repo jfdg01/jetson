@@ -23,7 +23,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-7 | Claim-provenance sweep of every published number | R-9 | **DONE** (27 CONTRADICTED fixed; rest -> R-21) |
 | R-8 | Merge or retire `experiment/carla-gt-bank` | — | TODO |
 | R-9 | Regenerate `stats-report.md` from the corrected registry | — | **DONE** |
-| R-10 | Vacuous-metric audit | R-7 | TODO |
+| R-10 | Vacuous-metric audit | R-7 | DONE |
 | R-11 | Thesis section: multi-agent development as method | — | **DONE** (draft) |
 | R-12 | Render `caveats` into `stats-report.md` | R-9 | **DONE** `5b6f7ab` |
 | R-13 | Detector baseline (OWLv2 on the Orin) | — | TODO |
@@ -441,6 +441,46 @@ Three metrics currently report success by construction and prove nothing:
 **Expected output:** each either given a non-vacuous definition and re-measured, or
 struck from the ledger with a note saying why it could not have failed.
 **Done when:** none of the three appears in the thesis without that treatment.
+
+### What landed (2026-07-21T22:40Z)
+
+All three were worse than the ledger said, and **two were disowned for the wrong
+reason** — which is the finding worth keeping: a metric can be flagged "do not
+cite" and still be misunderstood, and the flag reads as diligence either way.
+
+1. **`slave_err_*` — vacuous, and three things the note missed.** The camera is an
+   unattached `sensor.camera.rgb` (not "CARLA's free camera"), a kinematic actor, so
+   the read-back is the write. Beyond that: (a) the published `0.000` **is not in the
+   artifact** — `results.json` holds `1.815e-06`; the zero is the `:.3f` print format,
+   so anyone grepping for the cited number fails to find it; (b) the metric reads only
+   `.location`, so it is blind to rotation — and `pose_track` yaw has **one unique
+   value (0.0) across all 600 ticks** because the `ATTITUDE` poll never delivered. The
+   renderer was **position-slaved, not pose-slaved**, and the vacuous metric is exactly
+   why nobody noticed.
+2. **A non-vacuous replacement, no re-run needed.** `experiments/2026-07-20-p61-carla-renderer/pose_staleness.py`
+   computes it from the committed `results.json`: consecutive identical `pose_track`
+   rows are reused MAVLink samples. **60.4% of ticks (362/599) render a stale pose**,
+   worst fresh-sample gap **0.547 s**, and at the observed **7.21 m/s** median that is
+   **~3.9 m worst-case camera lag** (0.38 m typical). Six orders of magnitude above the
+   published figure, and it fails in the right direction when the pose stream stalls.
+   Ships with a `_selfcheck()` asserting the old metric is noise and the new one is not.
+3. **"0 track losses" — vacuous, but NOT because of the ByteTrack bug.** The counter
+   only increments when the tracker returns an empty list, needing `MAX_LOST_FRAMES=30`
+   at 20 Hz = **1.5 s with no detection at all** — equally reachable before and after
+   the fix, and the table proves it: the broken run (40 IDs, 64.7 px) and the fixed run
+   (7 IDs, 36.0 px) **both report 0**. What makes it useless is that 1 Hz gap injection
+   never produced a 1.5 s drought, and the run designed to force one (`GAP_INJECT_RUN = 3`)
+   never fired under `--runs 1` — so Branch-1 is "not attempted", not "unsatisfiable".
+4. **"48.1 Hz" and the withdrawn 2.4x.** Measurement point stated everywhere: render-loop
+   wall throughput, 640x480, 40 vehicles, **no perception in the window** (no VLM, SAM2,
+   ByteTrack or PID), no power cap, and the code has since been superseded. The
+   "2.4x the P6.0 control rate" reading is **withdrawn**: sync mode delivered 600 x 0.05 s
+   of sim time in 12.46 s wall, so `48.08/19.93` and `30/12.46` are the **same 2.41** —
+   the clock skew restated, not headroom.
+
+Landed in: `docs/{results,questions,decisions}/part6-flight.md`, both P6 experiment
+READMEs, `thesis/00-esquema.md`, `thesis/02-metodo-multiagente.md`, the two P6
+`claims.json` caveats (hence a `stats-report.md` regeneration), and `CLAUDE.md`.
 
 ## R-11 — Multi-agent development as method
 

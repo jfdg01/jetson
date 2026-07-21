@@ -266,15 +266,76 @@ not a blocker.
 ### The slaving-error metric is vacuous — do not cite it
 
 `results.json` reports `slave_err_mean_m = 0.000` and `slave_err_max_m = 0.000`. This looks like a
-perfect result and means nothing. CARLA's free camera is a kinematic actor with no dynamics, so
-`cam.get_transform()` returns exactly what `set_transform()` was just handed. The metric compares a
-number against itself.
+perfect result and means nothing. The camera is a spawned, unattached `sensor.camera.rgb` — a
+kinematic actor with no dynamics — so `cam.get_transform()` returns exactly what `set_transform()`
+was just handed, with `world.tick()` between them so there is not even a client/server race to
+measure. The metric compares a number against itself.
 
 This is the same failure shape as P6.0's "0 track losses" — a counter that reads healthy because
 the thing it measures cannot vary. It is kept in `results.json` and named here specifically so a
 later cycle does not mistake it for evidence. **What actually evidences G3** is that the *pose
 source* moved 84.4 m under closed-loop autopilot control and the *rendered content* changed
 accordingly across three frames that were opened and looked at.
+
+#### R-10 audit (2026-07-21): three corrections and a replacement
+
+**The published `0.000` is not in the file.** `results.json` holds
+`slave_err_mean_m = 1.815e-06` and `slave_err_max_m = 8.53e-06`; `0.000` is the `:.3f` print
+format. Anyone grepping the artifact for the published number will not find it. The residual is
+float32 round-trip noise — it does not correlate with per-tick speed (r = +0.02) and is five
+orders of magnitude below the 0.143 m the camera moves per tick.
+
+**The metric ignores three of six DOF, and one of them was broken.** `err` reads `.location`
+only; rotation is never compared. `pose_track[:, 3]` (yaw) holds exactly **one distinct value,
+0.0, across all 600 ticks** — `MavlinkPose` fills yaw from a non-blocking `ATTITUDE` poll that
+never delivered, the same silent-stream failure this campaign already documents for
+`LOCAL_POSITION_NED`. It went unnoticed *because* `slave_err` cannot see rotation. The renderer
+is **position-slaved**, not pose-slaved. The consequence is bounded here only because the camera
+is fixed nadir; it would not be for an oblique camera.
+
+**A non-vacuous replacement, from the artifact already on disk.** Real slaving error lives
+upstream: `MavlinkPose.__call__` drains non-blocking and returns `self.last` when no new sample
+arrived, so a repeated `pose_track` row is a tick that rendered the camera where the aircraft
+*was*. `pose_staleness.py` (this dir, no re-run needed) computes:
+
+| quantity | value |
+|---|---|
+| render ticks reusing a stale pose | **362 / 599 = 60.4%** |
+| fresh `LOCAL_POSITION_NED` samples | 237 (19.0 Hz) |
+| inter-sample gap, mean / max | 0.053 s / **0.547 s** |
+| aircraft speed, median | 7.21 m/s (commanded 8.0) |
+| implied camera lag, typical / worst | 0.38 m / **3.9 m** |
+
+Nonzero, falsifiable, ~6 orders of magnitude larger than the metric that was published, and it
+degrades in the right direction when the pose stream stalls. It is a **lower bound**:
+`pose_track` stores no `time_boot_ms`, so SITL-side sensor-to-wire latency is not on disk. It is
+computable only for `g3-mavlink` — the other three runs predate the field and used scripted poses.
+
+### What 48.1 Hz measures, and what the 2.4x was
+
+`mean_hz` is `1/mean(diff(wall stamps))` around `set_transform` + `world.tick()` +
+`get_transform()` in `carla_render.py`. **No perception is inside that window** — no VLM, no SAM2,
+no ByteTrack, no PID, no JPEG, no transport; grepping the renderer for any of them returns only
+comments and variable names. It is the CARLA server's render+step throughput as seen by a bare
+client. It is not a system rate, and G6 (grounding) was NOT RUN, so no perception ran at all.
+
+**The run was synchronous mode, and the clock skewed.** 600 ticks x `fixed_delta_seconds` 0.05 =
+30 s of simulated time delivered in 12.46 s of wall time: the sim ran **2.41x faster than real
+time** while SITL, the pose source, ran on the wall clock. The 40 autonomous vehicles drove for
+30 s while the copter flew for 12.5 s, so traffic in the proof frames moves ~2.4x too fast
+relative to the aircraft.
+
+**Therefore the headroom claim is withdrawn.** `48.08 / 19.93 = 2.41` and `30 s / 12.46 s = 2.41`
+are the same number, because `FIXED_DT = 0.05` equals the control period. "2.4x the P6.0 control
+rate" restates the clock skew; it never measured spare capacity.
+
+**And the figure is not reproducible from HEAD.** `87a5b48` ("run the renderer async instead of
+driving it with `world.tick()`") rewrote the loop to async with a wall-clock pacer and
+`sensor_tick = 0.05`, landing 3.5 h after these results were committed. Re-running the documented
+command today gives ~20 Hz by construction. The as-run code is `d925c74:runners/carla_render.py`.
+The decision to go async is recorded in `docs/decisions/part6-flight.md` and was taken for the
+right reason — it just also invalidates this number's reproducibility, which was not noted at the
+time.
 
 ### Target size versus altitude (sizing observation, non-gating)
 
@@ -389,7 +450,8 @@ Still open, and still blocking the select-and-follow arm (now P6.2):
   either machine). Costs LoRA resumption and re-export, not grounding. Worth a deliberate decision:
   accept it, or re-export from the GGUF path / retrain.
 - The `slave_err_*` fields in `results.json` are vacuous by construction. Left in place, flagged
-  here; do not cite them.
+  here; do not cite them. R-10 replaced them with pose-sample staleness (`pose_staleness.py`) and
+  found that yaw was never slaved at all.
 - CARLA has weather and time-of-day and this campaign used neither — every frame is the default
   clear midday. A fidelity claim that only holds at noon is not much of a claim.
 - The camera is fixed nadir. Real UAV footage (and the Part V bank) is oblique. Not exercised.
