@@ -313,8 +313,15 @@ def evaluate(claim: Claim) -> Outcome:
                        "SIN DATOS - no se defiende; en cola de re-ejecución")
 
     if claim.design == "paired-binary":
-        b, c = claim.counts["b"], claim.counts["c"]
+        b_obs, c_obs = claim.counts["b"], claim.counts["c"]
+        # R-3. The discordant counts must be put on the SAME effective scale as the
+        # reachability floor below, which has used n_effective since day one. Deflating
+        # only the floor and not the counts made every paired p-value too small - in the
+        # direction that favours us - across the 16 deflated paired claims.
+        b, _ = deflate_to_effective(b_obs, claim.n_rows, claim.n_effective)
+        c, _ = deflate_to_effective(c_obs, claim.n_rows, claim.n_effective)
         p = mcnemar(b, c, "two-sided")
+        note = "" if (b, c) == (b_obs, c_obs) else f" [deflactado desde b={b_obs}, c={c_obs}]"
         floor = min_discordant_for_significance(claim.n_effective)
         reachable = floor is not None
         if b + c == 0:
@@ -328,7 +335,8 @@ def evaluate(claim: Claim) -> Outcome:
         else:
             reading = (f"no significativa (b={b}, c={c}); hacían falta >={floor} discordantes "
                        f"en una dirección, hubo {max(b, c)}")
-        return Outcome(claim.id, "McNemar exacta", p, None, claim.n_effective, reachable, reading)
+        return Outcome(claim.id, "McNemar exacta", p, None, claim.n_effective, reachable,
+                       reading + note)
 
     if claim.design == "single-arm-binary":
         k_obs, n_obs = claim.counts["k"], claim.counts["n"]
@@ -347,10 +355,17 @@ def evaluate(claim: Claim) -> Outcome:
         return Outcome(claim.id, "binomial exacta", p, ci, claim.n_effective, reachable, reading)
 
     if claim.design == "unpaired-binary":
-        c = claim.counts
-        p = fisher_exact(c["k1"], c["n1"], c["k2"], c["n2"])
+        cn = claim.counts
+        # R-3. Same correction as the paired branch. No registry claim needs it today
+        # (the one unpaired claim is 12 -> 12), but a branch that silently ignores
+        # n_effective is a trap for the next claim that does.
+        k1, n1 = deflate_to_effective(cn["k1"], cn["n1"], claim.n_effective)
+        k2, n2 = deflate_to_effective(cn["k2"], cn["n2"], claim.n_effective)
+        p = fisher_exact(k1, n1, k2, n2)
+        note = "" if (n1, n2) == (cn["n1"], cn["n2"]) else " [deflactado]"
         return Outcome(claim.id, "Fisher exacta", p, None, claim.n_effective, True,
-                       f"{c['k1']}/{c['n1']} contra {c['k2']}/{c['n2']} (grupos independientes)")
+                       f"{cn['k1']}/{cn['n1']} contra {cn['k2']}/{cn['n2']} "
+                       f"(grupos independientes){note}")
 
     if claim.design == "paired-continuous":
         # Needs the per-item values. Several campaigns stored only a median or a
@@ -361,6 +376,15 @@ def evaluate(claim: Claim) -> Outcome:
             return Outcome(claim.id, "ninguna", float("nan"), None, claim.n_effective, False,
                            "solo sobreviven estadísticos agregados; hacen falta los valores "
                            "por elemento para una prueba")
+        if claim.n_effective < claim.n_rows:
+            # R-3. A rank test cannot be deflated by rescaling a count, and picking
+            # which rows to drop would be an arbitrary choice that moves the p-value.
+            # Refusing is the honest option; the alternative is a Wilcoxon that
+            # silently claims n_rows independent pairs.
+            return Outcome(claim.id, "ninguna", float("nan"), None, claim.n_effective, False,
+                           f"hay valores por elemento, pero n_effective={claim.n_effective} < "
+                           f"n_rows={claim.n_rows} y un test de rangos no admite deflación por "
+                           "reescalado; hace falta agregar por unidad independiente antes de probar")
         r = paired_continuous(x, y)
         return Outcome(claim.id, "Wilcoxon rangos con signo", r["p_value"], r["ci95_median_diff"],
                        claim.n_effective, True,

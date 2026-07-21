@@ -16,7 +16,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 |---|---|---|---|
 | R-1 | Scope + disclosure decision on which machine ran what | R-2, R-6 | TODO |
 | R-2 | `machine` field on all 65 claims | R-6, R-9 | TODO |
-| R-3 | Fix `paired-binary` skipping deflation in `grounding/stats.py` | R-9 | TODO |
+| R-3 | Fix `paired-binary` skipping deflation in `grounding/stats.py` | R-9 | **DONE** |
 | R-4 | Apply the pseudo-replication rule to `n_effective` | R-9 | TODO |
 | R-5 | Shadow-RG re-analysis + Chapter 7 rewording | — | TODO |
 | R-6 | Correct `README.md` | — | TODO |
@@ -90,6 +90,31 @@ too small, in the direction that favours us.
 **Expected output:** the deflation applied in the `paired-binary` branch, plus a
 test in `tests/` that fails if any branch of the dispatch skips it.
 **Done when:** that test exists and passes, and R-9 has regenerated the report.
+
+**DONE.** `paired-binary` now deflates `b` and `c` onto the `n_effective` scale before
+McNemar. Two further branches fixed defensively: `unpaired-binary` (no claim needs it today
+— the single unpaired claim is 12 to 12 — but a branch that ignores `n_effective` is a trap
+for the next claim that does) and `paired-continuous`, which now **refuses** when
+`n_effective < n_rows`, because a rank test cannot be deflated by rescaling a count and
+choosing which rows to drop would itself move the p-value.
+
+`test_every_design_branch_honours_n_effective` is parametrised over every design that
+consumes counts and asserts deflation moves the p-value or the interval. Verified
+non-vacuous: against the pre-fix `grounding/stats.py` it fails on exactly the three broken
+branches and passes on the two that already deflated.
+
+**Impact: 20 claims moved, 0 headline changes.** The six Holm survivors are unchanged (they
+sit at p ~ 1e-53 to 1e-6; no design-effect correction touches them). The real casualty is
+`P3-carry-OP768-accuracy`, whose raw p goes 0.0127 to 0.0961 — nominally significant to not
+— though it was never a Holm survivor. `P5.1-warm-vs-cold` goes 0.125 to 0.5 and
+`E18-cold-acquire-vs-warm-oracle` 0.0625 to 0.5.
+
+**A property worth knowing before R-4:** deflation can round a lone discordant pair to zero,
+turning `p = 1` into *no test at all*. That is what moves "sin prueba posible" from 26 to 30
+and it accounts for `P5.13`, `P5.17`, `P5.20` and `E19` — the contract-tie claims. It does
+not manufacture a result (both readings are non-significant) and it is arguably the more
+honest statement: at that many independent units there was never resolution to see a single
+flip. It must be **said**, not left for a reader to discover.
 
 ## R-4 — Pseudo-replication rule for `n_effective` — HIGHEST PRIORITY
 

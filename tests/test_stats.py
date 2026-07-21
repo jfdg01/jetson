@@ -234,3 +234,68 @@ def test_paired_continuous_all_zero_differences_is_undefined():
 def test_paired_continuous_rejects_ragged_input():
     with pytest.raises(ValueError):
         paired_continuous([1.0, 2.0], [1.0])
+
+
+# --- R-3: no dispatch branch may ignore n_effective -----------------------
+
+def _probe(design: str, counts: dict, n_rows: int, n_effective: int) -> Claim:
+    return Claim(
+        id=f"probe-{design}", part="test", headline="probe", design=design,
+        verdict="n/a", n_rows=n_rows, n_effective=n_effective,
+        independence_note="synthetic probe", data_status="per_item", counts=counts,
+    )
+
+
+# One entry per design that consumes counts. `counts` is chosen so that deflating
+# from n_rows to n_effective MUST move the p-value or the interval.
+DEFLATION_PROBES = [
+    ("paired-binary", {"b": 6, "c": 0}, 12, 6),
+    ("single-arm-binary", {"k": 12, "n": 12}, 12, 6),
+    ("unpaired-binary", {"k1": 12, "n1": 12, "k2": 2, "n2": 12}, 12, 6),
+    ("descriptive", {"k": 6, "n": 12}, 12, 6),
+]
+
+
+@pytest.mark.parametrize("design,counts,n_rows,n_eff", DEFLATION_PROBES)
+def test_every_design_branch_honours_n_effective(design, counts, n_rows, n_eff):
+    """R-3. A branch that reads raw counts and ignores n_effective overstates us.
+
+    This is not hypothetical. `paired-binary` computed McNemar on the full
+    discordant counts while using n_effective for the reachability floor, so all
+    16 deflated paired claims reported a p-value that was too small - always in
+    the direction that favours the thesis. The bug survived because each branch
+    was reviewed on its own; nothing asserted the property across the dispatch.
+
+    Any new design added to `evaluate` must be added here too.
+    """
+    full = evaluate(_probe(design, counts, n_rows, n_rows))
+    deflated = evaluate(_probe(design, counts, n_rows, n_eff))
+
+    moved_p = not (math.isnan(full.p_value) and math.isnan(deflated.p_value)) and (
+        math.isnan(full.p_value) != math.isnan(deflated.p_value)
+        or full.p_value != deflated.p_value
+    )
+    moved_ci = full.ci != deflated.ci
+    assert moved_p or moved_ci, (
+        f"{design}: deflating {n_rows} -> {n_eff} changed neither the p-value "
+        f"({full.p_value} -> {deflated.p_value}) nor the interval "
+        f"({full.ci} -> {deflated.ci}). The branch is ignoring n_effective."
+    )
+
+
+def test_deflation_never_strengthens_a_paired_result():
+    """Deflation is a correction, not a lever. It may only ever weaken."""
+    full = evaluate(_probe("paired-binary", {"b": 8, "c": 0}, 16, 16))
+    deflated = evaluate(_probe("paired-binary", {"b": 8, "c": 0}, 16, 8))
+    assert deflated.p_value >= full.p_value
+
+
+def test_paired_continuous_refuses_to_deflate_a_rank_test():
+    """Rescaling a count cannot deflate a rank test; refusing is the honest path."""
+    out = evaluate(_probe(
+        "paired-continuous",
+        {"x": [4.9, 4.8, 4.85, 4.88, 4.9, 4.8], "y": [1.9, 1.8, 1.85, 1.88, 1.9, 1.8]},
+        6, 3,
+    ))
+    assert math.isnan(out.p_value)
+    assert "deflaci" in out.reading
