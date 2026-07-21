@@ -37,6 +37,7 @@ point back to it; never duplicate content across files — link.
 | `RESULTS.md` → `docs/results/part{1-n}-*.md` | ledger: metric tables, one row per run | **append** under the run's Part |
 | `QUESTIONS.md` → `docs/questions/part{1-n}-*.md` | ledger: research question + one-line verdict per run. Root is a pure redirect (Part table only) — **append to the per-Part doc, not the root** | **append** under the run's Part |
 | `DECISIONS.md` → `docs/decisions/part{1-n}-*.md` | ledger: cross-cutting choices + rationale | **append** under the run's Part |
+| `HANDOFF.md` | **read first** — the thesis-integrity invariants + the session entry/exit protocol. Volatile task state lives in `thesis/REMEDIATION.md`; mechanical enforcement in `tests/test_thesis_integrity.py` | rarely — an invariant that can be checked belongs in the test instead |
 | `SOURCES.md` | reference: every external paper/model/dataset (link + what for) | **append** when you pull one in |
 | `README.md` | reference: hardware/platform survey + this map | edit when the platform changes |
 | `docs/` | the per-Part ledger detail files above | — |

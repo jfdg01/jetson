@@ -1341,7 +1341,7 @@
       "independence_note": "a capability gate on one rig, not a sampled measurement",
       "data_status": "counts_only",
       "data_paths": [
-        "experiments/2026-07-20-flight-rig-gate/"
+        "experiments/2026-07-20-p60-flight-rig/"
       ],
       "counts": {},
       "gate_p": null,
@@ -1358,7 +1358,7 @@
       "independence_note": "one flight, one town, one traffic density",
       "data_status": "counts_only",
       "data_paths": [
-        "experiments/2026-07-20-carla-renderer/"
+        "experiments/2026-07-20-p61-carla-renderer/"
       ],
       "counts": {},
       "gate_p": null,
