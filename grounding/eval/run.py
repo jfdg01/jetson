@@ -18,7 +18,9 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 from dataclasses import asdict
+from pathlib import Path
 
 from grounding import manifest
 from grounding.contract import IMAGE_SIZE
@@ -92,6 +94,9 @@ def main():
             close()
 
     results = asdict(report)
+    # R-15: the per-item rows go next to the manifest as jsonl, never inside
+    # results.json -- aggregates stay readable, and the rows stay re-pairable.
+    items = results.pop("items", ())
     print(f"[run] DONE  n={report.n}  parse_rate={report.parse_rate:.1%}  "
           f"iou@0.25={report.iou_gate_pass_rate:.1%}  mean_iou={report.mean_iou:.3f}  "
           f"center_std={report.center_std:.1f}", flush=True)
@@ -112,7 +117,12 @@ def main():
         cfg["ngl"] = args.ngl
     m = manifest.capture("eval", cfg)
     run_dir = manifest.write(m, results=results)
-    print(f"[run] manifest -> {run_dir}", flush=True)
+    items_path = Path(run_dir) / "items.jsonl"
+    with items_path.open("w") as f:
+        for it in items:
+            f.write(json.dumps(it) + "\n")
+    print(f"[run] manifest -> {run_dir}  ({len(items)} per-item rows -> items.jsonl)",
+          flush=True)
 
 
 if __name__ == "__main__":

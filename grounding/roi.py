@@ -30,9 +30,11 @@ Self-check (no model load):  python -m grounding.roi --selfcheck
 from __future__ import annotations
 
 import argparse
+import json
 import math
 import random
 from dataclasses import asdict
+from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
 
 from grounding import manifest
@@ -147,6 +149,7 @@ def evaluate_roi(backend, samples: Sequence[GroundingSample], margin: float,
     parsed = gate_hits = 0
     total_iou = 0.0
     pred_boxes: List[List[int]] = []
+    items: List[dict] = []
     try:
         for i, s in enumerate(samples):
             img = Image.open(s.image_path).convert("RGB")
@@ -163,6 +166,8 @@ def evaluate_roi(backend, samples: Sequence[GroundingSample], margin: float,
                 if tmp_path:
                     os.unlink(tmp_path)
             box = parse_bbox(text)
+            full = None
+            v = 0.0
             if box is not None:
                 parsed += 1
                 full = map_to_full(box, win, s.img_w, s.img_h)
@@ -171,6 +176,22 @@ def evaluate_roi(backend, samples: Sequence[GroundingSample], margin: float,
                 total_iou += v
                 if v >= IOU_GATE_THRESHOLD:
                     gate_hits += 1
+            # R-15. The ROI arm needs its own rows or the on-device re-run (R-14)
+            # cannot be paired against the full-frame arm sample by sample. `win`
+            # is kept because a disagreement is usually a crop question.
+            items.append({
+                "i": i,
+                "image_path": str(s.image_path),
+                "caption": s.caption,
+                "gt": list(s.bbox),
+                "pred": full,
+                "pred_in_crop": box,
+                "win": list(win),
+                "raw": text,
+                "parsed": box is not None,
+                "iou": round(v, 6),
+                "gate_pass": box is not None and v >= IOU_GATE_THRESHOLD,
+            })
             if progress_every and (i + 1) % progress_every == 0:
                 print(f"  [roi M={margin} r={out_res}] {i+1}/{n}  "
                       f"parsed={parsed}  gate_hits={gate_hits}", flush=True)
@@ -185,6 +206,7 @@ def evaluate_roi(backend, samples: Sequence[GroundingSample], margin: float,
         iou_gate_pass_rate=gate_hits / n if n else 0.0,
         mean_iou=total_iou / parsed if parsed else 0.0,
         center_std=center_std(pred_boxes),
+        items=tuple(items),
     )
 
 
@@ -229,6 +251,8 @@ def run_grid(model: str, split: str,
                   f"mean_iou={rep.mean_iou:.3f}  center_std={rep.center_std:.1f}",
                   flush=True)
             results = asdict(rep)
+            # R-15: rows go beside the manifest as jsonl, not into results.json.
+            items = results.pop("items", ())
             cfg = {
                 "phase": "II/III", "experiment": "roi-crop-anchor",
                 "backend": "hf", "model": model, "dataset": "refdrone",
@@ -240,6 +264,9 @@ def run_grid(model: str, split: str,
             }
             m = manifest.capture("eval", cfg)
             run_dir = manifest.write(m, results=results)
+            with (Path(run_dir) / "items.jsonl").open("w") as f:
+                for it in items:
+                    f.write(json.dumps(it) + "\n")
             rows.append({"margin": margin, "out_res": res, **results,
                          "run_dir": str(run_dir)})
     finally:

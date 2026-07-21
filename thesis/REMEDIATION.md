@@ -28,7 +28,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-12 | Render `caveats` into `stats-report.md` | R-9 | **DONE** `5b6f7ab` |
 | R-13 | Detector baseline (OWLv2 on the Orin) | — | TODO |
 | R-14 | ROI on-device Q8_0 re-run | R-9 | TODO |
-| R-15 | Per-item jsonl in `grounding/eval/harness.py` | R-14 | TODO |
+| R-15 | Per-item jsonl in `grounding/eval/harness.py` | R-14 | IN PROGRESS (code landed; awaits an R-14 run) |
 | R-16 | SAM2 co-residency characterisation (reframed campaign) | — | TODO |
 | R-17 | Fix E2–E4 rig prose | R-7 | **DONE** |
 | R-18 | Rebalance `thesis/00-esquema.md` to the surviving evidence | R-9 | TODO |
@@ -732,6 +732,25 @@ the 6 surviving claims are `counts_only` and cannot be re-paired or re-analysed.
 
 **Expected output:** per-item jsonl written by every harness run.
 **Done when:** an R-14 run produces it and a claim is derived from it.
+
+**Code half landed 2026-07-21T22:35Z (status stays IN PROGRESS — the done-criterion
+is an R-14 run, not the code).**
+
+- `EvalReport` grows `items: tuple[dict, ...]`, **always collected**, `repr=False`.
+  Collection is not opt-in: a flag that defaults to off is how this gap reappears.
+- `evaluate(...)` takes `items_path=` and writes jsonl there; `grounding/eval/run.py`
+  pops `items` out of `asdict(report)` (so `results.json` stays aggregates-only) and
+  writes `items.jsonl` beside the manifest.
+- `grounding/roi.py::evaluate_roi` has its own scoring loop and needed the same
+  treatment — it now emits rows carrying `win` and `pred_in_crop` alongside the
+  mapped-to-full `pred`, and `run_grid` writes one `items.jsonl` per combo. Without
+  this, R-14's ROI arm could not be paired against the full-frame arm at all.
+- Pairing key is `image_path` + `caption`, never the index — two arms may run
+  different limits or orders, and joining on position pairs the wrong rows silently.
+- Unparseable predictions are **recorded, not dropped** (`pred: null`, `iou: 0.0`,
+  `raw` kept). A miss that vanishes from the rows inflates any re-analysis.
+- `tests/test_harness_items.py` (6 tests) is the ratchet: the rows must reconstruct
+  every aggregate scalar, or the suite fails.
 
 ## R-16 — SAM2 co-residency characterisation
 
