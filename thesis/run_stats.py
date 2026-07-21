@@ -32,7 +32,8 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from grounding.stats import (  # noqa: E402
-    Claim, evaluate, holm_bonferroni, min_discordant_for_significance, wilson_ci,
+    Claim, deflate_to_effective, evaluate, holm_bonferroni,
+    min_discordant_for_significance, wilson_ci,
 )
 
 THESIS = Path(__file__).resolve().parent
@@ -69,11 +70,20 @@ def figure_power(claims: list[Claim], outcomes: dict) -> Path:
               else "#27ae60" for c in paired]
     ax.barh(list(ys), [c.n_effective for c in paired], color=colors, height=0.62)
     ax.axvline(6, color="#2c3e50", ls="--", lw=1.4)
-    ax.text(6.15, len(paired) - 0.4, "n = 6: el minimo con el que\nalpha = 0,05 es alcanzable",
-            fontsize=8, va="top", color="#2c3e50")
+    # Anchored to the axes, not to the data, so a long claim list cannot push
+    # the label on top of a bar.
+    ax.text(0.99, 0.02, "linea: n = 6, el minimo con el que alpha = 0,05 es alcanzable",
+            transform=ax.transAxes, fontsize=8, ha="right", va="bottom", color="#2c3e50",
+            bbox=dict(boxstyle="round,pad=0.35", fc="white", ec="#bdc3c7", alpha=0.9))
     ax.set_yticks(list(ys))
     ax.set_yticklabels([c.id for c in paired], fontsize=8)
-    ax.set_xlabel("pares independientes (n efectivo)")
+    # Log scale or the n <= 6 wall - the whole point of the figure - is a smear
+    # of invisible stubs next to the n = 312 bar.
+    ax.set_xscale("log")
+    ax.set_xlim(0.8, 400)
+    ax.set_xticks([1, 2, 3, 6, 12, 25, 50, 100, 300])
+    ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax.set_xlabel("pares independientes (n efectivo, escala logaritmica)")
     ax.set_title("Disenos pareados: cuales podian alcanzar significacion\n"
                  "rojo = imposible con cualquier resultado", fontsize=10)
     ax.grid(axis="x", alpha=0.25)
@@ -86,19 +96,18 @@ def figure_power(claims: list[Claim], outcomes: dict) -> Path:
 
 def figure_forest(claims: list[Claim], outcomes: dict) -> Path:
     """Point estimates with 95% Wilson intervals, for every claim with counts."""
+    # Only claims with a pre-registered gate. Plotting all 63 arms produced a
+    # legible wall that answered nothing; the question this figure exists for is
+    # "did the interval clear the bar", and that needs a bar.
     rows = []
     for c in claims:
-        if c.data_status == "missing":
+        if c.data_status == "missing" or c.gate_p is None:
             continue
-        if c.design == "single-arm-binary" or c.design == "descriptive":
-            k, n = c.counts.get("k"), c.counts.get("n")
-            if k is None or not n:
-                continue
-            rows.append((c.id, k / n, wilson_ci(k, n), c.gate_p))
-        elif c.design == "paired-binary" and "k1" in c.counts and "n" in c.counts:
-            n = c.counts["n"]
-            rows.append((c.id + " (A)", c.counts["k1"] / n, wilson_ci(c.counts["k1"], n), None))
-            rows.append((c.id + " (B)", c.counts["k2"] / n, wilson_ci(c.counts["k2"], n), None))
+        k, n = c.counts.get("k"), c.counts.get("n")
+        if k is None or not n:
+            continue
+        ke, ne = deflate_to_effective(k, n, c.n_effective)
+        rows.append((f"{c.id}  ({k}/{n})", k / n, wilson_ci(ke, ne), c.gate_p))
     if not rows:
         return None
 
@@ -112,8 +121,9 @@ def figure_forest(claims: list[Claim], outcomes: dict) -> Path:
     ax.set_yticklabels([r[0] for r in rows], fontsize=8)
     ax.set_xlim(0, 1)
     ax.set_xlabel("proporcion de exito (IC 95 % de Wilson)")
-    ax.set_title("Tamano de efecto e incertidumbre real\n"
-                 "barra roja = puerta pre-registrada", fontsize=10)
+    ax.set_title("Puertas pre-registradas contra la incertidumbre real\n"
+                 "punto = proporcion observada; barra roja = puerta; IC al 95 % sobre n efectivo",
+                 fontsize=10)
     ax.grid(axis="x", alpha=0.25)
     fig.tight_layout()
     out = PROOF / "stats-forest.png"

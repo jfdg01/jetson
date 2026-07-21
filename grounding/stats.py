@@ -66,6 +66,26 @@ def wilson_ci(k: int, n: int, conf: float = 0.95) -> tuple[float, float]:
     return float(lo), float(hi)
 
 
+def deflate_to_effective(k: int, n: int, n_effective: int) -> tuple[int, int]:
+    """Rescale an observed k/n down to the number of independent observations.
+
+    This repo is full of counts whose denominator is not a count of independent
+    things: 10 SITL trials of one deterministic failure, 5 select cells cut from
+    3 videos, 439 captions over 316 images. Reporting an interval on the inflated
+    denominator claims precision that was never purchased, and it is the single
+    most common way a lab notebook overstates itself.
+
+    The proportion is preserved and the denominator is replaced by
+    `n_effective`, which is a design-effect correction with deff = n /
+    n_effective. It is deliberately blunt: it widens the interval and weakens the
+    p-value, never the reverse, so it cannot manufacture a result.
+    """
+    if n_effective >= n or n <= 0:
+        return k, n
+    n_eff = max(1, int(n_effective))
+    return min(n_eff, round(k * n_eff / n)), n_eff
+
+
 # --------------------------------------------------------------------------
 # single arm against a pre-registered gate
 # --------------------------------------------------------------------------
@@ -306,17 +326,19 @@ def evaluate(claim: Claim) -> Outcome:
         return Outcome(claim.id, "McNemar exact", p, None, claim.n_effective, reachable, reading)
 
     if claim.design == "single-arm-binary":
-        k, n = claim.counts["k"], claim.counts["n"]
+        k_obs, n_obs = claim.counts["k"], claim.counts["n"]
+        k, n = deflate_to_effective(k_obs, n_obs, claim.n_effective)
         ci = wilson_ci(k, n)
+        note = "" if n == n_obs else f" [deflated from {k_obs}/{n_obs}: see independence_note]"
         if claim.gate_p is None:
             return Outcome(claim.id, "Wilson CI", float("nan"), ci, claim.n_effective, False,
-                           "no pre-registered gate; interval only")
+                           "no pre-registered gate; interval only" + note)
         p = binomial_gate_test(k, n, claim.gate_p, "greater")
         need = min_successes_for_gate(n, claim.gate_p)
         reachable = need is not None and need <= n
-        reading = (f"{k}/{n} vs gate {claim.gate_p:.2f}; "
-                   + (f"needed >={need} for alpha=0.05" if need is not None
-                      else "no k could have reached alpha"))
+        reading = (f"{k_obs}/{n_obs} vs gate {claim.gate_p:.2f}; "
+                   + (f"needed >={need}/{n} for alpha=0.05" if need is not None
+                      else "no k could have reached alpha") + note)
         return Outcome(claim.id, "binomial exact", p, ci, claim.n_effective, reachable, reading)
 
     if claim.design == "unpaired-binary":
@@ -325,11 +347,26 @@ def evaluate(claim: Claim) -> Outcome:
         return Outcome(claim.id, "Fisher exact", p, None, claim.n_effective, True,
                        f"{c['k1']}/{c['n1']} vs {c['k2']}/{c['n2']} (independent groups)")
 
+    if claim.design == "paired-continuous":
+        # Needs the per-item values. Several campaigns stored only a median or a
+        # correlation coefficient, and a p-value cannot be reconstructed from
+        # those - so this refuses rather than inventing one.
+        x, y = claim.counts.get("x"), claim.counts.get("y")
+        if not x or not y:
+            return Outcome(claim.id, "none", float("nan"), None, claim.n_effective, False,
+                           "only summary statistics survive; per-item values needed for a test")
+        r = paired_continuous(x, y)
+        return Outcome(claim.id, "Wilcoxon signed-rank", r["p_value"], r["ci95_median_diff"],
+                       claim.n_effective, True,
+                       f"median paired difference {r['median_diff']:.4g}")
+
     if claim.design == "descriptive":
-        k, n = claim.counts.get("k", 0), claim.counts.get("n", 0)
+        k_obs, n_obs = claim.counts.get("k", 0), claim.counts.get("n", 0)
+        k, n = deflate_to_effective(k_obs, n_obs, claim.n_effective) if n_obs else (0, 0)
         ci = wilson_ci(k, n) if n else None
+        note = "" if n == n_obs else f" [deflated from {k_obs}/{n_obs}]"
         return Outcome(claim.id, "descriptive", float("nan"), ci, claim.n_effective, False,
-                       "descriptive only - no hypothesis was pre-registered")
+                       "descriptive only - no hypothesis was pre-registered" + note)
 
     raise ValueError(f"unhandled design: {claim.design}")
 
