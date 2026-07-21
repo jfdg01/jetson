@@ -111,13 +111,26 @@
   note      = {Video real con GT por frame a 30 fps; base de la evaluacion de Partes IV y V}
 }
 
-% VERIFICAR: numero de arXiv y venue exactos.
+@article{zhu2021visdrone,
+  title   = {Detection and Tracking Meet Drones Challenge},
+  author  = {Zhu, Pengfei and Wen, Longyin and Du, Dawei and Bian, Xiao and Fan, Heng and Hu, Qinghua and Ling, Haibin},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  year    = {2021},
+  url     = {https://github.com/VisDrone/VisDrone-Dataset},
+  note    = {Aporta la imagen sobre la que RefDrone anota (CC BY-NC-SA 3.0, uso academico).
+             Clips nadir usados tambien en la pestana del demo}
+}
+
+% VERIFICAR: hay una inconsistencia real. La fuente interna lo atribuye a AAAI 2025,
+% pero el identificador arXiv 2511.21053 corresponde a noviembre de 2025, posterior
+% a esa edicion. Comprobar cual de los dos campos esta mal antes de citarlo.
 @misc{aerialmind,
   title        = {AerialMind},
-  author       = {Liang et al.},
+  author       = {Liang and others},
   howpublished = {\url{https://arxiv.org/abs/2511.21053}},
   year         = {2025},
-  note         = {VERIFICAR. Candidato RMOT evaluado en docs/dataset-survey-refdrone.md; no adoptado}
+  note         = {VERIFICAR venue y ano. 186 pistas usadas para la evaluacion zero-shot
+                  del arrastre (0,849 IoU@0,25 en la RTX 3090 a image\_size 1024)}
 }
 
 % ---------------------------------------------------------- simulacion y vuelo
