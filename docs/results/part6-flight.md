@@ -69,7 +69,7 @@ G6 (grounding, pre-registered **non-gating**) **NOT RUN**.
 | gate | verdict | measured |
 |---|---|---|
 | G1 server | PASS | server 0.9.16 == client 0.9.16, `Town10HD_Opt`, 155 spawn points, 41 vehicle blueprints, 599 ticks |
-| G2 render | PASS | dominant-colour fraction **0.005–0.026** (gate < 0.99), frames opened with the Read tool |
+| G2 render | PASS | dominant-colour fraction **0.007–0.026** (gate < 0.99), frames opened with the Read tool |
 | G3 pose slaving | PASS | copter flew **0 → 84.4 m north** under its own GUIDED control at a held 60.0 m; content at ticks 150/300/599 distinct and consistent with position; nadir `pitch=-90` confirmed by viewed frame |
 | G4 traffic | PASS | **40/40** vehicles spawned with autopilot; first vs last frame not byte-identical |
 | G5 rate | PASS | **48.1 Hz** mean (gate >= 20 Hz, 2.4x the P6.0 control rate); 5/599 ticks under 15 Hz, all in the first ~5 s of cold shader compilation |
@@ -115,13 +115,22 @@ Cross-cutting, not a flight campaign; recorded here because Part VI is the open 
 
 | Bucket | n | Note |
 |---|---|---|
-| Significant after Holm-Bonferroni | 6 | `P1-S3.3-export-parity-catastrophe` 1.345e-4 (worst-case marginal bound), `P2-RQ2.1-resolution-ladder-1024` 1.988e-7, `P2-RQ3.1-lora-aerial-gate` 5.151e-73, `P3-ROI-M2.0-512` 9.555e-26, `P5.2a-warm-generalization` 3.052e-5, `P5.12-bankv21-recal` 3.365e-4 |
-| No test possible (0 discordant pairs) | 26 | `p` is undefined, **not** 1.0 — absence of a test, not proven equality |
-| Design could never reach alpha=0.05 | 33 | n<=5 paired: floor is p=0.0625 with a perfect result |
+All p below are **post-deflation** — computed at `n_effective`, the value
+`thesis/stats-report.md` currently prints. The first version of this table quoted the
+undeflated p (5.151e-73, 9.555e-26, 1.988e-7, 3.052e-5, 0.01612) and the pre-R-4 bucket
+sizes (26 / 33); R-7 caught them stale by one remediation cycle.
+
+| Bucket | n | Note |
+|---|---|---|
+| Significant after Holm-Bonferroni | 6 | `P1-S3.3-export-parity-catastrophe` 1.345e-4 (worst-case marginal bound), `P2-RQ2.1-resolution-ladder-1024` 7.771e-6, `P2-RQ3.1-lora-aerial-gate` 3.679e-53, `P3-ROI-M2.0-512` 7.235e-19, `P5.2a-warm-generalization` 6.104e-5, `P5.12-bankv21-recal` 3.365e-4 |
+| No test possible (0 discordant pairs) | 30 | `p` is undefined, **not** 1.0 — absence of a test, not proven equality |
+| Design could never reach alpha=0.05 | 35 | n<=5 paired: floor is p=0.0625 with a perfect result |
 | Raw per-item data missing | 3 | `thesis/rerun-backlog.md` |
 
-Raw-significant but Holm-rejected: `P2-RQ4.1-deploy-fidelity` 0.01612, `P3-carry-OP768-accuracy`
-0.01267, `P5.15-plain-carry-survival` 0.002908.
+Raw-significant but Holm-rejected: `P2-RQ4.1-deploy-fidelity` 0.0355,
+`P5.15-plain-carry-survival` 0.002908. `P3-carry-OP768-accuracy` was listed here at
+0.01267 and no longer belongs: deflated to its 93 source sequences it is p=0.096, not
+significant even before Holm (see correction 3 below).
 
 **Three recorded conclusions corrected by the re-analysis.**
 
@@ -132,8 +141,12 @@ Raw-significant but Holm-rejected: `P2-RQ4.1-deploy-fidelity` 0.01612, `P3-carry
    **p=0.2478** — no evidence the quantisation costs accuracy. HF vs GGUF is significant under
    *every* pairing consistent with the surviving marginals (worst case 1.345e-4 for Q8_0,
    2.19e-3 for F16).
-3. **Carry at 768 does lose accuracy vs 1024** (sign test 55 vs 31, p=0.013). The 768 adoption was
-   an effect-size bound plus an FPS constraint, never a claim of equality — the record now says so.
+3. ~~**Carry at 768 does lose accuracy vs 1024** (sign test 55 vs 31, p=0.013).~~ **Superseded
+   2026-07-21 (R-7).** The 55-vs-31 sign test counts 186 tracks, but they come from 93 distinct
+   sequences; on that unit it is b=28, c=16, **p=0.096** — not significant, Holm 1. So the
+   defensible statement is the weaker one: 768 was adopted on an effect-size bound plus an FPS
+   constraint, and this data cannot resolve whether it costs accuracy at all. The undeflated
+   p is 0.013 (not the 0.014 the registry caveat printed until R-7 corrected it).
 
 Figures: `thesis/proof/stats-power.png` (paired designs by effective n, red = could never reach
 alpha), `thesis/proof/stats-forest.png` (18 gated arms, Wilson CI on effective n vs the gate). Both

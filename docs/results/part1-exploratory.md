@@ -3,8 +3,8 @@
 Index: [`../../RESULTS.md`](../../RESULTS.md) · Companion: [`../questions/`](../questions/) (research questions) · [`../decisions/`](../decisions/) (what was chosen & why).
 Per-campaign detail lives in `experiments/<campaign>/README.md`. Append, never overwrite.
 
-**Global config (all llama.cpp runs):** Jetson Orin Nano 8 GB · 15 W locked (`nvpmodel -m 0` + `jetson_clocks`) · llama.cpp `57fe1f0` CUDA sm_87 · Q4_K_M · ngl=99 · n_ctx=4096 · pp512/tg128 · 5 reps each.
-**Idle baseline:** ~5.2 W · ~1820 MB RAM · ~11–50 MB swap (zram; "swap hit" = growth >50 MB over idle).
+**Global config (all llama.cpp runs):** Jetson Orin Nano 8 GB · 15 W locked (`nvpmodel -m 0` + `jetson_clocks`) · llama.cpp `57fe1f0` CUDA sm_87 · pp512/tg128 · 5 reps each. **Not** uniform across the tables below (corrected 2026-07-21, R-7): quantisation is Q4_K_M for the capability sweep, Q8_0 for G1 and the VLM rows and q4_0 QAT for G2-G5; and `llama-bench` received neither `-c` nor `-b`, so `n_ctx=4096` applies only to the `llama-completion` TTFT runs, not to any pp512/tg128 number here.
+**Idle baseline:** ~5.2 W · ~1820 MB RAM · swap 11-50 MB for units 01-04 only; from unit 05 onward every log starts on a ~207-344 MB pre-existing zram baseline that never grows during inference (corrected 2026-07-21, R-7). "Swap hit" therefore means growth >50 MB over the run's own starting value, not over 50 MB absolute.
 
 ---
 
@@ -13,9 +13,9 @@ Per-campaign detail lives in `experiments/<campaign>/README.md`. Append, never o
 ### Campaign: llamacpp-upper-bound (2026-06-13)
 Full writeup: [`experiments/2026-06-13-llamacpp-upper-bound/`](../../experiments/2026-06-13-llamacpp-upper-bound/README.md)
 
-| Model / quant | Params | pp512 tok/s | tg128 tok/s | Peak RAM | Mean/Peak W | tok/s·W⁻¹ | J/tok | Peak °C |
+| Model / quant | Params | pp512 tok/s | tg128 tok/s | Peak RAM | Mean/Peak W | tok/s·W⁻¹ (total board, peak W, tg512) | J/tok (same basis) | Peak °C |
 |---|---|---|---|---|---|---|---|---|
-| Llama-3.2-3B-Instruct Q4_K_M | 3.0 B | 570.0 ± 2.4 | 14.53 ± 0.02 | 1.87 GiB wts | 12.5 / 13.6 | ≈1.7 | ≈0.86 | 66.9 |
+| Llama-3.2-3B-Instruct Q4_K_M | 3.0 B | 570.0 ± 2.4 | 14.61 ± 0.00 (tg512 sustained 14.53 ± 0.02) | 1.87 GiB wts (GGUF weight size, not a peak-RAM measurement) | 12.5 / 13.6 | ≈1.1 | ≈0.94 | 66.9 |
 
 ¹ TTFT not captured here; added in capability sweep (unit 06 re-run → 85 ms).
 
@@ -143,6 +143,6 @@ Init from Stage 3 merged weights, LoRA on well-posed RefDrone subset (4101 train
 | 2 | 0.9478 | 100.0% | 16.0% | 0.087 | 214.3 |
 | 3 | 0.9168 | 100.0% | **19.5%** | 0.109 | 211.5 |
 
-Gate G4 (IoU@0.25 ≥20%) — **NARROW MISS** (19.5%, 0.5pp short). Loss still descending at LR anneal → budget/capacity bound, not failure mode. ~10× lift over Stage 2 (~1%) and ~10× over zero-shot cross-domain floor (~2%). Next levers: largest-box augmentation, higher resolution.
+Gate G4 (IoU@0.25 ≥20%) — **NARROW MISS** (19.5%, 0.5pp short). Loss still descending at LR anneal → budget/capacity bound, not failure mode. ~20× lift over Stage 2 (~1%) and ~10× over the 2.0% RefCOCO-init cross-domain floor (a Stage-3 checkpoint evaluated off-domain, not a zero-shot floor; corrected 2026-07-21, R-7 — the two multipliers were swapped here). The 2.0% rests on 1/50, whose 95% interval reaches ~10.6%, so read the second multiplier as a bound. Next levers: largest-box augmentation, higher resolution.
 
 ---

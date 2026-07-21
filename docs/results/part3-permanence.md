@@ -27,7 +27,7 @@ On-Orin anchor-cadence sweep + tracker cost + dynamics analysis. Anchor = Qwen2-
 | **T0c dynamics** | target px velocity (nadir, 1–10 m/s, 10–30 m) | 18.5–554 px/s (≤27.7 px/frame) |
 | **T0d re-ID geometry** | target crop @10/20/30 m | 111×222 / 55×111 / 37×74 px |
 
-**Key verdicts:** anchor_period (2.27 s @512) > coast_horizon (1.5 s) → re-acq must be event-triggered on loss. Tracker holds lock between anchors with ~1000× headroom. **Spine confirmed: Q8_0 @512** (768/1024 add latency with no fidelity gain on 640×480 camera + downscale).
+**Key verdicts:** anchor_period (2.26 s @512, median wall 2264.6 ms) > coast_horizon (1.5 s, a configured `MAX_LOST_FRAMES = 30` at 20 Hz, not a measurement) → re-acq must be event-triggered on loss. Tracker holds lock between anchors with ~1000× headroom. **Spine confirmed: Q8_0 @512** (768/1024 add latency with no fidelity gain on 640×480 camera + downscale).
 
 ---
 
@@ -67,7 +67,7 @@ Lock drives the camera (cascade-PID → body velocity → copter → re-projecti
 | memoryless baseline | 49.2% | 53.7% | 40 |
 | **re-ID (snr 8)** | **97.6%** | **71.5%** | 40 |
 
-**✅ Gate PASS:** Phase-C ≈0% → 97.6% kinematic / 71.5% live SITL. Live margin smaller due to PID-lag + inertia lowering both policies' absolute coverage; direction + mechanism hold.
+**✅ Gate PASS:** 97.6% kinematic / 71.5% live SITL. ~~Phase-C ≈0% →~~ **comparator withdrawn 2026-07-21 (R-7):** Phase C recorded 39% oracle / 21% track coverage, not ~0% (the ~0% traces only to the T3 charter's expectation text), and every Phase-C Branch-2 perception number was retracted on 2026-07-20 when P6.0 found the camera pitched at the sky. There is no valid Phase-C baseline to improve on; the kinematic-vs-live pair below is what this campaign measured. Live margin smaller due to PID-lag + inertia lowering both policies' absolute coverage; direction + mechanism hold.
 
 ---
 

@@ -2,7 +2,7 @@
 title: Resultados estadísticos retroactivos
 subtitle: Cada afirmación con puerta de las Partes I-VI, re-analizada
 author: Javier Francisco Dibo Gómez
-comment: Generado por thesis/run_stats.py, 2026-07-21T18:10Z
+comment: Generado por thesis/run_stats.py, 2026-07-21T18:48Z
 locale: es
 ---
 
@@ -141,7 +141,7 @@ por completo la lectura ingenua del número.
 
 **P3-SR-swin2sr-accuracy** — CORRIGE UNA CONCLUSIÓN YA REGISTRADA. Los pares discordantes se calculan aquí por primera vez: lanczos vs swin2sr b=21 c=14 p=0.31; bicubic vs swin2sr b=22 c=12 p=0.12; bicubic vs native p=0.26. NINGUNA diferencia de exactitud en este sondeo es significativa. El rechazo es correcto, pero debe justificarse por LATENCIA (+1331 ms por recorte, determinista y enorme), no por exactitud. Cualquier frase que diga que Swin2SR 'pierde' en IoU carece de respaldo; la frase respaldada es que no aporta nada medible a cambio de 1.3 s.
 
-**P3-carry-OP768-accuracy** — Una prueba de signos sobre la comparación pareada por track: 1024 gana a 768 en 55 tracks, 768 gana a 1024 en 31, 100 empates. p exacto = 0.014, así que 1024 SÍ es significativamente más preciso que 768. La adopción de 768 nunca fue una afirmación de igualdad - la regla congelada era un listón de TAMAÑO DEL EFECTO (dentro de 5 pp de la referencia de 1024) más una restricción de FPS. La tesis debe enunciarlo así: se eligió 768 pese a un coste de precisión real, pequeño y detectable.
+**P3-carry-OP768-accuracy** — Una prueba de signos sobre la comparación pareada por track: 1024 gana a 768 en 55 tracks, 768 gana a 1024 en 31, 100 empates; p exacto sin deflactar = 0.013. Pero los 186 tracks salen de 93 secuencias distintas, y sobre esa unidad independiente la prueba da b=28, c=16, p = 0.096: NO significativa, y Holm la deja en 1. La afirmación anterior de este registro («1024 SÍ es significativamente más preciso») se corrigió el 2026-07-21 (R-7). La adopción de 768 nunca fue una afirmación de igualdad - la regla congelada era un listón de TAMAÑO DEL EFECTO (dentro de 5 pp de la referencia de 1024) más una restricción de FPS. La tesis debe enunciarlo así: se eligió 768 por FPS, y el coste de precisión, si lo hay, es pequeño y estos datos no lo separan del azar.
 
 **P3-E1-TRT-fps** — No hay intervalo calculable y no debe citarse ninguno. Los fotogramas de una misma sesión comparten el estado térmico y el estado del gobernador de reloj. La afirmación es defendible como demostración de capacidad en este dispositivo y en esta sesión, que es lo que necesita una tesis de despliegue en el borde; no es defendible como tasa esperada.
 
@@ -187,7 +187,7 @@ por completo la lectura ingenua del número.
 
 **P5.1-warm-vs-cold** — p = 0.125. El primer YES de la Parte V no es estadísticamente significativo: n=6 exige que se inviertan los seis pares y se invirtieron cuatro. La condición pre-registrada de superconjunto (el conjunto de PASS de WARM contiene el de COLD) es una comprobación estructural más fuerte que el recuento y se cumplió: eso, más la coincidencia exacta con el oráculo, es la forma defendible de la afirmación. P5.2 es lo que realmente lo certifica.
 
-**P5.2a-warm-generalization** — EL RESULTADO CON MÁS POTENCIA ESTADÍSTICA DE LA PARTE V Y CON EL QUE LA TESIS DEBERÍA ABRIR. b=16, c=0, McNemar exacto p = 3.05e-05, y sobrevive a la corrección de Holm en toda la familia. 16 clips vuelcan de fallo a éxito y ninguno vuelca de vuelta. Esta es la afirmación del warm-start, debidamente certificada.
+**P5.2a-warm-generalization** — EL RESULTADO CON MÁS POTENCIA ESTADÍSTICA DE LA PARTE V Y CON EL QUE LA TESIS DEBERÍA ABRIR. Deflactado a 23 clips independientes: b=15, c=0, McNemar exacto p = 6.10e-05, y sobrevive a la corrección de Holm en toda la familia (sin deflactar era b=16, c=0, p = 3.05e-05). 15 clips vuelcan de fallo a éxito y ninguno vuelca de vuelta. Esta es la afirmación del warm-start, debidamente certificada.
 
 **P5.2b-speed-sweep** — Una hipótesis direccional pre-registrada (se exigía rho > 0) que salió en rho = -0.06, cuyo p bilateral con n=25 ronda 0.78 - es decir, ninguna asociación en absoluto, no una débil. Este es un negativo genuino e IMPORTA: dice que la ganancia del warm-start es la eliminación del retardo de entrega, no compensación de movimiento. Un nulo que remodela el mecanismo vale más que la mayoría de los positivos de aquí.
 

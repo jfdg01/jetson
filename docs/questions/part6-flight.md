@@ -49,7 +49,7 @@ rule (`03d37bb`) was added a month after this run and would have caught it on da
 or the control stack, giving Part VI a world that actually contains targets?
 
 **Verdict: YES.** G1 server (0.9.16 both ends, `Town10HD_Opt`) · G2 render (dominant-colour
-fraction 0.005–0.026, frames viewed) · G3 pose slaving (0 → 84.4 m north under live GUIDED control
+fraction 0.007–0.026, frames viewed) · G3 pose slaving (0 → 84.4 m north under live GUIDED control
 at a held 60.0 m, nadir sign confirmed against a viewed frame) · G4 traffic (40/40 autonomous
 vehicles) · G5 rate (48.1 Hz mean, 2.4x the P6.0 control rate). SITL remains the physics, the
 renderer remains pose-slaved, `run_phase_c.py` / `bytetrack.py` / the PID are untouched.

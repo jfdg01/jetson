@@ -178,16 +178,32 @@ REGROUND machinery fires (flag `--loss-gate {none,score,motion}`).
 
 **Stage 1 — gate selection @ 0.5 m/s (the E2 confident-latch speed):**
 
-| gate | in-FOV | n_regrounds | relock (s) | recovered | verdict |
-|---|---|---|---|---|---|
-| none | 1.000 | 1 | 9.43 | true | **PASS** — control; Fix B alone recovered 0.5 (E2 was FAIL 0.484) |
-| score | 1.000 | 1 | — | false | **FAIL** — over-fires, relock never confirmed |
-| motion | 1.000 | 1 | 9.32 | true | **PASS** — behaves as `none`, gate inert |
+**Superseded 2026-07-21 (R-7): stage 1 was executed twice and only the first run was published.**
+`runs/stage2.log` re-ran all three stage-1 legs before the ladder and overwrote every
+`runs/s1-*/results.json`, so the committed artifacts are run B while the table below was written
+from run A (`runs/stage1.log`). Both are kept:
 
-`score` diagnostic: SAM2 `object_score_logits` separates occlusion cleanly (occluded mean −3.23 vs
-clear +8.61) but the clear tail dips to −3.94, so at tau=0 it demotes good boxes on clean-track
-noise → relock never confirmed. Signal real, threshold over-fires. Chosen gate (mechanical rule):
-**motion** — but note the loss gate was **not the operative fix at 0.5**; Fix B was (`none` passes).
+| gate | relock (s) | attempts | recovered | verdict (run A, published) | verdict (run B, committed) |
+|---|---|---|---|---|---|
+| none | 9.43 → [] | 6 → 20 | true → false | **PASS** | **FAIL** |
+| score | [] → 21.04 | 20 → 11 | false → true | **FAIL** | **PASS** |
+| motion | 9.32 → 9.32 | 6 → 6 | true → true | **PASS** | **PASS** |
+
+In-FOV is 1.000 and `n_regrounds` is 1 in every leg of both runs. **Two of the three legs invert
+under replication of an identical configuration**, which makes the run-to-run variance of a single
+0.5 m/s SITL trial larger than the effect the stage was built to measure. The mechanical selection
+rule as written ("pick the gate that recovers") does not resolve on the committed run — `score`
+satisfies it and `none` does not. What survives is the leg that replicated: **`motion` recovers in
+both runs**, so the gate chosen is still `motion`, but it is chosen because it is the only stable
+leg, not because the rule discriminated. The stronger original reading — "Fix B alone recovered
+0.5, the loss gate was not the operative fix" — **does not survive**: `none` fails on the
+committed run. n=1 per cell; this whole stage needs replication before any of it is quoted.
+
+`score` diagnostic, recomputed from the committed `runs/s1-score/trial.csv` (the published
+−3.23 / +8.61 / −3.94 at n=53/472 came from the overwritten run A): SAM2 `object_score_logits`
+separates occlusion cleanly (occluded mean **−3.18**, n=54, range −3.44..−2.83 vs clear mean
+**+8.84**, n=888) but the clear tail dips to **−4.25**, so at tau=0 it demotes good boxes on
+clean-track noise. Signal real, threshold over-fires — that conclusion is unchanged by the re-run.
 
 **Stage 2 — speed ladder, motion gate:**
 
@@ -421,7 +437,7 @@ Per-leg gate: PASS iff `in_fov_frac >= 0.90 AND recovered_after_occlusion`. Tria
 | s3.5a | 3.5 | 5.0 | PASS | 0.962 | True | 2.30 | 4 | 2 | 1 | 6.82 | 174.6 |
 | s3.5b | 3.5 | 5.0 | PASS | 0.964 | True | 2.30 | 5 | 3 | 1 | 9.17 | 174.7 |
 
-**RQ-E11 = YES** — reg-2.5 PASS (no chase-regression, byte-identical to E10 s2.5) **and** s3.0
+**RQ-E11 = YES** — reg-2.5 PASS (no chase-regression; **not** "byte-identical to E10 s2.5" as first published — corrected 2026-07-21, R-7: acquire attempts 8 vs 4, rejected 6 vs 2, relock 16.22 s vs 6.76 s, and the four `results.json` have four distinct md5s. What matches is the *gate verdict*, on a rig with visible run-to-run variance) **and** s3.0
 **3/3** PASS. Chase-hold makes first-acquire reliable at 3.0 m/s: E10's `motion` s3.0 never
 locked (in_fov 0.052, first_lock None); chase-hold keeps the car in-frame across draws until
 the VLM locks at **~9.2 s** (s3.0a/b needed 15 acquire attempts / 13 rejected before the

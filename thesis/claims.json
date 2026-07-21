@@ -430,8 +430,8 @@
         "n": 186
       },
       "gate_p": null,
-      "caveats": "Una prueba de signos sobre la comparación pareada por track: 1024 gana a 768 en 55 tracks, 768 gana a 1024 en 31, 100 empates. p exacto = 0.014, así que 1024 SÍ es significativamente más preciso que 768. La adopción de 768 nunca fue una afirmación de igualdad - la regla congelada era un listón de TAMAÑO DEL EFECTO (dentro de 5 pp de la referencia de 1024) más una restricción de FPS. La tesis debe enunciarlo así: se eligió 768 pese a un coste de precisión real, pequeño y detectable.",
-      "caveats_en": "A sign test on the per-track paired comparison: 1024 beats 768 on 55 tracks, 768 beats 1024 on 31, 100 ties. Exact p = 0.014, so 1024 IS significantly more accurate than 768. The adoption of 768 was never a claim of equality - the frozen rule was an EFFECT-SIZE bar (within 5 pp of the 1024 reference) plus an FPS constraint. The thesis must state it that way: 768 was chosen despite a real, small, detectable accuracy cost.",
+      "caveats": "Una prueba de signos sobre la comparación pareada por track: 1024 gana a 768 en 55 tracks, 768 gana a 1024 en 31, 100 empates; p exacto sin deflactar = 0.013. Pero los 186 tracks salen de 93 secuencias distintas, y sobre esa unidad independiente la prueba da b=28, c=16, p = 0.096: NO significativa, y Holm la deja en 1. La afirmación anterior de este registro («1024 SÍ es significativamente más preciso») se corrigió el 2026-07-21 (R-7). La adopción de 768 nunca fue una afirmación de igualdad - la regla congelada era un listón de TAMAÑO DEL EFECTO (dentro de 5 pp de la referencia de 1024) más una restricción de FPS. La tesis debe enunciarlo así: se eligió 768 por FPS, y el coste de precisión, si lo hay, es pequeño y estos datos no lo separan del azar.",
+      "caveats_en": "A sign test on the per-track paired comparison: 1024 beats 768 on 55 tracks, 768 beats 1024 on 31, 100 ties; undeflated exact p = 0.013. But the 186 tracks come from 93 distinct sequences, and on that independent unit the test gives b=28, c=16, p = 0.096: NOT significant, and Holm leaves it at 1. This registry's earlier claim (\"1024 IS significantly more accurate\") was corrected on 2026-07-21 (R-7). The adoption of 768 was never a claim of equality - the frozen rule was an EFFECT-SIZE bar (within 5 pp of the 1024 reference) plus an FPS constraint. The thesis must state it that way: 768 was chosen for FPS, and the accuracy cost, if any, is small and this data cannot separate it from chance.",
       "machine": "both"
     },
     {
@@ -942,8 +942,8 @@
         "n": 25
       },
       "gate_p": null,
-      "caveats": "EL RESULTADO CON MÁS POTENCIA ESTADÍSTICA DE LA PARTE V Y CON EL QUE LA TESIS DEBERÍA ABRIR. b=16, c=0, McNemar exacto p = 3.05e-05, y sobrevive a la corrección de Holm en toda la familia. 16 clips vuelcan de fallo a éxito y ninguno vuelca de vuelta. Esta es la afirmación del warm-start, debidamente certificada.",
-      "caveats_en": "THE BEST-POWERED RESULT IN PART V AND THE ONE THE THESIS SHOULD LEAD WITH. b=16, c=0, exact McNemar p = 3.05e-05, and it survives Holm correction across the whole family. 16 clips flip from fail to pass and not one flips back. This is the warm-start claim, properly certified.",
+      "caveats": "EL RESULTADO CON MÁS POTENCIA ESTADÍSTICA DE LA PARTE V Y CON EL QUE LA TESIS DEBERÍA ABRIR. Deflactado a 23 clips independientes: b=15, c=0, McNemar exacto p = 6.10e-05, y sobrevive a la corrección de Holm en toda la familia (sin deflactar era b=16, c=0, p = 3.05e-05). 15 clips vuelcan de fallo a éxito y ninguno vuelca de vuelta. Esta es la afirmación del warm-start, debidamente certificada.",
+      "caveats_en": "THE BEST-POWERED RESULT IN PART V AND THE ONE THE THESIS SHOULD LEAD WITH. Deflated to 23 independent clips: b=15, c=0, exact McNemar p = 6.10e-05, and it survives Holm correction across the whole family (undeflated it was b=16, c=0, p = 3.05e-05). 15 clips flip from fail to pass and not one flips back. This is the warm-start claim, properly certified.",
       "machine": "both"
     },
     {

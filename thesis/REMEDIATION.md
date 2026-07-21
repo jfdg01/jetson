@@ -20,7 +20,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-4 | Apply the pseudo-replication rule to `n_effective` | R-9 | **DONE** `1acb332` |
 | R-5 | Shadow-RG re-analysis + Chapter 7 rewording | — | TODO |
 | R-6 | Correct `README.md` | — | **DONE** |
-| R-7 | Claim-provenance sweep of every published number | R-9 | TODO |
+| R-7 | Claim-provenance sweep of every published number | R-9 | **DONE** (27 CONTRADICTED fixed; rest -> R-21) |
 | R-8 | Merge or retire `experiment/carla-gt-bank` | — | TODO |
 | R-9 | Regenerate `stats-report.md` from the corrected registry | — | TODO |
 | R-10 | Vacuous-metric audit | R-7 | TODO |
@@ -34,6 +34,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-18 | Rebalance `thesis/00-esquema.md` to the surviving evidence | R-9 | TODO |
 | R-19 | Stale-verdict sweep of the first-read surfaces | after R-4 | **DONE** |
 | R-20 | Translate the 65 `caveats` to Spanish | R-12 | **DONE** |
+| R-21 | Work the 74 MISLEADING/UNVERIFIED rows from the R-7 sweep | R-7 | TODO |
 
 R-12..R-18 come from the sufficiency audit (`wf_b81c3191-d12`, 6 agents,
 2026-07-21T21:05Z). **Verdict: the thesis is sufficient — YES, without running a
@@ -318,6 +319,64 @@ believe they are the only four.
 **Expected output:** `thesis/provenance-sweep.md` — one row per published number:
 where it appears, the artifact, the tag, and the fix if it is not VERIFIED.
 **Done when:** every number in the ledgers appears in that table with a tag.
+
+### What landed (2026-07-21T23:05Z)
+
+Six audit agents, one per ledger (Part IV and Part V each got their own; Part V was
+split at P5.12). **2320 numbers examined, 279 reported: 178 VERIFIED, 66 MISLEADING,
+27 CONTRADICTED, 8 UNVERIFIED.** Frozen verbatim in `thesis/provenance-sweep.json`
+and rendered by `thesis/make_provenance_sweep.py` into `thesis/provenance-sweep.md`.
+The rule that made it worth running: a number is VERIFIED only against an artifact
+the agent *opened*, never against another prose restatement of the same claim.
+
+**All 27 CONTRADICTED are fixed in this pass.** The ones that cost something:
+
+- **`P3-carry-OP768-accuracy` — my own R-6 error, and the worst of the set.** README
+  said "esa diferencia es real (p = 0.014)". The deflated analysis says the opposite:
+  186 tracks come from 93 sequences, so b=28, c=16, **p = 0.096**, Holm 1. The 0.014
+  itself was never computable — the exact undeflated value is 0.013. Corrected in
+  README.md, in the registry caveat, and in `part6-flight.md`, which had it in the
+  raw-significant bucket. **R-4 deflated the numbers but nobody re-read the caveats
+  written before it**, so the registry's own prose contradicted its own table.
+- **E4 stage 1 was run twice and only the first run published** (`part4-end-to-end.md`).
+  `stage2.log` re-ran all three gate legs before the ladder and overwrote every
+  `s1-*/results.json`. Two of three legs *invert* between runs on an identical config
+  (`none` PASS→FAIL, `score` FAIL→PASS), which means the run-to-run variance of one
+  0.5 m/s SITL trial exceeds the effect the stage measured. Both runs now published;
+  the "Fix B alone recovered 0.5" reading does not survive; `motion` is kept because
+  it is the only leg that replicated, not because the rule discriminated.
+- **Five stale p-values and two stale bucket sizes** in the retroactive-statistics
+  section of `part6-flight.md` — written pre-R-4, quoting undeflated p. Fixed, with
+  a line saying the values are post-deflation so the next reader knows which is which.
+- Part I: two multipliers swapped, a tg512 figure sitting in a tg128 column, a
+  tok/s·W paired with a J/tok on a different power basis, a global-config line false
+  for most rows below it. Part V: a dedup mechanism credited for a flip its own
+  `results.json` shows it never fired on, a service-call count off by 4x, an IoU
+  floor that excluded a surviving cell, a denominator (7) present in no artifact.
+
+**Not fixed here: the 66 MISLEADING and 8 UNVERIFIED rows.** They are the R-21 queue.
+A MISLEADING row is a sentence to rewrite, not a digit to change, and several need a
+decision (drop a vacuous column vs annotate it) rather than a patch. They are listed
+in `thesis/provenance-sweep.md` with the fix each agent proposed.
+
+## R-21 — The MISLEADING/UNVERIFIED queue from R-7
+
+66 MISLEADING + 8 UNVERIFIED rows in `thesis/provenance-sweep.md`, each with the fix
+its auditing agent proposed. These are sentences to rewrite, not digits to change,
+and they cluster into four recurring shapes worth naming because they will recur:
+
+1. **Cross-machine composite sold as one configuration** — e.g. "SAM2 @1024 rate-capped
+   6.15 Hz" applies E1's *768* Orin measurement to a 1024 carry running on the 3090.
+2. **Metric that cannot fail by construction** — `track_cov 100.0%` beside the already-
+   disowned "0 track losses"; `slave_err_mean_m`; P5.12's predicted-vs-recorded n_clear.
+3. **Count published without its independence unit** — cell-n headlines (P5.14 5/5,
+   P5.16 4/5) where n_effective is 3, and gates no outcome could clear (P5.3/4/5).
+4. **Two differently-defined quantities juxtaposed as a comparison** — 48.1 Hz renderer
+   throughput vs a 20 Hz *set point* called "2.4x"; E20's 1.85 s vs E18's 4.85 s.
+
+**Expected output:** each row either fixed in place or recorded in the sweep doc as
+accepted-with-reason. **Done when:** no MISLEADING row is left unresolved in a file
+the thesis cites.
 
 ## R-8 — `experiment/carla-gt-bank`
 

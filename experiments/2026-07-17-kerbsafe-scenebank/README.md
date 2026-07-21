@@ -439,7 +439,7 @@ above gate; V confirms no visual defect.
 
 | gate | estimate (pre-reg) | actual | note |
 |---|---|---|---|
-| G0 | PASS 16/16, 0 retries | PASS 16/16, 0/0/0 all cells | on estimate; 1920 service calls, 0 retries (as P5.8) |
+| G0 | PASS 16/16, 0 retries | PASS 16/16, 0/0/0 all cells | on estimate; 7680 service calls (16 x 240 x 2), 0 retries; the 1920 first published here was P5.8's four-run count (corrected 2026-07-21, R-7) |
 | G1 | PASS 16/16, 0 dead/0 identical/stamps exact | PASS 16/16 | on estimate |
 | G2 | PASS 16/16, purity ≈ 0.70–0.90 | PASS 16/16, 0.712–0.911 | on estimate; lowest pur0 = bank07 0.712 (yellow-flag noted, no defect); no blue-car <0.6 outlier — the P5.8 0.472 clip did not recur |
 | G3 | PASS 16/16, both-vis 1.000 | PASS 16/16, 1.000 | on estimate |

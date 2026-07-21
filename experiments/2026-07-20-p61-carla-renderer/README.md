@@ -210,7 +210,7 @@ Run 2026-07-20T18:20Z–19:05Z. Raw: `runs/g1-scripted/`, `runs/alt60/`, `runs/a
 | Gate | Verdict | Measured | Notes |
 |---|---|---|---|
 | G1 server | **PASS** | server 0.9.16 == client 0.9.16; `Town10HD_Opt` loaded; 155 spawn points, 41 vehicle blueprints; 599 ticks advanced | 13 maps available |
-| G2 render | **PASS** | dominant-colour fraction **0.005–0.026** across four runs (gate < 0.99) | frames opened with the Read tool; photoreal town, buildings, road markings, trees, pedestrians |
+| G2 render | **PASS** | dominant-colour fraction **0.007–0.026** across four runs (gate < 0.99) | frames opened with the Read tool; photoreal town, buildings, road markings, trees, pedestrians |
 | G3 pose slaving | **PASS** | copter flew **0 → 84.4 m north** under its own GUIDED control at a held 60.0 m; frame content at tick 150 / 300 / 599 is distinct and consistent with the reported position | nadir sign confirmed by viewed frame |
 | G4 traffic | **PASS** | **40/40** vehicles spawned with autopilot; first and last frames not byte-identical; traffic visibly moved between viewed frames | |
 | G5 rate | **PASS** | **48.1 Hz** mean (gate >= 20 Hz); 5/599 ticks under 15 Hz, all in the first ~5 s | the sub-15 Hz ticks are cold shader compilation, not steady-state |

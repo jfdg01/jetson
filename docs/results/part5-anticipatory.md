@@ -86,7 +86,7 @@ late-binding claim from the delivery-lag win already proven in P5.1/P5.2).
 | CSEL (cold deployed baseline, non-gating) | **1/5** genuine_lock | car10:240 only — cold stays broadly stale, consistent with COLD 5/25 (P5.2) |
 
 **Verdict: NO** (RQ-P5.3a FAIL 3/5 < 4; RQ-P5.3b FAIL 2/5 < 4). **Dominant failure = NO_MATCH**
-(4 of 7 non-passes): the stale VLM box at the prompt frame overlapped neither carried candidate
+(4 of the 5 gating non-passes; the denominator 7 published here matched no artifact — corrected 2026-07-21, R-7): the stale VLM box at the prompt frame overlapped neither carried candidate
 (max IoU ~0.000), i.e. the deployed VLM grounded the caption onto an object outside both tracks
 (third in-frame cars; type/colour phrase ambiguity for the distractor captions). **Not a match-rule
 bug** — the 3 WSEL passes deliver the correct live track at IoU 0.81-0.87 whenever the VLM boxes a
@@ -111,7 +111,7 @@ rate-capped to 6.15 Hz. 5 frozen P5.3 scenes x {VSEL, VSWP} = 10 runs, n=1/cell,
 | CLIP circlectx (non-gating secondary) | **7/10** correct | — | agrees with VLM on the 7 grounded runs; would not rescue car10:615 |
 
 **Verdict: NO [match-bound, resolution-bound]** (RQ-P5.4a FAIL 3/5, RQ-P5.4b FAIL 3/5). **The one
-unambiguous win: ROI cut acquire latency ~2.3x — 2.08 s median vs P5.3 full-frame ~4.5-4.9 s** (the
+unambiguous win: ROI cut acquire latency 2.16x — 2.08 s median vs P5.3's own measured 4.47-4.52 s**  (corrected 2026-07-21, R-7: the ~4.9 s upper bound was imported from E18, a different campaign, and inflated the ratio) (the
 Part III ROI-anchor lever transferring as predicted, est. ~1.5-2.5s -> actual 2.08s). But the select
 verdict did not move: VSEL identical to P5.3 WSEL cell-for-cell. The pre-registered "ROI kills
 NO_MATCH by construction" hypothesis is **falsified** — NO_MATCH only fell 4->3, because a distractor
@@ -291,11 +291,11 @@ G4b **redefined** to whole-scenario divergence ≥ 1.0 m (was min pairwise targe
 **RQ-P5.9 = YES.** Full capability gate 16/16 (G0,G1,G2,G3,G5,G6 all PASS every cell), G4a PASS,
 G4b (redefined) PASS, 12/12 bank cells clean, **V PASS 16/16**, zero clipping. Matrix landed on the
 first attempt: 0 INVALID, 0 INFRA, 0 re-runs, 240/240 frames × 16 = 3840 frames, **0 retries across
-1920 service calls**, 8.18–8.33 fps.
+7680 service calls** (16 runs x 240 frames x 2 calls; the 1920 published here is P5.8's four-run count - corrected 2026-07-21, R-7), 8.18-8.33 fps.
 
 | gate | value | note |
 |---|---|---|
-| G0 | 0/0/0 retries all 16 cells | 1920 calls, 0 retries (as P5.8) |
+| G0 | 0/0/0 retries all 16 cells | 7680 calls, 0 retries (P5.8's 1920 was its own four-run count; corrected R-7) |
 | G2 purity | 0.712–0.911 (both cars) | lowest pur0 bank07 0.712; NO blue-car <0.6 outlier (P5.8's 0.472 clip did not recur) |
 | G5 fps | 8.18–8.33 | on estimate |
 | **G6** frag p10 | min 0.9967 across 16 runs (gate 0.95) | margin +0.047; below-0.90 frac 0.000 everywhere; no cell in [0.95,0.99) watch band. Marginal cells are the WHITE target (self-occlusion), not the blue distractor (P5.8's clip victim, now p10 ≥ 0.9893) |
@@ -520,7 +520,7 @@ against a 35–60 min estimate — the second consecutive ~4x overestimate.
 | PLAIN (unmaintained carry) | 25/25 | **24/25** | 24/25 | `car7` (f270, never recovers) |
 | MAINT (+ P5.5 idle re-anchor) | 24/25 | 22/25 | 22/25 | `car10`, `car3`, `person10` (identity swap); `car7` rescued |
 
-RQ-P5.15a floor was 18/25 at 16 s; measured 24/25. Surviving cells sit at IoU 0.6–0.97 at
+RQ-P5.15a floor was 18/25 at 16 s; measured 24/25. Surviving cells sit at IoU 0.45-0.97 at
 24 s, i.e. not marginal. RQ-P5.15b did not run its comparison — the pre-registered ceiling
 (PLAIN@24s >= 22) fired. Non-gating: MAINT accepted **100/100** re-anchor rounds and is
 **net -2 clips**, because a generic-caption re-ground with no identity constraint
@@ -581,7 +581,7 @@ has). `.venv-ft`: Python 3.12, torch 2.6.0+cu124, opencv 4.13.0, numpy 2.4.4.
 G4a determinism `gt_identical=True`, `frame_mean_absdiff=0.0` on both replay pairs;
 G4b min pairwise scenario divergence **1.32 m** (floor 1.0) at pair (21, 101);
 G7 offline screen reproduces the 28 pinned seeds exactly; G11 near-white 14 / near-blue 14,
-recorded peak span 62 (floor 30). Designed crossings: max GT–GT IoU **0.28–0.44** per clip
+recorded peak span 62 (floor 30). Designed crossings: max GT-GT IoU **0.21-0.44** per clip (recomputed from the committed `gt.jsonl` 2026-07-21, R-7; the 0.28 floor published here was wrong and 8 of 28 clips sit below it). Bank v2.1's own peaks span 0.22-0.35, so v3 does **not** introduce crossings v2.1 lacked — it widens the top of the range
 (bank v2.1 had none). Realized staleness: median ZOH IoU(GT@f150, GT@f260) = **0.08**, every
 seed <= 0.20 — versus **~0.79** for bank v2.1, the flaw that made the P5.13 lag free.
 
@@ -703,7 +703,7 @@ delivery of the in-flight discovery when it lands within 2.0 s of the prompt.
 
 Mechanism counts: aligned dedup fired **8** cells (was 0); grace fired **4**, refused 0, with
 **acquire_s 0.367-0.600 s** vs the 4.68 s cold re-ground it replaces. Recoveries: car18:150 and
-person10:450 (grace), bike1:2250 (dedup + retry re-seed). Zero gating regressions.
+person10:450 (grace), bike1:2250 (**not** dedup — corrected 2026-07-21, R-7). `bike1:2250` carries no `duplicate_reject` outcome and no retry call in its `results.json`: the aligned-dedup guard never fired on it. Its VLM box and `seed_iou_gt` are byte-identical to P5.18; what changed is Jetson VLM wall latency (8.56 s in P5.18 vs 4.48 s here), so this flip is a timing artefact, not a mechanism. Zero gating regressions.
 
 Two negatives worth carrying: (a) the **non-gating control car3:200 regressed** PASS -> FAIL —
 grace put a tight box on the target (iou_t 0.679), falsifying the pre-registered "regression floor
@@ -716,7 +716,7 @@ drifted carry still admits a duplicate. Aligned dedup is only as good as the car
 passing cell shows the delivered box on the correct object; the headline rescue was *seen* (green
 VLM box on the actual black SUV, where P5.18 boxed the red Mustang) before it was counted.
 
-Residual failures are now a clean carry-quality bucket: 6 cells drift onto background or a third
+Residual failures are now a clean carry-quality bucket. 9 of the 10 (4 WSEL + 6 SWAP) classify; one cell is unbucketed (the buckets below summed to 9 against a denominator of 10 and the gap was silent until R-7). 6 cells drift onto background or a third
 object, 2 are honest carry losses during idle, 1 (bike1:450) has a genuinely absent referent.
 
 Proof: `proof/discovery_headline.png` (P5.18 Mustang vs P5.19 SUV, the before/after),
