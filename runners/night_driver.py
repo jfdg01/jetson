@@ -17,8 +17,9 @@ import json
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent.parent
 PY = str(ROOT / ".venv-ft" / "bin" / "python")
@@ -36,7 +37,10 @@ STEPS = [
 
 
 def stamp():
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
+    # Madrid wall-clock with a Z suffix, per CLAUDE.md's timestamp rule -- the
+    # local hour, NOT UTC-converted. This used to be datetime.now(timezone.utc),
+    # which wrote 23:35Z for a run that a human watching the clock saw at 01:35.
+    return datetime.now(ZoneInfo("Europe/Madrid")).strftime("%Y-%m-%dT%H:%MZ")
 
 
 def run(name, extra, attempts):
@@ -59,10 +63,19 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     log = OUT / "night_driver.json"
     results = []
+    started = stamp()          # once, before the loop
     for name, extra, attempts in STEPS:
         results.append(run(name, extra, attempts))
+        # `started` was previously stamp() evaluated inside this loop, so the
+        # field named "started" actually held the time of the LAST write and the
+        # file claimed the night began when it in fact ended. Both times now, and
+        # a note that `ok` is an exit code -- a gate that runs cleanly to a FAIL
+        # verdict exits 0 and is recorded ok:true, so this file is not a verdict.
         log.write_text(json.dumps(
-            {"started": stamp(), "results": results}, indent=2))
+            {"started": started, "updated": stamp(),
+             "ok_means": "subprocess exited 0; NOT the gate verdict -- "
+                         "see each runs/*/results.json",
+             "results": results}, indent=2))
     ok = all(r["ok"] for r in results)
     print(f"[{stamp()}] done, all_ok={ok}", flush=True)
     print(json.dumps(results, indent=2), flush=True)

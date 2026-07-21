@@ -295,10 +295,27 @@ short — nothing downstream would have raised an error, it would just have seen
 Fixed with a campaign-scoped ignore rule plus `git rm --cached` (`642237d`). *Lesson recorded:*
 never `git add` a directory an unattended writer is still writing into.
 
-**7. `night_driver.json` reports `all_ok: true` for a FAILED gate.** The field tracks subprocess
-exit codes, and a gate that runs cleanly to a FAIL verdict exits 0. The driver's own summary is
-therefore not a verdict and must not be read as one — verdicts live in each `runs/*/results.json`.
-Not fixed tonight (the driver is finished); recorded so the next session does not trust it.
+**7. The night driver's own summary is not a verdict, and its timestamp was neither.** Two
+separate defects in `runners/night_driver.py`, both found only by opening `runs/night_driver.json`
+after the campaign was already written up:
+
+- **`ok` is an exit code, not a gate verdict.** `run()` returns `ok: True` on `rc == 0`, and a
+  gate that runs cleanly to a **FAIL** verdict exits 0. The file records `gate_c ok: true,
+  0.7 min` for the very run whose `results.json` said `verdict: FAIL` (the actor-id bug, item 4).
+  Anything reading the driver's summary would have concluded the night passed.
+- **`"started"` held the time the file was last written, in the wrong timezone.** `stamp()` was
+  evaluated inside the write loop, so the field named `started` was really "last updated"; and it
+  used `datetime.now(timezone.utc)` while this repo's timestamp rule is **Madrid wall-clock**. The
+  file claimed `"started": "2026-07-20T23:35Z"` for a night whose first bank frame was written at
+  00:58 and whose last was 01:34 Madrid. 23:35 UTC *is* 01:35 Madrid — the moment the file was
+  last written. So the one field a later session would use to date the run was off by two hours
+  **and** pointed at the end rather than the start.
+
+Both fixed rather than merely recorded, since the driver will be reused: `started` is stamped once
+before the loop with `updated` alongside it, `stamp()` uses `Europe/Madrid`, and the JSON now
+carries an explicit `ok_means` string saying it is an exit code and pointing at
+`runs/*/results.json` for verdicts. *Lesson recorded:* a driver that reports on experiments needs
+its own output read at least once, or it is one more thing that exits 0 and looks like success.
 
 **8. Killing a sync-mode client leaves the server unusable.** `pkill` on a capture holding the
 world in `synchronous_mode` left CARLA wedged; the next run core-dumped, and a later one failed
