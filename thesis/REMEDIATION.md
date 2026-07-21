@@ -32,6 +32,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-16 | SAM2 co-residency characterisation (reframed campaign) | — | TODO |
 | R-17 | Fix E2–E4 rig prose | R-7 | TODO |
 | R-18 | Rebalance `thesis/00-esquema.md` to the surviving evidence | R-9 | TODO |
+| R-19 | Stale-verdict sweep of the first-read surfaces | after R-4 | TODO |
 
 R-12..R-18 come from the sufficiency audit (`wf_b81c3191-d12`, 6 agents,
 2026-07-21T21:05Z). **Verdict: the thesis is sufficient — YES, without running a
@@ -394,6 +395,39 @@ Note what it does not contain: the delivery-contract separation.
 **Expected output:** a revised `00-esquema.md` whose page budget matches the
 surviving evidence.
 **Done when:** every chapter's length is justified by claims that survive R-9.
+
+## R-19 — Stale-verdict sweep of the first-read surfaces
+
+**Runs AFTER R-4, not in parallel.** R-4 changes what the verdicts say; sweeping
+first means writing them twice.
+
+Distinct from the file-prune triage, which hunts stale *instructions*. This hunts
+stale *verdicts*: a recorded YES/NO that the statistical correction overturns, sitting
+in a surface an agent reads before anything else and takes as settled.
+
+The surfaces, in order of injection speed:
+
+1. **The auto-memory index** — `~/.claude/projects/-home-gara-jetson/memory/`.
+   Highest-value target and the one nothing else covers: it is outside the repo, so
+   no repo sweep or test touches it, and it loads into **every** session
+   automatically. Verified stale entries include P5.14 ("YES [WSEL 5/5, SWAP 4/5]",
+   deflates 5→3), P5.16, P5.18/P5.19 ("clearing the bar exactly"). One reasoning
+   error already corrected 2026-07-21: P5.20's cell-for-cell reproduction of P5.19
+   was recorded as proving "that bar-exact YES was real" — reproduction establishes
+   determinism, not truth.
+2. **`CLAUDE.md`'s project-parts block** — read first by every agent, asserts Part V
+   results verbatim.
+3. **`docs/questions/part5-anticipatory.md`** one-line verdicts, and the matching
+   RESULTS rows.
+
+Do not delete the superseded verdicts. Each becomes "recorded as X at the time;
+corrected to Y by R-4" — the correction is thesis content, and an erased wrong
+verdict invites someone to re-derive it.
+
+**Expected output:** every verdict on those three surfaces either matches the
+post-R-4 registry or carries its correction inline.
+**Done when:** a spot-check of 10 verdicts drawn at random across the three surfaces
+finds no unqualified claim that `thesis/claims.json` contradicts.
 
 ---
 
