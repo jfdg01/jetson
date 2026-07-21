@@ -9,9 +9,18 @@
 
 ---
 
+> **Read this before citing any verdict below.** These are the as-run labels. A retroactive
+> exact-test pass (R-4/R-19, 2026-07-21) found that several are descriptively right but were
+> never inferential at their n, and that three "ties" ran no test at all. Sections with a
+> material correction carry a **Statistical standing** note inline. **P5.2 is the properly
+> powered claim** (p = 3.05e-05, survives Holm). Per-claim detail: `thesis/claims.json`,
+> `thesis/stats-report.md`.
+
 <!-- append one RQ + one-line verdict per campaign below -->
 
 ### P5.1 — warm-start acquire (2026-07-04)
+
+> **Statistical standing (R-19, 2026-07-21):** p = 0.125 (four of six pairs flip); `n_effective` = 6. Not inferential. The pre-registered **superset** condition is the stronger check and it held; the powered version of this claim is P5.2.
 
 **RQ-P5.1:** does seeding the carry from a real VLM detection during the idle pre-prompt window
 (WARM) and selecting on command at t_p=8 s beat the cold blocking acquire (COLD, E18-A shifted to
@@ -51,6 +60,8 @@ is stale full stop — not because faster targets move further during the acquir
 
 ### P5.3 — multi-candidate select-on-command (2026-07-14)
 
+> **Statistical standing (R-19, 2026-07-21):** **The 4/5 gate was unreachable by construction** — against a 0.8 null even 5/5 gives p = 0.33. This is a legitimate engineering stop, not evidence that select fails. Same for P5.4 and P5.5.
+
 **RQ-P5.3a (select works):** when two same-class candidates are warm-carried through the idle
 window, does the operator's phrase, late-bound by IoU-matching the stale VLM box to the carried
 boxes, deliver the *named* target's live track? (PASS = selection==target AND genuine_lock IoU≥0.25
@@ -78,6 +89,8 @@ target. Detail:
 
 ### P5.4 — ROI-constrained select-on-command (2026-07-14)
 
+> **Statistical standing (R-19, 2026-07-21):** Unreachable gate (see P5.1's note above) **plus a disclosed pilot bias** — 3 of 5 verdict scenes were used in the pilot. The latency leg (4.9 s to 2.08 s) is deterministic and stands alone.
+
 - **RQ-P5.4a (ROI select works):** with the VLM fired on the candidates-union ROI crop (union of
   the two carried boxes, margin 1.5, min_side 256, LANCZOS@512 — the deployed Part III lever),
   does the target phrase deliver the named target's live track? PASS iff VSEL >= 4/5. **Verdict:
@@ -99,6 +112,8 @@ target. Detail:
   [`../../experiments/2026-07-14-crop-select/README.md`](../../experiments/2026-07-14-crop-select/README.md).
 
 ### P5.5 — Maintained-candidate select-on-command (2026-07-14)
+
+> **Statistical standing (R-19, 2026-07-21):** Unreachable gate. The informative content is diagnostic: 16/16 idle re-anchors accepted, two carry-drift NO_MATCH survived.
 
 - **RQ-P5.5a (maintenance + unique captions lift WSEL to >= 4/5):** does per-candidate idle-window
   ROI re-anchor of the distractor carry plus referentially-unique captions raise warm select-on-command
@@ -186,6 +201,8 @@ target. Detail:
 
 ### P5.9 — kerb-safe scene bank (2026-07-17)
 
+> **Statistical standing (R-19, 2026-07-21):** 12/12 has a Wilson interval of [0.76, 1.0], over one generator with one asset set — it measures the artifact, correctly, as a build gate.
+
 **RQ-P5.9:** with spawn bands clamped to the calibrated kerb-safe corridor and G4b redefined to
 whole-scenario divergence, does the generator pass the full capability gate (including the new
 rendered-integrity gate G6) AND produce a 12-clip pre-registered scene bank with zero clipping —
@@ -206,6 +223,8 @@ redefinition targets. **P5.6 (`experiment/direct-delivery-select`) unblocks next
 Detail: [`../../experiments/2026-07-17-kerbsafe-scenebank/README.md`](../../experiments/2026-07-17-kerbsafe-scenebank/README.md).
 
 ### P5.10 — select on the scene bank: direct delivery vs prompt-time re-ground (2026-07-17)
+
+> **Statistical standing (R-19, 2026-07-21):** **Zero discordant pairs: McNemar is undefined, not 1.0.** No test ran. Both arms at ceiling, so the design could not separate anything — read it as 'no discrimination possible', never as 'the contracts are equivalent'.
 
 **RQ-P5.10:** on the P5.9 12-clip sim bank (two colour-distinct cars, exact dual per-frame GT), with
 both candidates carried from oracle f0 seeds under the two-candidate SAM2 budget, does the
@@ -292,6 +311,8 @@ Detail: [`../../experiments/2026-07-17-bankv21-recal/README.md`](../../experimen
 
 ### P5.13 — v2 discrimination A/B: DD vs RG on the bank v2.1 crossing bank (2026-07-19)
 
+> **Statistical standing (R-19, 2026-07-21):** One discordant pair, p = 1.0. The pre-registered `SEP_MARGIN` of 4 was below the minimum detectable effect (alpha needed 6 one-way flips).
+
 **RQ-P5.13a (primary, gating).** On a scene bank whose clips contain a *designed crossing/occlusion*
 between the two candidate cars, do the two delivery contracts — DD (direct delivery of the carried
 track, no VLM at prompt time) and RG (prompt-time re-grounding through the VLM plus IoU match) —
@@ -331,6 +352,8 @@ varied (z-order / target-in-front) or a move off synthetic banks entirely, not a
 Detail: [`../../experiments/2026-07-19-v2disc-select/README.md`](../../experiments/2026-07-19-v2disc-select/README.md).
 
 ### RQ-P5.14a / RQ-P5.14b — does changing the *delivery contract* fix select-on-command on real video?
+
+> **Statistical standing (R-19, 2026-07-21):** 5/5 gives p = 0.33 and 4/5 gives p = 0.74 against the 0.8 bar; `n_effective` = 3. **Cite P5.18 for the rate** (true WSEL near 0.85, SWAP 0.65). The delivery-contract mechanism is what this run established and it stands.
 
 **Question.** Under the direct-delivery (DD) contract — the operator phrase binds to a warm-carried
 candidate by its stored caption, and that candidate's carried box at the prompt frame is delivered
@@ -408,6 +431,8 @@ Detail: [`../../experiments/2026-07-19-carry-horizon/README.md`](../../experimen
 
 ### P5.16 — autodisc-select (2026-07-19T15:03Z) — **YES**
 
+> **Statistical standing (R-19, 2026-07-21):** The load-bearing number is **24/24 discoveries accepted** (GT-free end to end), not the 4/5 select rate, which is not inferential at n=5.
+
 **RQ-P5.16a** — With candidate seeds discovered by the deployed VLM during the idle window
 instead of taken from ground truth, does WSEL still pass on >= 4 of the 5 gating scenes?
 **YES, 4/5.**
@@ -438,6 +463,8 @@ wrong-object discovery on `car7:460` was *seen*, not inferred.
 Detail: [`../../experiments/2026-07-19-autodisc-select/README.md`](../../experiments/2026-07-19-autodisc-select/README.md).
 
 ## RQ-P5.17 (2026-07-20) — bankv3-select
+
+> **Statistical standing (R-19, 2026-07-21):** b=1, c=0, p = 1.0 — identical to P5.13 at n=24. **Going from 24 to 56 cells did not increase power**, because the failure rate fell rather than the effect appearing. That is the finding.
 
 **RQ-P5.17a (gating):** on a sim bank engineered so the ~4.4 s prompt-time re-ground lag is
 *geometrically costly* (GT box at the deliver frame has IoU <= 0.20 with the prompt-frame box,
@@ -471,6 +498,8 @@ Detail: [`../../experiments/2026-07-20-bankv3-select/README.md`](../../experimen
 
 ### RQ-P5.18 — does the GT-free warm-start select result hold at statistically conclusive n on real video?
 
+> **Statistical standing (R-19, 2026-07-21):** `n_effective` = 13 (26 cells over 13 clips). 22/26 vs a 0.8 bar is p = 0.37 with Wilson [0.67, 0.94], an interval that *contains* the gate — 'consistent with the pre-registered rate', not 'clears it'. The SWAP NO stands.
+
 **NO [SWAP-bound]** — WSEL 22/26 clears the 20/26 bar, strengthened SWAP **17/26** misses it, on
 the byte-identical P5.16 pipeline re-powered from 5 to 26 gating scenes per leg.
 
@@ -501,6 +530,8 @@ an absent black SUV) before it was named.
 Detail: [`../../experiments/2026-07-20-n25-select/README.md`](../../experiments/2026-07-20-n25-select/README.md).
 
 ### RQ-P5.19 (late-entry-rescue, 2026-07-20)
+
+> **Statistical standing (R-19, 2026-07-21):** b=3, c=0, p = 0.25; `n_effective` = 13, so the 20/26 bar becomes 10/13 over a baseline of 8/13. **The bar-exact YES does not survive.** Current standing: we could not distinguish the arms. The mechanism evidence is untouched.
 
 **Does fixing the frame-misaligned discovery distinctness guard (dedup at the frame the VLM saw),
 plus a bounded grace delivery for the in-flight discovery call (acquire_s <= 2.0 s), lift
@@ -539,6 +570,8 @@ downgrades.
 Detail: [`../../experiments/2026-07-20-late-entry-rescue/README.md`](../../experiments/2026-07-20-late-entry-rescue/README.md).
 
 ### RQ-P5.20a / RQ-P5.20b (carry-capacity, 2026-07-20)
+
+> **Statistical standing (R-19, 2026-07-21):** b=0, c=1, p = 1.0 — no effect seen either way, not evidence that capacity cannot help. 'Dead lever' rests on the **mechanism** (same car-family drift block in both arms). The zero-discordant replication certifies repeatability, not correctness.
 
 **a) Does swapping the SAM2 carry checkpoint from `hiera-tiny` (38.9M) to `hiera-small` (46M) —
 nothing else changed — recover at least +3 of the carry-owned select failures on the frozen n=26

@@ -32,7 +32,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-16 | SAM2 co-residency characterisation (reframed campaign) | — | TODO |
 | R-17 | Fix E2–E4 rig prose | R-7 | TODO |
 | R-18 | Rebalance `thesis/00-esquema.md` to the surviving evidence | R-9 | TODO |
-| R-19 | Stale-verdict sweep of the first-read surfaces | after R-4 | TODO |
+| R-19 | Stale-verdict sweep of the first-read surfaces | after R-4 | **DONE** |
 | R-20 | Translate the 65 `caveats` to Spanish | R-12 | **DONE** |
 
 R-12..R-18 come from the sufficiency audit (`wf_b81c3191-d12`, 6 agents,
@@ -633,6 +633,43 @@ verdict invites someone to re-derive it.
 post-R-4 registry or carries its correction inline.
 **Done when:** a spot-check of 10 verdicts drawn at random across the three surfaces
 finds no unqualified claim that `thesis/claims.json` contradicts.
+
+### What landed (2026-07-21T20:25Z)
+
+All three surfaces, correction-in-place, nothing deleted.
+
+1. **Auto-memory** (`~/.claude/projects/-home-gara-jetson/memory/`, outside the repo and
+   therefore outside every test and every future sweep — note that when you next wonder
+   why a stale claim survived). Sixteen P5/P6 memories gained a
+   `**CORRECTED 2026-07-21 (R-19 …)**` block; four `description:` lines were rewritten,
+   because the description is what the recall index shows and a body correction under a
+   headline that still says "YES" is not a correction. `MEMORY.md` gained a banner and
+   six corrected hooks.
+2. **`CLAUDE.md`** — the Part V block gained a *Statistical standing* paragraph naming
+   the three failure shapes (never-inferential, unreachable-by-construction, no-test-ran)
+   and pointing at the registry, immediately before the verdicts it qualifies.
+3. **`docs/questions/part5-anticipatory.md`** — a read-this-first banner plus thirteen
+   inline `> **Statistical standing (R-19)**` notes on the sections the registry
+   materially contradicts.
+
+**The shape of the defect, which is worth more than the list.** Almost nothing recorded
+was factually wrong: the counts are right, the mechanisms are right, and the engineering
+decisions taken on them were reasonable. What was wrong is that a **descriptive** result
+was written down in the grammar of an **inferential** one — "YES", "clears", "the
+contracts tie" — and then read back as settled by every later session. Three distinct
+shapes: a gate no outcome could clear (P5.3/P5.4/P5.5, where even a perfect score gives
+p = 0.33), a tie with zero discordant pairs (P5.10/P5.13/P5.17, where McNemar is
+*undefined*, not 1.0, so no test ran at all), and a small-n win that a powered re-run
+later corrected downward (P5.14/P5.16 to P5.18). The corrections say which shape each is
+rather than just attaching a p-value.
+
+**One result got stronger, and saying so is part of the job.** P5.2 (b=16, c=0,
+p = 3.05e-05) survives Holm across the whole family. Every surface now points at it as
+the claim the warm-start argument should rest on — a sweep that only ever downgrades
+teaches the next session that statistics is a tax rather than a tool.
+
+**Ledger `RESULTS.md` rows deliberately deferred** to R-7, which was sweeping those exact
+files concurrently. Two agents editing one ledger is how a correction gets clobbered.
 
 ---
 
