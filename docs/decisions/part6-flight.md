@@ -201,3 +201,21 @@ Record: `experiments/2026-07-21-machine-disclosure/README.md` (R-1).
 - **Everything else is a text correction, not a measurement.** M3, M4, M6 and M8 are missing or
   wrong rig lines and route to R-7; M5 is already R-17. *Given up:* the appearance that this was a bigger problem than it was —
   it was mostly bookkeeping, and saying so plainly is the honest report.
+
+### D-MACH.2 — `README.md` scopes the on-device claim instead of dropping it (R-6, 2026-07-21T19:40Z)
+
+- **Keep «corre en la placa», bound to the deployed system.** It is true of the artifact
+  the thesis delivers and false only of the experimental campaigns, so deleting it would
+  trade one wrong sentence for a second one. The README now separates the two explicitly
+  and puts the 47/13/3/2 machine split in the reader's path rather than in an appendix.
+  *Given up:* the clean one-line pitch — the front matter is three sentences longer.
+- **Quote the deployed operating point, not the best one.** The carry bullet published
+  0.849 (1024 px) while the shipped configuration is 768 px at 0.830, a gap the registry
+  shows is real (p = 0.014). The README now states 768 and names the trade.
+  *Given up:* 1.9 pp of headline accuracy.
+- **Publish the ceiling, not the setting that failed.** «hasta 3.0 m/s» became 2.5 m/s
+  with the 0/2 at 3.0 stated inline. *Given up:* the larger number.
+- **Same-backend deltas over cross-machine ones.** ROI is now +21.2 pp against the
+  sweep's own full-frame control, not +22.6 pp against the Orin-deployed baseline.
+  *Given up:* comparability with every earlier document that cites +22.6 pp — those are
+  R-7's problem, and R-14 may still supersede both with an on-device measurement.

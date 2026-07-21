@@ -19,7 +19,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-3 | Fix `paired-binary` skipping deflation in `grounding/stats.py` | R-9 | **DONE** |
 | R-4 | Apply the pseudo-replication rule to `n_effective` | R-9 | **DONE** `1acb332` |
 | R-5 | Shadow-RG re-analysis + Chapter 7 rewording | — | TODO |
-| R-6 | Correct `README.md` | — | TODO |
+| R-6 | Correct `README.md` | — | **DONE** |
 | R-7 | Claim-provenance sweep of every published number | R-9 | TODO |
 | R-8 | Merge or retire `experiment/carla-gt-bank` | — | TODO |
 | R-9 | Regenerate `stats-report.md` from the corrected registry | — | TODO |
@@ -271,6 +271,42 @@ concludes the citation, not the file, is broken.
 **Expected output:** corrected `README.md`, full diacritics, each changed number
 traceable to a claim ID.
 **Done when:** every number in the front matter resolves to a registry claim.
+
+### What landed (2026-07-21T19:40Z)
+
+Every number in the front matter now carries its claim ID, and the block says up
+front that it does. The six defects:
+
+- The three "todo corre en la placa" sentences are **scoped, not deleted**. The
+  deployed system genuinely does run on the board — E1 measured the VLM and the SAM2
+  carry co-resident on the Orin at 6.15 FPS, 4980/7607 MB (`P3-E1-TRT-fps`, the one
+  claim in the registry that is wholly `jetson-orin-nano-8gb` *and* load-bearing).
+  What did not all run on the board is the *experimental* work. The README now says
+  which is which, in a new **«Sobre las cifras»** section carrying the 47 / 13 / 3 / 2
+  split and a pointer to R-1's audit and to D-MACH.1.
+- `+22.6 pp` replaced with **`+21.2 pp`**, the same-backend within-sweep control
+  (full-frame, no resize cap = 64.0 %, `experiments/2026-06-25-roi-crop-anchor/README.md`).
+  The old figure subtracted the Orin-deployed 62.6 % baseline from a 3090-measured arm.
+  R-14 can still replace it with a clean on-device number; it is no longer *wrong* in
+  the meantime.
+- The tracker bullet's I6 violation is fixed by stating the binding cost in the same
+  breath: 0.143 ms is `ByteTracker.update` (`P3-T4a-tracker-cost`), while the carry
+  step is ~162 ms (`bench.json:trt_768_cores`) and is what actually sets the cadence.
+- Two defects **found while correcting, not on the list**: the carry bullet quoted
+  **0.849**, which is the 1024 px number, while the *deployed* operating point is 768 px
+  at **0.830** — and the registry records that gap as real (sign test, p = 0.014), so
+  the README was quoting the accuracy of a configuration it does not ship. And the
+  follow ceiling read "hasta **3.0 m/s**" when `E10-fast-follow-ceiling` is 3/3 at 2.5
+  and **0/2 at 3.0**: the README had published the setting that failed. Both corrected.
+- The HF bf16 comparison no longer reads as a win ("iguala o supera") but as
+  «sin pérdida medible por la exportación», per `P2-RQ4.1-deploy-fidelity`'s caveat.
+
+**I7, applied and worth recording.** While correcting the ROI bullet I concluded the
+table's `+21.2 pp` was unsupported arithmetic and wrote a replacement around a
+different baseline. It was not unsupported — the 64.0 % control is in the sweep's own
+README. The table was right and the fresh read was wrong, which is the *inverse* of the
+failure this section was written about. One grep before committing caught it. Re-check
+the citation; also re-check your correction of the citation.
 
 ## R-7 — Claim-provenance sweep
 
