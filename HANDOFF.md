@@ -59,10 +59,18 @@ and cost a retracted result (the Phase C camera pointed at the sky for weeks whi
 the logs read like success).
 
 **I6 — True in isolation is not true in context.** Check the paragraph, not just the
-number. `README.md:47` reports the tracker at 0.14 ms/frame; that figure is correct
-(`ByteTracker.update`, on CPU) and sits one bullet below the SAM2 carry line, which
-is roughly 160 ms/frame. Both numbers are honest. The passage they form is not.
+number. `README.md` reports "Latencia del tracker: 0.14 ms/frame"; that figure is
+correct (`ByteTracker.update`, on CPU) and sits one bullet below the SAM2 carry line,
+which is roughly 160 ms/frame. Both numbers are honest. The passage they form is not.
 When auditing, read the surrounding claim, not the cell.
+
+**I8 — Cite by quoted string, not by line number.** Line numbers rot silently on the
+next edit, and a stale one costs a future session real time before it works out that
+the citation is broken rather than the file. This invariant was earned the hard way:
+the first version of I6 above cited `README.md:47` for a line that is at 49, and
+`thesis/REMEDIATION.md` R-6 attributed a quote to `README.md` that lives in
+`docs/_legacy/INFORME_PROGRESO.md` — three bad anchors, written the same day, in the
+two documents a new session reads first.
 
 **I7 — Do not trust your first read of someone else's schema.** Guessing a JSON
 field name yields a confident, precise, wrong number. Verified in this repo: an

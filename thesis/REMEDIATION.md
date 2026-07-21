@@ -152,16 +152,30 @@ difference the test does not support.
 
 ## R-6 — Correct `README.md`
 
-Known defects, all in the Spanish front matter:
+Known defects. **Anchored by quoted string, not line number** — the first version of
+this table cited three line numbers that did not resolve and attributed one quote to
+the wrong file entirely. Corrected 2026-07-21 after the prune triage caught it; see
+the note below, it is worth reading before you trust any citation in this document.
 
-| Line | Text | Problem |
+| File | Quoted text | Problem |
 |---|---|---|
-| 3 | "Todo corre en la placa, sin nube" | false as written — see R-1 |
-| 17 | "enteramente on-device" | same |
-| 42 | "Todo corre en una Jetson Orin Nano 8 GB a 15 W, sin nube" | same |
-| 46 | "solo −7 pp son cuantización" | b=17, c=10, p=0.2478 — not distinguishable from zero |
-| 47 | "+22.6 pp" | cross-machine; the same-backend figure is +21.2 pp |
-| 47 | "Latencia del tracker: 0.14 ms/frame" | true (`ByteTracker.update`, CPU) but sits beside the SAM2 carry line at ~160 ms/frame — invariant I6 |
+| `README.md` | "Todo corre en la placa, sin nube" | false as written — see R-1 |
+| `README.md` | "enteramente on-device" | same |
+| `README.md` | "Todo corre en una Jetson Orin Nano 8 GB a 15 W, sin nube" | same |
+| `README.md` | "+22.6 pp sobre fotograma completo" | cross-machine composite (HF bf16 on the 3090 vs Q8_0 on the Orin); the same-backend figure is +21.2 pp. R-14 replaces it with a clean on-device number |
+| `README.md` | "Latencia del tracker: 0.14 ms/frame" | true (`ByteTracker.update`, CPU) but sits directly below the SAM2 carry bullet at ~160 ms/frame — invariant I6 |
+| `docs/_legacy/INFORME_PROGRESO.md` | "solo −7 pp son cuantización" | b=17, c=10, p=0.2478 — not distinguishable from zero. **Not in `README.md`**, which is where this table originally claimed it was |
+
+**The note.** Three of the six anchors above were wrong when written, in the document
+`HANDOFF.md` sends every new session to first. They were written from an earlier read
+of `README.md` in the same session rather than re-checked at authoring time — which is
+invariant **I7** ("do not trust your first read"), violated in the file that states it.
+`HANDOFF.md`'s own I6 example carried the same wrong line number, copied between the
+two files: the link-don't-duplicate rule in `CLAUDE.md` exists for exactly this.
+
+Take the general lesson, not just the fix: **cite by quoted string.** Line numbers rot
+silently on the next edit, and a wrong one costs a future session real time before it
+concludes the citation, not the file, is broken.
 
 **Precondition:** R-1, R-2.
 **Expected output:** corrected `README.md`, full diacritics, each changed number
