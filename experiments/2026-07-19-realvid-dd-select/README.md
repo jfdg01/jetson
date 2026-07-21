@@ -222,6 +222,21 @@ frames must *show* the failure mode the class claims — that agreement is thesi
 | WSEL / SWAP gating | 5/5 / 4/5 (car7:460 the predicted fail) | P5.6 raw-runs audit, unchanged |
 | overall | **YES** | see Prediction; a NO localises to named cells |
 | shadow latency | ~4.5–5 s/call | P5.3/P5.5 full-frame acquire |
+
+> **R-5 re-analysis (2026-07-21).** This paragraph overstated what the shadow arm
+> can show, and the correction is kept rather than the wording swapped. DD's
+> selection is correct **by construction**: `select_p56.bind_by_caption` is string
+> equality against the stored caption with an assert that exactly one matches, a
+> scope cut recorded above (the campaign isolates the delivery mechanism, not
+> phrase understanding). DD therefore cannot mis-select, so "the contracts
+> separate" is not a two-sided finding — RG fails at a task DD does not perform.
+> RG also matches its box against `cand_at_prompt`, i.e. DD's own maintained
+> tracks, so a drifted carry costs RG a match it would otherwise have made. The
+> defensible, one-directional statement: **a prompt-time re-ground would have
+> failed to pick the right candidate in 3 of 10 gating cells, all three by
+> abstention (NO_MATCH)** — that is the cost DD's caption-binding assumption buys
+> out, not a margin DD won. Derivation: `thesis/analyse_shadow_rg.py`.
+
 | INFRA / crashes | 0 | replay rig, no gz-transport anywhere |
 
 A wrong estimate is content — record estimate-vs-actual in Results wherever they diverge.

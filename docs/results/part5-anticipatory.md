@@ -489,7 +489,7 @@ SWAP 0.7253–0.8864 on four cells, 0.2843 on the marginal `car9:560`, 0.0 on th
 All 24 idle re-anchors accepted. The strengthened SWAP rule (delivered box must land >= 0.25 on the
 hand-annotated *distractor*, not merely off the target) scores 5/6 where the old weak rule scores
 6/6 — the flattered cell is `car7:460`, whose box is off every object. **First campaign in Part V
-where the two delivery contracts separate on the same frames:** the shadow re-ground fails on 4/12
+where the shadow re-ground visibly fails on the same frames DD handles:** it fails on 4/12
 cells (3x NO_MATCH, 1x wrong-object selection) whose carried track was on the right object and whose
 DD cell passed — the separation four sim cycles (P5.10–P5.13) could not manufacture is present for
 free in real video, because the prompt-time re-ground is genuinely hard on UAV123 frames and never

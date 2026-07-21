@@ -396,6 +396,9 @@ flips P5.8's failing gate — disclosed, deliberate, grounded in third-party-che
   scenes in P5.3/P5.5). **Given up:** the sim arc's momentum, and the chance that a third bank
   would finally separate the contracts. **Vindicated in the event:** the shadow re-ground
   disagreed with DD on 4/12 real-video cells — the separation the banks could not manufacture.
+  **R-5 qualifier (2026-07-21):** the separation is one-sided by construction (DD's caption binding
+  cannot mis-select), so what the move actually bought was a *measurable failure rate for the
+  re-ground contract on real imagery*, which is still exactly what the sim banks could not produce.
 - **Rejected bank v3 (the competing candidate) this cycle, but pre-named its mandatory gates.**
   **Why:** a third bank cycle needed re-authored trajectories and a recalibrated kerb-safe corridor
   — a multi-session build before any contract evidence arrives — with a demonstrated risk of a third

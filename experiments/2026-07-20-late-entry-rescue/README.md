@@ -457,3 +457,29 @@ being committed.
    the single best `grace_deliver.png` into `proof/` with a caption naming the cell.
 7. Commit on this branch; the loop driver merges. Do NOT touch CLAUDE.md, `.claude/`, or any
    file outside this experiment dir + the three per-Part ledger docs.
+
+### Shadow re-ground (RG), analysed under R-5 (2026-07-21)
+
+The shadow arm was recorded here and never analysed. It is now analysed by
+`thesis/analyse_shadow_rg.py`, and the analysis is **one-directional on purpose**.
+
+- **RG selection-correct: 42/50** of the gating cells that have a shadow record,
+  8 of the failures by abstention (`selected: null`, no candidate matched
+  above the floor). This is a **ceiling**, not a pass rate: the shadow never carries
+  a track after its re-ground, so it is never charged coverage or delivered IoU.
+- **It is not paired against DD, and the obvious pairing is vacuous.** DD's
+  selection is string equality against the stored caption
+  (`select_p56.bind_by_caption`, with an assert that exactly one matches), so DD
+  scores 50/50 by construction and cannot mis-select. Pairing DD `pass` against RG
+  `selected` instead — one criterion folding in coverage, IoU and carry survival,
+  the other selection only — is the shape R-21 catalogues as MISLEADING, and the
+  paired p it produces is not reported.
+- **The dropped cells are not missing at random.** `meta.shadow` is written after
+  the early `fail()` returns, so every cell without one is a DD failure. Dropping
+  them conditions the number on DD surviving to the prompt.
+- **RG is not an independent contract.** It matches its VLM box against
+  `cand_at_prompt` — DD's own maintained tracks — so a drifted carry costs RG a
+  match. Its failures are re-ground failures plus inherited carry drift.
+- **One coincidence not to over-read:** RG's SWAP ceiling is 20/26, the same
+  count as DD's realized strengthened-SWAP pass rate. A ceiling on selection and a
+  realized pass rate are different quantities; their equality is not a tie.

@@ -383,3 +383,26 @@ earned its keep on its first application.**
    failure — then commit exactly that one.
 4. Leave the branch ready to merge (working tree clean apart from pre-existing stray
    `2026-07-20-bankv3-select/runs/` leftovers on main — do not add them).
+
+### Shadow re-ground (RG), analysed under R-5 (2026-07-21)
+
+The shadow arm was recorded here and never analysed. It is now analysed by
+`thesis/analyse_shadow_rg.py`, and the analysis is **one-directional on purpose**.
+
+- **RG selection-correct: 38/48** of the gating cells that have a shadow record,
+  9 of the failures by abstention (`selected: null`, no candidate matched
+  above the floor). This is a **ceiling**, not a pass rate: the shadow never carries
+  a track after its re-ground, so it is never charged coverage or delivered IoU.
+- **It is not paired against DD, and the obvious pairing is vacuous.** DD's
+  selection is string equality against the stored caption
+  (`select_p56.bind_by_caption`, with an assert that exactly one matches), so DD
+  scores 48/48 by construction and cannot mis-select. Pairing DD `pass` against RG
+  `selected` instead — one criterion folding in coverage, IoU and carry survival,
+  the other selection only — is the shape R-21 catalogues as MISLEADING, and the
+  paired p it produces is not reported.
+- **The dropped cells are not missing at random.** `meta.shadow` is written after
+  the early `fail()` returns, so every cell without one is a DD failure. Dropping
+  them conditions the number on DD surviving to the prompt.
+- **RG is not an independent contract.** It matches its VLM box against
+  `cand_at_prompt` — DD's own maintained tracks — so a drifted carry costs RG a
+  match. Its failures are re-ground failures plus inherited carry drift.

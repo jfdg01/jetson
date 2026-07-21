@@ -1176,7 +1176,7 @@
       "part": "V",
       "headline": "The shadow re-ground contract disagrees with direct delivery on 3 of 10 real gating cells",
       "design": "paired-binary",
-      "verdict": "real-video contracts DO separate",
+      "verdict": "real-video RG abstains; not a DD-over-RG win",
       "n_rows": 12,
       "n_effective": 3,
       "independence_note": "10 gating cells from 3 source clips",
@@ -1192,8 +1192,8 @@
         "n": 10
       },
       "gate_p": null,
-      "caveats": "p = 0.25. Los tres desacuerdos son RG devolviendo NO_MATCH: no llegó a seleccionar en absoluto, en lugar de seleccionar de otro modo. Esa asimetría es más informativa que el recuento: sobre imagen real el contrato de re-grounding no se limita a perder, se abstiene. Contrástese con los bancos de simulación (P5.10/13/17), donde RG consigue el grounding de casi todo: la diferencia es la fragilidad ante imagen real.",
-      "caveats_en": "p = 0.25. All three disagreements are RG returning NO_MATCH - it failed to select at all, rather than selecting differently. That asymmetry is more informative than the count: on real imagery the re-ground contract does not merely lose, it abstains. Contrast with the sim banks (P5.10/13/17) where RG grounds nearly everything - the difference is real-imagery fragility.",
+      "caveats": "p = 0.25. Los tres desacuerdos son RG devolviendo NO_MATCH: no llegó a seleccionar en absoluto, en lugar de seleccionar de otro modo. Esa asimetría es más informativa que el recuento: sobre imagen real el contrato de re-grounding no se limita a perder, se abstiene. Contrástese con los bancos de simulación (P5.10/13/17), donde RG consigue el grounding de casi todo: la diferencia es la fragilidad ante imagen real. R-5 (2026-07-21) AÑADE EL LÍMITE DE LA COMPARACIÓN: el 10/10 de DD en este pareado es cierto POR CONSTRUCCIÓN. `select_p56.bind_by_caption` es igualdad de cadenas contra el pie almacenado, con un assert de que sólo uno coincide, así que DD no puede elegir mal; es un recorte de alcance (la campaña aísla el mecanismo de entrega, no la comprensión de la frase), no una medida. Por tanto b=3, c=0 no dice «DD gana a RG»: dice «RG falla 3 veces en una tarea que DD no realiza». Y RG empareja contra las propias pistas mantenidas de DD (`cand_at_prompt`), luego sus fallos incluyen deriva de arrastre heredada. La lectura defendible es unidireccional: mide el coste que la hipótesis de vinculación por pie de DD se ahorra. Mismo tratamiento en [P5.18|P5.19]-shadow-rg-ceiling.",
+      "caveats_en": "p = 0.25. All three disagreements are RG returning NO_MATCH - it failed to select at all, rather than selecting differently. That asymmetry is more informative than the count: on real imagery the re-ground contract does not merely lose, it abstains. Contrast with the sim banks (P5.10/13/17) where RG grounds nearly everything - the difference is real-imagery fragility. R-5 (2026-07-21) ADDS THE LIMIT OF THE COMPARISON: DD's 10/10 in this pairing is true BY CONSTRUCTION. `select_p56.bind_by_caption` is string equality against the stored caption with an assert that exactly one matches, so DD cannot mis-select; that is a scope cut (the campaign isolates the delivery mechanism, not phrase understanding), not a measurement. So b=3, c=0 does not say 'DD beats RG': it says 'RG fails 3 times at a task DD does not perform'. And RG matches against DD's own maintained tracks (`cand_at_prompt`), so its failures include inherited carry drift. The defensible reading is one-directional: it measures the cost DD's caption-binding assumption buys out. Same treatment in [P5.18|P5.19]-shadow-rg-ceiling.",
       "machine": "both"
     },
     {
@@ -1385,6 +1385,54 @@
       "caveats_en": "The Wilson interval on 2/4 is [0.15, 0.85] - this measurement carries essentially no information about the true precision. It is recorded as an open residual and that is the only defensible use. What matters qualitatively is the FAILURE MODE: the wrong firings deliver a confident box instead of abstaining, which is the dangerous direction for an operator-facing system.",
       "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
       "machine": "both"
+    },
+    {
+      "id": "P5.18-shadow-rg-ceiling",
+      "part": "V",
+      "headline": "A prompt-time re-ground would have picked the right candidate in at most 38/48 cells (P5.18)",
+      "design": "single-arm-binary",
+      "verdict": "ceiling, not a paired result",
+      "n_rows": 48,
+      "n_effective": 13,
+      "independence_note": "The 48 (P5.18) / 50 (P5.19) paired cells come from 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count -- same deflation as the DD claims on the same cells (R-4). Cells whose `meta.shadow` is absent are dropped, and that missingness is INFORMATIVE, not random: the shadow block sits after the early `fail()` returns, so every dropped cell is a DD failure (4 in P5.18, 2 in P5.19, all `selected track lost during idle` or `discovery-failed`). Dropping them conditions the number on DD surviving to the prompt.",
+      "data_status": "counts_only",
+      "data_paths": [
+        "experiments/2026-07-20-n25-select/runs/",
+        "thesis/analyse_shadow_rg.py"
+      ],
+      "counts": {
+        "k": 38,
+        "n": 48
+      },
+      "gate_p": null,
+      "caveats": "ESTO ES UN TECHO, NO UNA TASA (R-5, 2026-07-21). Elegir el candidato correcto es necesario pero no suficiente para que RG apruebe: la sombra nunca arrastra una pista tras su re-anclaje, luego nunca se le cobra cobertura ni IoU entregado. La tasa real de aprobado de RG es <= 38/48. NO ES UNA PRUEBA PAREADA, Y EL NÚMERO PAREADO DEL CUADERNO QUEDA RETIRADO: el «n=50, b=4, c=2, p=0,6875, contratos indistinguibles» que se había registrado es reproducible aritméticamente (thesis/analyse_shadow_rg.py), pero parea el `pass` de DD —enganche genuino + cobertura + IoU + supervivencia del arrastre— contra el `selected` de RG, que es sólo selección. Dos cantidades definidas de forma distinta yuxtapuestas como si fueran una comparación. EL PAREADO EQUIVALENTE ES VACUO: DD saca 48/48 en selección porque `select_p56.bind_by_caption` es igualdad de cadenas contra el pie almacenado, con un assert de que sólo uno coincide. DD no puede elegir mal. Es un recorte de alcance registrado en el README de P5.14 (la campaña aísla el mecanismo de entrega, no la comprensión de la frase), así que ninguna prueba puede mostrar a DD «ganando» a RG en selección. RG NO ES INDEPENDIENTE: empareja su caja del VLM contra `cand_at_prompt`, es decir las propias pistas mantenidas por DD, luego un arrastre a la deriva le cuesta a RG un emparejamiento. Sus fallos son fallos de re-anclaje MÁS fallos de arrastre heredados. 9 de los 10 fallos de RG son NO_MATCH (la caja re-anclada no emparejó con ningún candidato por encima del umbral); 1 es una elección de objeto equivocado.",
+      "caveats_en": "THIS IS A CEILING, NOT A RATE (R-5, 2026-07-21). Selecting the right candidate is necessary but not sufficient for an RG pass: the shadow never carries a track after its re-ground, so it is never charged coverage or delivered IoU. RG's true pass rate is <= 38/48. NOT A PAIRED TEST, AND THE LEDGER'S PAIRED NUMBER IS RETIRED: the previously recorded 'n=50, b=4, c=2, p=0.6875, contracts indistinguishable' is arithmetically reproducible (thesis/analyse_shadow_rg.py) but pairs DD `pass` -- genuine lock + coverage + IoU + carry survival -- against RG `selected`, which is selection only. Two differently-defined quantities juxtaposed as a comparison. THE LIKE-FOR-LIKE PAIRING IS VACUOUS: DD scores 48/48 on selection because `select_p56.bind_by_caption` is string equality against the stored caption with an assert that exactly one matches. DD cannot mis-select. That is a scope cut recorded in P5.14's README (the campaign isolates the delivery mechanism, not phrase understanding), so no test can show DD 'beating' RG at selection. RG IS NOT INDEPENDENT: it matches its VLM box against `cand_at_prompt`, i.e. DD's own maintained tracks, so a drifted carry costs RG a match. Its failures are re-ground failures PLUS inherited carry failures. 9 of the 10 RG failures are NO_MATCH (the re-ground box matched no candidate above the floor); 1 is a wrong-object pick.",
+      "machine": "rtx-3090",
+      "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json"
+    },
+    {
+      "id": "P5.19-shadow-rg-ceiling",
+      "part": "V",
+      "headline": "A prompt-time re-ground would have picked the right candidate in at most 42/50 cells (P5.19)",
+      "design": "single-arm-binary",
+      "verdict": "ceiling, not a paired result",
+      "n_rows": 50,
+      "n_effective": 13,
+      "independence_note": "The 48 (P5.18) / 50 (P5.19) paired cells come from 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count -- same deflation as the DD claims on the same cells (R-4). Cells whose `meta.shadow` is absent are dropped, and that missingness is INFORMATIVE, not random: the shadow block sits after the early `fail()` returns, so every dropped cell is a DD failure (4 in P5.18, 2 in P5.19, all `selected track lost during idle` or `discovery-failed`). Dropping them conditions the number on DD surviving to the prompt.",
+      "data_status": "counts_only",
+      "data_paths": [
+        "experiments/2026-07-20-late-entry-rescue/runs/",
+        "thesis/analyse_shadow_rg.py"
+      ],
+      "counts": {
+        "k": 42,
+        "n": 50
+      },
+      "gate_p": null,
+      "caveats": "ESTO ES UN TECHO, NO UNA TASA (R-5, 2026-07-21). Elegir el candidato correcto es necesario pero no suficiente para que RG apruebe: la sombra nunca arrastra una pista tras su re-anclaje, luego nunca se le cobra cobertura ni IoU entregado. La tasa real de aprobado de RG es <= 42/50. NO ES UNA PRUEBA PAREADA, Y EL NÚMERO PAREADO DEL CUADERNO QUEDA RETIRADO: el «n=52, b=3, c=2, p=1,0, contratos indistinguibles» que se había registrado es reproducible aritméticamente (thesis/analyse_shadow_rg.py), pero parea el `pass` de DD —enganche genuino + cobertura + IoU + supervivencia del arrastre— contra el `selected` de RG, que es sólo selección. Dos cantidades definidas de forma distinta yuxtapuestas como si fueran una comparación. EL PAREADO EQUIVALENTE ES VACUO: DD saca 50/50 en selección porque `select_p56.bind_by_caption` es igualdad de cadenas contra el pie almacenado, con un assert de que sólo uno coincide. DD no puede elegir mal. Es un recorte de alcance registrado en el README de P5.14 (la campaña aísla el mecanismo de entrega, no la comprensión de la frase), así que ninguna prueba puede mostrar a DD «ganando» a RG en selección. RG NO ES INDEPENDIENTE: empareja su caja del VLM contra `cand_at_prompt`, es decir las propias pistas mantenidas por DD, luego un arrastre a la deriva le cuesta a RG un emparejamiento. Sus fallos son fallos de re-anclaje MÁS fallos de arrastre heredados. los 8 fallos de RG son NO_MATCH. Coincidencia que conviene no sobreinterpretar: el techo de RG en SWAP es 20/26, el mismo recuento que la tasa de aprobado realizada de DD en el SWAP reforzado de P5.19 — uno es un techo sobre la selección y el otro un aprobado realizado, luego no son comparables y su igualdad no es un empate.",
+      "caveats_en": "THIS IS A CEILING, NOT A RATE (R-5, 2026-07-21). Selecting the right candidate is necessary but not sufficient for an RG pass: the shadow never carries a track after its re-ground, so it is never charged coverage or delivered IoU. RG's true pass rate is <= 42/50. NOT A PAIRED TEST, AND THE LEDGER'S PAIRED NUMBER IS RETIRED: the previously recorded 'n=52, b=3, c=2, p=1.0, contracts indistinguishable' is arithmetically reproducible (thesis/analyse_shadow_rg.py) but pairs DD `pass` -- genuine lock + coverage + IoU + carry survival -- against RG `selected`, which is selection only. Two differently-defined quantities juxtaposed as a comparison. THE LIKE-FOR-LIKE PAIRING IS VACUOUS: DD scores 50/50 on selection because `select_p56.bind_by_caption` is string equality against the stored caption with an assert that exactly one matches. DD cannot mis-select. That is a scope cut recorded in P5.14's README (the campaign isolates the delivery mechanism, not phrase understanding), so no test can show DD 'beating' RG at selection. RG IS NOT INDEPENDENT: it matches its VLM box against `cand_at_prompt`, i.e. DD's own maintained tracks, so a drifted carry costs RG a match. Its failures are re-ground failures PLUS inherited carry failures. 8 of the 8 RG failures are NO_MATCH. Note the coincidence worth not over-reading: RG's SWAP ceiling is 20/26, the same count as DD's realized strengthened-SWAP pass rate in P5.19 -- one is a ceiling on selection, the other a realized pass, so they are not comparable and their equality is not a tie.",
+      "machine": "rtx-3090",
+      "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json"
     },
     {
       "id": "P5.20-carry-capacity",

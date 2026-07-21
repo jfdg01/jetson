@@ -18,7 +18,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-2 | `machine` field on all 65 claims | R-6, R-9 | **DONE** |
 | R-3 | Fix `paired-binary` skipping deflation in `grounding/stats.py` | R-9 | **DONE** |
 | R-4 | Apply the pseudo-replication rule to `n_effective` | R-9 | **DONE** `1acb332` |
-| R-5 | Shadow-RG re-analysis + Chapter 7 rewording | — | TODO |
+| R-5 | Shadow-RG re-analysis + Chapter 7 rewording | — | **DONE** |
 | R-6 | Correct `README.md` | — | **DONE** |
 | R-7 | Claim-provenance sweep of every published number | R-9 | **DONE** (27 CONTRADICTED fixed; rest -> R-21) |
 | R-8 | Merge or retire `experiment/carla-gt-bank` | — | TODO |
@@ -240,6 +240,47 @@ semantics: on the SWAP leg the *correct* pick is `distractor`.
 wording changed from a claimed DD-over-RG edge to "indistinguishable at this n".
 **Done when:** the claims are in `claims.json` and the chapter no longer asserts a
 difference the test does not support.
+
+### What landed (2026-07-21T23:20Z) — and why the expected output was wrong too
+
+`thesis/analyse_shadow_rg.py` re-derives everything from the committed
+`results.json` files. It **reproduces the pre-recorded `b=4, c=2` (n=50) and
+`b=3, c=2` (n=52) exactly**, so this correction is about definition, not
+arithmetic — and the "indistinguishable at this n" wording the task asked for
+would have been the third wrong answer to the same question.
+
+1. **The pairing compares two different quantities.** DD `pass` folds in genuine
+   lock, coverage, delivered IoU and carry survival; RG `selected` is selection
+   only. Scoring one arm on a strictly harder criterion and calling the result a
+   tie is the R-21 MISLEADING shape "two differently-defined quantities juxtaposed
+   as a comparison". Not reported as a p-value anywhere.
+2. **The like-for-like pairing is vacuous.** `select_p56.bind_by_caption` is string
+   equality against the stored caption with an assert that exactly one matches, so
+   **DD scores 48/48 and 50/50 on selection by construction** and cannot mis-select.
+   That is a scope cut recorded in P5.14's README (the campaign isolates the
+   delivery mechanism, not phrase understanding). No test can show DD "beating" RG
+   at selection — RG fails at a task DD does not perform.
+3. **What is defensible is one-directional and now registered:**
+   `P5.18-shadow-rg-ceiling` **38/48** (9 of the 10 failures by abstention) and
+   `P5.19-shadow-rg-ceiling` **42/50** (8 of 8 by abstention), both single-arm with
+   a Wilson interval, both deflated to **n=13 clips** like every other claim on
+   these cells. Wilson CI95 [0.497, 0.918] and [0.578, 0.957].
+4. **It is a ceiling, not a rate.** Selecting correctly is necessary but not
+   sufficient for an RG pass — the shadow never carries a track after its
+   re-ground, so it is never charged coverage or IoU. RG's true pass rate is at
+   most these numbers.
+5. **The dropped rows are informative.** `meta.shadow` is written after the early
+   `fail()` returns, so all 4 (P5.18) and 2 (P5.19) cells without one are DD
+   failures. Conditioning on shadow-present drops DD's worst cells.
+6. **RG is not an independent contract.** It matches its box against
+   `cand_at_prompt` — DD's own maintained tracks — so its failures are re-ground
+   failures plus inherited carry drift.
+
+`P5.14-shadow-rg-disagreement` carries the same defect (`k1=10` is the
+by-construction 10/10) and got the same caveat plus a corrected verdict, rather
+than being deleted. Prose reworded in `docs/{results,questions,decisions}/part5-anticipatory.md`
+and in the P5.14/P5.18/P5.19 experiment READMEs; `00-esquema.md` never asserted the
+edge, so nothing there needed changing.
 
 ## R-6 — Correct `README.md`
 

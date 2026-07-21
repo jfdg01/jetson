@@ -374,10 +374,13 @@ not moved to fit. The strengthened SWAP rule is strictly harder than the histori
 P5.5 MC 3/5 under the weaker off-target-only rule), so the YES is not scoring drift: under the weak
 rule DD scores 6/6, under the strong rule 5/6, and the flattered cell is exactly the one that fails.
 
-**Where the win comes from, measured on the same frames.** The non-gating shadow re-ground ran
+**What the shadow arm shows, measured on the same frames.** The non-gating shadow re-ground ran
 alongside DD on every cell and **disagreed on 4/12** — 3x NO_MATCH and 1x wrong-object selection —
 on cells whose carried track was on the right object and whose DD cell passed. That is the P5.3/P5.5
-failure mode reproduced live, next to a contract that does not have it. **Latency:** DD `acquire_s`
+failure mode reproduced live, next to a contract that avoids it **by construction rather than by
+performing better** (R-5, 2026-07-21: DD's caption binding is string equality and cannot mis-select,
+so this is the cost of the re-ground contract, not a margin DD won — see
+`thesis/analyse_shadow_rg.py`). **Latency:** DD `acquire_s`
 is 0.00 s by construction on all 12 cells against a 4.51 s mean full-frame re-ground. The
 `car3:200` control that RG failed in three campaigns as "resolution-bound" flips to PASS under DD
 (0.7256) — that fail family was a re-grounding artifact, not a carry limit, which retires a
@@ -481,8 +484,9 @@ This is the **third consecutive sim tie** (P5.10, P5.13, P5.17), and this time b
 P5.13 audit blamed were supplied and *measured*: staleness is realized (median ZOH IoU 0.08 at
 delivery, vs 0.79 in bank v2.1) and the crossings are designed (max GT–GT IoU 0.28–0.44). The
 contracts still do not separate. Per the pre-registered branch-3 text, **sim-select
-discrimination is CLOSED**: the DD advantage measured on real video (P5.14, shadow RG
-disagreeing on 4/12 real cells) is attributed to **real-imagery VLM fragility that clean Gazebo
+discrimination is CLOSED**: the real-video gap (P5.14, shadow RG
+disagreeing on 4/12 real cells — a one-sided cost of the re-ground contract, not a DD margin;
+R-5) is attributed to **real-imagery VLM fragility that clean Gazebo
 renders cannot reproduce** — here RG's VLM grounded the named car correctly on 56/56 cells.
 Select levers move to real video; the v3 bank is retained for stack-level questions (carry
 through occlusion, mask-quality gates, tracker swaps) where clean deterministic renders with
