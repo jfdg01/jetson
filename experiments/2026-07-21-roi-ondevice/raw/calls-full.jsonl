@@ -1,0 +1,1 @@
+{"img_format": "png", "fed_w": 1024, "fed_h": 576, "fed_mpx": 0.59, "payload_kb": 849.8, "wall_ms": 4643, "prompt_n": 836, "prompt_ms": 3986, "predicted_n": 12, "predicted_ms": 555, "transfer_ms": 102, "client_wall_ms": 4775.2, "image_path": "data/VisDrone2019-DET/images/val/0000335_05097_d_0000069.jpg", "caption": "The black cars at the intersection.", "text": "27 48 34 64"}

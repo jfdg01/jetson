@@ -127,7 +127,7 @@ def crop_resize(img, win: Window, out_res: Optional[int], *, upscale: bool = Tru
 def evaluate_roi(backend, samples: Sequence[GroundingSample], margin: float,
                  out_res: Optional[int], *, progress_every: int = 0,
                  shift: float = 0.0, scale: float = 1.0,
-                 seed: int = 0) -> EvalReport:
+                 seed: int = 0, upscale: bool = True) -> EvalReport:
     """Crop-around-prior variant of `harness.evaluate`.
 
     Per sample: crop around the (inflated/perturbed) GT prior, resize to `out_res`,
@@ -155,7 +155,7 @@ def evaluate_roi(backend, samples: Sequence[GroundingSample], margin: float,
             img = Image.open(s.image_path).convert("RGB")
             win = roi_window(s.bbox, s.img_w, s.img_h, margin,
                              shift=shift, scale=scale, rng=rng)
-            crop = crop_resize(img, win, out_res)
+            crop = crop_resize(img, win, out_res, upscale=upscale)
             tmp_path = None
             try:
                 with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
@@ -223,20 +223,34 @@ def _parse_resolutions(s: str) -> List[Optional[int]]:
 def run_grid(model: str, split: str,
              combos: List[Tuple[float, Optional[int]]], *, n: int = 0,
              device: str = "cuda", dtype: str = "bfloat16",
-             shift: float = 0.0, scale: float = 1.0, note: str = "") -> List[dict]:
+             shift: float = 0.0, scale: float = 1.0, note: str = "",
+             backend_kind: str = "hf", mmproj: str = "", ngl: int = 0) -> List[dict]:
     """Evaluate a list of (margin, out_res) combos on one model; manifest per combo.
 
     The model is loaded **once** and reused across combos (weights are crop-
     independent). `combos` is explicit so a survivor re-run hits the same path as the
     broad grid — the CLI builds the cross product, an orchestrator can pass a subset.
+
+    `backend_kind` exists for R-14: the headline ROI number was measured with HF bf16
+    on the 3090 against a Q8_0-on-Orin baseline, so the comparison was cross-machine
+    *and* cross-quantisation. Running both arms through `JetsonBackend` is the only
+    way that claim becomes a same-machine, same-quantisation paired test.
     """
     from grounding.data.refdrone import load_refdrone
-    from grounding.eval.backends import HFBackend
 
     print(f"[roi] loading RefDrone '{split}' well-posed (n={n or 'all'})...", flush=True)
     samples = load_refdrone(split, max_samples=n)
-    print(f"[roi] {len(samples)} samples; loading {model} (HF, {dtype})...", flush=True)
-    backend = HFBackend(model, device=device, dtype=dtype)
+    print(f"[roi] {len(samples)} samples; loading {model} ({backend_kind})...", flush=True)
+    if backend_kind == "hf":
+        from grounding.eval.backends import HFBackend
+        backend = HFBackend(model, device=device, dtype=dtype)
+    elif backend_kind == "jetson":
+        from grounding.eval.backends import JetsonBackend
+        if not mmproj:
+            raise SystemExit("--mmproj (remote path) is required for the jetson backend")
+        backend = JetsonBackend(model, mmproj, n_gpu_layers=ngl or 99)
+    else:
+        raise SystemExit(f"unknown backend '{backend_kind}'")
 
     rows: List[dict] = []
     try:
@@ -255,13 +269,16 @@ def run_grid(model: str, split: str,
             items = results.pop("items", ())
             cfg = {
                 "phase": "II/III", "experiment": "roi-crop-anchor",
-                "backend": "hf", "model": model, "dataset": "refdrone",
+                "backend": backend_kind, "model": model, "dataset": "refdrone",
                 "split": split, "n": len(samples),
                 "roi_margin": "inf" if math.isinf(margin) else margin,
                 "roi_out_res": res or "native",
                 "perturb_shift": shift, "perturb_scale": scale,
                 "device": device, "dtype": dtype, "note": note,
             }
+            if backend_kind == "jetson":
+                cfg |= {"mmproj": mmproj, "ngl": ngl or 99,
+                        "device": "jetson-orin-nano-8gb", "dtype": "q8_0"}
             m = manifest.capture("eval", cfg)
             run_dir = manifest.write(m, results=results)
             with (Path(run_dir) / "items.jsonl").open("w") as f:
@@ -355,6 +372,10 @@ def main():
                    help="perturb: scale the prior box size before inflation")
     p.add_argument("--device", default="cuda")
     p.add_argument("--dtype", default="bfloat16")
+    p.add_argument("--backend", default="hf", choices=["hf", "jetson"],
+                   help="jetson = llama-server over `ssh jetson` on the deployed GGUF")
+    p.add_argument("--mmproj", default="", help="remote mmproj path (jetson backend)")
+    p.add_argument("--ngl", type=int, default=0, help="GPU layers (jetson: 0 -> 99)")
     p.add_argument("--note", default="")
     args = p.parse_args()
 
@@ -365,7 +386,8 @@ def main():
     combos = cross(_parse_margins(args.margins), _parse_resolutions(args.out_res))
     rows = run_grid(args.model, args.split, combos, n=args.n,
                     device=args.device, dtype=args.dtype,
-                    shift=args.shift, scale=args.scale, note=args.note)
+                    shift=args.shift, scale=args.scale, note=args.note,
+                    backend_kind=args.backend, mmproj=args.mmproj, ngl=args.ngl)
     _print_table(rows)
 
 
