@@ -1,5 +1,30 @@
 # 2026-07-14 autoresearch run — 48 h unattended burn (operating charter)
 
+> **DISARMED 2026-07-21T17:20Z. Do not re-arm without reading this box.**
+>
+> The charter below says the driver "removes its own crontab line and stops forever"
+> at the deadline. It did not. On 2026-07-21 the cron line was found still installed
+> and ticking every 10 minutes, with `.claude/autoresearch.deadline` re-armed to
+> `2026-07-22T10:00+02:00` and `.claude/loop-budget` at 185. The only thing holding
+> it was a **zero-byte** `.claude/autoresearch.STOP`.
+>
+> **Design trap, still present in the script:** the STOP check at
+> `scripts/autoresearch.py:118` returns *before* the deadline self-disarm at `:128`.
+> While the STOP file exists the loop can never reach the code that removes its own
+> crontab line, so it stays armed past its deadline indefinitely. "STOP armed" is not
+> a shutdown — it is a permanently fragile state one `rm` away from 185 unattended
+> merge-to-main cycles. A routine cleanup pass deleting a zero-byte dotfile would
+> have started it.
+>
+> Disarmed with `crontab -r` (backup: `.claude/autoresearch.crontab.bak`; never use a
+> `crontab -l | sed | crontab -` pipeline — recorded scar). The STOP file is retained
+> as a second layer and now carries its own do-not-delete text.
+>
+> **`scripts/autoresearch.py` is deliberately kept, not deleted.** It is the
+> experimental record for this campaign and the primary source for the thesis section
+> on multi-agent development (`thesis/REMEDIATION.md` R-11). It is inert without a
+> crontab; the risk was the armed cron, not the file.
+
 **Pre-registered:** 2026-07-14T01:10Z (Madrid wall-clock). **Status:** CHARTER COMMITTED; burn
 window 2026-07-14T01:10Z → **2026-07-15T18:00Z** (Wed 18:00 Madrid, hard deadline baked into the
 driver). This is not a single experiment — it is the **operating charter** for an autonomous

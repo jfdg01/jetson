@@ -1,0 +1,1 @@
+*/10 * * * * flock -n /home/gara/jetson/.claude/autoresearch.lock /usr/bin/python3 /home/gara/jetson/scripts/autoresearch.py >> /home/gara/jetson/.claude/autoresearch-logs/cron.log 2>&1
