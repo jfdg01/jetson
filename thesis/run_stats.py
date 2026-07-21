@@ -206,6 +206,24 @@ def main() -> int:
         "",
     ]
 
+    # --- caveats ------------------------------------------------------------
+    # These are the most honest text in the project and the report used to drop
+    # every one of them, which reads as concealment to anyone diffing the
+    # registry against this file. Rendered verbatim; never summarise them here.
+    with_caveats = [c for c in claims if (c.caveats or "").strip()]
+    if with_caveats:
+        lines += [
+            "## Salvedades por afirmación",
+            "",
+            f"Las {len(with_caveats)} afirmaciones con salvedad registrada, **literales**",
+            "desde `thesis/claims.json`. Una salvedad limita lo que su fila de la tabla",
+            "puede sostener: léase junto al valor p, nunca en su lugar. Varias retiran",
+            "por completo la lectura ingenua del número.",
+            "",
+        ]
+        for c in with_caveats:
+            lines += [f"**{c.id}** — {c.caveats.strip()}", ""]
+
     if backlog:
         lines += [
             "## Cola de re-ejecución",

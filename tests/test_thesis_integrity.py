@@ -152,3 +152,24 @@ def test_machine_values_are_from_the_known_set(claims):
     bad = [f"{c['id']}: {c['machine']}" for c in claims
            if c.get("machine") and c["machine"] not in allowed]
     assert not bad, f"unknown machine values (allowed: {sorted(allowed)}):\n  " + "\n  ".join(bad)
+
+
+def test_every_caveat_reaches_the_report(claims):
+    """R-12. A caveat written but not rendered reads as concealment.
+
+    `thesis/run_stats.py` silently dropped all 65 caveats - ~19k characters of
+    the most honest text in the project, including one claim flagged in the
+    registry as THE ONE NUMBER THAT MUST NOT BE CITED. Anyone diffing
+    claims.json against the report saw a cover-up where there was a missing
+    field read. This test is the reason it cannot happen twice.
+    """
+    report = REPO / "thesis" / "stats-report.md"
+    if not report.exists():
+        pytest.skip("report not generated yet; run thesis/run_stats.py")
+    text = report.read_text()
+    missing = [c["id"] for c in claims
+               if (c.get("caveats") or "").strip() and c["caveats"].strip() not in text]
+    assert not missing, (
+        f"{len(missing)} caveats never reach thesis/stats-report.md: {missing[:5]}"
+        f"{' ...' if len(missing) > 5 else ''}\nRegenerate with thesis/run_stats.py."
+    )
