@@ -24,7 +24,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-8 | Merge or retire `experiment/carla-gt-bank` | — | TODO |
 | R-9 | Regenerate `stats-report.md` from the corrected registry | — | TODO |
 | R-10 | Vacuous-metric audit | R-7 | TODO |
-| R-11 | Thesis section: multi-agent development as method | — | TODO |
+| R-11 | Thesis section: multi-agent development as method | — | **DONE** (draft) |
 | R-12 | Render `caveats` into `stats-report.md` | R-9 | **DONE** `5b6f7ab` |
 | R-13 | Detector baseline (OWLv2 on the Orin) | — | TODO |
 | R-14 | ROI on-device Q8_0 re-run | R-9 | TODO |
@@ -379,6 +379,37 @@ advisor before drafting long.
 citing specific incidents from this repo with commit hashes, not generalities.
 **Done when:** drafted, placed, and every incident it cites resolves to a commit or
 an experiment README.
+
+### What landed (2026-07-21T21:20Z)
+
+`thesis/02-metodo-multiagente.md`. Placement went with the recommendation: a short
+subsection inside Chapter 3 plus **Annex B**, not a chapter. `00-esquema.md` gained
+the subsection stub, an *Anexos previstos* table (A/B/C — none existed before, and
+the draft referred to "Anexo B" with nothing defining it), and the trim order now
+says the subsection collapses to a paragraph before the annex is touched.
+
+Twelve incidents, each resolving to a commit. **Eleven do; one does not** — the
+51-agent / 2.3M-token fan-out lives in session telemetry outside the repo, and the
+table says so in the row rather than dressing it up as evidence.
+
+Two things the section refuses to do, both deliberate:
+
+- **No causal claim.** There is no solo-developed control version of this thesis, so
+  "multi-agent development improved X" is not defensible and the section says so
+  under its own threats-to-validity heading. What is verifiable is the incident log.
+- **No one-sided account.** Six incidents the method *found* and six it *produced*,
+  in the same table, with a `signo` column. A section that only listed the wins would
+  be advertising, and a tribunal would read it that way.
+
+The load-bearing generalisation, and the reason this is method and not anecdote:
+**verification has to be an executable artifact, not a paragraph.** The evidence is
+that "do not trust your first read" was written, in capitals, in the same file that
+carried three broken citations. Instructions degrade under load; a failing test does
+not.
+
+Also fixed while here: `00-esquema.md` cited `README.md` "líneas 3, 47, 48 y 50" in
+two places — invariant I8 (cite by quoted string) violated in the planning document,
+and stale within hours of R-6 editing those very lines.
 
 ---
 

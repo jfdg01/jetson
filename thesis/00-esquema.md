@@ -77,7 +77,7 @@ La Parte VI (Cap. 8) no sostiene ninguna de las tres todavía.
 |---|---|---|---|
 | 1 | Introducción y motivación | `README.md`, propuestas de parte | 5 |
 | 2 | Estado del arte | `SOURCES.md`, surveys, encuesta de datasets | 8 |
-| 3 | Plataforma, método y métricas | `README.md`, `grounding/contract.py` | 8 |
+| 3 | Plataforma, método y métricas | `README.md`, `grounding/contract.py`, `01-metodo-estadistico.md`, `02-metodo-multiagente.md` | 8 |
 | 4 | Grounding de un solo frame | Partes I y II | 10 |
 | 5 | Permanencia de objeto | Parte III + E1 | 9 |
 | 6 | El arco de la latencia de adquisición | Parte IV (E2-E23) | 10 |
@@ -129,6 +129,27 @@ Lo que hay que explicar, en este orden:
 5. **Empates y pruebas que no existen.** Cero pares discordantes devuelve `NaN`, no p = 1,0.
 6. **Multiplicidad**: Holm-Bonferroni sobre la familia de afirmaciones con puerta, con las pruebas indefinidas fuera de la familia.
 7. **Los tres niveles de estado de los datos** (`per_item`, `counts_only`, `missing`) y la regla de que una afirmación en `missing` no se defiende: se re-ejecuta o se retira.
+
+### El método de desarrollo, acotado
+
+Subsección corta, con el material extenso en un **Anexo B**. Borrador completo en
+`thesis/02-metodo-multiagente.md`. Se incluye porque casi todo el cuaderno lo
+produjo una flota de agentes bajo revisión humana, y eso condicionó qué defectos
+aparecieron y cuáles sobrevivieron meses: un lector que evalúe las cifras necesita
+saberlo, igual que necesita saber el modo de potencia.
+
+Se cuenta en las dos direcciones o no se cuenta. Encontró lo que el trabajo en
+solitario no había encontrado (la auditoría de máquina sobre 76 campañas, los
+cuatro números mal del `README.md`, el fallo de re-emparejamiento de ByteTrack).
+Y produjo defectos con la misma firma —confiados, precisos y falsos— entre ellos
+la cámara apuntando al cielo y un `b=39, c=7` salido de adivinar un esquema JSON.
+La conclusión operativa es que **la verificación tiene que ser un artefacto
+ejecutable y no un párrafo**: la regla «no te fíes de tu primera lectura» estaba
+escrita, en mayúsculas, en el mismo fichero que contenía tres citas erróneas.
+
+Amenaza a la validez que la propia sección declara: no hay grupo de control, luego
+ninguna afirmación causal sobre el método es defendible. Solo el registro de
+incidentes, y cada uno resuelve a un *commit*.
 
 ### Qué le hizo el re-análisis al cuaderno
 
@@ -494,8 +515,11 @@ El eslogan del proyecto dice que todo corre en el borde sin nube. La realidad:
 partes anteriores la precisión del arrastre se midió siempre en la 3090 mientras
 la placa aportaba solo FPS. La única medida co-residente integrada dio 4,1 FPS
 frente a su propia puerta de 5 antes de E1, y 5,0 FPS después — despejándola
-exactamente, con n = 1. La formulación del `README.md` es más fuerte que la
-evidencia y se corrige aquí (líneas 3, 47, 48 y 50).
+exactamente, con n = 1. La formulación del `README.md` era más fuerte que la
+evidencia; se corrigió el 2026-07-21 en `cd8cca6` (las tres frases «todo corre en
+la placa», el compuesto de +22,6 pp, la precisión de arrastre de 1024 px citada
+para un sistema que despliega 768 px, y el techo de seguimiento publicado como
+3,0 m/s cuando 3,0 es el ajuste que falló).
 
 La Parte VI **agrava** esto en lugar de resolverlo: ninguna de sus campañas tuvo
 la Jetson en el lazo, porque el servidor de CARLA exige una GPU de sobremesa. El
@@ -578,12 +602,20 @@ más capítulos. No es redacción; es generar evidencia que no existe.
 | Generar la figura cuantitativa del arco de adquisición | Cap. 6 | Medio |
 | Justificar por escrito el umbral IoU@0,25 y reportar el IoU medio | Cap. 3, y todo lo demás | Bajo, pero es un flanco abierto |
 | Verificar las entradas `% VERIFICAR` de `refs.bib` | Bibliografía | Bajo |
-| Corregir el `README.md` raíz (líneas 3, 47, 48, 50): "todo en la placa" y la puerta de FPS | Cap. 9 | Bajo |
+| ~~Corregir el `README.md` raíz: "todo en la placa" y la puerta de FPS~~ **HECHO** `cd8cca6` | Cap. 9 | — |
 | Decidir si se cierra la confirmación en dispositivo del ROI a Q8\_0 | Cap. 5 | Alto — es una ejecución, no una figura |
 
 Todo lo marcado como bajo desbloquea la mitad del documento y no exige GPU. La
 última partida es la única que obliga a volver a ejecutar algo, y es opcional: se
 puede escribir el Cap. 5 declarando el pendiente en lugar de cerrándolo.
+
+## Anexos previstos
+
+| Anexo | Contenido | Origen |
+|---|---|---|
+| A | Registro de afirmaciones con su prueba exacta, su máquina y sus matices | `thesis/stats-report.md`, `thesis/claims.json` |
+| B | Registro de incidentes de desarrollo multiagente | `thesis/02-metodo-multiagente.md` |
+| C | Cola de re-ejecuciones pendientes y qué afirmación desbloquea cada una | `thesis/rerun-backlog.md` |
 
 ## Orden de recorte
 
@@ -592,6 +624,7 @@ Si el documento no cabe, se recorta en este orden y no en otro:
 - El desvío de simulación baja de 2 páginas a un párrafo.
 - La Parte I baja a media página de contexto.
 - El bake-off de backbone pasa a apéndice.
+- La subsección de método multiagente baja a un párrafo y el Anexo B se conserva entero.
 - Las palancas descartadas del Cap. 5 pasan a una tabla única.
 
 **No se recorta:** el Cap. 6 completo, la advertencia de P5.19, la corrección de
