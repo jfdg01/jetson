@@ -15,7 +15,7 @@ carla = pytest.importorskip("carla")
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "runners"))
 
 from carla_gt_bank import (  # noqa: E402
-    W, H, FOV, analytic_area, box_area, clip_to_frame, dominant_frac,
+    W, H, FOV, _row, analytic_area, box_area, clip_to_frame, dominant_frac,
     mean_absdiff, nadir, veh_fill, verts_to_box,
 )
 
@@ -87,6 +87,30 @@ def test_clip_to_frame():
     assert clip_to_frame((-50, -50, -10, -10)) is None
     assert clip_to_frame((W - 5, H - 5, W + 50, H + 50)) == (W - 5, H - 5, W, H)
     assert clip_to_frame((-10, -10, 30, 30)) == (0, 0, 30, 30)
+
+
+def test_edge_sliver_does_not_serialise_as_a_degenerate_box():
+    """A box that is positive-area in float but collapses at 2dp must be dropped.
+
+    clip_to_frame is exact, so a car 0.002 px inside the right edge passes its
+    `x2 > x1` and then writes [640.0, y1, 640.0, y2] to gt.jsonl -- a degenerate
+    box that hands a consumer a divide-by-zero IoU. Measured on the 2026-07-21
+    bank before the fix: 19 of 897 864 visible boxes.
+    """
+    sliver = (W - 0.002, 100.0, W + 30.0, 120.0)
+    vis = clip_to_frame(sliver)
+    assert vis is not None, "precondition: exact clipping still accepts it"
+    assert round(vis[2], 2) <= round(vis[0], 2), "precondition: it collapses at 2dp"
+
+    loc, cam_loc = carla.Location(0, 0, 0), carla.Location(0, 0, 60)
+    row = _row("vehicle", 1, "car", sliver, 8, loc, cam_loc, None, W, H)
+    assert row["box_vis"] is None, "collapsed sliver must not be reported visible"
+    assert row["area_vis_px"] == 0.0
+
+    # and the ordinary edge-clipped box is untouched
+    ok = _row("vehicle", 2, "car", (W - 20.0, 100.0, W + 30.0, 120.0), 8,
+              loc, cam_loc, None, W, H)
+    assert ok["box_vis"] == [W - 20.0, 100.0, float(W), 120.0]
 
 
 def test_veh_fill():

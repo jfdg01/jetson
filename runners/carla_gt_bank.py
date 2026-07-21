@@ -175,6 +175,16 @@ def _round_opt(v, nd):
 
 def _row(kind, oid, name, b, n_proj, loc, cam_loc, tags, w, h):
     vis = clip_to_frame(b, w, h)
+    # clip_to_frame is exact and rejects zero-area boxes, but the value written to
+    # disk is rounded to 2dp -- so a sliver 0.002 px wide at the frame edge passes
+    # `x2 > x1` in float and then serialises as [640.0, y1, 640.0, y2]. A consumer
+    # reading that gets a degenerate box and an IoU divide-by-zero, for a target
+    # that is not meaningfully on screen anyway. Drop it here, at the same
+    # precision it will be stored at, so `box_vis` non-None always means a real box.
+    # Measured on the 2026-07-21 bank: 19 of 897 864 visible boxes (2.1e-05).
+    if vis and (round(vis[2], 2) <= round(vis[0], 2)
+                or round(vis[3], 2) <= round(vis[1], 2)):
+        vis = None
     return {
         "kind": kind, "id": int(oid), "name": name,
         "box": [round(v, 2) for v in b],
