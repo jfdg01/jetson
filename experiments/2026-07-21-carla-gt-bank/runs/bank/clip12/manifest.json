@@ -1,0 +1,36 @@
+{
+  "clip": "clip12",
+  "alt": 80.0,
+  "target_rank": 12,
+  "track_gain": 1.0,
+  "heading": 242.0016856170893,
+  "drift_m": 0.0,
+  "yaw": 195.07510944026774,
+  "vehicles": 80,
+  "seed": 20260733,
+  "mode": "sync",
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "frames": 1200,
+  "spawned": 80,
+  "n_static_cars": 29,
+  "target_id": 1762,
+  "target_type": "vehicle.toyota.prius",
+  "cam_start": [
+    44.68,
+    13.41
+  ],
+  "coverage": 1.0,
+  "onscreen_mean": 30.31,
+  "capture_hz": 15.15,
+  "power_limit_w": 200.0,
+  "dominant_frac": 0.005,
+  "mid_last_identical": false,
+  "cam_wh_fov": [
+    640,
+    480,
+    90
+  ],
+  "complete": true,
+  "target_in_frame_frac": 1.0
+}

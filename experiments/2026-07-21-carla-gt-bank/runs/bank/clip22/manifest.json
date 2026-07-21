@@ -1,0 +1,36 @@
+{
+  "clip": "clip22",
+  "alt": 80.0,
+  "target_rank": 22,
+  "track_gain": 0.0,
+  "heading": 221.46863333625504,
+  "drift_m": 25.0,
+  "yaw": 68.51953818597075,
+  "vehicles": 80,
+  "seed": 20260743,
+  "mode": "sync",
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "frames": 1200,
+  "spawned": 79,
+  "n_static_cars": 29,
+  "target_id": 2822,
+  "target_type": "vehicle.tesla.model3",
+  "cam_start": [
+    4.75,
+    66.28
+  ],
+  "coverage": 1.0,
+  "onscreen_mean": 22.4,
+  "capture_hz": 15.31,
+  "power_limit_w": 200.0,
+  "dominant_frac": 0.0132,
+  "mid_last_identical": false,
+  "cam_wh_fov": [
+    640,
+    480,
+    90
+  ],
+  "complete": true,
+  "target_in_frame_frac": 0.6108
+}

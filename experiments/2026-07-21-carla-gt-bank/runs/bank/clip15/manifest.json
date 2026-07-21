@@ -1,0 +1,36 @@
+{
+  "clip": "clip15",
+  "alt": 40.0,
+  "target_rank": 15,
+  "track_gain": 1.0,
+  "heading": 14.326857901423429,
+  "drift_m": 50.0,
+  "yaw": 320.75272528255806,
+  "vehicles": 80,
+  "seed": 20260736,
+  "mode": "sync",
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "frames": 1200,
+  "spawned": 80,
+  "n_static_cars": 29,
+  "target_id": 2080,
+  "target_type": "vehicle.mercedes.coupe",
+  "cam_start": [
+    -27.3,
+    -61.28
+  ],
+  "coverage": 1.0,
+  "onscreen_mean": 8.3,
+  "capture_hz": 17.92,
+  "power_limit_w": 200.0,
+  "dominant_frac": 0.0034,
+  "mid_last_identical": false,
+  "cam_wh_fov": [
+    640,
+    480,
+    90
+  ],
+  "complete": true,
+  "target_in_frame_frac": 1.0
+}

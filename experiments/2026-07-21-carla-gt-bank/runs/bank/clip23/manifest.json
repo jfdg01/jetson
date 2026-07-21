@@ -1,0 +1,36 @@
+{
+  "clip": "clip23",
+  "alt": 100.0,
+  "target_rank": 23,
+  "track_gain": 0.6,
+  "heading": 262.5785425244358,
+  "drift_m": 25.0,
+  "yaw": 38.81792323062217,
+  "vehicles": 80,
+  "seed": 20260744,
+  "mode": "sync",
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "frames": 1200,
+  "spawned": 80,
+  "n_static_cars": 29,
+  "target_id": 2927,
+  "target_type": "vehicle.seat.leon",
+  "cam_start": [
+    -79.03,
+    27.96
+  ],
+  "coverage": 1.0,
+  "onscreen_mean": 39.91,
+  "capture_hz": 13.74,
+  "power_limit_w": 200.0,
+  "dominant_frac": 0.0026,
+  "mid_last_identical": false,
+  "cam_wh_fov": [
+    640,
+    480,
+    90
+  ],
+  "complete": true,
+  "target_in_frame_frac": 1.0
+}

@@ -102,3 +102,58 @@ emulate the device budget was measured at image_size **768**, while those campai
 at **1024**, a size E1 explicitly never speed-gated. The emulated stride is therefore optimistic by
 a factor E1's own arithmetic puts near 1.9×, which biases every carry-dependent PASS in the
 favourable direction; folded into R-16 as a required measurement axis. Record: `experiments/2026-07-21-machine-disclosure/README.md`.
+## CARLA GT capture bank (unnumbered infrastructure, 2026-07-21)
+
+This campaign asks no research question and claims no number. It builds the artifact P6.2 needs
+and answers three build gates plus four API questions. **Gate verdicts are not results.**
+
+**Q-BANK-1 — Is `EnvironmentObject.bounding_box` world-space or object-local?** **WORLD.**
+`get_world_vertices()` takes `carla.Transform()` (the identity); passing the object's own transform
+doubles every coordinate. An *Actor*'s box is the opposite — local, and does take
+`get_transform()`. The two buckets need different calls, and the wrong guess is silent: all 29
+parked-car boxes land somewhere plausible. Settled live, `runners/carla_probe_gt.py`, committed
+`2d0917a`.
+
+**Q-BANK-2 — In synchronous mode, does the image delivered for a tick carry that tick's frame id?**
+**Yes, delta 0 on 40/40**, and now asserted every frame in `grab()` rather than trusted. An
+off-by-one would make every GT box one frame stale — the exact defect P5.13 was charged with, and
+invisible in any log.
+
+**Q-BANK-3 — Does 0.9.16 offer any occlusion or depth test?** **Yes, `world.cast_ray` exists** and
+returns labelled hits, so slate hazard 2.3c is buildable rather than merely deferrable. Not used
+tonight: the cheaper stand-in is a semantic-segmentation camera at the same pose, whose per-row
+`veh_fill` column says what fraction of each GT box is actually vehicle pixels.
+
+**G-A — does the projected GT land on the target?** **PASS, by looking.** Overlays at 25/40/60/85/
+120 m were opened with the Read tool; the reference box sits on the car at every altitude, all 8
+vertices project, and the measured pixel area matches the analytic nadir prediction to within
+1.02-1.11x while decreasing monotonically. The gate was deliberately strengthened past the slate's
+own rule first — see DECISIONS, monotonic shrink alone passes a misplaced box.
+
+**G-B — do static parked meshes exist outside `get_actors()`?** **Yes, 29 of them, CLOSED before
+the run.** `world.get_environment_objects(carla.CityObjectLabel.Car)` returns 29 `Car` meshes that
+`get_actors().filter('vehicle.*')` never sees, so a mask drifting onto a parked car is a *loss*,
+not a *swap*, and the taxonomy needs the fourth bucket. The bank writes both buckets into every
+`gt.jsonl` row with a `kind` field, so the distinction is available to any consumer rather than
+being re-derived.
+
+**G-C — does pairing survive an environment-object toggle?** **PASS, and the more useful answer is
+that CARLA's traffic *is* reproducible.** Toggle-restore frame difference 0.084 against a
+same-config repeat baseline of 0.142, both ~60x under the 8.0 floor, and all 40 Traffic Manager
+vehicle positions identical across `load_world` at a fixed seed. Byte-identical was deliberately
+*not* the bar — TAA, motion blur and auto-exposure carry state, so it fails for reasons unrelated
+to layers and then gets softened until it stops gating.
+
+The gate first reported **FAIL against its own same-config repeat**, which determinism cannot
+explain and which was therefore a bug in the gate: it keyed each vehicle on `v.id`, and
+server-assigned actor ids do not restart at a fixed value across `load_world`. Re-keyed on spawn
+index, it passes. Recorded as run, this campaign would have answered "no, CARLA traffic is not
+reproducible" on the strength of a broken dictionary key — see RESULTS.
+
+**What the night actually taught, which no gate asked.** The first bank was **well-formed and
+empty**: 25 clips' worth of correct actor counts, passing blank-render and dead-feed asserts, and
+77-80% of frames with no on-screen target at all. G-A could not catch it, because G-A aims the
+camera at a known reference car and is therefore blind to whether the *sampling policy* finds cars.
+The fix (anchor each clip on a vehicle) matters less than the guard: **target coverage is now a
+measured, asserted per-clip field**. The general form is this repo's standing rule — a check that
+only verifies the pixels are *valid* will not notice that they are *uninteresting*.

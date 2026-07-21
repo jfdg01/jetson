@@ -1,0 +1,36 @@
+{
+  "clip": "clip06",
+  "alt": 60.0,
+  "target_rank": 6,
+  "track_gain": 1.0,
+  "heading": 212.02715243517324,
+  "drift_m": 50.0,
+  "yaw": 318.78939515669396,
+  "vehicles": 80,
+  "seed": 20260727,
+  "mode": "sync",
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "frames": 1200,
+  "spawned": 80,
+  "n_static_cars": 29,
+  "target_id": 1126,
+  "target_type": "vehicle.dodge.charger_police_2020",
+  "cam_start": [
+    -48.56,
+    103.06
+  ],
+  "coverage": 1.0,
+  "onscreen_mean": 13.53,
+  "capture_hz": 17.27,
+  "power_limit_w": 200.0,
+  "dominant_frac": 0.003,
+  "mid_last_identical": false,
+  "cam_wh_fov": [
+    640,
+    480,
+    90
+  ],
+  "complete": true,
+  "target_in_frame_frac": 1.0
+}

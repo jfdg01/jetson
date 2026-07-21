@@ -1,0 +1,36 @@
+{
+  "clip": "clip17",
+  "alt": 80.0,
+  "target_rank": 17,
+  "track_gain": 0.6,
+  "heading": 186.54435037072153,
+  "drift_m": 50.0,
+  "yaw": 21.039885003528482,
+  "vehicles": 80,
+  "seed": 20260738,
+  "mode": "sync",
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "frames": 1200,
+  "spawned": 80,
+  "n_static_cars": 29,
+  "target_id": 2292,
+  "target_type": "vehicle.nissan.patrol",
+  "cam_start": [
+    -15.58,
+    -68.01
+  ],
+  "coverage": 1.0,
+  "onscreen_mean": 22.25,
+  "capture_hz": 16.2,
+  "power_limit_w": 200.0,
+  "dominant_frac": 0.0044,
+  "mid_last_identical": false,
+  "cam_wh_fov": [
+    640,
+    480,
+    90
+  ],
+  "complete": true,
+  "target_in_frame_frac": 0.8358
+}

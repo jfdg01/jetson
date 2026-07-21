@@ -227,3 +227,89 @@ Record: `experiments/2026-07-21-machine-disclosure/README.md` (R-1).
   sweep's own full-frame control, not +22.6 pp against the Orin-deployed baseline.
   *Given up:* comparability with every earlier document that cites +22.6 pp — those are
   R-7's problem, and R-14 may still supersede both with an on-device measurement.
+## CARLA GT capture bank (unnumbered infrastructure, 2026-07-21)
+
+- **Run the bank in `synchronous_mode`, and keep flight asynchronous.** `carla_render.py:40-45`
+  records an explicit choice *against* sync for the flight rig, and that choice is correct there:
+  sim time advances only on `world.tick()`, so a 4.5 s VLM acquire would cost zero sim seconds and
+  the delivery lag that Parts IV and V exist to measure would stop existing. The bank is capture,
+  not flight — no controller consumes the lag — so it buys determinism instead. *Given up:* one
+  uniform configuration across Part VI. *Mitigation, because that is a real cost:* every manifest
+  carries `"mode": "sync"` and every number below names which configuration produced it. **Drift
+  and latency figures are not commensurable between the two**, since `DRIFT_S` is wall-clock.
+- **Settle the CARLA GT API against a live server instead of reading the docs.**
+  `runners/carla_probe_gt.py` was written and committed (`2d0917a`) purely to answer four questions,
+  and it earned itself on the first: an `EnvironmentObject.bounding_box` is **world**-space, so
+  `get_world_vertices()` takes `carla.Transform()` — the identity. Passing the object's own
+  transform, which is the obvious guess and the correct call for an *Actor*, **doubles** every
+  coordinate (`-51,166` becomes `-102,333`). All 29 parked-car boxes would have landed somewhere
+  plausible, on rooftops and pavements, with nothing downstream that would notice. *Given up:* an
+  hour. *Bought:* the two buckets now use deliberately different calls, documented at the call site.
+- **Gate G-A on an analytic area prediction, not on monotonic shrink.** The slate's rule was
+  "projected area decreases monotonically as the camera climbs" — already sharper than rev 1's
+  "non-degenerate and inside the frame", but still weak, because **a box built from the wrong
+  transform also shrinks monotonically**. A receding camera shrinks almost anything. So G-A now
+  predicts the pixel area analytically from the known world footprint
+  (`px_per_m = (W/2)/tan(fov/2)/z`) and asserts the measured area lands inside 0.75-1.35x, with
+  monotonicity kept only as the cheap second check. `tests/test_carla_gt_bank.py` pins the
+  distinction: `test_monotonic_shrink_alone_is_weak` exists to show the discarded rule passing a
+  deliberately misplaced box.
+- **Keep GT boxes whose vertices fall behind the camera plane; record `n_proj` instead of dropping
+  them.** `carla_debug_ui.actor_box()` returns `None` unless all 8 vertices project, which is right
+  for *matching* — a truncated box makes a bad IoU — and wrong for *capture*, where a close target
+  is exactly the case a follow controller must handle (slate hazard 2.3f). The bank writes the box
+  with `n_proj` and `partial` alongside it, so a consumer can apply the stricter rule and no
+  consumer is forced to.
+- **Carry a semantic-segmentation camera at the same pose as the RGB camera, and store `veh_fill`
+  per GT row.** Corner-projected GT has no depth test (hazard 2.3c), so a car parked behind a
+  building projects a clean, correct, entirely invisible box — confirmed by looking at the G-A
+  overlays, where boxes sit squarely on building facades. `veh_fill` measures what fraction of each
+  box covers vehicle-class pixels, which turns that from an invisible defect into a filterable
+  column. *Given up:* a second camera's render cost (capture ran 28.9-30.7 Hz with it). *Known
+  ceiling, recorded at the call site:* the tag is class-level, not instance-level, so two
+  overlapping cars both read high; instance segmentation is the upgrade if an audit ever confuses
+  adjacent vehicles.
+- **Kill the in-flight autoresearch cycle rather than let it share the GPU.** The README
+  pre-registered "autoresearch collision" as an operational guard and armed
+  `.claude/autoresearch.STOP` at 00:27Z; the cycle already running (pid 360646) was deliberately
+  left alone so as not to corrupt its branch. That judgement was **wrong and was reversed at
+  22:40Z**: the live cycle read this campaign's freshly-committed script and launched
+  `carla_gt_bank.py --gate-c` against the same server on port 2100, reloading the world underneath
+  the bank capture and killing it with `_queue.Empty` 0.9 min in. *Recorded because it is the
+  general lesson:* a kill switch that only prevents *new* work is not isolation while an old worker
+  is still running, and a shared repo is a channel — the intruder found the work by reading the
+  commit. *Given up:* that cycle's partial progress. The retry driver resumed and lost one clip.
+- **Name the campaign directory and branch without an experiment number.** The autoresearch cycle
+  re-created the branch as `experiment/p63-carla-gt-bank`, reintroducing the exact numbering
+  collision the slate's own review had already caught and corrected (`PART6-SLATE:16-19`): rev 1
+  renumbered the committed **P6.2** (closed-loop select-and-follow) out to P6.3 to make room for
+  diagnostics. **P6.2 keeps its committed meaning.** The branch was renamed to
+  `experiment/carla-gt-bank` and this campaign claims no `P<part>.<n>` id, per the slate's ruling
+  that the diagnostics stay "unnumbered candidates until one is promoted". *Gate verdicts are not
+  results*, and this campaign produces only gate verdicts and an artifact.
+- **Keep the GT bank out of git; treat the seeded runner as the record.**
+  `.gitignore:41` whitelists `gt.jsonl` under `experiments/*/runs/`, a rule written when a
+  `gt.jsonl` was small. This campaign's is 31.7 MB per clip, so the 25-clip bank would have put
+  **793 MB into a 593 MB `.git`**. It is also written incrementally, and a `git add -A` mid-capture
+  had already committed a **truncated clip03** (17.9 MB against 32.4 MB on disk) that still parses
+  as valid JSONL — well-formed and wrong, the failure mode this campaign exists to detect. Excluded
+  with a rule scoped to this campaign rather than a change to the global one other campaigns
+  depend on. *What justifies it:* the bank is deterministic from `--seed`, so the runner plus the
+  committed per-clip `manifest.json` reproduce it; the thesis artifacts are the manifests and the
+  `proof/` figures, not 793 MB of JSONL. *Given up:* byte-level reproducibility of *this particular*
+  capture if CARLA's determinism ever drifts across versions, and the ability to re-derive figures
+  without a CARLA install. *Deferred:* 113 MB of already-committed blobs stay in branch history
+  until the driver is idle — rewriting history under a running unattended capture is the worse
+  trade on an unmerged, unpushed, local-only branch.
+- **Resolve the camera-pose-lag question offline instead of paying for a live probe.** An
+  adversarial review flagged that GT is projected from the camera actor transform read *after*
+  `world.tick()`, which if stale would put every box one frame of camera motion behind its pixels —
+  the P5.13 zero-order-hold class, invisible in any log. Rather than queue a live
+  `image.transform` probe behind the capture, the `track_gain 0.0` clips answer it directly: their
+  commanded camera path is a closed form in the frame index, so the logged pose can be scored
+  against the command at frame `i` and at `i-1`. Both clips say **current**, by an order of
+  magnitude (0.359/0.178 cm vs 1.910/2.239 cm on a 2.09 cm step). *Given up:* the exact residual —
+  whether the *render* lagged the actor transform — which is instead **bounded** at one camera step
+  in pixels, worst case 3.35 px. *Why it is recorded:* the check cost nothing, needed no server,
+  and turned a blocking re-capture question into a bounded one; `check_pose_lag.py` is committed so
+  it re-runs on any future bank.

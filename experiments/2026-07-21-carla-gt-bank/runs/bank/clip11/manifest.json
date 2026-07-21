@@ -1,0 +1,36 @@
+{
+  "clip": "clip11",
+  "alt": 60.0,
+  "target_rank": 11,
+  "track_gain": 0.6,
+  "heading": 62.33341279091681,
+  "drift_m": 50.0,
+  "yaw": 17.317596461840097,
+  "vehicles": 80,
+  "seed": 20260732,
+  "mode": "sync",
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "frames": 1200,
+  "spawned": 80,
+  "n_static_cars": 29,
+  "target_id": 1656,
+  "target_type": "vehicle.chevrolet.impala",
+  "cam_start": [
+    19.47,
+    137.46
+  ],
+  "coverage": 1.0,
+  "onscreen_mean": 9.08,
+  "capture_hz": 17.8,
+  "power_limit_w": 200.0,
+  "dominant_frac": 0.0083,
+  "mid_last_identical": false,
+  "cam_wh_fov": [
+    640,
+    480,
+    90
+  ],
+  "complete": true,
+  "target_in_frame_frac": 0.4283
+}

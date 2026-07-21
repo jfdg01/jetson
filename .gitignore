@@ -40,6 +40,16 @@ experiments/*/runs/**
 !experiments/*/runs/**/*.csv
 !experiments/*/runs/**/gt.jsonl
 
+# ...except the CARLA GT bank, where that whitelist is a trap. Earlier campaigns'
+# gt.jsonl were small; this one writes 31.7 MB per clip (80 vehicles + 29 static
+# meshes x 1200 frames x ~11 fields), i.e. 793 MB across 25 clips into a 593 MB
+# .git. It is also written incrementally, so a `git add -A` mid-capture commits a
+# truncated file that still parses -- that already happened to clip03 (17.9 MB
+# committed against 32.4 MB on disk). The bank is a local handoff artifact for
+# P6.2 on this same machine; what the thesis needs from it is the per-clip
+# manifest.json (tracked, small) and the proof/ figures derived from it.
+experiments/2026-07-21-carla-gt-bank/runs/bank/**/gt.jsonl
+
 # Stray root runs/ — provenance belongs under runners/runs/ or experiments/*/runs/
 # (co-located with its artifact). A bare /runs/ at repo root is always a cwd-relative
 # manifest.write() leak from a driver launched here; never commit it. See manifest.write.

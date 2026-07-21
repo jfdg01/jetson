@@ -1,0 +1,36 @@
+{
+  "clip": "clip16",
+  "alt": 60.0,
+  "target_rank": 16,
+  "track_gain": 0.0,
+  "heading": 97.50660332281169,
+  "drift_m": 50.0,
+  "yaw": 62.648031515123336,
+  "vehicles": 80,
+  "seed": 20260737,
+  "mode": "sync",
+  "town": "Town10HD_Opt",
+  "dt": 0.05,
+  "frames": 1200,
+  "spawned": 80,
+  "n_static_cars": 29,
+  "target_id": 2186,
+  "target_type": "vehicle.ford.mustang",
+  "cam_start": [
+    -41.67,
+    89.53
+  ],
+  "coverage": 1.0,
+  "onscreen_mean": 12.63,
+  "capture_hz": 16.68,
+  "power_limit_w": 200.0,
+  "dominant_frac": 0.0028,
+  "mid_last_identical": false,
+  "cam_wh_fov": [
+    640,
+    480,
+    90
+  ],
+  "complete": true,
+  "target_in_frame_frac": 0.2533
+}
