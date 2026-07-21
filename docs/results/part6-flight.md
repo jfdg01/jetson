@@ -29,13 +29,33 @@ ArduCopter 4.6.3 (`92b0cd788e`); Gazebo Sim 8.14.0 headless `ogre2`; world `phas
 
 Same 40 s flight, before and after the ByteTrack round-1b re-find fix:
 
-| leg | track ids used | mean px err vs oracle | mean loop Hz | track cov | track losses | ticks < 15 Hz |
+| leg | track ids used | mean px err vs oracle | mean loop Hz (`1/mean(dt)`) | track cov † | track losses † | ticks < 15 Hz |
 |---|---|---|---|---|---|---|
-| G3-pre (camera fixed, tracker broken) | 40 | 64.7 | 19.93 | 100.0% | 0 | 2/793 (0.25%) |
-| **G3-post (both fixed)** | **7** | **36.0** | **19.93** | **100.0%** | **0** | 2/793 (0.25%) |
+| G3-pre (camera fixed, tracker broken) | 40 | 64.7 | 19.80 | 100.0% | 0 | 2/792 (0.25%) |
+| **G3-post (both fixed)** | **7** | **36.0** | **19.80** | **100.0%** | **0** | 2/792 (0.25%) |
 
 Pixel error **−44%** from the tracker fix alone, at identical control rate. Mid-run Gazebo frame
 dominant colour 0.751 (passes the >99%-one-colour render assert; frame viewed, see `proof/`).
+
+**Rate definition (corrected 2026-07-21T19:45Z, R-21).** This column first published **19.93** for
+both legs. That is `make_proof.py`'s mean of the instantaneous rates, `mean(1000/dt)` — a
+Jensen-biased estimator that overstates delivered throughput. The column now carries the runner's
+own recorded metric, `loop_hz_mean = 1/mean(dt)` (`run_phase_c.py:900-902`), which recomputes from
+both CSVs as **19.80**; ticks/elapsed is 19.84 (pre) / 19.83 (post), and 19.83 is what the campaign
+README's G3-post row prints. One quantity, three published values — nothing turns on the choice (the
+gate is >= 15 Hz and every variant clears), but a reader could not reconcile the files. The
+campaign README still prints 19.93 in its own before/after table and needs the same pass. The
+`< 15 Hz` denominator is **792**, not 793: the first tick records `dt = 0` and is excluded from the
+rate (`run_phase_c.py:877`), so 793 ticks give 792 intervals.
+
+† **Vacuous by construction, both columns (R-21, 2026-07-21T19:45Z).** R-10 disowned the `0 track
+losses` below; the `100.0%` beside it is the same metric and is disowned here. `track_coverage_pct`
+counts frames in which `tracker.update()` returned something and `track_loss_events` counts entries
+into the empty case — one `track is None` branch, published twice. Reaching it needs
+`MAX_LOST_FRAMES = 30` at `CONTROL_HZ = 20`, i.e. 1.5 s with no detection at all, which the 1 Hz
+`score=1.0` injection never produced: all four committed CSVs have **0 rows with an empty
+`track_id`**, before and after the tracker fix. 100.0% coverage means the detection supply never
+stalled; it is not evidence the loop held the target.
 
 Two rig defects found, both silent for a month:
 
@@ -69,12 +89,24 @@ G6 (grounding, pre-registered **non-gating**) **NOT RUN**.
 
 | gate | verdict | measured |
 |---|---|---|
-| G1 server | PASS | server 0.9.16 == client 0.9.16, `Town10HD_Opt`, 155 spawn points, 41 vehicle blueprints, 599 ticks |
+| G1 server | PASS | server 0.9.16 == client 0.9.16, `Town10HD_Opt` loaded, world ticks advancing — **400 ticks / 399 frames** in the run this row names (`runs/g1-scripted/results.json`); see the provenance note below for what was withdrawn from this cell |
 | G2 render | PASS | dominant-colour fraction **0.007–0.026** (gate < 0.99), frames opened with the Read tool |
 | G3 pose slaving | PASS | copter flew **0 → 84.4 m north** under its own GUIDED control at a held 60.0 m; content at ticks 150/300/599 distinct and consistent with position; nadir `pitch=-90` confirmed by viewed frame |
 | G4 traffic | PASS | **40/40** vehicles spawned with autopilot; first vs last frame not byte-identical |
 | G5 rate | PASS | **48.1 Hz** mean — *render-loop wall throughput of a bare client*, no perception in the window (gate >= 20 Hz); 5/599 ticks under 15 Hz, all in the first ~5 s of cold shader compilation. The "2.4x the control rate" reading is withdrawn: see the audit below |
 | G6 grounding | **NOT RUN** | see the correction below — first recorded as blocked by a missing checkpoint, which was wrong |
+
+**G1 provenance (corrected 2026-07-21T19:45Z, R-21).** This row first read "155 spawn points, 41
+vehicle blueprints, 599 ticks", and all three were wrong in the same way — none is recoverable from
+what was committed. No server stdout was kept for P6.1 (the campaign dir has no `raw/`), and the
+as-run runner (`d925c74:runners/carla_render.py`) never printed a spawn-point or blueprint count at
+all, so **155 and 41 are unattributed prose and are withdrawn** rather than restated; they are not
+in evidence for or against. The tick count belonged to a different run: `runs/g1-scripted/`
+records `ticks: 400, frames_received: 399, vehicles: 30`, while **599** is `runs/g3-mavlink/`'s
+frame count (its `tick_dt` has 599 entries of 600 ticks) — a reader who opened the named run found
+different numbers. Settling the two withdrawn counts needs a live 0.9.16 server queried for
+`get_map().get_spawn_points()` and the four-wheel `vehicle.*` blueprint filter, with the output
+committed to `raw/`; nothing in the gate verdict depends on either.
 
 Sizing observation (non-gating, pre-registration input for P6.2): at 90 deg FOV nadir, a car is
 ~10 px at 100 m, ~25x50 px at 60 m, and at 30 m the frame is mostly building facade. **60 m is the
@@ -164,7 +196,11 @@ empty-track frames in all four.
 **Estimate vs actual.** Render rate landed mid-range as predicted (48.1 vs 30–60 Hz estimated — but see
 the audit above for what that rate is and is not) and
 the renderer swap was uneventful. The 2–4 h estimate ran to ~5 h and the ~150-line runner estimate
-to 387 lines, all of it in the unforeseen risk: driving SITL without MAVProxy. Eight silent
+to **445 lines** (`wc -l` at `d925c74`: `carla_render.py` 260 + `sitl_fly_leg.py` 185 — the **387**
+first published here is the sum of two campaign-README figures, 229 + 158, and neither addend
+reproduces from the committed source under any counting rule, raw, non-blank, or
+non-blank-non-comment; corrected 2026-07-21T19:45Z, R-21), all of it in the unforeseen risk:
+driving SITL without MAVProxy. Eight silent
 failures, chief among them that ArduPilot streams almost nothing to a GCS that never requests it —
 `LOCAL_POSITION_NED` never arrived and the pose consumer read its initial value forever, which
 would have rendered a **frozen camera over a moving world at exit 0**. That is the P6.1 analogue

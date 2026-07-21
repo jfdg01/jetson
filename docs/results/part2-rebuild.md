@@ -21,7 +21,7 @@ RefCOCO val, seed-42, n=100. Local RTX 3090.
 | 0c.2 spine | GGUF F16 | Qwen2-VL-2B base | 13.0% | 18% | 0.548 | 198.7 | `runs/20260617T171534Z` |
 | 0c.2 spine | GGUF Q8_0 | Qwen2-VL-2B base | 14.0% | 19% | 0.533 | 187.5 | `runs/20260617T172502Z` |
 
-**✅ Gate: Qwen2-VL-2B** — zero-shot 15% vs SmolVLM-base 0%, deploy fidelity gap −2pp ≪ SmolVLM-ft3's −16pp, native dynamic resolution attacks tiny-object ceiling.
+**✅ Gate: Qwen2-VL-2B** — zero-shot 15/100 vs SmolVLM-base 0/100, native dynamic resolution attacks tiny-object ceiling. *(Corrected 2026-07-21T1830Z: the gate line also cited a "deploy fidelity gap −2pp ≪ SmolVLM-ft3's −16pp". The 15/100 vs 0/100 leg stands; the −2pp leg does not — it is 15/100 vs 13/100 (F16) / 14/100 (Q8_0), a one-to-two-item difference on a spine whose parse rate is only 18–24%, so the export gap is not resolvable at n=100. SmolVLM-ft3's −16pp is a real 16-item gap; the comparison between the two was never supported.)*
 
 ---
 
@@ -59,7 +59,8 @@ No-training ladder · RefDrone well-posed val (n=439) · Qwen2-VL-2B base · HF 
 | **ladder** | **1024** | **91.8%** | **30.3%** | 0.202 | 192.0 | `runs/20260617T191739Z` |
 | ladder | 1280 | 92.0% | 38.7% | 0.313 | 196.1 | `runs/20260617T192436Z` |
 
-**✅ Gate: max_side=1024** — resolution is the dominant lever (4.1% → 38.7%, 9.4× with frozen weights); elbow at 1024 (+19.6pp jump 768→1024 = 78% of 1280 ceiling); clears 20% gate before training; 1280 held as Phase-3 lever.
+**✅ Gate: max_side=1024** — clears the pre-registered 20% bar before training (30.3% = 133/439); resolution is the dominant lever (4.1% → 38.7%, 9.4× with frozen weights); 1280 held as Phase-3 lever.
+**Design choice (no numeric bar):** 1024 was picked as the "elbow" — the 768→1024 step is +19.6pp and reaches 78% of the 1280 ceiling, after which the curve flattens. *(Corrected 2026-07-21T1830Z: the elbow previously sat inside the gate line, which read as a passed pre-registered criterion. The arithmetic is unchanged and verified; only the 20% bar was ever a gate, and the elbow is an eyeballed judgement.)*
 
 ---
 
@@ -87,6 +88,6 @@ GGUF export + Jetson eval (n=439, same contract, CUDA full-offload, 15 W, clocks
 | GGUF **F16** (Jetson) | 3.09 GB | 439 | 100.0% | **62.2%** | 0.466 | 218.2 | `runs/20260617T233529Z` |
 | GGUF **Q8_0** (Jetson) | 1.65 GB | 439 | 100.0% | **62.6%** | 0.468 | 217.4 | `runs/20260618T001147Z` |
 
-**✅ Gate PASS:** HF→F16 = −2.7pp, F16→Q8_0 = −0.5pp (both within noise; deployed *beats* HF). Part-I catastrophe (−23pp runtime + −7pp quant on SmolVLM) does not reproduce — payoff of spine selection in Phase 0c. **Q8_0 is the deploy artifact** (1.65 vs 3.09 GB, indistinguishable accuracy). Jetson server: `-np 1 --cache-ram 0 --no-cache-idle-slots` (avoids 8 GB OOM). **Phases 0–4 complete.**
+**✅ Gate PASS:** HF→F16 = **+2.7pp**, F16→Q8_0 = **+0.5pp** — **no measurable export loss** (n_effective 316; the runtime arms sit 12 and 14 items above the HF reference, which is within what the pairing could produce by chance). Part-I catastrophe (−23pp runtime + −7pp quant on SmolVLM) does not reproduce — payoff of spine selection in Phase 0c. Part I measured that −23/−7pp split under sampled decode at n=200 *and across two machines* (a Jetson GGUF arm subtracted from a 3090 HF arm — see finding M2 in [`experiments/2026-07-21-machine-disclosure/`](../../experiments/2026-07-21-machine-disclosure/README.md)); the Phase-0 re-measure of the same `smolvlm_ft3` checkpoint under greedy decode at n=100 gives **−16pp / −2pp** (85.0 → 69.0 → 67.0, table above). The structure of the gap reproduces, the magnitude does not, and the two figures are not interchangeable. *(Corrected 2026-07-21T1830Z: the deltas were published with minus signs and glossed as "both within noise; deployed beats HF". Both are gains, not losses, and "beats HF" overstates a 14-item difference — the defensible claim is no measurable export loss. The underlying rates, 59.5 / 62.2 / 62.6%, are unchanged.)* **Q8_0 is the deploy artifact** (1.65 vs 3.09 GB, indistinguishable accuracy). Jetson server: `-np 1 --cache-ram 0 --no-cache-idle-slots` (avoids 8 GB OOM). **Phases 0–4 complete.**
 
 ---

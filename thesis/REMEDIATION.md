@@ -980,14 +980,27 @@ three named figures, append RESULTS/QUESTIONS Part III, and add the registry ent
 process is gone and there is no `results.json`, the run died: kill any leaked
 `ssh jetson 'pgrep -a llama-server'` and re-run from scratch. Do not patch a partial arm.
 
-**R-21 — a 6-agent workflow was mid-edit.** Agents had already modified `README.md`,
-`docs/results/part2-rebuild.md`, `part3-permanence.md` and `part4-end-to-end.md`; the part1,
-part5 and part6 agents had not yet landed. **These edits are uncommitted and unreviewed.**
-Before trusting them, `git diff` each file and check the rewrite against the artifact the sweep
-cites — the agents were told to verify before rewriting, but that instruction is not a
-guarantee. `thesis/provenance-resolutions.json` was never written, so
-`thesis/make_provenance_sweep.py` still reports all 74 rows as open; regenerate it only after
-the resolutions file exists.
+**R-21 — the 6-agent pass finished; its edits are committed but NOT reviewed by a second
+pair of eyes.** All seven ledger files were rewritten (`README.md` plus `docs/results/part1..6`).
+Five agents returned structured resolutions; the **part1 agent hit the structured-output retry
+cap and returned nothing**, yet it had already edited `docs/results/part1-exploratory.md` — so
+that file's 12 rows carry changes with no record of what was verified or why. Read its diff
+before trusting it.
+
+The reported corrections are substantive, not cosmetic: export deltas published with the sign
+backwards (they were gains, not losses), a cross-machine ROI headline that subtracted an Orin
+Q8_0 baseline from 3090 HF bf16 arms, an eyeballed "elbow" formatted as a passed gate, and two
+contradictory magnitudes for the same checkpoint sitting unreconciled in one file. The agents
+were instructed to verify against the artifact before rewriting and their summaries claim they
+did, but **that is their own account of their work, not an audit of it**. Spot-check the
+sign-flip and cross-machine claims against the `results.json` files they cite.
+
+`thesis/provenance-resolutions.json` was still never written, so
+`thesis/make_provenance_sweep.py` continues to report all 74 rows as open. The per-agent returns
+that would populate it are in the workflow journal at
+`~/.claude/projects/-home-gara-jetson/390e9ce7-d1a5-4d2c-8ca1-65a5b2caa9a6/subagents/workflows/wf_6029f03f-e03/journal.jsonl`
+(the part1 entry will be missing). Building that file and regenerating the sweep doc is the
+remaining R-21 work.
 
 **R-13 — pre-registered, not started.** `experiments/2026-07-21-detector-baseline/README.md` is
 complete and committed: OWLv2 vs the deployed VLM on the Orin, with the D-full / D-head /

@@ -27,7 +27,7 @@ On-Orin anchor-cadence sweep + tracker cost + dynamics analysis. Anchor = Qwen2-
 | **T0c dynamics** | target px velocity (nadir, 1–10 m/s, 10–30 m) | 18.5–554 px/s (≤27.7 px/frame) |
 | **T0d re-ID geometry** | target crop @10/20/30 m | 111×222 / 55×111 / 37×74 px |
 
-**Key verdicts:** anchor_period (2.26 s @512, median wall 2264.6 ms) > coast_horizon (1.5 s, a configured `MAX_LOST_FRAMES = 30` at 20 Hz, not a measurement) → re-acq must be event-triggered on loss. Tracker holds lock between anchors with ~1000× headroom. **Spine confirmed: Q8_0 @512** (768/1024 add latency with no fidelity gain on 640×480 camera + downscale).
+**Key verdicts:** anchor_period (2.26 s @512, median wall 2264.6 ms) > coast_horizon (1.5 s, a configured `MAX_LOST_FRAMES = 30` at 20 Hz, not a measurement) → re-acq must be event-triggered on loss. Tracker holds lock between anchors with ~1000× headroom. **Spine confirmed: Q8_0 @512** — no fidelity benefit is *possible* at a 640×480 source because `_resize_keep_aspect` is downscale-only, so 768/1024 only add latency. **Argued, not measured (corrected 2026-07-21T20:20Z, R-21):** T0 fed a synthetic 640×480 frame of rectangles and never scored fidelity; the earlier wording "no fidelity gain" read as a measurement. On higher-resolution sources the resolution choice is *not* free — the 2026-06-30 whole-frame sweep below measures 512 = 31.4% vs 1024 = 63.1% on real RefDrone imagery.
 
 ---
 
@@ -56,6 +56,8 @@ Appearance memory: store target descriptor at acquisition, re-acquire by min des
 
 **✅ Gate PASS (snr ≳ 1):** appearance gate fully resolves wrong-object re-lock above the knee; degrades to baseline below it. Coverage 0.695 = visible-frame ceiling (139/200). Control unchanged.
 
+**n and provenance caveat (added 2026-07-21T20:20Z, R-21):** this block is **one scripted clip, n_effective = 1** — the PASS rests on a single Bernoulli draw in which one ID switch either happens or does not, so there is no interval and no test behind the 1 → 0. The numbers above reproduce `experiments/2026-06-24-t2-permanence/README.md` verbatim, but **the scored output was never written to disk** — that campaign dir holds only `README.md` and `permanence.gif`, so the figures survive only in prose and this ledger; treat the block as counts-only. The same applies to the 139/200 decomposition (200 − 44 occluded − 17 out-of-frame = 139; the clip length of 200 frames is checkable in T1's `baseline_scores.json`, the 44/17 split is not). Regenerable in principle via `runners/sitl/reid_policy.py --score <clip_dir> --snr <S>`; note the rerun command recorded in `thesis/claims.json` (`grounding.eval.score_clips`) points at a module that does not exist.
+
 ---
 
 ### T3 — Closed-loop integration in SITL (2026-06-24) ✅
@@ -69,16 +71,20 @@ Lock drives the camera (cascade-PID → body velocity → copter → re-projecti
 
 **✅ Gate PASS:** 97.6% kinematic / 71.5% live SITL. ~~Phase-C ≈0% →~~ **comparator withdrawn 2026-07-21 (R-7):** Phase C recorded 39% oracle / 21% track coverage, not ~0% (the ~0% traces only to the T3 charter's expectation text), and every Phase-C Branch-2 perception number was retracted on 2026-07-20 when P6.0 found the camera pitched at the sky. There is no valid Phase-C baseline to improve on; the kinematic-vs-live pair below is what this campaign measured. Live margin smaller due to PID-lag + inertia lowering both policies' absolute coverage; direction + mechanism hold.
 
+**n and provenance caveat (added 2026-07-21T20:20Z, R-21):** every cell above is **one independent fresh flight** (campaign README: "One independent fresh flight per policy"), so n = 1 per cell and the third significant figure is frame-count arithmetic *within* one flight, not precision — read the pair as ~49% → ~98% kinematic and ~54% → ~72% live. In a closed loop the controller's output at *t* determines the pixels at *t+1*, so a single early divergence propagates through every later frame and the frame fractions are not independent draws. The perception input is the T2 **synthetic per-instance scalar descriptor, not rendered pixels**. **No results file was retained** — `experiments/2026-06-24-t3-closed-loop/` holds only `README.md` and `closedloop.gif` — so the numbers survive in prose and this ledger only. Saying anything about a *rate* here needs n ≥ 10 flights per arm.
+
 ---
 
 ### T4 — On-Orin deployment + sim-to-device (2026-06-24) ✅
 Full writeup: [`experiments/2026-06-24-t4-deployment/`](../../experiments/2026-06-24-t4-deployment/README.md)  
 Integrated two-tier loop on actual Orin Nano 8 GB (15 W). One file (`bytetrack.py`) pushed to device.
 
-| Tier | Dev box / T0a | Orin (T4) | Sim-to-device |
+| Tier | T0 reference (T0a: Orin · T0b: RTX 3090) | Orin (T4) | Sim-to-device |
 |---|---|---|---|
-| fast: `ByteTracker.update` median (p99) | 0.051 ms (0.103) | **0.143 ms (0.291)** | 2.8× slower, **99.7% of 50 ms budget free** |
-| slow: VLM anchor @512 wall | 2265 ms (0.44 Hz) | **2264 ms (0.44 Hz), 100% parse** | **−0.03%** |
+| fast: `ByteTracker.update` median (p99) | 0.051 ms (0.103) — **T0b, RTX 3090** | **0.143 ms (0.291)** | 2.8× slower, **99.7% of 50 ms budget free** |
+| slow: VLM anchor @512 wall | 2265 ms (0.44 Hz) — **T0a, Orin** | **2264 ms (0.44 Hz), 100% parse** | **−0.03% — same device, reproducibility check, not a sim-to-device gap** |
+
+**Header + column correction (2026-07-21T20:20Z, R-21):** the reference column was headed "Dev box / T0a", but only the *tracker* row's reference ran on the dev box — T0a ran on the Orin (`t0-results-combined-authoritative.json`: `T0a.device = "Orin Nano 8GB, nvpmodel -m 0 (15 W)"`; `T0b.host = "3090 (x86_64)"`). The tracker row is therefore a genuine dev-box → device transfer; the anchor row is not. Its −0.03% (2265 → 2264 ms) is the same Orin through the same llama.cpp server on both sides — a quantity that cannot fail by construction, and the T4 campaign README words it correctly as "~0 % (same device path)". The qualifier was dropped on the way into this ledger and is restored above.
 
 **✅ Gate PASS:** fast tracker holds 20 Hz with ~350× headroom; anchor reproduces T0a cadence. `deploys_within_t0_budget = True`. **T0–T4 all GATE PASS. Part III COMPLETE.**
 
@@ -95,9 +101,11 @@ Retrain anchor to emit 4 space-separated integers instead of `{"bbox": [...]}`. 
 |---|---|---|---|
 | RefDrone IoU@0.25 (Orin Q8_0, n=439) | 62.6% | 61.0% (−1.6pp noise) | **63.1%** (+0.5pp) |
 | parse_rate (Orin) | 100% | 99.3% | **100%** |
-| decode tokens | ~24 | 21 | **12** (−43%) |
+| decode tokens | ~24 (synthetic frame) · **21 (real imgs)** | 21 (synthetic frame) | **12** (−43% vs the 21-tok JSON median on the same 20 real images) |
 | decode ms | 967 | — | **531** (−45%) |
-| anchor wall @512 | 1807 ms | 2114 ms | **1372 ms** (−24%) |
+| anchor wall @512 | 1807 ms (real imgs, n=20) | 2114 ms (synthetic frame, n=8 — **−6.7% vs its own 2265 ms JSON baseline**, not +17% vs 1807) | **1372 ms** (−24% vs 1807) |
+
+**Two latency harnesses in one table (annotated 2026-07-21T20:20Z, R-21):** the JSON and iter-2b latency/token cells come from the **n=20 real-image** harness (`decode_real.json`: JSON `wall_ms_median` 1807.5 / `decode_tok_median` 21; iter-2b 1371.9 / 12), while the iter-1 cells come from the **n=8 synthetic-anchor-frame** harness whose own JSON baseline was 2265 ms / ~24 tok. The campaign README flags that synthetic frame as OOD ("both models fall back to the 0–1000 tuple prior, so it under-reports — real images are the valid measurement"). Reading 1807 → 2114 as a +17% iter-1 regression, or ~24 → 12 as the quoted −43%, crosses the two series; both cells now carry their own baseline. The published −43% and −24% are unchanged and correct against the real-image JSON medians (21 tok, 1807 ms).
 
 **Iter-2b win** (bare ints 0–100 + EOS-supervision fix): halve the digits + supervise `<|im_end|>` on the target (iter-2 without fix collapsed to 5% parse — outputs never learned to stop). Clean bare `28 44 36 59`, 100% parse. **Strict upgrade: better accuracy AND ~half decode.** Replaces the deploy artifact.
 
@@ -107,14 +115,16 @@ Retrain anchor to emit 4 space-separated integers instead of `{"bbox": [...]}`. 
 Full writeup: [`experiments/2026-06-25-roi-crop-anchor/`](../../experiments/2026-06-25-roi-crop-anchor/README.md)  
 Inference-time only — no retraining. Feed anchor a crop around tracker's box (GT box × margin M) instead of full frame.
 
-| Config (M=2.0) | Prefill ms (Orin Q8_0, 15W) | Decode ms | IoU@0.25 (HF n=439) | vs full-frame |
+| Config (M=2.0) | Prefill ms (Orin Q8_0, 15W) | Decode ms | IoU@0.25, n=439 — **machine/quant per cell** | vs full-frame |
 |---|---|---|---|---|
-| full-frame @1024 (baseline) | 3691 | 966 | 62.6% | — |
-| **ROI crop @512 ← deploy** | **1374** | 964 | **85.2%** | **2.7× prefill · +22.6 pp** |
-| ROI crop @384 (max-speed) | 885 | 964 | 82.5% | 4.2× prefill · +19.9 pp |
-| full-frame @512 (downscaled) | — | — | 15.9% | resolution ceiling laid bare |
+| full-frame @1024 (baseline) | 3691 | 966 | 62.6% **(Orin, GGUF Q8_0)** · 59.5% **(RTX 3090, HF bf16)** | — |
+| **ROI crop @512 ← deploy** | **1374** | 964 | **85.2%** **(RTX 3090, HF bf16)** | **2.7× prefill · +25.7 pp (HF→HF)** |
+| ROI crop @384 (max-speed) | 885 | 964 | 82.5% **(RTX 3090, HF bf16)** | 4.2× prefill · +23.0 pp (HF→HF) |
+| full-frame @512 (downscaled) | — | — | 15.9% **(RTX 3090, HF bf16)** | resolution ceiling laid bare |
 
-Drift (RQ4): flat 82–85% up to 0.5·box prior drift; 74–80% even at full-box drift — all above baseline. Tight upscaled crop is *both* faster *and* more accurate (super-resolution beats resolution constraint #2). Decode unchanged — orthogonal to terse decode lever; two stack toward sub-1s anchor.
+**Cross-machine correction (2026-07-21T20:20Z, R-7/R-21).** The accuracy column was headed "IoU@0.25 (HF n=439)" but was a **cross-machine, cross-quantisation composite**: every ROI arm is HF bf16 on the RTX 3090 (`sweep_summary.json`), while the 62.6% it was subtracted from is GGUF Q8_0 on the Orin (the Part II deploy figure). The previously published deltas **+22.6 pp** and **+19.9 pp** were that subtraction and are **superseded, not withdrawn** — the effect is real and enormous either way. They are replaced above by HF→HF deltas against the HF bf16 @1024 full-val (**59.5%**, n=439, `runners/runs/20260617T212559Z/results.json`, `full_val.iou_gate_pass_rate`). The sweep's own in-session HF full-frame-*native* control is **64.0%** (`sweep_summary.json`, key `[inf, native]`, 281/439), which gives +21.2 pp — so the sign and scale of the lever do not depend on which HF baseline is chosen. Latency remains Orin Q8_0 on both sides and is unaffected. **Selection caveat:** M=2.0 @512 (374/439) over M=1.5 @512 (368/439) is a 6-item difference on shared items, and all 15 grid cells were scored on one sample draw — read the peak as a plateau on which we took a point, not a single optimum. **Still open:** an **on-device Q8_0 ROI accuracy** number, the one follow-up the original campaign named before the deploy default was flipped. It is being measured now under [`experiments/2026-07-21-roi-ondevice/`](../../experiments/2026-07-21-roi-ondevice/README.md) (REMEDIATION R-14, paired, both arms on the Orin at Q8_0 on the deployed terse checkpoint). **No number from that campaign is published here yet — it has not finished.**
+
+Drift (RQ4): flat **82.5–83.6%** up to 0.5·box prior drift (vs 85.2% undrifted), and **74.3–79.7%** even at full-box drift — all above baseline. *(Corrected 2026-07-21T20:20Z, R-21: the previously published upper bound "82–85%" is not attained by any drifted arm — 85.2% is the zero-drift point; measured drifted range across shift levels 0.25–1.0 is 326–367/439. Same phrasing appears in the campaign README. There is no pre-registered bar on this probe and the drift direction is a **single seeded draw** per sample per level, so these levels carry sampling error in the perturbation as well as in the items.)* Tight upscaled crop is *both* faster *and* more accurate (super-resolution beats resolution constraint #2). Decode unchanged — orthogonal to terse decode lever; two stack toward sub-1s anchor.
 
 ---
 
@@ -138,7 +148,7 @@ Fast re-anchor cadence on "Live tracking" tab collapsed lock: re-anchor crops 4�
 
 ---
 
-### 2026-06-30 — ROI super-resolution: learned SR (Swin2SR) loses to classical upscale (negative)
+### 2026-06-30 — ROI super-resolution: learned SR (Swin2SR) buys no measurable accuracy for +1.3 s/crop (negative)
 Full writeup: [`experiments/2026-06-30-roi-sr-upscale/`](../../experiments/2026-06-30-roi-sr-upscale/README.md)  
 Does a learned upscaler beat LANCZOS/bicubic on the ROI lever? Oracle 400² crops upscaled to a 1024 feed (Qwen `max_pixels` confound defused), n=429, RTX 3090 HF bf16, spine `phase3-terse100eos-1024`.
 
@@ -149,7 +159,9 @@ Does a learned upscaler beat LANCZOS/bicubic on the ROI lever? Oracle 400² crop
 | lanczos | 100.0% | 80.2% | 0.690 | 0 | 634 |
 | swin2sr | 100.0% | 78.6% | 0.682 | **1331** | 635 |
 
-Swin2SR is the worst upscaler (below native on IoU@0.25) and adds ~1.3 s/crop. **Decision: reject SR, keep deployed LANCZOS.** Upscaling helps box tightness (mean IoU +0.04) but the *method* doesn't matter; learned high-freq detail buys nothing a 2B VLM can use for localization.
+Swin2SR buys **no measurable accuracy** for **+1331 ms per crop**. **Decision: reject SR on latency, keep deployed LANCZOS.** Mean IoU is ~0.04 higher under upscaling (bicubic 0.695 vs native 0.651) but the *method* doesn't matter; learned high-freq detail buys nothing a 2B VLM can use for localization.
+
+*(Corrected 2026-07-21T20:20Z, R-21 — section retitled and both accuracy readings withdrawn as orderings.)* The previously published sentences — "Swin2SR is the worst upscaler (below native on IoU@0.25)" and "upscaling helps box tightness" — assert directional differences this probe cannot support. Paired McNemar over the discordant pairs, recomputed from `sr_probe_out/sr_per_sample.csv` (n=429 samples over 312 unique images): lanczos vs swin2sr **b=21, c=14, p=0.31**; bicubic vs swin2sr b=22, c=12, p=0.12; **swin2sr vs native b=28, c=27, p=1.00** — 337 vs 338 gate passes, a one-item difference; bicubic vs native b=21, c=30, **p=0.26**. **No accuracy difference in this probe is significant**, in either direction. The rejection stands and is correct, but it rests entirely on the **latency** column, which is deterministic and enormous (+1331 ms vs 0 ms for the free interpolators). The percentages in the table above are unchanged and exact.
 
 ---
 
@@ -164,4 +176,6 @@ Does feeding the *whole frame* at higher resolution beat the deployed 512 baseli
 | 1536 | 65.4% | 0.519 | 1383 tok / 7929 ms | 8686 ms |
 | 1920 | 65.1% | 0.514 | 1383 tok / 7938 ms | 8689 ms |
 
-512→1024 doubles IoU@0.25 (+31.7pp); 1024→1536 buys only +2.3pp for ~2× wall; 1536≈1920 is a literal duplicate (downscale-only clamp to native ~1360px for ~70% of val). Decode flat (~545 ms) — cost is all prefill. **Whole-frame 1024 @ 4.4 s is too slow for the ~2 s anchor budget; this is the baseline that justifies the ROI-crop lever (85.2% @ ≈2.0 s, beats even 1920 whole-frame).** Caveat: the run's per-sample CSV was lost when the results→experiments rename landed mid-run (aggregates intact in `run.log`).
+512→1024 doubles IoU@0.25 (+31.7pp); 1024→1536 buys only +2.3pp for ~2× wall; 1536≈1920 is a literal duplicate (downscale-only clamp to native ~1360px for ~70% of val). Decode flat (~545 ms) — cost is all prefill. **Whole-frame 1024 @ 4.4 s is too slow for the ~2 s anchor budget; this is the baseline that justifies the ROI-crop lever.** Caveat: the run's per-sample CSV was lost when the results→experiments rename landed mid-run (aggregates intact in `run.log`).
+
+**Composite-comparison correction (2026-07-21T20:20Z, R-7/R-21):** the earlier parenthetical "85.2% @ ≈2.0 s, beats even 1920 whole-frame" put three configurations side by side as if they were one measurement. **85.2%** is HF bf16 on the RTX 3090 with the *JSON-format* checkpoint (`2026-06-25-roi-crop-anchor/sweep_summary.json`), measured at 1374 ms Orin prefill + 964 ms decode ≈ **2.33 s** in that harness. The **≈2.0 s** is a different thing: the deployed *terse* Q8_0 re-anchor cadence measured on-device (`2026-06-26-roi-demo-tab/README.md`: 2021 ms, range 1694–2081, n=10), whose decode is ~535 ms because of the terse lever. The **65.1%** at 1920 is Orin Q8_0 terse (this table). So neither the accuracy nor the latency in that sentence was measured on the configuration it describes, and "beats even 1920 whole-frame" is not a like-for-like on-device comparison. What is supported: the ROI crop is ~2.7× cheaper in prefill on the Orin, and it is far more accurate than full-frame @512 on the same machine and runtime. The on-device Q8_0 ROI accuracy that would make this one comparison is open — see [`experiments/2026-07-21-roi-ondevice/`](../../experiments/2026-07-21-roi-ondevice/README.md) (R-14), which pairs a full-frame @1024 control against the M=2.0 @512 ROI arm on the Orin at Q8_0.

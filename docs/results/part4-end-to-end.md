@@ -18,12 +18,21 @@ E-legs-2-3 (see README Findings).
 
 | Arm | best lr | path | parse | IoU@0.25 | mean IoU | wall/anchor | verdict |
 |---|---|---|---|---|---|---|---|
-| baseline Qwen2-VL-2B (deployed) | — | WF@1024 / ROI M=2.0@512 | 100% | 63.1% / 85.2% | 0.477 / — | 4400 / ≈2000 ms | **incumbent, kept** |
+| baseline Qwen2-VL-2B (bake-off harness) | — | WF@1024 / ROI M=2.0@512 | 100% | 63.1% / 85.2% | 0.477 / — | 4400 / ≈2000 ms | **incumbent, kept** |
 | A InternVL3-2B | 4e-4 | WF@1024 (HF, n=200) | 100% | 48.5% | 0.298 | N/A — GGUF export blocked @`57fe1f0` | eliminated |
 | B Qwen2.5-VL-3B | 2e-4 | WF@1024 / ROI M=2.0@512 (Jetson Q8_0, n=439) | 100% | 53.1% / **33.0% (ROI collapse)** | 0.399 / 0.170 | 5990 / 2817 ms | eliminated |
 | C PaliGemma2-3B@448 | 2e-4 | WF@448 (HF, n=200) | 100% | 56.0% | 0.391 | not measured (moot) | eliminated |
 | E SmolVLM2-500M | 1e-4 (leg 1 only) | WF@512 (in-loop val) | 100% | **5.5% (capacity collapse)** | 0.038 | not deployed | eliminated |
 | D Florence-2-large | — | — | — | cancelled un-run | — | — | cancelled |
+
+Baseline-row label corrected 2026-07-21T18:05Z (R-21): the row was published as
+"(deployed)" carrying **63.1%**, which is the `2026-06-30-whole-frame-resolution`
+re-measurement (n=439, the same Jetson harness arm B was benched on) — *not* the
+deployed configuration. The deployed Phase-4 Q8_0 figure is **62.6%** (registry
+`P2-RQ4.1-deploy-fidelity`). Both are the same model/config measured in two campaigns,
+0.5 pp apart; 63.1% is kept here because every arm delta in this table is against the
+harness, and the campaign README ("Two incumbent numbers, used deliberately") is the
+source of the convention.
 
 ### 2026-07-02 — Temporal acquire-carry, Phase 0 zero-shot ([`experiments/2026-07-01-temporal-acquire-carry/`](../../experiments/2026-07-01-temporal-acquire-carry/README.md))
 
@@ -36,9 +45,12 @@ window, scored on labeled frames only. First launch invalidated at 42/93 by a GT
 |---|---|---|---|---|---|---|---|---|---|
 | phase0-zeroshot-carry | 186 | 0.602 | **0.849** | 0.750 | **0.891** | 0.329 (70 gaps) | 3.5% | 14.4 | 58.4 min |
 
-Demo (real Jetson Q8_0 acquire, M0205): occlusion clip — acquire IoU 0.947 @4.54 s, carry 252 f
+Demo (real Jetson Q8_0 acquire, M0205): occlusion clip — acquire IoU 0.947 @4.58 s, carry 252 f
 through a 40-frame GT gap, mean IoU 0.886; retarget clip — mid-video caption switch truck→"the
 black car", retarget IoU 0.721 @4.1 s, mean IoU 0.887. Committed `ab6d6d7`.
+(Acquire wall corrected 4.54 → **4.58 s** on 2026-07-21T18:05Z, R-21: 4.54 s is the *retarget*
+run's acquire wall, `runs/20260701T230746Z`; the occlusion clip's own run `runs/20260701T230357Z`
+— the one the 252 frames and the 0.886 mean come from — logs `ACQUIRE wall_s 4.58`.)
 
 ### 2026-07-02 — Temporal acquire-carry, Phase 1 SITL latency-injection ([`experiments/2026-07-01-temporal-acquire-carry/`](../../experiments/2026-07-01-temporal-acquire-carry/README.md))
 
@@ -73,7 +85,13 @@ fix for the 2.2% rate shortfall.
 ### 2026-07-02 — Temporal acquire-carry, Phase 3 integrated end-to-end ([`experiments/2026-07-01-temporal-acquire-carry/`](../../experiments/2026-07-01-temporal-acquire-carry/README.md))
 
 Streaming carry parity (3.0): stream-vs-batch mean box-IoU 0.9974 @1024 / 0.9968 @512 (gate
-≥0.99). Integrated trials: ArduCopter SITL + synthetic nadir renderer, real Jetson Q8_0 VLM
+≥0.99) — **unbacked, flagged 2026-07-21T18:05Z (R-21):** no parity log, `results.json` or CSV was
+committed for this leg. The two figures exist only as prose, here and in the campaign README's
+2026-07-02T10:30Z entry (which adds min IoU 0.9485 @1024 / 0.9353 @512 and stream FPS 18.2/38.8 on
+the 3090). The generating script *is* committed — `experiments/2026-07-01-temporal-acquire-carry/stream_carry.py`
+on the M0205 100-frame window — so this is a cheap deterministic re-run, not a lost measurement;
+until it is re-run and its output landed under `raw/`, treat the parity gate as asserted rather than
+evidenced. Integrated trials: ArduCopter SITL + synthetic nadir renderer, real Jetson Q8_0 VLM
 acquire, 5 s bridge occlusion @ t≈30 s, rover 0.25 m/s north, 75 s.
 
 | Run | carry | in-FOV | first lock | acq (rej) | relock wall | px-err | carry rate | verdict |
@@ -93,10 +111,16 @@ SAM2.1-tiny image encoder → ONNX (opset 17, fixed 1×3×768×768) → TensorRT
 stay PyTorch; encoder swapped via one `forward_image` monkeypatch (`--trt-encoder`). Bench =
 M0205 100-frame window, box 496,69,577,110, Jetson 15 W + jetson_clocks.
 
-| Run | size | FPS solo | FPS co-res (VLM Q8_0) | p50 ms | RAM | IoU@0.25 / mean (M0205) | verdict |
-|---|---|---|---|---|---|---|---|
-| eager baseline | 768 | 4.89 | 4.89 | 204.6 | 612 MB | 1.000 / 0.821 | reference |
-| TRT fp16 encoder | 768 | 6.15 | **6.15** | 162.4 | 4980/7607 MB (w/ VLM) | **1.000 / 0.826** | **PASS (≥5)** |
+| Run | size | FPS solo | FPS co-res (VLM Q8_0) | p50 ms | CUDA peak | sys RAM (w/ VLM) | IoU@0.25 / mean (M0205) | verdict |
+|---|---|---|---|---|---|---|---|---|
+| eager baseline | 768 | 4.89 | 4.89 | 204.6 | 612 MB | not logged | 1.000 / 0.821 | reference |
+| TRT fp16 encoder | 768 | 6.15 | **6.15** | 162.4 | **533 MB** | 4980/7607 MB | **1.000 / 0.826** | **PASS (≥5)** |
+
+Memory column split 2026-07-21T18:05Z (R-21): the two rows previously shared one "RAM"
+column holding two different quantities — the eager row's 612 MB is `cuda_peak_mb`, the TRT
+row's 4980/7607 MB is whole-system RAM with the VLM co-resident. Read side by side that
+implied TRT costs ~8x the memory; `runs/bench.json` says the opposite, `trt_768_cores.cuda_peak_mb`
+= **533 MB**, i.e. 79 MB *below* eager. No FPS/latency/accuracy cell changed.
 
 Host parity (fp32 ONNX vs eager): max-abs-diff 3.1e-04 (<1e-2), end-to-end mask IoU 1.000. On-device
 fp16 vs eager: IoU@0.25 Δ 0.00 pp, mean IoU +0.006 (fp16 does not degrade — marginally higher). Per-frame
@@ -416,6 +440,15 @@ carry FPS. Raw: `experiments/2026-07-03-fast-follow-ceiling/runs/{reg-1.5,s2.0a-
 
 ### 2026-07-03 — E11 chase-acquire: pre-lock blob-pursuit chase, first-acquire at 3.0 m/s ([`experiments/2026-07-03-chase-acquire/`](../../experiments/2026-07-03-chase-acquire/README.md))
 
+> **Ceiling qualifier — the ">= 3.5 m/s" below is RETRACTED by E12** (banner added here
+> 2026-07-21T18:05Z, R-21; the campaign README has carried the same one since E12 landed).
+> s3.5a/b were a draw-1 easy-spawn artifact: both accepted `acquire_log[0]` at 2.30 s on the
+> t=0 gift frame, after in_fov had already fallen 1→0 at t=2.25 s, so the pre-lock chase was
+> never exercised at 3.5. E12's hard-spawn re-run (`--acquire-delay 3.0`) fails 3.5 **0/3**
+> and passes 3.0, so the **chase-validated ceiling is 3.0 m/s**. The reg-2.5 and s3.0 3/3
+> passes below stand unaffected; the s3.5 rows do not. Registry `E10-fast-follow-ceiling`
+> records the real-follow headline as 2.5 m/s.
+
 Follows E10's finding that above 2.5 m/s the binding constraint is **first-acquire, not
 tracking**. E10's `--acquire-hold motion` was a position-only P-servo on the frame-diff blob
 that hovered (`pid.compute(None)` → zeros) the moment the blob left the FOV; a 3.0 m/s car
@@ -442,9 +475,11 @@ Per-leg gate: PASS iff `in_fov_frac >= 0.90 AND recovered_after_occlusion`. Tria
 locked (in_fov 0.052, first_lock None); chase-hold keeps the car in-frame across draws until
 the VLM locks at **~9.2 s** (s3.0a/b needed 15 acquire attempts / 13 rejected before the
 winning draw — chase bought that time), then carry+pursuit hold in_fov **1.000** to trial end.
-**New measured ceiling: >= 3.5 m/s** (NOT pinned — s3.5 passed 2/2 at `--vmax 5.0`, the top
+**New measured ceiling: >= 3.5 m/s** — **RETRACTED, see the banner above; chase-validated
+ceiling = 3.0 m/s (E12)** — (as published: NOT pinned — s3.5 passed 2/2 at `--vmax 5.0`, the top
 rung tested; the real ceiling is above 3.5 and E11 did not find it). The follow ceiling moved
-2.5 → **at least 3.5 m/s** in one lever (7x the E2-era "< 0.5"). The fix is entirely in the
+2.5 → **at least 3.5 m/s** in one lever (7x the E2-era "< 0.5") — **now 3.0 m/s, 6x, per E12**.
+The fix is entirely in the
 pre-lock control law — it reuses the already-validated DR/pursuit machinery, changes nothing
 about the VLM or carry, and is off by default. Est-vs-actual: chase over-performed (s3.0
 estimated 50-60% → 3/3; s3.5 estimated ~20% → 2/2; no garbage-blob DR runaway on any leg); the
@@ -614,7 +649,7 @@ observed 0; runtime ~130 min (est 120-150). The two FAILs are win-path timing mi
 kinds (never-acquired vs acquired-too-early), both upstream of the gate. Raw:
 `experiments/2026-07-03-relock-rate/runs/`.
 
-### E17 reground-chase (2026-07-03) — RQ-E17 NO, r=0/10 (lever regressed E16's 6/8)
+### E17 reground-chase (2026-07-03) — RQ-E17 NO, 0/10 identical failures (n_effective 1; lever regressed E16's 6/8)
 
 One harness patch (`--reground-hold {none,chase}`, default none = bit-identical to E2-E16, selfcheck
 PASS). Extends E11's blob-chase to REGROUND blind phases (control law only; size prior + E14 mask gate
@@ -634,7 +669,15 @@ jetson_clocks, image-size 1024, app-tau 12, decoy-shade 215, `--speed 0.25 --twi
 (Per-rep rh rows are near-identical; full values in `experiments/2026-07-03-reground-chase/README.md`.)
 
 **Relock rate r = 0/10** valid reps (0 retries, 0 exclusions). **RQ-E17 = NO** (>=2 FAILs -> NO-LIFT;
-the lever regressed E16's 6/8 to 0/10). No GATE-BREACH. **Guard verdict NO-REGRESSION** (both PASS at
+the lever regressed E16's 6/8 to 0/10). **Read 0/10 as a mechanism, not a rate** (added
+2026-07-21T18:05Z, R-21): the ten reps are one observation repeated, `n_effective = 1` per registry
+`E17-reground-chase`. The table row above already collapses them because the traces are
+near-identical — verified in `runs/rh-{1..10}/results.json`: `in_fov_frac` 0.2279–0.2305,
+`carry_frames` 464–474, `carry_px_err_mean` **8.6 in all ten**, `n_regrounds` 1 in all ten,
+`relock_on` empty in all ten. The defensible claim is that the REGROUND blob-chase servos onto the
+decoy in every rep; no relock *rate* and no Wilson interval should be quoted from this leg, and the
+"0/10 vs E16's 6/8" contrast overstates the comparison by treating both as sampled rates.
+No GATE-BREACH. **Guard verdict NO-REGRESSION** (both PASS at
 3.0 m/s) — the lever is safe at the honest follow ceiling; the harm is specific to slow-mover REGROUND.
 Mechanism: the REGROUND blob-chase servos onto the 215 decoy (dominant blob), driving the drone ~82 m
 off; the true car leaves frame (rg_fov 0.025), the VLM never offers a clean box, the mask gate is never
@@ -648,7 +691,9 @@ consulted. E16's passive DR-coast is strictly better. Est-vs-actual: design pred
 First real-footage test of the deployed two-tier stack (all prior E2–E17 ran on synthetic
 `sitl_cam` renders). UAV123 aerial car sequences replayed at wall-clock 30 fps (frames DROP during
 inference — a live-camera realism), scored against dataset GT at native fps. Rig: host 3090
-SAM2.1-hiera-tiny @1024 rate-capped 6.15 Hz (E1's on-Orin number, D3); Jetson Orin Nano q8_0 terse
+SAM2.1-hiera-tiny @1024 rate-capped 6.15 Hz (E1's on-Orin number, D3 — but measured at
+`image_size` **768**, not the 1024 the carry runs at, so the emulated stride is optimistic;
+see the rig-cap note below and machine-disclosure M1); Jetson Orin Nano q8_0 terse
 15W + jetson_clocks (real acquire wall time). Perception-only (no SITL/actuation, D1). PASS =
 `genuine_lock` (first accepted box hits GT IoU≥0.25 at its arrival frame) AND `coverage` ≥ 0.50;
 clip PASS = better of n=2 A reps. Leg B = oracle GT-frame-0 carry init, REGROUND off (D5 attribution).
@@ -665,7 +710,7 @@ clip PASS = better of n=2 A reps. Leg B = oracle GT-frame-0 carry init, REGROUND
 **A PASS = 1/6** (car10) · **B PASS = 6/6.** **RQ-E18 = NO [grounding-bound]** (5 clips FAIL A while
 PASS B → binder is the acquire tier, not carry). No UNRULED legs. Mechanism: the ~4.85 s full-frame
 VLM acquire computes a *correct* box (SAM2 latches the right car — carry cov 0.90–0.99 on the three
-loss-free clips) but by arrival the target has moved ~146 frames (30 fps), so genuine_lock scored at
+loss-free clips) but by arrival the target has moved **~134 frames** (30 fps), so genuine_lock scored at
 the arrival frame misses — **latency-vs-motion, not misgrounding.** car10 passes because its target is
 slow at t=0. car7 is the only A leg whose carry also collapses (0.285 vs B 0.993): its 73-frame
 occlusion trips a loss, REGROUND re-acquires *also* stale, and the appearance-only E14/E16 mask gate
@@ -675,10 +720,32 @@ accepts it (gate_rej=0 — right colour, wrong place) → drift. Est-vs-actual: 
 mirror (no VisDrone fallback). Raw: `experiments/2026-07-03-real-video-replay/runs/`, proof in
 `.../proof/`.
 
+Two rig/units corrections, 2026-07-21T18:05Z (R-21), neither of which moves the 1/6 vs 6/6 verdict:
+
+- **Staleness displacement was published as ~146 frames; the measured value is ~134.** 146 was
+  `t_lock` x 30 (4.85 s x 30 fps = 145.5), but `t_lock` is submit-to-*lock-delivered*
+  and includes the post-arrival SAM2 init. `genuine_lock` is scored at the **box-arrival** frame, and
+  E18's own runs log only `t_lock`. The submit→arrival index comes from E19's `mc_log` on the
+  byte-identical rig (`experiments/2026-07-04-motion-comp-acquire/runs/*/results.json`, incl. the
+  `ctl_none_car{3,10}` regression controls): `submit_i` 0 → `arrival_i` **133–135** on all 27 legs,
+  mean 134.3 = **4.48 s**. An 8% overstatement of exactly the quantity the Part V warm-start reframe
+  rests on; the ~4.85 s figure stays valid as *lock delivery*, and both numbers are now stated with
+  their definition.
+- **The 6.15 Hz cap is a 768 measurement applied to a 1024 carry.** `runs/bench.json` records
+  `trt_768_cores.fps` = 6.15 at `image_size` 768; E1 never measured 1024 and said so. 1024 costs
+  ~1.9x the encoder compute, so the true on-device stride is plausibly ~3 Hz and the emulated one
+  is roughly 2x optimistic (machine-disclosure M1). Direction of the bias is uniform and known:
+  carry-dependent PASSes are optimistic, carry-dependent FAILs conservative. **For E18 this makes
+  the NO conservative** — the finding is that acquire latency binds, not carry rate. The same cap is
+  inherited verbatim by E19/E20/E21/E23, where coverage *is* carry-rate-sensitive; those sections
+  carry a pointer back here. No carry-dependent PASS in this arc may be described as an on-device
+  rate until R-16 re-measures at 1024.
+
 ### 2026-07-04 — E19 motion-comp-acquire ([`experiments/2026-07-04-motion-comp-acquire/`](../../experiments/2026-07-04-motion-comp-acquire/README.md))
 
 Two motion-compensation arms for E18's stale-lock gap, same six UAV123 clips / frozen captions /
-byte-identical scoring, rig unchanged (3090 SAM2.1-tiny @1024 capped 6.15 Hz + Jetson q8_0 terse
+byte-identical scoring, rig unchanged (3090 SAM2.1-tiny @1024 capped 6.15 Hz — a 768-measured cap,
+~2x optimistic at 1024; see the E18 rig-cap note — + Jetson q8_0 terse
 self-boot, 15W + jetson_clocks). ctl (`--mc none`, D4 regression guard) reproduced E18's signature
 (car3 genuine=False cov 0.976; car10 PASS). Per-clip PASS = genuine_lock AND coverage >= 0.50,
 better of n=2.
@@ -713,9 +780,9 @@ red car **in the bottom left**") is parsed client-side into a padded 3x3-cell cr
 `scope.py`), the frozen E18 caption is grounded inside the crop (sent native, no resize), and the
 box maps back to full-frame. Scope on the FIRST ACQUIRE attempt only; retries + REGROUND stay
 full-frame (D4). Same six UAV123 clips / frozen captions / byte-identical E18 scoring; rig
-unchanged (3090 SAM2.1-tiny @1024 capped 6.15 Hz + Jetson q8_0 terse self-boot, 15W +
-jetson_clocks). 27/27 legs clean; controls reused from E18 A / E19 ctl (D6). Per-clip PASS =
-genuine_lock AND coverage >= 0.50, better of n=2.
+unchanged (3090 SAM2.1-tiny @1024 capped 6.15 Hz — 768-measured cap, ~2x optimistic at 1024; see the
+E18 rig-cap note — + Jetson q8_0 terse self-boot, 15W + jetson_clocks). 27/27 legs clean; controls
+reused from E18 A / E19 ctl (D6). Per-clip PASS = genuine_lock AND coverage >= 0.50, better of n=2.
 
 | clip | hint | E18 A (baseline) | cell | cellbuf | scoped acquire_s |
 |---|---|---|---|---|---|
@@ -727,7 +794,16 @@ genuine_lock AND coverage >= 0.50, better of n=2.
 | car18 | middle left | F / 0.711 | F / **0.980** | F / 0.958 | 1.83 |
 
 **cell 3/6, cellbuf 3/6 (same set) → RQ-E20 = PARTIAL [hint-fragile]**. Mean scoped acquire
-**1.85 s** vs E18's ~4.85 s (2.6x, backlog ~146 -> 47-62 frames) — the ROI-campaign prefill
+**1.85 s** vs E18's **~4.48 s** on the same definition (**2.4x**, backlog ~134 -> 47-62 frames)
+— corrected 2026-07-21T18:05Z (R-21): as published this read "vs E18's ~4.85 s (2.6x, backlog
+~146 -> 47-62 frames)", which juxtaposed two differently-defined latencies. 1.85 s is
+`acquire_s` = (`arrival_i` − `submit_i`)/fps, i.e. **submit to box arrival** (campaign README,
+"Latency is measured per submit in `mc_log`"); E18's 4.85 s is `t_lock`, **submit to lock
+delivered**, ~0.35 s longer than its own `acquire_s`. The backlog pair inherited the same mismatch
+(47-62 is `acquire_s` x 30, ~146 was `t_lock` x 30 against a logged arrival index of 133-135). Like
+for like, either **acquire_s 1.85 s vs ~4.48 s (2.4x)** or **t_lock 2.22 s vs 4.84 s (2.2x)**; the
+2.6x figure belongs to neither pairing. The mechanism and the PARTIAL verdict are untouched — the
+ROI-campaign prefill
 scaling (2026-06-26) delivered at first acquire, estimates hit exactly (est 1.7-2.3 s, est 3/6).
 Regression guard: no breach; the earlier lock alone lifts coverage car7 0.285 -> 0.997, car18
 0.711 -> 0.981. Residual FAILs (car3/car7/car18, arrival-IoU 0.00/0.00/0.02) are target-size
@@ -757,7 +833,8 @@ jetson_clocks.
 Coarse-hint hit rate 4/12 reps (2/6 clips) → [prior-wrong] (>=2 wrong clips). Regression
 guard BREACH on car7 (0.000 vs E18A 0.285), car10 (0.000 vs 1.000), car14 (0.590 vs 0.903)
 → (REGRESSIVE). Latency: coarse pass 0.97 s (n=12, 0.93-1.00), total acquire **2.73 s**
-(2.57-2.90) — additive over E20's 1.85 s, backlog 47-62 → 77-87 frames. The extra pass
+(2.57-2.90) — additive over E20's 1.85 s, backlog 47-62 → 77-87 frames (all four figures are
+`acquire_s`, submit-to-arrival, so this comparison is like-for-like; cf. the E20 note). The extra pass
 un-flips E20's wins: car9 (correct cell, same fine crop) drops arrival-IoU 0.32 → 0.24 under
 the 0.25 lock threshold from ~1 s more target motion; car7 (correct cell) collapses cov 0.997
 → 0.000 as the widened SAM2 init→first-live jump breaks carry; car10 (wrong cell) hallucinates
@@ -796,7 +873,14 @@ motion); the four misses split as (a) car3/car10/car14 — tiny red cars (~4–1
 a confident-wrong "center" — the automatable version of E20's [hint-fragile] hallucination,
 which the offline gate is the only defense against. The motion channel — the campaign's
 headline idea — contributed to exactly one cell (car9). Prior latency ~3 ms (10× under the
-<30 ms estimate); acquire not measured (no Jetson leg). No matrix, no overlays; proof =
+<30 ms estimate) — **unbacked, flagged 2026-07-21T18:05Z (R-21):** the selfcheck that produced
+~3 ms was never committed. The campaign's only raw file, `raw/phase0_prior_audit.txt`, carries the
+cell-hit table and the per-stage mask-pixel counts but **no timing line at all**, so neither the
+~3 ms nor the "10× under estimate" framing resolves to an artifact; the same applies to the
+"~4–12 px wide at 320w" target-size figure above, which exists only as a README annotation. What
+*is* fully backed is the number that decided the campaign — the 2/6 t=0 and 0/6 t=10 s cell-hit
+rates, verified cell-for-cell against that file — so the NO verdict is unaffected. Acquire not
+measured (no Jetson leg). No matrix, no overlays; proof =
 `proof/phase0_prior_stages.png` (mask-stage montage: car9 HIT, car3 tiny-miss, car7
 silver-flood). Raw: `experiments/2026-07-04-cv-proposal-acquire/raw/phase0_prior_audit.txt`.
 
@@ -831,7 +915,9 @@ On-device at HW*=0.38, worst-case fuzzed hints, n=2 (PASS = genuine_lock AND cov
 
 **tol PASS = 1/6 (only car14), E20 set {car9,car10,car14} kept 1/3 → RQ-E23 = NO (REGRESSIVE)
 [containment-not-sufficient]**. mean scoped acquire_s = **2.80 s** (n=12, 2.10–3.93) vs E20 1.85
-/ E18 4.85 — inside the <3.0 s budget, so latency is NOT the binder. Regression guard: car10
+/ E18 **~4.48** on the same `acquire_s` definition (published as "E18 4.85", which is E18's
+`t_lock`; corrected 2026-07-21T18:05Z, R-21, per the E20 note) — inside the <3.0 s budget, so
+latency is NOT the binder. Regression guard: car10
 BREACH (tol cov 0.000 vs E18-A 1.000). Phase-0 guaranteed 6/6 geometric containment at HW*, yet
 containment did not yield a lock: (a) car10's enlarged worst-case "top center" crop still contains
 the target but ALSO a second red car → VLM grounds the decoy (cov 0.000, 9–10 REGROUND gate

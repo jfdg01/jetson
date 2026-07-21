@@ -19,7 +19,11 @@ already tracked over the idle window and **select on command**. Reframe origin:
 
 Detail: [`../../experiments/2026-07-04-warm-start-acquire/README.md`](../../experiments/2026-07-04-warm-start-acquire/README.md).
 Config: Qwen2-VL-2B Q8_0 terse acquire on Jetson Orin Nano (15 W + jetson_clocks, `nvpmodel -m 0`,
-no MAXN on this board); SAM2.1-hiera-tiny StreamCarry on RTX 3090 rate-capped 6.15 Hz; mask gate
+no MAXN on this board); SAM2.1-hiera-tiny StreamCarry on RTX 3090 rate-capped 6.15 Hz — an
+**emulated** cap, taken from E1's TensorRT-fp16 Orin measurement at `image_size` 768, while this
+carry runs eager bf16 at the stock 1024, so the true on-device stride would be slower (E1 puts 1024
+at ~1.9x the compute of 768); the on-device 1024 rate is unmeasured, see R-16 and the
+machine-disclosure finding M1 (provenance corrected 2026-07-21, R-21); mask gate
 app-τ=12.0; prompt t_p=8.0 s, 10 s coverage window; 6 clips × {WARM,COLD,ORACLE} × n=2 = 36 runs,
 0 INVALID, 0 n=2 splits. Metric: genuine_lock at deliver-frame AND coverage ≥ 0.50 over the window,
 best of n=2. Best-of-n from `runs/*/results.json` via `make_proof.py`.
@@ -36,15 +40,31 @@ car9 T·1.00·.88 / F·.00·.06 / T·1.00·.88 · car10 T·1.00·.81 / F·.00·.
 car14 T·.98·.69 / T·.95·.50 / T·.98·.73 · car18 T·.99·.90 / F·.00·.00 / T·.99·.94.
 
 W=5/6, C=1/6, O=5/6. **WARM-vs-ORACLE gap = EMPTY** (real idle VLM seed == GT seed on every clip;
-zero detection headroom). Sole failure car7 = occlusion at the prompt frame (`gt[240]` absent) →
+zero detection headroom).
+
+> **Statistical correction, 2026-07-21 (R-4).** These are as-run counts, not an inferential
+> result. WARM−COLD is `b=4, c=0` at `n_effective = 6` clips → exact McNemar **p = 0.125**: at
+> n=6 even a clean 6-for-6 sweep cannot reach alpha, so no outcome of this design could have
+> been significant. The WARM-vs-ORACLE "gap = EMPTY" is likewise a **zero-discordant** statement
+> over 6 items — the design had no room to show a gap, so read it as "no gap was visible here",
+> not "no gap exists". What does survive is structural: WARM's PASS set contains COLD's and
+> matches ORACLE's exactly. **P5.2 is what certifies the warm-start claim; cite it, not this
+> run.** See `thesis/claims.json` (`P5.1-warm-vs-cold`).
+
+Sole failure car7 = occlusion at the prompt frame (`gt[240]` absent) →
 carry-bound, also fails ORACLE. See `proof/warm_vs_cold_vs_oracle.png` (coverage + freshness) and
 `proof/car10_warm_vs_cold.mp4` (fresh vs stale delivery).
 
 ### P5.2 — warm-start generalization + on-screen-speed sweep (2026-07-04)
 
 Detail: [`../../experiments/2026-07-04-warm-start-generalization/README.md`](../../experiments/2026-07-04-warm-start-generalization/README.md).
-Config identical to P5.1 (Q8_0 terse acquire, SAM2.1-tiny TRT fp16 6.15 Hz, mask gate app-τ=12.0,
-t_p=8 s, 10 s window, Jetson 15 W + jetson_clocks). Extends P5.1's 6 cars to **25 clips × 5
+Config identical to P5.1 (Q8_0 terse acquire, mask gate app-τ=12.0, t_p=8 s, 10 s window, VLM on
+Jetson 15 W + jetson_clocks; **carry = SAM2.1-tiny eager bf16 on the RTX 3090, rate-capped to
+6.15 Hz** — machine and precision corrected 2026-07-21, R-21: this line previously read "SAM2.1-tiny
+TRT fp16 6.15 Hz" alongside "Jetson 15 W", which reads as one on-device configuration. It is a
+cross-machine composite, no TensorRT engine is loaded anywhere in `replay_e24.py`, and the 6.15 Hz
+is E1's Orin figure at `image_size` 768 applied to a 1024 carry — see the machine-disclosure
+findings M1 and M4). Extends P5.1's 6 cars to **25 clips × 5
 categories × a data-driven on-screen-speed sweep** (0.00–15.62 %frame-diag/s), clips selected from
 UAV123 GT via `profiles.py` (measured, not eyeballed). n=1 (P5.1 was bit-identical across reps);
 75 legs, 0 INVALID. Metric unchanged: genuine_lock at deliver-frame AND coverage ≥ 0.50.
@@ -54,6 +74,13 @@ UAV123 GT via `profiles.py` (measured, not eyeballed). n=1 (P5.1 was bit-identic
 | WARM (idle-window VLM seed, select at t_p) | **21/25** | fresh carry still locked at prompt; 5 categories (car/person/boat/wakeboard/bike) |
 | COLD (cold acquire at prompt, delivered stale) | 5/25 | ~135-frame stale box; survivors are deliver-frame geometry accidents, not slow clips |
 | ORACLE (GT[0] seed, ceiling) | 22/25 | GT-seed ceiling; 2-clip detection headroom over WARM at scale |
+
+**Independence (added 2026-07-21, R-4):** the 25 clips are **23 independent units** — `car3`/`car3_s`
+and `person1`/`person1_s` are cuts of one source video each — and **all 6 P5.1 clips are re-used
+here**, so P5.1 and P5.2 are not independent confirmations of one another. Deflated to 23: `b=15,
+c=0`, exact McNemar **p = 6.10e-05**, which still survives Holm across the Part V family. This
+remains the best-powered claim in Part V; the deflation costs nothing but the "independent
+extension of P5.1" framing.
 
 WARM 4 misses: car7, person10 `[deliver-occluded]` (GT absent at deliver frame 240 → fail ORACLE
 too; 21/23 = 91% on the non-degenerate set); person18, car17 `[detection-bound]` (ORACLE passes,
@@ -85,7 +112,12 @@ late-binding claim from the delivery-lag win already proven in P5.1/P5.2).
 | SWAP (distractor phrase → should flip selection) | **2/5** | car9:300, car3:200 flip correctly; other 3 NO_MATCH on the distractor caption |
 | CSEL (cold deployed baseline, non-gating) | **1/5** genuine_lock | car10:240 only — cold stays broadly stale, consistent with COLD 5/25 (P5.2) |
 
-**Verdict: NO** (RQ-P5.3a FAIL 3/5 < 4; RQ-P5.3b FAIL 2/5 < 4). **Dominant failure = NO_MATCH**
+**Verdict: NO** (RQ-P5.3a FAIL 3/5 < 4; RQ-P5.3b FAIL 2/5 < 4) — **but the pre-registered gate was
+statistically unreachable** (added 2026-07-21, R-4): against a 0.8 null even a perfect 5/5 gives
+p = 0.33, so no outcome of this design could have cleared 4/5 inferentially, in either direction.
+`n_effective = 4`, not 5 — the unit is a (clip, onset) cell and `car10` supplies two of them. Read
+the NO as a legitimate **engineering stop**, not as evidence that select-on-command does not work.
+**Dominant failure = NO_MATCH**
 (4 of the 5 gating non-passes; the denominator 7 published here matched no artifact — corrected 2026-07-21, R-7): the stale VLM box at the prompt frame overlapped neither carried candidate
 (max IoU ~0.000), i.e. the deployed VLM grounded the caption onto an object outside both tracks
 (third in-frame cars; type/colour phrase ambiguity for the distractor captions). **Not a match-rule
@@ -108,9 +140,12 @@ rate-capped to 6.15 Hz. 5 frozen P5.3 scenes x {VSEL, VSWP} = 10 runs, n=1/cell,
 |---|---|---|---|
 | VSEL (target phrase, ROI crop) | **3/5** | = WSEL 3/5 | car10:240, car9:300, car7:460 lock at deliver-IoU 0.59-0.83; car10:615 NO_MATCH (in-crop third car), car3:200 wrong-object (16x40 px target) |
 | VSWP (distractor phrase, ROI crop) | **3/5** | up from SWAP 2/5 | car10:240, car9:300, car3:200 flip correctly; car10:615 NO_MATCH, car7:460 NO_MATCH (carry-drift cell) |
-| CLIP circlectx (non-gating secondary) | **7/10** correct | — | agrees with VLM on the 7 grounded runs; would not rescue car10:615 |
+| CLIP circlectx (non-gating secondary) | **7/10** correct | — | agrees with VLM on the 7 grounded runs; would not rescue car10:615. **Pilot-biased** (added 2026-07-21, R-21): the design-time pilot that picked `circlectx` scored its variants on 3 of these same 5 scenes, which is exactly why the campaign README demotes this arm to non-gating — the 7/10 is evidence, not a rate |
 
-**Verdict: NO [match-bound, resolution-bound]** (RQ-P5.4a FAIL 3/5, RQ-P5.4b FAIL 3/5). **The one
+**Verdict: NO [match-bound, resolution-bound]** (RQ-P5.4a FAIL 3/5, RQ-P5.4b FAIL 3/5) — **same
+unreachable 0.8-null gate as P5.3** (added 2026-07-21, R-4): 5/5 would still give p = 0.33, and
+`n_effective = 4`. P5.4 also re-uses P5.3's exact 5 scenes, so "VSEL identical to P5.3 WSEL
+cell-for-cell" below is **one sample measured twice**, not independent corroboration. **The one
 unambiguous win: ROI cut acquire latency 2.16x — 2.08 s median vs P5.3's own measured 4.47-4.52 s**  (corrected 2026-07-21, R-7: the ~4.9 s upper bound was imported from E18, a different campaign, and inflated the ratio) (the
 Part III ROI-anchor lever transferring as predicted, est. ~1.5-2.5s -> actual 2.08s). But the select
 verdict did not move: VSEL identical to P5.3 WSEL cell-for-cell. The pre-registered "ROI kills
@@ -128,7 +163,10 @@ third-object NO_MATCH), `proof/p54_vsel_car9_300.mp4` (grounded-carry PASS at Io
 `experiments/2026-07-14-select-generalization/` · Jetson 15W + jetson_clocks, q8_0 VLM terse
 (max_side 1024 full-frame select + 512 pre-resized ROI crops for the idle re-anchor), SAM2 carry on
 local RTX 3090 rate-capped to 6.15 Hz (CAND_HZ 3.075/candidate). 6 scenes (5 frozen P5.3 + new
-car9:560) x {WSEL, SWAP} = 12 MC runs (gating) + 4 M runs (attribution, old P5.3 captions), n=1/cell,
+car9:560) x {WSEL, SWAP} = 12 MC runs (**10 gating + 2 control** — `car3:200` carries `gating:
+false` in both legs; the flat "(gating)" label here was wrong and is corrected 2026-07-21, R-21, and
+is why the RQ verdicts below score out of 5 per leg, not 6) + 4 M runs (attribution, old P5.3
+captions), n=1/cell,
 deterministic, 16/16 ran clean, no `infra`. Two levers on the frozen P5.3 rig: (1) idle-window
 distractor ROI re-anchor at f0+90/165 (accept = parseable + in-frame, no IoU floor), (2)
 referentially-unique captions on the two audit-tagged caption-bound cells.
@@ -140,7 +178,12 @@ referentially-unique captions on the two audit-tagged caption-bound cells.
 | M arm (old captions, attribution) | **= MC cell-for-cell** | — | caption lever inert: car10:240 SWAP + car10:615 WSEL FAIL NO_MATCH in both M and MC |
 | car3:200 control (resolution) | WSEL FAIL / SWAP PASS | = P5.3/P5.4 | levers do not move the ~16x40 px resolution cell |
 
-**Verdict: NO [match/carry-bound]** (RQ-P5.5a YES 4/5, RQ-P5.5b NO 3/5; YES iff both). Idle-window
+**Verdict: NO [match/carry-bound]** (RQ-P5.5a YES 4/5, RQ-P5.5b NO 3/5; YES iff both) — **third run
+of the same unreachable 0.8-null gate** (added 2026-07-21, R-4): 5/5 gives p = 0.33 here too, and
+`n_effective = 4` (the 6 cells come from four UAV123 sequences; the 5 gating cells from only three,
+`car9:560` being cut from the same video as `car9:300`). P5.3, P5.4 and P5.5 also share their scene
+set, so the "third consecutive NO" framing below is three passes over largely one sample, not three
+independent refutations — the informative content is the mechanism, not the count. Idle-window
 maintenance re-anchored in **every** cell (`[True, True]` throughout) but did not close the SWAP gap:
 two distractor carries (car10:240, car7:460) still fail **carry-drift NO_MATCH** (carried box vs
 select-time full-frame VLM box IoU 0.000) *after* two accepted ROI re-anchors. The caption lever
@@ -259,7 +302,11 @@ spawns near the median kerb (lat y = 0.596 vs 5.79 / 5.03 for the other seeds) a
 kerb geometry** — by f0180 it renders as two disconnected blue blobs straddling the kerb line with
 the mid-body hidden below the surface. The box still bounds the full 3D model and tracks the car
 (no float/lag/drift), so this is a **scene-geometry defect, not a projection error**; it is what
-drives pur1 = 0.472 (lowest cell, still >> the 0.30 gate and >> 4x its 0.000 control). Recorded as a
+drives pur1 = 0.472 (lowest cell, still >> the 0.30 gate; its lateral control purity is **exactly
+0.000**, so G2's "in-box purity >= 4x control" leg is **trivially satisfied and carries no
+information** here — the ">> 4x its 0.000 control" published originally was arithmetically vacuous,
+corrected 2026-07-21, R-21. The 0.30 absolute floor is what G2 actually decides on for this cell).
+Recorded as a
 caveat rather than a V FAIL because the pre-registered FAIL list is not met — but **a half-sunk
 distractor is not a fair grounding target and should be fixed before this generator feeds a select
 experiment.** seed101_D is visually indistinguishable from seed101_A at all three overlays,
@@ -298,7 +345,7 @@ first attempt: 0 INVALID, 0 INFRA, 0 re-runs, 240/240 frames × 16 = 3840 frames
 | G0 | 0/0/0 retries all 16 cells | 7680 calls, 0 retries (P5.8's 1920 was its own four-run count; corrected R-7) |
 | G2 purity | 0.712–0.911 (both cars) | lowest pur0 bank07 0.712; NO blue-car <0.6 outlier (P5.8's 0.472 clip did not recur) |
 | G5 fps | 8.18–8.33 | on estimate |
-| **G6** frag p10 | min 0.9967 across 16 runs (gate 0.95) | margin +0.047; below-0.90 frac 0.000 everywhere; no cell in [0.95,0.99) watch band. Marginal cells are the WHITE target (self-occlusion), not the blue distractor (P5.8's clip victim, now p10 ≥ 0.9893) |
+| **G6** frag p10 | min 0.9967 across 16 runs (gate 0.95) | margin +0.047; below-0.90 frac 0.000 everywhere; no cell in [0.95,0.99) watch band. Marginal cells are the WHITE target (self-occlusion), not the blue distractor (P5.8's clip victim, now **`g6_frag_p10` = 1.000 on all 16 runs**, worst *single frame* 0.9893 on seed101_A/D — the "p10 ≥ 0.9893" published originally quoted `g6_frag_min` under the p10 label, which understated the result and pointed at the wrong column; corrected 2026-07-21, R-21) |
 | G4a | GT byte-identical, mean\|diff\| 0.0, frac(>8) 0.0 | cross-session determinism, exactly as P5.8 |
 | G4b (redef) | min divergence **1.36 m** ≥ 1.0 at pair (8,12); f0-faithful True/16 | on design estimate to 2 d.p. |
 | G4b OLD-stat diagnostic | min pairwise target-f0 dist **0.135 m** at pair (1,12) | **far below the retired 1.0 m gate — the OLD G4b would have failed this bank.** Corroborates the redefinition: seeds 1&12 start 13.5 cm apart at f0 but diverge 1.36 m scenario-wide (single-frame coincidence between diverging trajectories = the birthday noise the old point-stat false-failed on) |
@@ -328,7 +375,12 @@ Versions: torch 2.6.0+cu124, numpy 2.4.4, cv2 4.13.0, python 3.12.10.
 | DD (direct delivery, phrase→carried candidate, acquire 0 s) | 12/12 | 12/12 | **24/24** | none | 0 s |
 | RG (P5.3 prompt-time full-frame VLM + IoU-match, measured latency) | 12/12 | 12/12 | **24/24** | none | mean 4.37 s (4.36–4.39), deliver f184–185 |
 
-**RQ-P5.10a YES** (DD ≥ 10/12 each leg). **RQ-P5.10b NO** (DD_total 24, RG_total 24, margin 0 < 4).
+**RQ-P5.10a YES** (DD ≥ 10/12 each leg). **RQ-P5.10b NO** (DD_total 24, RG_total 24, margin 0 < 4)
+— **and margin 0 here is not a measured equivalence** (added 2026-07-21, R-4): with **zero
+discordant pairs** (`b=0, c=0`) McNemar is *undefined*, not 1.0, so no test ran. Both arms sit at
+ceiling, `n_effective = 12` (12 clips x 2 phrase legs over one cached carry each), and the design
+had no room to separate anything. The correct reading is "this bank cannot distinguish the
+contracts", which is what the scene-bound diagnosis below already says.
 **Overall NO; interpretation branch 2** — RG at ceiling: the P5.3/4/5 select NOs are *scene-bound*
 (UAV123 attribute murk), not contract-bound; DD's remaining edge is **latency only** (0 s vs 4.37 s).
 The pre-registered sim-gap NO_BOX sweep did **not** occur: `vlm_on = named` on all 24 cells — the
@@ -398,7 +450,7 @@ frames/clip, `--profile v2`, fresh server session per run.
 | Bank cells all gates | **12/12 PASS** | vs P5.11's 3/12 on the same generator; 0 INFRA, 0 present-but-failing |
 | G6c margin | min n_clear **57** (bank02) | floor 40; at P5.11's old floor of 60 this defect-free clip would still fail → bank would be 11/12 |
 | G8b margin | min bdom **0.488** (bank05/seed 6) | floor 0.40; this is the exact value that failed P5.11's 0.55 floor, visually confirmed a genuine shallow occlusion |
-| **S6 predicted vs recorded n_clear** | **12/12, delta 0 on every cell** | pure-projection prediction reproduces the recorded G6c pool exactly, incl. all six never-rendered seeds |
+| **S6 predicted vs recorded n_clear** | **12/12, delta 0 on every cell** | pure-projection prediction reproduces the recorded G6c pool exactly, incl. all six never-rendered seeds. **Scope corrected 2026-07-21, R-21:** both sides are analytic — `record()` derives each frame's `occl` with the same `_overlap_frac` over `project_box()` output that `predicted_clear_count()` uses, so delta 0 tests **pose fidelity** (the sim reproduced the authored trajectory) and not render integrity. The only pixel-dependent term in the recorded pool is whether the target had >= `FRAG_MIN_NPX` own-colour pixels to score `frag` at all |
 | Visual gate V | **PASS (no downgrade)** | 12 crossing-peaks + 12 post-prompt + 2 gate mid-run + 3 proof figures opened with the Read tool; 12/12 genuine occlusions, **0 render defects** |
 | Wall | **~18 min** for 16 runs | estimate was 30–40 min; 0 retries, 0 gz-transport flake |
 
@@ -408,8 +460,12 @@ before recording, clears the whole bank. The load-bearing evidence is the **delt
 table** — `predicted_clear_count()` computes the recorded `n_clear` exactly on 12/12 cells with no
 renderer in the loop, which makes the screen a legitimate pre-selection rather than a post-hoc
 filter, and it held identically on the six seeds (17, 28, 29, 33, 40, 56) that had never been
-rendered before. The pre-registered hypothesis actually under test ("does the offline screen predict
-render *integrity* on unseen seeds?") passed. Two floors are proven load-bearing rather than
+rendered before. What that transfer establishes is that the screen predicts the **authored-pose
+clear-frame pool** on unseen seeds — a legitimate pre-selection rather than a post-hoc filter, and
+the reason the bank is admissible. It is **not** a test of render *integrity*: the earlier phrasing
+here ("does the offline screen predict render integrity on unseen seeds?") over-claimed a metric
+that is analytic on both sides and could not have failed on that axis (corrected 2026-07-21, R-21).
+Render integrity is carried by G6c/G8/V, which read pixels. Two floors are proven load-bearing rather than
 loosened-to-fit: bank02 (n_clear 57) and bank05 (bdom 0.488) are visually flawless clips that
 P5.11's floors rejected. **Caveat carried forward from looking, not from the numbers:** bank05
 (seed 6) and bank06 (seed 14) are visibly shallower occlusions than the other ten and their
@@ -450,7 +506,18 @@ the wire). torch 2.6.0+cu124 / numpy 2.4.4 / cv2 4.13.0 / python 3.12.10 / `face
 | Wall | **~3.4 min** for 24 cells | estimate was 6-12 min; warm Jetson + per-clip carry cache shared by both legs |
 | Visual gate V | PASS (non-operative) | 3 proof PNGs + 4 per-cell overlays opened with the Read tool; genuine renders, boxes on the cars, no black/blank frames. V can only downgrade a YES. |
 
-**RQ-P5.13 = NO** [branch 3; contracts do not separate, 24 vs 23 of 24]. The pre-registered
+> **Statistical correction, 2026-07-21 (R-4).** The 24 cells are **12 clips x 2 legs over identical
+> pixels**, with DD and RG scored from the *same* within-cell SAM2 carry, so `n_effective = 12` and
+> the arms are coupled by construction. Every denominator above — the 4/24 separation threshold,
+> "both >= 20/24" — is computed on the inflated 24. There is **one** discordant pair (`b=1, c=0`,
+> p = 1.0 two-sided), and the pre-registered SEP_MARGIN of 4 sat below the minimum detectable
+> effect: reaching alpha needed 6 one-way discordants. With DD at 24/24, the observable range of
+> DD−RG is bounded above by RG's single failure. **"The contracts do not separate" is not
+> supported; "this design had no power to distinguish them" is** — read the verdict line below in
+> that sense. See `thesis/claims.json` (`P5.13-dd-vs-rg-tie`).
+
+**RQ-P5.13 = NO** [branch 3; **no power to distinguish the contracts** — 24 vs 23 of 24, one
+discordant cell (wording corrected 2026-07-21, R-4; published as "contracts do not separate")]. The pre-registered
 prediction was the opposite direction (RG > DD, on the theory that the crossing costs the carry) and
 it was **wrong**: SAM2's carry survived all 12 designed crossings with zero fails and a tight IoU
 band, so DD ceilinged. RG's single loss is not a grounding loss — the VLM found and matched the right
@@ -462,8 +529,9 @@ frames in every clip**, so the bank never renders the target in front), then (ii
 weaker occlusion stress (peak GT-GT IoU 0.217/0.251 vs 0.352). The DD result does not localise to
 (ii) — the two weakest-crossing clips passed exactly like the strongest — which points at (i), the
 geometry that has no gate. No third explanation is offered, per the pre-registration. This is the
-fourth cycle spent on scene data rather than contracts, and the second consecutive DD==RG ceiling
-(P5.10 was 24/24 vs 24/24 on bank v1).
+fourth cycle spent on scene data rather than contracts, and the second consecutive design with no
+resolution to separate the contracts (P5.10 was 24/24 vs 24/24 on bank v1 — zero discordants there,
+one here).
 Proof: `proof/p513_pass_grid.png` (47/48 tiles green — the absence of separation),
 `proof/p513_failclass.png` (DD panel empty, RG panel one `DELIVERY_DRIFT` bar),
 `proof/p513_headline_dd_vs_rg.png` (`bank09_white`: DD tight box at f150 vs RG mask ballooned across
@@ -474,13 +542,31 @@ road and wall at f259; no picker fallback fired). Detail:
 
 | run | contract | scenes | WSEL (gating) | SWAP strengthened (gating) | acquire_s | fail class | verdict |
 |---|---|---|---|---|---|---|---|
-| P5.14 | **DD** — phrase binds to the warm-carried candidate by stored caption; carried box delivered at the prompt frame; no prompt-time VLM, no IoU match | 5 gating UAV123 `car*` scenes + `car3:200` control | **5/5** | **4/5** | **0.00 s** (all 12 cells) | `carry-off-object` x1 (`car7:460` SWAP) | **YES** (both RQs; visual gate V PASS) |
-| P5.14 shadow (non-gating) | RG — prompt-time full-frame re-ground + IoU match, run alongside DD on the same frames | same | — | — | **4.51 s** mean (4.48–4.53) | NO_MATCH x3, wrong-object x1 | 4/12 cells DISAGREE with DD |
+| P5.14 | **DD** — phrase binds to the warm-carried candidate by stored caption; carried box delivered at the prompt frame; no prompt-time VLM, no IoU match | 5 gating UAV123 `car*` scenes + `car3:200` control | **5/5** | **4/5** | **no prompt-time VLM call — `acquire_s` 0.00 by construction on all 12 cells** | `carry-off-object` x1 (`car7:460` SWAP) | **YES** (both RQs; visual gate V PASS) |
+| P5.14 shadow (non-gating) | RG — prompt-time full-frame re-ground + IoU match, run alongside DD on the same frames | same | — | — | **4.51 s** mean measured (4.48–4.53) | NO_MATCH x3, wrong-object x1 | 4/12 cells DISAGREE with DD |
+
+> **Statistical correction, 2026-07-21 (R-4).** The 5 gating scenes are cut from only **three
+> distinct UAV123 clips** (`car10` x2, `car9` x2, `car7` x1), so `n_effective = 3`, and they were
+> chosen *because* they were P5.5 failure cells — an adversarial, non-representative sample.
+> Against the 0.8 null both legs are inside what the null predicts: WSEL 5/5 is **p = 0.33**
+> (unreachable at this n) and SWAP 4/5 is **p = 0.74**. **P5.18 re-ran this claim at n=26 and
+> found the true rates near 0.85 WSEL / 0.65 SWAP — cite P5.18 for the rate, P5.14 for the
+> delivery contract.** The durable, non-inferential finding here is the contract itself: DD makes
+> no prompt-time VLM call at all, against a measured 4.51 s for the shadow re-ground.
+> See `thesis/claims.json` (`P5.14-wsel`, `P5.14-swap`).
+>
+> **Units note (R-21).** The `0.00 s` above and the `4.51 s` beside it are not the same kind of
+> quantity: DD's zero is **definitional** (there is no call to time), the shadow's is **measured**.
+> The comparison states that a call was removed, and cannot fail by construction; it is not a
+> latency measurement that beat another latency measurement.
 
 Config: RTX 3090 (SAM2 carry `facebook/sam2.1-hiera-tiny`, scoring, UAV123 replay) + Jetson Orin
 Nano 8 GB at `15W` + `jetson_clocks` (VLM `phase3-terse100eos-1024-q8_0.gguf`, terse, max_side 1024,
 used only for the 2 idle ROI re-anchors and the non-gating shadow call). python 3.12.10, torch
-2.6.0+cu124, transformers 4.57.6. CARRY_HZ 6.15, CAND_HZ 3.075, DIST_FLOOR 0.25, MATCH_FLOOR 0.10
+2.6.0+cu124, transformers 4.57.6. CARRY_HZ 6.15, CAND_HZ 3.075 (an **emulated** budget on the 3090,
+not an on-device rate: 6.15 Hz is E1's TensorRT figure at `image_size` 768 and this carry runs the
+stock 1024 — the on-device 1024 rate is unmeasured, see R-16 / machine-disclosure M1; provenance
+added 2026-07-21, R-21), DIST_FLOOR 0.25, MATCH_FLOOR 0.10
 (shadow only), cover_s 10.0, ROI 512 / margin 2.0 / min_side 256, REANCHOR_OFFSETS (90, 165), n=1
 deterministic replay. Matrix wall ~4.4 min (21–22 s/cell) against a 45–75 min estimate.
 
@@ -506,8 +592,12 @@ empty kerb — negative proof), `proof/p514_swap_car9_560_deliver_PASS.png` (the
 ### P5.15 — carry-horizon: warm-carry survival at 8/16/24 s idle on real video (2026-07-19)
 
 Rig: RTX 3090 host (`.venv-ft`: python 3.12.10, torch 2.6.0+cu124, transformers 4.57.6),
-SAM2 `sam2.1-hiera-tiny` stepped at the deployed 6.15 Hz idle budget (stride 5 @ 30 fps),
-seeded at GT[0]; MAINT arm adds the deployed P5.5 idle ROI re-anchor (margin 2.0, min_side
+SAM2 `sam2.1-hiera-tiny` stepped at a stride-5 @ 30 fps **emulation** of the on-device idle budget
+(published as "the deployed 6.15 Hz idle budget"; corrected 2026-07-21, R-21 — 6.15 Hz is E1's
+TensorRT-fp16 Orin measurement at `image_size` 768, whereas this carry runs at the stock 1024 on
+the RTX 3090. The on-device 1024 rate is unmeasured and by E1's own arithmetic would be slower, so
+carry-dependent PASSes here are optimistic and carry-dependent FAILs conservative; see R-16 and
+machine-disclosure M1), seeded at GT[0]; MAINT arm adds the deployed P5.5 idle ROI re-anchor (margin 2.0, min_side
 256, crop 512, LANCZOS, accept = parseable + in-frame, **no IoU floor**) every 165 frames
 with the clip's generic P5.2 caption, VLM = Jetson `phase3-terse100eos-1024-q8_0.gguf`,
 15W + `jetson_clocks`. Clip set = the frozen 25-clip P5.2 set (5 categories). n=1
@@ -523,8 +613,12 @@ against a 35–60 min estimate — the second consecutive ~4x overestimate.
 RQ-P5.15a floor was 18/25 at 16 s; measured 24/25. Surviving cells sit at IoU 0.45-0.97 at
 24 s, i.e. not marginal. RQ-P5.15b did not run its comparison — the pre-registered ceiling
 (PLAIN@24s >= 22) fired. Non-gating: MAINT accepted **100/100** re-anchor rounds and is
-**net -2 clips**, because a generic-caption re-ground with no identity constraint
-eventually lands on a different same-class object (visible in the h24 frames). Health
+**net -2 clips (3 losses against 1 rescue, exact p = 0.625 — the direction is suggestive, the
+regression is NOT statistically established;** count verified, framing corrected 2026-07-21, R-4).
+The mechanism carries the weight here, not the count: a generic-caption re-ground with no identity
+constraint eventually lands on a different same-class object (visible in the h24 frames), which is
+diagnostic evidence a 25-clip tally cannot supply and is why removing the lever was still right.
+Health
 signals: `area_ratio` separates alive from dead (median 1.039 vs 0.163 over 150 horizon
 points), `hist_corr` does not (0.742 both).
 Proof: `proof/p515_arms.png` (survival vs horizon, both arms, floor line),
@@ -541,15 +635,28 @@ the deployed Jetson VLM itself during the idle window (discovery starts at f0-15
 caption first, accept = parseable + in-frame + IoU < 0.5 vs the other carry). No ground truth
 anywhere in the loop. Everything else imported byte-identical from P5.14 `select_p56`.
 Rig: RTX 3090 (SAM2 `facebook/sam2.1-hiera-tiny`, CARRY_HZ 6.15 / CAND_HZ 3.075) + Jetson Orin
-Nano `phase3-terse100eos-1024-q8_0.gguf`, MAX_SIDE 1024, `15W` mode 0 + `jetson_clocks`.
+Nano `phase3-terse100eos-1024-q8_0.gguf`, MAX_SIDE 1024, `15W` mode 0 + `jetson_clocks`. (CARRY_HZ /
+CAND_HZ are the **emulated** 3090 budget inherited from P5.1, not an on-device rate — 6.15 Hz is
+E1 at `image_size` 768, this carry runs 1024; see R-16 / machine-disclosure M1. Added 2026-07-21, R-21.)
 python 3.12.10 / torch 2.6.0+cu124 / transformers 4.57.6. DS_OFFSET 150, IOU_SAME 0.5,
 DIST_FLOOR 0.25, ROI 2.0/256/512, reanchor [90,165], cover_s 10.0. n=1 deterministic, 6 scenes
 x 2 legs, UAV123 1280x720 @ 30 fps.
+
+**The citable result of P5.16 is the discovery capability, not the select rate: 24/24 idle-window
+VLM discoveries accepted, 0 invalid / 0 duplicate / 0 in-flight-at-prompt, which is what makes the
+pipeline GT-free end to end.** That is a capability count with a clean denominator. The select legs
+below are reported at cell-n and are not (ordering added 2026-07-21, R-4).
 
 | leg | gating PASS | vs P5.14 (oracle seeds) | control car3:200 |
 |---|---|---|---|
 | WSEL (select warm target) | **4/5** | 5/5 — lost `car7:460` | PASS (predicted to flip; did not) |
 | SWAP (select warm distractor, strengthened) | **4/5** | 4/5 — unchanged | PASS |
+
+> **Statistical correction, 2026-07-21 (R-4).** The 5 gating scenes are P5.14's, cut from **three
+> distinct UAV123 clips**, so `n_effective = 3`. Against the 0.8 null, 4/5 is p = 0.74 — literally
+> what the null predicts — so neither 4/5 is an inferential result, and P5.18 later measured the
+> real rates at 0.85 WSEL / 0.65 SWAP on 26 scenes. Cite the 24/24 discovery number from this run
+> and P5.18 for the select rate. See `thesis/claims.json` (`P5.16-autodisc-wsel`).
 
 **Oracle delta = 1 flip in 12 cells.** Discovery accepted **24/24** VLM calls (0 invalid, 0
 duplicate, 0 in-flight-at-prompt, 0 `discovery-failed` legs) at mean full-frame latency
@@ -586,6 +693,17 @@ recorded peak span 62 (floor 30). Designed crossings: max GT-GT IoU **0.21-0.44*
 seed <= 0.20 — versus **~0.79** for bank v2.1, the flaw that made the P5.13 lag free.
 
 **Select A/B**, n_cells = 56 (28 clips x 2 named-car roles), health floor 45 = ceil(0.8 x 56):
+
+> **Statistical correction, 2026-07-21 (R-4).** The two named-car roles of a clip share one video
+> and one carry pass, so the 56 cells are **28 independent units**: `n_effective = 28`. Both the
+> reported n and the health floor derived from it (45 = ceil(0.8 x 56)) are computed on the
+> inflated count — the floor is left as-run because it is pre-registered, but it is not a
+> 56-independent-unit threshold. The A/B itself is `b=1, c=0`, p = 1.0, unchanged by the
+> deflation. This run is the clearest demonstration in the repository that **n was never the
+> binding constraint**: going 24 -> 56 cells did not add power, because RG's failure *rate* fell
+> instead of an effect appearing, and the pre-registered SEP_MARGIN of 7 needed RG to fail 7 cells
+> when it failed 1 in the whole matrix. Same clip-pairing rounding applies to P5.13 and P5.20.
+> See `thesis/claims.json` (`P5.17-dd-vs-rg-tie-n56`).
 
 | contract | total | far leg | near leg | fail classes | acquire |
 |---|---|---|---|---|---|
@@ -651,9 +769,13 @@ the "distractor" track is seeded on the target at birth.
 
 **Delivery quality is bimodal:** passes 0.40-0.97 IoU, failures all at 0.00 or nothing delivered,
 nothing near the 0.25 floor — so threshold tuning cannot recover the SWAP leg. Non-gating:
-discovery 102/104 accepted (mean 4.77 s); delivery `acquire_s` **0.00 s on every cell** vs shadow
-re-ground **4.68 s** — the P5.14 latency advantage reproduces at n=26 and is not what failed.
-Shadow agreement 38/48.
+discovery 102/104 accepted (mean 4.77 s); delivery makes **no prompt-time VLM call by construction**
+— `acquire_s` 0.00 on the **48 of 52 gating cells that delivered**, and `null` on the 4 that
+delivered nothing at all (published as "0.00 s on every cell"; corrected 2026-07-21, R-21, the
+"every" was literally false and the zero is definitional, not measured) — against a measured shadow
+re-ground of **4.68 s mean / 4.49 s median (4.38–8.59)**. The mean is dragged by Jetson-latency
+outliers, which matters downstream: P5.19's headline flip turns on exactly that jitter. The P5.14
+latency advantage reproduces at n=26 and is not what failed. Shadow agreement 38/48.
 
 Estimate vs actual: predicted **branch 1 (YES)** with WSEL 22-24 / SWAP 20-22; actual WSEL 22
 (inside the band) and SWAP **17** (below it) -> branch 2, which the pre-registration had named as
@@ -686,7 +808,8 @@ Detail: [`../../experiments/2026-07-20-n25-select/README.md`](../../experiments/
 > indistinguishable from noise. Defensible statement: **we could not distinguish the
 > arms; the gate cleared at a margin that does not survive the clip clustering.**
 > The mechanism evidence is untouched and remains the strongest part of this run —
-> the guard fired 0/108 before and 8 after, grace costs 0.37-0.60 s against 4.68 s,
+> the guard fired 0/108 before and 8 after, grace costs 0.37-0.60 s of residual wait against this
+> run's own 4.48 s shadow re-ground (comparator corrected 2026-07-21, R-21; 4.68 s was P5.18's),
 > and P5.20 reproduced arm T cell-for-cell. Present as a mechanically-explained
 > improvement of the right sign, not a certified one.
 > See `thesis/01-metodo-estadistico.md` and `thesis/claims.json`.
@@ -702,7 +825,13 @@ integrity — (1) dedup evaluated against carried boxes **snapshotted at the fra
 delivery of the in-flight discovery when it lands within 2.0 s of the prompt.
 
 Mechanism counts: aligned dedup fired **8** cells (was 0); grace fired **4**, refused 0, with
-**acquire_s 0.367-0.600 s** vs the 4.68 s cold re-ground it replaces. Recoveries: car18:150 and
+**residual wait at the prompt 0.367-0.600 s** vs a **4.48 s** cold call started at the prompt
+(P5.19's own gating shadow re-ground mean, n=50; the 4.68 s published here was imported from P5.18
+and is that campaign's shadow mean — corrected 2026-07-21, R-21). The two are not the same
+quantity: grace's 0.37-0.60 s is what is *left* of a discovery call that had already been in flight
+~4.0 s during the free idle window (measured call latencies 4.44-4.53 s), whereas 4.48 s is a whole
+call begun at the prompt. Grace does not make the VLM faster; it moves the wait off the prompt.
+Recoveries: car18:150 and
 person10:450 (grace), bike1:2250 (**not** dedup — corrected 2026-07-21, R-7). `bike1:2250` carries no `duplicate_reject` outcome and no retry call in its `results.json`: the aligned-dedup guard never fired on it. Its VLM box and `seed_iou_gt` are byte-identical to P5.18; what changed is Jetson VLM wall latency (8.56 s in P5.18 vs 4.48 s here), so this flip is a timing artefact, not a mechanism. Zero gating regressions.
 
 Two negatives worth carrying: (a) the **non-gating control car3:200 regressed** PASS -> FAIL —
@@ -754,9 +883,13 @@ Nano 8 GB, `NV Power Mode: 15W` mode 0 + `jetson_clocks`; VLM `phase3-terse100eo
 MAX_SIDE 1024; UAV123 @ 1280x720 30 fps; **equal-stride emulation on** (the frame clock advances
 only by measured Jetson VLM latencies), so local carry compute never consumes clip time and the
 checkpoint is genuinely the only factor. 108 cells (54/arm), 26/26 valid per arm per leg, 0
-INVALID, 0 crashes. Matrix 52.7 min vs 55-65 min est; **arm S cost the same wall as arm T** (26.3
-vs 26.4) — under equal-stride the heavier checkpoint is free, which is itself evidence the A/B
-was clean.
+INVALID, 0 crashes. Matrix 52.7 min vs 55-65 min est; **arm S cost the same 3090 wall as arm T**
+(26.3 vs 26.4 min) — which is **expected** under equal-stride, where local carry compute never
+consumes clip time, and is therefore evidence the A/B was clean rather than a cost result. It is
+**not** evidence that the heavier checkpoint is free on-device: both walls are RTX 3090 walls,
+`hiera-small` was never exported or rate-measured on the Orin, and the 6.15 Hz budget it was
+emulated under was measured for *tiny* (published as "the heavier checkpoint is free", which
+contradicted this entry's own closing Deployment note; corrected 2026-07-21, R-21).
 
 **Recovered cells: 0** (`carry_attributed_recoveries = 0`). **Regressed: 1** —
 `DSC_SWAP_car10_850`, where T puts a tight box on the white van (iou_d 0.9714) and S puts a
