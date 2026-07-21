@@ -1217,8 +1217,8 @@
       "design": "single-arm-binary",
       "verdict": "clears",
       "n_rows": 26,
-      "n_effective": 26,
-      "independence_note": "26 gating cells; the 5 P5.16 cells are included, so P5.18 partly re-measures rather than replicates - the 21 NEW cells give WSEL 18/21",
+      "n_effective": 13,
+      "independence_note": "R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. The previous note discussed a different independence problem (the 5 P5.16 cells are re-measured rather than replicated; the 21 NEW cells give WSEL 18/21) and never mentioned the clip clustering. Collapsing the two wakeboard clips, which share one recurring boarder-vs-boat pair, would give 10; 13 is the mechanical distinct-clip count and is what the test checks.",
       "data_status": "per_item",
       "data_paths": [
         "experiments/2026-07-20-n25-select/runs/"
@@ -1228,8 +1228,9 @@
         "n": 26
       },
       "gate_p": 0.8,
-      "caveats": "22/26 = 0.846 frente a una barra de 0.8: p exacto = 0.37, de modo que se supera DESCRIPTIVAMENTE pero no inferencialmente. El intervalo Wilson [0.67, 0.94] contiene el umbral. La frase correcta es 'coherente con la tasa pre-registrada', no 'la supera'.",
-      "caveats_en": "22/26 = 0.846 against a 0.8 bar: exact p = 0.37, so it clears DESCRIPTIVELY but not inferentially. The Wilson interval [0.67, 0.94] contains the gate. The right sentence is 'consistent with the pre-registered rate', not 'exceeds it'."
+      "caveats": "22/26 = 0.846 frente a una barra de 0.8: p exacto = 0.37, de modo que se supera DESCRIPTIVAMENTE pero no inferencialmente. El intervalo Wilson [0.67, 0.94] contiene el umbral. La frase correcta es 'coherente con la tasa pre-registrada', no 'la supera'. CORRECCIÓN R-4: la n efectiva baja de 26 a 13 porque las 26 celdas proceden de sólo 13 videoclips distintos. La proporción se conserva (11/13 = 0,846) y el intervalo se ensancha; la lectura «coherente con la tasa pre-registrada, no la supera» no cambia, sólo se refuerza.",
+      "caveats_en": "22/26 = 0.846 against a 0.8 bar: exact p = 0.37, so it clears DESCRIPTIVELY but not inferentially. The Wilson interval [0.67, 0.94] contains the gate. The right sentence is 'consistent with the pre-registered rate', not 'exceeds it'.",
+      "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json"
     },
     {
       "id": "P5.18-n25-swap",
@@ -1238,8 +1239,8 @@
       "design": "single-arm-binary",
       "verdict": "NO [SWAP-bound]",
       "n_rows": 26,
-      "n_effective": 26,
-      "independence_note": "same 26 cells; recomputed independently from the 54 committed results.json and matching the frozen baseline dict exactly",
+      "n_effective": 13,
+      "independence_note": "R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. Previous note: same 26 cells, recomputed independently from the 54 committed results.json and matching the frozen baseline dict exactly - still true, and orthogonal to the clip clustering.",
       "data_status": "per_item",
       "data_paths": [
         "experiments/2026-07-20-n25-select/runs/"
@@ -1249,8 +1250,9 @@
         "n": 26
       },
       "gate_p": 0.8,
-      "caveats": "EL RESULTADO MÁS VALIOSO DEL RE-ANÁLISIS ESTADÍSTICO. En las 5 celdas compartidas, P5.18 reproduce P5.16 EXACTAMENTE (4/5, cero inversiones); todo el vuelco procede de las 21 celdas nuevas, donde SWAP es 13/21 = 0.62. Esta es una demostración directa y medida de que los veredictos de n pequeño eran optimistas - y es el repositorio detectando su propio error, que es la forma más fuerte que la tesis puede presentar.",
-      "caveats_en": "THE MOST VALUABLE RESULT IN THE STATISTICAL RE-ANALYSIS. On the 5 shared cells P5.18 reproduces P5.16 EXACTLY (4/5, zero flips); the entire overturn comes from the 21 new cells, where SWAP is 13/21 = 0.62. This is a direct, measured demonstration that the small-n verdicts were optimistic - and it is the repo catching its own error, which is the strongest form the thesis can present."
+      "caveats": "EL RESULTADO MÁS VALIOSO DEL RE-ANÁLISIS ESTADÍSTICO. En las 5 celdas compartidas, P5.18 reproduce P5.16 EXACTAMENTE (4/5, cero inversiones); todo el vuelco procede de las 21 celdas nuevas, donde SWAP es 13/21 = 0.62. Esta es una demostración directa y medida de que los veredictos de n pequeño eran optimistas - y es el repositorio detectando su propio error, que es la forma más fuerte que la tesis puede presentar. CORRECCIÓN R-4: n efectiva 26 → 13 (13 videoclips distintos). El fallo se mantiene: 8/13 = 0,615 frente a la barra de 0,8. Una deflación sólo puede ensanchar el intervalo, de modo que no puede rescatar un NO.",
+      "caveats_en": "THE MOST VALUABLE RESULT IN THE STATISTICAL RE-ANALYSIS. On the 5 shared cells P5.18 reproduces P5.16 EXACTLY (4/5, zero flips); the entire overturn comes from the 21 new cells, where SWAP is 13/21 = 0.62. This is a direct, measured demonstration that the small-n verdicts were optimistic - and it is the repo catching its own error, which is the strongest form the thesis can present.",
+      "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json"
     },
     {
       "id": "P5.19-swap-late-entry-rescue",
@@ -1259,8 +1261,8 @@
       "design": "paired-binary",
       "verdict": "YES [branch 1]",
       "n_rows": 26,
-      "n_effective": 26,
-      "independence_note": "same 26 gating cells under both configurations - a clean pairing, the best-designed comparison in late Part V",
+      "n_effective": 13,
+      "independence_note": "R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. The pairing itself is clean (same cells under both configurations); what is not clean is treating 26 cells as 26 independent units. THIS IS THE CLAIM THE OMISSION PROTECTED: the pre-registered gate was 20/26 cells, which at 13 units is 10/13 against a baseline 8/13.",
       "data_status": "per_item",
       "data_paths": [
         "experiments/2026-07-20-late-entry-rescue/runs/"
@@ -1273,8 +1275,9 @@
         "n": 26
       },
       "gate_p": null,
-      "caveats": "b=3, c=0, p = 0.25. EL YES JUSTO EN LA BARRA NO ES SIGNIFICATIVO. Tres celdas pasan de fallo a acierto y ninguna vuelve atrás, que es la FORMA correcta para un arreglo real, pero tres es la mitad de los seis cambios en un solo sentido que alfa exigiría con esta n. El mecanismo de apoyo es fuerte (el guardián de P5.18 estaba desalineado respecto al fotograma y se disparó 0/108 veces; la entrega de gracia cuesta 0.37-0.60 s frente a 4.68 s en frío) y P5.20 reprodujo de forma independiente el brazo T celda por celda. Preséntese así: una mejora explicada mecánicamente y del signo correcto, todavía no certificada.",
-      "caveats_en": "b=3, c=0, p = 0.25. THE BAR-EXACT YES IS NOT SIGNIFICANT. Three cells flip fail-to-pass and none flip back, which is the right SHAPE for a real fix, but three is half of the six one-way flips alpha would require at this n. The supporting mechanism is strong (P5.18's guard was frame-misaligned and fired 0/108 times; grace delivery costs 0.37-0.60 s against 4.68 s cold) and P5.20 independently reproduced arm T cell-for-cell. Present as: a mechanically-explained improvement of the right sign, not yet certified."
+      "caveats": "b=3, c=0, p = 0.25. EL YES JUSTO EN LA BARRA NO ES SIGNIFICATIVO. Tres celdas pasan de fallo a acierto y ninguna vuelve atrás, que es la FORMA correcta para un arreglo real, pero tres es la mitad de los seis cambios en un solo sentido que alfa exigiría con esta n. El mecanismo de apoyo es fuerte (el guardián de P5.18 estaba desalineado respecto al fotograma y se disparó 0/108 veces; la entrega de gracia cuesta 0.37-0.60 s frente a 4.68 s en frío) y P5.20 reprodujo de forma independiente el brazo T celda por celda. Preséntese así: una mejora explicada mecánicamente y del signo correcto, todavía no certificada. CORRECCIÓN R-4: n efectiva 26 → 13 (13 videoclips distintos). Ésta es la afirmación a la que la omisión beneficiaba, así que conviene decir con precisión qué cambia y qué no. El valor p NO empeora de significativo a no significativo: ya era p = 0,25 con la n completa, nunca fue significativo. Lo que la deflación elimina es el margen justo en la barra: la puerta pre-registrada de 20/26 celdas pasa a ser 10/13 sobre una línea base de 8/13. Enunciado correcto: no pudimos distinguir los brazos; la puerta se superó con un margen que no sobrevive al agrupamiento por clip.",
+      "caveats_en": "b=3, c=0, p = 0.25. THE BAR-EXACT YES IS NOT SIGNIFICANT. Three cells flip fail-to-pass and none flip back, which is the right SHAPE for a real fix, but three is half of the six one-way flips alpha would require at this n. The supporting mechanism is strong (P5.18's guard was frame-misaligned and fired 0/108 times; grace delivery costs 0.37-0.60 s against 4.68 s cold) and P5.20 independently reproduced arm T cell-for-cell. Present as: a mechanically-explained improvement of the right sign, not yet certified.",
+      "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json"
     },
     {
       "id": "P5.19-wsel-no-regression",
@@ -1283,8 +1286,8 @@
       "design": "paired-binary",
       "verdict": "no regression",
       "n_rows": 26,
-      "n_effective": 26,
-      "independence_note": "same 26 cells under both configurations",
+      "n_effective": 13,
+      "independence_note": "R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. b=c=0 either way, so the correction does not move this claim: zero cells changed state, and that statement is about cells, not about independent units.",
       "data_status": "per_item",
       "data_paths": [
         "experiments/2026-07-20-late-entry-rescue/runs/"
@@ -1297,8 +1300,9 @@
         "n": 26
       },
       "gate_p": null,
-      "caveats": "Cero pares discordantes, así que no existe prueba alguna. Aquí el empate es el resultado DESEADO y su interpretación es segura de un modo en que la de P5.10 no lo es: ni una sola de las 26 celdas cambió de estado, lo que acota estrechamente cualquier regresión incluso sin un valor p. Enúnciese como 'ninguna celda cambió', nunca como 'demostrado inocuo'.",
-      "caveats_en": "Zero discordant pairs, so no test exists. Here the tie is the DESIRED outcome and its interpretation is safe in a way P5.10's is not: not one of 26 cells changed state, which bounds any regression tightly even without a p-value. State it as 'no cell changed', never as 'proved harmless'."
+      "caveats": "Cero pares discordantes, así que no existe prueba alguna. Aquí el empate es el resultado DESEADO y su interpretación es segura de un modo en que la de P5.10 no lo es: ni una sola de las 26 celdas cambió de estado, lo que acota estrechamente cualquier regresión incluso sin un valor p. Enúnciese como 'ninguna celda cambió', nunca como 'demostrado inocuo'. CORRECCIÓN R-4: n efectiva 26 → 13. Sin efecto aquí: con cero discordantes no hay prueba ni antes ni después. La cota útil sigue siendo la observación en bruto —ninguna de las 26 celdas cambió de estado—, que no depende de cuántas unidades independientes haya.",
+      "caveats_en": "Zero discordant pairs, so no test exists. Here the tie is the DESIRED outcome and its interpretation is safe in a way P5.10's is not: not one of 26 cells changed state, which bounds any regression tightly even without a p-value. State it as 'no cell changed', never as 'proved harmless'.",
+      "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json"
     },
     {
       "id": "P5.19-grace-precision",
@@ -1308,7 +1312,7 @@
       "verdict": "open residual",
       "n_rows": 4,
       "n_effective": 4,
-      "independence_note": "4 firings, 3 on gating cells",
+      "independence_note": "4 firings, 3 on gating cells. R-4 CHECKED 2026-07-21 and left at 4: the four firings come from four DIFFERENT clips (car3, car18, bike1, person10), so no clip clustering applies. Recorded explicitly because 'we checked and it did not need deflating' is not visible from an unchanged number.",
       "data_status": "per_item",
       "data_paths": [
         "experiments/2026-07-20-late-entry-rescue/runs/"
@@ -1319,7 +1323,8 @@
       },
       "gate_p": null,
       "caveats": "El intervalo de Wilson sobre 2/4 es [0.15, 0.85] - esta medición no aporta esencialmente ninguna información sobre la precisión real. Se registra como un residuo abierto y ese es el único uso defendible. Lo que importa cualitativamente es el MODO DE FALLO: los disparos erróneos entregan una caja con confianza en lugar de abstenerse, que es la dirección peligrosa para un sistema de cara al operador.",
-      "caveats_en": "The Wilson interval on 2/4 is [0.15, 0.85] - this measurement carries essentially no information about the true precision. It is recorded as an open residual and that is the only defensible use. What matters qualitatively is the FAILURE MODE: the wrong firings deliver a confident box instead of abstaining, which is the dangerous direction for an operator-facing system."
+      "caveats_en": "The Wilson interval on 2/4 is [0.15, 0.85] - this measurement carries essentially no information about the true precision. It is recorded as an open residual and that is the only defensible use. What matters qualitatively is the FAILURE MODE: the wrong firings deliver a confident box instead of abstaining, which is the dangerous direction for an operator-facing system.",
+      "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json"
     },
     {
       "id": "P5.20-carry-capacity",
@@ -1328,8 +1333,8 @@
       "design": "paired-binary",
       "verdict": "NO [capacity-flat] - dead lever",
       "n_rows": 52,
-      "n_effective": 26,
-      "independence_note": "52 pairs = 26 cells x 2 legs; the two legs of a cell share the video and the carry, so n_effective is 26",
+      "n_effective": 13,
+      "independence_note": "R-4 CORRECTION 2026-07-21: was 52 -> 26. 52 pairs = 26 cells x 2 legs and the two legs of a cell share the video and the carry, which the old note got right; it then stopped one step short. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4, so 52 -> 13.",
       "data_status": "per_item",
       "data_paths": [
         "experiments/2026-07-20-carry-capacity/runs/"
@@ -1342,8 +1347,9 @@
         "n": 52
       },
       "gate_p": null,
-      "caveats": "b=0, c=1: p = 1.0. No es evidencia de que la capacidad no ayude, es evidencia de que este diseño no vio efecto alguno en ninguna dirección. Lo que hace defendible lo de «palanca muerta» no es el recuento sino el MECANISMO: el mismo bloqueo de deriva de la familia de coches aparece en ambos brazos, de modo que los fallos no están limitados por la capacidad. Una n mayor tendría que justificarse con un mecanismo plausible, y ninguno sobrevive.",
-      "caveats_en": "b=0, c=1: p = 1.0. Not evidence that capacity does not help - evidence that this design saw no effect either way. What makes 'dead lever' defensible is not the count but the MECHANISM: the same car-family drift block appears in both arms, so the failures are not capacity-limited. A larger n would have to be justified by a plausible mechanism, and none survives."
+      "caveats": "b=0, c=1: p = 1.0. No es evidencia de que la capacidad no ayude, es evidencia de que este diseño no vio efecto alguno en ninguna dirección. Lo que hace defendible lo de «palanca muerta» no es el recuento sino el MECANISMO: el mismo bloqueo de deriva de la familia de coches aparece en ambos brazos, de modo que los fallos no están limitados por la capacidad. Una n mayor tendría que justificarse con un mecanismo plausible, y ninguno sobrevive. CORRECCIÓN R-4: n efectiva 26 → 13 (13 videoclips distintos). El único par discordante (c=1) se redondea a cero al deflactar, de modo que la lectura pasa de p = 1,0 a NO HAY PRUEBA. Las dos lecturas son no significativas y la segunda es la más honesta: con 13 unidades independientes nunca hubo resolución para ver un solo cambio. El argumento de «palanca muerta» se sostiene sobre el mecanismo, no sobre el recuento, y eso no cambia.",
+      "caveats_en": "b=0, c=1: p = 1.0. Not evidence that capacity does not help - evidence that this design saw no effect either way. What makes 'dead lever' defensible is not the count but the MECHANISM: the same car-family drift block appears in both arms, so the failures are not capacity-limited. A larger n would have to be justified by a plausible mechanism, and none survives.",
+      "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json"
     },
     {
       "id": "P5.20-replication-of-P5.19",
@@ -1352,8 +1358,8 @@
       "design": "paired-binary",
       "verdict": "replication confirmed",
       "n_rows": 52,
-      "n_effective": 26,
-      "independence_note": "same 26 cells re-run in a separate campaign",
+      "n_effective": 13,
+      "independence_note": "R-4 CORRECTION 2026-07-21: was 52 -> 26. Same 26 cells re-run in a separate campaign, 2 legs each. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4, so 52 -> 13.",
       "data_status": "per_item",
       "data_paths": [
         "experiments/2026-07-20-carry-capacity/runs/"
@@ -1366,8 +1372,9 @@
         "n": 52
       },
       "gate_p": null,
-      "caveats": "Cero discordantes, así que formalmente no hay prueba — pero este es el 'indefinido' más valioso del registro. Una re-ejecución independiente que reproduce las 52 celdas exactamente establece que la medición de P5.19 es estable y no una extracción afortunada. Certifica la REPETIBILIDAD, que es una propiedad distinta de la significación y que la tesis debería reclamar explícitamente porque la mayoría de las campañas de aquí no pueden.",
-      "caveats_en": "Zero discordants, so formally no test - but this is the most valuable 'undefined' in the registry. An independent re-run reproducing all 52 cells exactly establishes that the P5.19 measurement is stable and not a lucky draw. It certifies REPEATABILITY, which is a different property from significance and one the thesis should claim explicitly because most campaigns here cannot."
+      "caveats": "Cero discordantes, así que formalmente no hay prueba — pero este es el 'indefinido' más valioso del registro. Una re-ejecución independiente que reproduce las 52 celdas exactamente establece que la medición de P5.19 es estable y no una extracción afortunada. Certifica la REPETIBILIDAD, que es una propiedad distinta de la significación y que la tesis debería reclamar explícitamente porque la mayoría de las campañas de aquí no pueden. CORRECCIÓN R-4: n efectiva 26 → 13. La repetibilidad que esta entrada certifica no depende de la n efectiva: «las 52 celdas se reprodujeron exactamente» es una afirmación sobre determinismo de la medición, no una inferencia sobre una población.",
+      "caveats_en": "Zero discordants, so formally no test - but this is the most valuable 'undefined' in the registry. An independent re-run reproducing all 52 cells exactly establishes that the P5.19 measurement is stable and not a lucky draw. It certifies REPEATABILITY, which is a different property from significance and one the thesis should claim explicitly because most campaigns here cannot.",
+      "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json"
     },
     {
       "id": "P5.17-dd-vs-rg-tie-n56",

@@ -173,3 +173,53 @@ def test_every_caveat_reaches_the_report(claims):
         f"{len(missing)} caveats never reach thesis/stats-report.md: {missing[:5]}"
         f"{' ...' if len(missing) > 5 else ''}\nRegenerate with thesis/run_stats.py."
     )
+
+
+# --- R-4: pseudo-replication --------------------------------------------------
+# The unit of independence is the SOURCE CLIP, not the scene cut from it. This was
+# applied to 49 claims and dropped on the 4 where it cost the headline, which is
+# the shape a reader reads as concealment whatever the intent was. The two tests
+# below close both halves of that hole: the count must be derived from the frozen
+# scene set (not asserted in prose), and a claim drawn from a campaign that HAS a
+# scene set may not quietly omit the pointer to it.
+
+CAMPAIGN_SCENE_SETS = {
+    "experiments/2026-07-20-n25-select/": "experiments/2026-07-20-n25-select/scenes_p518.json",
+    "experiments/2026-07-20-late-entry-rescue/": "experiments/2026-07-20-n25-select/scenes_p518.json",
+    "experiments/2026-07-20-carry-capacity/": "experiments/2026-07-20-n25-select/scenes_p518.json",
+}
+
+
+def _distinct_gating_clips(scene_set: str) -> int:
+    scenes = json.loads((REPO / scene_set).read_text())["scenes"]
+    return len({s["clip"] for s in scenes if s.get("gating", True)})
+
+
+def test_n_effective_respects_the_distinct_clip_count(claims):
+    """R-4. A claim may not count more independent units than it has source clips.
+
+    Derived from the scene set itself, so it self-updates if the bank changes and
+    cannot drift out of step with a hardcoded number. Claims whose own n_rows is
+    smaller than the bank (e.g. the 4 grace firings) are bounded by n_rows.
+    """
+    bad = []
+    for c in claims:
+        if not c.get("scene_set"):
+            continue
+        ceiling = min(c["n_rows"], _distinct_gating_clips(c["scene_set"]))
+        if c["n_effective"] > ceiling:
+            bad.append(f"{c['id']}: n_effective={c['n_effective']} > {ceiling} "
+                       f"(distinct gating clips in {c['scene_set']}, capped by n_rows)")
+    assert not bad, "pseudo-replication: cells counted as independent units:\n  " + "\n  ".join(bad)
+
+
+def test_claims_from_a_banked_campaign_declare_their_scene_set(claims):
+    """R-4. The check above is only as good as the pointer; make omission fail."""
+    silent = [c["id"] for c in claims
+              if not c.get("scene_set")
+              and any(p.startswith(prefix) for p in c.get("data_paths", [])
+                      for prefix in CAMPAIGN_SCENE_SETS)]
+    assert not silent, (
+        f"claims drawn from a campaign with a frozen scene set but declaring no "
+        f"`scene_set`: {silent}. Add it, or the clip-clustering check skips them."
+    )

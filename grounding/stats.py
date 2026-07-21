@@ -278,6 +278,11 @@ class Claim:
     independence_note: str             # WHY they differ, in words
     data_status: Literal["per_item", "counts_only", "missing"]
     data_paths: list[str] = field(default_factory=list)
+    # Path to the frozen scene/clip set the rows were drawn from, when one
+    # exists. `independence_note` is prose and a reader has to trust it; this is
+    # the machine anchor that lets a test count the distinct source clips itself
+    # and refuse an n_effective the data does not support (R-4).
+    scene_set: str | None = None
     # design-specific payload
     counts: dict = field(default_factory=dict)
     gate_p: float | None = None
