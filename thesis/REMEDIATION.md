@@ -21,7 +21,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-5 | Shadow-RG re-analysis + Chapter 7 rewording | — | **DONE** |
 | R-6 | Correct `README.md` | — | **DONE** |
 | R-7 | Claim-provenance sweep of every published number | R-9 | **DONE** (27 CONTRADICTED fixed; rest -> R-21) |
-| R-8 | Merge or retire `experiment/carla-gt-bank` | — | TODO |
+| R-8 | Merge or retire `experiment/carla-gt-bank` | — | **DONE** `f75b5de` |
 | R-9 | Regenerate `stats-report.md` from the corrected registry | — | **DONE** |
 | R-10 | Vacuous-metric audit | R-7 | DONE |
 | R-11 | Thesis section: multi-agent development as method | — | **DONE** (draft) |
@@ -427,6 +427,30 @@ is retired; leaving it is how a fresh session rediscovers it as a mystery.
 **Expected output:** merged, or a note in `DECISIONS.md` recording the retirement
 and what was given up. Orphan directory removed either way.
 **Done when:** `git branch --no-merged main` does not list it.
+
+### What landed (2026-07-21T23:55Z) — merged, `f75b5de`
+
+It lands rather than retires: the campaign is complete (README, runner,
+`tests/test_carla_gt_bank.py`, four proof figures, ledger entries in all three
+Part-VI docs) and it builds the artifact P6.2 needs. The orphan was the reverse of
+the usual shape — the *artifacts* (`gt.jsonl` x25, the probe frame) were already on
+`main` while the code and prose that explain them sat on the branch.
+
+Conflicts were three-way appends in `docs/{results,questions,decisions}/part6-flight.md`:
+the branch's GT-bank entries against `main`'s stats-framework and R-10 entries. Both
+sides kept; nothing dropped. Verified before landing: full `pytest` green on the
+merged tree, and `proof/bank-gt-overlay.png` **opened and looked at** — boxes on
+real vehicles at 60 m nadir, green for high fill, blue for partially occluded, 21
+on-screen targets as captioned.
+
+**Left standing, deliberately:** three older unmerged branches, each 1–3 commits of
+superseded pre-draft — `experiment/direct-delivery-select` (the P5.6 pre-reg, which
+P5.14/P5.16 then ran and superseded), `experiment/vlm-vision-unfreeze` (a Part-II
+draft, Part II is frozen), `v2/1-synth` ("frozen for now", Part II complete). They
+are the same "fresh session rediscovers a mystery" hazard at lower stakes. Deleting
+branches is not reversible from this repo alone, so it needs a human call; the
+recommendation is to delete all three, since every one of them is a draft whose
+question was later answered on `main`.
 
 ## R-9 — Regenerate `stats-report.md`
 
