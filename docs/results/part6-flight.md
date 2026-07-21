@@ -138,3 +138,35 @@ Raw-significant but Holm-rejected: `P2-RQ4.1-deploy-fidelity` 0.01612, `P3-carry
 Figures: `thesis/proof/stats-power.png` (paired designs by effective n, red = could never reach
 alpha), `thesis/proof/stats-forest.png` (18 gated arms, Wilson CI on effective n vs the gate). Both
 opened and visually verified.
+
+## Machine disclosure audit (R-1) — cross-cutting, 2026-07-21T18:05Z
+
+Record: `experiments/2026-07-21-machine-disclosure/README.md`. Machine: RTX 3090 workstation
+(file reading only; nothing measured). Data: `raw/machine-audit.json`, 76 rows with a quoted
+evidence string each.
+
+| Metric | Value |
+|---|---|
+| Campaigns audited | 76 |
+| Host `stated` in the campaign's own record | 61 |
+| Host `inferred` only (code / sibling doc / inheritance chain) | 9 |
+| Host `unknown` (nothing in the tree says) | 6 |
+| VLM ran on the Jetson | 47 |
+| VLM ran on both machines (fidelity comparisons) | 7 |
+| VLM ran on the 3090 only | 5 |
+| No VLM in the campaign | 15 |
+| VLM host unclear | 2 |
+
+Per-Part disclosure defects: Part I 0/9, Part II 1/5, Part III 4/11, Part IV 7/27, Part V 2/20,
+Part VI 1/3. Part I is fully disclosed; the concentration is Part III (`unknown`, SITL/kinematic
+work with no VLM) and Part IV (`inferred` via «byte-identical to E19» chains).
+
+**Substantive finding (M1).** The 6.15 Hz carry rate cap used by every Part IV/V campaign was
+measured by E1 at image_size **768**; those campaigns run SAM2 at **1024**
+(`SAM2VideoPredictor.from_pretrained` default, no override). E1 recorded that 1024 «needs 1.9×»
+and never gated it. E18 further miscites the cap's provenance as «measured at 640x480». So the
+emulated on-device stride is optimistic, plausibly by ~2×, biasing carry-dependent PASSes
+favourably. Folded into **R-16** as a required measurement axis (gate at 1024, not 768).
+
+Figures: `proof/disclosure-by-part.png`, `proof/vlm-host-by-part.png`. Both opened and visually
+verified; the first one falsified the draft paragraph it illustrates.

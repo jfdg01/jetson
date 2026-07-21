@@ -84,3 +84,19 @@ Three recorded conclusions are corrected: Swin2SR's rejection is latency-bound n
 the Part I fidelity catastrophe is the export not the quantisation (F16 vs Q8_0 p=0.2478); carry at
 768 *does* lose accuracy vs 1024 (p=0.013). The thesis's central contribution
 (`P5.2a-warm-generalization`, p=3.052e-5) is among the survivors.
+
+## Q-MACH.1 — Cross-cutting (2026-07-21T18:05Z)
+
+**RQ:** Across the 76 experiment campaigns in this repo, which machine produced each number, does
+the campaign's own record say so, and does any published result need re-measuring on the Jetson?
+
+**Verdict:** **61 of 76 campaigns state their host, 9 leave it inferable-only, 6 leave it
+unstated.** Claim A («the deployed system runs on-device») is **confirmed** — E1 measured the VLM
+and the SAM2 carry co-resident on the Orin at 6.15 FPS, mask parity 1.000. Claim B («every
+experiment ran on-device») is **false and need not be true**: 29 campaigns had no VLM on the Jetson
+and most of those correctly had no VLM at all. The defect is disclosure, not location — except for
+one new substantive finding (M1): the 6.15 Hz rate cap that every Part IV/V campaign uses to
+emulate the device budget was measured at image_size **768**, while those campaigns run the carry
+at **1024**, a size E1 explicitly never speed-gated. The emulated stride is therefore optimistic by
+a factor E1's own arithmetic puts near 1.9×, which biases every carry-dependent PASS in the
+favourable direction; folded into R-16 as a required measurement axis. Record: `experiments/2026-07-21-machine-disclosure/README.md`.

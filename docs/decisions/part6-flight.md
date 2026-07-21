@@ -175,3 +175,29 @@ the world, the vehicle model, and the runner around a plugin that is installed b
   (`per_item` / `counts_only` / `missing`); `missing` goes to `thesis/rerun-backlog.md` with its
   command. *Given up:* citing T2, T3 and Phase C. Phase C in particular has 13 complete CSVs that
   are deliberately left unextracted, because the input pixels were blank sky.
+
+## D-MACH.1 — Machine disclosure: what gets re-measured on-device (2026-07-21T18:05Z)
+
+Record: `experiments/2026-07-21-machine-disclosure/README.md` (R-1).
+
+- **Do not re-run Part V on the Jetson.** In every rate-capped campaign the VLM anchor — the thing
+  under test, and the dominant term in the latency the arc is about — already ran on the Orin at
+  15 W with `jetson_clocks` over real SSH. The 3090 half is SAM2 propagation, and E1 verified the
+  on-device TensorRT encoder produces masks at IoU 1.000 parity with the eager reference, so
+  porting the carry would change *when* masks arrive, not *which*. That is exactly and only what
+  the rate cap emulates. *Given up:* end-to-end on-device timing for twenty campaigns — weeks of
+  Orin time to re-derive numbers whose sole machine-sensitive component is one scalar.
+- **Measure that scalar instead — fold it into the existing R-16, do not open a new task.** The cap is 6.15 Hz measured at image_size 768;
+  the campaigns run 1024. An E1-style co-resident FPS gate at 1024 either validates the cap or
+  replaces it, at a fraction of the cost. Until it lands, no carry-dependent PASS may be stated as
+  an on-device *rate*. *Given up:* the convenience of treating 6.15 Hz as settled.
+- **Mark superseded rather than re-measure Stage 3's −23 pp parity result.** It confounds hardware
+  with runtime (Jetson GGUF minus 3090 HF, and the Jetson leg ran unlocked at 15 W). Part II
+  Phase 4 redid the comparison properly at −2.7 pp, and that is what Part II rests on. *Given up:*
+  a clean headline for the number that motivated the Part II rebuild.
+- **P5.20's `hiera-small` NO stands without an on-device re-run.** The arm provably cannot meet the
+  Orin budget, and the bias direction is adverse to it — on-device it runs slower, so the NO can
+  only harden. *Given up:* nothing; a re-run could not overturn the verdict.
+- **Everything else is a text correction, not a measurement.** M3, M4, M6 and M8 are missing or
+  wrong rig lines and route to R-7; M5 is already R-17. *Given up:* the appearance that this was a bigger problem than it was —
+  it was mostly bookkeeping, and saying so plainly is the honest report.

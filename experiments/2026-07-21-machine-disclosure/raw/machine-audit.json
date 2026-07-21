@@ -1,0 +1,667 @@
+[
+ {
+  "campaign": "2026-06-13-llamacpp-upper-bound",
+  "part": "I",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "x86_64 workstation (ssh driver + parsers only); llama.cpp built and run on-device",
+  "evidence": "| Board | NVIDIA Jetson Orin Nano Developer Kit 8 GB (module `p3767-0003`) |",
+  "confidence": "stated",
+  "note": "This campaign benchmarks a text LLM (Llama-3.2-3B Q4_K_M), not a VLM; the machine column reflects where model inference ran."
+ },
+ {
+  "campaign": "2026-06-13-model-capability-sweep",
+  "part": "I",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "x86_64 workstation (ssh driver + parsers.py timing parse); all 10 model runs on-device",
+  "evidence": "**Runtime:** llama.cpp `57fe1f0` CUDA sm_87 · **Power:** 15 W locked (`nvpmodel -m 0` + `jetson_clocks`)",
+  "confidence": "stated",
+  "note": "10 text LLMs, not VLMs; the machine column reflects where model inference ran."
+ },
+ {
+  "campaign": "2026-06-14-gemma-family-sweep",
+  "part": "I",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "x86_64 workstation (ssh orchestration only); all G1-G5 arms on-device",
+  "evidence": "**Operator:** automated over `ssh jetson` (user `jfdg`); privileged steps via the scoped passwordless allowlist",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-06-14-stage1-baseline",
+  "part": "I",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "local x86_64 (Gazebo Harmonic renderer, ArduCopter/ArduRover SITL, ByteTrack, cascade PID, pymavlink)",
+  "evidence": "**Why split:** VLM must run on the Jetson (thesis device); SITL + Gazebo stay on x86_64",
+  "confidence": "stated",
+  "note": "The split is disclosed only in the sub-phase doc `phase-c-vlm.md`, never in the campaign README. The README's own controlled-variables table asserts \"| Device | Jetson Orin Nano 8 GB |\" as \"fixed across all experiments in this stage\" — that is false for Phase B, which ran entirely on local x86_64 with no VLM and where `phase-b-sitl.md` states the Jetson is \"Not the SITL host\", and only half-true for Phase C."
+ },
+ {
+  "campaign": "2026-06-14-vlm-feasibility",
+  "part": "I",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "local Python urllib client driving the on-device `llama-server`; no other compute",
+  "evidence": "| Power mode | 15 W locked (`nvpmodel -m 0` + `jetson_clocks`) |",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-06-15-stage2-finetune",
+  "part": "I",
+  "vlm_machine": "both",
+  "other_compute_machine": "rtx-3090 (LoRA fine-tune + in-loop eval); Phase C re-run's Gazebo/SITL on local x86_64",
+  "evidence": "**Local machine**: NVIDIA RTX 3090 24 GB VRAM (Ubuntu 24.04, CUDA 12.x)",
+  "confidence": "stated",
+  "note": "Both halves are stated but in different files: the 3090 training host in README, the Jetson deploy/eval host only in `phase-a-rerun.md` / `phase-c-rerun.md` (\"| Device | Jetson Orin Nano 8GB (`ssh jetson`) |\"). The README's \"Controlled variables\" table lists only Jetson hardware, so read alone it reads as an on-device campaign."
+ },
+ {
+  "campaign": "2026-06-15-toy-demo",
+  "part": "I",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "local x86_64 running `runners/demo_nlcommand.py` (NL parse, TURN heuristic, setpoint synthesis) in `.venv`",
+  "evidence": "with the VLM running on the Jetson Orin Nano 8 GB",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-06-16-stage3-refcoco-finetune",
+  "part": "I",
+  "vlm_machine": "both",
+  "other_compute_machine": "rtx-3090 (LoRA training 50k samples + HF bf16 in-loop/probe eval); GGUF conversion via llama.cpp `57fe1f0`",
+  "evidence": "| Hardware | local RTX 3090 24 GB; **not** the Jetson |",
+  "confidence": "stated",
+  "note": "Cross-machine composite: the headline G3 parity result -23 pp \"bf16 -> llama.cpp runtime\" (HF 85% vs GGUF F16 62%) subtracts a Jetson measurement from a 3090 measurement, so hardware and runtime are confounded in the single number that motivated the whole Part II rebuild. The README config table says \"not the Jetson\", which reads as a 3090-only campaign; the Jetson arms appear only in `train-log.md`, and there at \"| Device / power mode | Jetson Orin Nano 8GB, **15 W** (default, not locked) |\" — unlocked clocks, unlike every other Jetson campaign in the repo."
+ },
+ {
+  "campaign": "2026-06-17-phase0-backend-fidelity",
+  "part": "II",
+  "vlm_machine": "rtx-3090",
+  "other_compute_machine": "rtx-3090 (HF bf16 arms) + the same box's CPU running a local `llama-server` for every GGUF arm",
+  "evidence": "**Commands** (`.venv-ft`; HF on RTX 3090, GGUF via local CPU `llama-server`)",
+  "confidence": "stated",
+  "note": "No arm ran on the Jetson despite the campaign framing \"HF / GGUF / Jetson behind one interface\" and a \"Jetson-deployable?\" table. The Jetson column is a static support check (does the pinned llama.cpp have a projector + converter), not a measurement; the GGUFs were only `scp`'d *from* the Jetson. The README does disclose the CPU substitution."
+ },
+ {
+  "campaign": "2026-06-17-phase1-dataset-audit",
+  "part": "II",
+  "vlm_machine": "n/a",
+  "other_compute_machine": "local workstation CPU in `.venv-ft` (host not named); pure annotation statistics, no model loaded",
+  "evidence": "**No GPU. No model.** Pure distribution statistics; CPU-only",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-06-17-phase2-resolution",
+  "part": "II",
+  "vlm_machine": "rtx-3090",
+  "other_compute_machine": "rtx-3090 (same box; `HFBackend` sweep is the only compute)",
+  "evidence": "no rig line found",
+  "confidence": "inferred",
+  "note": "No rig, host or power line anywhere in the README — the machine is inferable only from `source .venv-ft/bin/activate` plus \"**Backend:** `HFBackend` (bf16, the fidelity reference)\" and the sibling Phase 0 doc that names the 3090. This is the sweep whose 4.1% -> 38.7% ladder chose `max_side=1024` as the deployment resolution, so the undisclosed host propagates into the Part II design decision."
+ },
+ {
+  "campaign": "2026-06-17-phase3-train",
+  "part": "II",
+  "vlm_machine": "rtx-3090",
+  "other_compute_machine": "rtx-3090 (LoRA train ~1.8 h + authoritative n=439 full-val eval via `--eval-only`)",
+  "evidence": "# train (RTX 3090, ~1.8 h):",
+  "confidence": "stated",
+  "note": "The 59.5% HF full-val number produced here is later used as the fidelity reference that the Jetson-measured Phase 4 GGUF arms are differenced against."
+ },
+ {
+  "campaign": "2026-06-17-stage4-refdrone-curriculum",
+  "part": "I",
+  "vlm_machine": "rtx-3090",
+  "other_compute_machine": "rtx-3090 (curriculum LoRA train ~1 h + in-loop n=200 eval)",
+  "evidence": "| Hardware | local RTX 3090 24 GB; **not** the Jetson | same |",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-06-18-part3-charter",
+  "part": "III",
+  "vlm_machine": "n/a",
+  "other_compute_machine": "none — planning document, nothing executed",
+  "evidence": "**Status:** charter / theory only. No code, no GPU, no measured result yet.",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-06-18-phase4-export-deploy",
+  "part": "II",
+  "vlm_machine": "both",
+  "other_compute_machine": "local 3090 box for the HF bf16 reference (carried from Phase 3) and the `convert_hf_to_gguf.py` export; GGUF F16/Q8_0 scoring on the Jetson",
+  "evidence": "| GGUF **F16** (Jetson, CUDA) | 439 | 100.0% | **62.2%** |",
+  "confidence": "stated",
+  "note": "Cross-machine composite, but disclosed: the headline deltas (-2.7 pp HF->F16, and the 62.6% Q8_0 that becomes the Part II headline) difference a 3090 HF bf16 run against Jetson GGUF runs. The README flags it — \"only the hardware and the quant differ\" — so the confound is stated rather than hidden; RQ-4.2 is nonetheless a hardware+runtime delta, not a runtime delta."
+ },
+ {
+  "campaign": "2026-06-18-t0-cadence",
+  "part": "III",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (ByteTrack T0b + analytic dynamics T0c/d)",
+  "evidence": "Host recorded (RTX 3090 workstation — the SITL/eval host, not the Orin).",
+  "confidence": "stated",
+  "note": "T0's headline design inequality (2.27 s anchor > 1.5 s coast) is a cross-machine composite: the anchor is Orin, the 1.5 s coast horizon comes from the 3090-measured tracker/dynamics. T4 later labels this exact table 'T0 design table (mixed hosts)'. Also note jetson_clocks was 'not confirmed engaged' for T0a."
+ },
+ {
+  "campaign": "2026-06-18-t1-temporal-contract",
+  "part": "III",
+  "vlm_machine": "n/a",
+  "other_compute_machine": "unclear — `.venv-ft` + locally-available Gazebo Harmonic implies the RTX 3090 workstation, but no host is named",
+  "evidence": "no rig line found",
+  "confidence": "unknown",
+  "note": "No VLM ran here at all; the README says the anchor is only 'needed once an appearance re-ID head or a real VLM anchor consumes crops (T2+)'. So the disclosure gap is about the clip-recorder/Gazebo host, not about grounding."
+ },
+ {
+  "campaign": "2026-06-24-t2-permanence",
+  "part": "III",
+  "vlm_machine": "n/a",
+  "other_compute_machine": "unclear — `.venv-ft/bin/python runners/sitl/reid_policy.py`, no host named",
+  "evidence": "no rig line found",
+  "confidence": "unknown",
+  "note": "No VLM and no pixels: appearance is a scalar descriptor, and the README defers the real thing — 'needs rendered crops + an on-Orin VLM'. Nothing here is a device measurement, but the README never states where it did run."
+ },
+ {
+  "campaign": "2026-06-24-t3-closed-loop",
+  "part": "III",
+  "vlm_machine": "n/a",
+  "other_compute_machine": "unclear — kinematic A/B under `.venv-ft` plus live ArduCopter SITL under `.venv`, no host named",
+  "evidence": "no rig line found",
+  "confidence": "unknown",
+  "note": "The 97.6% / 71.5% oracle-coverage headline is a workstation-side simulation number with no VLM in the loop ('Gazebo + VLM + dual-branch baggage irrelevant'). The only hint that it is off-device is indirect: 'Revisit when: T4 moves to the Orin'."
+ },
+ {
+  "campaign": "2026-06-24-t4-deployment",
+  "part": "III",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "jetson-orin-nano-8gb (ByteTrack timed on the Orin CPU; only `bytetrack.py` pushed to the device)",
+  "evidence": "**Device:** Orin Nano 8 GB, **15 W** power mode (`NV Power Mode: 15W`), aarch64.",
+  "confidence": "stated",
+  "note": "Best-disclosed campaign of the set, and it is the one that retroactively exposes the others: it exists because 'T0 characterised the *budget*, but only half of it on the device', and its table explicitly contrasts 'T0b: dev box (RTX 3090)' with 'T4a: the Orin CPU'."
+ },
+ {
+  "campaign": "2026-06-25-roi-crop-anchor",
+  "part": "III",
+  "vlm_machine": "both",
+  "other_compute_machine": "rtx-3090 (HF bf16 accuracy sweep + drift perturbation, `.venv-ft`); jetson-orin-nano-8gb (llama.cpp Q8_0 timing via `time_orin.py`)",
+  "evidence": "**Accuracy is HF bf16 (3090); latency is Q8_0 (Orin).**",
+  "confidence": "stated",
+  "note": "The RQ1/RQ3 headline table puts 3090 HF-bf16 accuracy (85.2%) in the same row as Orin Q8_0 prefill (1374 ms), so the campaign's marquee claim — 'both ~2.7x cheaper on prefill AND +22.6 pp more accurate' — is a two-machine composite. The README's own caveat concedes 'an on-device Q8_0 ROI accuracy confirmation is the one open follow-up'; that 85.2% is propagated as the deployed number in CLAUDE.md and memory without the 3090 qualifier."
+ },
+ {
+  "campaign": "2026-06-25-system-demo",
+  "part": "III",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 workstation (Gradio GUI, CSRT tracker from `.venv-ft` opencv-contrib, ffmpeg mp4 render)",
+  "evidence": "live on the deployed Qwen2-VL-2B Q8_0 on the Orin (`ssh jetson`)",
+  "confidence": "stated",
+  "note": "Honest by construction — the README has a '## The honest seam (do NOT fake it)' section stating the anchors are 'real Orin VLM anchors' while the tracker coasts locally. Worth flagging only that the demo's felt latency includes ssh transfer, not just device compute."
+ },
+ {
+  "campaign": "2026-06-25-terse-output-retrain",
+  "part": "II/III",
+  "vlm_machine": "both",
+  "other_compute_machine": "rtx-3090 (LoRA re-train + GGUF export, `.venv-ft`); jetson-orin-nano-8gb (Q8_0 val n=439 + decode timing)",
+  "evidence": "re-LoRA (Phase 3) on the 3090 → re-export GGUF (Phase 4) → re-deploy on Orin.",
+  "confidence": "stated",
+  "note": "Per-row labels are clean ('HF val (n=200)' vs 'Orin Q8_0 val (n=439)'), but the verdict sentence composites machines: 'Net on the Orin: decode −45%, anchor wall −24%, accuracy +2.5pp HF' — the −45%/−24% are Orin, the +2.5 pp is the 3090 HF delta. The actual on-Orin accuracy delta is +0.5 pp (63.1% vs 62.6%)."
+ },
+ {
+  "campaign": "2026-06-26-appearance-snr",
+  "part": "III",
+  "vlm_machine": "n/a",
+  "other_compute_machine": "workstation CPU only (numpy + PIL); the README rules out both the 3090 GPU and the Jetson",
+  "evidence": "**venv:** `.venv-ft` (numpy + PIL). No GPU, no anchor, no Jetson — pure CPU eval.",
+  "confidence": "stated",
+  "note": "States what did NOT run (no GPU, no Jetson) rather than naming a host; 'different hardware (no 3090, no Orin)' is best read as the 3090 workstation's CPU, since `.venv-ft` is that box's venv. No device claim is made, so nothing is overstated."
+ },
+ {
+  "campaign": "2026-06-26-roi-demo-tab",
+  "part": "III",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 workstation (`grounding/deploy/gui.py`, `measure_cadence.py` driver, image transfer)",
+  "evidence": "## On-device check (live, deployed terse Q8_0, `ssh jetson` 15 W)",
+  "confidence": "stated",
+  "note": "Correctly scopes itself: it calls the 2.21–2.91x prefill speedup 'a qualitative on-device confirm of the *latency* lever' and leaves 'the quantified on-device IoU@0.25 ... the open follow-up' — i.e. it does not launder the 3090 accuracy number from roi-crop-anchor into a device claim."
+ },
+ {
+  "campaign": "2026-06-27-roi-shrink-spiral",
+  "part": "III",
+  "vlm_machine": "unclear",
+  "other_compute_machine": "unclear — offline `grounding/roi.py` self-checks, no host named",
+  "evidence": "no rig line found",
+  "confidence": "unknown",
+  "note": "The observed death-spiral table came from the deploy GUI's live tab, whose VLM path is the Jetson — but that is a cross-file inference from `grounding/deploy/video.py`, never stated here. The README does state the fix was never device-verified: 'offline self-checks pass; on-device replay not yet run', so ROI_MIN_CROP=384 is a workstation-validated constant shipped into the deploy path."
+ },
+ {
+  "campaign": "2026-06-30-roi-sr-upscale",
+  "part": "IV",
+  "vlm_machine": "rtx-3090",
+  "other_compute_machine": "rtx-3090 (Swin2SR + HF bf16 spine, torch 2.6.0+cu124, `.venv-ft`)",
+  "evidence": "**Hardware:** dev RTX 3090 (HF bf16 backend — off the Jetson, no contention ...)",
+  "confidence": "stated",
+  "note": "Nothing ran on the Jetson, yet the rejection rationale compares machines: the 1331 ms/crop SR cost is a 3090 measurement weighed against 'most of the ~2 s anchor budget', which is a Jetson number. The direction is conservative (SR would be slower on the Orin) and the README flags the residual ('a faster/quantized SR (ONNX on Jetson) could win'), but the comparison itself is cross-rig."
+ },
+ {
+  "campaign": "2026-06-30-vlm-backbone-bakeoff",
+  "part": "IV",
+  "vlm_machine": "both",
+  "other_compute_machine": "rtx-3090 (all LoRA fine-tunes + GGUF export + HF n=200 evals); jetson-orin-nano-8gb (arm B Q8_0 n=439 latency/accuracy bench via `jetson_bench.py`)",
+  "evidence": "**Train box:** local RTX 3090 24 GB ... **Deploy / latency box:** Jetson Orin Nano 8 GB @ **15 W**",
+  "confidence": "stated",
+  "note": "Cleanest two-box header in the repo, but the coverage is uneven and that matters for the stated RQ ('IoU@0.25 per second of Jetson anchor wall'): only arm B ever reached the Jetson. Arm A is 'N/A — Jetson deploy BLOCKED', arms C/D/E are 'TBD'/pending, so every non-B accuracy figure is a 3090 HF n=200 number and the Pareto-per-Jetson-second question is answered for one arm."
+ },
+ {
+  "campaign": "2026-06-30-whole-frame-resolution",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "jetson-orin-nano-8gb (llama-server Q8_0 ngl=99); driver/harness on the workstation",
+  "evidence": "**Device:** Jetson Orin Nano 8 GB @ **15 W** (`nvpmodel -m 0` + `jetson_clocks`).",
+  "confidence": "stated",
+  "note": "Genuinely single-rig on-device (accuracy AND latency both Q8_0 on the Orin, n=439) — this is the campaign that supplies the true on-device baseline the roi-crop-anchor headline lacks."
+ },
+ {
+  "campaign": "2026-07-01-temporal-acquire-carry",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "both — SAM2 carry accuracy on rtx-3090 (Phase 0 + knee re-evals), SAM2 FPS/RAM on jetson-orin-nano-8gb (Phase 2); Phase 3a splits 3090 carry + Jetson acquire, Phase 3b is all-Jetson",
+  "evidence": "Jetson FPS = M0205 100-frame bench @ 15 W + jetson_clocks; accuracy = full 186-track eval on the 3090",
+  "confidence": "stated",
+  "note": "The chosen operating point OP=768 (0.830 accuracy / 4.89 FPS) is a single headline cell built from two machines — accuracy from the 3090, FPS from the Orin — and the ACC-vs-FPS gate that selected 768 over 640 is therefore a cross-rig tradeoff. Disclosed in the table caption, and Phase 3a is labelled '3090 carry + real Jetson acquire', so the split is visible; Phase 3b re-runs the loop fully on-device, which is what makes the 5.0/5 FPS claim a real device number."
+ },
+ {
+  "campaign": "2026-07-02-carry-trt-export",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "split by step: RTX 3090 `.venv-ft` (ONNX export + fp32 graph parity, steps 1-2); Jetson Orin Nano (trtexec engine build, carry FPS bench, on-device IoU accuracy proxy, steps 3-5)",
+  "evidence": "Work on host 3090 for steps 1–2 (`.venv-ft`), Jetson for 3–5.",
+  "confidence": "stated",
+  "note": "Cleanest disclosure of the fifteen. Headline 4.89 -> 6.15 FPS co-resident IS a Jetson number, and the README owns the split (fp32 ONNX-graph parity checked on 3090 CPU ORT, fp16/TRT accuracy validated on-device). One rig-line defect: power mode is given as `sudo nvpmodel -m 1` for 15 W, whereas every other campaign in this set writes 15 W as mode 0 — one of the two is wrong and a reader cannot reproduce the FPS number without knowing which."
+ },
+ {
+  "campaign": "2026-07-02-follow-speed-ceiling",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (ArduCopter SITL + renderer + SAM2 StreamCarry @1024 + PID/eval harness)",
+  "evidence": "Ran on the local-VLM path (Jetson acquire not booted ...), local 3090 carry @1024",
+  "confidence": "inferred",
+  "note": "The README's own rig line is wrong. It says the Jetson acquire was \"not booted\", but `run_e2.sh` invokes `phase3_sitl.py`, which at the E2 commit (646d5b9) unconditionally constructs `JetsonBackend(..., ssh_host=\"jetson\")` and prints \"[3] booting Jetson q8_0 server...\" — there is no local-VLM code path in that file at any revision. `runs/speed-1.0/results.json` records `n_acquire_attempts: 32`, so VLM inference did run, i.e. on the Jetson. Compounding it, this campaign has no log in raw/ or runs/ at all (only results.json + trial.csv), so the rig is unauditable from artifacts. Separately: the speed-ceiling verdict is a 3090-carry measurement, which the E10 README later states plainly (\"SITL follow verdicts run carry on the host 3090\") but this one does not."
+ },
+ {
+  "campaign": "2026-07-02-twin-distractor",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SITL + renderer + SAM2 StreamCarry @1024 + eval harness)",
+  "evidence": "local-VLM path (Jetson not needed; do NOT pass `--remote-carry`), local 3090 carry @1024",
+  "confidence": "inferred",
+  "note": "Same wrong rig line as E2: \"Jetson not needed\" is contradicted by the code it ran. `run_e3.sh` calls `phase3_sitl.py --twin`, which unconditionally boots the Jetson q8_0 llama-server over ssh; `runs/s1-crossing/results.json` logs 8 acquire attempts and `first_lock_s: 4.96` (a ~5 s wall consistent with the Jetson Q8_0 draw, not a 3090 one). No run log committed in raw/ or runs/, so nothing on disk corroborates the README either way."
+ },
+ {
+  "campaign": "2026-07-02-follow-hardening",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SITL + renderer + SAM2 StreamCarry @1024 + eval harness)",
+  "evidence": "local-VLM path (Jetson **not** needed; do NOT pass `--remote-carry`), local 3090 carry @1024",
+  "confidence": "inferred",
+  "note": "The strongest contradiction in the set: the README bolds \"Jetson **not** needed\", and this campaign's own committed logs refute it — `runs/stage1.log` and `runs/stage2.log` contain \"[3] booting Jetson q8_0 server...\" 8 times between them (3 + 5). The VLM ran on the Jetson in every one of the 8 legs."
+ },
+ {
+  "campaign": "2026-07-02-pursuit-chase",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SITL + renderer + SAM2 StreamCarry @1024 + eval harness)",
+  "evidence": "Rig as pre-registered (local-VLM Jetson Q8_0, local 3090 carry @1024",
+  "confidence": "stated",
+  "note": "Corroborated by `run_e5.log` (\"[3] booting Jetson q8_0 server...\" per trial). Worth flagging that this README uses the phrase \"local-VLM path\" to mean the opposite of what E2/E3/E4 use it for — here it is glossed \"Jetson only serves the VLM over ssh as usual\", there it is glossed \"Jetson not needed\". The same three-word label denotes two different rigs across five adjacent campaigns; only this one matches what the code does."
+ },
+ {
+  "campaign": "2026-07-03-first-acquire",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SITL + renderer + SAM2 StreamCarry @1024 + eval harness)",
+  "evidence": "the script boots the Jetson q8_0 llama-server over ssh itself ... local 3090 carry @1024",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-07-03-reground-gate",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SITL + SAM2 carry @1024 + eval harness)",
+  "evidence": "host 3090 runs SITL + SAM2 carry at image-size 1024; the script boots the Jetson q8_0 llama-server over ssh itself",
+  "confidence": "stated",
+  "note": "Corroborated by `raw/matrix.log` (7 Jetson boots). The README says \"Jetson power mode is irrelevant to the verdict\" — defensible for a gate-acceptance verdict, but it means the 15 W/jetson_clocks state was asserted rather than captured for this run."
+ },
+ {
+  "campaign": "2026-07-03-fast-follow-ceiling",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SITL + renderer + SAM2 carry @1024 + eval harness)",
+  "evidence": "Rig: host 3090 (SITL + renderer + SAM2 carry) + Jetson Orin Nano over `ssh jetson`",
+  "confidence": "stated",
+  "note": "This is the campaign that produced the arc's headline \"real follow ceiling 2.5 m/s\", and it is a cross-machine composite: Jetson VLM acquire wall time inside a control loop whose SAM2 carry runs on the 3090. The README states the consequence explicitly — \"SITL follow verdicts run carry on the host 3090; a Jetson FPS lever cannot move this ceiling measurement\" — but that caveat does not travel with the 2.5 m/s figure into CLAUDE.md or the Part IV ledger, where it reads as an on-device ceiling."
+ },
+ {
+  "campaign": "2026-07-03-chase-acquire",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SITL + renderer + SAM2 carry @1024 + eval harness)",
+  "evidence": "Rig: host 3090 (SITL + renderer + SAM2 carry @1024) + Jetson Orin Nano over `ssh jetson`",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-07-03-late-command",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SITL + renderer + SAM2 carry @1024 + eval harness)",
+  "evidence": "Rig: host 3090 (SITL + renderer + SAM2 carry @1024) + Jetson Orin Nano over `ssh jetson`",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-07-03-identity-gate",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SITL + renderer + SAM2 carry @1024 + eval harness; the appearance-template gate itself also ran on the 3090)",
+  "evidence": "host 3090 SITL + SAM2 carry @1024, Jetson Qwen2-VL-2B Q8_0 self-booted per trial over `ssh jetson`, 15 W mode 0 + jetson_clocks",
+  "confidence": "stated",
+  "note": "The appearance gate is costed against Jetson memory in the design prose (\"the 8 GB Jetson (or a host dependency), ~100s-of-ms per check\") but was measured with the check running on the 3090; the ~100s-of-ms figure is an estimate for a device it did not execute on."
+ },
+ {
+  "campaign": "2026-07-03-mask-identity",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SITL + renderer + SAM2 @1024 + eval harness; design-time probe also 3090)",
+  "evidence": "Rig: host 3090 (SITL + renderer + SAM2 @1024) + Jetson Orin Nano (VLM Qwen2-VL-2B Q8_0, self-boots per trial over `ssh jetson`)",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-07-03-mask-hardening",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SITL + StreamCarry @1024 + eval harness)",
+  "evidence": "host 3090 runs SITL + StreamCarry (`--image-size 1024` default); Jetson runs the VLM (Qwen2-VL-2B Q8_0)",
+  "confidence": "stated",
+  "note": "The README records \"No Jetson mask smoke\" for the mask-gate leg — the mask gate's behaviour is inherited from E14 rather than re-measured on-device, so no leg of this campaign establishes the gate on the Jetson."
+ },
+ {
+  "campaign": "2026-07-03-real-video-replay",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (UAV123 replay + SAM2.1-hiera-tiny StreamCarry @1024, artificially rate-capped to 6.15 Hz; no SITL)",
+  "evidence": "host 3090 runs the replay + StreamCarry (SAM2.1-hiera-tiny @1024, rate-capped ...); the Jetson runs the VLM",
+  "confidence": "stated",
+  "note": "Explicitly a cross-machine composite, and the README says so in decision D3: the carry tier runs on the 3090 but is throttled to 6.15 FPS — a number *imported from E1's Jetson measurement* — while \"the anchor tier is REAL Jetson wall time\". So the arc's headline ~4.85 s cold-acquire staleness result is one machine's real latency stitched to another machine's simulated-by-throttle one, and the README itself concedes \"Given up: exact on-device timing (720p SAM2 on Orin may run slower)\". Best-documented composite here, but it is the number most likely to be read as on-device."
+ },
+ {
+  "campaign": "2026-07-03-reground-chase",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SITL + SceneRenderer + StreamCarry SAM2 @1024 + eval harness)",
+  "evidence": "host 3090 runs SITL + SceneRenderer + StreamCarry (SAM2 @1024 default); the Jetson runs the VLM",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-07-03-reground-selfcorrect",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SITL + SAM2 carry @1024)",
+  "evidence": "host 3090 runs SITL + SAM2 carry at image-size 1024; the script boots the Jetson q8_0 llama-server over ssh itself",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-07-03-relock-rate",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SITL + SceneRenderer + StreamCarry/SAM2 @1024)",
+  "evidence": "**Rig:** host 3090 runs SITL + SceneRenderer + StreamCarry (SAM2 @1024 default); the Jetson runs the VLM (Qwen2-VL-2B Q8_0) and **self-boots per trial**",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-07-03-retarget-switch",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2 carry + SITL)",
+  "evidence": "Rig: host 3090 (SAM2 carry + SITL) + Jetson Orin Nano over `ssh jetson` (llama-server Qwen2-VL-2B Q8_0, booted by the scripts",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-07-04-motion-comp-acquire",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2.1-hiera-tiny @1024, rate-capped 6.15 Hz, replay harness)",
+  "evidence": "Rig as pre-registered: host 3090 (SAM2.1-hiera-tiny @1024, capped 6.15 Hz) + Jetson Orin Nano q8_0 terse self-boot, 15W + jetson_clocks",
+  "confidence": "stated",
+  "note": "The 6.15 Hz carry rate is not measured here — it is a cap imported from E1's on-Orin co-resident number, so the end-to-end latency figures composite a real Jetson VLM measurement with a 3090 tracker throttled to a surrogate on-device budget."
+ },
+ {
+  "campaign": "2026-07-04-prompt-scoped-acquire",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2.1-hiera-tiny StreamCarry + replay harness) — inherited from E19, never named in this file",
+  "evidence": "byte-identical to E19: Qwen2-VL-2B Q8_0 terse on Jetson (`JetsonBackend`, max_side 1024, 15W + jetson_clocks), SAM2.1-hiera-tiny StreamCarry at the 6.15 Hz E1 cap",
+  "confidence": "inferred",
+  "note": "The Jetson half is stated outright; the 3090 half is nowhere in this README — it only follows by chasing 'byte-identical to E19' into 2026-07-04-motion-comp-acquire ('host 3090 ...'). Read alone, this file presents SAM2 + replay as part of a single on-device stack."
+ },
+ {
+  "campaign": "2026-07-04-coarse-to-fine-acquire",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2.1-hiera-tiny StreamCarry 6.15 Hz + replay harness) — inherited via E20→E19, never named in this file",
+  "evidence": "byte-identical to E20: Qwen2-VL-2B Q8_0 terse on Jetson (JetsonBackend, max_side 1024, 15W + jetson_clocks ...), SAM2.1-hiera-tiny StreamCarry at 6.15 Hz",
+  "confidence": "inferred",
+  "note": "Two hops of inheritance (E21→E20→E19) before any machine is named. `raw/jetson-power.txt` confirms a real Jetson leg ('NV Power Mode: 15W', 'NVIDIA Jetson Orin Nano Developer Kit'), but nothing in the campaign records where the tracker/harness ran."
+ },
+ {
+  "campaign": "2026-07-04-cv-proposal-acquire",
+  "part": "IV",
+  "vlm_machine": "n/a",
+  "other_compute_machine": "rtx-3090 (offline Phase-0 prior audit; machine never named in the README)",
+  "evidence": "No `acquire_s` measured — no Jetson leg ran.",
+  "confidence": "inferred",
+  "note": "The '## Frozen config' block reads as an on-device campaign ('Qwen2-VL-2B Q8_0 terse via JetsonBackend max_side 1024, 15W + jetson_clocks recorded to `raw/jetson-power.txt`'), but the Phase-0 gate failed and no Jetson leg was ever run — `raw/jetson-power.txt` does not exist. The campaign is 100% off-device CV, and only the Results section says so."
+ },
+ {
+  "campaign": "2026-07-04-tolerant-cells",
+  "part": "IV",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2 StreamCarry + replay harness, mirroring E20) — never named in this file",
+  "evidence": "Run date 2026-07-04. Jetson Orin Nano 8 GB, 15 W + jetson_clocks (`raw/jetson-power.txt`). Backend Qwen2-VL-2B Q8_0, `max_side=1024`. Phase-0 offline; 13 on-device legs.",
+  "confidence": "inferred",
+  "note": "'13 on-device legs' is accurate for the VLM only; the SAM2 carry and replay harness those legs depend on ran on the 3090 (E20/E19 rig, mirrored but not restated). No 3090 mention anywhere in the campaign."
+ },
+ {
+  "campaign": "2026-07-04-warm-start-acquire",
+  "part": "V",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2.1-hiera-tiny StreamCarry, rate-capped 6.15 Hz + replay harness)",
+  "evidence": "Q8_0 terse acquire on the Jetson Orin Nano (15 W + jetson_clocks ...); SAM2.1-hiera-tiny StreamCarry on the local RTX 3090 rate-capped to 6.15 Hz (E1's on-Orin co-resident number).",
+  "confidence": "stated",
+  "note": "Best-disclosed campaign in this set, but note the split is only in the Results section — the pre-registration block above it says 'StreamCarry SAM2.1-hiera-tiny TensorRT fp16 co-resident ~6.15 Hz ... Jetson Orin Nano 8 GB, 15 W', where 'co-resident' reads as on-Jetson. The headline P5.1 result (WARM 5/6, ~4.5 s acquire) is a two-machine composite."
+ },
+ {
+  "campaign": "2026-07-04-warm-start-generalization",
+  "part": "V",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2 carry rate-capped 6.15 Hz + replay harness) — inherited from P5.1, never named in this file",
+  "evidence": "Reuses the P5.1 rig **unchanged** ... Backend/tracker unchanged: Qwen2-VL-2B Q8_0 terse max_side 1024, SAM2.1-tiny TRT fp16 ~6.15 Hz, mask gate app_tau 12.0, Jetson 15 W + jetson_clocks.",
+  "confidence": "inferred",
+  "note": "The headline result line ('W = 21/25 ... SAM2.1-tiny TRT fp16, mask gate app_tau 12.0, Jetson 15 W + jetson_clocks') reads as a single on-device configuration. The word '3090' does not appear anywhere in this campaign, yet the tracker half ran on the workstation — this is the flagship Part V generalization number and it is a cross-machine composite with no in-file disclosure."
+ },
+ {
+  "campaign": "2026-07-14-multi-candidate-select",
+  "part": "V",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2.1-tiny carry, rate-capped to 6.15 Hz / 3.075 Hz per candidate)",
+  "evidence": "Rig on local RTX 3090 (SAM2 carry, rate-capped to 6.15 Hz), VLM q8_0 max_side 1024 on the Jetson over SSH.",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-07-14-crop-select",
+  "part": "V",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2 carry rate-capped 6.15 Hz; CLIP ViT-L/14 + ViT-B/32 secondary arm; harness)",
+  "evidence": "- Host: RTX 3090 box, venv `.venv-ft` ... SAM2 carry runs locally **rate-capped to 6.15 Hz** ... - Jetson Orin Nano 8 GB over `ssh jetson`: deployed Qwen2-VL-2B **q8_0** + mmproj via `JetsonBackend`, max_side=1024, **15W + jetson_clocks**",
+  "confidence": "stated",
+  "note": "The CLIP crop-scoring secondary arm ran on the 3090 only and has no on-device latency counterpart — a CLIP-based select would need re-costing on the Jetson before any deployment claim."
+ },
+ {
+  "campaign": "2026-07-14-select-generalization",
+  "part": "V",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2.1-tiny carry, sam2 1.1.0 / torch 2.6.0+cu124, rate-capped 6.15 Hz)",
+  "evidence": "Config: SAM2 carry local (RTX 3090, sam2 1.1.0, torch 2.6.0+cu124, rate-capped to the on-Orin 6.15 Hz budget ...); VLM = Qwen2-VL-2B q8_0 terse on the Jetson over SSH",
+  "confidence": "stated",
+  "note": "README itself flags that the idle ROI re-anchor is 'non-realtime in this rig' — so the P5.5 timing is not an achievable on-device schedule even before the machine split is accounted for."
+ },
+ {
+  "campaign": "2026-07-17-bankv21-recal",
+  "part": "V",
+  "vlm_machine": "n/a",
+  "other_compute_machine": "rtx-3090 workstation (Gazebo/gz sim 8.14.0 scene generation + recording; no model inference)",
+  "evidence": "**Machine:** RTX 3090 workstation (Gazebo does not run on the Jetson). No Jetson leg — this is a dataset-build gate, no on-device VLM in the RQ.",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-07-14-autoresearch-run",
+  "part": "V",
+  "vlm_machine": "n/a",
+  "other_compute_machine": "unnamed host workstation (cron + flock + `claude -p` driver; no measurement legs) — presumed the RTX 3090 box from repo paths, not stated",
+  "evidence": "no rig line found",
+  "confidence": "unknown",
+  "note": "Operating charter, not a measurement campaign — it produces no numbers of its own, so the absent rig line is defensible. It does however set the standard config for every child cycle ('Qwen2-VL-2B Q8_0 terse max_side 1024, SAM2.1-tiny TRT fp16 ~6.15 Hz ... Jetson 15 W + jetson_clocks. All numbers carry this config'), which is precisely the phrasing that propagates the single-machine reading into the campaigns it spawned."
+ },
+ {
+  "campaign": "2026-07-17-sim-scenegen",
+  "part": "V",
+  "vlm_machine": "n/a",
+  "other_compute_machine": "rtx-3090 (Gazebo 8.14.0 headless EGL scene generator + gz-transport harness)",
+  "evidence": "Config: **RTX 3090 workstation only — the Jetson is NOT used** (Gazebo does not run on it; no on-device claim is part of RQ-P5.7).",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-07-17-scenegen-transport",
+  "part": "V",
+  "vlm_machine": "n/a",
+  "other_compute_machine": "rtx-3090 (Gazebo 8.14.0 + gz-transport stress probe, driver 595.71.05)",
+  "evidence": "Config: **RTX 3090 workstation only — the Jetson is NOT used** (as in P5.7; no on-device claim in RQ-P5.8).",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-07-17-kerbsafe-scenebank",
+  "part": "V",
+  "vlm_machine": "n/a",
+  "other_compute_machine": "rtx-3090 (Gazebo 8.14.0 scene-bank build + GT recorder, stock clocks)",
+  "evidence": "Config: **RTX 3090 workstation only — the Jetson is NOT used** (unchanged from P5.7/P5.8: this campaign makes no on-device claim; the bank's consumers run on the Jetson in later campaigns).",
+  "confidence": "stated"
+ },
+ {
+  "campaign": "2026-07-17-simbank-select",
+  "part": "V",
+  "vlm_machine": "both",
+  "other_compute_machine": "rtx-3090 (select harness + SAM2 carry bf16 + all scoring; Gazebo bank frames from disk)",
+  "evidence": "the **Jetson Orin Nano 8 GB** serves the VLM (Part II/III Qwen2-VL-2B **q8_0** terse via `JetsonBackend` over `ssh jetson`, max_side 1024)",
+  "confidence": "stated",
+  "note": "Rig line is explicit and correct, but the headline DD 24/24 vs RG 24/24 is a two-machine composite: the SAM2 carry runs on the 3090 while being throttled to a Jetson-measured cadence (\"6.15 Hz on-Orin budget shared two ways\"), and only the RG arm's VLM latency is an actual on-device measurement. The README is unusually careful here — it says the RG arm's numbers \"are the deployment numbers\", which correctly implies the DD arm's are not."
+ },
+ {
+  "campaign": "2026-07-17-bankv2-crossing",
+  "part": "V",
+  "vlm_machine": "n/a",
+  "other_compute_machine": "rtx-3090 (Gazebo 8.14.0 crossing/occlusion bank build + integrity gates)",
+  "evidence": "**Machine:** RTX 3090 workstation (Gazebo does not run on the Jetson). No Jetson leg — this is a dataset-build gate, no on-device VLM in the RQ.",
+  "confidence": "stated",
+  "note": "Corroborated by the versions block: \"Power mode: n/a (workstation). No model inference in this campaign.\" Unrelated to rig, but the header still reads \"**Status:** PRE-REGISTERED, not yet run.\" while the Results section records a completed 2026-07-17T18:31Z run with a NO verdict — a stale status line an examiner reading top-down would trip on."
+ },
+ {
+  "campaign": "2026-07-19-v2disc-select",
+  "part": "V",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (bank frames, SAM2 carry, all scoring)",
+  "evidence": "**Rig:** RTX 3090 workstation (bank frames, SAM2 carry, scoring) + Jetson Orin Nano 8 GB, `15W` + `jetson_clocks`, `llama-server` on port 18080",
+  "confidence": "stated",
+  "note": "Stated twice (pre-reg section and Results section) and consistent. Headline DD 24/24 vs RG 23/24 composites a 3090-side carry with Jetson-side grounding latency."
+ },
+ {
+  "campaign": "2026-07-19-carry-horizon",
+  "part": "V",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2 sam2.1-hiera-tiny bf16 carry + scoring; PLAIN arm entirely)",
+  "evidence": "Rig: RTX 3090 host (this repo, `.venv-ft`) + Jetson Orin Nano 8 GB for MAINT only.",
+  "confidence": "stated",
+  "note": "Arm-asymmetric and the README says so: the PLAIN arm is stated \"No Jetson involvement\", the MAINT arm makes 100 Jetson VLM crop calls. The headline result (PLAIN 25/24/24 beats MAINT 24/22/22) therefore compares a pure-3090 arm against a two-machine arm; the comparison is still valid because the carry is stepped at the Jetson-derived 6.15 Hz budget in both, but it is not a single-machine measurement."
+ },
+ {
+  "campaign": "2026-07-19-realvid-dd-select",
+  "part": "V",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2 carry, scoring, UAV123 frame decode)",
+  "evidence": "**Rig:** RTX 3090 workstation (SAM2 carry, scoring, UAV123 frames) + Jetson Orin Nano 8 GB (VLM: idle ROI re-anchors + non-gating shadow call only), `15W` + `jetson_clocks`.",
+  "confidence": "stated",
+  "note": "The campaign's headline lever is a latency contrast — \"acquire 0.00 s vs 4.51 s re-ground\" — where the 4.51 s is a genuine Jetson on-device VLM latency but the 0.00 s is a 3090-side bookkeeping figure (the carried track is already in memory). The two sides of the comparison are not measured on the same machine, and the README does not flag that."
+ },
+ {
+  "campaign": "2026-07-19-autodisc-select",
+  "part": "V",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2 carry bf16, discovery scheduler, matrix harness, scoring)",
+  "evidence": "**Hardware:** RTX 3090 host (SAM2 carry, bf16) + Jetson Orin Nano 8 GB over `ssh jetson` (VLM: discovery calls + idle ROI re-anchors + non-gating shadow call), `15W` + `jetson_clocks`.",
+  "confidence": "stated",
+  "note": "Best-disclosed campaign in the set: names the exact GGUF pair, the `NV Power Mode: 15W` mode-0 + `jetson_clocks` state, and which subsystem sits on which host. The 4.51 s discovery latency is a real on-device number."
+ },
+ {
+  "campaign": "2026-07-20-bankv3-select",
+  "part": "V",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (Gazebo Sim 8.14.0 headless bank render + SAM2 sam2.1-hiera-tiny bf16 carry + scoring)",
+  "evidence": "**Rig:** RTX 3090 workstation (Gazebo Sim 8.14.0 headless + SAM2 sam2.1-hiera-tiny bf16), Jetson Orin Nano 8 GB over `ssh jetson` for the VLM (Qwen2-VL-2B q8_0 terse, llama.cpp, 15W + jetson_clocks",
+  "confidence": "stated",
+  "note": "The 56/56 grounding figure that P6.1 later leans on as its comparison baseline originates here and IS a Jetson GGUF measurement (P6.1 confirms `select_p517.py` constructs a `JetsonBackend`, not an `HFBackend`) — so the cross-campaign citation is sound. The DD/RG pass rates themselves remain 3090-rendered, 3090-carried, Jetson-grounded."
+ },
+ {
+  "campaign": "2026-07-20-n25-select",
+  "part": "V",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2 sam2.1-hiera-tiny bf16 carry, UAV123 replay, harness, scoring)",
+  "evidence": "**Rig:** RTX 3090 workstation (`.venv-ft` ...) + Jetson Orin Nano 8 GB over `ssh jetson` (llama.cpp q8_0, `NV Power Mode: 15W` mode 0 + `jetson_clocks`",
+  "confidence": "stated",
+  "note": "Rig line is stated in the header AND the measured `nvpmodel -q` output is echoed back in Results, which is the strongest form of evidence in this repo. Headline WSEL 22/26 / SWAP 17/26 is a two-machine composite (3090 carry at the Jetson-derived CARRY_HZ 6.15, Jetson grounding)."
+ },
+ {
+  "campaign": "2026-07-20-late-entry-rescue",
+  "part": "V",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2 sam2.1-hiera-tiny bf16 carry, rescue harness, scoring; consumes the P5.18 scene matrix)",
+  "evidence": "**Rig:** RTX 3090 workstation (`.venv-ft` ...) + Jetson Orin Nano 8 GB over `ssh jetson` (llama.cpp q8_0, `NV Power Mode: 15W` mode 0 + `jetson_clocks`",
+  "confidence": "stated",
+  "note": "The campaign's central claim is a latency contrast — grace delivery at 0.37-0.60 s versus a 4.68 s cold acquire. The 4.68 s is a real Jetson number; the 0.37-0.60 s grace window is produced by the 3090-side harness clock. An examiner comparing those two figures is comparing across machines, and the README does not say so."
+ },
+ {
+  "campaign": "2026-07-20-carry-capacity",
+  "part": "V",
+  "vlm_machine": "jetson-orin-nano-8gb",
+  "other_compute_machine": "rtx-3090 (SAM2 carry — hiera-tiny arm T vs hiera-small arm S — plus orchestration and scoring)",
+  "evidence": "**Machines:** RTX 3090 workstation (SAM2 carry + orchestration, local repo) + Jetson Orin Nano over `ssh jetson` (VLM discovery / ROI re-anchor / shadow calls; llama.cpp q8_0 `phase3-terse100eos-1024`",
+  "confidence": "stated",
+  "note": "The one campaign where the tested configuration provably cannot run on the Jetson at all, and it pre-registers that honestly: the `sam2.1-hiera-small` arm is run on the 3090 under an \"equal stride\" emulation where \"the harness clock is driven by measured Jetson VLM latencies\" and \"local carry compute never consumes clip time\". The deployment caveat is explicit — the 6.15 Hz co-resident budget \"was measured for *tiny*\", and hiera-small \"requires a follow-up E1-style TensorRT export + co-resident FPS gate on the Jetson before any deployed-stack claim\". Good disclosure; flagged only because a NO verdict here still rests on a config never gated on-device."
+ },
+ {
+  "campaign": "2026-07-20-p60-flight-rig",
+  "part": "VI",
+  "vlm_machine": "n/a",
+  "other_compute_machine": "rtx-3090 (ArduCopter 4.6.3 SITL + Gazebo 8.14.0 pose-slaved renderer + ByteTrack + cascade PID over MAVLink)",
+  "evidence": "| Power mode | n/a — no Jetson in this gate (perception is injected, not inferred) |",
+  "confidence": "stated",
+  "note": "No VLM ran anywhere: detections are `--inject-oracle`, a geometric projection of SITL world state at 1 Hz with `score=1.0`, which the README says \"emulates the VLM's rate without needing the Jetson\". So the rig's px_err figures (64.7 -> 36.0) are control-loop numbers under perfect perception at an emulated Jetson rate, not perception numbers on any machine. Stated clearly; noted because the phrase \"emulates the VLM's rate\" is the kind of thing that becomes an on-device claim if quoted loosely downstream."
+ },
+ {
+  "campaign": "2026-07-20-p61-carla-renderer",
+  "part": "VI",
+  "vlm_machine": "n/a",
+  "other_compute_machine": "rtx-3090 (CARLA 0.9.16 server Town10HD_Opt + ArduCopter 4.6.3 SITL + pose-slaved camera + full control stack)",
+  "evidence": "**Restriction: no Jetson.** Same as P6.0. The CARLA server needs a desktop GPU and cannot run on the Orin Nano; the perception model is exercised on the 3090.",
+  "confidence": "stated",
+  "note": "The quoted restriction line says \"the perception model is exercised on the 3090\", but no perception model ran at all — G6 (the only grounding gate) is recorded **NOT RUN** in the results table and again in the closing summary. So the rig line describes an intent that was never executed, and a reader would come away believing a 3090-side VLM measurement exists in this campaign. The surrounding disclosure is otherwise strong: \"Any latency figure from this campaign is therefore a **3090 figure and is not a deployment number**\", and the 48.1 Hz / 60 m headline figures are correctly scoped as 3090 renderer numbers."
+ },
+ {
+  "campaign": "2026-07-21-carla-gt-bank",
+  "part": "VI",
+  "vlm_machine": "unclear",
+  "other_compute_machine": "rtx-3090 (inferred: CARLA 0.9.16 server on port 2100 driven by `/home/gara/jetson/.venv-ft/bin/python runners/carla_gt_bank.py`)",
+  "evidence": "no rig line found",
+  "confidence": "unknown",
+  "note": "There is no README.md in this campaign directory at all — only `proof/`, `raw/` (empty) and `runs/`. Nothing in the tree states a machine, a power mode, a date-stamped config or a rig. The only positive evidence is indirect: `runs/night.log` invokes `/home/gara/jetson/.venv-ft/bin/python /home/gara/jetson/runners/carla_gt_bank.py` and logs \"free disk 75.9 GB, power limit 200.0 W\" — a 200 W GPU power cap is a desktop-GPU knob, not a Jetson nvpmodel, and CARLA cannot run on the Orin Nano per P6.1. There is no evidence any VLM ran. The repo's own `thesis/REMEDIATION.md` already carries this as open item R-8, \"Merge or retire `experiment/carla-gt-bank`\", status TODO. This is the one campaign in the set with a genuine, total disclosure gap."
+ }
+]

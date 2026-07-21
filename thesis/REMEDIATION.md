@@ -14,7 +14,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 
 | ID | Task | Blocks | Status |
 |---|---|---|---|
-| R-1 | Scope + disclosure decision on which machine ran what | R-2, R-6 | TODO |
+| R-1 | Scope + disclosure decision on which machine ran what | R-2, R-6 | **DONE** |
 | R-2 | `machine` field on all 65 claims | R-6, R-9 | TODO |
 | R-3 | Fix `paired-binary` skipping deflation in `grounding/stats.py` | R-9 | **DONE** |
 | R-4 | Apply the pseudo-replication rule to `n_effective` | R-9 | **DONE** `1acb332` |
@@ -45,7 +45,7 @@ The work is a rewrite plus three targeted runs, not a rescue.
 
 ---
 
-## R-1 — Scope + disclosure decision
+## R-1 — Scope + disclosure decision — DONE 2026-07-21T18:35Z
 
 The thesis says the system runs on the Jetson. Part V ran its tracker on the RTX
 3090. Both facts are fine; the gap between them is not documented, and until it is,
@@ -59,11 +59,22 @@ Two separable claims, and they need separate answers:
 - **B. Every experiment ran on-device.** False, and does not need to be true.
   Ablations on a workstation are ordinary practice. Undisclosed ones are not.
 
-**Expected output:** `experiments/2026-07-2x-machine-disclosure/README.md` — a
-per-Part table of which machine measured what, the decision on whether any Part V
-result needs re-measuring on-device, and the rationale for whatever is *not*
-re-measured.
-**Done when:** that README exists and every Part has a row.
+**Landed as** `experiments/2026-07-21-machine-disclosure/README.md`, with
+`raw/machine-audit.json` (76 rows, one quoted evidence string each), two proof figures,
+and ledger entries Q-MACH.1 / D-MACH.1 / a results block under Part VI.
+
+**What landed, beyond the expected output.** Claim A is confirmed (E1: VLM + SAM2 carry
+co-resident on the Orin, 6.15 FPS, mask parity 1.000). Claim B is false and stays false
+on purpose. Coverage is better than feared — 61 of 76 campaigns state their host, and
+Part I is 9/9 — so the fix is bookkeeping, not re-measurement, and **no Part V result is
+re-run on the Jetson**; the reasoning is in D-MACH.1.
+
+One new substantive finding (M1) changed another task rather than adding one: the
+6.15 Hz cap is a 768 number applied to a 1024 carry, which makes every emulated stride
+optimistic in a knowable direction. Folded into **R-16** as a required measurement axis.
+Two more findings turned out to be tasks that already existed — M5 is R-17, M7 is R-8 —
+which is the second time this programme has nearly opened a duplicate task; check the
+board before adding one.
 
 ## R-2 — `machine` field on all 65 claims
 
@@ -475,6 +486,15 @@ Reframe: not "re-run P5.19 on the Orin" but **"what does a 2B VLM plus a prompta
 video tracker actually cost, co-resident, on 8 GB at 15 W?"** That is a
 device-characterisation chapter in the style of the strongest existing work, and it
 is publishable whichever way the numbers fall.
+
+**Run the gate at image_size 1024, not 768** (added by R-1, finding M1). The 6.15 Hz
+cap every Part IV/V campaign emulates is an E1 measurement at 768; those campaigns run
+the carry at the stock SAM2.1 **1024** (`SAM2VideoPredictor.from_pretrained`, no
+override). E1 recorded that 1024 «needs 1.9×» and never gated it, and E18 miscites the
+cap's provenance as «640x480». So the deployed size and the evaluated size differ, and
+each borrowed the favourable half of the other's measurement — 768 is the fast one,
+1024 the accurate one (`P3-carry-OP768-accuracy`, exact p = 0.014). Measuring at 768
+again would re-measure the wrong configuration.
 
 **Gate it** on the batched-vs-separate mask-IoU parity test (~20 min) first: if SAM2
 enforces cross-object mask constraints inside one state, the batching lever dies and
