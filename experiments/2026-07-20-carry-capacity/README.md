@@ -326,6 +326,16 @@ are demotion-only; nothing can be upgraded visually.
 
 ## Results (filled by Opus; every number carries its config)
 
+> **Statistical correction, 2026-07-21 (R-4).** `n_effective` 52 -> **13**, not 26. The old
+> value collapsed the two legs of a cell (correct: they share the video and the carry) and
+> then stopped short of the clip rule — the 26 cells come from 13 distinct clips. The single
+> discordant pair (`c = 1` of 52) rounds to zero under the rescale, so the reading moves from
+> `p = 1.0` to **no test at all**: the same non-result, stated more honestly, since at 13
+> independent units there was never resolution to see one flip. Both verdicts survive because
+> neither rests on the count — (a) rests on the identical car-family drift block in both arms,
+> (b) on bit-level determinism, which is repeatability rather than inference.
+> Method: `thesis/01-metodo-estadistico.md`; registry: `thesis/claims.json`.
+
 Run date/time: **2026-07-20T10:02Z → 2026-07-20T11:16Z** (Madrid wall-clock),
 arms run strictly sequentially (both contend for the single Jetson VLM).
 Jetson `nvpmodel -q`: **`NV Power Mode: 15W`** + `jetson_clocks` applied.

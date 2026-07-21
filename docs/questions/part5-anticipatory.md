@@ -474,6 +474,11 @@ Detail: [`../../experiments/2026-07-20-bankv3-select/README.md`](../../experimen
 **NO [SWAP-bound]** — WSEL 22/26 clears the 20/26 bar, strengthened SWAP **17/26** misses it, on
 the byte-identical P5.16 pipeline re-powered from 5 to 26 gating scenes per leg.
 
+**Corrected 2026-07-21 (R-4): `n_effective` 26 -> 13** (the 26 cells are cut from 13 distinct
+clips). The NO stands — deflation can only widen. But the surviving half is weaker than written:
+at 13 units against a 0.8 bar, **no result could reach alpha**, so WSEL "clears" descriptively
+only.
+
 The half that survives is the load-bearing half: warm-start **delivery** holds (WSEL 0.85, and
 `acquire_s` 0.00 s vs the 4.68 s shadow re-ground, so P5.14's latency advantage reproduces at
 n=26). The half that dies is **select under a competing same-class candidate**: P5.16 reported
@@ -509,6 +514,15 @@ a ~138-frame call window and fired 0 times in 108 discovery calls; aligned at th
 it fires 8 times, and bounded grace honours the already-computed in-flight discovery at
 **0.367-0.600 s** instead of discarding it. The Part V select claim stands at real n.
 
+**Corrected 2026-07-21 (R-4): `n_effective` 26 -> 13, and the YES is downgraded to
+"indistinguishable".** The 26 cells come from 13 distinct clips. The p-value does not move from
+significant to non-significant — `b=3, c=0` was `p = 0.25` at full n and was never significant;
+what deflation removes is the bar-exact margin, since the 20/26 gate becomes **10/13 over a
+baseline 8/13**. Corrected one-liner: **we could not distinguish the arms; the gate cleared at a
+margin that does not survive the clip clustering.** The mechanism evidence (guard 0/108 -> 8 fires,
+0.37-0.60 s vs 4.68 s, cell-for-cell replication in P5.20) is untouched and is what this run
+actually established.
+
 The result lands *exactly* on the bar (the pre-registered "genuine coin flip"), clearing MIN_SEP by
 one cell — so it is a real but narrow effect, and the honest reading is "the named mechanism was
 worth ~3 of the 9 SWAP misses", not "select is solved".
@@ -535,6 +549,12 @@ scene set? b) Does P5.19's bar-exact YES replicate when the baseline arm is re-r
 **paired_delta -1** over all 52 both-valid pairs, against a pre-registered MIN_SEP of +3. Zero
 cells recovered; one regressed. Arm T reproduces P5.19's committed `{WSEL 22, SWAP 20}`
 **cell-for-cell, 0 flips**.
+
+**Corrected 2026-07-21 (R-4): `n_effective` 26 -> 13.** The lone discordant pair rounds to zero
+under the rescale, so (a) reads as **no test at all** rather than `p = 1.0` — the same non-result,
+honestly stated. Both verdicts survive because neither rests on a count: (a) rests on the
+identical car-family drift block in both arms, (b) on bit-level determinism, which is a claim about
+repeatability rather than about a population.
 
 The two answers matter in opposite directions and that is the point of having run them together.
 **(b) buys confidence:** P5.19 landed *exactly* on its bar, the classic shape of a lucky roll, and

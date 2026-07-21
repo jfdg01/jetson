@@ -17,7 +17,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-1 | Scope + disclosure decision on which machine ran what | R-2, R-6 | TODO |
 | R-2 | `machine` field on all 65 claims | R-6, R-9 | TODO |
 | R-3 | Fix `paired-binary` skipping deflation in `grounding/stats.py` | R-9 | **DONE** |
-| R-4 | Apply the pseudo-replication rule to `n_effective` | R-9 | TODO |
+| R-4 | Apply the pseudo-replication rule to `n_effective` | R-9 | **DONE** `1acb332` |
 | R-5 | Shadow-RG re-analysis + Chapter 7 rewording | — | TODO |
 | R-6 | Correct `README.md` | — | TODO |
 | R-7 | Claim-provenance sweep of every published number | R-9 | TODO |
@@ -116,7 +116,7 @@ not manufacture a result (both readings are non-significant) and it is arguably 
 honest statement: at that many independent units there was never resolution to see a single
 flip. It must be **said**, not left for a reader to discover.
 
-## R-4 — Pseudo-replication rule for `n_effective` — HIGHEST PRIORITY
+## R-4 — Pseudo-replication rule for `n_effective` — DONE 2026-07-21T18:35Z
 
 **This is the most damaging item in the repository.** Not because the correction is
 large, but because of its shape.
@@ -156,6 +156,44 @@ to 13 for P5.18/P5.19/P5.20 with an honest `independence_note`; those three verd
 and their ledger entries rewritten.
 **Done when:** no claim in the registry has rows sharing a source clip without a
 deflation, and a test asserts it.
+
+### What landed (`1acb332` + follow-up)
+
+`n_effective = 13` on six claims; `P5.19-grace-precision` **checked and left at 4**,
+with the check written into its note — its four firings come from four different
+clips, and "we looked and it did not need deflating" is invisible from an unchanged
+number.
+
+New `scene_set` field on `Claim`, pointing at the frozen bank. Prose can lie about
+independence; this is the machine anchor, and
+`test_n_effective_respects_the_distinct_clip_count` derives 13 from the bank itself
+rather than hardcoding it. A second test refuses a claim drawn from a banked campaign
+that omits the pointer — otherwise the first test is opt-out. Non-vacuity verified by
+reverting P5.19 to 26: the check fails.
+
+Registry `verdict` fields left as recorded (they are the historical ledger); the
+corrections live in `caveats`, which the report now renders verbatim after R-12.
+Ledger entries in `docs/{results,questions}/part5-anticipatory.md` and the three
+experiment READMEs carry an inline correction block rather than an edit — an erased
+wrong number is worse than a corrected one.
+
+The rule and the confession are in `thesis/01-metodo-estadistico.md` under
+"La unidad de independencia es el videoclip, no la escena", with the bank composition
+table as the worked example, the 49-vs-4 pattern stated plainly, and the precise
+statement of what deflation does and does not do to P5.19.
+
+Two facts surfaced by the correction that were not in the original audit:
+
+1. **P5.18 WSEL was never an inferential claim.** Against a 0.8 bar at 13 units, no
+   possible result reaches alpha: `0.8^13 = 0.055` even at 13/13. The inflated n hid
+   an unreachable design, not just an overstated one.
+2. **Nothing significant was lost.** All six affected claims were already
+   non-significant. That is the reason to make the correction without haggling: it
+   costs no finding and buys the only thing a method chapter can buy, which is that
+   its rules apply the same when the result is convenient and when it is not.
+
+Still open and belongs to **R-19**: first-read surfaces (`README.md`, `CLAUDE.md`,
+`HANDOFF.md`, the Part V proposal) still describe P5.19 as a YES.
 
 ## R-5 — Shadow-RG re-analysis
 

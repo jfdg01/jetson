@@ -76,6 +76,77 @@ realmente sostiene una única observación. El informe marca cada caso afectado 
 `[deflactado desde k/n]` para que la deflación sea visible y no un ajuste
 silencioso.
 
+#### La unidad de independencia es el videoclip, no la escena
+
+La regla anterior sólo es operativa si se fija **cuál** es la unidad
+independiente, y aquí lo es el vídeo de origen. Dos escenas recortadas del mismo
+clip comparten cámara, iluminación, altitud, comportamiento del objetivo y —lo
+que más pesa en este sistema— el mismo par objetivo/distractor recurrente. Si el
+seguimiento falla por deriva sobre ese par, falla en las dos escenas por la misma
+causa, y contarlas como dos observaciones independientes duplica la evidencia sin
+haber grabado nada nuevo.
+
+El ejemplo trabajado es el banco de escenas de P5.18
+(`experiments/2026-07-20-n25-select/scenes_p518.json`), que es también el que
+usan P5.19 y P5.20. Contiene 27 escenas, 26 con puerta, y proceden de **13
+videoclips distintos**:
+
+<!-- caption: Composición del banco P5.18: 26 escenas con puerta sobre 13 clips de origen -->
+
+| Clip | Escenas con puerta |
+|---|---|
+| `bike1` | 6 |
+| `car9` | 4 |
+| `car10` | 3 |
+| `wakeboard8` | 3 |
+| `wakeboard6` | 2 |
+| 8 clips restantes | 1 cada uno |
+
+De modo que `n_effective = 13`, no 26. Una lectura aún más estricta —`wakeboard6`
+y `wakeboard8` son el mismo par surfista/lancha grabado dos veces— daría 10; se
+adopta 13 porque el clip distinto es la unidad **mecánicamente comprobable**, y
+`tests/test_thesis_integrity.py` la deriva del propio banco en lugar de confiar
+en que la prosa diga la verdad.
+
+**Y aquí hay que confesar algo, porque el patrón importa más que la cifra.** La
+regla estaba aplicada en 49 de las afirmaciones del registro y **omitida
+exactamente en las cuatro donde costaba un titular**: P5.18 y P5.19 figuraban
+como 26 → 26, y sus notas de independencia discutían un problema de
+independencia *distinto* (el solapamiento con las celdas de P5.16) sin mencionar
+nunca el agrupamiento por clip. P5.20 deflactaba 52 → 26 por el emparejamiento
+de dos tramos y se detenía justo antes de la regla del clip. Si fue motivado o
+sólo desatento no es determinable y tampoco cambia nada: la forma del sesgo
+apunta en la dirección que nos favorece, y un tribunal que lo descubra antes de
+que nosotros lo declaremos lo leerá como ocultación. Se declara aquí.
+
+Qué cambia al aplicarla, con precisión y sin dramatizar:
+
+- **P5.18 WSEL** pasa de 22/26 a 11/13. La proporción es la misma (0,846) y el
+  intervalo se ensancha a [0,58; 0,96]. Aparece además un hecho que la n inflada
+  escondía: contra una puerta de 0,8 y con 13 unidades, **ningún resultado
+  posible** alcanza alfa = 0,05, ni siquiera 13/13 (0,8¹³ = 0,055).
+- **P5.18 SWAP** pasa de 17/26 a 8/13 y sigue fallando la puerta. Una deflación
+  nunca puede rescatar un NO, porque sólo ensancha.
+- **P5.19 SWAP**, la afirmación a la que la omisión beneficiaba, merece la frase
+  exacta. El p-valor **no** cae de significativo a no significativo: con la n
+  completa ya era p = 0,25, nunca fue significativo. Lo que la deflación elimina
+  es el margen justo en la barra: la puerta pre-registrada de 20/26 celdas se
+  convierte en 10/13 sobre una línea base de 8/13. El enunciado defendible es
+  «no pudimos distinguir los brazos; la puerta se superó con un margen que no
+  sobrevive al agrupamiento por clip», no «YES».
+- **P5.20** exhibe una propiedad de la deflación que conviene enunciar antes de
+  que la descubra un lector: su único par discordante (`c = 1` sobre 52) se
+  redondea a cero al reescalar a 13, con lo que la lectura pasa de `p = 1,0` a
+  *no hay prueba*. Las dos lecturas son igual de no significativas, y la segunda
+  es la más honesta: con 13 unidades independientes nunca hubo resolución para
+  ver un solo cambio. Le ocurre también a P5.13, P5.17 y E19.
+
+Ninguno de los seis casos afectados tenía un resultado significativo que perder.
+Ése es justamente el motivo por el que la corrección se hace sin regatear: no
+cuesta ningún hallazgo y compra la única cosa que un capítulo de método puede
+comprar, que es que sus reglas se apliquen igual cuando el resultado gusta y
+cuando no.
+
 ### Diseños que nunca pudieron responder a su pregunta
 
 Es el aporte principal del marco y el más incómodo.

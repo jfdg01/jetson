@@ -224,6 +224,14 @@ into Results, QUESTIONS and the merge commit.
 
 ## Results
 
+> **Statistical correction, 2026-07-21 (R-4).** `n_effective` 26 -> **13**: the 26 gating
+> cells are cut from 13 distinct UAV123 clips (`scenes_p518.json`: `bike1` 6, `car9` 4,
+> `car10` 3, `wakeboard8` 3, `wakeboard6` 2, 8 singletons). The verdict above is unchanged
+> — deflation only widens intervals, so it cannot rescue a miss — but WSEL becomes 11/13
+> and, against a 0.8 bar with 13 independent units, **no result could have reached
+> alpha = 0.05** (0.8^13 = 0.055 even at 13/13). "Clears" is descriptive here, never
+> inferential. Method: `thesis/01-metodo-estadistico.md`; registry: `thesis/claims.json`.
+
 **Run:** 2026-07-20T05:15Z, branch `experiment/n25-select`, pre-reg commit `246f11a`.
 **Status:** COMPLETE. Matrix 54/54 cells scored, zero INVALID, zero retries fired.
 

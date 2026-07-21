@@ -630,6 +630,14 @@ Same frozen P5.16 harness, byte-identical, zero patches — the single factor is
 | weak SWAP (off-target only, non-gating) | — | 21/26 | — |
 | control car3:200, both legs | — | pass/pass | — |
 
+> **Statistical correction, 2026-07-21 (R-4).** The 26 gating cells come from **13
+> distinct clips**, so `n_effective = 13`: WSEL is 11/13 (CI [0.58, 0.96]) and SWAP
+> 8/13. The **NO stands** — deflation only ever widens, so it cannot rescue a miss.
+> One fact the inflated n hid: against a 0.8 bar with 13 independent units, *no
+> possible result* reaches alpha = 0.05 (0.8^13 = 0.055 even at 13/13), so the WSEL
+> "clears" was never an inferential claim. Read it as "consistent with the
+> pre-registered rate", not "exceeds it".
+
 Per-family: car **6/10** WSEL, 5/10 SWAP · bike1 6/6, 4/6 · person 3/3, 2/3 · wakeboard 7/7, 6/7.
 **All four WSEL failures are cars; non-car WSEL is 16/16.** The pre-registered family-collapse
 worry (bike1, wakeboard) did not materialise — the car family collapsed instead, in three
@@ -667,6 +675,21 @@ Detail: [`../../experiments/2026-07-20-n25-select/README.md`](../../experiments/
 |---|---|---|---|---|---|
 | WSEL | **22/26** | 20/26 | 22/26 | +0 | clears, zero flips either direction |
 | SWAP (strengthened) | **20/26** | 20/26 | 17/26 | **+3** (MIN_SEP +2) | clears — **branch 1 YES [late-entry-rescued]** |
+
+> **Statistical correction, 2026-07-21 (R-4) — the bar-exact YES does not survive
+> the clip clustering.** The 26 gating cells come from **13 distinct UAV123 clips**
+> (`bike1` alone contributes 6), so `n_effective` is 13, not 26. Two things follow,
+> and the distinction matters. (1) The p-value does **not** move from significant to
+> non-significant: `b=3, c=0` is `p = 0.25` at the full n and was never significant.
+> (2) What deflation removes is the *margin*: the pre-registered gate of 20/26 cells
+> becomes **10/13 over a baseline 8/13**, and at 13 units a 2-flip lead is
+> indistinguishable from noise. Defensible statement: **we could not distinguish the
+> arms; the gate cleared at a margin that does not survive the clip clustering.**
+> The mechanism evidence is untouched and remains the strongest part of this run —
+> the guard fired 0/108 before and 8 after, grace costs 0.37-0.60 s against 4.68 s,
+> and P5.20 reproduced arm T cell-for-cell. Present as a mechanically-explained
+> improvement of the right sign, not a certified one.
+> See `thesis/01-metodo-estadistico.md` and `thesis/claims.json`.
 
 Rig: RTX 3090 (`.venv-ft` python 3.12.10, torch 2.6.0+cu124, transformers 4.57.6) + Jetson Orin
 Nano 8 GB, `NV Power Mode: 15W` mode 0 + `jetson_clocks`; VLM `phase3-terse100eos-1024-q8_0.gguf`
@@ -711,6 +734,15 @@ checkpoint swapped:
 |---|---|---|---|---|---|
 | T | `sam2.1-hiera-tiny` (38.9M) | **22** | **20** | 42 | 26.4 |
 | S | `sam2.1-hiera-small` (46M) | **22** | **19** | 41 | 26.3 |
+
+> **Statistical correction, 2026-07-21 (R-4).** `n_effective` goes 26 -> **13**: the
+> two legs of a cell already collapsed (they share the video and the carry), and the
+> 26 cells come from 13 distinct clips. The single discordant pair (`c = 1` of 52)
+> rounds to zero under the rescale, so the reading changes from `p = 1.0` to **no
+> test at all** — the same non-result, stated more honestly: at 13 independent units
+> there was never resolution to see one flip. The `[capacity-flat]` verdict rests on
+> the **mechanism** (identical car-family drift block in both arms), not on the
+> count, and that is unaffected. Same rounding applies to P5.13, P5.17 and E19.
 
 **paired_delta (S-T) = -1** over 52/52 both-valid pairs, against a pre-registered MIN_SEP of
 **+3** -> **gate a (capacity) FAIL**. Arm T lands 22 and 20, both >= bar 20 -> **gate b

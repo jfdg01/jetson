@@ -272,6 +272,18 @@ the two proxy-guard cells whose recovery is least certain), weak-SWAP count, con
 
 ## Results (filled 2026-07-20T06:20Z)
 
+> **Statistical correction, 2026-07-21 (R-4) — the YES is downgraded to
+> "indistinguishable".** `n_effective` 26 -> **13**: the 26 cells come from 13 distinct
+> clips, and this run's own scene set is P5.18's. Precisely what changes: the p-value does
+> **not** fall from significant to non-significant, because `b=3, c=0` is `p = 0.25` at the
+> full n and was never significant. What deflation removes is the bar-exact margin — the
+> pre-registered gate of 20/26 cells becomes **10/13 over a baseline 8/13**. Corrected
+> statement: **we could not distinguish the arms; the gate cleared at a margin that does not
+> survive the clip clustering.** Everything mechanical below stands and is what this run
+> actually established: the guard fired 0/108 before and 8 after, grace delivers in
+> 0.37-0.60 s against a 4.68 s cold re-ground, and P5.20 reproduced arm T cell-for-cell.
+> Method: `thesis/01-metodo-estadistico.md`; registry: `thesis/claims.json`.
+
 **VERDICT: branch 1 — YES [late-entry-rescued].** `verdict_p519.py` is the sole authority; it
 re-derived the frozen P5.18 baseline (WSEL 22 / SWAP 17) without drift, confirmed all 54 cells
 carry the `p519` patch marker, and enforced the 21-cell visual audit before speaking.
