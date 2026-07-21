@@ -106,3 +106,35 @@ configuration, not a substitution. Only the merged HF/safetensors training-forma
 genuinely lost — that costs LoRA resumption and re-export, not grounding. G6 stays NOT RUN (the
 correction postdates the campaign, and the pre-registration assigns it its own n>=25 arm), but it
 is unblocked work rather than a blocker. **P6.2 is not blocked.**
+
+## Re-analisis estadistico retroactivo (2026-07-21T13:30Z) — Partes I-VI
+
+Cross-cutting, not a flight campaign; recorded here because Part VI is the open Part. Registry
+`thesis/claims.json` (65 claims, Parts I-VI), engine `grounding/stats.py`, report
+`thesis/stats-report.md`, method `thesis/01-metodo-estadistico.md`.
+
+| Bucket | n | Note |
+|---|---|---|
+| Significant after Holm-Bonferroni | 6 | `P1-S3.3-export-parity-catastrophe` 1.345e-4 (worst-case marginal bound), `P2-RQ2.1-resolution-ladder-1024` 1.988e-7, `P2-RQ3.1-lora-aerial-gate` 5.151e-73, `P3-ROI-M2.0-512` 9.555e-26, `P5.2a-warm-generalization` 3.052e-5, `P5.12-bankv21-recal` 3.365e-4 |
+| No test possible (0 discordant pairs) | 26 | `p` is undefined, **not** 1.0 — absence of a test, not proven equality |
+| Design could never reach alpha=0.05 | 33 | n<=5 paired: floor is p=0.0625 with a perfect result |
+| Raw per-item data missing | 3 | `thesis/rerun-backlog.md` |
+
+Raw-significant but Holm-rejected: `P2-RQ4.1-deploy-fidelity` 0.01612, `P3-carry-OP768-accuracy`
+0.01267, `P5.15-plain-carry-survival` 0.002908.
+
+**Three recorded conclusions corrected by the re-analysis.**
+
+1. **Swin2SR's rejection is not supported on accuracy.** lanczos vs swin2sr b=21 c=14 p=0.3105;
+   bicubic vs swin2sr b=22 c=12 p=0.1214; bicubic vs native p=0.2624. No arm differs at n=429. The
+   decision stands, but on **latency** (+1331 ms/crop), not on IoU.
+2. **The Part I "fidelity catastrophe" is the export, not the quantisation.** F16 vs Q8_0 b=17 c=10
+   **p=0.2478** — no evidence the quantisation costs accuracy. HF vs GGUF is significant under
+   *every* pairing consistent with the surviving marginals (worst case 1.345e-4 for Q8_0,
+   2.19e-3 for F16).
+3. **Carry at 768 does lose accuracy vs 1024** (sign test 55 vs 31, p=0.013). The 768 adoption was
+   an effect-size bound plus an FPS constraint, never a claim of equality — the record now says so.
+
+Figures: `thesis/proof/stats-power.png` (paired designs by effective n, red = could never reach
+alpha), `thesis/proof/stats-forest.png` (18 gated arms, Wilson CI on effective n vs the gate). Both
+opened and visually verified.

@@ -56,6 +56,26 @@ tratarlos como n = 30.000 es la forma clasica de fabricar significacion a partir
 de un solo ensayo. Toda afirmacion lleva `n_effective` separado de `n_rows`, y
 el informe imprime los dos junto con la razon por la que difieren.
 
+Separarlos no basta: hay que **usar** el que corresponde. Un intervalo calculado
+sobre `n_rows` y etiquetado con `n_effective` es peor que no dar intervalo,
+porque reclama una precision que nunca se compro. Ocurrio durante la propia
+redaccion de este marco — E17 imprimia `n = 1` junto a un IC de [0,000, 0,278]
+construido con 10 filas de un mismo fallo determinista — y de ahi sale
+`deflate_to_effective()`:
+
+<!-- caption: Correccion por efecto de diseno aplicada antes de cualquier intervalo o p-valor -->
+
+    k, n = deflate_to_effective(k_observado, n_filas, n_effective)
+
+Conserva la proporcion y sustituye el denominador por `n_effective`. Es una
+correccion por efecto de diseno con `deff = n_rows / n_effective`, y es
+deliberadamente tosca: **solo puede ensanchar el intervalo y debilitar el
+p-valor, nunca al reves**, de modo que no puede fabricar un resultado. Con la
+correccion aplicada, E17 pasa a [0,000, 0,793] sobre n = 1, que es lo que
+realmente sostiene una unica observacion. El informe marca cada caso afectado con
+`[deflated from k/n]` para que la deflacion sea visible y no un ajuste
+silencioso.
+
 ### Disenos que nunca pudieron responder a su pregunta
 
 Es el aporte principal del marco y el mas incomodo.
@@ -131,6 +151,25 @@ Un unico par discordante — el caso de 23/24 y 55/56 — da exactamente p = 0,5
 la demostracion mas limpia posible de que esas campanas no podian separar los
 brazos, con independencia de lo que hubiera salido.
 
+## Cuando solo sobreviven los marginales
+
+A veces se conserva el total de cada brazo pero no el pareo elemento a elemento,
+de modo que b y c no son recuperables. La salida facil seria descartar la
+afirmacion; la correcta es **acotarla**.
+
+Los marginales fijan `b - c`. Basta recorrer todos los pares (b, c) compatibles
+con esa diferencia y quedarse con el **peor** para la significacion: el p-valor
+resultante es una cota superior valida bajo cualquier pareo consistente con los
+datos. Si esa cota ya cae por debajo de alfa, la conclusion no depende del pareo
+perdido.
+
+Es lo que rescata el resultado mas fuerte de la Parte I. En HF contra GGUF los
+marginales dan `b - c = 30`, luego `c` esta en [0, 15]; el peor caso, `c = 15` y
+`b = 45`, todavia da **p = 1,3e-04**. La catastrofe de exportacion es
+significativa se pareara como se pareara. En `claims.json` se almacenan los b y c
+del peor caso precisamente para que el numero publicado sea la cota, nunca la
+version favorable.
+
 ## Multiplicidad
 
 El repositorio corrio decenas de comparaciones con puerta a lo largo de seis
@@ -161,6 +200,8 @@ y se re-ejecuta, o se retira. El registro de re-ejecucion vive en
 `thesis/rerun-backlog.md` con el comando exacto de cada una.
 
 ## Reproducir el analisis
+
+<!-- caption: Comandos que regeneran el analisis completo desde el registro de afirmaciones -->
 
     .venv-ft/bin/python -m grounding.stats            # auto-comprobacion del modulo
     .venv-ft/bin/python -m pytest tests/test_stats.py # 33 aserciones de regresion

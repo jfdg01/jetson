@@ -72,3 +72,15 @@ The flight world was worse than easy: `iris_runway.sdf` has four entities and no
 kind, confirmed live by flying to `XYZ [141.237 216.871 100.192]` and getting nothing but sky at
 every commanded gimbal pitch (frames viewed, `proof/gaz-empty-world-*.png`). The cause was not the
 camera — at Y=216 m the copter was 167 m past the edge of the only surface in the world.
+
+## Q-STATS.1 — Cross-cutting (2026-07-21T13:30Z)
+
+**RQ:** Of the 65 gated claims this repo defends across Parts I-VI, how many survive an exact test
+with a multiplicity correction, and which recorded conclusions does the re-analysis overturn?
+
+**Verdict:** **6 of 65 survive Holm-Bonferroni**; 33 came from designs that could never have reached
+alpha=0.05 at their n, 26 produced 0 discordant pairs (no test, not equality), 3 have no raw data.
+Three recorded conclusions are corrected: Swin2SR's rejection is latency-bound not accuracy-bound;
+the Part I fidelity catastrophe is the export not the quantisation (F16 vs Q8_0 p=0.2478); carry at
+768 *does* lose accuracy vs 1024 (p=0.013). The thesis's central contribution
+(`P5.2a-warm-generalization`, p=3.052e-5) is among the survivors.

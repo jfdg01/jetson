@@ -144,3 +144,34 @@ the world, the vehicle model, and the runner around a plugin that is installed b
   under test. *Given up:* the convenience of seeing the box in any CARLA viewport. *Same family as*
   the Phase C sky-camera defect — a rendering choice that silently changes what the experiment
   measures while every log still reads like success.
+
+## Statistical framework (2026-07-21T13:30Z) — cross-cutting
+
+- **Test chosen by design, never by p-value.** McNemar exact for paired binary, binomial exact +
+  Wilson for a single arm against a gate, Fisher for unpaired, Wilcoxon + bootstrap for paired
+  continuous. Fixed by an assertion in `tests/test_stats.py`, because on P5.2's numbers the
+  *wrong* (unpaired) test gives the *prettier* p (1.2e-05 vs 3.1e-05). *Given up:* the smaller
+  number. Choosing a test after seeing its output is p-hacking regardless of which one is chosen.
+- **`mcnemar(0, 0)` returns NaN, not 1.0.** Three sim campaigns tied exactly. Reporting p=1.0 reads
+  as "proven equivalent"; 0 discordant pairs means no test ran in either direction. *Given up:* a
+  printable number in 26 of 65 rows.
+- **Report a retrospective *design* bound, not observed power.** `min_discordant_for_significance(n)`
+  is computed from n alone without looking at the outcome, which is what makes it legitimate post
+  hoc — unlike observed power, which is the p-value relabelled. This is what produces the finding
+  that 33 claims were unanswerable by construction.
+- **Deflate every interval to `n_effective` before computing it** (`deflate_to_effective`). Caught
+  live: E17 printed `n=1` beside a Wilson CI built from 10 rows of one deterministic failure. The
+  correction is a design effect with deff = n_rows/n_effective and is deliberately blunt — it only
+  widens intervals and weakens p-values, so it cannot manufacture a result. *Given up:* tighter
+  intervals on every pseudo-replicated arm, which is the point.
+- **Bound the claim rather than drop it when only marginals survive.** b-c is fixed by the arm
+  totals; sweeping all consistent (b, c) gives a valid upper bound on p. Rescues Part I's strongest
+  result (worst case still 1.345e-4). `claims.json` stores the worst-case pair so the published
+  number is the bound, never the favourable pairing.
+- **Holm-Bonferroni, not Bonferroni or Benjamini-Hochberg.** Holm is uniformly more powerful at the
+  same family-wise error; BH is for screening and these are confirmatory pre-registered gates. NaN
+  p-values are excluded from the family — a test that did not happen cannot spend alpha.
+- **A claim with no per-item data is not defended, it is queued.** Three-level `data_status`
+  (`per_item` / `counts_only` / `missing`); `missing` goes to `thesis/rerun-backlog.md` with its
+  command. *Given up:* citing T2, T3 and Phase C. Phase C in particular has 13 complete CSVs that
+  are deliberately left unextracted, because the input pixels were blank sky.

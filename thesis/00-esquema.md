@@ -25,7 +25,7 @@ adelantado y las deja auditables.
 
 Al levantar el inventario aparecieron dos problemas que no son de redaccion:
 
-- **No hay ni una sola prueba estadistica en el repositorio.** Una busqueda de `mcnemar|binomtest|scipy.stats|statsmodels|wilson|p-value` sobre todos los `.py` y `.md` devuelve cero ficheros. El unico estadistico existente es un Spearman escrito a mano, sin p-valor ni intervalo. Varias afirmaciones con puerta descansan sobre una o tres celdas de diferencia.
+- **No habia ni una sola prueba estadistica en el repositorio.** Una busqueda de `mcnemar|binomtest|scipy.stats|statsmodels|wilson|p-value` sobre todos los `.py` y `.md` devolvia cero ficheros. El unico estadistico existente era un Spearman escrito a mano, sin p-valor ni intervalo. Varias afirmaciones con puerta descansaban sobre una o tres celdas de diferencia. **Resuelto el 2026-07-21**: el marco esta en `grounding/stats.py`, se explica en el Cap. 3 (borrador en `thesis/01-metodo-estadistico.md`), y las 65 afirmaciones con puerta re-analizadas estan en `thesis/stats-report.md`. El resultado de ese re-analisis esta mas abajo y **cambia lo que el TFM puede afirmar**.
 - **Las Partes I, II y III no tienen ni un solo directorio `proof/`.** La regla de entregables por campana se introdujo en julio y no se aplico retroactivamente. El resultado individual mas fuerte del proyecto — la palanca ROI, que gana en las dos dimensiones a la vez — **no tiene ninguna figura**: existe solo como un JSON de barrido.
 
 Es decir: el trabajo pendiente antes de redactar no es escribir, es **generar la
@@ -113,6 +113,48 @@ pregunta del tribunal.
 - Jetson Orin Nano 8 GB, **15 W + `jetson_clocks`**. El modo de 25 W no existe en esta placa: el firmware expone solo 15 W y 7 W, y desbloquearlo exigiria un flasheo de bootloader que se decidio no intentar. Toda cifra de rendimiento es un techo de 15 W, no un techo de silicio.
 - Una etiqueta anterior del cuaderno decia "MAXN\_SUPER" y **era falsa**; se corrigio el 2026-07-03. No debe reaparecer en el TFM.
 - La potencia medida es `VDD_IN` de tegrastats: entrada total de placa, incluido un suelo de plataforma en reposo de ~5,2 W. No es potencia de modulo ni de SoC.
+
+### El marco de inferencia
+
+**Seccion obligatoria y probablemente la mas defendible del capitulo.** Borrador
+completo en `thesis/01-metodo-estadistico.md`; aqui va el resumen y alli el
+detalle, porque un tribunal preguntara por el metodo antes que por los numeros.
+
+Lo que hay que explicar, en este orden:
+
+1. **Que prueba corresponde a que diseno**, y que la eleccion la fija el diseno y nunca el p-valor que sale. Todo exacto: McNemar exacto, binomial exacta, Fisher, Wilcoxon. Ninguna aproximacion normal — con estos n, Wald da [0, 0] para un 0/6 y un limite superior mayor que 1 para un 24/25.
+2. **`n_effective` frente a `n_rows`.** Seis clips por dos repeticiones deterministas son seis observaciones. Diez ensayos SITL del mismo fallo determinista son uno. 439 captions sobre 316 imagenes no son 439 observaciones independientes. Cada afirmacion declara las dos cifras y la razon por la que difieren.
+3. **La deflacion a n efectivo.** Cuando el denominador cuenta filas y no observaciones independientes, la proporcion se conserva y el denominador se sustituye por `n_effective` antes de calcular nada. Es una correccion por efecto de diseno con deff = n / n_effective, deliberadamente tosca: solo ensancha el intervalo y solo debilita el p-valor, luego no puede fabricar un resultado. El caso que la motivo es E17, cuyo 0/10 daba un intervalo [0, 0,28] sobre diez repeticiones de **un** fallo determinista, y ahora da [0, 0,79] sobre n = 1.
+4. **Disenos que no podian responder a su pregunta.** Una comparacion pareada de cinco elementos no alcanza p < 0,05 aunque los cinco volteen: el suelo es 0,0625. Se calcula desde n **solo**, sin mirar el resultado, que es lo que lo hace legitimo a posteriori.
+5. **Empates y pruebas que no existen.** Cero pares discordantes devuelve `NaN`, no p = 1,0.
+6. **Multiplicidad**: Holm-Bonferroni sobre la familia de afirmaciones con puerta, con las pruebas indefinidas fuera de la familia.
+7. **Los tres niveles de estado de los datos** (`per_item`, `counts_only`, `missing`) y la regla de que una afirmacion en `missing` no se defiende: se re-ejecuta o se retira.
+
+### Que le hizo el re-analisis al cuaderno
+
+Este es el material del Cap. 9 y conviene anticiparlo aqui, porque **el marco no
+se escribio para adornar resultados sino porque cambio varios**.
+
+<!-- caption: Resultado global del re-analisis retroactivo de las 65 afirmaciones con puerta -->
+
+| Categoria | N | Que significa |
+|---|---|---|
+| Significativas tras Holm | 6 | Se pueden defender como efectos |
+| Sin prueba posible (0 discordantes o solo agregados) | 26 | No hubo contraste, en ninguna direccion |
+| Diseno incapaz de alcanzar alfa | 33 | Ningun resultado posible habria bastado |
+| Sin datos crudos | 3 | En cola de re-ejecucion, no se defienden |
+
+Las seis que sobreviven son la catastrofe de fidelidad de la Parte I, la escalera
+de resolucion y la puerta LoRA de la Parte II, la palanca ROI de la Parte III, la
+generalizacion del arranque en caliente (P5.2a) y la recalibracion del banco
+(P5.12). **La contribucion central del TFM esta entre ellas**, que es lo que
+hacia falta comprobar.
+
+Y tres correcciones que el re-analisis obliga a llevar al texto:
+
+- **Swin2SR no pierde en precision** (ver Cap. 5). El descarte es por latencia.
+- **La catastrofe de la Parte I es la exportacion, no la cuantizacion.** F16 contra Q8\_0 da b = 17, c = 10, p = 0,25: los 7 pp que el cuaderno atribuye al cuantizado no se distinguen del ruido. La brecha HF contra GGUF, en cambio, es significativa bajo **cualquier** emparejamiento compatible con los marginales (peor caso p = 1,3e-4), que es la forma correcta de defenderla cuando el brazo HF no dejo registro por elemento.
+- **El arrastre a 768 si pierde precision frente a 1024** (55 pistas contra 31, p = 0,013). La adopcion de 768 nunca fue una afirmacion de igualdad: era una cota de tamano de efecto mas una restriccion de FPS, y hay que redactarla asi.
 
 ### La topologia real del banco
 
@@ -224,8 +266,14 @@ contra un modelo que ya no se despliega.
 
 ### La palanca de super-resolucion, descartada
 
-Swin2SR [@conde2022swin2sr] sobre el recorte ROI **pierde** frente a un LANCZOS
-gratuito: +1331 ms y peor IoU. Con dos matices: la prueba uso un recorte oraculo
+Swin2SR [@conde2022swin2sr] sobre el recorte ROI **no compra nada medible** por
++1331 ms. Y aqui el re-analisis **corrige la nota de laboratorio**: la campana lo
+registro como "pierde tambien en IoU", pero sobre los datos por elemento
+(n = 429) ningun brazo se separa de otro. Frente a LANCZOS, b = 21 y c = 14,
+**p = 0,31**; frente a bicubico, b = 22 y c = 12, **p = 0,12**; y el propio
+bicubico contra el nativo da p = 0,26. El descarte es correcto y se sostiene
+**por latencia**, que es determinista y enorme; escribir que Swin2SR "pierde en
+precision" seria afirmar mas de lo que hay. Con dos matices mas: la prueba uso un recorte oraculo
 de 400x400 centrado en la verdad-terreno (mide el techo que la SR podria ofrecer,
 no el extremo a extremo) y n = 429, habiendo descartado 10 muestras por una razon
 no aleatoria — los objetos mas grandes no caben en 400 px. La literatura de SR en
@@ -296,16 +344,26 @@ No se narran veinte experimentos en orden. Se narran cuatro hilos:
 - **Lo que si lo desbloqueo.** P5.14 cambia el **contrato de entrega** — entregar la pista ya arrastrada en lugar de re-anclar al recibir la orden. P5.16 quita el oraculo de la semilla y cuesta una celda de doce.
 - **Donde esta el limite.** P5.15 (el arrastre aguanta 24 s de espera, 24/25: **el arrastre no es la parte fragil**), P5.18 (a n = 26 el SWAP reforzado cae a 17/26), P5.19 (sube a 20/26) y P5.20 (un SAM2 mayor no recupera ninguna celda: palanca muerta).
 
-### El estadistico que hay que escribir, porque no existe
+### El estadistico, ya calculado
 
-<!-- caption: Inferencia post-hoc sobre los resultados con puerta de la Parte V. Ninguno de estos valores esta calculado en el repositorio -->
+Cifras generadas por `thesis/run_stats.py` desde `thesis/claims.json`, no
+estimadas. McNemar **exacto bilateral**, que es el que se reporta en todo el
+documento; el unilateral es la mitad y no se usa para decidir nada.
 
-| Resultado | Discordancia | McNemar exacto unilateral | Lectura |
+<!-- caption: Inferencia post-hoc sobre los resultados con puerta de la Parte V, generada desde los volcados por elemento -->
+
+| Resultado | Discordancia | McNemar exacto | Lectura |
 |---|---|---|---|
-| P5.1 WARM 5/6 vs COLD 1/6 | b = 4, c = 0 | p = 0,0625 | No significativo por si solo |
-| P5.2 WARM 21/25 vs COLD 5/25 | b = 16, c = 0 | p ~ 1,5e-5 | **Este es el ancla estadistica de la parte** |
-| P5.10 / P5.13 / P5.17 | 1 celda | p = 0,5 | No informativo en ninguna direccion |
-| P5.19 SWAP 20/26 vs P5.18 17/26 | b = 3, c = 0 | p = 0,125 | Compatible con el azar |
+| P5.1 WARM 5/6 vs COLD 1/6 | b = 4, c = 0 | p = 0,125 | No significativo por si solo |
+| P5.2a WARM 21/25 vs COLD 5/25 | b = 16, c = 0 | **p = 3,05e-5** | **El ancla estadistica de la parte**; sobrevive a Holm |
+| P5.10 DD 24/24 vs RG 24/24 | b = 0, c = 0 | **indefinido** | No hubo prueba, no hubo empate demostrado |
+| P5.13 y P5.17 | b = 1, c = 0 | p = 1,0 | No informativo en ninguna direccion |
+| P5.19 SWAP 20/26 vs P5.18 17/26 | b = 3, c = 0 | p = 0,25 | Compatible con el azar |
+
+La fila de P5.10 estaba mal agrupada en el borrador anterior de este esquema, y
+la distincion importa: P5.13 y P5.17 **corrieron** una prueba que no separo nada,
+mientras que P5.10, con cero pares discordantes, **no corrio ninguna**. Reportar
+p = 1,0 alli habria sido afirmar equivalencia demostrada.
 
 De aqui salen dos consecuencias narrativas:
 
@@ -315,9 +373,11 @@ De aqui salen dos consecuencias narrativas:
 ### Advertencia obligatoria sobre P5.19
 
 P5.19 pasa su liston **exactamente**, 20/26 contra un liston de 20. Con tres
-pares discordantes en una sola direccion, McNemar exacto unilateral da p = 0,125,
+pares discordantes en una sola direccion, McNemar exacto bilateral da **p = 0,25**,
 y el intervalo de Wilson al 95 % es [0,579, 0,890], que **cruza el liston de
-0,769**. La mejora es compatible con el azar al tamano de muestra usado.
+0,769**. La mejora es compatible con el azar al tamano de muestra usado: harian
+falta **seis** pares discordantes en la misma direccion para alcanzar alfa a
+n = 26, y hubo tres.
 
 Se presenta como una senal a replicar, no como significativa. Y se argumenta
 **por replicacion, no por p**: que P5.20 reprodujera P5.19 celda por celda, sin
@@ -449,9 +509,12 @@ El TFM debe etiquetar la maquina en cada celda o separar las tablas.
 
 ### Tamanos de muestra e inferencia
 
-Buena parte de las decisiones se tomaron con n de 2 a 6, y **no hay ni una prueba
-estadistica en todo el repositorio**. P5.18 demostro empiricamente el coste: un
-4/5 se convirtio en 17/26 al medirlo bien. E12 revirtio a E11 por la misma razon.
+Buena parte de las decisiones se tomaron con n de 2 a 6. El re-analisis del
+2026-07-21 cuantifica el dano: de 65 afirmaciones con puerta, **33 salen de
+disenos que no podian alcanzar alfa = 0,05 con ningun resultado posible** y solo
+**6 sobreviven a la correccion de Holm**. P5.18 ya lo habia demostrado
+empiricamente: un 4/5 se convirtio en 17/26 al medirlo bien. E12 revirtio a E11
+por la misma razon.
 El proyecto adopto despues una regla de n >= 25 para todo brazo con puerta, que
 **post-data a las Partes I a IV completas**. Los resultados anteriores se
 presentan con su n visible y, donde importe, con su intervalo de Wilson.
@@ -508,7 +571,8 @@ mas capitulos. No es redaccion; es generar evidencia que no existe.
 
 | Partida | Bloquea | Esfuerzo |
 |---|---|---|
-| Calcular McNemar exacto y Wilson para todo brazo con puerta de las Partes IV-VI | Cap. 6, 7, 9 | Bajo — un script sobre los `results.json` |
+| ~~Calcular McNemar exacto y Wilson para todo brazo con puerta~~ | Cap. 3, 6, 7, 9 | **HECHO** 2026-07-21: `grounding/stats.py`, `thesis/claims.json`, `thesis/stats-report.md`, dos figuras |
+| Re-ejecutar las 3 afirmaciones sin datos crudos (T2, T3, Fase C) | Cap. 5, 9 | Ver `thesis/rerun-backlog.md` |
 | Generar la figura de la rejilla ROI desde `sweep_summary.json` | Cap. 5 | Bajo, y es el mejor resultado sin imagen |
 | Generar las figuras de las Partes I-II (brecha de fidelidad, bake-off) | Cap. 4 | Medio — no hay `proof/`, hay que reconstruir de logs |
 | Generar la figura cuantitativa del arco de adquisicion | Cap. 6 | Medio |
