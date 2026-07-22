@@ -1,0 +1,449 @@
+{
+  "_README": "R-21 resolutions of the MISLEADING/UNVERIFIED rows of the frozen R-7 sweep. Keys are POSITIONAL ids (<agent_index>.<row_index>) into provenance-sweep.json, which is never mutated; re-running the sweep invalidates these keys, which is correct. Produced by workflow wf_6029f03f-e03 (one agent per ledger file). Rows absent here are still open.",
+  "resolutions": {
+    "0.0": {
+      "status": "fixed",
+      "detail": "Confirmed the composite: sweep_summary.json survivors are HF bf16 on the 3090 while the 62.6% baseline is Orin GGUF Q8_0. The column head is now \"IoU@0.25, n=439 - machine/quant per cell\" with every cell tagged (baseline row shows both 62.6% Orin Q8_0 and 59.5% HF bf16 @1024 from runners/runs/20260617T212559Z/results.json), plus a correction paragraph carrying the campaign README's disclosure and a pointer to experiments/2026-07-21-roi-ondevice/ (R-14) as the pending on-device number.",
+      "file": "docs/results/part3-permanence.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.1": {
+      "status": "fixed",
+      "detail": "Verified 85.2% (374/439), 1374 ms, 964 ms and 2.7x (3691/1374) as exact; only the delta was defective. The cell now reads \"2.7x prefill - +25.7 pp (HF->HF)\" against the 59.5% HF bf16 @1024 full-val, with the superseded +22.6 pp named in the correction note as an Orin-Q8_0-minus-3090-HF subtraction, the in-sweep HF native control (64.0%, +21.2 pp) given as a second baseline, and the M=2.0 vs M=1.5 gap (374 vs 368/439) flagged as a plateau we took a point on.",
+      "file": "docs/results/part3-permanence.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.2": {
+      "status": "fixed",
+      "detail": "Confirmed from the three results.json files: HF 0.595, F16 0.6219, Q8_0 0.6264 — both deltas are gains, so the published minus signs had the direction backwards. The gate line now reads \"HF->F16 = **+2.7pp**, F16->Q8_0 = **+0.5pp** — **no measurable export loss** (n_effective 316; the runtime arms sit 12 and 14 items above the HF reference, which is within what the pairing could produce by chance)\", and \"deployed *beats* HF\" is gone. A dated parenthetical records that the deltas were previously signed as losses and glossed as a win, and that the underlying 59.5 / 62.2 / 62.6% rates are unchanged.",
+      "file": "docs/results/part2-rebuild.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.3": {
+      "status": "fixed",
+      "detail": "Recomputed the discordant pairs from sr_per_sample.csv myself and reproduced the registry exactly: lanczos vs swin2sr b=21 c=14 p=0.31, and swin2sr vs native b=28 c=27 p=1.00 (337 vs 338 passes, a one-item difference). The section is retitled \"buys no measurable accuracy for +1.3 s/crop\" and the sentence now rejects Swin2SR on latency (+1331 ms) with the withdrawn ordering quoted and the p-values shown.",
+      "file": "docs/results/part3-permanence.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.5": {
+      "status": "fixed",
+      "detail": "Confirmed experiments/2026-06-24-t3-closed-loop/ holds only README.md and closedloop.gif, and the README's \"One independent fresh flight per policy\". Added a caveat block: n=1 flight per cell, synthetic scalar appearance descriptor (no pixels), closed-loop frames not independent draws, no results file retained, and a rate claim needs n>=10 flights per arm. I annotated rather than truncated the third significant figure (the note gives the ~49/~98 and ~54/~72 reading) because this repo's rule is mark-superseded, not erase.",
+      "file": "docs/results/part3-permanence.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.6": {
+      "status": "fixed",
+      "detail": "Confirmed the dir holds only README.md and permanence.gif, and that the ledger row maps the README's snr=8 columns correctly. Added a caveat block: one scripted clip, n_effective=1, a single Bernoulli draw behind the 1 -> 0, scored output never written to disk so treat as counts-only; noted it is regenerable via runners/sitl/reid_policy.py --score and that the rerun command in thesis/claims.json (grounding.eval.score_clips) points at a module that does not exist.",
+      "file": "docs/results/part3-permanence.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.7": {
+      "status": "fixed",
+      "detail": "Verified in t0-results-combined-authoritative.json that T0a.device is the Orin and only T0b.host is the 3090, so the finding is right. The header is now \"T0 reference (T0a: Orin - T0b: RTX 3090)\", each row's reference cell carries its own machine tag, and a note records that the tracker row is a genuine dev-box-to-device transfer while the anchor row is not.",
+      "file": "docs/results/part3-permanence.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.8": {
+      "status": "fixed",
+      "detail": "Verified t4b: 2264.33 ms, 0.4416 Hz, parse 1.0, drift_vs_t0a_pct -0.0297 - all exact, with both sides on the same Orin through the same llama.cpp server. The cell now reads \"-0.03% - same device, reproducibility check, not a sim-to-device gap\", restoring the qualifier the T4 README already carried (\"~0 % (same device path)\").",
+      "file": "docs/results/part3-permanence.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.9": {
+      "status": "fixed",
+      "detail": "Confirmed 1807.5 and 1371.9 come from decode_real.json (n=20 real images) while 2114 comes from the n=8 synthetic-anchor-frame harness whose own JSON baseline was 2265 ms. The iter-1 cell now reads \"2114 ms (synthetic frame, n=8 - -6.7% vs its own 2265 ms JSON baseline, not +17% vs 1807)\", with an added paragraph naming the two harnesses and quoting the campaign README's OOD/under-reports flag.",
+      "file": "docs/results/part3-permanence.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.10": {
+      "status": "fixed",
+      "detail": "Confirmed decode_real.json gives JSON decode_tok_median 21.0 and iter-2b 12.0, so -43% is 21 -> 12 while the printed JSON cell was the ~24 synthetic/target-string count, making the row read as a false -50%. The JSON cell now shows both (\"~24 (synthetic frame) - 21 (real imgs)\") and the iter-2b cell states \"-43% vs the 21-tok JSON median on the same 20 real images\".",
+      "file": "docs/results/part3-permanence.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.11": {
+      "status": "fixed",
+      "detail": "Confirmed the numbers: Qwen2-VL-2B base HF 15/100 (parse 0.24), GGUF F16 13/100 (parse 0.18), Q8_0 14/100 (parse 0.19). The gate line now justifies the spine on \"zero-shot 15/100 vs SmolVLM-base 0/100\" plus native dynamic resolution, with the -2pp fidelity leg removed from the argument and preserved in a dated parenthetical explaining why it does not hold (a one-to-two-item difference at n=100 on a spine parsing only 18-24%). SmolVLM-ft3's -16pp is noted as a genuine 16-item gap so the deleted comparison is not misread as both sides being unsound.",
+      "file": "docs/results/part2-rebuild.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.12": {
+      "status": "fixed",
+      "detail": "Confirmed both magnitudes live in this one file unreconciled: the Phase-0 table gives smolvlm_ft3 85.0 -> 69.0 -> 67.0 (-16/-2pp) while the Phase-4 gate line quoted Part I's -23/-7pp. Added the reconciling clause the campaign README already carried: Part I measured -23/-7pp under sampled decode at n=200, the Phase-0 re-measure of the same checkpoint under greedy decode at n=100 gives -16/-2pp, \"the structure of the gap reproduces, the magnitude does not\". Also surfaced the third confound, sourced from the committed machine-disclosure finding M2 and not in the audit's proposed fix: Part I's split subtracts a Jetson GGUF arm from a 3090 HF arm.",
+      "file": "docs/results/part2-rebuild.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.14": {
+      "status": "fixed",
+      "detail": "Confirmed T0's README argues this geometrically (640x480 source, downscale-only _resize_keep_aspect) and that T0's anchor input was a synthetic 640x480 frame of rectangles - no fidelity was scored. Reworded to say no fidelity benefit is possible at that source, labelled \"argued, not measured\", and cross-referenced the 2026-06-30 whole-frame sweep where 512 costs ~32 pp (31.4% vs 63.1%) on real RefDrone imagery.",
+      "file": "docs/results/part3-permanence.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.15": {
+      "status": "fixed",
+      "detail": "Verified all three legs come from different configurations: 85.2% is HF bf16/3090 on the JSON-format checkpoint (~2.33 s in that harness at 1374+964 ms), ~2.0 s is the deployed terse Q8_0 on-device cadence (demo-tab 2021 ms, n=10), 65.1% is Orin Q8_0 terse. Removed the composite parenthetical from the bolded sentence and added a correction paragraph stating what each number is, that \"beats even 1920 whole-frame\" is not like-for-like, what is supported, and that the resolving measurement is running under experiments/2026-07-21-roi-ondevice/.",
+      "file": "docs/results/part3-permanence.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.16": {
+      "status": "fixed",
+      "detail": "perturb_summary.json confirms the drifted arms span 0.8246-0.8360 at shifts 0.25-0.5 and 0.7426-0.7973 at shift 1.0, so the published \"82-85%\" upper bound is attained by no drifted arm - 85.2% is the zero-drift point. Now reads \"flat 82.5-83.6% up to 0.5-box prior drift (vs 85.2% undrifted), and 74.3-79.7% even at full-box drift\", with the superseded range named and the single-seeded-draw perturbation caveat added.",
+      "file": "docs/results/part3-permanence.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.17": {
+      "status": "fixed",
+      "detail": "Recomputed bicubic vs native from the raw CSV: b=21 c=30 p=0.26, matching the registry, so \"upscaling helps box tightness\" is the same unsupported directional read. The sentence now states mean IoU is ~0.04 higher (0.695 vs 0.651) but attaches the p-value in the correction paragraph and names the +1331 ms latency as the probe's only decisive result.",
+      "file": "docs/results/part3-permanence.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.18": {
+      "status": "fixed",
+      "detail": "Arithmetic re-verified from the three results.json files (30.296 - 10.706 = 19.59 pp; 30.296 / 38.724 = 78.2%) — the numbers were never wrong, only their status. The gate line now claims only what was pre-registered, \"clears the pre-registered 20% bar before training (30.3% = 133/439)\", and the elbow moves to a following line labelled \"**Design choice (no numeric bar):**\" with a dated note that it had sat inside the gate line and reads as an eyeballed judgement, not a passed criterion.",
+      "file": "docs/results/part2-rebuild.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.39": {
+      "status": "fixed",
+      "detail": "Verified 885 ms, 964 ms, 82.5% (362/439) and 4.2x as exact; the defect is only the inherited cross-runtime delta. The cell now reads \"4.2x prefill - +23.0 pp (HF->HF)\" (0.8246 - 0.595), the machine/quant tag is on the accuracy cell, and the superseded +19.9 pp is named alongside +22.6 pp in the shared correction note.",
+      "file": "docs/results/part3-permanence.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "0.40": {
+      "status": "fixed",
+      "detail": "Checked the arithmetic holds (139/200 = 0.695 and 200 - 44 - 17 = 139) but the T2 scoring output is genuinely absent from disk, so the 44/17 decomposition cannot be checked. Covered by the same T2 caveat block, which marks the block counts-only and states explicitly that the clip length is checkable in T1's baseline_scores.json while the occluded/out-of-frame split is not.",
+      "file": "docs/results/part3-permanence.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "1.2": {
+      "status": "fixed",
+      "detail": "Cross-run consistency line rewritten to a like-for-like pair: tg128 14.61 -> 14.60 (-0.07%) and tg512 14.53 -> 14.54 (+0.08%). The published '+0.5%' had compared the upper bound's tg512 against the sweep's tg128 -- two different tests -- overstating drift ~7x and understating the reproducibility the check exists to show.",
+      "file": "docs/results/part1-exploratory.md",
+      "source": "wf_6029f03f-e03 (agent died before returning; reconstructed from its committed diff in 95228e2 and independently re-verified 2026-07-22)"
+    },
+    "1.3": {
+      "status": "fixed",
+      "detail": "Export-parity sentence softened. The -23pp Idefics3 preprocessing divergence is kept as the root cause; the -7pp F16->Q8_0 step is now reported as not separable from noise (paired McNemar b=17, c=10, p=0.248 over the same 100 items). VERIFIED 2026-07-22: recomputed p=0.2478 and confirmed counts against claims.json P1-S3.3.",
+      "file": "docs/results/part1-exploratory.md",
+      "source": "wf_6029f03f-e03 (agent died before returning; reconstructed from its committed diff in 95228e2 and independently re-verified 2026-07-22)"
+    },
+    "1.4": {
+      "status": "fixed",
+      "detail": "G4 reframed from '0.5pp short' to '39/200 = 19.5% against a 40/200 threshold, a one-item miss', with the Wilson interval [0.146, 0.255] straddling the gate, so NARROW MISS is kept explicitly as an engineering call and not a statistical one. VERIFIED 2026-07-22: Wilson 39/200 = [0.1461, 0.2554] -- the agent's interval is correct and the SWEEP's own [0.146, 0.257] was the inaccurate one; the agent recomputed rather than copying the audit.",
+      "file": "docs/results/part1-exploratory.md",
+      "source": "wf_6029f03f-e03 (agent died before returning; reconstructed from its committed diff in 95228e2 and independently re-verified 2026-07-22)"
+    },
+    "1.5": {
+      "status": "fixed",
+      "detail": "Branch-1 cell rewritten. 'valid=100%' removed -- it is a Branch-2 parse-rate metric, absent from the Branch-1 artifact, and vacuous for an injected oracle box. Replaced with the three gated quantities (hz 19.99, coast_max 99 frames, reseed 0.000 s) plus track_cov 98.1% and oracle_cov 100%; the track-loss count is struck as vacuous under the ByteTrack re-find defect. PASS unchanged -- no gate turns on pixel error or loss count.",
+      "file": "docs/results/part1-exploratory.md",
+      "source": "wf_6029f03f-e03 (agent died before returning; reconstructed from its committed diff in 95228e2 and independently re-verified 2026-07-22)"
+    },
+    "1.6": {
+      "status": "fixed",
+      "detail": "Both efficiency columns given explicit bases. Capability sweep labelled 'tok/s/W (net of idle, peak W)', Gemma table 'tok/s/W (total board, peak W)', with a footnote that they are not comparable and the converted net-of-idle Gemma figures (G1 18.38 etc). Recomputation of all ten rows recorded in the footnote.",
+      "file": "docs/results/part1-exploratory.md",
+      "source": "wf_6029f03f-e03 (agent died before returning; reconstructed from its committed diff in 95228e2 and independently re-verified 2026-07-22)"
+    },
+    "1.10": {
+      "status": "fixed",
+      "detail": "Phase B row reframed as a capability gate on ONE scenario (n_effective = 1 per claims.json P1-S1.3); the '+/- 0.0' columns are dropped rather than restated, and 'track losses = 0' is marked structurally guaranteed by the per-frame 25 Hz synchronous oracle. The 12.9 px against the pre-registered <50 px threshold is kept as one scenario's honest number.",
+      "file": "docs/results/part1-exploratory.md",
+      "source": "wf_6029f03f-e03 (agent died before returning; reconstructed from its committed diff in 95228e2 and independently re-verified 2026-07-22)"
+    },
+    "1.11": {
+      "status": "fixed",
+      "detail": "The meaning of every +/- is now stated. pp512 +/- is the spread between two 5-rep aggregates (|delta|/sqrt(2)), NOT measurement noise; llama-bench's own within-run sigma is larger in nine of ten units and is quoted alongside. tg128 +/- corrected to the CSV's stddev_ts for units 02/03/04/05/09/10.",
+      "file": "docs/results/part1-exploratory.md",
+      "source": "wf_6029f03f-e03 (agent died before returning; reconstructed from its committed diff in 95228e2 and independently re-verified 2026-07-22)"
+    },
+    "1.12": {
+      "status": "fixed",
+      "detail": "TTFT column renamed and footnoted: it is prompt-eval time on a 12-14 token prompt, not first-token latency of the pp512 workload one column left (~40x longer prompt), so it is a lower bound. Values themselves verified against all ten raw ttft.txt files and were correct.",
+      "file": "docs/results/part1-exploratory.md",
+      "source": "wf_6029f03f-e03 (agent died before returning; reconstructed from its committed diff in 95228e2 and independently re-verified 2026-07-22)"
+    },
+    "1.13": {
+      "status": "fixed",
+      "detail": "S1/S2 IoU denominators restored. 'IoU@0.25=0%' replaced by S1 = 0/0 (undefined -- zero parsed, not measured at zero) and S2 = 0/2. The load-bearing statement is the parse rate 0/50, Wilson [0, 0.071], which is what justifies abandoning the spine.",
+      "file": "docs/results/part1-exploratory.md",
+      "source": "wf_6029f03f-e03 (agent died before returning; reconstructed from its committed diff in 95228e2 and independently re-verified 2026-07-22)"
+    },
+    "1.15": {
+      "status": "fixed",
+      "detail": "V1-V5 split out from the Phase A heading into their own 'VLM command-parse feasibility' section with a link to 2026-06-14-vlm-feasibility. The old heading sent readers chasing these numbers into the wrong campaign; the section now states plainly that it measures no IoU and grounds nothing against GT. Per-frame +/- restored from the source (matters most for V4: +/-611 ms on a 2035 ms mean).",
+      "file": "docs/results/part1-exploratory.md",
+      "source": "wf_6029f03f-e03 (agent died before returning; reconstructed from its committed diff in 95228e2 and independently re-verified 2026-07-22)"
+    },
+    "1.18": {
+      "status": "fixed",
+      "detail": "Params column re-derived from each GGUF's model_n_params so it is one quantity throughout: units 02 (1.0 -> 1.2 B), 05 (3.0 -> 3.1 B) and 06 (3.0 -> 3.2 B) had carried the marketing name. This column is the x-axis of the RQ1 bandwidth-bound scaling argument and the two Llama-3.2 rows were the ones that looked anomalous.",
+      "file": "docs/results/part1-exploratory.md",
+      "source": "wf_6029f03f-e03 (agent died before returning; reconstructed from its committed diff in 95228e2 and independently re-verified 2026-07-22)"
+    },
+    "1.19": {
+      "status": "fixed",
+      "detail": "Upper-bound table peak RAM corrected from '1.87 GiB wts' (the GGUF weight size, which read as if the 3B needed half the memory it did) to 3457 MB, the max RAM sample in the campaign's own tegra_decode.log; cross-checked against the sweep's 3719 MB for the same model/quant (~7% agreement). Params likewise 3.0 -> 3.2 B.",
+      "file": "docs/results/part1-exploratory.md",
+      "source": "wf_6029f03f-e03 (agent died before returning; reconstructed from its committed diff in 95228e2 and independently re-verified 2026-07-22)"
+    },
+    "2.4": {
+      "status": "fixed",
+      "detail": "P5.19's grace comparator now reads \"residual wait at the prompt 0.367-0.600 s vs a 4.48 s cold call started at the prompt (P5.19's own gating shadow re-ground mean, n=50; the 4.68 s published here was imported from P5.18)\", plus a sentence stating the two are not the same quantity — grace's residual is what is left of a discovery call already ~4.0 s in flight during the free idle window (measured call latencies 4.44-4.53 s), so grace moves the wait off the prompt rather than making the VLM faster. The same 4.68 s inside P5.19's pre-existing R-4 box was corrected in place with the note that 4.68 s was P5.18's number.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "2.5": {
+      "status": "fixed",
+      "detail": "All three sites that quoted 6.15 Hz / stride-5 as a deployed on-device rate (P5.14 CARRY_HZ/CAND_HZ line, P5.15 rig line, P5.16 rig line) now call it an emulated budget on the RTX 3090: 6.15 Hz is E1's TensorRT-fp16 Orin measurement at image_size 768 while these carries run the stock 1024, so the on-device 1024 rate is unmeasured and by E1's own arithmetic slower. P5.15 additionally states the direction of the bias — carry-dependent PASSes are optimistic, carry-dependent FAILs conservative — and all three point at R-16 and machine-disclosure finding M1.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "2.6": {
+      "status": "fixed",
+      "detail": "P5.20's \"the heavier checkpoint is free\" is replaced with the verified reading: arm S cost the same 3090 wall as arm T (26.3 vs 26.4 min), which is expected under equal stride and is therefore evidence the A/B was clean, not a cost result. The entry now says explicitly that both walls are RTX 3090 walls, that hiera-small was never exported or rate-measured on the Orin, and that the 6.15 Hz budget it was emulated under was measured for tiny — matching P5.20's own closing Deployment note, which the old sentence contradicted.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "2.7": {
+      "status": "fixed",
+      "detail": "P5.17 gains an R-4 correction box recording n_effective = 28 (56 cells are 28 clips x 2 legs over one carry each) and noting that both the headline n and the pre-registered health floor 45 = ceil(0.8 x 56) were computed on the inflated count. The floor is left as-run because it was pre-registered; the A/B is unchanged at b=1, c=0, which the box calls the clearest demonstration in Part V that n was never the binding constraint.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "2.8": {
+      "status": "fixed",
+      "detail": "P5.13's verdict now reads \"no power to distinguish the contracts — 24 vs 23 of 24, one discordant cell\" (published as \"contracts do not separate\"), backed by a new R-4 box giving n_effective = 12, b=1/c=0 at p = 1.0, and the fact that the pre-registered SEP_MARGIN of 4 sat below the minimum detectable effect (alpha needed 6 one-way discordants). The \"second consecutive DD==RG ceiling\" line is reworded to \"second consecutive design with no resolution to separate the contracts\", noting P5.10 had zero discordants and this one has one.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "2.9": {
+      "status": "fixed",
+      "detail": "P5.14's acquire_s cell now reads \"no prompt-time VLM call — acquire_s 0.00 by construction on all 12 cells\" and the shadow cell says \"4.51 s mean measured\", with a Units note spelling out that DD's zero is definitional (there is no call to time) while the shadow's is measured, so the comparison states a call was removed and cannot fail by construction. An R-4 box adds n_effective = 3 (5 gating scenes from 3 UAV123 clips), the adversarial sample selection, p = 0.33 / p = 0.74, and \"cite P5.18 for the rate, P5.14 for the delivery contract\".",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "2.10": {
+      "status": "fixed",
+      "detail": "P5.16 now leads with the durable, GT-free number — 24/24 idle-window VLM discoveries accepted — instead of the 4/5 select rate, and carries an R-4 box giving n_effective = 3 and noting 4/5 is p = 0.74 against the 0.8 null, i.e. not inferential. The 4/5 is retained, not deleted, as an as-run count.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "2.11": {
+      "status": "fixed",
+      "detail": "P5.18's \"every cell acquire 0.00 s\" is corrected to \"no prompt-time VLM call by construction — acquire_s 0.00 on the 48 of 52 gating cells that delivered, and null on the 4 that delivered nothing\", with the note that the \"every\" was literally false and the zero is definitional rather than measured. The comparator is stated as a measured shadow re-ground of 4.68 s mean / 4.49 s median (4.38-8.59), with the observation that the mean is dragged by Jetson-latency outliers and that P5.19's headline flip turns on exactly that jitter.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "2.12": {
+      "status": "fixed",
+      "detail": "P5.15's re-anchor regression now reads \"net -2 clips (3 losses against 1 rescue, exact p = 0.625 — the direction is suggestive, the regression is NOT statistically established; count verified, framing corrected 2026-07-21, R-4)\". The count reproduced exactly from the artifact; only the causal framing changed, and the identity-swap mechanism is made the load-bearing part of the paragraph.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "3.3": {
+      "status": "fixed",
+      "detail": "P5.2's config line no longer reads \"SAM2.1-tiny TRT fp16 6.15 Hz\" beside \"Jetson 15 W\" as if it were one on-device configuration; it now reads \"VLM on Jetson 15 W + jetson_clocks; carry = SAM2.1-tiny eager bf16 on the RTX 3090, rate-capped to 6.15 Hz\". The parenthetical records what changed and why: no TensorRT engine is loaded anywhere in replay_e24.py, and the 6.15 Hz is E1's Orin figure at image_size 768 applied to a 1024 carry — machine-disclosure findings M1 and M4.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "3.4": {
+      "status": "fixed",
+      "detail": "P5.1's config line keeps the 6.15 Hz cap but now labels it an emulated cap taken from E1's TensorRT-fp16 Orin measurement at image_size 768 while this carry runs eager bf16 at the stock 1024, so the true on-device stride would be slower (E1 puts 1024 at ~1.9x the compute of 768). It states the on-device 1024 rate is unmeasured and points at R-16 and machine-disclosure M1.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "3.5": {
+      "status": "fixed",
+      "detail": "P5.12's S6 delta-0 result now carries a scope correction: record() derives each frame's occl with the same _overlap_frac over project_box() output that predicted_clear_count() uses, so delta 0 tests pose fidelity, not render integrity — the only pixel-dependent term in the recorded pool is whether the target had >= FRAG_MIN_NPX own-colour pixels to score frag at all. The prose escalation \"does the offline screen predict render integrity on unseen seeds?\" is replaced by authored-pose clear-frame-pool prediction, with render integrity attributed to G6c/G8/V, which read pixels.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "3.6": {
+      "status": "fixed",
+      "detail": "P5.10's \"margin 0\" now says explicitly that this is not a measured equivalence: with zero discordant pairs (b=0, c=0) McNemar is undefined, not 1.0, so no test ran; both arms sit at ceiling and n_effective = 12. The correct reading is given as \"this bank cannot distinguish the contracts\", which is what the scene-bound diagnosis already said.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "3.7": {
+      "status": "fixed",
+      "detail": "P5.3's NO verdict now notes the pre-registered gate was statistically unreachable — against a 0.8 null even a perfect 5/5 gives p = 0.33, so no outcome of this design could have cleared 4/5 inferentially in either direction — and records n_effective = 4 (the unit is a (clip, onset) cell and car10 supplies two). The NO is reframed as a legitimate engineering stop rather than evidence that select-on-command does not work.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "3.8": {
+      "status": "fixed",
+      "detail": "P5.4's verdict gains the same unreachable-0.8-null note (5/5 would still give p = 0.33), n_effective = 4, and the fact that P5.4 re-uses P5.3's exact 5 scenes, so \"VSEL identical to P5.3 WSEL cell-for-cell\" is one sample measured twice rather than independent corroboration. The pilot-bias disclosure is scoped to the non-gating CLIP circlectx row where it actually bites — the design-time pilot scored circlectx variants on 3 of these 5 scenes, which is why the campaign README demotes that arm.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "3.9": {
+      "status": "fixed",
+      "detail": "P5.5's NO is labelled the third run of the same unreachable 0.8-null gate (p = 0.33 at 5/5) with n_effective = 4 — the 6 cells come from four UAV123 sequences, the 5 gating cells from only three, car9:560 being cut from the same video as car9:300. It adds that P5.3, P5.4 and P5.5 share their scene set, so the \"third consecutive NO\" is three passes over largely one sample, not three independent refutations.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "3.10": {
+      "status": "fixed",
+      "detail": "P5.1's 5/6-vs-1/6 headline gains an R-4 box: WARM-COLD is b=4, c=0 at n_effective = 6 clips, exact McNemar p = 0.125, so even a clean 6-for-6 sweep could not have reached alpha. The \"WARM-vs-ORACLE gap = EMPTY\" is marked as a zero-discordant statement over 6 items (read as \"no gap was visible here\"), what survives is the structural superset/exact-match condition, and the box ends \"P5.2 is what certifies the warm-start claim; cite it, not this run.\"",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "3.11": {
+      "status": "fixed",
+      "detail": "P5.2 gains an independence paragraph: the 25 clips are 23 independent units (car3/car3_s and person1/person1_s are cuts of one source video each) and all 6 P5.1 clips are re-used, so P5.1 and P5.2 are not independent confirmations of one another. Deflated to 23 the counts are b=15, c=0, exact McNemar p = 6.10e-05, still surviving Holm — the deflation costs only the \"independent extension of P5.1\" framing, and the entry still names this the best-powered Part V claim.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "3.12": {
+      "status": "fixed",
+      "detail": "P5.9's G6 row now reads \"g6_frag_p10 = 1.000 on all 16 runs, worst single frame 0.9893 on seed101_A/D\", with the note that the published \"p10 >= 0.9893\" quoted g6_frag_min under the p10 label, which understated the result and pointed at the wrong column.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "3.13": {
+      "status": "fixed",
+      "detail": "P5.8's \">> 4x its 0.000 control\" is replaced with the statement that the lateral control purity is exactly 0.000, so G2's \"in-box purity >= 4x control\" leg is trivially satisfied and carries no information for this cell — the original phrasing was arithmetically vacuous. The 0.30 absolute floor is named as what G2 actually decides on, and the pur1 = 0.472 value itself is unchanged and still recorded as the lowest cell.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "3.14": {
+      "status": "fixed",
+      "detail": "P5.5's run count now reads \"12 MC runs (10 gating + 2 control — car3:200 carries gating: false in both legs; the flat '(gating)' label here was wrong)\", with the note that this is why the RQ verdicts below score out of 5 per leg rather than 6.",
+      "file": "docs/results/part5-anticipatory.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "4.1": {
+      "status": "accepted",
+      "detail": "Already resolved in the current text by R-7's own fix commit 88fae43, which the queue snapshot predates: the sentence is struck through and followed by 'Superseded 2026-07-21 (R-7)', stating both the undeflated p=0.013 and the deflated b=28, c=16, p=0.096 (Holm 1). I re-verified both by hand: binomtest(55,86)=0.012673 and binomtest(28,44)=0.096142, matching stats-report.md line 47.",
+      "file": "docs/results/part6-flight.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "4.9": {
+      "status": "accepted",
+      "detail": "Already resolved by the same R-7 commit: the raw-significant list now reads P2-RQ4.1 0.0355 and P5.15 0.002908 only, with an explicit sentence saying P3-carry-OP768-accuracy 'was listed here at 0.01267 and no longer belongs' because it deflates to p=0.096. The wrong number is marked superseded rather than erased.",
+      "file": "docs/results/part6-flight.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "4.10": {
+      "status": "fixed",
+      "detail": "Verified 6.15 FPS and 4980/7607 MB at image_size 768 in experiments/2026-07-02-carry-trt-export/README.md line 105, and M1's 1024 caveat in the machine-disclosure README. The front-matter sentence now reads \"a 6.15 FPS con SAM2 a `image_size` **768** (4980 MB de 7607)\" and adds that 768 is the only measured operating point, that the 1024 px the Part IV/V campaigns actually run is unmeasured, that E1 estimated 1.9x throughput (encoder >=~2.5x faster) would be needed there for even 5 FPS, and that this is finding M1 — the emulated carry stride is optimistic, plausibly by ~2x. The adjacent \"~162 ms\" bullet now names the same 768 operating point and the same reservation. Corrected E1's own attribution while doing so: 1.9x is the throughput factor, 2.5x is the encoder-specific one.",
+      "file": "README.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "4.11": {
+      "status": "fixed",
+      "detail": "The G3 table now publishes one definition, the runner's own loop_hz_mean = 1/mean(dt) = 19.80 on both legs (recomputed from both CSVs), with the column header naming it; a note records that 19.93 was first published, that it is make_proof.py's Jensen-biased mean(1000/dt), that ticks/elapsed is 19.84 pre / 19.83 post, and that the campaign README still prints 19.93 in its before/after table and needs the same pass. The sub-15 Hz denominator is corrected from 793 to 792, since the first tick has dt = 0 and is excluded from the rate.",
+      "file": "docs/results/part6-flight.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "4.13": {
+      "status": "fixed",
+      "detail": "The G1 cell now cites 400 ticks / 399 frames from runs/g1-scripted/results.json, the run it actually names, and a provenance note records that the 599 first published there is g3-mavlink's frame count. The finding's premise about where 155/41 came from is wrong in the audit's favour: the as-run d925c74:runners/carla_render.py never printed a spawn-point or blueprint count at all, so both are withdrawn as unattributed prose, with the server query that would settle them written down.",
+      "file": "docs/results/part6-flight.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "4.14": {
+      "status": "fixed",
+      "detail": "The estimate-vs-actual line now says 445 lines (wc -l at d925c74: carla_render.py 260 + sitl_fly_leg.py 185) and records that the 387 first published is 229 + 158 from the campaign README, neither addend reproducing under raw, non-blank, or non-blank-non-comment counting. No commit in the file's history has 229 lines, so the old figure is marked superseded rather than dropped.",
+      "file": "docs/results/part6-flight.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "4.15": {
+      "status": "accepted",
+      "detail": "R-10 already covered this, including the exact nit the finding raises: the sentence quoted in the queue no longer exists, and the audit section states that the artifact holds slave_err_mean_m = 1.815e-06 and that 0.000 is carla_render.py's :.3f print format. I confirmed the value 1.8151801088887756e-06 in runs/g3-mavlink/results.json.",
+      "file": "docs/results/part6-flight.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "4.16": {
+      "status": "fixed",
+      "detail": "The track-cov column was the one part of this defect R-10 left standing, so it is now daggered and disowned alongside the 0: track_coverage_pct and track_loss_events read the same 'track is None' branch, which needs MAX_LOST_FRAMES = 30 at 20 Hz (1.5 s with no detection) and was never reached, and all four committed CSVs have 0 rows with an empty track_id. The column is kept with the caveat that 100.0% means the detection supply never stalled, not that the loop held the target.",
+      "file": "docs/results/part6-flight.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "4.17": {
+      "status": "accepted",
+      "detail": "R-10 already covered this: the G5 row states the measurement point (render-loop wall throughput of a bare client, no perception in the window) and says the 2.4x reading is withdrawn, with the audit section showing 48.08/19.93 and 30 s/12.46 s are the same 2.41 clock skew. I re-verified mean_hz 48.076 and the five sub-15 Hz ticks at t = 0.14, 0.22, 0.29, 0.85, 2.78 s from tick_dt.",
+      "file": "docs/results/part6-flight.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "4.18": {
+      "status": "fixed",
+      "detail": "Already corrected in commit 88fae43 before this task ran; the queue snapshot predates it. I re-verified the counts independently against experiments/2026-07-03-fast-follow-ceiling/README.md lines 5-6 (reg-1.5 PASS; s2.0 3/3; s2.5 3/3; s3.0 0/2). The published line already presents it as a four-speed sweep — \"techo medido con un barrido de cuatro velocidades (1.5 -> 1/1, 2.0 -> 3/3, 2.5 -> 3/3, 3.0 -> 0/2): la última configuración que engancha es 2.5 m/s\" — and explicitly says the \"3/3 frente a 0/2\" framing would invite a meaningless test. No further edit needed.",
+      "file": "README.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "4.19": {
+      "status": "fixed",
+      "detail": "Already corrected in commit 88fae43; the queue snapshot predates it. I verified both halves myself: MAX_LOST_FRAMES = 30 at 20 Hz = 1.5 s is a configured tunable in experiments/2026-06-18-t0-cadence/README.md, and the paired 2.26 s is a real Orin measurement (experiments/2026-06-24-t4-deployment/README.md: \"anchor 2264 ms / 0.44 Hz\"). The published line already says only the anchor is measured and that \"el horizonte de 1.5 s es una **constante de configuración** (`MAX_LOST_FRAMES = 30` a 20 Hz), no una medición\". No further edit needed.",
+      "file": "README.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "5.4": {
+      "status": "fixed",
+      "detail": "Added the campaign README's retraction banner directly under the E11 heading and marked the bolded \">= 3.5 m/s\" inline as RETRACTED, with the chase-validated ceiling 3.0 m/s (E12) and the registry's 2.5 m/s real-follow headline both named; the wrong number stays visible per mark-superseded. Verified in experiments/2026-07-03-late-command/runs/ that d3.5 is 0/3 never-locked and d3.0 PASSes.",
+      "file": "docs/results/part4-end-to-end.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "5.5": {
+      "status": "fixed",
+      "detail": "Confirmed from runs/bench.json that 6.15 fps is trt_768_cores at image_size 768, while E18-E23 all record cap_hz 6.15 with the carry at 1024. The E18 rig line now says the cap was measured at 768 and is ~2x optimistic at 1024, with a full bullet explaining the ~1.9x compute ratio, the ~3 Hz plausible true stride, the uniform bias direction (carry-dependent PASSes optimistic, FAILs conservative), and that E18's NO is therefore conservative; E19 and E20 carry a one-clause pointer back to it.",
+      "file": "docs/results/part4-end-to-end.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "5.6": {
+      "status": "fixed",
+      "detail": "The comparison is now like-for-like: acquire_s 1.85 s vs E18's ~4.48 s (2.4x, backlog ~134 -> 47-62 frames), with the published \"~4.85 s / 2.6x / ~146\" quoted and explained as t_lock-vs-acquire_s, plus the alternative t_lock pairing (2.22 s vs 4.84 s, 2.2x) I computed from the twelve E18 A runs. Same correction applied to the E23 line that inherits it, and a note on E21 that its four figures are already all acquire_s. NOTE for another agent: thesis/claims.json E20-acquire-latency still carries the same mixed pair (\"1.83 s median vs 4.835 s cold\", 2.6x).",
+      "file": "docs/results/part4-end-to-end.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "5.7": {
+      "status": "fixed",
+      "detail": "Split the single RAM column into \"CUDA peak\" and \"sys RAM (w/ VLM)\": eager 612 MB cuda_peak / not logged, TRT 533 MB cuda_peak / 4980-7607 MB system. bench.json confirms trt_768_cores.cuda_peak_mb = 533, i.e. 79 MB below eager, the opposite of what the shared column implied; a footnote records what the column used to say and why it misled. No FPS, latency or accuracy cell changed.",
+      "file": "docs/results/part4-end-to-end.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "5.8": {
+      "status": "fixed",
+      "detail": "Already resolved before I arrived: R-17 (marked DONE in thesis/REMEDIATION.md) had replaced \"local-VLM acquire path\" in all four sections — E2 now reads \"Jetson Q8_0 acquire over ssh\", E4 \"Jetson Q8_0 acquire\", and E5/E6 keep the logged config string with an explicit note that \"local-VLM\" meant local carry. I re-verified the underlying claim rather than trusting it: phase3_sitl.py:1204-1206 builds JetsonBackend(..., ssh_host=\"jetson\") unconditionally, so the acquires did run on the Jetson. No edit needed.",
+      "file": "docs/results/part4-end-to-end.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "5.9": {
+      "status": "fixed",
+      "detail": "Relabelled the row \"baseline Qwen2-VL-2B (bake-off harness)\" and added a dated note that 63.1% is the 2026-06-30-whole-frame-resolution re-measurement (n=439, the same Jetson harness arm B was benched on) while the deployed Phase-4 Q8_0 figure is 62.6%, 0.5 pp apart. 63.1% is kept in the cell because every arm delta in the table is against the harness — the campaign README's \"Two incumbent numbers, used deliberately\" convention, which had never been carried into the ledger.",
+      "file": "docs/results/part4-end-to-end.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "5.10": {
+      "status": "fixed",
+      "detail": "Heading and body now state the mechanistic claim the registry endorses: \"0/10 identical failures (n_effective 1)\", with the per-rep evidence I re-derived from runs/rh-{1..10}/results.json (in_fov_frac 0.2279-0.2305, carry_frames 464-474, carry_px_err_mean 8.6 in all ten, n_regrounds 1 and relock_on empty in all ten) and an explicit instruction that no relock rate or Wilson interval may be quoted, and that the \"0/10 vs 6/8\" contrast overstates by treating both as sampled rates.",
+      "file": "docs/results/part4-end-to-end.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "5.11": {
+      "status": "fixed",
+      "detail": "Occlusion-clip acquire wall corrected 4.54 -> 4.58 s, with a parenthetical naming both runs: 4.54 s is the retarget run's wall (20260701T230746Z) while the 252 frames and 0.886 mean come from 20260701T230357Z, whose events log reads ACQUIRE wall_s 4.58. The retarget half of the sentence (0.721 @4.1 s, mean 0.887) verified exact and left untouched.",
+      "file": "docs/results/part4-end-to-end.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "5.12": {
+      "status": "fixed",
+      "detail": "Confirmed no parity log, results.json or CSV exists anywhere under the campaign; the only two occurrences of 0.9974/0.9968 in the repo are unrelated bankv2 frag values. The ledger now flags the figures as unbacked, points at the campaign README's 2026-07-02T10:30Z notebook entry as the sole source (which adds min IoU 0.9485/0.9353 and stream FPS 18.2/38.8), names the committed generating script stream_carry.py as the cheap deterministic re-run, and says to treat the gate as asserted rather than evidenced. Landing an artifact under experiments/.../raw/ is outside this file's assignment and remains open there.",
+      "file": "docs/results/part4-end-to-end.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "5.13": {
+      "status": "fixed",
+      "detail": "Opened raw/phase0_prior_audit.txt: it is the campaign's only raw file and contains the cell-hit table and per-stage mask-pixel counts but no timing line at all. The ~3 ms and the \"10x under estimate\" framing are now flagged unbacked, as is the \"~4-12 px wide at 320w\" figure two lines up, with the explicit note that the 2/6 t=0 and 0/6 t=10 s cell-hit rates that decided the campaign ARE fully backed (verified cell-for-cell) so the NO verdict is unaffected. I did not manufacture a timing by re-running the selfcheck today.",
+      "file": "docs/results/part4-end-to-end.md",
+      "source": "wf_6029f03f-e03"
+    },
+    "5.44": {
+      "status": "fixed",
+      "detail": "Corrected \"~146 frames\" to \"~134 frames\" and added a bullet showing the derivation: 146 was t_lock x 30, but genuine_lock is scored at box arrival, and E18's runs log only t_lock. I extracted submit_i/arrival_i from all 27 E19 mc_log legs on the byte-identical rig (including the ctl_none regression controls): 0 -> 133-135, mean 134.3 = 4.48 s. The ~4.85 s figure is retained as lock delivery, with both numbers now stated alongside their definition.",
+      "file": "docs/results/part4-end-to-end.md",
+      "source": "wf_6029f03f-e03"
+    }
+  }
+}

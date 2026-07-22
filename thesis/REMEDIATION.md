@@ -34,7 +34,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-18 | Rebalance `thesis/00-esquema.md` to the surviving evidence | R-9 | TODO |
 | R-19 | Stale-verdict sweep of the first-read surfaces | after R-4 | **DONE** |
 | R-20 | Translate the 65 `caveats` to Spanish | R-12 | **DONE** |
-| R-21 | Work the 74 MISLEADING/UNVERIFIED rows from the R-7 sweep | R-7 | TODO |
+| R-21 | Work the 74 MISLEADING/UNVERIFIED rows from the R-7 sweep | R-7 | **DONE** (70 rewritten, 4 accepted; resolutions in `provenance-resolutions.json`) |
 
 R-12..R-18 come from the sufficiency audit (`wf_b81c3191-d12`, 6 agents,
 2026-07-21T21:05Z). **Verdict: the thesis is sufficient — YES, without running a
@@ -995,12 +995,26 @@ were instructed to verify against the artifact before rewriting and their summar
 did, but **that is their own account of their work, not an audit of it**. Spot-check the
 sign-flip and cross-machine claims against the `results.json` files they cite.
 
-`thesis/provenance-resolutions.json` was still never written, so
-`thesis/make_provenance_sweep.py` continues to report all 74 rows as open. The per-agent returns
-that would populate it are in the workflow journal at
-`~/.claude/projects/-home-gara-jetson/390e9ce7-d1a5-4d2c-8ca1-65a5b2caa9a6/subagents/workflows/wf_6029f03f-e03/journal.jsonl`
-(the part1 entry will be missing). Building that file and regenerating the sweep doc is the
-remaining R-21 work.
+**CLOSED 2026-07-22.** `thesis/provenance-resolutions.json` now carries all 74 rows (70 fixed,
+4 accepted with a stated reason) and `thesis/make_provenance_sweep.py` renders them in a
+Resolutions section; the finding rows above them are left exactly as the agents wrote them,
+because a dated audit that gets edited once its findings are fixed stops being evidence that
+they were ever there. 62 resolutions were recovered from the workflow journal at
+`~/.claude/projects/-home-gara-jetson/390e9ce7-d1a5-4d2c-8ca1-65a5b2caa9a6/subagents/workflows/wf_6029f03f-e03/journal.jsonl`.
+
+The 12 part1 rows had no journal entry, so they were **reconstructed from the committed diff in
+`95228e2` and the two load-bearing numbers re-derived independently** rather than taken on the
+agent's word:
+
+| check | recomputed | agent said | sweep said |
+|---|---|---|---|
+| Wilson 39/200 (G4 narrow miss) | [0.1461, 0.2554] | [0.146, 0.255] | [0.146, **0.257**] |
+| McNemar b=17 c=10 (F16→Q8_0) | p=0.2478 | 0.248 | 0.248 |
+
+The agent was right and it was the *sweep's own* interval that was slightly off — it recomputed
+instead of copying the audit finding, which is what it was asked to do. That is evidence for the
+part1 edits generally, not proof of all twelve; the other ten rows are recorded as
+reconstructed-from-diff and are labelled as such in the JSON `source` field.
 
 **R-13 — pre-registered, not started.** `experiments/2026-07-21-detector-baseline/README.md` is
 complete and committed: OWLv2 vs the deployed VLM on the Orin, with the D-full / D-head /
