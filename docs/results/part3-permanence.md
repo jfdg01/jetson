@@ -231,11 +231,15 @@ below D-phrase — the clause is scored, not ignored, and drags the match off ta
 appearance adjectives carry the whole detector contribution (D-phrase − D-head = 22.8 pp).
 
 **Cost, which reverses the original rationale.** OWLv2 forward 263.5 ms median (p90 264.1 — flat
-and input-independent) at 415.3 MB peak CUDA, against the VLM's 4319 ms wall: **16.4x cheaper per
-call, ~5x smaller**. The 2026-06-14 latency argument was backwards. What rules the decomposed path
-out is the selection gap, a quality argument. Caveat: that 16.4x compares one detector forward to
-one full generative anchor, and a decomposed system still needs the selection stage nobody has
-costed — if that stage is itself a VLM the saving evaporates.
+and input-independent) at 415.3 MB peak CUDA, against the VLM's **4216 ms of on-device compute**
+(prefill 3680 + decode 536, R-14 arm A): **16.0x cheaper per call, ~5x smaller**. The 2026-06-14
+latency argument was backwards. What rules the decomposed path out is the selection gap, a quality
+argument. Two caveats. (1) Quote the compute figure, not the wall: the VLM's 4319 ms median wall
+includes ~103 ms of base64 over an ssh tunnel, which is cable, not Orin — comparing a wall against
+a `torch.cuda.synchronize()`d forward would inflate the ratio to 16.4x and repeat exactly the
+defect R-14 flags. (2) That 16.0x compares one detector forward to one full generative anchor, and
+a decomposed system still needs the selection stage nobody has costed — if that stage is itself a
+VLM the saving evaporates.
 
 **Architectural ceiling found on the way:** OWLv2's text encoder has `max_position_embeddings=16`
 and a 17-token query *crashes* the forward pass rather than degrading (this killed the first full

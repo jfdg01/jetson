@@ -2,7 +2,7 @@
 title: Resultados estadísticos retroactivos
 subtitle: Cada afirmación con puerta de las Partes I-VI, re-analizada
 author: Javier Francisco Dibo Gómez
-comment: Generado por thesis/run_stats.py, 2026-07-22T23:52Z
+comment: Generado por thesis/run_stats.py, 2026-07-23T00:09Z
 locale: es
 ---
 
@@ -19,7 +19,9 @@ diseño no podía llegar a alpha = 0,05 con ningún resultado posible.
 La columna **Máquina** dice qué hardware produjo el número. `ambas` es la
 respuesta honesta y mayoritaria en las Partes IV-V: el anclaje del VLM corrió
 en la Jetson mientras el arrastre de SAM2 corría en la RTX 3090 con un tope
-de tasa. Sólo tres afirmaciones se midieron íntegramente en la placa. La
+de tasa. Seis afirmaciones se midieron íntegramente en la placa, y dos de
+ellas son inferenciales: la confirmación en dispositivo del recorte ROI
+(R-14) y la comparación contra el detector externo OWLv2 (R-13). La
 derivación por afirmación está en
 `experiments/2026-07-21-machine-disclosure/README.md`.
 
@@ -144,7 +146,7 @@ por completo la lectura ingenua del número.
 
 **P3-ROI-M2.0-512-ondevice** — Ambos brazos se midieron en una sola sesión de llama-server sobre el checkpoint desplegado phase3-terse100eos-1024 Q8_0, de modo que es una prueba pareada de una sola máquina y una sola cuantización -- reemplaza la afirmación original P3-ROI-M2.0-512, cuyo 85.2% era HF bf16 en la RTX 3090 y cuya línea base de 62.6% era Q8_0 en la Orin (una resta entre máquinas y entre cuantizaciones). El brazo de control A reprodujo exactamente el 63.1% publicado en dispositivo a pantalla completa (RQ-R14.2), así que los +22.1 pp son la intervención y no un cambio del arnés. El prior de ROI es la caja GT oracular inflada, idéntica al barrido original, por lo que esto es una COTA SUPERIOR sobre lo que obtiene el re-anclaje desplegado a partir de una caja de tracker desviada; la RQ4 de la campaña original cuantificó esa caída (85.2% con 0 desviación -> 74.3% con desviación de caja completa) y no se reejecuta aquí.
 
-**P3-R13-owlv2-vs-vlm** — Los recuentos registrados corresponden al brazo MÁS FUERTE del detector (D-phrase, el sintagma nominal con adjetivos), no al extremo a extremo: D-full queda en 25.7% y haría parecer la afirmación mucho más contundente (p=2.2e-24). D-phrase se añadió después del preregistro y antes de puntuar, precisamente para no presentar al detector como un espantapájaros; queda declarado en el README de la campaña. El brazo D-oracle del 90.4% NO es un sistema: elige entre las diez primeras propuestas del detector usando la verdad-terreno, así que es una cota superior sobre cualquier reordenador de esas propuestas y nunca debe citarse como resultado de OWLv2. La comparación de latencia (263.5 ms por pasada del detector frente a 4319 ms de reloj del VLM, 16.4x) enfrenta una sola pasada del detector con un anclaje generativo completo y excluye la etapa de selección que un sistema descompuesto seguiría necesitando; si esa etapa fuese a su vez un VLM, el ahorro desaparece. OWLv2 corrió en fp16 con transformers/PyTorch mientras que el VLM corrió en Q8_0 con llama.cpp, de modo que la razón de coste cruza dos motores de ejecución y es una observación de sistema, no una medición controlada de eficiencia. 5 de 439 descripciones (1.1%) superan el límite de 16 tokens del codificador de texto de OWLv2 y fueron truncadas.
+**P3-R13-owlv2-vs-vlm** — Los recuentos registrados corresponden al brazo MÁS FUERTE del detector (D-phrase, el sintagma nominal con adjetivos), no al extremo a extremo: D-full queda en 25.7% y haría parecer la afirmación mucho más contundente (p=2.2e-24). D-phrase se añadió después del preregistro y antes de puntuar, precisamente para no presentar al detector como un espantapájaros; queda declarado en el README de la campaña. El brazo D-oracle del 90.4% NO es un sistema: elige entre las diez primeras propuestas del detector usando la verdad-terreno, así que es una cota superior sobre cualquier reordenador de esas propuestas y nunca debe citarse como resultado de OWLv2. La comparación de latencia (263.5 ms por pasada del detector frente a 4216 ms de cómputo en la placa del VLM —prefill 3680 + decodificación 536—, es decir 16.0x y NO el 16.4x que sale de enfrentar reloj contra pasada, porque los 4319 ms de reloj incluyen unos 103 ms de base64 por un túnel ssh) enfrenta una sola pasada del detector con un anclaje generativo completo y excluye la etapa de selección que un sistema descompuesto seguiría necesitando; si esa etapa fuese a su vez un VLM, el ahorro desaparece. OWLv2 corrió en fp16 con transformers/PyTorch mientras que el VLM corrió en Q8_0 con llama.cpp, de modo que la razón de coste cruza dos motores de ejecución y es una observación de sistema, no una medición controlada de eficiencia. 5 de 439 descripciones (1.1%) superan el límite de 16 tokens del codificador de texto de OWLv2 y fueron truncadas.
 
 **P3-ROI-drift-robustness** — Sin barra numérica pre-registrada. Como la dirección de la deriva es una sola extracción, los números por nivel de desplazamiento arrastran error muestral en la PERTURBACIÓN además de en los ítems, y solo el primero está cuantificado. El peor nivel (1.0, M=2.0) sigue superando la línea base del 62.6%, que es la forma honesta de la afirmación.
 

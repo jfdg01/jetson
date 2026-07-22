@@ -1,7 +1,12 @@
 # R-16 — What a 2B VLM plus a promptable video tracker actually cost, co-resident, on 8 GB at 15 W
 
-**Status:** PRE-REGISTERED, gate not yet run · **Opened:** 2026-07-22T23:05Z · **Branch:** `main`
-**Part:** III (device characterisation; it re-measures a constant every Part IV/V campaign consumed)
+**Status:** COMPLETE · **Opened:** 2026-07-22T23:05Z · **Closed:** 2026-07-23T01:20Z · **Branch:** `main`
+**Part:** IV. The registry id is `P4-R16-carry-rate-1024` and all three ledger rows were appended
+under Part IV, so Part IV is the filing. An earlier draft of this line said Part III on the reasoning
+that the campaign is device characterisation re-measuring a constant every Part IV/V campaign
+consumed; that reasoning survives as a *writing* note, not a filing one — the thesis text belongs in
+the object-permanence chapter next to E1, which is the number R-16 corrects, while the ledger entry
+stays in Part IV. One campaign, one filing, stated once.
 **Machine:** Jetson Orin Nano 8 GB, 15 W + `jetson_clocks`. Every number here is on-device. · **Task:** R-16
 
 ## Why this exists (context to start cold)

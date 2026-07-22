@@ -183,8 +183,11 @@ the right box on 88.8% of items and cannot say which one it is. Only 49/439 (11.
 no correct box anywhere in the phrase arm's proposals.
 
 **Cost.** OWLv2 forward: 263.5 ms median (p90 264.1 — a flat, input-independent cost, unlike a
-generative decode). Peak CUDA 415.3 MB. Model load 3.6 s. Against the VLM's 4319 ms median wall
-this is **16.4× cheaper per call and ~5× smaller in peak memory**.
+generative decode). Peak CUDA 415.3 MB. Model load 3.6 s. Against the VLM's **4216 ms of on-device
+compute** (prefill 3680 + decode 536, R-14 arm A) this is **16.0× cheaper per call and ~5× smaller
+in peak memory**. The like-for-like comparator is compute, not the 4319 ms wall: the wall carries
+~103 ms of base64 over an ssh tunnel, and R-14's own record states that prefill and decode are
+Orin compute while the wall is not. Billing the cable to the VLM would read 16.4×.
 
 ### The architectural ceiling found on the way
 
@@ -239,12 +242,15 @@ six cases the correct box sits at rank 7–10 while ranks 1–3 are other, equal
 the same class scattered across the frame.
 
 **RQ-R13.3 (cost): the 2026-06-14 decision was right for the wrong reason.** That campaign closed
-the decomposed fork **on latency grounds alone, without measuring a detector**. OWLv2 is 16.4×
-*faster* than the VLM per call (263.5 ms vs 4319 ms) and needs 5× less memory. The latency
-argument was backwards. What actually rules the decomposed path out is the 41.5 pp selection gap —
-a quality argument, not a cost one.
+the decomposed fork **on latency grounds alone, without measuring a detector**. OWLv2 is 16.0×
+*faster* than the VLM per call (263.5 ms vs 4216 ms of on-device compute) and needs 5× less
+memory. The latency argument was backwards. What actually rules the decomposed path out is the
+41.5 pp selection gap — a quality argument, not a cost one.
 
-This does not overturn the architecture; it re-grounds it. **Caveat on the 16.4×:** it compares
+This does not overturn the architecture; it re-grounds it. **Two caveats on the 16.0×.** First,
+use compute and not the 4319 ms wall: the wall includes ~103 ms of base64 over an ssh tunnel and
+the detector figure is a synchronised device forward, so a wall-vs-forward ratio would read 16.4×
+and would bill the cable to the VLM — the same defect R-14's record calls out. Second, it compares
 one detector forward against one full generative anchor. A decomposed system would need the
 missing selection stage on top, and if that stage is itself a VLM the saving evaporates — which is
 the argument the thesis should be making, and could not make before this run.
