@@ -29,7 +29,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-13 | Detector baseline (OWLv2 on the Orin) | — | **DONE** (2026-07-22T22:40Z; claim `P3-R13-owlv2-vs-vlm`, survives Holm) |
 | R-14 | ROI on-device Q8_0 re-run | R-9 | DONE (2026-07-21T20:21Z; claim P3-ROI-M2.0-512-ondevice) |
 | R-15 | Per-item jsonl in `grounding/eval/harness.py` | R-14 | DONE (2026-07-21T20:21Z; items-{full,roi}.jsonl carry 439 rows each, paired the claim) |
-| R-16 | SAM2 co-residency characterisation (reframed campaign) | — | TODO |
+| R-16 | SAM2 co-residency characterisation (reframed campaign) | — | **DONE** (2026-07-23T01:20Z; `experiments/2026-07-22-sam2-coresidency/`, claim `P4-R16-carry-rate-1024`) |
 | R-17 | Fix E2–E4 rig prose | R-7 | **DONE** |
 | R-18 | Rebalance `thesis/00-esquema.md` to the surviving evidence | R-9 | TODO |
 | R-19 | Stale-verdict sweep of the first-read surfaces | after R-4 | **DONE** |
@@ -836,6 +836,40 @@ it says.
 
 Worth keeping in the thesis: this error ran **against** us for three campaigns —
 the anchor was on-device and we published that it was not.
+
+### Outcome (2026-07-23T01:20Z) — DONE, and it corrected its own task description
+
+Campaign: `experiments/2026-07-22-sam2-coresidency/`. Gate G0 PASS, M1/M2/M3/M4 measured on the
+Orin, four proof figures, ledger rows under Part IV, registry claim `P4-R16-carry-rate-1024`.
+
+**The headline: `CARRY_HZ = 6.15` is 2.30x optimistic**, decomposing as 1.83x image size
+(768 -> 1024) x 1.26x runtime (TensorRT -> eager). Deployed per-candidate rate is **2.688 Hz**.
+The E1 arm reproduces its published 6.15 exactly (6.190), so this is not drift — 6.15 described a
+configuration that was never deployed. Consequence: `select_p53.py:84` sampled every 10th frame
+where the board allows every 22nd offline, every 56th co-resident.
+
+**Every numeric prediction in the section above was itself measured at 768**, and the measurements
+at the deployed 1024 overturn three of them. This is worth stating plainly, because the section
+was written to fix exactly this defect and then committed it:
+
+| the audit above predicted | measured at the deployed 1024 | |
+|---|---|---|
+| two states run at 2.87 Hz/candidate, "not 3.075" — the `/2` is optimistic | **exactly `rate(1)/N`**: 743.2 ms vs 744.2 predicted (0.14%), 1111.6 vs 1116.3 at n=3 | **WRONG — the `/2` assumption was correct all along** |
+| each 100-frame ring costs ~675 MB | **~1258 MB** (12.0 MB/frame/state measured, vs 12.58 MB for a float32 1024² frame) | wrong by 1.9x — 675 MB is the 768 figure |
+| batching `tick = 70 + 92n` vs `162n` separate | `tick ~= 202 + 170n` vs `~372n` | same shape, 768 magnitudes |
+| SAM2 is immune under real load (255.0 vs 254.1 ms) | **2.3x cost**, uniform across every size/ring/N | **FALSIFIED** |
+| two candidates leave 80 MB MemAvailable | two candidates + VLM under load are **OOM-KILLED** at the deployed ring | worse than predicted |
+
+So the entire error in `CAND_HZ` is the size mismatch, not the division — the opposite of what the
+task said to go and confirm. And the one prediction that held qualitatively, "memory not rate is
+the binding constraint", holds much harder than stated: it is not that memory gets tight at N=2,
+it is that **N=2 does not run**. `PRUNE_AFTER = 32` makes the same workload survive for no measured
+rate cost, which is the single most actionable output of this campaign and a **P6.2 prerequisite**
+(see D-R16.2 for why it was deliberately not applied here).
+
+**What this does NOT do:** it does not invalidate the Part IV/V select results. Those are mostly
+negative, and an optimistic carry rate makes a negative harder to explain away, not easier — see
+D-R16.1. R-5 already covers the select result's standing.
 
 ## R-18 — Rebalance the outline
 

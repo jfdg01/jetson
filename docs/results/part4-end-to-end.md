@@ -929,3 +929,40 @@ problems E20's tight cell suppressed (distractors + moving-target staleness); op
 fuzz-tolerance and small distractor-free crops are in tension. Proof: `proof/cell_sweep.png`,
 `proof/car10_E18_vs_E23tol_regression.mp4`, `proof/car9_E23tol_stale.mp4`,
 `proof/car14_E23tol_survivor.mp4`. Raw: `experiments/2026-07-04-tolerant-cells/raw/`.
+
+
+### R-16 — SAM2 carry rate + VLM co-residency, re-measured on-device (2026-07-23)
+
+| cell | image_size | encoder | n | tick ms p50 | per-cand Hz | note |
+|---|---|---|---|---|---|---|
+| E1 reproduction | 768 | TRT fp16 | 1 | 161.5 | **6.190** | reproduces E1's published 6.15 |
+| size ablation | 768 | eager | 1 | 203.9 | 4.906 | |
+| **deployed** | **1024** | **eager** | 1 | 372.1 | **2.688** | **2.30x below the inherited constant** |
+| deployed, 2 cand | 1024 | eager | 2 | 743.2 | 1.346 | exactly `rate(1)/2` (744.2 predicted) |
+| deployed, 3 cand | 1024 | eager | 3 | 1111.6 | 0.900 | exactly `rate(1)/3` |
+| batched, 2 cand | 1024 | eager | 2 | 541.9 | 1.845 | 1.37x faster, masks IoU 1.000 identical |
+| batched, 3 cand | 1024 | eager | 3 | 711.9 | 1.405 | 1.56x faster |
+
+| co-residency cell (VLM serving real grounding calls) | tick p50 solo | tick p50 under load | carry cost | VLM wall p50 | swap |
+|---|---|---|---|---|---|
+| n=1, 1024, ring 100 | 422.3 ms | 979.2 ms | 2.32x | 7298 ms | +2923 MB |
+| n=1, 1024, ring 32 | 419.7 ms | 930.7 ms | 2.22x | 8129 ms | +140 MB |
+| n=1, 768, ring 100 | 240.0 ms | 549.4 ms | 2.29x | 7454 ms | +701 MB |
+| n=2, 1024, ring 100 | 825.5 ms | **OOM-KILLED** | — | — | — |
+| n=2, 1024, ring 32 | 819.7 ms | 1850.4 ms | 2.26x | 8379 ms | +1287 MB |
+
+Orin Nano 8 GB, 15 W + `jetson_clocks`, torch 2.8.0, `sam2.1-hiera-tiny`, deployed
+`phase3-terse100eos-1024-q8_0` server (RSS 3.72 GB). VLM alone under the same load: 3753 ms p50.
+Gate G0: batched vs separate mask IoU **1.000 on all 500 object-frames** at n=2 and n=3 — the
+batching lever is bit-identical, not approximate. The `CARRY_HZ = 6.15` every Part IV/V replay
+emulated was measured at `image_size` 768 with a TensorRT encoder; the deployed stack runs 1024
+eager. Correction decomposes as **1.83x size x 1.26x runtime = 2.30x**. Consequence:
+`select_p53.py:84` sampled each candidate every 10th frame at 30 fps where the board allows every
+22nd (offline) or every 56th (co-resident, ring 32). Memory, not rate, is the binding constraint:
+the O(N) term is the materialised video at 12.0 MB/frame/state, `StreamCarry`'s ring is sized in
+frames, and at the deployed `PRUNE_AFTER = 100` two candidates plus the VLM **do not fit** —
+the same workload runs at ring 32 for no measured rate cost. E1's "co-residency costs 0 FPS" was
+measured against an *idle* server and is falsified under real load (uniform ~2.3x on the carry,
+~2x on the VLM). Proof: `proof/boxes-on-frame.png`, `proof/rate-decomposition.png`,
+`proof/scaling-and-batching.png`, `proof/coresidency.png`. Raw:
+`experiments/2026-07-22-sam2-coresidency/raw/`.

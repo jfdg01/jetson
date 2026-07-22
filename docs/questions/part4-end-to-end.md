@@ -478,3 +478,22 @@
   it trades E20's cageyness for distractor exposure. Operator fuzz-tolerance and small
   distractor-free crops are in tension — closing it needs an appearance-gated (not just geometric)
   acquire or a faster acquire, not a bigger cell. Closes the E20 UX-hardening coda.
+
+
+- **RQ-R16 (2026-07-23) — what does the deployed VLM + promptable tracker pair actually cost,
+  co-resident on 8 GB at 15 W, and is the `CARRY_HZ = 6.15` constant the Part IV/V replays
+  emulated correct?** **NO — the constant is 2.30x optimistic, and memory binds before rate.**
+  Five sub-questions, all answered on-device. **RQ-R16.0 (gate) YES, exactly:** a batched
+  N-`obj_id` SAM2 state tracks masks bit-identical to N separate states (IoU 1.000 on all 500
+  object-frames, n=2 and n=3), so the batching speedup is a pure lever. **RQ-R16.1: 2.30x**,
+  decomposing as 1.83x image size (768→1024) x 1.26x runtime (TensorRT→eager); the deployed
+  per-candidate rate is **2.688 Hz**, not 6.15. E1's 6.15 reproduces exactly (6.190) — the gap is
+  not drift, it is that 6.15 was measured on a configuration never deployed. **RQ-R16.2: exactly
+  `rate(1)/N`** (within 0.14% at n=2, 0.4% at n=3) — this *corrects R-16's own premise*, which
+  held that the division was itself pessimistic; batching beats `/N` by 1.37x/1.56x. **RQ-R16.3:
+  MEMORY, at N=2** — two candidates at the deployed `PRUNE_AFTER = 100` ring plus the VLM under
+  load are OOM-killed; rate degrades gracefully, memory kills the process. **RQ-R16.4: ~2.3x on
+  the carry and ~2x on the VLM, uniform** across every size/ring/N measured — falsifying E1's
+  "co-residency costs 0 FPS", which was measured against an *idle* resident server. The pre-
+  registered estimate that M3 would land "within 5% of solo" was taken on faith from E1 and is the
+  one badly wrong estimate; it was wrong for the same reason the number it trusted was.

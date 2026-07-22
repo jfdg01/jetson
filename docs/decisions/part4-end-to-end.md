@@ -669,3 +669,28 @@
   fuzz-tolerance — the acquire still demands the operator's spatial phrase agree with the geometric
   third; buying tolerance needs an appearance-gated or faster acquire, not a bigger crop. This is
   the standing recommendation the acquire-arc UX coda lands on.
+- **D-R16.1 — retire `CARRY_HZ = 6.15`; do NOT re-run the Part IV/V campaigns.** *What:* the
+  constant is 2.30x optimistic for the deployed stack, so every replay that emulated it sampled
+  candidates 2.2x more often than the board allows. New harnesses start from the measured 2.688 Hz
+  (solo) / 1.346 Hz (n=2) / 0.540 Hz (n=2 co-resident). Existing Part IV/V results keep their
+  numbers and gain a caveat in `thesis/claims.json` pointing at R-16. *Why:* the affected results
+  are mostly *negative* (select NOs), and an optimistic carry rate makes a negative result harder
+  to explain away, not easier — re-running them at a slower stride would spend weeks to strengthen
+  conclusions that already hold. The exception is any result whose PASS depended on carry
+  freshness; those are flagged, not re-run. *Given up:* the ability to state Part IV/V latencies as
+  deployed-system latencies without a pointer to this correction.
+- **D-R16.2 — do NOT change `PRUNE_AFTER` in this campaign, despite measuring that it must
+  change.** *What:* two candidates plus the VLM under load is OOM-killed at the deployed ring of
+  100 frames and runs at 32 for no measured rate cost (2.383 vs 2.368 Hz solo). The constant is
+  left as-is and the finding is handed to P6.2 as a prerequisite. *Why:* the ring is a memory
+  *horizon*, not just a buffer — shortening it is a behavioural change to how long SAM2 can re-find
+  an occluded target, and P5.15 (carry-horizon) is the evidence base for that question. Shipping a
+  one-line constant edit off the back of a throughput bench would be exactly the untested-config
+  inheritance this campaign exists to correct. *Given up:* an immediate fix; P6.2 must gate it.
+- **D-R16.3 — the batched-carry lever is available but unadopted.** *What:* one SAM2 state with N
+  `obj_id`s is 1.37x (n=2) / 1.56x (n=3) faster than N separate states and, per G0, tracks
+  bit-identical masks. Not adopted here. *Why:* the harness's one-`StreamCarry`-per-candidate
+  structure is what every Part IV/V result was measured through, and swapping it is a rewrite of
+  the carry layer, not a flag. *Given up:* a free 1.4-1.6x, deliberately deferred to whoever
+  rebuilds the carry for P6.2 — where it composes with D-R16.2, since batching also flattens the
+  per-candidate memory cost (state cost 1516 MB batched vs 2611 MB separate at n=2).

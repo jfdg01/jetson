@@ -194,6 +194,24 @@ crosses two engines and is recorded in the claim's caveats as a system-level obs
 a controlled efficiency measurement. That distinction is exactly the composite defect this
 section exists to catch, so it is stated in the registry rather than left to the reader.
 
+**Sixth on-device claim (2026-07-23T01:20Z, R-16).** `P4-R16-carry-rate-1024` is assigned
+`machine: jetson-orin-nano-8gb` and added to the ratchet. This one is the least ambiguous of
+the six: **there is no other machine in it to disclose.** Both halves are the board's own —
+SAM2 2.1-hiera-tiny stepping on the Orin's iGPU and the deployed
+`phase3-terse100eos-1024-q8_0` llama-server resident in the same 8 GB, contending for it.
+The whole point of the campaign is the contention, which cannot be measured anywhere else
+and cannot be assembled from two separate measurements; the OOM cell in particular exists
+only on a machine where both halves are real at once.
+
+The reason it belongs in this section anyway is the inverse defect. R-16 exists because
+`CARRY_HZ = 6.15` — an honestly-measured *on-device* number from E1 — was reused across every
+Part IV/V replay as though it described the deployed system, when it had been measured at
+`image_size` 768 with a TensorRT encoder that the deployed stack does not use. So a claim can
+carry the right machine label and still be a composite: **the machine is not the only thing a
+number inherits from its measurement.** Configuration is the other one, and this ledger had no
+column for it. The 2.30x correction is what that gap cost. Any future audit of this kind should
+ask not only "which machine" but "which configuration, and is it the deployed one".
+
 ### M4 — P5.2, the flagship Part V generalization number, is an undisclosed composite
 
 `2026-07-04-warm-start-generalization` (W 21/25 vs COLD 5/25). **The string «3090» does

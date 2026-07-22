@@ -2,7 +2,7 @@
 title: Resultados estadísticos retroactivos
 subtitle: Cada afirmación con puerta de las Partes I-VI, re-analizada
 author: Javier Francisco Dibo Gómez
-comment: Generado por thesis/run_stats.py, 2026-07-22T22:19Z
+comment: Generado por thesis/run_stats.py, 2026-07-22T23:52Z
 locale: es
 ---
 
@@ -68,6 +68,7 @@ derivación por afirmación está en
 | E13-colour-gate | IV | binario de un brazo | **ambas** | 1 | IC de Wilson | indefinido | — | **no** | sin puerta pre-registrada; solo intervalo [deflactado desde 0/3: ver independence_note] |
 | E9-retarget-switch | IV | binario de un brazo | **ambas** | 1 | IC de Wilson | indefinido | — | **no** | sin puerta pre-registrada; solo intervalo [deflactado desde 3/3: ver independence_note] |
 | E10-fast-follow-ceiling | IV | descriptivo | **ambas** | 4 | descriptiva | indefinido | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
+| P4-R16-carry-rate-1024 | IV | descriptivo | Jetson | 1 | descriptiva | indefinido | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
 | P5.1-warm-vs-cold | V | binario pareado | **ambas** | 6 | McNemar exacta | 0.5 | 1 | sí | no significativa (b=2, c=0); hacían falta >=6 discordantes en una dirección, hubo 2 [deflactado desde b=4, c=0] |
 | P5.2a-warm-generalization | V | binario pareado | **ambas** | 23 | McNemar exacta | 6.104e-05 | 0.00177 | sí | significativa (b=15, c=0) [deflactado desde b=16, c=0] |
 | P5.2b-speed-sweep | V | continuo pareado | **ambas** | 23 | ninguna | indefinido | — | **no** | solo sobreviven estadísticos agregados; hacen falta los valores por elemento para una prueba |
@@ -100,13 +101,13 @@ derivación por afirmación está en
 ## Qué sobrevive
 
 - **Significativas tras corrección de Holm (8):** P1-S3.3-export-parity-catastrophe, P2-RQ2.1-resolution-ladder-1024, P2-RQ3.1-lora-aerial-gate, P3-ROI-M2.0-512, P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm, P5.2a-warm-generalization, P5.12-bankv21-recal
-- **Sin prueba posible, 0 pares discordantes (32):** P1-S1.2-zeroshot-smolvlm, P1-S3.4-coco-to-aerial-domain-shift, P1-S1.3-phaseB-control-stack, P2-RQ0.3-spine-selection, P2-RQ1.1-dataset-well-posedness, P3-wholeframe-resolution-knee, P3-ROI-drift-robustness, P3-E1-TRT-fps, P3-E1-TRT-mask-parity, P3-T1-memoryless-baseline, P3-T0a-anchor-cadence, P3-T4a-tracker-cost, E20-acquire-latency, E19-motion-compensated-acquire, E17-reground-chase, E14-identity-hole, E13-colour-gate, E9-retarget-switch, E10-fast-follow-ceiling, P5.2b-speed-sweep, P5.9-kerbsafe-scenebank, P5.10-simbank-select, P5.13-dd-vs-rg-tie, P5.19-wsel-no-regression, P5.19-grace-precision, P5.18-shadow-rg-ceiling, P5.19-shadow-rg-ceiling, P5.20-carry-capacity, P5.20-replication-of-P5.19, P5.17-dd-vs-rg-tie-n56, P6.0-flight-rig-gate, P6.1-carla-renderer
-- **Diseño incapaz de alcanzar alpha (37):** P1-S1.2-zeroshot-smolvlm, P1-S3.4-coco-to-aerial-domain-shift, P1-S1.3-phaseB-control-stack, P2-RQ0.3-spine-selection, P2-RQ1.1-dataset-well-posedness, P3-wholeframe-resolution-knee, P3-ROI-drift-robustness, P3-E1-TRT-fps, P3-E1-TRT-mask-parity, P3-T1-memoryless-baseline, P3-T0a-anchor-cadence, P3-T4a-tracker-cost, E18-A-vs-gate, E20-acquire-latency, E22-cv-prior-phase0, E16-relock-replication, E17-reground-chase, E14-identity-hole, E13-colour-gate, E9-retarget-switch, E10-fast-follow-ceiling, P5.2b-speed-sweep, P5.3-multi-candidate-select, P5.4-crop-select, P5.5-select-generalization, P5.9-kerbsafe-scenebank, P5.14-wsel, P5.14-swap, P5.14-shadow-rg-disagreement, P5.16-autodisc-wsel, P5.18-n25-wsel, P5.18-n25-swap, P5.19-grace-precision, P5.18-shadow-rg-ceiling, P5.19-shadow-rg-ceiling, P6.0-flight-rig-gate, P6.1-carla-renderer
+- **Sin prueba posible, 0 pares discordantes (33):** P1-S1.2-zeroshot-smolvlm, P1-S3.4-coco-to-aerial-domain-shift, P1-S1.3-phaseB-control-stack, P2-RQ0.3-spine-selection, P2-RQ1.1-dataset-well-posedness, P3-wholeframe-resolution-knee, P3-ROI-drift-robustness, P3-E1-TRT-fps, P3-E1-TRT-mask-parity, P3-T1-memoryless-baseline, P3-T0a-anchor-cadence, P3-T4a-tracker-cost, E20-acquire-latency, E19-motion-compensated-acquire, E17-reground-chase, E14-identity-hole, E13-colour-gate, E9-retarget-switch, E10-fast-follow-ceiling, P4-R16-carry-rate-1024, P5.2b-speed-sweep, P5.9-kerbsafe-scenebank, P5.10-simbank-select, P5.13-dd-vs-rg-tie, P5.19-wsel-no-regression, P5.19-grace-precision, P5.18-shadow-rg-ceiling, P5.19-shadow-rg-ceiling, P5.20-carry-capacity, P5.20-replication-of-P5.19, P5.17-dd-vs-rg-tie-n56, P6.0-flight-rig-gate, P6.1-carla-renderer
+- **Diseño incapaz de alcanzar alpha (38):** P1-S1.2-zeroshot-smolvlm, P1-S3.4-coco-to-aerial-domain-shift, P1-S1.3-phaseB-control-stack, P2-RQ0.3-spine-selection, P2-RQ1.1-dataset-well-posedness, P3-wholeframe-resolution-knee, P3-ROI-drift-robustness, P3-E1-TRT-fps, P3-E1-TRT-mask-parity, P3-T1-memoryless-baseline, P3-T0a-anchor-cadence, P3-T4a-tracker-cost, E18-A-vs-gate, E20-acquire-latency, E22-cv-prior-phase0, E16-relock-replication, E17-reground-chase, E14-identity-hole, E13-colour-gate, E9-retarget-switch, E10-fast-follow-ceiling, P4-R16-carry-rate-1024, P5.2b-speed-sweep, P5.3-multi-candidate-select, P5.4-crop-select, P5.5-select-generalization, P5.9-kerbsafe-scenebank, P5.14-wsel, P5.14-swap, P5.14-shadow-rg-disagreement, P5.16-autodisc-wsel, P5.18-n25-wsel, P5.18-n25-swap, P5.19-grace-precision, P5.18-shadow-rg-ceiling, P5.19-shadow-rg-ceiling, P6.0-flight-rig-gate, P6.1-carla-renderer
 - **Sin datos crudos, en cola de re-ejecución (3):** P1-S1.4-phaseC-vlm-closed-loop, P3-T2-permanence-reid, P3-T3-closedloop-coverage
 
 ## Salvedades por afirmación
 
-Las 69 afirmaciones con salvedad registrada, **literales**
+Las 70 afirmaciones con salvedad registrada, **literales**
 desde `thesis/claims.json`. Una salvedad limita lo que su fila de la tabla
 puede sostener: léase junto al valor p, nunca en su lugar. Varias retiran
 por completo la lectura ingenua del número.
@@ -192,6 +193,8 @@ por completo la lectura ingenua del número.
 **E9-retarget-switch** — Una demostración de capacidad sobre un único escenario. La prueba de humo de color (blanco 10/10, azul 10/10) es una pata distinta y mejor respaldada porque varía la entrada en lugar de repetir la ejecución.
 
 **E10-fast-follow-ceiling** — Un barrido de búsqueda de umbral, y las repeticiones deterministas son en realidad una VIRTUD aquí: establecen que la frontera entre 2.5 y 3.0 es una propiedad del controlador y no de la extracción. Presentarlo como '3/3 frente a 0/2' invita a una prueba que carecería de sentido; presentarlo como un techo medido con cuatro configuraciones es lo correcto.
+
+**P4-R16-carry-rate-1024** — Medición determinista, no inferencial: no hay p-valor porque no hay muestreo — cada celda es una configuración fija cronometrada 94 veces. Tres salvedades. (1) El brazo 1024+TensorRT NO SE EJECUTÓ: el plan `enc768.plan` de la placa está compilado para 768 y no puede servir 1024, así que la descomposición 1,83x tamaño x 1,26x runtime se apoya en tres celdas, no en las cuatro de un diseño factorial completo. (2) La carga del VLM es un único cliente en bucle cerrado con la misma imagen y el mismo prompt, no una traza de vuelo real; mide contención de memoria y de iGPU, no un patrón de peticiones realista. (3) La corrección 2,30x NO invalida por sí sola ningún resultado de las Partes IV-V: esos resultados son mayoritariamente NEGATIVOS (los NO del select), y una tasa de arrastre optimista hace un resultado negativo más difícil de explicar, no más fácil. Lo que sí queda afectado es cualquier latencia de las Partes IV-V presentada como latencia del sistema desplegado, y el `PRUNE_AFTER = 100` desplegado, que con dos candidatos y el VLM bajo carga muere por OOM.
 
 **P5.1-warm-vs-cold** — p = 0.125. El primer YES de la Parte V no es estadísticamente significativo: n=6 exige que se inviertan los seis pares y se invirtieron cuatro. La condición pre-registrada de superconjunto (el conjunto de PASS de WARM contiene el de COLD) es una comprobación estructural más fuerte que el recuento y se cumplió: eso, más la coincidencia exacta con el oráculo, es la forma defendible de la afirmación. P5.2 es lo que realmente lo certifica.
 
