@@ -200,3 +200,51 @@ Upper-bound caveat: the ROI prior is the oracle inflated GT box (same as the ori
 this bounds what the deployed tracker-driven re-anchor gets from a drifted box.
 
 **Composite-comparison correction (2026-07-21T20:20Z, R-7/R-21):** the earlier parenthetical "85.2% @ ≈2.0 s, beats even 1920 whole-frame" put three configurations side by side as if they were one measurement. **85.2%** is HF bf16 on the RTX 3090 with the *JSON-format* checkpoint (`2026-06-25-roi-crop-anchor/sweep_summary.json`), measured at 1374 ms Orin prefill + 964 ms decode ≈ **2.33 s** in that harness. The **≈2.0 s** is a different thing: the deployed *terse* Q8_0 re-anchor cadence measured on-device (`2026-06-26-roi-demo-tab/README.md`: 2021 ms, range 1694–2081, n=10), whose decode is ~535 ms because of the terse lever. The **65.1%** at 1920 is Orin Q8_0 terse (this table). So neither the accuracy nor the latency in that sentence was measured on the configuration it describes, and "beats even 1920 whole-frame" is not a like-for-like on-device comparison. What is supported: the ROI crop is ~2.7× cheaper in prefill on the Orin, and it is far more accurate than full-frame @512 on the same machine and runtime. The on-device Q8_0 ROI accuracy that would make this one comparison is open — see [`experiments/2026-07-21-roi-ondevice/`](../../experiments/2026-07-21-roi-ondevice/README.md) (R-14), which pairs a full-frame @1024 control against the M=2.0 @512 ROI arm on the Orin at Q8_0.
+
+## 2026-07-22 — R-13 detector baseline: OWLv2 vs the deployed VLM, both on the Orin
+
+The missing comparison behind the whole architecture. The 2026-06-14 campaign closed the
+"end-to-end VLM vs decomposed detector+LLM" fork **on latency grounds alone, with no detector
+ever run**. This runs it: `google/owlv2-base-patch16-ensemble` fp16 on the Orin Nano (15 W +
+`jetson_clocks`), same 439 RefDrone val samples, same `contract.py` scoring path, VLM comparator
+taken unchanged from R-14 arm A (no re-run). 1317 forward passes in 459.9 s.
+
+| arm | k/n | IoU@0.25 | mean IoU | center_std | latency ms (med) |
+|---|---|---|---|---|---|
+| VLM Q8_0 full-frame @1024 (R-14 arm A) | 277/439 | **63.10%** | 0.477 | 21.9 | 4319 (wall) |
+| D-oracle — best of top-10 chosen with GT | 397/439 | **90.43%** | 0.789 | 22.5 | — (bound, not a system) |
+| D-phrase — noun phrase, adjectives kept | 208/439 | 47.38% | 0.414 | 23.7 | 263.5 (forward) |
+| D-full — the whole referring expression | 113/439 | 25.74% | 0.228 | 21.9 | 263.5 (forward) |
+| D-head — bare head noun | 108/439 | 24.60% | 0.219 | 22.7 | 263.5 (forward) |
+
+Paired McNemar, VLM vs each arm, deflated to n_effective=316 unique images: vs D-full b=186 c=22
+(**p=2.2e-24**), vs D-phrase b=100 c=31 (**p=2.3e-07**), vs D-head b=181 c=12 (p=1.3e-28), vs
+D-oracle b=1 c=121 (p=5.8e-25, **in the detector's favour**). `center_std` is flat at 21.9-23.7
+across all arms, so no rate is a mode-collapse artefact.
+
+**The result is a decomposition, not a rate.** D-phrase recall@k = 47.4 / 63.0 / 72.4 / 81.5 /
+88.8% at k = 1 / 2 / 3 / 5 / 10. OWLv2's *second* proposal already ties the VLM's top-1 (63.0% vs
+63.10%), and by k=10 it holds the right box on 88.8% of items without being able to say which one
+it is — a **41.5 pp selection gap**. Only 49/439 (11.2%) of items have no correct box anywhere in
+its proposals. Two supporting splits: relational language actively *hurts* (D-full is 21.6 pp
+below D-phrase — the clause is scored, not ignored, and drags the match off target), and
+appearance adjectives carry the whole detector contribution (D-phrase − D-head = 22.8 pp).
+
+**Cost, which reverses the original rationale.** OWLv2 forward 263.5 ms median (p90 264.1 — flat
+and input-independent) at 415.3 MB peak CUDA, against the VLM's 4319 ms wall: **16.4x cheaper per
+call, ~5x smaller**. The 2026-06-14 latency argument was backwards. What rules the decomposed path
+out is the selection gap, a quality argument. Caveat: that 16.4x compares one detector forward to
+one full generative anchor, and a decomposed system still needs the selection stage nobody has
+costed — if that stage is itself a VLM the saving evaporates.
+
+**Architectural ceiling found on the way:** OWLv2's text encoder has `max_position_embeddings=16`
+and a 17-token query *crashes* the forward pass rather than degrading (this killed the first full
+run). RefDrone captions are 7-27 tokens (median 10), so 5/439 (1.1%) exceed what the model can
+represent at all. A hard 16-token budget for a task whose inputs are sentences is a finding about
+fitness, not a nuisance.
+
+Registry: `P3-R13-owlv2-vs-vlm`, `machine: jetson-orin-nano-8gb`. Proof:
+`experiments/2026-07-21-detector-baseline/proof/{arms-bar,oracle-gap,qualitative-grid}.png`.
+Full record incl. the pixel-vs-0-100 contamination bug and the verb-leak in head extraction:
+[`experiments/2026-07-21-detector-baseline/`](../../experiments/2026-07-21-detector-baseline/README.md).
+

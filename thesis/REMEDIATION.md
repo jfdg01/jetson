@@ -26,7 +26,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-10 | Vacuous-metric audit | R-7 | DONE |
 | R-11 | Thesis section: multi-agent development as method | — | **DONE** (draft) |
 | R-12 | Render `caveats` into `stats-report.md` | R-9 | **DONE** `5b6f7ab` |
-| R-13 | Detector baseline (OWLv2 on the Orin) | — | TODO |
+| R-13 | Detector baseline (OWLv2 on the Orin) | — | **DONE** (2026-07-22T22:40Z; claim `P3-R13-owlv2-vs-vlm`, survives Holm) |
 | R-14 | ROI on-device Q8_0 re-run | R-9 | DONE (2026-07-21T20:21Z; claim P3-ROI-M2.0-512-ondevice) |
 | R-15 | Per-item jsonl in `grounding/eval/harness.py` | R-14 | DONE (2026-07-21T20:21Z; items-{full,roi}.jsonl carry 439 rows each, paired the claim) |
 | R-16 | SAM2 co-residency characterisation (reframed campaign) | — | TODO |
@@ -1016,7 +1016,24 @@ instead of copying the audit finding, which is what it was asked to do. That is 
 part1 edits generally, not proof of all twelve; the other ten rows are recorded as
 reconstructed-from-diff and are labelled as such in the JSON `source` field.
 
-**R-13 — pre-registered, not started.** `experiments/2026-07-21-detector-baseline/README.md` is
+**R-13 — DONE 2026-07-22T22:40Z.** The VLM wins the primary comparison decisively (63.10% vs
+D-full 25.74%, p=2.2e-24 deflated; vs the detector's strongest arm D-phrase 47.38%, p=2.3e-07),
+so the architecture premise is now measured rather than assumed. Two findings beyond the gate:
+
+1. **OWLv2's failure is selection, not localisation.** D-oracle 90.43% beats the VLM itself, and
+   D-phrase recall@10 is 88.8% against 47.4% at top-1 — a 41.5 pp selection gap, with its rank-2
+   proposal already tying the VLM's top-1. The decomposed architecture is missing a selection
+   stage nobody costed, and that stage is the expensive part.
+2. **The 2026-06-14 decision was right for the wrong reason.** That campaign closed this fork «on
+   latency grounds alone» without running a detector. OWLv2 is 16.4x *cheaper* per call (263.5 ms
+   vs 4319 ms) and 5x smaller. The rationale in that campaign is superseded by D-R13 in
+   `docs/decisions/part3-permanence.md`; the decision itself stands, on quality grounds.
+
+Recorded caveats: the registry counts use D-phrase (the strongest arm, added post-registration and
+pre-scoring, declared in the README) not the weaker end-to-end D-full; D-oracle uses GT and is a
+bound, never a system; the latency ratio crosses two runtimes (PyTorch fp16 vs llama.cpp Q8_0).
+
+**Superseded pre-registration note:** `experiments/2026-07-21-detector-baseline/README.md` is
 complete and committed: OWLv2 vs the deployed VLM on the Orin, with the D-full / D-head /
 D-oracle decomposition that keeps it from being a strawman. It is blocked on R-14 (which supplies
 the VLM comparator and is holding the board) and on installing `transformers` into the Jetson's

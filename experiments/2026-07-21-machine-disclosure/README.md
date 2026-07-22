@@ -183,6 +183,17 @@ genuine Orin end-to-end assignment: both arms are the Orin's own Q8_0 output, no
 subtracted. The cross-machine composite that this section flagged is now retired for the ROI
 headline — the number is measured, not assembled.
 
+**Fifth on-device claim (2026-07-22T22:40Z, R-13).** `P3-R13-owlv2-vs-vlm` is also assigned
+`machine: jetson-orin-nano-8gb` and added to the ratchet. Both halves are the Orin's own
+output: OWLv2 fp16 ran on the board (`experiments/2026-07-21-detector-baseline/`, 1317
+forward passes, peak 415 MB) and the VLM comparator is R-14 arm A, itself measured on the
+board in the session above and reused unchanged rather than re-run. **The runtimes differ** —
+OWLv2 via transformers/PyTorch, the VLM via llama.cpp Q8_0 — so the *accuracy* comparison is
+clean (same items, same `contract.py` path, same machine) while the 16.4x *latency* ratio
+crosses two engines and is recorded in the claim's caveats as a system-level observation, not
+a controlled efficiency measurement. That distinction is exactly the composite defect this
+section exists to catch, so it is stated in the registry rather than left to the reader.
+
 ### M4 — P5.2, the flagship Part V generalization number, is an undisclosed composite
 
 `2026-07-04-warm-start-generalization` (W 21/25 vs COLD 5/25). **The string «3090» does

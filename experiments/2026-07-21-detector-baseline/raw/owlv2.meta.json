@@ -1,0 +1,12 @@
+{
+  "model": "google/owlv2-base-patch16-ensemble",
+  "device": "cuda",
+  "dtype": "float16",
+  "topk": 10,
+  "n": 439,
+  "load_s": 3.6,
+  "run_s": 459.9,
+  "peak_cuda_mb": 415.3,
+  "transformers": "5.14.1",
+  "torch": "2.8.0"
+}

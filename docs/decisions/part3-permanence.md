@@ -114,3 +114,12 @@
 ### 2026-06-30 — Whole-frame hi-res rejected for deployment; ROI-crop lever justified
 
 - On-device sweep (Orin 15 W Q8_0, n=439): whole-frame 1024 is the accuracy/latency knee (63.1% IoU@0.25 @ 4.4 s) but too slow for the ~2 s anchor budget; 1536/1920 add latency for ≤2.3pp and 1920 duplicates 1536 (downscale-only native clamp). The ROI-crop lever reaches 85.2% @ ≈2.0 s, so whole-frame hi-res stays a reference baseline, not a deployment mode. Full writeup: [`experiments/2026-06-30-whole-frame-resolution/`](../../experiments/2026-06-30-whole-frame-resolution/README.md).
+
+### 2026-07-22 — The end-to-end VLM architecture is kept, but on quality grounds, not latency
+
+- **Chosen:** keep the single end-to-end VLM for referring-expression grounding; do not reopen the decomposed detector+selector path.
+- **Why:** R-13 measured the alternative for the first time. OWLv2 loses on accuracy against the deployed VLM in every configuration a real system could ship (63.10% vs 47.38% at its best, p=2.3e-07 deflated), and the gap is a *selection* failure it cannot fix by itself — it already holds the correct box on 88.8% of items and ranks it below top-1 on 41.5 pp of them.
+- **What was given up, and the correction it forces:** the previous justification. The 2026-06-14 campaign closed this fork **on latency grounds alone without running a detector**, and that reasoning is now falsified — OWLv2 is 16.4x cheaper per call and 5x smaller on the same board. The decision stands; its stated rationale in that campaign does not, and this entry supersedes it.
+- **What is deliberately not done:** building an OWLv2 + selection-stage stack. The measurement says such a stack would need a selector strong enough to resolve referring expressions over ~10 candidate boxes, which is the expensive model again. That is a new thesis, not a missing experiment, and it belongs in the discussion chapter as future work.
+- **More:** [`experiments/2026-07-21-detector-baseline/`](../../experiments/2026-07-21-detector-baseline/README.md)
+

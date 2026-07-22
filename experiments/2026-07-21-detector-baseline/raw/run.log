@@ -1,0 +1,22 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/418 [00:00<?, ?it/s]Loading weights:  55%|█████▌    | 230/418 [00:00<00:00, 2298.28it/s]Loading weights: 100%|██████████| 418/418 [00:00<00:00, 1901.83it/s]
+[r13] google/owlv2-base-patch16-ensemble on cuda in 3.6s, 155.0M params
+  [r13] 25/439  1.08s/sample  eta 7.4min
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (17 > 16). Running this sequence through the model will result in indexing errors
+  [r13] 50/439  1.05s/sample  eta 6.8min
+  [r13] 75/439  1.05s/sample  eta 6.3min
+  [r13] 100/439  1.05s/sample  eta 5.9min
+  [r13] 125/439  1.06s/sample  eta 5.5min
+  [r13] 150/439  1.07s/sample  eta 5.2min
+  [r13] 175/439  1.06s/sample  eta 4.7min
+  [r13] 200/439  1.06s/sample  eta 4.2min
+  [r13] 225/439  1.05s/sample  eta 3.8min
+  [r13] 250/439  1.05s/sample  eta 3.3min
+  [r13] 275/439  1.05s/sample  eta 2.9min
+  [r13] 300/439  1.04s/sample  eta 2.4min
+  [r13] 325/439  1.04s/sample  eta 2.0min
+  [r13] 350/439  1.05s/sample  eta 1.6min
+  [r13] 375/439  1.05s/sample  eta 1.1min
+  [r13] 400/439  1.04s/sample  eta 0.7min
+  [r13] 425/439  1.04s/sample  eta 0.2min
+[r13] done {'model': 'google/owlv2-base-patch16-ensemble', 'device': 'cuda', 'dtype': 'float16', 'topk': 10, 'n': 439, 'load_s': 3.6, 'run_s': 459.9, 'peak_cuda_mb': 415.3, 'transformers': '5.14.1', 'torch': '2.8.0'}

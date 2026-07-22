@@ -162,6 +162,7 @@ def test_on_device_claims_really_are_on_device(claims):
         "P3-wholeframe-resolution-knee",
         "P3-E1-TRT-fps",
         "P3-ROI-M2.0-512-ondevice",  # R-14: both arms one Orin Q8_0 session, control reproduced 63.1%
+        "P3-R13-owlv2-vs-vlm",  # R-13: OWLv2 fp16 + the VLM comparator both measured on the Orin
     }, (
         "the set of wholly-on-device claims changed. If that is deliberate, update "
         "this test AND experiments/2026-07-21-machine-disclosure/README.md, which is "

@@ -1,0 +1,103 @@
+{
+  "meta": {
+    "model": "google/owlv2-base-patch16-ensemble",
+    "device": "cuda",
+    "dtype": "float16",
+    "topk": 10,
+    "n": 439,
+    "load_s": 3.6,
+    "run_s": 459.9,
+    "peak_cuda_mb": 415.3,
+    "transformers": "5.14.1",
+    "torch": "2.8.0"
+  },
+  "n": 439,
+  "n_effective": 316,
+  "arms": {
+    "full": {
+      "arm": "full",
+      "k": 113,
+      "n": 439,
+      "iou_gate_pass_rate": 0.257403,
+      "mean_iou": 0.228349,
+      "center_std": 21.922,
+      "fwd_ms_median": 263.5
+    },
+    "phrase": {
+      "arm": "phrase",
+      "k": 208,
+      "n": 439,
+      "iou_gate_pass_rate": 0.473804,
+      "mean_iou": 0.413841,
+      "center_std": 23.683,
+      "fwd_ms_median": 263.5
+    },
+    "head": {
+      "arm": "head",
+      "k": 108,
+      "n": 439,
+      "iou_gate_pass_rate": 0.246014,
+      "mean_iou": 0.218715,
+      "center_std": 22.749,
+      "fwd_ms_median": 263.5
+    },
+    "oracle": {
+      "arm": "oracle",
+      "k": 397,
+      "n": 439,
+      "iou_gate_pass_rate": 0.904328,
+      "mean_iou": 0.788726,
+      "center_std": 22.531
+    },
+    "vlm": {
+      "arm": "qwen2-vl-2b-q8_0-fullframe@1024",
+      "k": 277,
+      "n": 439,
+      "iou_gate_pass_rate": 0.630979,
+      "mean_iou": 0.476747,
+      "source": "experiments/2026-07-21-roi-ondevice/raw/items-full.jsonl"
+    }
+  },
+  "paired": {
+    "vlm_vs_full": {
+      "b_vlm_only": 186,
+      "c_det_only": 22,
+      "n_paired": 439,
+      "b_deflated": 134,
+      "c_deflated": 16,
+      "n_effective": 316,
+      "p_raw": 1.5400696281129653e-33,
+      "p_deflated": 2.1755247260990872e-24
+    },
+    "vlm_vs_phrase": {
+      "b_vlm_only": 100,
+      "c_det_only": 31,
+      "n_paired": 439,
+      "b_deflated": 72,
+      "c_deflated": 22,
+      "n_effective": 316,
+      "p_raw": 1.1612274833072096e-09,
+      "p_deflated": 2.2605981543610277e-07
+    },
+    "vlm_vs_head": {
+      "b_vlm_only": 181,
+      "c_det_only": 12,
+      "n_paired": 439,
+      "b_deflated": 130,
+      "c_deflated": 9,
+      "n_effective": 316,
+      "p_raw": 6.7060930089941445e-40,
+      "p_deflated": 1.2618992865608153e-28
+    },
+    "vlm_vs_oracle": {
+      "b_vlm_only": 1,
+      "c_det_only": 121,
+      "n_paired": 439,
+      "b_deflated": 1,
+      "c_deflated": 87,
+      "n_effective": 316,
+      "p_raw": 4.6267457648365236e-35,
+      "p_deflated": 5.751490196657771e-25
+    }
+  }
+}

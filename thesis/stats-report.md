@@ -2,7 +2,7 @@
 title: Resultados estadísticos retroactivos
 subtitle: Cada afirmación con puerta de las Partes I-VI, re-analizada
 author: Javier Francisco Dibo Gómez
-comment: Generado por thesis/run_stats.py, 2026-07-22T10:42Z
+comment: Generado por thesis/run_stats.py, 2026-07-22T22:19Z
 locale: es
 ---
 
@@ -38,11 +38,12 @@ derivación por afirmación está en
 | P2-RQ0.3-spine-selection | II | binario de un brazo | 3090 | 100 | IC de Wilson | indefinido | — | **no** | sin puerta pre-registrada; solo intervalo |
 | P2-RQ1.1-dataset-well-posedness | II | descriptivo | 3090 | 1421 | descriptiva | indefinido | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
 | P2-RQ2.1-resolution-ladder-1024 | II | binario de un brazo | 3090 | 316 | binomial exacta | 7.771e-06 | 0.0002331 | sí | 133/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 133/439: ver independence_note] |
-| P2-RQ3.1-lora-aerial-gate | II | binario de un brazo | 3090 | 316 | binomial exacta | 3.679e-53 | 1.214e-51 | sí | 261/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 261/439: ver independence_note] |
+| P2-RQ3.1-lora-aerial-gate | II | binario de un brazo | 3090 | 316 | binomial exacta | 3.679e-53 | 1.251e-51 | sí | 261/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 261/439: ver independence_note] |
 | P2-RQ4.1-deploy-fidelity | II | binario de un brazo | **ambas** | 316 | binomial exacta | 0.0355 | 0.8874 | sí | 275/439 contra puerta 0.57; hacían falta >=197/316 para alpha=0,05 [deflactado desde 275/439: ver independence_note] |
 | P3-wholeframe-resolution-knee | III | descriptivo | Jetson | 316 | descriptiva | indefinido | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis [deflactado desde 277/439] |
-| P3-ROI-M2.0-512 | III | binario de un brazo | **ambas** | 316 | binomial exacta | 7.235e-19 | 2.315e-17 | sí | 374/439 contra puerta 0.63; hacían falta >=213/316 para alpha=0,05 [deflactado desde 374/439: ver independence_note] |
-| P3-ROI-M2.0-512-ondevice | III | binario pareado | Jetson | 316 | McNemar exacta | 2.502e-14 | 7.755e-13 | sí | significativa (b=81, c=11) [deflactado desde b=112, c=15] |
+| P3-ROI-M2.0-512 | III | binario de un brazo | **ambas** | 316 | binomial exacta | 7.235e-19 | 2.388e-17 | sí | 374/439 contra puerta 0.63; hacían falta >=213/316 para alpha=0,05 [deflactado desde 374/439: ver independence_note] |
+| P3-ROI-M2.0-512-ondevice | III | binario pareado | Jetson | 316 | McNemar exacta | 2.502e-14 | 8.005e-13 | sí | significativa (b=81, c=11) [deflactado desde b=112, c=15] |
+| P3-R13-owlv2-vs-vlm | III | binario pareado | Jetson | 316 | McNemar exacta | 2.261e-07 | 7.008e-06 | sí | significativa (b=72, c=22) [deflactado desde b=100, c=31] |
 | P3-ROI-drift-robustness | III | descriptivo | **ambas** | 316 | descriptiva | indefinido | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis [deflactado desde 326/439] |
 | P3-SR-swin2sr-accuracy | III | binario pareado | 3090 | 312 | McNemar exacta | 0.4244 | 1 | sí | no significativa (b=15, c=10); hacían falta >=6 discordantes en una dirección, hubo 15 [deflactado desde b=21, c=14] |
 | P3-carry-OP768-accuracy | III | binario pareado | **ambas** | 93 | McNemar exacta | 0.09614 | 1 | sí | no significativa (b=28, c=16); hacían falta >=6 discordantes en una dirección, hubo 28 [deflactado desde b=55, c=31] |
@@ -98,14 +99,14 @@ derivación por afirmación está en
 
 ## Qué sobrevive
 
-- **Significativas tras corrección de Holm (7):** P1-S3.3-export-parity-catastrophe, P2-RQ2.1-resolution-ladder-1024, P2-RQ3.1-lora-aerial-gate, P3-ROI-M2.0-512, P3-ROI-M2.0-512-ondevice, P5.2a-warm-generalization, P5.12-bankv21-recal
+- **Significativas tras corrección de Holm (8):** P1-S3.3-export-parity-catastrophe, P2-RQ2.1-resolution-ladder-1024, P2-RQ3.1-lora-aerial-gate, P3-ROI-M2.0-512, P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm, P5.2a-warm-generalization, P5.12-bankv21-recal
 - **Sin prueba posible, 0 pares discordantes (32):** P1-S1.2-zeroshot-smolvlm, P1-S3.4-coco-to-aerial-domain-shift, P1-S1.3-phaseB-control-stack, P2-RQ0.3-spine-selection, P2-RQ1.1-dataset-well-posedness, P3-wholeframe-resolution-knee, P3-ROI-drift-robustness, P3-E1-TRT-fps, P3-E1-TRT-mask-parity, P3-T1-memoryless-baseline, P3-T0a-anchor-cadence, P3-T4a-tracker-cost, E20-acquire-latency, E19-motion-compensated-acquire, E17-reground-chase, E14-identity-hole, E13-colour-gate, E9-retarget-switch, E10-fast-follow-ceiling, P5.2b-speed-sweep, P5.9-kerbsafe-scenebank, P5.10-simbank-select, P5.13-dd-vs-rg-tie, P5.19-wsel-no-regression, P5.19-grace-precision, P5.18-shadow-rg-ceiling, P5.19-shadow-rg-ceiling, P5.20-carry-capacity, P5.20-replication-of-P5.19, P5.17-dd-vs-rg-tie-n56, P6.0-flight-rig-gate, P6.1-carla-renderer
 - **Diseño incapaz de alcanzar alpha (37):** P1-S1.2-zeroshot-smolvlm, P1-S3.4-coco-to-aerial-domain-shift, P1-S1.3-phaseB-control-stack, P2-RQ0.3-spine-selection, P2-RQ1.1-dataset-well-posedness, P3-wholeframe-resolution-knee, P3-ROI-drift-robustness, P3-E1-TRT-fps, P3-E1-TRT-mask-parity, P3-T1-memoryless-baseline, P3-T0a-anchor-cadence, P3-T4a-tracker-cost, E18-A-vs-gate, E20-acquire-latency, E22-cv-prior-phase0, E16-relock-replication, E17-reground-chase, E14-identity-hole, E13-colour-gate, E9-retarget-switch, E10-fast-follow-ceiling, P5.2b-speed-sweep, P5.3-multi-candidate-select, P5.4-crop-select, P5.5-select-generalization, P5.9-kerbsafe-scenebank, P5.14-wsel, P5.14-swap, P5.14-shadow-rg-disagreement, P5.16-autodisc-wsel, P5.18-n25-wsel, P5.18-n25-swap, P5.19-grace-precision, P5.18-shadow-rg-ceiling, P5.19-shadow-rg-ceiling, P6.0-flight-rig-gate, P6.1-carla-renderer
 - **Sin datos crudos, en cola de re-ejecución (3):** P1-S1.4-phaseC-vlm-closed-loop, P3-T2-permanence-reid, P3-T3-closedloop-coverage
 
 ## Salvedades por afirmación
 
-Las 68 afirmaciones con salvedad registrada, **literales**
+Las 69 afirmaciones con salvedad registrada, **literales**
 desde `thesis/claims.json`. Una salvedad limita lo que su fila de la tabla
 puede sostener: léase junto al valor p, nunca en su lugar. Varias retiran
 por completo la lectura ingenua del número.
@@ -141,6 +142,8 @@ por completo la lectura ingenua del número.
 **P3-ROI-M2.0-512** — Los recuentos se reconstruyeron a partir de las tasas almacenadas y caen exactamente en enteros, así que son exactos. La puerta se supera con un margen enorme y sobrevive a cualquier corrección por agrupamiento plausible. La SELECCIÓN de M=2.0 @512 como pico frente a M=1.5 @512 (368/439) es una diferencia de 6 ítems sobre ítems compartidos y debe presentarse como 'una meseta, y tomamos un punto sobre ella'.
 
 **P3-ROI-M2.0-512-ondevice** — Ambos brazos se midieron en una sola sesión de llama-server sobre el checkpoint desplegado phase3-terse100eos-1024 Q8_0, de modo que es una prueba pareada de una sola máquina y una sola cuantización -- reemplaza la afirmación original P3-ROI-M2.0-512, cuyo 85.2% era HF bf16 en la RTX 3090 y cuya línea base de 62.6% era Q8_0 en la Orin (una resta entre máquinas y entre cuantizaciones). El brazo de control A reprodujo exactamente el 63.1% publicado en dispositivo a pantalla completa (RQ-R14.2), así que los +22.1 pp son la intervención y no un cambio del arnés. El prior de ROI es la caja GT oracular inflada, idéntica al barrido original, por lo que esto es una COTA SUPERIOR sobre lo que obtiene el re-anclaje desplegado a partir de una caja de tracker desviada; la RQ4 de la campaña original cuantificó esa caída (85.2% con 0 desviación -> 74.3% con desviación de caja completa) y no se reejecuta aquí.
+
+**P3-R13-owlv2-vs-vlm** — Los recuentos registrados corresponden al brazo MÁS FUERTE del detector (D-phrase, el sintagma nominal con adjetivos), no al extremo a extremo: D-full queda en 25.7% y haría parecer la afirmación mucho más contundente (p=2.2e-24). D-phrase se añadió después del preregistro y antes de puntuar, precisamente para no presentar al detector como un espantapájaros; queda declarado en el README de la campaña. El brazo D-oracle del 90.4% NO es un sistema: elige entre las diez primeras propuestas del detector usando la verdad-terreno, así que es una cota superior sobre cualquier reordenador de esas propuestas y nunca debe citarse como resultado de OWLv2. La comparación de latencia (263.5 ms por pasada del detector frente a 4319 ms de reloj del VLM, 16.4x) enfrenta una sola pasada del detector con un anclaje generativo completo y excluye la etapa de selección que un sistema descompuesto seguiría necesitando; si esa etapa fuese a su vez un VLM, el ahorro desaparece. OWLv2 corrió en fp16 con transformers/PyTorch mientras que el VLM corrió en Q8_0 con llama.cpp, de modo que la razón de coste cruza dos motores de ejecución y es una observación de sistema, no una medición controlada de eficiencia. 5 de 439 descripciones (1.1%) superan el límite de 16 tokens del codificador de texto de OWLv2 y fueron truncadas.
 
 **P3-ROI-drift-robustness** — Sin barra numérica pre-registrada. Como la dirección de la deriva es una sola extracción, los números por nivel de desplazamiento arrastran error muestral en la PERTURBACIÓN además de en los ítems, y solo el primero está cuantificado. El peor nivel (1.0, M=2.0) sigue superando la línea base del 62.6%, que es la forma honesta de la afirmación.
 

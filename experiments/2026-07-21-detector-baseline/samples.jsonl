@@ -1,0 +1,439 @@
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_05097_d_0000069.jpg", "caption": "The black cars at the intersection.", "gt": [27, 48, 34, 65]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000244_01000_d_0000003.jpg", "caption": "The blue cars on the left side of the street.", "gt": [32, 26, 34, 29]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_03801_d_0000391.jpg", "caption": "The red vehicles on the street.", "gt": [50, 10, 51, 13]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000081_00000_d_0000001.jpg", "caption": "The green-clad pedestrians and bicycles are interspersed among the courts.", "gt": [17, 39, 18, 44]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_04116_d_0000013.jpg", "caption": "The white motorbike is near the right side of the road.", "gt": [54, 19, 55, 23]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_02964_d_0000030.jpg", "caption": "The gray van parks on the right side of the image.", "gt": [65, 27, 93, 75]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000291_01201_d_0000874.jpg", "caption": "The yellow taxis in the image.", "gt": [41, 32, 48, 37]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_01001_d_0000617.jpg", "caption": "The green pedestrians walk along the sidewalks.", "gt": [72, 62, 74, 70]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000316_02001_d_0000529.jpg", "caption": "The white car is located at the top-right corner.", "gt": [96, 22, 100, 26]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000026_00000_d_0000024.jpg", "caption": "The black cars park in the designated spaces on the left side.", "gt": [31, 2, 36, 18]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_02601_d_0000772.jpg", "caption": "The red cars park near the traditional architectural complex.", "gt": [91, 54, 96, 61]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_05001_d_0000397.jpg", "caption": "The black vehicles park near the buildings.", "gt": [65, 11, 67, 15]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000162_00801_d_0000001.jpg", "caption": "The blue vehicles in the image.", "gt": [72, 61, 82, 82]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000356_04901_d_0000654.jpg", "caption": "The green bus is on the right side of the image.", "gt": [79, 41, 95, 52]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_01912_d_0000008.jpg", "caption": "The black cars prake on the road.", "gt": [58, 71, 61, 76]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000356_03333_d_0000646.jpg", "caption": "The black cars are navigating the intersection.", "gt": [49, 6, 53, 8]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000301_01201_d_0000162.jpg", "caption": "The green bus is navigating the intersection.", "gt": [69, 42, 94, 68]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000283_00601_d_0000677.jpg", "caption": "The blue truck is traveling on the highway.", "gt": [43, 15, 46, 20]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000022_01036_d_0000006.jpg", "caption": "The people in blue are walking along the pathway.", "gt": [58, 46, 61, 56]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_02801_d_0000626.jpg", "caption": "The red bus is in the middle lane.", "gt": [52, 18, 53, 22]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_00601_d_0000814.jpg", "caption": "The yellow cars are scattered around the street.", "gt": [61, 82, 73, 96]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000215_01395_d_0000259.jpg", "caption": "The white vans park near the vendor stalls.", "gt": [70, 28, 74, 34]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_04117_d_0000734.jpg", "caption": "The blue cars move along the road.", "gt": [67, 2, 73, 14]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_02201_d_0000518.jpg", "caption": "The green trucks move away from the road.", "gt": [92, 36, 100, 46]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000333_02941_d_0000016.jpg", "caption": "The white cars park on the right side of the road.", "gt": [52, 58, 54, 64]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000194_00800_d_0000123.jpg", "caption": "The blue tricycles are near the bottom right corner.", "gt": [62, 89, 69, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_04801_d_0000781.jpg", "caption": "The yellow cars park near the pavilion.", "gt": [92, 92, 96, 97]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000308_04401_d_0000327.jpg", "caption": "The green bus is in the center of the intersection.", "gt": [49, 50, 59, 79]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000291_00001_d_0000868.jpg", "caption": "The red vehicles in the image.", "gt": [25, 89, 30, 95]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000330_03201_d_0000816.jpg", "caption": "The red cars in the intersection.", "gt": [34, 34, 41, 43]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_06665_d_0000077.jpg", "caption": "The red vehicle in the intersection.", "gt": [46, 47, 50, 58]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000356_03333_d_0000646.jpg", "caption": "The red tricycle is crossing the intersection.", "gt": [43, 35, 48, 39]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_04705_d_0000737.jpg", "caption": "The white car drives on the right side of the intersection.", "gt": [92, 36, 100, 51]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_04001_d_0000558.jpg", "caption": "The yellow vehicles near the intersection.", "gt": [36, 43, 48, 52]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000359_02549_d_0000709.jpg", "caption": "The black cars are scattered throughout the image.", "gt": [93, 9, 98, 15]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_01734_d_0000028.jpg", "caption": "The pedestrian with a backpack and red pants.", "gt": [38, 50, 50, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000086_01443_d_0000004.jpg", "caption": "The yellow pedestrian is near the center of the image.", "gt": [25, 20, 26, 27]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000359_00589_d_0000702.jpg", "caption": "The pedestrians crossing the street.", "gt": [37, 67, 40, 78]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000263_02401_d_0000179.jpg", "caption": "The white van parks on the right side of the image.", "gt": [76, 25, 89, 35]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000153_01601_d_0000001.jpg", "caption": "The red cars are on the right side of the image.", "gt": [94, 82, 100, 96]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_07001_d_0000407.jpg", "caption": "The white car in the center of the intersection.", "gt": [51, 82, 55, 95]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_03401_d_0000629.jpg", "caption": "The red bus is traveling in the right lane.", "gt": [59, 22, 61, 30]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000213_04405_d_0000244.jpg", "caption": "The blue cars travel on the left side of the street.", "gt": [37, 53, 42, 66]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_01401_d_0000514.jpg", "caption": "The green pedestrians walk near the edge of the road.", "gt": [59, 79, 61, 84]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_04116_d_0000013.jpg", "caption": "The black awning-tricycle is near the left side of the road.", "gt": [24, 52, 27, 62]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000026_04000_d_0000032.jpg", "caption": "The red cars park on the left side of the parking lot.", "gt": [32, 73, 44, 86]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000359_03529_d_0000712.jpg", "caption": "The cars on the road.", "gt": [42, 17, 48, 32]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000291_00601_d_0000871.jpg", "caption": "The pedestrians in blue are crossing the street.", "gt": [13, 31, 14, 36]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000356_03725_d_0000648.jpg", "caption": "The red cars in the intersection.", "gt": [49, 48, 54, 60]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000026_00000_d_0000024.jpg", "caption": "The white car parks among the black cars on the right side.", "gt": [62, 38, 75, 51]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000163_00001_d_0000001.jpg", "caption": "The green trucks park on the right side of the street.", "gt": [63, 50, 67, 59]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000342_00393_d_0000244.jpg", "caption": "The white vans park near the buildings.", "gt": [17, 30, 20, 33]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000316_01801_d_0000528.jpg", "caption": "The red van parks near the building entrance.", "gt": [4, 57, 13, 70]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_04513_d_0000034.jpg", "caption": "The white car drives on the street.", "gt": [62, 35, 69, 61]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_00201_d_0000375.jpg", "caption": "The red vehicles in the image.", "gt": [37, 71, 41, 79]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_06665_d_0000747.jpg", "caption": "The cyclist in bright clothing riding down the middle of the street.", "gt": [55, 55, 57, 63]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000330_01001_d_0000805.jpg", "caption": "The red cars park on the right side of the street.", "gt": [85, 75, 100, 92]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000295_00600_d_0000024.jpg", "caption": "The pedestrian bridges spanning across the street.", "gt": [70, 56, 71, 58]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_01401_d_0000619.jpg", "caption": "The blue cars park on both sides of the street.", "gt": [15, 68, 24, 84]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_00201_d_0000613.jpg", "caption": "The green vehicles near the buildings.", "gt": [85, 55, 90, 65]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000333_02745_d_0000015.jpg", "caption": "The black cars travel in both directions along the main road.", "gt": [42, 32, 44, 38]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_06401_d_0000843.jpg", "caption": "The white cars parked along the sides of the road.", "gt": [34, 38, 37, 44]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000330_01201_d_0000806.jpg", "caption": "The black vans are parked along the side of the street.", "gt": [75, 57, 87, 67]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000194_00998_d_0000124.jpg", "caption": "The white vehicles on the road.", "gt": [33, 66, 37, 76]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000244_03000_d_0000007.jpg", "caption": "The white van is parked near the buildings on the right side.", "gt": [63, 79, 68, 83]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_01139_d_0000006.jpg", "caption": "The white cars park on both sides of the main road in a line.", "gt": [37, 62, 39, 66]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000086_01084_d_0000003.jpg", "caption": "The green-clad pedestrians are on the right side of the image.", "gt": [39, 35, 41, 45]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000086_01954_d_0000005.jpg", "caption": "The people in red are actively engaged on the courts.", "gt": [45, 43, 46, 52]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000291_00601_d_0000871.jpg", "caption": "The white buses are near the crosswalks.", "gt": [25, 26, 31, 37]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_04601_d_0000561.jpg", "caption": "The red tricycles near the intersection.", "gt": [29, 25, 34, 32]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000086_01443_d_0000004.jpg", "caption": "The red pedestrians are actively engaged in activities on the courts in the nearest part of the image.", "gt": [44, 46, 46, 58]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000116_01059_d_0000085.jpg", "caption": "The white vans are running on  the road.", "gt": [39, 82, 44, 99]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000283_00401_d_0000676.jpg", "caption": "The black car in the middle of the image.", "gt": [53, 52, 60, 58]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_03001_d_0000522.jpg", "caption": "The red trucks are in the middle lanes approaching the toll plaza.", "gt": [39, 50, 43, 62]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000333_00001_d_0000001.jpg", "caption": "The red cars in the image.", "gt": [54, 61, 57, 64]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_05001_d_0000397.jpg", "caption": "The white vans are driving on the main road.", "gt": [47, 62, 51, 72]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_05801_d_0000536.jpg", "caption": "The red truck is located near the top center of the image.", "gt": [40, 4, 42, 6]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_02601_d_0000625.jpg", "caption": "The yellow cars park on the right side of the street.", "gt": [71, 52, 75, 57]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000345_07057_d_0000345.jpg", "caption": "The green vehicles near the intersection.", "gt": [11, 34, 15, 40]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_05401_d_0000838.jpg", "caption": "The black cars park on the left side of the street.", "gt": [33, 65, 39, 82]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_02001_d_0000549.jpg", "caption": "The red truck in the intersection.", "gt": [37, 64, 60, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_00502_d_0000027.jpg", "caption": "The white car parks on the paved area.", "gt": [1, 6, 41, 44]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000291_01601_d_0000876.jpg", "caption": "The white vans are present in the scene.", "gt": [0, 32, 10, 47]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000193_02606_d_0000117.jpg", "caption": "The pedestrians in the image.", "gt": [48, 75, 50, 81]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_01201_d_0000618.jpg", "caption": "The blue cars park along the sides of the road.", "gt": [27, 47, 32, 56]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000313_06401_d_0000468.jpg", "caption": "The red cars on the street.", "gt": [51, 49, 52, 50]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_06001_d_0000537.jpg", "caption": "The red truck drives along the road.", "gt": [44, 10, 46, 16]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_02401_d_0000519.jpg", "caption": "The blue trucks travel on the right side of the road.", "gt": [46, 21, 47, 25]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000153_01801_d_0000001.jpg", "caption": "The white cars travel along the main road.", "gt": [43, 74, 47, 82]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_03738_d_0000032.jpg", "caption": "The blue truck parks on the right side of the road.", "gt": [69, 7, 100, 49]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_03668_d_0000012.jpg", "caption": "The bus waiting at the traffic light.", "gt": [62, 61, 77, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000026_02000_d_0000028.jpg", "caption": "The red car parks at the top right corner.", "gt": [72, 2, 82, 11]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_03401_d_0000828.jpg", "caption": "The blue vehicles in the image.", "gt": [51, 78, 56, 95]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000359_02549_d_0000709.jpg", "caption": "The white vans are in the middle lanes.", "gt": [47, 19, 51, 31]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000359_02353_d_0000708.jpg", "caption": "The black cars are on both sides of the road.", "gt": [8, 49, 15, 53]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_05001_d_0000562.jpg", "caption": "The white vans near the intersection.", "gt": [96, 38, 100, 47]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_06001_d_0000402.jpg", "caption": "The blue cars park on the right side of the street.", "gt": [62, 44, 69, 49]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_05801_d_0000840.jpg", "caption": "The pedestrians in black walk on the sidewalks.", "gt": [23, 58, 25, 65]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_05293_d_0000740.jpg", "caption": "The yellow car is on the far right side of the image.", "gt": [74, 67, 95, 84]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000215_02319_d_0000261.jpg", "caption": "The white vans park near the pedestrian area.", "gt": [65, 7, 69, 11]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_03725_d_0000062.jpg", "caption": "The black vans are on the right side of the intersection.", "gt": [73, 53, 85, 63]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000345_07057_d_0000345.jpg", "caption": "The red cars in the image.", "gt": [65, 10, 67, 13]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_05001_d_0000782.jpg", "caption": "The red cars park around the edges of the plaza.", "gt": [68, 35, 73, 40]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000327_03801_d_0000730.jpg", "caption": "The green cars are scattered along the street.", "gt": [16, 27, 19, 30]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000301_00201_d_0000157.jpg", "caption": "The pedestrians near the corners of the streets.", "gt": [95, 50, 97, 58]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000330_04001_d_0000820.jpg", "caption": "The white pedestrians crossing the street.", "gt": [60, 73, 62, 83]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000291_03601_d_0000886.jpg", "caption": "The white cars are waiting at the intersection.", "gt": [49, 32, 56, 44]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000327_00001_d_0000711.jpg", "caption": "The small market stall near the bottom left corner.", "gt": [6, 84, 20, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_03137_d_0000059.jpg", "caption": "The red cars navigate the intersection.", "gt": [50, 60, 60, 66]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_05570_d_0000016.jpg", "caption": "The blue cars on the road.", "gt": [33, 76, 38, 93]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000358_03333_d_0000697.jpg", "caption": "The black cars parked on the side of the street.", "gt": [87, 87, 93, 99]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_03001_d_0000826.jpg", "caption": "The white cars parked on the left side of the street.", "gt": [33, 53, 38, 66]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000359_01373_d_0000706.jpg", "caption": "The blue taxi making a turn.", "gt": [41, 43, 57, 64]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_05001_d_0000836.jpg", "caption": "The blue cars on the bottom of the street.", "gt": [44, 84, 53, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000296_00601_d_0000038.jpg", "caption": "The red buses in the image.", "gt": [7, 56, 26, 89]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_04001_d_0000831.jpg", "caption": "The yellow vehicles are present in the scene.", "gt": [6, 31, 15, 37]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_04313_d_0000065.jpg", "caption": "The black cars at the intersection.", "gt": [40, 55, 50, 66]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_04117_d_0000064.jpg", "caption": "The blue cars navigating the intersection.", "gt": [36, 37, 45, 46]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_03001_d_0000774.jpg", "caption": "The red cars park near the bottom left corner.", "gt": [24, 69, 30, 78]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_04601_d_0000780.jpg", "caption": "The blue cars park near the top-left corner.", "gt": [14, 24, 18, 30]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000327_02801_d_0000725.jpg", "caption": "The green cars on the right side of the road.", "gt": [86, 71, 98, 81]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000356_00589_d_0000632.jpg", "caption": "The red cars are on the left side of the image.", "gt": [61, 72, 67, 83]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000026_03500_d_0000031.jpg", "caption": "The white van parks at the bottom left corner of the image.", "gt": [28, 94, 45, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000300_03201_d_0000154.jpg", "caption": "The yellow cars are located on the left side of the road.", "gt": [5, 38, 11, 43]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000001_05499_d_0000010.jpg", "caption": "The yellow cars in the parking lot.", "gt": [78, 45, 82, 50]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_03201_d_0000628.jpg", "caption": "The red cars at the intersection.", "gt": [52, 55, 59, 62]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000330_01001_d_0000805.jpg", "caption": "The pedestrians in red walk near the center median.", "gt": [33, 23, 34, 26]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000220_01242_d_0000004.jpg", "caption": "The blue truck parks further down the street.", "gt": [58, 57, 67, 72]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000256_02173_d_0000030.jpg", "caption": "The blue cars in the image.", "gt": [8, 58, 19, 69]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000356_03333_d_0000646.jpg", "caption": "The white cars are moving through the intersection.", "gt": [67, 37, 73, 44]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_03349_d_0000031.jpg", "caption": "The white car drives past on the road.", "gt": [57, 3, 80, 25]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000359_00981_d_0000704.jpg", "caption": "The red cars in the image.", "gt": [16, 41, 23, 51]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_00401_d_0000541.jpg", "caption": "The yellow bus in left side.", "gt": [29, 22, 37, 30]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_07645_d_0000752.jpg", "caption": "The red car is prominently visible in the center lane.", "gt": [42, 32, 50, 51]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000327_03401_d_0000728.jpg", "caption": "The yellow cars park on the right side of the street.", "gt": [74, 61, 81, 67]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000001_02999_d_0000005.jpg", "caption": "The green cars on the street.", "gt": [45, 53, 48, 61]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_04601_d_0000834.jpg", "caption": "The black motorcycles on the road.", "gt": [22, 74, 27, 85]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000153_01801_d_0000001.jpg", "caption": "The red bus travels in the center lane.", "gt": [55, 55, 60, 67]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_01401_d_0000380.jpg", "caption": "The red tricycle parked near the building.", "gt": [12, 58, 17, 65]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000364_00589_d_0000798.jpg", "caption": "The white tricycles are on the right side of the image.", "gt": [75, 70, 84, 77]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000154_00001_d_0000001.jpg", "caption": "The white vans parked near the gas station.", "gt": [15, 54, 21, 62]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000021_00500_d_0000002.jpg", "caption": "The yellow motor is near the center of the image.", "gt": [32, 67, 40, 79]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000162_01058_d_0000001.jpg", "caption": "The pedestrians walking on the sidewalks.", "gt": [86, 84, 89, 93]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000249_00603_d_0000003.jpg", "caption": "The yellow cars add a splash of color to the scene.", "gt": [49, 78, 53, 86]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000356_01961_d_0000639.jpg", "caption": "The pedestrians waiting at the crosswalks.", "gt": [20, 33, 21, 36]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000001_08414_d_0000013.jpg", "caption": "The green bicycles near the bottom right corner.", "gt": [39, 64, 42, 70]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_02401_d_0000771.jpg", "caption": "The white cars locate at the middle bottom corner.", "gt": [51, 73, 58, 95]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000333_03725_d_0000020.jpg", "caption": "The white trucks in the image.", "gt": [56, 9, 59, 16]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_02601_d_0000625.jpg", "caption": "The blue cars travel in both directions.", "gt": [43, 42, 46, 47]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000330_04401_d_0000822.jpg", "caption": "The red cars are near the edges of the image.", "gt": [26, 18, 30, 22]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_06665_d_0000747.jpg", "caption": "The pedestrians crossing the street.", "gt": [39, 87, 42, 99]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000333_01765_d_0000010.jpg", "caption": "The awning-tricycle, red with an oval structure on its roof is located at the bottom right corner of the image.", "gt": [52, 89, 53, 92]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000356_02353_d_0000641.jpg", "caption": "The white cars near the crosswalks.", "gt": [43, 64, 51, 75]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_02401_d_0000624.jpg", "caption": "The white vans park on the left side of the road.", "gt": [13, 78, 23, 97]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000215_02667_d_0000262.jpg", "caption": "The red vehicles park on the right side of the road.", "gt": [94, 90, 100, 99]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_03601_d_0000829.jpg", "caption": "The black cars driving through the intersection.", "gt": [49, 24, 51, 30]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_05570_d_0000016.jpg", "caption": "The red cars near the building with storefronts.", "gt": [48, 28, 51, 31]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_05685_d_0000072.jpg", "caption": "The pedestrian on the far right side of the image.", "gt": [91, 15, 93, 21]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000153_00801_d_0000001.jpg", "caption": "The tricycle on the right side of the image.", "gt": [69, 64, 71, 69]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_03401_d_0000629.jpg", "caption": "The blue cars are located on the left side of the main road.", "gt": [33, 60, 39, 70]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_04401_d_0000560.jpg", "caption": "The white cars navigating through the intersection.", "gt": [28, 55, 40, 71]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_01801_d_0000516.jpg", "caption": "The red truck parks on the right side of the road.", "gt": [66, 58, 74, 75]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000327_04201_d_0000732.jpg", "caption": "The green vehicles in the image.", "gt": [54, 41, 58, 44]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000026_02500_d_0000029.jpg", "caption": "The white car located at the bottom right corner of the image.", "gt": [67, 87, 79, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000348_00589_d_0000409.jpg", "caption": "The white van parks on the sidewalk.", "gt": [38, 20, 44, 34]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000153_00001_d_0000001.jpg", "caption": "The white car in the center lane.", "gt": [39, 71, 46, 86]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_02601_d_0000386.jpg", "caption": "The red cars park along the left sidewalk.", "gt": [26, 54, 34, 60]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000291_02601_d_0000881.jpg", "caption": "The blue bus  on the top of the image.", "gt": [66, 1, 70, 7]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000249_00001_d_0000001.jpg", "caption": "The red cars park on the right side of the street.", "gt": [54, 77, 59, 84]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_01001_d_0000512.jpg", "caption": "The green van travel near the middle of the image.", "gt": [49, 30, 52, 39]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000323_02601_d_0000645.jpg", "caption": "The construction vehicle at the corner.", "gt": [14, 80, 17, 86]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_00401_d_0000761.jpg", "caption": "The blue cars park on the right side of the road.", "gt": [72, 70, 80, 82]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_05201_d_0000837.jpg", "caption": "The pedestrians in red walk on the sidewalks.", "gt": [9, 36, 11, 42]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000356_05097_d_0000655.jpg", "caption": "The blue cars in the intersection.", "gt": [88, 38, 95, 44]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_00843_d_0000004.jpg", "caption": "The blue car drives in the right lane.", "gt": [7, 3, 31, 38]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000330_00201_d_0000801.jpg", "caption": "The yellow cars in the image.", "gt": [63, 64, 69, 74]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000327_03601_d_0000729.jpg", "caption": "The red cars driving along the road.", "gt": [50, 42, 53, 46]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_02401_d_0000519.jpg", "caption": "The white cars are scattered along the road.", "gt": [37, 28, 38, 30]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_05293_d_0000740.jpg", "caption": "The red tricycle is near the bottom right corner.", "gt": [57, 85, 67, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000072_02834_d_0000003.jpg", "caption": "The white car parks near the center of the plaza.", "gt": [52, 71, 61, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000244_04000_d_0000009.jpg", "caption": "The red cars on the right side of the road.", "gt": [52, 55, 57, 62]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000086_01443_d_0000004.jpg", "caption": "The blue pedestrian stands out among the crowd.", "gt": [49, 43, 51, 55]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_06010_d_0000017.jpg", "caption": "The yellow car at the bottom right corner.", "gt": [52, 78, 55, 84]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_01001_d_0000764.jpg", "caption": "The red tricycle parks near the bottom-left corner.", "gt": [9, 51, 14, 59]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_02964_d_0000030.jpg", "caption": "The yellow truck parks in the background.", "gt": [29, 0, 68, 21]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000215_02932_d_0000263.jpg", "caption": "The tricycle parks near the center divider.", "gt": [30, 24, 34, 27]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_04513_d_0000034.jpg", "caption": "The pedestrian walks near the trees.", "gt": [54, 71, 57, 79]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_04401_d_0000833.jpg", "caption": "The pedestrians in green are riding across the crosswalk.", "gt": [84, 60, 87, 67]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_05201_d_0000398.jpg", "caption": "The red car in the image.", "gt": [73, 28, 76, 35]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000295_02200_d_0000032.jpg", "caption": "The black cars near the center of the intersection.", "gt": [59, 65, 62, 70]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_00785_d_0000047.jpg", "caption": "The black cars on the road.", "gt": [46, 37, 50, 43]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000026_01500_d_0000027.jpg", "caption": "The pedestrian walks in the open space casting a long shadow.", "gt": [42, 11, 44, 17]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_02400_d_0000009.jpg", "caption": "The blue vehicles are scattered on the street.", "gt": [55, 20, 57, 25]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_00393_d_0000045.jpg", "caption": "The white cars are on the road and parked near the vendors.", "gt": [14, 46, 26, 56]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_02001_d_0000821.jpg", "caption": "The blue cars are scattered along the street.", "gt": [44, 30, 47, 39]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000330_04201_d_0000821.jpg", "caption": "The blue cars are located on the upper side of the intersection.", "gt": [29, 36, 33, 42]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_02745_d_0000727.jpg", "caption": "The pedestrians wearing black clothing.", "gt": [83, 74, 87, 82]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_03668_d_0000012.jpg", "caption": "The car near the crosswalk on the right side of the image.", "gt": [86, 38, 93, 43]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000022_01036_d_0000006.jpg", "caption": "The black bicycle is near the left side of the image.", "gt": [1, 53, 7, 59]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000193_01705_d_0000112.jpg", "caption": "The white vans travelling on the right side of the road.", "gt": [82, 41, 88, 46]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000330_03201_d_0000816.jpg", "caption": "The white cars navigating through the intersection.", "gt": [18, 78, 31, 99]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_05601_d_0000535.jpg", "caption": "The black van is on the left side of the highway.", "gt": [44, 19, 46, 22]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_00500_d_0000002.jpg", "caption": "The blue van parks on the right side of the image.", "gt": [71, 74, 80, 88]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_02601_d_0000824.jpg", "caption": "The red cars are parked along the sides of the street.", "gt": [55, 48, 58, 57]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000155_00801_d_0000001.jpg", "caption": "The red cars in the image.", "gt": [61, 79, 69, 94]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_03401_d_0000776.jpg", "caption": "The blue cars park around the perimeter of the square.", "gt": [66, 20, 70, 26]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000356_04117_d_0000650.jpg", "caption": "The white vehicles near the center of the image.", "gt": [38, 49, 44, 62]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_06601_d_0000405.jpg", "caption": "The blue cars on the left side of the street.", "gt": [44, 39, 46, 46]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_03401_d_0000555.jpg", "caption": "The red vehicles in the intersection area.", "gt": [78, 29, 84, 33]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000154_00801_d_0000001.jpg", "caption": "The red cars travel on the right side of the road.", "gt": [75, 77, 82, 90]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_01801_d_0000768.jpg", "caption": "The red cars are parked on the left side of the street.", "gt": [19, 58, 25, 62]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_00785_d_0000717.jpg", "caption": "The green cars are on the right side of the image.", "gt": [53, 15, 56, 18]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000359_03333_d_0000711.jpg", "caption": "The blue motorbike rides near the center of the image.", "gt": [31, 70, 33, 75]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000026_03000_d_0000030.jpg", "caption": "The red tricycle parks at the bottom-left corner near the building.", "gt": [26, 82, 38, 90]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_02801_d_0000626.jpg", "caption": "The blue cars park along the sides of the road.", "gt": [87, 83, 97, 98]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000327_04201_d_0000732.jpg", "caption": "The red cars in the image.", "gt": [48, 42, 51, 47]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_00401_d_0000509.jpg", "caption": "The green truck is driving down the center of the road.", "gt": [43, 39, 47, 51]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_03001_d_0000522.jpg", "caption": "The black cars are on the right side of the road.", "gt": [48, 47, 51, 49]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000327_03801_d_0000730.jpg", "caption": "The black cars are mostly in motion or parked along the sides of the road.", "gt": [62, 56, 69, 61]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000330_04601_d_0000823.jpg", "caption": "The brown vehicles in the image.", "gt": [68, 29, 72, 35]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_00801_d_0000763.jpg", "caption": "The white vans parked on right side of the street.", "gt": [54, 42, 59, 52]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000244_03500_d_0000008.jpg", "caption": "The green vehicles in the image.", "gt": [11, 78, 14, 86]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000021_00000_d_0000001.jpg", "caption": "The red tricycle is parked near the large rock.", "gt": [36, 54, 44, 69]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_05801_d_0000840.jpg", "caption": "The blue cars drive down the road.", "gt": [46, 38, 49, 45]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000301_01001_d_0000161.jpg", "caption": "The white cars waiting at the intersection.", "gt": [47, 33, 51, 40]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_03001_d_0000387.jpg", "caption": "The blue cars park along the sides of the street.", "gt": [63, 31, 66, 36]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000301_00001_d_0000156.jpg", "caption": "The black cars navigate the intersection.", "gt": [63, 40, 72, 49]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_03001_d_0000826.jpg", "caption": "The black cars are parked along the sides of the road.", "gt": [27, 87, 33, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_02001_d_0000622.jpg", "caption": "The red cars park along the left side of the road.", "gt": [10, 91, 19, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000359_01961_d_0000707.jpg", "caption": "The black car parked on the right side of the road.", "gt": [80, 27, 89, 40]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_06010_d_0000017.jpg", "caption": "The blue car near the middle left side.", "gt": [38, 56, 39, 59]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_05001_d_0000397.jpg", "caption": "The black car is in the middle of the street.", "gt": [47, 45, 50, 52]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000116_00819_d_0000084.jpg", "caption": "The black cars are scattered along the street.", "gt": [49, 59, 52, 65]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_02941_d_0000728.jpg", "caption": "The white cars are parked along the sides of the road.", "gt": [21, 28, 29, 36]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000327_04001_d_0000731.jpg", "caption": "The green cars park on the left side of the road.", "gt": [16, 30, 20, 33]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000153_01201_d_0000001.jpg", "caption": "The red vehicles on the road.", "gt": [56, 61, 57, 65]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_06201_d_0000403.jpg", "caption": "The red cars park on the right side of the street.", "gt": [58, 40, 61, 45]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000001_05249_d_0000009.jpg", "caption": "The yellow cars park in the lot.", "gt": [62, 12, 64, 15]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000316_01201_d_0000525.jpg", "caption": "The yellow car near the bottom left.", "gt": [0, 73, 7, 79]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000026_04500_d_0000033.jpg", "caption": "The white vans on the road adjacent to the buildings.", "gt": [65, 48, 72, 53]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_06601_d_0000844.jpg", "caption": "The red cars park along the sides of the street.", "gt": [40, 30, 44, 38]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_04705_d_0000737.jpg", "caption": "The white car parks on the left side of the image.", "gt": [0, 0, 7, 15]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_01201_d_0000817.jpg", "caption": "The white vans park on the right side of the street.", "gt": [49, 4, 51, 9]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000291_03801_d_0000887.jpg", "caption": "The red tricycles park near the intersection.", "gt": [51, 19, 54, 24]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_05801_d_0000536.jpg", "caption": "The white car is on the right side of the highway.", "gt": [72, 19, 74, 22]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000153_01601_d_0000001.jpg", "caption": "The pink bus travels down the center lane.", "gt": [52, 67, 59, 91]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000026_02000_d_0000028.jpg", "caption": "The silver car parks in the middle of the parking lot.", "gt": [74, 55, 88, 67]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000154_00001_d_0000001.jpg", "caption": "The black cars on the left side of the road.", "gt": [21, 64, 30, 72]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000345_07057_d_0000345.jpg", "caption": "The white pedestrians crossing the street.", "gt": [46, 59, 48, 66]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_04401_d_0000394.jpg", "caption": "The blue vehicles on the right side of the street.", "gt": [87, 42, 99, 52]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_02544_d_0000029.jpg", "caption": "The red pedestrian is walking across the courtyard.", "gt": [66, 60, 73, 93]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_05601_d_0000535.jpg", "caption": "The black trucks are on the right side of the highway.", "gt": [81, 10, 83, 14]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_00601_d_0000762.jpg", "caption": "The white cars drive down the road.", "gt": [45, 13, 46, 16]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000244_04000_d_0000009.jpg", "caption": "The yellow motorbikes near the sidewalk vendors.", "gt": [26, 55, 27, 60]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000330_00001_d_0000800.jpg", "caption": "The yellow cars are parked on the right side of the road.", "gt": [62, 84, 67, 96]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_02001_d_0000517.jpg", "caption": "The red truck is near the top.", "gt": [50, 45, 51, 48]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_03601_d_0000829.jpg", "caption": "The white cars parked along the street.", "gt": [31, 76, 37, 95]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000253_00001_d_0000001.jpg", "caption": "The red cars park on the right side of the main road.", "gt": [55, 89, 56, 93]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_02401_d_0000385.jpg", "caption": "The red cars park near the road.", "gt": [62, 64, 69, 72]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000194_00200_d_0000120.jpg", "caption": "The red bus is visible in the middle of the intersection.", "gt": [53, 20, 55, 26]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_00500_d_0000002.jpg", "caption": "The white vehicles park on both sides of the street.", "gt": [30, 59, 33, 65]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_01201_d_0000765.jpg", "caption": "The white vans are located near the center of the image.", "gt": [50, 66, 55, 83]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000364_01177_d_0000799.jpg", "caption": "The yellow pedestrians walking along the market.", "gt": [8, 83, 9, 89]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000244_04400_d_0000010.jpg", "caption": "The red tricycles are parked near the shops.", "gt": [50, 35, 54, 39]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000023_00868_d_0000010.jpg", "caption": "The bicycles on the path.", "gt": [20, 65, 29, 81]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000356_02157_d_0000640.jpg", "caption": "The blue cars near the sidewalks.", "gt": [7, 27, 10, 32]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000154_00801_d_0000001.jpg", "caption": "The black vehicles move along the left side of the road.", "gt": [28, 67, 33, 76]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_02401_d_0000624.jpg", "caption": "The silver cars drive up the center lanes.", "gt": [47, 55, 50, 61]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000283_00401_d_0000676.jpg", "caption": "The red car on the right side of the image.", "gt": [93, 66, 100, 85]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000291_01001_d_0000873.jpg", "caption": "The green bus is prominently located at the center of the intersection.", "gt": [44, 51, 57, 74]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000244_05900_d_0000013.jpg", "caption": "The white cars travel on the left side of the road.", "gt": [39, 89, 41, 93]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000193_02029_d_0000114.jpg", "caption": "The red car is near the center of the image.", "gt": [44, 45, 47, 50]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000249_01514_d_0000005.jpg", "caption": "The red vans in the image.", "gt": [69, 24, 73, 29]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000021_00500_d_0000002.jpg", "caption": "The yellow bicycle rests on the grass beside the path.", "gt": [32, 67, 40, 79]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000291_03801_d_0000887.jpg", "caption": "The white pedestrians gather on the sidewalks.", "gt": [47, 6, 48, 12]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_02401_d_0000771.jpg", "caption": "The black cars are driving through the ornate gate.", "gt": [59, 42, 65, 54]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000249_02900_d_0000009.jpg", "caption": "The green buses on the road.", "gt": [45, 61, 49, 70]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_05059_d_0000015.jpg", "caption": "The red cars parked along the side of the street.", "gt": [58, 39, 61, 43]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000244_05400_d_0000012.jpg", "caption": "The black cars travel along the road.", "gt": [50, 68, 52, 71]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000193_01497_d_0000111.jpg", "caption": "The black motorcycles are scattered throughout the scene.", "gt": [90, 53, 92, 57]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_01201_d_0000618.jpg", "caption": "The yellow vehicles travel on the main road.", "gt": [50, 59, 54, 69]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000249_02468_d_0000008.jpg", "caption": "The white car is in the center of the road.", "gt": [37, 85, 42, 95]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000249_00001_d_0000001.jpg", "caption": "The black cars travel along the road.", "gt": [58, 86, 64, 96]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000356_04313_d_0000651.jpg", "caption": "The blue cars are located on the right side of the intersection.", "gt": [80, 33, 84, 37]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_01601_d_0000819.jpg", "caption": "The black cars park on the right side of the image.", "gt": [53, 22, 59, 28]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000291_03401_d_0000885.jpg", "caption": "The black cars park near the intersection.", "gt": [14, 26, 24, 34]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000199_01269_d_0000166.jpg", "caption": "The white bus is traveling in the middle lane.", "gt": [45, 39, 51, 48]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000293_03601_d_0000940.jpg", "caption": "The white vans are on the right side of the road.", "gt": [52, 41, 54, 45]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000263_02401_d_0000179.jpg", "caption": "The red cars park near the intersection.", "gt": [47, 6, 50, 12]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000249_03400_d_0000010.jpg", "caption": "The white pedestrians walk near the bottom center of the image.", "gt": [50, 91, 51, 97]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_01401_d_0000514.jpg", "caption": "The black vehicles on the road.", "gt": [47, 28, 49, 31]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_07057_d_0000749.jpg", "caption": "The pedestrians crossing at the crosswalk.", "gt": [52, 76, 55, 89]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_02401_d_0000551.jpg", "caption": "The red vehicles near the pedestrian crossings.", "gt": [34, 27, 36, 31]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000303_03401_d_0000200.jpg", "caption": "The green vehicles in the image.", "gt": [45, 35, 48, 45]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_00401_d_0000761.jpg", "caption": "The white cars drive on the center lanes.", "gt": [51, 42, 54, 48]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_00201_d_0000760.jpg", "caption": "The green vehicles in the image.", "gt": [71, 51, 74, 53]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_00401_d_0000541.jpg", "caption": "The red tricycle located near the center of the image.", "gt": [62, 19, 65, 23]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000213_02965_d_0000241.jpg", "caption": "The green cars parked along the street.", "gt": [46, 38, 49, 44]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000346_01961_d_0000356.jpg", "caption": "The white vans near the center of the image.", "gt": [51, 19, 54, 24]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000293_03601_d_0000940.jpg", "caption": "The green cars are scattered throughout the image.", "gt": [76, 71, 84, 81]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_00401_d_0000813.jpg", "caption": "The yellow cars in the image.", "gt": [61, 86, 66, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_05685_d_0000742.jpg", "caption": "The white cars wait at the intersection.", "gt": [28, 42, 38, 57]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000327_03401_d_0000728.jpg", "caption": "The white vans parked near buildings.", "gt": [24, 66, 33, 74]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_05293_d_0000740.jpg", "caption": "The white van is in the middle of the intersection.", "gt": [40, 71, 53, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000356_03725_d_0000648.jpg", "caption": "The white cars navigating through the intersection.", "gt": [47, 37, 53, 47]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000291_04401_d_0000890.jpg", "caption": "The black pedestrians crossing the street.", "gt": [87, 48, 88, 55]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_03801_d_0000830.jpg", "caption": "The white cars park near the commercial buildings.", "gt": [86, 17, 90, 21]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000308_04401_d_0000327.jpg", "caption": "The red cars are in the middle of the image.", "gt": [48, 33, 52, 40]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000116_00819_d_0000084.jpg", "caption": "The vans are parked on the left side of the road.", "gt": [27, 82, 34, 99]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000327_01201_d_0000717.jpg", "caption": "The black vans parked away from the buildings.", "gt": [5, 66, 13, 79]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000359_00393_d_0000701.jpg", "caption": "The black cars at the intersection.", "gt": [42, 35, 52, 41]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_01001_d_0000617.jpg", "caption": "The blue vehicles drive or park on the left side of the road.", "gt": [33, 35, 36, 40]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000291_03601_d_0000886.jpg", "caption": "The black cars park near the corner of a building.", "gt": [71, 40, 78, 50]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_06273_d_0000745.jpg", "caption": "The red motorcycles are moving through the junction.", "gt": [25, 41, 27, 47]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_03349_d_0000031.jpg", "caption": "The pedestrian in red walks on the sidewalk.", "gt": [51, 47, 56, 74]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000291_03801_d_0000887.jpg", "caption": "The black cars park near the traffic lights.", "gt": [79, 35, 86, 44]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_06010_d_0000017.jpg", "caption": "The black car near the center of the image.", "gt": [39, 58, 41, 61]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_03725_d_0000062.jpg", "caption": "The blue cars are waiting at the traffic light.", "gt": [78, 76, 92, 90]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_01001_d_0000512.jpg", "caption": "The red truck travels on the center lane.", "gt": [51, 9, 52, 12]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_04801_d_0000781.jpg", "caption": "The blue cars park around the perimeter of the courtyard.", "gt": [71, 44, 76, 51]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000359_01373_d_0000706.jpg", "caption": "The black cars in the intersection area.", "gt": [6, 56, 27, 70]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_02601_d_0000824.jpg", "caption": "The black pedestrians walk on the sidewalks.", "gt": [73, 78, 74, 82]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_04601_d_0000834.jpg", "caption": "The white vans navigating through the intersection.", "gt": [37, 79, 52, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000193_01497_d_0000111.jpg", "caption": "The yellow cars move along the road.", "gt": [60, 35, 64, 39]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_00502_d_0000027.jpg", "caption": "The individual walking away from the vehicle.", "gt": [48, 2, 52, 24]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000244_02000_d_0000005.jpg", "caption": "The black vans are parked near the buildings.", "gt": [29, 74, 32, 78]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000001_07999_d_0000012.jpg", "caption": "The red tricycles are scattered around the plaza area.", "gt": [46, 35, 49, 38]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000215_00909_d_0000258.jpg", "caption": "The red cars park on the right side of the road.", "gt": [67, 15, 70, 19]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_02201_d_0000518.jpg", "caption": "The red trucks travel on the main road.", "gt": [40, 39, 43, 50]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000290_04001_d_0000867.jpg", "caption": "The red trucks park on the left side of the image.", "gt": [17, 19, 31, 25]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000359_00393_d_0000701.jpg", "caption": "The red cars near the crosswalks.", "gt": [71, 21, 73, 25]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000193_02416_d_0000116.jpg", "caption": "The green vehicles are positioned on the left side of the street.", "gt": [50, 23, 52, 25]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000023_00300_d_0000009.jpg", "caption": "The motor parks on the grass beside the path.", "gt": [61, 65, 69, 77]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000348_00589_d_0000409.jpg", "caption": "The green awning-tricycle is near the top of the image.", "gt": [41, 3, 43, 11]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_00843_d_0000004.jpg", "caption": "The black car drives in the left lane.", "gt": [10, 61, 33, 96]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_05201_d_0000533.jpg", "caption": "The white car is ahead of the other vehicles.", "gt": [49, 16, 50, 19]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000359_03529_d_0000712.jpg", "caption": "The motorcycles waiting at the crosswalk.", "gt": [21, 72, 25, 82]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_03137_d_0000059.jpg", "caption": "The yellow vehicles in the image.", "gt": [49, 51, 54, 57]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000199_01269_d_0000166.jpg", "caption": "The black van is located near the bottom of the image.", "gt": [59, 94, 65, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000069_01109_d_0000004.jpg", "caption": "The green-clad pedestrians are near the tents and booths.", "gt": [69, 15, 70, 22]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_03201_d_0000827.jpg", "caption": "The white pedestrians walking on the sidewalks.", "gt": [48, 22, 49, 27]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000312_01001_d_0000419.jpg", "caption": "The white cars park near the sculpture.", "gt": [49, 28, 56, 35]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_06469_d_0000076.jpg", "caption": "The red van  are waiting at the intersection.", "gt": [22, 34, 33, 46]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_02544_d_0000029.jpg", "caption": "The green bicycles are parked near the steps and in the background.", "gt": [64, 7, 67, 17]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_02549_d_0000056.jpg", "caption": "The pedestrians crossing at intersections.", "gt": [46, 49, 47, 54]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000155_01201_d_0000001.jpg", "caption": "The green cars travel along the road.", "gt": [31, 35, 33, 40]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000163_00359_d_0000001.jpg", "caption": "The black tricycle moves down the center of the road.", "gt": [15, 68, 23, 83]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_00401_d_0000376.jpg", "caption": "The red trucks in the image.", "gt": [89, 18, 95, 27]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_07201_d_0000847.jpg", "caption": "The blue vehicles are scattered around the area.", "gt": [87, 34, 90, 43]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000001_03999_d_0000007.jpg", "caption": "The red cars in the image.", "gt": [49, 71, 53, 82]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_04601_d_0000561.jpg", "caption": "The white cars at the intersection.", "gt": [38, 23, 44, 28]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000330_00801_d_0000804.jpg", "caption": "The red cars park near the buildings on the right side of the image.", "gt": [71, 39, 75, 44]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000081_00000_d_0000001.jpg", "caption": "The blue-clad pedestrians are also present on the courts.", "gt": [76, 50, 78, 57]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_02964_d_0000030.jpg", "caption": "The person standing next to a bicycle.", "gt": [44, 46, 50, 77]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000364_00589_d_0000798.jpg", "caption": "The white trucks are parked near the bottom right corner and moving along the road.", "gt": [62, 76, 79, 94]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_02201_d_0000550.jpg", "caption": "The blue cars in the image.", "gt": [69, 23, 75, 30]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000244_05900_d_0000013.jpg", "caption": "The black cars on the right side of the road.", "gt": [57, 92, 61, 95]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_06452_d_0000018.jpg", "caption": "The white truck travels on the left side of the street.", "gt": [35, 27, 39, 34]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_05801_d_0000536.jpg", "caption": "The black truck is positioned towards the upper right corner.", "gt": [86, 9, 88, 14]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_06001_d_0000537.jpg", "caption": "The green truck moves near the edge of the image.", "gt": [95, 22, 100, 34]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000293_03601_d_0000940.jpg", "caption": "The black cars are in the middle lanes of traffic.", "gt": [45, 66, 50, 78]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_04401_d_0000833.jpg", "caption": "The silver cars are navigating the intersection.", "gt": [52, 51, 58, 65]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_03401_d_0000828.jpg", "caption": "The pedestrians on the sidewalks.", "gt": [70, 84, 71, 91]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000155_00001_d_0000001.jpg", "caption": "The white vans parked along the sidewalk.", "gt": [55, 33, 59, 39]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000356_04705_d_0000653.jpg", "caption": "The black cars in the intersection.", "gt": [32, 31, 35, 36]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000215_01395_d_0000259.jpg", "caption": "The red van park on the right side of the road.", "gt": [74, 38, 79, 45]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_03333_d_0000730.jpg", "caption": "The pedestrians crossing the street.", "gt": [43, 61, 45, 68]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000244_03500_d_0000008.jpg", "caption": "The red tricycles and cars.", "gt": [13, 77, 17, 82]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_00981_d_0000048.jpg", "caption": "The white cars travel on the right side of the road.", "gt": [49, 69, 53, 76]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_07201_d_0000847.jpg", "caption": "The white cars park near the building with a red roof.", "gt": [75, 29, 80, 36]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000346_07057_d_0000382.jpg", "caption": "The red cars in the image.", "gt": [12, 19, 15, 22]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000249_00603_d_0000003.jpg", "caption": "The white van parked on the sidewalk.", "gt": [36, 81, 44, 89]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000315_01601_d_0000509.jpg", "caption": "The white cars driving on the road.", "gt": [37, 83, 41, 96]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_06401_d_0000404.jpg", "caption": "The red cars park along the street.", "gt": [65, 87, 70, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_01401_d_0000619.jpg", "caption": "The yellow cars travel on the road.", "gt": [48, 21, 50, 24]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000359_01177_d_0000705.jpg", "caption": "The red cars are parked along the sides of the road.", "gt": [33, 43, 39, 53]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_03601_d_0000556.jpg", "caption": "The blue cars in the image.", "gt": [20, 53, 26, 63]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_02401_d_0000551.jpg", "caption": "The blue cars in the intersection area.", "gt": [59, 25, 64, 30]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000215_00447_d_0000257.jpg", "caption": "The red cars park on the left side of the road.", "gt": [29, 52, 35, 62]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000327_00801_d_0000715.jpg", "caption": "The red cars driving along the road.", "gt": [48, 45, 51, 53]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_02001_d_0000517.jpg", "caption": "The white cars are in the middle lane and left side of the road.", "gt": [43, 72, 45, 75]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000333_03137_d_0000017.jpg", "caption": "The red car travels on the main road.", "gt": [41, 28, 42, 34]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_02601_d_0000824.jpg", "caption": "The white cars drive down the center of the road.", "gt": [44, 26, 46, 32]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_04201_d_0000559.jpg", "caption": "The blue cars are waiting at the crosswalk.", "gt": [55, 30, 64, 38]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_03921_d_0000063.jpg", "caption": "The yellow cars in the intersection.", "gt": [29, 42, 36, 51]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_03349_d_0000031.jpg", "caption": "The yellow construction lift or cherry picker is parked near the sidewalk.", "gt": [0, 28, 43, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000153_00001_d_0000001.jpg", "caption": "The red vehicles in the image.", "gt": [22, 76, 24, 85]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000313_07001_d_0000471.jpg", "caption": "The black car parks near the green commercial building.", "gt": [60, 61, 63, 65]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_00589_d_0000716.jpg", "caption": "The white cars are navigating through the intersection.", "gt": [43, 34, 46, 44]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_03401_d_0000828.jpg", "caption": "The red cars in the image.", "gt": [49, 35, 52, 42]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000244_06388_d_0000014.jpg", "caption": "The green vehicles are visible in the image.", "gt": [53, 77, 56, 80]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000116_01059_d_0000085.jpg", "caption": "The yellow pedestrians are walking near the center and right side of the image.", "gt": [59, 74, 60, 82]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_05601_d_0000839.jpg", "caption": "The blue motorcycles in the image.", "gt": [19, 85, 24, 91]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_02941_d_0000728.jpg", "caption": "The black cars are moving through the intersection.", "gt": [56, 87, 68, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_07253_d_0000750.jpg", "caption": "The tricycles moving along the street.", "gt": [36, 46, 44, 63]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_02601_d_0000552.jpg", "caption": "The green vehicles are scattered around the intersection.", "gt": [71, 27, 74, 30]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_05685_d_0000742.jpg", "caption": "The pedestrians in red and blue cross the street.", "gt": [0, 78, 2, 91]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_03137_d_0000729.jpg", "caption": "The white cars navigate through the intersection.", "gt": [47, 81, 58, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000335_04117_d_0000064.jpg", "caption": "The white cars in the intersection.", "gt": [47, 58, 59, 71]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000023_00300_d_0000009.jpg", "caption": "The white awning-tricycle is on the pathway.", "gt": [43, 40, 52, 54]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000162_00001_d_0000001.jpg", "caption": "The red pedestrian is near the bottom-left corner.", "gt": [13, 58, 15, 64]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000244_05900_d_0000013.jpg", "caption": "The green vehicles in the image.", "gt": [46, 72, 51, 78]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000316_01201_d_0000525.jpg", "caption": "The white vans on the main road and side streets.", "gt": [5, 83, 14, 91]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_01734_d_0000028.jpg", "caption": "The silver car with a blue license plate.", "gt": [54, 21, 82, 79]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000154_00401_d_0000001.jpg", "caption": "The white vans are traveling on the right side of the road.", "gt": [69, 66, 74, 73]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000333_02745_d_0000015.jpg", "caption": "The black cars are parked on the left side of the road", "gt": [29, 0, 31, 6]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000359_02353_d_0000708.jpg", "caption": "The red car is in the middle lane.", "gt": [50, 40, 52, 43]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_01801_d_0000516.jpg", "caption": "The white trucks travel along the main road.", "gt": [55, 56, 60, 71]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000287_02601_d_0000772.jpg", "caption": "The black cars park adjacent to the road and buildings.", "gt": [82, 56, 86, 63]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000276_03001_d_0000522.jpg", "caption": "The white cars are scattered across different lanes and areas.", "gt": [30, 62, 33, 68]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000312_00201_d_0000415.jpg", "caption": "The red cars park on the adjacent street.", "gt": [30, 37, 37, 42]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_04116_d_0000013.jpg", "caption": "The yellow car is parked near the left side of the road.", "gt": [20, 46, 25, 56]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_00502_d_0000027.jpg", "caption": "The person sitting near the car.", "gt": [2, 5, 9, 22]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_05001_d_0000562.jpg", "caption": "The black bicycles at the crosswalks.", "gt": [7, 53, 9, 59]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000295_00200_d_0000022.jpg", "caption": "The red cars are scattered throughout the traffic.", "gt": [58, 38, 60, 42]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000213_04998_d_0000245.jpg", "caption": "The brown cars park on the left side of the road.", "gt": [16, 64, 29, 77]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_06665_d_0000747.jpg", "caption": "The blue truck on the left side of the road.", "gt": [28, 46, 40, 74]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_05059_d_0000015.jpg", "caption": "The black cars on the road.", "gt": [43, 29, 44, 31]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000271_01201_d_0000379.jpg", "caption": "The green vehicles in the image.", "gt": [76, 49, 78, 54]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000086_00592_d_0000002.jpg", "caption": "The pedestrians in green are scattered around the area.", "gt": [28, 52, 30, 66]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000356_03725_d_0000648.jpg", "caption": "The black vehicles near the center of the intersection.", "gt": [66, 24, 72, 30]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000289_04201_d_0000832.jpg", "caption": "The silver cars are navigating the intersection.", "gt": [53, 60, 60, 76]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000244_04900_d_0000011.jpg", "caption": "The white trucks are located near the center and left side of the image.", "gt": [17, 50, 22, 56]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000213_03478_d_0000242.jpg", "caption": "The red cars park on the right side of the street.", "gt": [71, 64, 76, 77]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000277_01401_d_0000546.jpg", "caption": "The red cars in the image.", "gt": [31, 29, 37, 36]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_00963_d_0000005.jpg", "caption": "The red tricycles park near the sidewalk.", "gt": [28, 91, 40, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000360_00981_d_0000718.jpg", "caption": "The pedestrians in white are near the crosswalks.", "gt": [58, 38, 59, 42]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000103_04122_d_0000033.jpg", "caption": "The person pushing a stroller.", "gt": [48, 34, 52, 45]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000330_00401_d_0000802.jpg", "caption": "The black cars parked along the left side of the street.", "gt": [15, 49, 21, 57]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000330_04001_d_0000820.jpg", "caption": "The white motorcycles in the intersection.", "gt": [52, 37, 56, 42]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000280_00001_d_0000612.jpg", "caption": "The yellow cars along the side of the road.", "gt": [68, 66, 74, 78]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000242_00627_d_0000003.jpg", "caption": "The yellow taxi is prominently visible in the foreground.", "gt": [45, 77, 52, 100]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000162_00401_d_0000001.jpg", "caption": "The pedestrians wearing black clothing.", "gt": [33, 42, 34, 45]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000223_01802_d_0000005.jpg", "caption": "The red cars on the road.", "gt": [47, 55, 49, 61]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000316_01001_d_0000524.jpg", "caption": "The green vehicles in the middle of the image.", "gt": [49, 88, 50, 92]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000291_04001_d_0000888.jpg", "caption": "The people in the image.", "gt": [41, 3, 45, 7]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000283_00601_d_0000677.jpg", "caption": "The white van is near the top of the image.", "gt": [39, 7, 40, 8]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000327_00401_d_0000713.jpg", "caption": "The white vans park along the roadside.", "gt": [73, 20, 77, 27]}
+{"image_path": "data/VisDrone2019-DET/images/val/0000193_01705_d_0000112.jpg", "caption": "The red cars in the image.", "gt": [43, 50, 47, 56]}

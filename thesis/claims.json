@@ -389,6 +389,33 @@
       "verdict": "YES (+22.1 pp, p=2.5e-14 deflated, survives Holm; supersedes the cross-machine P3-ROI-M2.0-512)"
     },
     {
+      "id": "P3-R13-owlv2-vs-vlm",
+      "part": "III",
+      "headline": "On the Orin, the deployed 2B VLM grounds RefDrone val at 63.1% vs OWLv2's best arm at 47.4%; OWLv2's failure is selection (recall@10 = 88.8%), not localisation",
+      "design": "paired-binary",
+      "machine": "jetson-orin-nano-8gb",
+      "counts": {
+        "b": 100,
+        "c": 31,
+        "k1": 277,
+        "k2": 208,
+        "n": 439
+      },
+      "n_rows": 439,
+      "n_effective": 316,
+      "gate_p": 2.2605981543610277e-07,
+      "data_status": "per_item",
+      "data_paths": [
+        "experiments/2026-07-21-detector-baseline/raw/owlv2.jsonl",
+        "experiments/2026-07-21-detector-baseline/raw/scored.jsonl",
+        "experiments/2026-07-21-roi-ondevice/raw/items-full.jsonl"
+      ],
+      "independence_note": "439 RefDrone val well-posed caption-box pairs over 316 unique images (pseudo-replication rule R-4); b/c are deflated to the 316 image count before McNemar (b=72, c=22 deflated). Both arms scored through grounding/contract.py on the same items in the same order; the VLM comparator is arm A of R-14, not a re-run.",
+      "caveats_en": "The registered counts are the STRONGEST detector arm (D-phrase, the noun phrase with adjectives kept), not the end-to-end one -- D-full is 25.7% and would make the claim look far stronger (p=2.2e-24). D-phrase was added after pre-registration and before scoring, precisely so the detector was not strawmanned; it is declared in the campaign README. The 90.4% D-oracle arm is NOT a system: it picks among the detector's top-10 using the ground truth, so it is an upper bound on any re-ranker over those proposals and must never be quoted as an OWLv2 result. The latency comparison (263.5 ms detector forward vs 4319 ms VLM wall, 16.4x) is one detector forward against one full generative anchor and excludes the selection stage a decomposed system would still need; if that stage were itself a VLM the saving disappears. OWLv2 ran fp16 via transformers/PyTorch while the VLM ran Q8_0 via llama.cpp, so the cost ratio is across two runtimes and is a system-level observation, not a controlled efficiency measurement. 5/439 captions (1.1%) exceed OWLv2's 16-token text encoder limit and were truncated.",
+      "caveats": "Los recuentos registrados corresponden al brazo MÁS FUERTE del detector (D-phrase, el sintagma nominal con adjetivos), no al extremo a extremo: D-full queda en 25.7% y haría parecer la afirmación mucho más contundente (p=2.2e-24). D-phrase se añadió después del preregistro y antes de puntuar, precisamente para no presentar al detector como un espantapájaros; queda declarado en el README de la campaña. El brazo D-oracle del 90.4% NO es un sistema: elige entre las diez primeras propuestas del detector usando la verdad-terreno, así que es una cota superior sobre cualquier reordenador de esas propuestas y nunca debe citarse como resultado de OWLv2. La comparación de latencia (263.5 ms por pasada del detector frente a 4319 ms de reloj del VLM, 16.4x) enfrenta una sola pasada del detector con un anclaje generativo completo y excluye la etapa de selección que un sistema descompuesto seguiría necesitando; si esa etapa fuese a su vez un VLM, el ahorro desaparece. OWLv2 corrió en fp16 con transformers/PyTorch mientras que el VLM corrió en Q8_0 con llama.cpp, de modo que la razón de coste cruza dos motores de ejecución y es una observación de sistema, no una medición controlada de eficiencia. 5 de 439 descripciones (1.1%) superan el límite de 16 tokens del codificador de texto de OWLv2 y fueron truncadas.",
+      "verdict": "YES (VLM 63.1% vs OWLv2 best 47.4%, p=2.3e-07 deflated, survives Holm; the detector's deficit is selection -- its recall@10 is 88.8% and its rank-2 proposal already ties the VLM's top-1)"
+    },
+    {
       "id": "P3-ROI-drift-robustness",
       "part": "III",
       "headline": "The ROI crop tolerates anchor drift: 326-367/439 across shift levels 0.25-1.0",
