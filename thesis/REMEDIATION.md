@@ -31,7 +31,7 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-15 | Per-item jsonl in `grounding/eval/harness.py` | R-14 | DONE (2026-07-21T20:21Z; items-{full,roi}.jsonl carry 439 rows each, paired the claim) |
 | R-16 | SAM2 co-residency characterisation (reframed campaign) | — | **DONE** (2026-07-23T01:20Z; `experiments/2026-07-22-sam2-coresidency/`, claim `P4-R16-carry-rate-1024`) |
 | R-17 | Fix E2–E4 rig prose | R-7 | **DONE** |
-| R-18 | Rebalance `thesis/00-esquema.md` to the surviving evidence | R-9 | TODO |
+| R-18 | Rebalance `thesis/00-esquema.md` to the surviving evidence | R-9 | DONE |
 | R-19 | Stale-verdict sweep of the first-read surfaces | after R-4 | **DONE** |
 | R-20 | Translate the 65 `caveats` to Spanish | R-12 | **DONE** |
 | R-21 | Work the 74 MISLEADING/UNVERIFIED rows from the R-7 sweep | R-7 | **DONE** (70 rewritten, 4 accepted; resolutions in `provenance-resolutions.json`) |
@@ -733,8 +733,9 @@ the 6 surviving claims are `counts_only` and cannot be re-paired or re-analysed.
 **Expected output:** per-item jsonl written by every harness run.
 **Done when:** an R-14 run produces it and a claim is derived from it.
 
-**Code half landed 2026-07-21T22:35Z (status stays IN PROGRESS — the done-criterion
-is an R-14 run, not the code).**
+**Code landed 2026-07-21T22:35Z; DONE once the R-14 run consumed it the same day —
+the done-criterion was an R-14 run, not the code, and `items-{full,roi}.jsonl`
+(439 rows each) is what paired claim `P3-ROI-M2.0-512-ondevice`.**
 
 - `EvalReport` grows `items: tuple[dict, ...]`, **always collected**, `repr=False`.
   Collection is not opt-in: a flag that defaults to off is how this gap reappears.
@@ -902,6 +903,56 @@ Note what it does not contain: the delivery-contract separation.
 **Expected output:** a revised `00-esquema.md` whose page budget matches the
 surviving evidence.
 **Done when:** every chapter's length is justified by claims that survive R-9.
+
+### Resolution (2026-07-23)
+
+Done, but **not as written** — two of the task's three premises had expired by the
+time it ran, and the deltas below say which and why.
+
+**Premise 1, expired: "Part I holds the only substantial body measured wholly on
+target hardware."** False as of 2026-07-22. R-13 and R-14 landed after this task
+was drafted, and both are Holm-surviving paired results measured wholly on the
+Orin (R-14 at n_effective = 316). R-16 added a deterministic on-device
+characterisation of the deployed pair. So the pages freed from Ch. 7 go to **Ch. 5
+(9 to 11), Ch. 4 (10 to 11) and Ch. 3 (8 to 10)** — not to Part I.
+
+**Premise 2, rejected: "pages proportional to Holm survivors."** Applied
+uniformly it condemns Ch. 6 (zero survivors, 14 of its 15 claims at n_eff <= 6)
+and Ch. 8 before it touches Ch. 7, and it collides head-on with the project rule
+that a well-measured negative is content. Replaced with a criterion written into
+the outline: a page is justified by **a surviving inference**, by **a
+well-measured negative that closes a lever**, or by **deterministic
+characterisation measured on the target board** — never by effort spent or
+experiments run.
+
+**Premise 3, adopted:** P5.12 is dropped from the headline and **reported in its
+own ~0.5 pp subsection** of Ch. 7, with its "partly definicional" caveat as the
+subsection's point rather than a footnote. Burying a Holm survivor inside the
+sim-detour paragraph was the alternative and it was worse.
+
+The p-value quoted in the central argument above (`p=3.05e-5`) is the
+**undeflated** one; the citable figure is **6.10e-05**, deflated to 23 independent
+clips per invariant I2. Left in place because it is a record of what the audit
+wrote, not a live surface.
+
+**What actually changed in `00-esquema.md`** (945 lines, was 687):
+
+- Page budget rewritten to 5/8/10/11/11/8/12/4/7/4 = **80**, unchanged total, with a "Págs. antes" column so every delta is visible. Deltas sum to zero.
+- Six stale figures corrected against the post-R-13/R-14/R-16 record: 65 claims to 70, 6 survivors to 8, the ROI section's "never closed" to R-14's 85,19 % vs 63,10 % (+22,1 pp, p = 2,50e-14), the carry "~23 % optimistic" to R-16's measured **2,30x**, the Ch. 9 on-device threat narrowed to "rate and memory on the board; carry accuracy, only on the 3090", and the Ch. 10 P5.2 p-value off the forbidden one-sided undeflated 1,5e-5.
+- **Three new sections for measured evidence that had no chapter.** Part I's 15-config device bench had **zero** pages despite being measured (~1,5 pp, Ch. 3, including H4 falsified and the 8 GB cliff); the OWLv2 external baseline had none (~3,5 pp, Ch. 4); R-16 had none (~1,5 pp, Ch. 5, its single home, cross-referenced from Ch. 3 rather than restated).
+- **Cut order rewritten so every cut declares what is lost**, and the Ch. 6 blanket exemption **withdrawn** — it was the only chapter protected whole and it is the one without a significant result. What is protected there is its warnings, one by one. The E2-E17 compression carries a non-negotiable condition: the table keeps a **cause** column, or the cut destroys the taxonomy that is the intellectual content of those failures.
+- Three new validity threats: R-13 and R-14 **share an arm** (the 63,10 % is one dump read twice, so the survivor count is optimistic); the whole re-analysis is **post-hoc** and the deflation is a judgement made after the data existed; and the instrument changed — every VLM latency before R-13 carries an uncharacterised transport component.
+- Subordinate-claims table fixed: claim 3's limit said "p = 0,125", conflating the warm-start (inferential, 6,10e-05) with the select refinement (not, 0,25 / 0,5 deflated).
+- Evidence-debt table: R-14's row closed, and the **ROI-grid figure row re-opened** — R-14's three figures are a two-arm paired result, not the M x resolution sweep, and do not substitute for it.
+
+Ran as a 6-agent workflow (`wf_1cf9446a-969`, 4 inventory + 1 proposal + 1
+adversarial critique, 655k subagent tokens, 0 errors). The critique returned
+`NEEDS_FIXES` with 11 problems against the proposal; the fixes were adopted over
+the proposal. Two of the critique's catches are worth keeping: the proposal
+double-counted R-16 across Ch. 3 and Ch. 5 (~3,5 pp of duplicated figures,
+against the repo's no-duplication rule), and its line numbers were unusable
+because the file had already grown past them — every edit here was anchored on a
+quoted string with `assert s.count(old) == 1` instead.
 
 ## R-19 — Stale-verdict sweep of the first-read surfaces
 

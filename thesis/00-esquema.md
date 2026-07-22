@@ -25,7 +25,7 @@ adelantado y las deja auditables.
 
 Al levantar el inventario aparecieron dos problemas que no son de redacción:
 
-- **No había ni una sola prueba estadística en el repositorio.** Una búsqueda de `mcnemar|binomtest|scipy.stats|statsmodels|wilson|p-value` sobre todos los `.py` y `.md` devolvía cero ficheros. El único estadístico existente era un Spearman escrito a mano, sin p-valor ni intervalo. Varias afirmaciones con puerta descansaban sobre una o tres celdas de diferencia. **Resuelto el 2026-07-21**: el marco está en `grounding/stats.py`, se explica en el Cap. 3 (borrador en `thesis/01-metodo-estadistico.md`), y las 65 afirmaciones con puerta re-analizadas están en `thesis/stats-report.md`. El resultado de ese re-análisis está más abajo y **cambia lo que el TFM puede afirmar**.
+- **No había ni una sola prueba estadística en el repositorio.** Una búsqueda de `mcnemar|binomtest|scipy.stats|statsmodels|wilson|p-value` sobre todos los `.py` y `.md` devolvía cero ficheros. El único estadístico existente era un Spearman escrito a mano, sin p-valor ni intervalo. Varias afirmaciones con puerta descansaban sobre una o tres celdas de diferencia. **Resuelto el 2026-07-21**: el marco está en `grounding/stats.py`, se explica en el Cap. 3 (borrador en `thesis/01-metodo-estadistico.md`), y las afirmaciones con puerta re-analizadas están en `thesis/stats-report.md` (65 aquel día, **70** tras R-13, R-14 y R-16). El resultado de ese re-análisis está más abajo y **cambia lo que el TFM puede afirmar**.
 - **Las Partes I, II y III no tienen ni un solo directorio `proof/`.** La regla de entregables por campaña se introdujo en julio y no se aplicó retroactivamente. El resultado individual más fuerte del proyecto — la palanca ROI, que gana en las dos dimensiones a la vez — **no tiene ninguna figura**: existe solo como un JSON de barrido.
 
 Es decir: el trabajo pendiente antes de redactar no es escribir, es **generar la
@@ -42,7 +42,7 @@ Eso está en la Sección "Deuda de evidencia".
 ### Estado
 
 - Bibliografía: `thesis/refs.bib` creada, con las entradas sin verificar marcadas `% VERIFICAR`.
-- Esquema: este fichero.
+- Esquema: este fichero. **Rebalanceado el 2026-07-23 (R-18)** contra la evidencia superviviente: reparto de páginas a suma cero, criterio de reparto declarado, orden de recorte con su coste declarado, y tres secciones nuevas para evidencia medida que no tenía capítulo.
 - Texto: no empezado.
 - Fecha límite: **sin fijar**. Es la variable que falta y la que ordena todo lo demás.
 
@@ -63,9 +63,9 @@ sostener una de ellas:
 
 | Afirmación | Cap. | Límite de la evidencia |
 |---|---|---|
-| Un VLM de 2B cuantizado hace grounding referencial útil sobre imagen aérea y cabe en un Orin Nano de 8 GB | 4-5 | Protocolo propio, más fácil que el benchmark publicado |
+| Un VLM de 2B cuantizado hace grounding referencial útil sobre imagen aérea y cabe en un Orin Nano de 8 GB | 4-5 | Protocolo propio, más fácil que el benchmark publicado. La parte medida **en la placa** es el grounding de un frame (R-13, R-14); la precisión del arrastre nunca se midió allí |
 | La adquisición en frío es el cuello de botella del sistema integrado, y no se arregla optimizando la adquisición | 6 | n = 6 clips, todas coches, sin vehículo en el lazo |
-| Anticipar (mantener + seleccionar) sí lo arregla, acotado por la calidad del arrastre | 7 | El único SÍ a n real cae justo en el listón, p = 0,125 |
+| Anticipar (mantener + seleccionar) sí lo arregla, acotado por la calidad del arrastre | 7 | Desigual: el **arranque en caliente** es inferencial (P5.2a, p = 6,10e-05, sobrevive a Holm), el **refinamiento de la selección** no lo es — el único SÍ a n real (P5.19, 20/26) queda en p = 0,25 y en p = 0,5 al deflactar a 13 clips |
 
 La Parte VI (Cap. 8) no sostiene ninguna de las tres todavía.
 
@@ -73,22 +73,54 @@ La Parte VI (Cap. 8) no sostiene ninguna de las tres todavía.
 
 <!-- caption: Estructura de capítulos, origen del material y extensión estimada -->
 
-| Cap. | Título | Material de origen | Págs. (est.) |
-|---|---|---|---|
-| 1 | Introducción y motivación | `README.md`, propuestas de parte | 5 |
-| 2 | Estado del arte | `SOURCES.md`, surveys, encuesta de datasets | 8 |
-| 3 | Plataforma, método y métricas | `README.md`, `grounding/contract.py`, `01-metodo-estadistico.md`, `02-metodo-multiagente.md` | 8 |
-| 4 | Grounding de un solo frame | Partes I y II | 10 |
-| 5 | Permanencia de objeto | Parte III + E1 | 9 |
-| 6 | El arco de la latencia de adquisición | Parte IV (E2-E23) | 10 |
-| 7 | Grounding anticipatorio | Parte V (P5.1-P5.20) | 14 |
-| 8 | Hacia el lazo cerrado | Parte VI (P6.0-P6.1) | 6 |
-| 9 | Amenazas a la validez | transversal | 6 |
-| 10 | Conclusiones y trabajo futuro | transversal | 4 |
+| Cap. | Título | Material de origen | Págs. antes | Págs. |
+|---|---|---|---|---|
+| 1 | Introducción y motivación | `README.md`, propuestas de parte | 5 | 5 |
+| 2 | Estado del arte | `SOURCES.md`, surveys, encuesta de datasets | 8 | 8 |
+| 3 | Plataforma, método y métricas | `README.md`, `grounding/contract.py`, `01-metodo-estadistico.md`, `02-metodo-multiagente.md`, barrido de capacidad de la Parte I | 8 | **10** |
+| 4 | Grounding de un solo frame | Partes I y II + R-13 | 10 | **11** |
+| 5 | Permanencia de objeto | Parte III + E1 + R-14 + R-16 | 9 | **11** |
+| 6 | El arco de la latencia de adquisición | Parte IV (E2-E23) | 10 | **8** |
+| 7 | Grounding anticipatorio | Parte V (P5.1-P5.20) | 14 | **12** |
+| 8 | Hacia el lazo cerrado | Parte VI (P6.0-P6.1) | 6 | **4** |
+| 9 | Amenazas a la validez | transversal | 6 | **7** |
+| 10 | Conclusiones y trabajo futuro | transversal | 4 | 4 |
 
-Total estimado: **80 páginas** de cuerpo. Los agentes que inventariaron cada parte
-estiman 17 + 26 + 16 + 17 páginas solo para los capítulos 4 a 7 si se contara todo,
-lo que confirma que el problema es de recorte y no de material.
+Total: **80 páginas** de cuerpo, igual que antes — esto es un **reparto**, no una
+ampliación. Los deltas suman cero: +2 +1 +2 −2 −2 −2 +1 = 0.
+
+### El criterio de reparto, y por qué no es «páginas por p-valor»
+
+El rebalanceo del 2026-07-23 no aplica la regla literal de «páginas
+proporcionales a los supervivientes de Holm». Aplicada con uniformidad, esa regla
+condena antes al Cap. 6 (cero supervivientes, cero significativos nominales, 14
+de sus 15 afirmaciones a n efectivo <= 6) y al Cap. 8 (dos afirmaciones
+descriptivas a n = 1) que al Cap. 7 — y además choca de frente con la directriz
+del proyecto de que **un negativo bien medido es contenido**. Regla adoptada:
+
+> Una página se justifica por **inferencia superviviente**, por un **negativo bien
+> medido que cierra una palanca**, o por **caracterización determinista medida en
+> la placa objetivo**. No se justifica por esfuerzo invertido ni por número de
+> experimentos ejecutados.
+
+Los tres movimientos que salen de ahí:
+
+1. **Cap. 7, de 14 a 12.** Es el capítulo menos comprimido del esquema original
+   (82 % de retención, frente al 35 % del Cap. 5) y descansa sobre **una sola
+   prueba superviviente no definicional**, P5.2a. Baja, pero no baja a 8: son 26
+   de las 70 afirmaciones del registro, diez de ellas negativos que **acotan la
+   contribución**, y P5.15 es el diseño mejor potenciado de la Parte V (24/25,
+   n = 25, p = 0,0029) aunque no sobreviva a Holm (0,0756).
+2. **Cap. 5, de 9 a 11.** Era el más comprimido del documento y es ahora el más
+   fuerte en inferencia de placa: R-14 y R-16 aterrizaron después de escribirse
+   este esquema.
+3. **Cap. 3, de 8 a 10.** Absorbe la caracterización del dispositivo, que hoy
+   tiene **cero páginas** pese a estar medida (ver más abajo).
+
+Los agentes que inventariaron cada parte estiman 17 + 26 + 16 + 17 páginas solo
+para los capítulos 4 a 7 si se contara todo, lo que confirma que el problema es de
+recorte y no de material. Ese recorte ahora está declarado, no implícito: la
+sección «Orden de recorte» dice qué se pierde en cada tijeretazo.
 
 ## Capítulo 3 — Plataforma, método y métricas
 
@@ -113,6 +145,44 @@ pregunta del tribunal.
 - Jetson Orin Nano 8 GB, **15 W + `jetson_clocks`**. El modo de 25 W no existe en esta placa: el firmware expone solo 15 W y 7 W, y desbloquearlo exigiría un flasheo de bootloader que se decidió no intentar. Toda cifra de rendimiento es un techo de 15 W, no un techo de silicio.
 - Una etiqueta anterior del cuaderno decía "MAXN\_SUPER" y **era falsa**; se corrigió el 2026-07-03. No debe reaparecer en el TFM.
 - La potencia medida es `VDD_IN` de tegrastats: entrada total de placa, incluido un suelo de plataforma en reposo de ~5,2 W. No es potencia de módulo ni de SoC.
+
+### Lo que la placa hace, medido (~1,5 pp) — NUEVA
+
+La Parte I dejó un barrido de capacidad que **este esquema no colocaba en ningún
+capítulo**: un `grep` de todo el documento por `tok/s`, `J/tok`, TTFT, térmica,
+Gemma, Mistral o Phi no devolvía nada. Son 15 configuraciones medidas en la placa
+a 15 W + `jetson_clocks` (`experiments/2026-06-13-model-capability-sweep/` y
+`2026-06-14-gemma-family-sweep/`), con 84 ficheros crudos versionados.
+
+**Enunciado exacto de la n, porque no es uniforme:** *15 configuraciones; caudal a
+5 repeticiones, TTFT y potencia/térmica a una sola pasada.* Sólo `llama-bench`
+corrió con `-r 5`; el TTFT es **una** llamada por modelo y la potencia es una
+ventana continua de tegrastats a 1 Hz. Escribir «15 modelos x 5 repeticiones»
+sería falso para tres de las cuatro familias de métrica. Además, 14 de las 15
+produjeron caudal: `gemma-3-12b` **no cargó** (`cudaMalloc` al cargar, sin rescate
+por descarga parcial), y ese fallo es el resultado, no una casilla vacía.
+
+Qué se defiende con esto, y **solo** esto:
+
+- El acantilado de los 8 GB es un **acantilado, no una pendiente**: los diez modelos Q4\_K\_M entran a `n_ctx` 4096 y el de 12B no entra en absoluto.
+- **El prefill nunca es la restricción** en esta clase de carga: TTFT <= 204 ms.
+- La placa está **limitada por ancho de banda en decodificación**: tg128 cae de 71,52 a 7,75 tok/s sobre una razón de 12,4x en bytes de pesos.
+- **H4 queda falsificada**: se pre-registró que la energía por token tendría un óptimo en 2-3B, y sale monótonamente creciente (0,157 a 1,795 J/tok). Es un negativo pre-registrado y va con su nombre.
+- Cero estrangulamiento térmico en todo el barrido.
+
+Y qué **no** se defiende, porque sería sobrevender: estas 15 configuraciones son
+LLM de **texto**, ninguna es el modelo desplegado, y **ninguna cifra de latencia
+posterior de la tesis se deriva de este banco** — las de después salen del VLM
+(R-14: prefill 3680 + decodificación 536 ms) y de SAM2 (R-16: 372,1 ms). Responde
+a «qué LLM de texto cabe en 8 GB», que no es la pregunta que el sistema final
+hace. Se cuenta como caracterización de plataforma y como el origen de la regla de
+que el techo es de 15 W, no de silicio.
+
+Cuatro defectos declarados que viajan con la sección: un único modo de potencia
+(los brazos de 7 W y 25 W nunca se corrieron, luego **no hay curva de
+compromiso**), la cuantización no se mantiene fija en las 15, el «±» del pp512 es
+una dispersión entre agregados y no ruido de medida, y la fórmula de J/tok del
+README de la campaña contradice sus propios números.
 
 ### El marco de inferencia
 
@@ -156,20 +226,35 @@ incidentes, y cada uno resuelve a un *commit*.
 Este es el material del Cap. 9 y conviene anticiparlo aquí, porque **el marco no
 se escribió para adornar resultados sino porque cambió varios**.
 
-<!-- caption: Resultado global del re-análisis retroactivo de las 65 afirmaciones con puerta -->
+<!-- caption: Resultado global del re-análisis retroactivo de las afirmaciones con puerta -->
 
 | Categoría | N | Qué significa |
 |---|---|---|
-| Significativas tras Holm | 6 | Se pueden defender como efectos |
-| Sin prueba posible (0 discordantes o solo agregados) | 30 | No hubo contraste, en ninguna dirección |
-| Diseño incapaz de alcanzar alfa | 35 | Ningún resultado posible habría bastado |
+| Significativas tras Holm | 8 | Se pueden defender como efectos |
+| Sin prueba posible (0 discordantes o solo agregados) | 33 | No hubo contraste, en ninguna dirección |
+| Diseño incapaz de alcanzar alfa | 38 | Ningún resultado posible habría bastado |
 | Sin datos crudos | 3 | En cola de re-ejecución, no se defienden |
 
-Las seis que sobreviven son la catástrofe de fidelidad de la Parte I, la escalera
-de resolución y la puerta LoRA de la Parte II, la palanca ROI de la Parte III, la
-generalización del arranque en caliente (P5.2a) y la recalibración del banco
-(P5.12). **La contribución central del TFM está entre ellas**, que es lo que
-hacía falta comprobar.
+Sobre **70** afirmaciones con puerta. Estas cifras se regeneran desde
+`thesis/claims.json` y **se mueven cada vez que aterriza un brazo con puerta**:
+no se citan de memoria, se leen de `thesis/stats-report.md`. El re-análisis
+original del 2026-07-21 dio 6 sobre 65; R-13 y R-14 añadieron las dos
+supervivientes nuevas el 2026-07-22, y ambas son de la Parte III y están medidas
+**íntegramente en la Jetson**.
+
+Las ocho que sobreviven son la catástrofe de fidelidad de la Parte I, la escalera
+de resolución y la puerta LoRA de la Parte II, la palanca ROI de la Parte III en
+sus dos versiones —la original y la **confirmación en dispositivo a Q8\_0**
+(R-14, p = 2,50e-14)—, la comparación contra el detector externo OWLv2 (R-13,
+p = 2,26e-07), la generalización del arranque en caliente (P5.2a) y la
+recalibración del banco (P5.12). **La contribución central del TFM está entre
+ellas**, que es lo que hacía falta comprobar.
+
+Dos matices que hay que dar con la lista, o la lista miente por omisión. La
+recalibración del banco (P5.12) sobrevive a Holm pero su propia salvedad la
+llama *parcialmente definicional*: los suelos se recalibraron a partir de la
+población de P5.11. Y de las ocho, solo **dos son inferenciales y de la placa a
+la vez** —R-13 y R-14—, que es exactamente el flanco que el Cap. 9 declara.
 
 Y tres correcciones que el re-análisis obliga a llevar al texto:
 
@@ -185,6 +270,11 @@ cruzando el cable por llamada; el arrastre con SAM2, el replay de vídeo y el
 scoring corrieron en una RTX 3090 de sobremesa. El capítulo debe presentar el
 diagrama del banco antes de dar una sola cifra, porque de otro modo el lector
 supone un sistema embarcado que nunca se midió como tal.
+
+Aquí va **una tabla del coste del par desplegado** —VLM más arrastre, co-residentes
+en la placa— y **nada más**: la medida, su descomposición y la corrección que
+obliga son material del Cap. 5, donde vive la cifra que corrige (los 6,15 FPS de
+E1). Se remite allí y no se repite, que es la regla del repositorio.
 
 ## Capítulo 4 — Grounding de un solo frame
 
@@ -223,6 +313,61 @@ re-medida de la Fase 0b sobre el mismo checkpoint, 85,0 a 69,0 a 67,0, -16 pp).
 La diferencia se atribuye a decodificación voraz frente a muestreada y a n = 100
 frente a n = 200. El TFM debe dar el par y la explicación, no elegir el número
 más dramático.
+
+### Una línea base externa: detección de vocabulario abierto (~3,5 pp) — NUEVA
+
+**Es la única comparación contra un sistema externo en todo el proyecto**, y es la
+primera pregunta de un tribunal: ¿comparado con qué? Hasta R-13 (2026-07-22) la
+respuesta no existía; todo lo demás del cuaderno es una ablación interna.
+
+El montaje: OWLv2 [@minderer2023owlv2] fp16 contra el VLM desplegado a Q8\_0, **las
+dos en el Orin**, sobre las mismas 439 muestras bien planteadas de RefDrone val y
+con el mismo camino de puntuación. Cuatro brazos de detector, elegidos para **no**
+montar un espantapájaros, y el registrado como titular es el más fuerte, no el más
+favorable.
+
+| Brazo | IoU@0,25 | Qué es |
+|---|---|---|
+| VLM desplegado | **63,10 %** | el sistema de la tesis |
+| D-phrase | 47,38 % | sintagma nominal con adjetivos — el mejor brazo del detector |
+| D-full | 25,74 % | la expresión referencial entera |
+| D-head | 24,60 % | el núcleo nominal a secas |
+| D-oracle | 90,43 % | **no es un sistema**: elige entre las diez primeras con la verdad-terreno |
+
+Pareado y deflactado a 316 imágenes únicas, VLM contra D-phrase da p = 2,26e-07 y
+**sobrevive a Holm**.
+
+El resultado que importa no es la tasa sino la **descomposición**: el detector
+propone bien y no sabe elegir. Su recall sube de 47,4 % en k = 1 a 88,8 % en
+k = 10, y sólo 49 de 439 ítems (11,2 %) no tienen ninguna caja correcta entre las
+diez. La distancia entre `recall@1` y `recall@10` **del mismo brazo D-phrase** es
+de 41,5 pp — hay que enunciarlo así, porque puesto al lado del 90,43 % se lee como
+la brecha del oráculo, que es otra cosa (27,3 pp). Su segunda propuesta ya empata
+con el top-1 del VLM. Dos apoyos: el lenguaje relacional **perjudica** (D-full
+está 21,6 pp por debajo de D-phrase, luego la cláusula se puntúa y arrastra el
+emparejamiento fuera del objetivo), y los adjetivos de apariencia son toda la
+aportación del detector (D-phrase menos D-head = 22,8 pp).
+
+Un techo arquitectónico encontrado de paso: el codificador de texto de OWLv2 tiene
+`max_position_embeddings = 16` y una consulta de 17 tokens **rompe** la pasada en
+vez de degradarse. Las descripciones de RefDrone van de 7 a 27 tokens, así que 5
+de 439 (1,1 %) exceden lo que el modelo puede representar.
+
+**Y obliga a una corrección.** La campaña del 2026-06-14 cerró la bifurcación
+«VLM extremo a extremo contra detector + selector» **por latencia y sin haber
+medido un detector jamás**. Medido: OWLv2 es ~**16,0x más barato** por llamada
+(263,5 ms de pasada contra 4216 ms de cómputo en placa del VLM) y ocupa ~5x menos.
+El argumento de latencia estaba del revés. Lo que sí descarta la ruta descompuesta
+es la brecha de selección, que es un argumento de **calidad**. La decisión
+sobrevive; su justificación registrada, no.
+
+Dos cautelas que van pegadas al 16,0x o la cifra miente: se compara contra
+**cómputo en placa** (prefill 3680 + decodificación 536 ms) y no contra los 4319 ms
+de reloj, que llevan ~103 ms de base64 por un túnel SSH — cargarle el cable al VLM
+daría 16,4x, exactamente el defecto que el Cap. 6 obliga a advertir en sus «~4,85 s
+incluyen cable». Y es **una pasada de detector contra un anclaje generativo
+completo**: un sistema descompuesto necesitaría además la etapa de selección, que
+nadie ha costeado, y si esa etapa fuese a su vez un VLM el ahorro desaparece.
 
 ### Advertencia obligatoria sobre RefDrone
 
@@ -265,8 +410,9 @@ re-anclar.
 
 Es el mejor resultado del proyecto y el más fácil de exagerar.
 
-- **Precisión:** 85,2 % IoU@0,25 — medido con pesos **HF bf16 en la RTX 3090**, no en la Jetson y no a Q8\_0. La confirmación en dispositivo estaba pre-registrada como "el único pendiente antes de cambiar el valor por defecto" y **nunca se cerró**.
-- **Delta:** el "+22,6 pp" compara 85,2 % (HF bf16, 3090) contra 62,6 % (Jetson Q8\_0, y además contra un checkpoint ya sustituido). El control mismo-backend medido en el mismo barrido es el brazo HF a frame completo, 64,0 %, lo que da un delta comparable de **+21,2 pp**. Ese es el número defendible.
+- **Precisión:** 85,2 % IoU@0,25 — medido con pesos **HF bf16 en la RTX 3090**, no en la Jetson y no a Q8\_0. La confirmación en dispositivo estaba pre-registrada como "el único pendiente antes de cambiar el valor por defecto"; **se cerró el 2026-07-21** (R-14).
+- **La cifra que ahora hay que citar como titular es la de R-14**, porque es la única que mide las dos ramas en la misma máquina y con el mismo runtime: sobre la Jetson a Q8\_0, frame completo @1024 da **63,10 %** y el recorte ROI M=2,0 @512 da **85,19 %**, es decir **+22,1 pp** pareados sobre n = 439 (b = 112, c = 15; deflactado a n efectivo = 316 imágenes únicas, **p = 2,50e-14**, sobrevive a Holm). Es una de las dos únicas afirmaciones del registro que son a la vez inferenciales y medidas por completo en la placa.
+- **Delta:** el "+22,6 pp" del cuaderno comparaba 85,2 % (HF bf16, 3090) contra 62,6 % (Jetson Q8\_0, y además contra un checkpoint ya sustituido) — un compuesto entre máquinas. El control mismo-backend del barrido original era el brazo HF a frame completo, 64,0 %, que daba **+21,2 pp**. Ese era el número defendible **antes de R-14**; ahora lo es el +22,1 pp de una sola máquina y una sola cuantización, y el compuesto no debe reaparecer.
 - **Latencia:** 2,7x de prefill (3691 ms a 1374 ms) frente a frame completo a 1024. La mitad de latencia sí es una medida Jetson Q8\_0.
 - **Cadencia:** el anclaje a ~2,0 s no es una mejora de 3x. Frente a la constante original de frame completo a 512 (2,26 s) es marginal, porque un recorte de 512x512 lleva píxeles parecidos. La mejora real es contra la ruta desplegada a 1024: **4,81 s a 2,02 s, 2,4x**, extremo a extremo.
 
@@ -279,6 +425,29 @@ contra un modelo que ya no se despliega.
 - Precisión del arrastre: 0,849 a `image_size` 1024 y 0,830 a 768, sobre 186 pistas de AerialMind — **en la 3090**. En la Jetson solo se midieron FPS y RAM. Sembrado además desde una caja de verdad-terreno del primer frame: siembra oráculo, no lenguaje.
 - E1, encoder de SAM2 a TensorRT fp16 [@tensorrt]: **4,89 a 6,15 FPS en banco solo**. En el bucle integrado el mismo encoder da **5,0 FPS**, con n = 1, y despeja la puerta de >= 5 **exactamente**. El bucle pierde ~1,15 FPS en codificar/decodificar JPEG y en el túnel SSH.
 - Antes de E1 la tasa co-residente era **4,1 FPS frente a la puerta de 5**: un fallo marginal registrado como tal.
+
+### Lo que costaba de verdad el par desplegado (~1,5 pp) — NUEVA
+
+**Este es el único sitio donde se cuenta R-16**; el Cap. 3 remite aquí. La cifra
+de E1 de arriba es correcta y está mal usada, que es peor que estar mal: los
+6,15 FPS se midieron con SAM2 a `image_size` **768**, y el sistema desplegado
+arrastra a **1024**. Medido en la placa el 2026-07-22, el módulo desplegado da
+**2,69 Hz** — una corrección de **2,30x**, que se descompone limpiamente en 1,83x
+por el tamaño de imagen y 1,26x por haber perdido TensorRT en el camino. Ninguna
+campaña de las Partes IV y V lo sabía: todas emularon 6,15.
+
+Tres cosas más que salen de la misma medida y que no están en ningún otro sitio:
+
+- **La co-residencia sí cuesta.** La Parte IV registró que no costaba FPS, medido contra un servidor **inactivo**. Con el servidor sirviendo la carga real de grounding, el arrastre paga ~2,3x y el VLM ~2x. Ambos se reparten un mismo bus de memoria y una misma iGPU; ninguno es inmune.
+- **La constante desplegada no cabe.** `PRUNE_AFTER = 100` es un anillo medido en **fotogramas**, así que pasar de 768 a 1024 lo infló 1,78x en bytes sin que nadie tocara la constante. Dos candidatos más el VLM bajo carga **mueren por OOM**; a 32 el mismo trabajo sobrevive sin coste medible de tasa. No se ha aplicado: es el horizonte de memoria del arrastre, y quien lo gobierna es P5.15.
+- **El arnés acertaba en lo otro.** Se sospechaba que dividir por N era optimista y es **exacto** (743,2 ms medidos contra 744,2 predichos a N = 2). Todo el error estaba en el tamaño de imagen.
+
+Cómo se presenta, y esto importa: **no lleva p-valor ni intervalo**. Es
+descriptiva, `n_efectivo = 1`, sin hipótesis pre-registrada. Su garantía no es
+inferencial sino de **reproducción**: reprodujo el número publicado de E1 al
+tercer decimal (6,190 contra 6,15) y repitió su propia celda entre un arranque
+sucio y otro limpio. Se defiende como caracterización determinista, jamás como un
+efecto medido.
 
 ### Dos formulaciones que hay que evitar
 
@@ -342,6 +511,20 @@ Eso es la Parte V.
 - El techo de seguimiento de 2,5 m/s (3,0 con chase-hold) se midió en SITL contra un **renderizador nadir sintético** — una textura plana con un rover dibujado a 640x480 — no sobre imagen real, con n = 2 o 3 por peldaño. El propio repositorio contiene la refutación: E11 dio PASS a 3,5 m/s con 2/2 y **E12 lo revirtió** a n = 3.
 - **E14 no replica.** Su "3/3, agujero de identidad cerrado" se convierte en **6/8, CUALIFICADO y explícitamente no fiable** en la replicación E16. El matiz atenuante, que merece decirse: 0 de 8 violaron la identidad, luego los dos fallos son de temporización aguas arriba de la puerta, no de la puerta.
 - Los números de estrés de E15 están **registrados pero no reclamados**: falló su guarda de línea base, así que el veredicto es NO MEDIBLE.
+
+### Lo que aquí se comprime, y con qué condición
+
+El capítulo baja de 10 a 8 páginas comprimiendo **E2 a E17** — el trabajo de
+controlador de seguimiento, la puerta de máscara y el arco de re-anclaje — de
+narración a **una sola tabla**. E18 a E23 se conserva entero, porque es lo que
+motiva la Parte V, y también sus seis advertencias, una a una.
+
+La compresión tiene una condición y no es negociable: **la tabla lleva columna de
+causa**. Sin ella el recorte sí destruye evidencia, porque lo que estos
+experimentos aportan no es un recuento de fracasos sino su taxonomía — E11
+revertido por E12 es un fallo de tamaño de muestra, E14 no replicado en E16 es un
+fallo de temporización aguas arriba de una puerta que nunca se violó, y E15 es un
+NO MEDIBLE por guarda de línea base. Tres causas distintas que un «0/3» borraría.
 
 ### Figuras
 
@@ -428,7 +611,7 @@ además su propia predicción de "suelo de regresión ~0".
 - **De las cuatro pérdidas de P5.2, dos son degeneradas**: el objetivo no está en el frame de entrega, así que el oráculo también falla. El repositorio reporta correctamente 21/23 = 91 % sobre el conjunto no degenerado, y ese calificador debe viajar con la cifra.
 - **El rho = -0,06 del barrido de velocidad no tiene p-valor ni intervalo.** Sostiene "no se observa dependencia de la velocidad", no "es plano".
 - **P5.16 no es un resultado vigente.** Su 4/5 fue derribado por P5.18 con el mismo arnés byte a byte: la tasa real es 17/26 = 0,65. Se presenta como un paso cuyos números no sobrevivieron.
-- **El arrastre nunca corrió en la Jetson en toda la Parte V.** El presupuesto de 6,15 Hz es además el banco solo de E1; el integrado da 5,0 Hz, luego el limitador es ~23 % optimista respecto al sistema desplegado.
+- **El arrastre nunca corrió en la Jetson en toda la Parte V**, y el presupuesto que el arnés emuló era peor de lo que nadie creía. Un borrador anterior de este esquema decía que el limitador era «~23 % optimista» comparando los 6,15 Hz del banco solo de E1 contra los 5,0 Hz del bucle integrado. **R-16 lo midió en la placa el 2026-07-22 y la cifra real es 2,30x**, no un 23 %: los 6,15 Hz se midieron con SAM2 a `image_size` 768, y el sistema desplegado corre a 1024, donde la misma placa da **2,69 Hz** (1,83x por el tamaño de imagen, 1,26x por haber perdido TensorRT). Co-residente con el VLM bajo carga real cae a 1,02 Hz con un candidato. Consecuencia concreta: `select_p53.py` muestreaba cada candidato cada 10 fotogramas a 30 fps, donde la placa permite uno cada 22 sin el VLM y uno cada 56 con él. En sentido contrario, R-16 **confirma** el otro supuesto del arnés: la división por N era exacta (743,2 ms medidos contra 744,2 predichos a N = 2), así que todo el error estaba en el tamaño de imagen.
 
 ### El desvío de simulación
 
@@ -442,6 +625,26 @@ La conclusión útil es metodológica: la ventaja del contrato bueno vive en la
 diez. Merece mención el defecto que P5.13 encontró mirando: el coche blanco era
 el más cercano en 0 de 300 frames de todas las clips — orden de profundidad
 constante, y ninguna puerta lo cubría.
+
+### Un superviviente que se reporta aparte, y por qué (~0,5 pp)
+
+**P5.12 sobrevive a la corrección de Holm.** Es una de las ocho pruebas de todo
+el registro que lo hacen, y aun así no puede ser un titular: es la recalibración
+del banco de escenas, no un resultado de selección. Va en subsección propia
+justamente por eso — enterrarlo dentro del párrafo del desvío de simulación
+ocultaría un superviviente, y ascenderlo a la narración principal prometería algo
+que no entrega.
+
+Lo que dice: el mismo generador que pasaba 3 de 12 pasa **12 de 12** tras una
+pantalla de admisión y dos suelos recalibrados, congelados antes de la ejecución,
+y la predicción de frame limpio fuera de línea acierta con delta 0 en las doce,
+incluidas las seis semillas no vistas.
+
+Y la salvedad que **debe** viajar pegada: es **parcialmente definicional**. Los
+suelos se recalibraron a partir de la propia población de P5.11, así que la parte
+genuinamente fuera de muestra son las seis semillas nuevas, no las doce clips.
+Un superviviente de Holm cuya hipótesis se ajustó a los datos que la ponen a
+prueba se reporta con esa frase al lado o no se reporta.
 
 ### Figuras
 
@@ -511,6 +714,20 @@ ruido de planificación), no exacta.
 - Los identificadores de actor del `gt.jsonl` los asigna el servidor y **CARLA no los reproduce entre cargas de mundo**. Valen dentro de una clip y no pueden usarse para emparejar identidades entre ejecuciones, que es exactamente lo que querría un A/B pareado sobre la misma semilla. La clave estable por índice de spawn exige una recaptura de 36,5 min y no se ha añadido.
 - Sobreviven **19 cajas degeneradas de anchura cero** en 897.864 (2,1e-05), lascas de borde de frame serializadas a dos decimales. Un consumidor que calcule IoU divide por cero. El arreglo de serialización llegó después de la captura y el banco no se recapturó: hay que filtrarlas.
 
+### Lo que aquí se comprime
+
+El capítulo baja de 6 a 4 páginas. Lo que se va es el **cómo** de la
+infraestructura: la migración de renderizador Gazebo a CARLA, el detalle de la
+puerta de capacidad y la construcción del banco GT pasan a un párrafo de
+infraestructura habilitante más el anexo. Ninguna de esas páginas sostenía una
+afirmación — P6.0 y P6.1 son puertas de capacidad a n = 1, exentas por decisión
+declarada de la regla de n >= 25.
+
+Lo que **no** se comprime, y es la mayor parte de lo que queda: las tres cifras
+que no deben citarse con la auditoría R-10 que las desautoriza, la distinción
+síncrono/asíncrono, y los dos fallos de abajo. En un capítulo sin resultados, lo
+que tiene valor de tesis es el aparato para saber que no los hay.
+
 ### Dos fallos que merecen media página cada uno
 
 Son aportación metodológica, no anécdota:
@@ -527,7 +744,17 @@ Capítulo propio, no notas al pie. Estas son las que un tribunal encontraría.
 El eslogan del proyecto dice que todo corre en el borde sin nube. La realidad:
 **el arrastre con SAM2 nunca se ejecutó en la Jetson en la Parte V**, y en las
 partes anteriores la precisión del arrastre se midió siempre en la 3090 mientras
-la placa aportaba solo FPS. La única medida co-residente integrada dio 4,1 FPS
+la placa aportaba solo FPS. Esta amenaza se **estrecha, pero no desaparece**, con
+R-16 (2026-07-22): el arrastre desplegado corrió por fin en la placa, y además
+co-residente con el VLM bajo carga real, pero **solo para tasa y memoria**. La
+precisión del arrastre sigue sin haberse medido nunca en la Jetson. La
+formulación correcta a partir de ahora es «tasa y memoria medidas en el
+dispositivo; precisión del arrastre, solo en la 3090», y no «ya corre en la
+placa». Lo que R-16 sí retira es la coartada opuesta: la Parte IV había
+registrado que la co-residencia **no costaba FPS**, medido contra un servidor
+*inactivo*; con el servidor sirviendo de verdad, el arrastre paga ~2,3x y el VLM
+~2x. Y a la constante desplegada `PRUNE_AFTER = 100` no le caben dos candidatos
+más el VLM en 8 GB: el núcleo mata el proceso. La única medida co-residente integrada dio 4,1 FPS
 frente a su propia puerta de 5 antes de E1, y 5,0 FPS después — despejándola
 exactamente, con n = 1. La formulación del `README.md` era más fuerte que la
 evidencia; se corrigió el 2026-07-21 en `cd8cca6` (las tres frases «todo corre en
@@ -548,9 +775,10 @@ El TFM debe etiquetar la máquina en cada celda o separar las tablas.
 ### Tamaños de muestra e inferencia
 
 Buena parte de las decisiones se tomaron con n de 2 a 6. El re-análisis del
-2026-07-21 cuantifica el daño: de 65 afirmaciones con puerta, **33 salen de
-diseños que no podían alcanzar alfa = 0,05 con ningún resultado posible** y solo
-**6 sobreviven a la corrección de Holm**. P5.18 ya lo había demostrado
+2026-07-21 cuantifica el daño: de las **70** afirmaciones con puerta, **38 salen
+de diseños que no podían alcanzar alfa = 0,05 con ningún resultado posible** y
+solo **8 sobreviven a la corrección de Holm** (eran 6 sobre 65 antes de que R-13
+y R-14 aterrizaran; las cifras se leen de `thesis/stats-report.md`, no de aquí). P5.18 ya lo había demostrado
 empíricamente: un 4/5 se convirtió en 17/26 al medirlo bien. E12 revirtió a E11
 por la misma razón.
 El proyecto adoptó después una regla de n >= 25 para todo brazo con puerta, que
@@ -562,6 +790,45 @@ capacidad con **n = 1** — dos vuelos únicos — y la exención se tomó a pro
 porque una puerta de capacidad pregunta "existe la carretera", no "cuánto se
 tarda". P6.0 tampoco se pre-registró. Sirven para desbloquear P6.2 y **no
 soportan ninguna afirmación de rendimiento**.
+
+### Una misma medida usada dos veces
+
+De las ocho afirmaciones que sobreviven a Holm, dos son **R-13** (el VLM contra
+el detector de vocabulario abierto) y **R-14** (la confirmación en dispositivo del
+recorte ROI), y **comparten un brazo**: el 63,10 % de IoU@0,25 del VLM sin recorte
+es el mismo volcado leído dos veces, una como línea base del detector y otra como
+brazo A de la rejilla ROI. La corrección de Holm supone una familia de contrastes
+distintos; dos que comparten una medida no son independientes, así que el recuento
+de supervivientes está por su lado optimista, aunque cada prueba por separado sea
+válida. Reutilizar el volcado fue **deliberado y correcto** —volver a medir el
+mismo brazo en la misma placa habría gastado horas de GPU para producir ruido—
+pero hay que decirlo donde se citen los dos números juntos.
+
+### El re-análisis es post-hoc, y la deflación es una decisión
+
+Ninguna de las 70 afirmaciones se pre-registró con su contraste. La familia sobre
+la que corre Holm se ensambló **retroactivamente**, en julio de 2026, sobre
+experimentos ya ejecutados: eso protege contra la comparación múltiple, no contra
+la selección del contraste una vez vistos los datos.
+
+Y la deflación a n efectivo, que es la corrección más agresiva de todo el marco,
+es un **juicio**: agrupar por videoclip cuando dos celdas comparten vídeo fuente
+es defendible, pero es una elección tomada después de existir los datos, y otra
+unidad de agrupación daría otro p. La regla adoptada —la cifra deflactada es la
+citable, invariante I2— es conservadora a propósito, y esa es su única defensa: no
+está calibrada, está sesgada hacia no afirmar.
+
+### El instrumento cambió durante el proyecto
+
+Casi todas las latencias de VLM del documento son **tiempos de pared** medidos
+desde la estación de trabajo, con la imagen en base64 cruzando un túnel SSH hasta
+la placa. Cuánto de esa cifra es transporte y cuánto es cómputo solo se
+caracterizó al final, en R-13: unos **103 ms** de los 4319 ms, es decir el cómputo
+en dispositivo son 4216 ms. La corrección es pequeña en proporción y por eso no
+invalida ningún veredicto, pero significa que **toda cifra de latencia anterior a
+R-13 lleva una componente de transporte sin medir**, incluidos los ~4,85 s de E18
+que sostienen el capítulo pivote — donde además quedan ~450 ms sin atribuir. Un
+despliegue con cámara a bordo no pagaría ese transporte.
 
 ### El sim no es el mundo
 
@@ -597,7 +864,8 @@ declarado de la Parte II.
 ## Capítulo 10 — Conclusiones
 
 - La contribución es el **replanteamiento**, no una arquitectura: cuando la orden es asíncrona, el instante en que empieza el cómputo importa más que su duración.
-- Está acotada: se sostiene sobre cinco categorías de UAV123 con p ~ 1,5e-5 en el resultado de generalización, y el refinamiento de selección queda en una señal a replicar. El bloqueo residual es la deriva del arrastre entre objetos de la misma clase, no el grounding ni la entrega.
+- Está acotada: se sostiene sobre cinco categorías de UAV123 con **p = 6,10e-05** en el resultado de generalización (McNemar exacto **bilateral**, deflactado a 23 clips independientes), y el refinamiento de selección queda en una señal a replicar. Un borrador anterior citaba aquí «p ~ 1,5e-5», que es el **unilateral sin deflactar** — precisamente las dos cosas que el Cap. 7 de este mismo esquema declara que no se usan para decidir nada. El bloqueo residual es la deriva del arrastre entre objetos de la misma clase, no el grounding ni la entrega.
+- **Comparada por fin contra algo externo:** un detector de vocabulario abierto propone bien y no sabe elegir (recall@10 88,8 % frente a 47,4 % en k = 1), lo que sitúa el valor del VLM en la **selección**, no en la localización. La ruta descompuesta queda como trabajo futuro y **no como ruta recomendada**: su etapa de selección está sin costear, y la propia medida advierte de que si ese selector fuese a su vez un VLM el ahorro desaparece.
 - Y está pendiente de la prueba que importa: nada se ha medido todavía con el vehículo cerrando su propio lazo.
 
 ## Deuda de evidencia
@@ -611,17 +879,25 @@ más capítulos. No es redacción; es generar evidencia que no existe.
 |---|---|---|
 | ~~Calcular McNemar exacto y Wilson para todo brazo con puerta~~ | Cap. 3, 6, 7, 9 | **HECHO** 2026-07-21: `grounding/stats.py`, `thesis/claims.json`, `thesis/stats-report.md`, dos figuras |
 | Re-ejecutar las 3 afirmaciones sin datos crudos (T2, T3, Fase C) | Cap. 5, 9 | Ver `thesis/rerun-backlog.md` |
-| Generar la figura de la rejilla ROI desde `sweep_summary.json` | Cap. 5 | Bajo, y es el mejor resultado sin imagen |
+| Generar la figura de la rejilla ROI (M x resolución) desde `sweep_summary.json` | Cap. 5 | Bajo — **sigue pendiente**. R-14 aportó tres figuras en dispositivo (`paired-iou`, `prefill-vs-tokens`, `discordant-examples`) que son un resultado pareado de dos brazos, **no** la rejilla del barrido; no la sustituyen |
 | Generar las figuras de las Partes I-II (brecha de fidelidad, bake-off) | Cap. 4 | Medio — no hay `proof/`, hay que reconstruir de logs |
 | Generar la figura cuantitativa del arco de adquisición | Cap. 6 | Medio |
 | Justificar por escrito el umbral IoU@0,25 y reportar el IoU medio | Cap. 3, y todo lo demás | Bajo, pero es un flanco abierto |
 | Verificar las entradas `% VERIFICAR` de `refs.bib` | Bibliografía | Bajo |
 | ~~Corregir el `README.md` raíz: "todo en la placa" y la puerta de FPS~~ **HECHO** `cd8cca6` | Cap. 9 | — |
-| Decidir si se cierra la confirmación en dispositivo del ROI a Q8\_0 | Cap. 5 | Alto — es una ejecución, no una figura |
+| ~~Decidir si se cierra la confirmación en dispositivo del ROI a Q8\_0~~ | Cap. 5 | **HECHO** 2026-07-21 (R-14): se cerró, 85,19 % contra 63,10 % en la placa, p = 2,50e-14 |
+| Redactar la sección de caracterización del dispositivo que no existe | Cap. 3, 4 | Bajo — los datos están medidos y sin usar: 15 configuraciones de la Parte I más R-16 |
 
-Todo lo marcado como bajo desbloquea la mitad del documento y no exige GPU. La
-última partida es la única que obliga a volver a ejecutar algo, y es opcional: se
-puede escribir el Cap. 5 declarando el pendiente en lugar de cerrándolo.
+Todo lo marcado como bajo desbloquea la mitad del documento y no exige GPU.
+**Dos partidas se cerraron entre el 2026-07-21 y el 2026-07-22** y ninguna exigió
+redactar: la estadística (R-9) y la confirmación en dispositivo del ROI (R-14).
+La figura de la rejilla ROI **no** se cerró con ella y la fila sigue abierta: las
+tres figuras de R-14 son un resultado pareado de dos brazos, no el barrido
+M x resolución. La única partida que aún obliga a volver a ejecutar algo son
+las tres afirmaciones sin datos crudos, y es opcional: se puede escribir el
+Cap. 5 declarando el pendiente en lugar de cerrándolo. La partida nueva es de
+signo contrario a las demás — no falta evidencia, **sobra evidencia medida que el
+esquema no coloca en ningún capítulo** (ver más abajo).
 
 ## Anexos previstos
 
@@ -635,20 +911,35 @@ puede escribir el Cap. 5 declarando el pendiente en lugar de cerrándolo.
 
 ## Orden de recorte
 
-Si el documento no cabe, se recorta en este orden y no en otro:
+Si el documento no cabe, se recorta en este orden y no en otro. **Cada partida
+declara qué se pierde**, porque un recorte sin su coste declarado se lee como que
+no costó nada:
 
-- El desvío de simulación baja de 2 páginas a un párrafo.
-- La Parte I baja a media página de contexto.
-- El bake-off de backbone pasa a apéndice.
-- La subsección de método multiagente baja a un párrafo y el Anexo B se conserva entero.
-- Las palancas descartadas del Cap. 5 pasan a una tabla única.
+- **El desvío de simulación baja de 2 páginas a ~0,75.** Se pierde la construcción del generador de escenas de Gazebo (P5.7-P5.9, P5.11) como pieza de ingeniería: tres campañas de esfuerzo real con rendimiento probatorio nulo, porque el banco nunca llegó a discriminar los contratos. Sobreviven la conclusión metodológica y el defecto de orden de profundidad que P5.13 encontró mirando.
+- **Los seis NO de selección pasan de narración a tabla.** La tabla **debe llevar columna de causa** (match-bound, resolution-bound, carry-bound, scene-bound) o el recorte sí destruye evidencia: la taxonomía de por qué cada intento falló de forma distinta es el contenido intelectual de los fracasos, no el adorno.
+- **E9-E17 pasa de narración a tabla** en el Cap. 6. Se pierde el trabajo de controlador de seguimiento en SITL, reducido a un techo de 2,5 m/s con su advertencia de que se midió contra una textura nadir sintética plana. La reversión E11-E12 y la no-replicación E14-E16 dejan de leerse como historias, pero reaparecen en el Cap. 9 como evidencia del daño de los n pequeños: la pérdida es de tono, no de evidencia.
+- **El bake-off de backbone pasa a apéndice.** No se pierde nada probatorio: sus brazos no comparten ni backend ni n, y sólo sostenían «ningún brazo desplazó al titular».
+- **Las etapas de grounding de la Parte I bajan a ~1,5 pp.** Aquí sí se pierde el detalle diagnóstico del colapso de modo de la Etapa 2 (2/200) y de la transferencia COCO a aéreo (1/50). Se conservan la catástrofe de fidelidad —que sobrevive a Holm y es la razón de existir de la Parte II— y el par de medidas discrepantes de -23 pp y -16 pp.
+- **P6.0 y P6.1 dejan de narrarse como resultados** y quedan en un párrafo de infraestructura habilitante. Se pierde el cómo de la migración Gazebo a CARLA; sobrevive el porqué. Ninguna de esas páginas sostenía una afirmación.
+- **La subsección de método multiagente baja a un párrafo** y el Anexo B se conserva entero.
+- **Las palancas descartadas del Cap. 5 pasan a una tabla única.**
 
-**No se recorta:** el Cap. 6 completo, la advertencia de P5.19, la corrección de
-signo del Cap. 4, ni ninguna amenaza del Cap. 9. Recortar una amenaza convierte
-una afirmación honesta en una afirmación falsa.
+**No se recorta:** la advertencia de P5.19, la corrección de signo del Cap. 4,
+ninguna amenaza del Cap. 9, ni ninguna de las salvedades que viajan pegadas a una
+cifra. Tampoco **P5.2b** —el resultado plano en velocidad— porque es lo único que
+impide leer la frase-tesis como compensación de movimiento, ni **P5.1**, que es el
+enunciado del mecanismo. **P5.12** se reporta aparte, en su propia subsección: es
+un superviviente de Holm y su salvedad de «parcialmente definicional» necesita más
+palabras, no menos, precisamente porque se le retira el titular.
+
+La exención en bloque del Cap. 6 queda **retirada**: era la única protegida
+entera, y es el capítulo sin un solo resultado significativo. Lo que se protege
+son sus advertencias, una a una, no su extensión.
+
+Recortar una amenaza convierte una afirmación honesta en una afirmación falsa.
 
 ## Siguientes pasos
 
 - Fijar fecha de entrega. Es la única variable que falta y ordena el resto.
-- Atacar las partidas baratas de la deuda de evidencia, empezando por el script de estadística, que toca tres capítulos.
+- Atacar las partidas baratas de la deuda de evidencia. La de estadística ya está cerrada (R-9); las que quedan baratas son el umbral IoU@0,25 por escrito, las entradas `% VERIFICAR` de `refs.bib` y la sección de caracterización del dispositivo, cuyos datos ya están medidos.
 - Empezar a redactar por el Cap. 6, que es el pivote y fija el tono de los demás.
