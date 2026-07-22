@@ -200,7 +200,7 @@ def main() -> None:
     p50 = ms[len(ms) // 2]
     res = {
         "tag": f"stream-n{a.n}-{a.image_size}-ring{a.prune_after}-server_{a.server}",
-        "carry": "StreamCarry (deployed, prune_after=100)",
+        "carry": f"StreamCarry (deployed module, prune_after={a.prune_after})",
         "n_cand": a.n, "image_size": a.image_size, "server": a.server,
         "prune_after": a.prune_after,
         "n_ticks": len(times), "tick_ms_p50": round(p50, 1),
