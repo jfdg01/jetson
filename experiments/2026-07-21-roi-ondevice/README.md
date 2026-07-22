@@ -122,32 +122,58 @@ PYTHONPATH=. .venv-ft/bin/python experiments/2026-07-21-roi-ondevice/run_r14.py
 Filled in from the manifest at run time (git SHA, llama.cpp commit, lock sha256 are captured
 per arm by `grounding.manifest`).
 
-## Results (TBD)
+## Results (2026-07-21T20:21Z — run complete, `results.json`)
 
-| arm | k | n | IoU@0.25 | parse | mean IoU | prefill ms (median) | decode ms (median) | wall ms (median) |
-|---|---|---|---|---|---|---|---|---|
-| A — full frame @1024 | | 439 | | | | | | |
-| B — ROI M=2.0 @512 | | 439 | | | | | | |
+| arm | k | n | IoU@0.25 | parse | mean IoU | center_std | prefill ms (med) | decode ms (med) | wall ms (med) | prompt tok (med) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| A — full frame @1024 | 277 | 439 | **63.10%** | 1.00 | 0.477 | 21.9 | 3680 | 536 | 4319 | 837 |
+| B — ROI M=2.0 @512 | 374 | 439 | **85.19%** | 1.00 | 0.681 | 23.0 | 1371 | 533 | 1939 | 385 |
 
-**Paired (TBD):** b = , c = , n_effective = 316, McNemar p = .
+**Paired:** b (ROI right, full wrong) = 112, c (full right, ROI wrong) = 15, n_paired = 439.
+Deflated to n_effective = 316: b = 81, c = 11. McNemar p_raw = 1.58e-19, **p_deflated = 2.50e-14**.
+Arm wall: A = 1881 s, B = 874 s. Total ~46 min (estimate was 55-75 min; faster because decode
+was lighter than budgeted).
 
-**RQ-R14.1:** TBD · **RQ-R14.2:** TBD · **RQ-R14.3:** TBD
+**RQ-R14.1 — YES.** The M=2.0 @512 ROI crop beats the full-frame 1024 control on-device at Q8_0,
+85.19% vs 63.10%, +22.1 pp, McNemar p=2.5e-14 after deflating to 316 unique images and surviving
+the registry's Holm correction. The headline effect of the thesis is now one paired on-device
+measurement, not a subtraction across two runtimes and two machines.
 
-## Proof deliverables (TBD)
+**RQ-R14.2 — PASS (control valid).** Arm A landed 63.10% (277/439) against the published 63.1%
+on-device full-frame control (iter-2b, n=439) — **exact to the reported precision**. The harness
+reproduces the existing number, so RQ-R14.1 measures the intervention and not a setup change.
 
-Planned, under `proof/`, from a committed `make_proof.py` reading the two `items.jsonl`:
+**RQ-R14.3 — matches.** On-device prefill ratio A/B = 3680/1371 = **2.68x**, against the 2.7x
+measured at n=10 in 2026-06-26. Confirmed at n=878 (both arms) rather than n=10. Prefill is
+visibly linear in prompt tokens (`proof/prefill-vs-tokens.png`); the ROI crop cuts the median fed
+megapixels 0.6 -> 0.3 and the median prompt from 837 -> 385 tokens.
 
-1. `paired-iou.png` — per-item IoU, arm A vs arm B, one point per sample, with the 0.25 gate
-   lines. The numbers are the point here, so this is a figure, not a clip.
-2. `discordant-examples.png` — the crops and full frames for a handful of b-cells (ROI right,
-   full-frame wrong) with both predicted boxes and the GT drawn on. This one exists because
-   the "look at it" rule applies: a +20 pp claim should be visibly true on individual images.
-3. `prefill-vs-tokens.png` — on-device prefill ms against prompt tokens for both arms, which is
-   the linear-in-area model the original campaign asserted, now at n=878 instead of n=10.
+**The striking result:** both arms landed on their *published* numbers to the reported precision —
+arm A on 63.1%, arm B on 85.2% — even though the original 85.2% was HF bf16 on the RTX 3090 and a
+different checkpoint. The cross-machine/cross-quant composite reproduces cell-for-cell as a single
+on-device Q8_0 measurement. This is the cleanest possible outcome: the deployed headline is a real
+on-device effect, and the ROI intervention transfers across runtime and quantisation without loss.
+
+## Proof deliverables (committed, from `make_proof.py`)
+
+1. `proof/paired-iou.png` — per-item IoU, arm A vs arm B, one point per sample, 0.25 gate lines.
+   Mass sits above the diagonal with a dense upper-left b-cell cluster (full-frame misses at
+   IoU~0, ROI hits high). Verified by opening the image.
+2. `proof/discordant-examples.png` — six b-cells, zoomed to the target neighbourhood (the objects
+   are single-digit-percent of frame width, so a full-frame view renders the boxes as invisible
+   dots). In every panel the ROI box (blue) lands on the target while the full-frame box (red)
+   drifts to a wrong object; the GT (green) is hidden under the near-perfect ROI box. The "look at
+   it" rule: the +22 pp is visibly true on individual images. Verified by opening the image.
+3. `proof/prefill-vs-tokens.png` — on-device prefill ms vs prompt tokens, both arms, n=878. Two
+   clean clusters, prefill linear in tokens; ROI cuts median prefill 3680 -> 1371 ms (2.68x).
+   Verified by opening the image.
 
 ## Status / next step
 
-Pre-registered. Next: run `run_r14.py` (~1 h of Orin wall time), fill in Results, then the
-ledger appends (RESULTS Part III, QUESTIONS Part III, DECISIONS if the deploy default moves)
-and the registry entry — R-14 is `DONE` only when a paired, on-device claim citing this run is
-in `thesis/claims.json` with `machine: jetson-orin-nano-8gb`.
+**DONE (2026-07-21T20:21Z).** Registry claim `P3-ROI-M2.0-512-ondevice` in `thesis/claims.json`
+(`machine: jetson-orin-nano-8gb`, `data_status: per_item`). RESULTS Part III and QUESTIONS Part
+III appended. No DECISIONS entry: the deploy default was already ROI M=2.0 @512, so this confirms
+the standing choice rather than moving it. R-15 (per-item rows for the ROI arm) closes with this
+run — `raw/items-roi.jsonl` carries all 439 rows with `pred`, `pred_in_crop`, `win` and `iou`.
+Next queued task is R-13 (the OWLv2 detector baseline), which this run unblocks by freeing the
+Orin and by supplying arm A as the VLM comparator.

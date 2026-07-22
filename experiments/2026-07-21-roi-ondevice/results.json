@@ -1,0 +1,50 @@
+{
+  "model": "/home/jfdg/grounding/phase3-terse100eos-1024-q8_0.gguf",
+  "mmproj": "/home/jfdg/grounding/mmproj-phase3-terse100eos-1024-f16.gguf",
+  "n": 439,
+  "n_effective": 316,
+  "arm_full": {
+    "arm": "full-frame@1024",
+    "k": 277,
+    "n": 439,
+    "iou_gate_pass_rate": 0.6309794988610479,
+    "parse_rate": 1.0,
+    "mean_iou": 0.47674662086288583,
+    "center_std": 21.888046983888387,
+    "prefill_ms_median": 3680,
+    "decode_ms_median": 536,
+    "wall_ms_median": 4319,
+    "transfer_ms_median": 103,
+    "prompt_tokens_median": 837,
+    "fed_mpx_median": 0.6,
+    "wall_s": 1881.4,
+    "run_dir": "/home/gara/jetson/experiments/2026-07-21-roi-ondevice/runs/20260721T180646Z"
+  },
+  "arm_roi": {
+    "arm": "roi-M2.0@512",
+    "k": 374,
+    "n": 439,
+    "iou_gate_pass_rate": 0.8519362186788155,
+    "parse_rate": 1.0,
+    "mean_iou": 0.6808639601554205,
+    "center_std": 22.975758400702794,
+    "prefill_ms_median": 1371,
+    "decode_ms_median": 533,
+    "wall_ms_median": 1939,
+    "transfer_ms_median": 35,
+    "prompt_tokens_median": 385,
+    "fed_mpx_median": 0.3,
+    "wall_s": 874.1,
+    "run_dir": "/home/gara/jetson/experiments/2026-07-21-roi-ondevice/runs/20260721T182120Z"
+  },
+  "paired": {
+    "b_roi_only": 112,
+    "c_full_only": 15,
+    "n_paired": 439,
+    "b_deflated": 81,
+    "c_deflated": 11,
+    "n_effective": 316,
+    "p_raw": 1.5787915213027008e-19,
+    "p_deflated": 2.501505063220086e-14
+  }
+}

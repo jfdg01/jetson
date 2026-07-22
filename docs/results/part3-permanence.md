@@ -178,4 +178,25 @@ Does feeding the *whole frame* at higher resolution beat the deployed 512 baseli
 
 512→1024 doubles IoU@0.25 (+31.7pp); 1024→1536 buys only +2.3pp for ~2× wall; 1536≈1920 is a literal duplicate (downscale-only clamp to native ~1360px for ~70% of val). Decode flat (~545 ms) — cost is all prefill. **Whole-frame 1024 @ 4.4 s is too slow for the ~2 s anchor budget; this is the baseline that justifies the ROI-crop lever.** Caveat: the run's per-sample CSV was lost when the results→experiments rename landed mid-run (aggregates intact in `run.log`).
 
+**ROI headline re-measured on-device, paired (2026-07-21T20:21Z, R-14):** the cross-machine
+composite above is now retired. Both arms ran in one Orin Q8_0 llama-server session on the
+deployed `phase3-terse100eos-1024` checkpoint, same 439 RefDrone val samples, same order.
+
+| arm | IoU@0.25 | mean IoU | prefill ms (med) | decode ms (med) | wall ms (med) | prompt tok (med) |
+|---|---|---|---|---|---|---|
+| A — full frame @1024 (control) | **63.10%** (277/439) | 0.477 | 3680 | 536 | 4319 | 837 |
+| B — ROI M=2.0 @512 (treatment) | **85.19%** (374/439) | 0.681 | 1371 | 533 | 1939 | 385 |
+
+Paired: b=112 (ROI right, full wrong), c=15 (full right, ROI wrong); deflated to n_effective=316
+b=81, c=11; **McNemar p=2.5e-14**, survives Holm. Arm A reproduced the published 63.1% on-device
+full-frame control **exactly** (RQ-R14.2), so the +22.1 pp is the intervention, not a harness
+change. Prefill ratio A/B = **2.68x** (vs 2.7x at n=10 in 2026-06-26), confirmed at n=878. Both
+arms landed on their *published* numbers to reported precision even though the original 85.2% was
+HF bf16 on the 3090 with a different checkpoint — the ROI effect transfers across machine and
+quantisation without loss. Registry: `P3-ROI-M2.0-512-ondevice`, `machine: jetson-orin-nano-8gb`,
+per-item rows in `experiments/2026-07-21-roi-ondevice/raw/items-{full,roi}.jsonl`. Proof:
+`experiments/2026-07-21-roi-ondevice/proof/{paired-iou,discordant-examples,prefill-vs-tokens}.png`.
+Upper-bound caveat: the ROI prior is the oracle inflated GT box (same as the original sweep), so
+this bounds what the deployed tracker-driven re-anchor gets from a drifted box.
+
 **Composite-comparison correction (2026-07-21T20:20Z, R-7/R-21):** the earlier parenthetical "85.2% @ ≈2.0 s, beats even 1920 whole-frame" put three configurations side by side as if they were one measurement. **85.2%** is HF bf16 on the RTX 3090 with the *JSON-format* checkpoint (`2026-06-25-roi-crop-anchor/sweep_summary.json`), measured at 1374 ms Orin prefill + 964 ms decode ≈ **2.33 s** in that harness. The **≈2.0 s** is a different thing: the deployed *terse* Q8_0 re-anchor cadence measured on-device (`2026-06-26-roi-demo-tab/README.md`: 2021 ms, range 1694–2081, n=10), whose decode is ~535 ms because of the terse lever. The **65.1%** at 1920 is Orin Q8_0 terse (this table). So neither the accuracy nor the latency in that sentence was measured on the configuration it describes, and "beats even 1920 whole-frame" is not a like-for-like on-device comparison. What is supported: the ROI crop is ~2.7× cheaper in prefill on the Orin, and it is far more accurate than full-frame @512 on the same machine and runtime. The on-device Q8_0 ROI accuracy that would make this one comparison is open — see [`experiments/2026-07-21-roi-ondevice/`](../../experiments/2026-07-21-roi-ondevice/README.md) (R-14), which pairs a full-frame @1024 control against the M=2.0 @512 ROI arm on the Orin at Q8_0.

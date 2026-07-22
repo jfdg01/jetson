@@ -146,3 +146,8 @@
 - **Why it matters:** Quantifies, per sample, exactly how much detail on tiny targets a bigger whole-frame buys vs its prefill cost — the baseline the ROI-crop lever is meant to beat.
 - **More:** `experiments/2026-06-30-whole-frame-resolution/`
 </content>
+
+### RQ-R14.1 — Measured on-device at Q8_0 on the deployed checkpoint, does the M=2.0 @512 ROI crop beat the full-frame 1024 control on RefDrone IoU@0.25?   [Part III · R-14]
+- **Answer:** YES. 85.19% (374/439) vs 63.10% (277/439), +22.1 pp, paired McNemar p=2.5e-14 deflated to 316 unique images, survives Holm. The control arm reproduced the published 63.1% on-device full-frame number exactly (RQ-R14.2), so the gap is the intervention, not a harness change. The on-device prefill ratio is 2.68x (RQ-R14.3), matching the 2.7x measured at n=10 in 2026-06-26. This replaces the deployed headline, which had been a cross-machine/cross-quant subtraction (85.2% HF bf16 on the 3090 minus 62.6% Q8_0 on the Orin), with one paired on-device measurement — and both arms landed on their published numbers to reported precision, so the ROI effect transfers across machine and quantisation without loss.
+- **Why it matters:** The largest effect in the project and the config that is actually deployed was, until now, assembled from two runtimes on two machines. This makes the thesis headline a measurement. Upper-bound caveat: the ROI prior is the oracle inflated GT box, so it bounds what the deployed tracker-driven re-anchor gets from a drifted box.
+- **More:** `experiments/2026-07-21-roi-ondevice/`

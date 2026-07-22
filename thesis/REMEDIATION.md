@@ -27,8 +27,8 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-11 | Thesis section: multi-agent development as method | — | **DONE** (draft) |
 | R-12 | Render `caveats` into `stats-report.md` | R-9 | **DONE** `5b6f7ab` |
 | R-13 | Detector baseline (OWLv2 on the Orin) | — | TODO |
-| R-14 | ROI on-device Q8_0 re-run | R-9 | TODO |
-| R-15 | Per-item jsonl in `grounding/eval/harness.py` | R-14 | IN PROGRESS (code landed; awaits an R-14 run) |
+| R-14 | ROI on-device Q8_0 re-run | R-9 | DONE (2026-07-21T20:21Z; claim P3-ROI-M2.0-512-ondevice) |
+| R-15 | Per-item jsonl in `grounding/eval/harness.py` | R-14 | DONE (2026-07-21T20:21Z; items-{full,roi}.jsonl carry 439 rows each, paired the claim) |
 | R-16 | SAM2 co-residency characterisation (reframed campaign) | — | TODO |
 | R-17 | Fix E2–E4 rig prose | R-7 | **DONE** |
 | R-18 | Rebalance `thesis/00-esquema.md` to the surviving evidence | R-9 | TODO |

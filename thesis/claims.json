@@ -345,7 +345,7 @@
       "part": "III",
       "headline": "ROI re-anchor at M=2.0 @512 reaches 374/439 = 85.2% against the 62.6% deployed baseline, at 2.7x cheaper prefill",
       "design": "single-arm-binary",
-      "verdict": "GATE PASS - deployed",
+      "verdict": "GATE PASS - deployed [SUPERSEDED on-device by P3-ROI-M2.0-512-ondevice, R-14]",
       "n_rows": 439,
       "n_effective": 316,
       "independence_note": "439 samples over 316 unique images. All 15 grid cells were scored on ONE sample draw, so cell-to-cell differences are correlated and the peak's location is less certain than the grid suggests.",
@@ -361,6 +361,32 @@
       "caveats": "Los recuentos se reconstruyeron a partir de las tasas almacenadas y caen exactamente en enteros, así que son exactos. La puerta se supera con un margen enorme y sobrevive a cualquier corrección por agrupamiento plausible. La SELECCIÓN de M=2.0 @512 como pico frente a M=1.5 @512 (368/439) es una diferencia de 6 ítems sobre ítems compartidos y debe presentarse como 'una meseta, y tomamos un punto sobre ella'.",
       "caveats_en": "Counts were reconstructed from stored rates and land exactly on integers, so they are exact. The gate is cleared with a huge margin and survives any plausible clustering correction. The SELECTION of M=2.0 @512 as the peak over M=1.5 @512 (368/439) is a 6-item difference on shared items and should be presented as 'a plateau, we took a point on it'.",
       "machine": "both"
+    },
+    {
+      "id": "P3-ROI-M2.0-512-ondevice",
+      "part": "III",
+      "headline": "On-device at Q8_0, the M=2.0 @512 ROI crop grounds RefDrone val at 85.2% vs a 63.1% full-frame control (+22.1 pp)",
+      "design": "paired-binary",
+      "machine": "jetson-orin-nano-8gb",
+      "counts": {
+        "b": 112,
+        "c": 15,
+        "k1": 374,
+        "k2": 277,
+        "n": 439
+      },
+      "n_rows": 439,
+      "n_effective": 316,
+      "gate_p": 2.501505063220086e-14,
+      "data_status": "per_item",
+      "data_paths": [
+        "experiments/2026-07-21-roi-ondevice/raw/items-roi.jsonl",
+        "experiments/2026-07-21-roi-ondevice/raw/items-full.jsonl"
+      ],
+      "independence_note": "439 RefDrone val well-posed caption-box pairs over 316 unique images (pseudo-replication rule R-4); the paired b/c are deflated to the 316 image count before the McNemar test, b=81 c=11 deflated.",
+      "caveats_en": "Both arms measured in one llama-server session on the deployed phase3-terse100eos-1024 Q8_0 checkpoint, so this is a single-machine single-quantisation paired test -- it replaces the original P3-ROI-M2.0-512 claim, whose 85.2% was HF bf16 on the RTX 3090 and whose 62.6% baseline was Q8_0 on the Orin (a cross-machine, cross-quant subtraction). The control arm A reproduced the published 63.1% on-device full-frame number exactly (RQ-R14.2), so the +22.1 pp is the intervention and not a harness change. The ROI prior is the oracle inflated GT box, identical to the original sweep, so this is an UPPER BOUND on what the deployed tracker-driven re-anchor gets from a drifted box; the original campaign's RQ4 quantified that decay (85.2% at 0 drift -> 74.3% at a full-box drift) and it is not re-run here.",
+      "caveats": "Ambos brazos se midieron en una sola sesión de llama-server sobre el checkpoint desplegado phase3-terse100eos-1024 Q8_0, de modo que es una prueba pareada de una sola máquina y una sola cuantización -- reemplaza la afirmación original P3-ROI-M2.0-512, cuyo 85.2% era HF bf16 en la RTX 3090 y cuya línea base de 62.6% era Q8_0 en la Orin (una resta entre máquinas y entre cuantizaciones). El brazo de control A reprodujo exactamente el 63.1% publicado en dispositivo a pantalla completa (RQ-R14.2), así que los +22.1 pp son la intervención y no un cambio del arnés. El prior de ROI es la caja GT oracular inflada, idéntica al barrido original, por lo que esto es una COTA SUPERIOR sobre lo que obtiene el re-anclaje desplegado a partir de una caja de tracker desviada; la RQ4 de la campaña original cuantificó esa caída (85.2% con 0 desviación -> 74.3% con desviación de caja completa) y no se reejecuta aquí.",
+      "verdict": "YES (+22.1 pp, p=2.5e-14 deflated, survives Holm; supersedes the cross-machine P3-ROI-M2.0-512)"
     },
     {
       "id": "P3-ROI-drift-robustness",

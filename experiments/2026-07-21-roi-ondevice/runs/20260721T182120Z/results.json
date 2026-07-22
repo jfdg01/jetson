@@ -1,0 +1,16 @@
+{
+  "arm": "roi-M2.0@512",
+  "k": 374,
+  "n": 439,
+  "iou_gate_pass_rate": 0.8519362186788155,
+  "parse_rate": 1.0,
+  "mean_iou": 0.6808639601554205,
+  "center_std": 22.975758400702794,
+  "prefill_ms_median": 1371,
+  "decode_ms_median": 533,
+  "wall_ms_median": 1939,
+  "transfer_ms_median": 35,
+  "prompt_tokens_median": 385,
+  "fed_mpx_median": 0.3,
+  "wall_s": 874.1
+}

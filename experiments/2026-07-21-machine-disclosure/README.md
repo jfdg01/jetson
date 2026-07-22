@@ -172,6 +172,17 @@ measurement propagating straight into a shipped constant.
 Q8_0 re-run) is for; R-14 is hereby scoped to include the resolution ladder, not just
 ROI. Add the missing rig line under R-7 regardless.
 
+**Disposition update (2026-07-21T20:21Z): DONE.** R-14 ran both arms in one Orin Q8_0
+llama-server session on the deployed `phase3-terse100eos-1024` checkpoint —
+`experiments/2026-07-21-roi-ondevice/`. Arm A (full-frame @1024) reproduced the published
+63.10% on-device control **exactly**; arm B (ROI M=2.0 @512) landed 85.19%; paired McNemar
+p=2.5e-14 deflated to 316 images. The registry gains
+`P3-ROI-M2.0-512-ondevice` with `machine: jetson-orin-nano-8gb`, and it is the **fourth**
+wholly-on-device claim (added to the ratchet in `tests/test_thesis_integrity.py`). This is a
+genuine Orin end-to-end assignment: both arms are the Orin's own Q8_0 output, no 3090 arm is
+subtracted. The cross-machine composite that this section flagged is now retired for the ROI
+headline — the number is measured, not assembled.
+
 ### M4 — P5.2, the flagship Part V generalization number, is an undisclosed composite
 
 `2026-07-04-warm-start-generalization` (W 21/25 vs COLD 5/25). **The string «3090» does

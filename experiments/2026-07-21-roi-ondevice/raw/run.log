@@ -1,3 +1,46 @@
 [r14] 439 samples over 316 unique images
 [r14] booting llama-server on the Orin: phase3-terse100eos-1024-q8_0.gguf
   [jetson] 21/439  parsed=21  gate_hits=14
+  [jetson] 42/439  parsed=42  gate_hits=30
+  [jetson] 63/439  parsed=63  gate_hits=45
+  [jetson] 84/439  parsed=84  gate_hits=60
+  [jetson] 105/439  parsed=105  gate_hits=71
+  [jetson] 126/439  parsed=126  gate_hits=88
+  [jetson] 147/439  parsed=147  gate_hits=99
+  [jetson] 168/439  parsed=168  gate_hits=113
+  [jetson] 189/439  parsed=189  gate_hits=127
+  [jetson] 210/439  parsed=210  gate_hits=141
+  [jetson] 231/439  parsed=231  gate_hits=152
+  [jetson] 252/439  parsed=252  gate_hits=168
+  [jetson] 273/439  parsed=273  gate_hits=180
+  [jetson] 294/439  parsed=294  gate_hits=191
+  [jetson] 315/439  parsed=315  gate_hits=205
+  [jetson] 336/439  parsed=336  gate_hits=215
+  [jetson] 357/439  parsed=357  gate_hits=228
+  [jetson] 378/439  parsed=378  gate_hits=240
+  [jetson] 399/439  parsed=399  gate_hits=254
+  [jetson] 420/439  parsed=420  gate_hits=268
+[r14] A {'arm': 'full-frame@1024', 'k': 277, 'n': 439, 'iou_gate_pass_rate': 0.6309794988610479, 'parse_rate': 1.0, 'mean_iou': 0.47674662086288583, 'center_std': 21.888046983888387, 'prefill_ms_median': 3680, 'decode_ms_median': 536, 'wall_ms_median': 4319, 'transfer_ms_median': 103, 'prompt_tokens_median': 837, 'fed_mpx_median': 0.6, 'wall_s': 1881.4, 'run_dir': '/home/gara/jetson/experiments/2026-07-21-roi-ondevice/runs/20260721T180646Z'}
+  [roi M=2.0 r=512] 21/439  parsed=21  gate_hits=18
+  [roi M=2.0 r=512] 42/439  parsed=42  gate_hits=38
+  [roi M=2.0 r=512] 63/439  parsed=63  gate_hits=56
+  [roi M=2.0 r=512] 84/439  parsed=84  gate_hits=74
+  [roi M=2.0 r=512] 105/439  parsed=105  gate_hits=91
+  [roi M=2.0 r=512] 126/439  parsed=126  gate_hits=110
+  [roi M=2.0 r=512] 147/439  parsed=147  gate_hits=126
+  [roi M=2.0 r=512] 168/439  parsed=168  gate_hits=145
+  [roi M=2.0 r=512] 189/439  parsed=189  gate_hits=161
+  [roi M=2.0 r=512] 210/439  parsed=210  gate_hits=180
+  [roi M=2.0 r=512] 231/439  parsed=231  gate_hits=197
+  [roi M=2.0 r=512] 252/439  parsed=252  gate_hits=216
+  [roi M=2.0 r=512] 273/439  parsed=273  gate_hits=233
+  [roi M=2.0 r=512] 294/439  parsed=294  gate_hits=249
+  [roi M=2.0 r=512] 315/439  parsed=315  gate_hits=269
+  [roi M=2.0 r=512] 336/439  parsed=336  gate_hits=284
+  [roi M=2.0 r=512] 357/439  parsed=357  gate_hits=300
+  [roi M=2.0 r=512] 378/439  parsed=378  gate_hits=318
+  [roi M=2.0 r=512] 399/439  parsed=399  gate_hits=337
+  [roi M=2.0 r=512] 420/439  parsed=420  gate_hits=357
+[r14] B {'arm': 'roi-M2.0@512', 'k': 374, 'n': 439, 'iou_gate_pass_rate': 0.8519362186788155, 'parse_rate': 1.0, 'mean_iou': 0.6808639601554205, 'center_std': 22.975758400702794, 'prefill_ms_median': 1371, 'decode_ms_median': 533, 'wall_ms_median': 1939, 'transfer_ms_median': 35, 'prompt_tokens_median': 385, 'fed_mpx_median': 0.3, 'wall_s': 874.1, 'run_dir': '/home/gara/jetson/experiments/2026-07-21-roi-ondevice/runs/20260721T182120Z'}
+[r14] paired {'b_roi_only': 112, 'c_full_only': 15, 'n_paired': 439, 'b_deflated': 81, 'c_deflated': 11, 'n_effective': 316, 'p_raw': 1.5787915213027008e-19, 'p_deflated': 2.501505063220086e-14}
+[r14] -> /home/gara/jetson/experiments/2026-07-21-roi-ondevice/results.json

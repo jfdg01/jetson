@@ -1,0 +1,16 @@
+{
+  "arm": "full-frame@1024",
+  "k": 277,
+  "n": 439,
+  "iou_gate_pass_rate": 0.6309794988610479,
+  "parse_rate": 1.0,
+  "mean_iou": 0.47674662086288583,
+  "center_std": 21.888046983888387,
+  "prefill_ms_median": 3680,
+  "decode_ms_median": 536,
+  "wall_ms_median": 4319,
+  "transfer_ms_median": 103,
+  "prompt_tokens_median": 837,
+  "fed_mpx_median": 0.6,
+  "wall_s": 1881.4
+}

@@ -161,6 +161,7 @@ def test_on_device_claims_really_are_on_device(claims):
         "P1-S1.2-zeroshot-smolvlm",
         "P3-wholeframe-resolution-knee",
         "P3-E1-TRT-fps",
+        "P3-ROI-M2.0-512-ondevice",  # R-14: both arms one Orin Q8_0 session, control reproduced 63.1%
     }, (
         "the set of wholly-on-device claims changed. If that is deliberate, update "
         "this test AND experiments/2026-07-21-machine-disclosure/README.md, which is "
