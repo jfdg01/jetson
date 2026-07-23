@@ -290,6 +290,14 @@ class Claim:
     # cited in support of it. Derivation per claim:
     # experiments/2026-07-21-machine-disclosure/README.md.
     machine: Literal["jetson-orin-nano-8gb", "rtx-3090", "both", "n/a"] | None = None
+    # The measured intra-class correlation behind `n_effective`, when the claim was
+    # calibrated rather than collapsed (R-29, author decision 2026-07-23). Keys:
+    # point, upper95, mean_cluster_size, clusters, collapsed_floor, rule. Deflation
+    # uses the UPPER bound, so a noisy ICC from few clusters keeps n_effective near
+    # the conservative collapse instead of manufacturing independence.
+    # `tests/test_thesis_integrity.py::test_icc_calibrated_n_effective_is_derived_not_chosen`
+    # recomputes n_effective from these inputs, so it cannot be hand-edited.
+    icc: dict | None = None
     # design-specific payload
     counts: dict = field(default_factory=dict)
     gate_p: float | None = None

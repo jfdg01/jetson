@@ -321,13 +321,61 @@ def test_n_effective_respects_the_distinct_clip_count(claims):
     """
     bad = []
     for c in claims:
-        if not c.get("scene_set"):
-            continue
+        if not c.get("scene_set") or c.get("icc"):
+            continue  # calibrated claims are checked by the test below instead
         ceiling = min(c["n_rows"], _distinct_gating_clips(c["scene_set"]))
         if c["n_effective"] > ceiling:
             bad.append(f"{c['id']}: n_effective={c['n_effective']} > {ceiling} "
                        f"(distinct gating clips in {c['scene_set']}, capped by n_rows)")
     assert not bad, "pseudo-replication: cells counted as independent units:\n  " + "\n  ".join(bad)
+
+
+def test_icc_calibrated_n_effective_is_derived_not_chosen(claims):
+    """R-29 (author decision, 2026-07-23). Calibration must be arithmetic, not taste.
+
+    R-4 collapsed clustered cells to one observation per cluster, which asserts an
+    intra-class correlation of exactly 1.0. Measured, it is not: P5.19's SWAP cells
+    give ICC(1) = 0.418 and P5.18's 0.454. So the collapse *created* the
+    unreachability R-4 then reported - `min_successes_for_gate(26, 0.8)` is
+    reachable where `0.8 ** 13` is not.
+
+    Calibration only ever moves n_effective UP, which is the direction I2 forbids
+    when it is a choice. It is survivable only because it is not a choice: every
+    calibrated claim carries the inputs, and this test recomputes the output from
+    them. Hand-editing `n_effective` on a calibrated claim fails here.
+
+    Two guards are load-bearing:
+      - the UPPER 95% confidence bound on the ICC is used, never the point estimate.
+        Few clusters give a wide interval, an upper bound near 1, and therefore
+        n_effective near the conservative collapse. Noise cannot manufacture
+        independence.
+      - `collapsed_floor` keeps R-4's value as a published sensitivity analysis.
+    """
+    bad = []
+    for c in claims:
+        icc = c.get("icc")
+        if not icc:
+            continue
+        for k in ("point", "upper95", "mean_cluster_size", "clusters", "collapsed_floor"):
+            if k not in icc:
+                bad.append(f"{c['id']}: icc block missing `{k}`")
+        if bad:
+            continue
+        if not 0.0 <= icc["upper95"] <= 1.0:
+            bad.append(f"{c['id']}: upper95={icc['upper95']} outside [0, 1]")
+        if icc["upper95"] < icc["point"]:
+            bad.append(f"{c['id']}: upper95 {icc['upper95']} below the point estimate {icc['point']}")
+        deff = 1 + (icc["mean_cluster_size"] - 1) * icc["upper95"]
+        want = max(icc["clusters"], min(c["n_rows"], round(c["n_rows"] / deff)))
+        if c["n_effective"] != want:
+            bad.append(f"{c['id']}: n_effective={c['n_effective']} but its own icc block "
+                       f"implies {want} (deff={deff:.3f}, n_rows={c['n_rows']})")
+        if c["n_effective"] > c["n_rows"]:
+            bad.append(f"{c['id']}: calibrated past n_rows")
+        if icc["collapsed_floor"] > c["n_effective"]:
+            bad.append(f"{c['id']}: calibration TIGHTENED below the collapsed floor "
+                       f"{icc['collapsed_floor']} - that is fine, but record it as the floor")
+    assert not bad, "ICC calibration is not derivable from its own inputs:\n  " + "\n  ".join(bad)
 
 
 def test_claims_from_a_banked_campaign_declare_their_scene_set(claims):

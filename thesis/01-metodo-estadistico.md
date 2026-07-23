@@ -147,6 +147,105 @@ cuesta ningún hallazgo y compra la única cosa que un capítulo de método pued
 comprar, que es que sus reglas se apliquen igual cuando el resultado gusta y
 cuando no.
 
+#### Calibrar el agrupamiento en lugar de colapsarlo
+
+Colapsar 26 celdas a 13 clips es correcto sólo bajo un supuesto que nadie midió:
+que dos celdas del mismo clip son **la misma** observación. Ese supuesto tiene
+nombre y valor — correlación intraclase ICC = 1 — y es el extremo del rango. La
+corrección general por efecto de diseño es
+
+<!-- caption: Corrección por efecto de diseño con la correlación intraclase medida -->
+
+    deff = 1 + (n0 - 1) * ICC
+    n_effective = n_rows / deff
+
+con `n0` el tamaño medio de conglomerado. Colapsar es esa fórmula evaluada en
+ICC = 1; ignorar el agrupamiento es evaluarla en ICC = 0. Ninguno de los dos es
+una medición.
+
+**Decisión de autor (R-29, 2026-07-23): medir el ICC.** Un ANOVA de un factor de
+efectos aleatorios sobre el resultado por celda, agrupado por clip de origen, en
+las 14 afirmaciones cuya deflación era **por agrupamiento**. Las deflactadas por
+**determinismo** se quedan intactas — E18 («2 repeticiones idénticas»), P4-R16
+(«un único banco de pruebas»), E13 (`id_switch_s` = 4,16 / 4,16 / 4,17): ahí el
+ICC vale 1 de verdad, no por supuesto, y calibrarlo sería inventar réplicas.
+
+**Dónde se rompe esto, y cuál es la salvaguarda.** Con 13 conglomerados y
+diferencias pareadas casi constantes, el ICC puntual sale 0,000 en varias
+afirmaciones, y usarlo tal cual deshace R-4 entero: P3-R13 volvería de 316 a 439
+y el techo sombra de P5.18 de 13 a 48. Un ICC puntual de cero medido sobre pocos
+conglomerados no es evidencia de independencia, es ruido. Por eso la deflación
+**no** usa el estimador puntual sino el **límite superior del intervalo de
+confianza al 95 %** del ICC (Searle), que es el valor conservador: pocos
+conglomerados dan un intervalo ancho, el límite superior queda cerca de 1 y
+`n_effective` se queda cerca del colapso. La calibración sólo se aleja del
+colapso cuando los datos **descartan** una correlación alta, no cuando
+simplemente no la ven.
+
+Es la única operación de este marco que puede **subir** `n_effective`, y eso
+contradice de frente la invariante I2 de `HANDOFF.md` («`n_effective` sólo puede
+deflactar»). Se admite bajo cuatro condiciones, las cuatro comprobables:
+
+1. la regla es mecánica y se aplica a las 14 afirmaciones agrupadas por igual, no
+   a la que convenía;
+2. deflacta con el límite superior, nunca con el estimador puntual;
+3. el valor colapsado se publica como `collapsed_floor` y sigue siendo el
+   análisis de sensibilidad conservador de cada afirmación;
+4. `tests/test_thesis_integrity.py::test_icc_calibrated_n_effective_is_derived_not_chosen`
+   recalcula `n_effective` a partir del ICC almacenado, de modo que la cifra es
+   aritmética y no gusto: no se puede editar a mano sin romper la suite.
+
+<!-- caption: Las 14 afirmaciones recalibradas: ICC puntual, límite superior al 95 % y n efectivo antes y después -->
+
+| Afirmación | n filas | Conglom. | ICC | ICC sup. 95 % | deff | n ef. previo | n ef. |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| P3-ROI-M2.0-512-ondevice | 439 | 316 | 0,039 | 0,226 | 1,09 | 316 | 404 |
+| P3-R13-owlv2-vs-vlm | 439 | 316 | 0,000 | 0,138 | 1,05 | 316 | 417 |
+| P3-SR-swin2sr-accuracy | 429 | 312 | 0,000 | 0,110 | 1,04 | 312 | 412 |
+| P3-carry-OP768-accuracy | 186 | 93 | 0,185 | 0,373 | 1,37 | 93 | 135 |
+| P5.2a-warm-generalization | 25 | 23 | 0,000 | 0,747 | 1,06 | 23 | 24 |
+| P5.5-select-generalization | 5 | 3 | 0,000 | 0,901 | 1,54 | 4 | **3** |
+| P5.13-dd-vs-rg-tie | 24 | 12 | 0,000 | 0,548 | 1,55 | 12 | 15 |
+| P5.17-dd-vs-rg-tie-n56 | 56 | 28 | 0,000 | 0,365 | 1,37 | 28 | 41 |
+| P5.18-n25-wsel | 26 | 13 | 0,454 | 0,795 | 1,72 | 13 | 15 |
+| P5.18-n25-swap | 26 | 13 | 0,254 | 0,695 | 1,63 | 13 | 16 |
+| P5.18-shadow-rg-ceiling | 48 | 13 | 0,000 | 0,354 | 1,89 | 13 | 25 |
+| P5.19-swap-late-entry-rescue | 26 | 13 | 0,418 | 0,778 | 1,70 | 13 | 15 |
+| P5.19-shadow-rg-ceiling | 50 | 13 | 0,086 | 0,445 | 2,18 | 13 | 23 |
+| P5.20-carry-capacity | 52 | 13 | 0,000 | 0,150 | 1,42 | 13 | 37 |
+
+Y el resultado que hace defendible la operación: **no recupera ni un
+superviviente**. Diez antes, diez después; ninguna afirmación gana la corrección
+de Holm y ninguna la pierde. Lo que sí cambia es de tres tipos:
+
+- **Dos puertas dejan de ser inalcanzables por diseño.** P5.18 WSEL y SWAP
+  corrían contra una puerta que ningún resultado posible superaba a n = 13; a
+  n = 15 y n = 16 sí existe uno que la supera (15/15 y 16/16). Es exactamente lo
+  que R-29 sostenía: parte de la inalcanzabilidad la había fabricado la
+  deflación, no el diseño.
+- **Tres lecturas «no hay prueba» vuelven a ser pruebas.** El artefacto denunciado
+  arriba —el único par discordante de P5.20 redondeado a cero al reescalar—
+  desaparece: P5.13, P5.17 y P5.20 vuelven a dar p = 1. Siguen sin ser
+  significativas, pero ahora lo dice una prueba y no una división. El caso de E19
+  no se toca: su deflación es por determinismo.
+- **Dos resultados de la Parte III se refuerzan sin cambiar de bando.** P3-ROI en
+  el dispositivo pasa de 2,50e-14 a 6,38e-18 y P3-R13 de 2,26e-07 a 2,21e-09. Ya
+  sobrevivían a Holm y siguen sobreviviendo.
+
+Hay además un caso que se **aprieta** en lugar de aflojarse: P5.5 baja de 4 a 3.
+El registro le había asignado `n_effective = 4` sobre 3 clips reales — un defecto
+de R-4 que la calibración destapó al exigir `collapsed_floor <= n_effective`. Y
+un caso frontera que conviene enunciar antes de que lo encuentre un lector:
+P3-carry-OP768 pasa de p = 0,096 a p = 0,030, significativo sin corregir; Holm
+por Parte lo deja en 0,060 y sigue sin sobrevivir, así que se cita como no
+significativo.
+
+La regla de diseño que se lleva hacia adelante, y que ninguna calibración
+sustituye: **la n cuenta conglomerados, no celdas.** Calibrar el ICC recupera
+parte de la potencia que el colapso tiraba, pero la potencia que nunca se grabó
+no la recupera nadie. Todo brazo futuro muestrea primero secuencias de origen
+distintas y sólo después añade celdas dentro de una misma secuencia.
+
 ### Diseños que nunca pudieron responder a su pregunta
 
 Es el aporte principal del marco y el más incómodo.
@@ -252,6 +351,20 @@ Holm y no Bonferroni porque es uniformemente más potente al mismo error por
 familia; y no Benjamini-Hochberg porque estas son puertas confirmatorias y no un
 cribado. Las pruebas indefinidas (`NaN`) quedan **fuera** de la familia: una
 prueba que no ocurrió no puede consumir alfa.
+
+**Qué es «la familia» es una convención, no un cálculo, y cambia el recuento.**
+Decisión de autor (R-30, 2026-07-23): **la familia es la Parte**. Holm se aplica
+dentro de cada capítulo empírico y no sobre el registro entero, porque cada Parte
+es una pregunta de investigación distinta, pre-registrada con meses de diferencia,
+y ninguna afirmación se eligió comparando Partes entre sí. El contraargumento es
+fuerte y se registra: con m entre 2 y 15 en casi todas las Partes, Holm por Parte
+apenas corrige, y una corrección que casi nunca cambia nada compra credibilidad
+que no ha ganado. Por eso la familia global se reporta **en una columna contigua
+del informe** como análisis de sensibilidad declarado, no se esconde. El autor
+vio ambos números antes de elegir, y decirlo forma parte de la elección. Los
+tamaños de familia, las dos afirmaciones que cambian de bando y las dos
+dependencias que inflan m en cualquiera de las dos versiones están en
+`thesis/stats-report.md`, sección «La familia de corrección».
 
 ## Estado de los datos: tres niveles
 

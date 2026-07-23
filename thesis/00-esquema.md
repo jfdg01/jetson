@@ -681,7 +681,7 @@ constante, y ninguna puerta lo cubría.
 
 ### Un superviviente que se reporta aparte, y por qué (~0,5 pp)
 
-**P5.12 sobrevive a la corrección de Holm.** Es una de las ocho pruebas de todo
+**P5.12 sobrevive a la corrección de Holm.** Es una de las diez pruebas de todo
 el registro que lo hacen, y aun así no puede ser un titular: es la recalibración
 del banco de escenas, no un resultado de selección. Va en subsección propia
 justamente por eso — enterrarlo dentro del párrafo del desvío de simulación
@@ -830,8 +830,9 @@ El TFM debe etiquetar la máquina en cada celda o separar las tablas.
 Buena parte de las decisiones se tomaron con n de 2 a 6. El re-análisis del
 2026-07-21 cuantifica el daño: de las **70** afirmaciones con puerta, **38 salen
 de diseños que no podían alcanzar alfa = 0,05 con ningún resultado posible** y
-solo **8 sobreviven a la corrección de Holm** (eran 6 sobre 65 antes de que R-13
-y R-14 aterrizaran; las cifras se leen de `thesis/stats-report.md`, no de aquí). P5.18 ya lo había demostrado
+solo **10 sobreviven a la corrección de Holm por Parte** —8 en familia global—
+(eran 6 sobre 65 antes de que R-13 y R-14 aterrizaran, y 8 antes de que R-30
+fijara la familia; las cifras se leen de `thesis/stats-report.md`, no de aquí). P5.18 ya lo había demostrado
 empíricamente: un 4/5 se convirtió en 17/26 al medirlo bien. E12 revirtió a E11
 por la misma razón.
 El proyecto adoptó después una regla de n >= 25 para todo brazo con puerta, que
@@ -846,7 +847,7 @@ soportan ninguna afirmación de rendimiento**.
 
 ### Una misma medida usada dos veces
 
-De las ocho afirmaciones que sobreviven a Holm, dos son **R-13** (el VLM contra
+De las diez afirmaciones que sobreviven a Holm, dos son **R-13** (el VLM contra
 el detector de vocabulario abierto) y **R-14** (la confirmación en dispositivo del
 recorte ROI), y **comparten un brazo**: el 63,10 % de IoU@0,25 del VLM sin recorte
 es el mismo volcado leído dos veces, una como línea base del detector y otra como
@@ -865,11 +866,15 @@ experimentos ya ejecutados: eso protege contra la comparación múltiple, no con
 la selección del contraste una vez vistos los datos.
 
 Y la deflación a n efectivo, que es la corrección más agresiva de todo el marco,
-es un **juicio**: agrupar por videoclip cuando dos celdas comparten vídeo fuente
-es defendible, pero es una elección tomada después de existir los datos, y otra
-unidad de agrupación daría otro p. La regla adoptada —la cifra deflactada es la
-citable, invariante I2— es conservadora a propósito, y esa es su única defensa: no
-está calibrada, está sesgada hacia no afirmar.
+empezó siendo un **juicio**: agrupar por videoclip cuando dos celdas comparten
+vídeo fuente es defendible, pero era una elección tomada después de existir los
+datos, y otra unidad de agrupación daría otro p. R-29 (2026-07-23) cerró esa
+grieta a medias y hay que decir cuál mitad: el **grado** de agrupación ya no se
+elige, se mide —correlación intraclase por conglomerado, deflactando con su
+límite superior al 95 %— pero **cuál es el conglomerado** sigue siendo el juicio
+de antes. La calibración no recuperó ningún superviviente, y el valor colapsado
+se publica como suelo de sensibilidad en `icc.collapsed_floor`, así que la
+defensa sigue siendo la misma: está sesgada hacia no afirmar.
 
 ### El instrumento cambió durante el proyecto
 

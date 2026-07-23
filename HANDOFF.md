@@ -41,6 +41,17 @@ written in `independence_note`. Inflating `n_effective` to reach significance is
 one thing `thesis/01-metodo-estadistico.md` forbids outright. *Enforced:*
 `test_n_effective_never_exceeds_n_rows`, `test_deflated_claims_explain_themselves`.
 
+**I2b — the one exception: a measured ICC may raise `n_effective`, and only
+mechanically.** R-29 (author decision, 2026-07-23) replaced the collapse-to-clusters
+rule with a design-effect correction `deff = 1 + (n0 - 1) * ICC` on the 14 claims
+deflated for *clustering*. Deflation uses the **upper 95 % bound** on the ICC, never
+the point estimate, so few clusters keep `n_effective` near the collapse; the
+collapsed value stays published as `icc.collapsed_floor`; claims deflated for
+*determinism* are untouched. This is survivable only because the number is arithmetic
+rather than taste — do not hand-edit an `n_effective` that carries an `icc` block.
+*Enforced:* `test_icc_calibrated_n_effective_is_derived_not_chosen`, which recomputes
+it from the stored inputs.
+
 **I3 — Every number records the machine that measured it.** The thesis premise is
 edge deployment on a Jetson Orin Nano 8 GB at 15 W. A number measured on the RTX
 3090 does not support that premise. Using the workstation for ablations is fine and

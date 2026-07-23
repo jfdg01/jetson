@@ -97,7 +97,7 @@ El trabajo posterior extiende esta base: seguimiento persistente y permanencia d
 - **[`RESULTS.md`](RESULTS.md)** — índice de resultados por parte (`docs/results/`).
 - **[`QUESTIONS.md`](QUESTIONS.md)** — pregunta de investigación y veredicto por ejecución (`docs/questions/`).
 - **[`DECISIONS.md`](DECISIONS.md)** — registro de decisiones por parte (`docs/decisions/`).
-- **[`thesis/stats-report.md`](thesis/stats-report.md)** — las 70 afirmaciones del registro, con su prueba exacta, su máquina y sus salvedades. **Ocho** sobreviven a la corrección de Holm; 24 nunca tuvieron nada que contrastar y 12 llevaban una puerta que ningún resultado posible habría superado. El reparto completo, en ocho categorías disjuntas, está en la sección «Qué sobrevive» del informe.
+- **[`thesis/stats-report.md`](thesis/stats-report.md)** — las 70 afirmaciones del registro, con su prueba exacta, su máquina y sus salvedades. **Diez** sobreviven a la corrección de Holm por Parte —la familia adoptada en R-30— y **ocho** en familia global; 24 nunca tuvieron nada que contrastar y 10 llevaban una puerta que ningún resultado posible habría superado. El reparto completo, en ocho categorías disjuntas, está en la sección «Qué sobrevive» del informe.
 
 ---
 

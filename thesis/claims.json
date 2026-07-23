@@ -376,17 +376,25 @@
     "n": 439
    },
    "n_rows": 439,
-   "n_effective": 316,
+   "n_effective": 404,
    "gate_p": null,
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-21-roi-ondevice/raw/items-roi.jsonl",
     "experiments/2026-07-21-roi-ondevice/raw/items-full.jsonl"
    ],
-   "independence_note": "439 RefDrone val well-posed caption-box pairs over 316 unique images (pseudo-replication rule R-4); the paired b/c are deflated to the 316 image count before the McNemar test, b=81 c=11 deflated.",
+   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 404, no 316. El colapso a 316 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.039 (cota superior al 95 % = 0.226, que es la que se usa). Con tamaño medio de conglomerado 1.39, el efecto de diseño es 1.09 y 439/1.09 = 404. **Suelo publicado: 316** — el valor colapsado se conserva como análisis de sensibilidad conservador. — 439 RefDrone val well-posed caption-box pairs over 316 unique images (pseudo-replication rule R-4); the paired b/c are deflated to the 316 image count before the McNemar test, b=81 c=11 deflated.",
    "caveats_en": "Both arms measured in one llama-server session on the deployed phase3-terse100eos-1024 Q8_0 checkpoint, so this is a single-machine single-quantisation paired test -- it replaces the original P3-ROI-M2.0-512 claim, whose 85.2% was HF bf16 on the RTX 3090 and whose 62.6% baseline was Q8_0 on the Orin (a cross-machine, cross-quant subtraction). The control arm A reproduced the published 63.1% on-device full-frame number exactly (RQ-R14.2), so the +22.1 pp is the intervention and not a harness change. The ROI prior is the oracle inflated GT box, identical to the original sweep, so this is an UPPER BOUND on what the deployed tracker-driven re-anchor gets from a drifted box; the original campaign's RQ4 quantified that decay (85.2% at 0 drift -> 74.3% at a full-box drift) and it is not re-run here.",
    "caveats": "Ambos brazos se midieron en una sola sesión de llama-server sobre el checkpoint desplegado phase3-terse100eos-1024 Q8_0, de modo que es una prueba pareada de una sola máquina y una sola cuantización -- reemplaza la afirmación original P3-ROI-M2.0-512, cuyo 85.2% era HF bf16 en la RTX 3090 y cuya línea base de 62.6% era Q8_0 en la Orin (una resta entre máquinas y entre cuantizaciones). El brazo de control A reprodujo exactamente el 63.1% publicado en dispositivo a pantalla completa (RQ-R14.2), así que los +22.1 pp son la intervención y no un cambio del arnés. El prior de ROI es la caja GT oracular inflada, idéntica al barrido original, por lo que esto es una COTA SUPERIOR sobre lo que obtiene el re-anclaje desplegado a partir de una caja de tracker desviada; la RQ4 de la campaña original cuantificó esa caída (85.2% con 0 desviación -> 74.3% con desviación de caja completa) y no se reejecuta aquí.",
-   "verdict": "YES (+22.1 pp, p=2.5e-14 deflated, survives Holm; supersedes the cross-machine P3-ROI-M2.0-512)"
+   "verdict": "YES (+22.1 pp, p=2.5e-14 deflated, survives Holm; supersedes the cross-machine P3-ROI-M2.0-512)",
+   "icc": {
+    "point": 0.038698,
+    "upper95": 0.226091,
+    "mean_cluster_size": 1.388422,
+    "clusters": 316,
+    "collapsed_floor": 316,
+    "rule": "R-29: n_effective = round(n_rows / (1 + (mean_cluster_size - 1) * upper95))"
+   }
   },
   {
    "id": "P3-R13-owlv2-vs-vlm",
@@ -402,7 +410,7 @@
     "n": 439
    },
    "n_rows": 439,
-   "n_effective": 316,
+   "n_effective": 417,
    "gate_p": null,
    "data_status": "per_item",
    "data_paths": [
@@ -410,10 +418,18 @@
     "experiments/2026-07-21-detector-baseline/raw/scored.jsonl",
     "experiments/2026-07-21-roi-ondevice/raw/items-full.jsonl"
    ],
-   "independence_note": "439 RefDrone val well-posed caption-box pairs over 316 unique images (pseudo-replication rule R-4); b/c are deflated to the 316 image count before McNemar (b=72, c=22 deflated). Both arms scored through grounding/contract.py on the same items in the same order; the VLM comparator is arm A of R-14, not a re-run.",
+   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 417, no 316. El colapso a 316 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.138, que es la que se usa). Con tamaño medio de conglomerado 1.39, el efecto de diseño es 1.05 y 439/1.05 = 417. **Suelo publicado: 316** — el valor colapsado se conserva como análisis de sensibilidad conservador. — 439 RefDrone val well-posed caption-box pairs over 316 unique images (pseudo-replication rule R-4); b/c are deflated to the 316 image count before McNemar (b=72, c=22 deflated). Both arms scored through grounding/contract.py on the same items in the same order; the VLM comparator is arm A of R-14, not a re-run.",
    "caveats_en": "The registered counts are the STRONGEST detector arm (D-phrase, the noun phrase with adjectives kept), not the end-to-end one -- D-full is 25.7% and would make the claim look far stronger (p=2.2e-24). D-phrase was added after pre-registration and before scoring, precisely so the detector was not strawmanned; it is declared in the campaign README. The 90.4% D-oracle arm is NOT a system: it picks among the detector's top-10 using the ground truth, so it is an upper bound on any re-ranker over those proposals and must never be quoted as an OWLv2 result. The latency comparison (263.5 ms detector forward vs 4216 ms of VLM on-device compute -- prefill 3680 + decode 536 -- so 16.0x, NOT the 16.4x a wall-vs-forward ratio gives, because the 4319 ms wall carries ~103 ms of base64 over an ssh tunnel) is one detector forward against one full generative anchor and excludes the selection stage a decomposed system would still need; if that stage were itself a VLM the saving disappears. OWLv2 ran fp16 via transformers/PyTorch while the VLM ran Q8_0 via llama.cpp, so the cost ratio is across two runtimes and is a system-level observation, not a controlled efficiency measurement. 5/439 captions (1.1%) exceed OWLv2's 16-token text encoder limit and were truncated.",
    "caveats": "Los recuentos registrados corresponden al brazo MÁS FUERTE del detector (D-phrase, el sintagma nominal con adjetivos), no al extremo a extremo: D-full queda en 25.7% y haría parecer la afirmación mucho más contundente (p=2.2e-24). D-phrase se añadió después del preregistro y antes de puntuar, precisamente para no presentar al detector como un espantapájaros; queda declarado en el README de la campaña. El brazo D-oracle del 90.4% NO es un sistema: elige entre las diez primeras propuestas del detector usando la verdad-terreno, así que es una cota superior sobre cualquier reordenador de esas propuestas y nunca debe citarse como resultado de OWLv2. La comparación de latencia (263.5 ms por pasada del detector frente a 4216 ms de cómputo en la placa del VLM —prefill 3680 + decodificación 536—, es decir 16.0x y NO el 16.4x que sale de enfrentar reloj contra pasada, porque los 4319 ms de reloj incluyen unos 103 ms de base64 por un túnel ssh) enfrenta una sola pasada del detector con un anclaje generativo completo y excluye la etapa de selección que un sistema descompuesto seguiría necesitando; si esa etapa fuese a su vez un VLM, el ahorro desaparece. OWLv2 corrió en fp16 con transformers/PyTorch mientras que el VLM corrió en Q8_0 con llama.cpp, de modo que la razón de coste cruza dos motores de ejecución y es una observación de sistema, no una medición controlada de eficiencia. 5 de 439 descripciones (1.1%) superan el límite de 16 tokens del codificador de texto de OWLv2 y fueron truncadas.",
-   "verdict": "YES (VLM 63.1% vs OWLv2 best 47.4%, p=2.3e-07 deflated, survives Holm; the detector's deficit is selection -- its recall@10 is 88.8% and its rank-2 proposal already ties the VLM's top-1)"
+   "verdict": "YES (VLM 63.1% vs OWLv2 best 47.4%, p=2.3e-07 deflated, survives Holm; the detector's deficit is selection -- its recall@10 is 88.8% and its rank-2 proposal already ties the VLM's top-1)",
+   "icc": {
+    "point": 0.0,
+    "upper95": 0.138488,
+    "mean_cluster_size": 1.388422,
+    "clusters": 316,
+    "collapsed_floor": 316,
+    "rule": "R-29: n_effective = round(n_rows / (1 + (mean_cluster_size - 1) * upper95))"
+   }
   },
   {
    "id": "P3-ROI-drift-robustness",
@@ -444,8 +460,8 @@
    "design": "paired-binary",
    "verdict": "NO - Swin2SR rejected",
    "n_rows": 429,
-   "n_effective": 312,
-   "independence_note": "429 samples over 312 unique images (211 with 1 caption, 85 with 2, 16 with 3). Two expressions over one aerial frame share scene, object density and JPEG degradation.",
+   "n_effective": 412,
+   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 412, no 312. El colapso a 312 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.110, que es la que se usa). Con tamaño medio de conglomerado 1.37, el efecto de diseño es 1.04 y 429/1.04 = 412. **Suelo publicado: 312** — el valor colapsado se conserva como análisis de sensibilidad conservador. — 429 samples over 312 unique images (211 with 1 caption, 85 with 2, 16 with 3). Two expressions over one aerial frame share scene, object density and JPEG degradation.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-06-30-roi-sr-upscale/sr_probe_out/sr_per_sample.csv"
@@ -460,7 +476,15 @@
    "gate_p": null,
    "caveats": "CORRIGE UNA CONCLUSIÓN YA REGISTRADA. Los pares discordantes se calculan aquí por primera vez: lanczos vs swin2sr b=21 c=14 p=0.31; bicubic vs swin2sr b=22 c=12 p=0.12; bicubic vs native p=0.26. NINGUNA diferencia de exactitud en este sondeo es significativa. El rechazo es correcto, pero debe justificarse por LATENCIA (+1331 ms por recorte, determinista y enorme), no por exactitud. Cualquier frase que diga que Swin2SR 'pierde' en IoU carece de respaldo; la frase respaldada es que no aporta nada medible a cambio de 1.3 s.",
    "caveats_en": "CORRECTS A RECORDED CONCLUSION. Discordants computed here for the first time: lanczos vs swin2sr b=21 c=14 p=0.31; bicubic vs swin2sr b=22 c=12 p=0.12; bicubic vs native p=0.26. NO accuracy difference in this probe is significant. The rejection is correct but must be justified on LATENCY (+1331 ms per crop, deterministic and enormous), not on accuracy. Any sentence saying Swin2SR 'loses' on IoU is unsupported; the supported sentence is that it buys nothing measurable for 1.3 s.",
-   "machine": "rtx-3090"
+   "machine": "rtx-3090",
+   "icc": {
+    "point": 0.0,
+    "upper95": 0.109642,
+    "mean_cluster_size": 1.374212,
+    "clusters": 312,
+    "collapsed_floor": 312,
+    "rule": "R-29: n_effective = round(n_rows / (1 + (mean_cluster_size - 1) * upper95))"
+   }
   },
   {
    "id": "P3-carry-OP768-accuracy",
@@ -469,8 +493,8 @@
    "design": "paired-binary",
    "verdict": "OP=768 adopted by the frozen rule",
    "n_rows": 186,
-   "n_effective": 93,
-   "independence_note": "186 tracks from exactly 93 sequences, 2 tracks per sequence with no exceptions. Two tracks from one clip share flight, altitude and lighting. n_effective is 93.",
+   "n_effective": 135,
+   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 135, no 93. El colapso a 93 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.185 (cota superior al 95 % = 0.373, que es la que se usa). Con tamaño medio de conglomerado 2.00, el efecto de diseño es 1.37 y 186/1.37 = 135. **Suelo publicado: 93** — el valor colapsado se conserva como análisis de sensibilidad conservador. — 186 tracks from exactly 93 sequences, 2 tracks per sequence with no exceptions. Two tracks from one clip share flight, altitude and lighting. n_effective is 93.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-01-temporal-acquire-carry/runs/phase0-zeroshot-carry/per_track.csv"
@@ -485,7 +509,15 @@
    "gate_p": null,
    "caveats": "Una prueba de signos sobre la comparación pareada por track: 1024 gana a 768 en 55 tracks, 768 gana a 1024 en 31, 100 empates; p exacto sin deflactar = 0.013. Pero los 186 tracks salen de 93 secuencias distintas, y sobre esa unidad independiente la prueba da b=28, c=16, p = 0.096: NO significativa, y Holm la deja en 1. La afirmación anterior de este registro («1024 SÍ es significativamente más preciso») se corrigió el 2026-07-21 (R-7). La adopción de 768 nunca fue una afirmación de igualdad - la regla congelada era un listón de TAMAÑO DEL EFECTO (dentro de 5 pp de la referencia de 1024) más una restricción de FPS. La tesis debe enunciarlo así: se eligió 768 por FPS, y el coste de precisión, si lo hay, es pequeño y estos datos no lo separan del azar.",
    "caveats_en": "A sign test on the per-track paired comparison: 1024 beats 768 on 55 tracks, 768 beats 1024 on 31, 100 ties; undeflated exact p = 0.013. But the 186 tracks come from 93 distinct sequences, and on that independent unit the test gives b=28, c=16, p = 0.096: NOT significant, and Holm leaves it at 1. This registry's earlier claim (\"1024 IS significantly more accurate\") was corrected on 2026-07-21 (R-7). The adoption of 768 was never a claim of equality - the frozen rule was an EFFECT-SIZE bar (within 5 pp of the 1024 reference) plus an FPS constraint. The thesis must state it that way: 768 was chosen for FPS, and the accuracy cost, if any, is small and this data cannot separate it from chance.",
-   "machine": "both"
+   "machine": "both",
+   "icc": {
+    "point": 0.184992,
+    "upper95": 0.373353,
+    "mean_cluster_size": 2.0,
+    "clusters": 93,
+    "collapsed_floor": 93,
+    "rule": "R-29: n_effective = round(n_rows / (1 + (mean_cluster_size - 1) * upper95))"
+   }
   },
   {
    "id": "P3-E1-TRT-fps",
@@ -1004,8 +1036,8 @@
    "design": "paired-binary",
    "verdict": "YES",
    "n_rows": 25,
-   "n_effective": 23,
-   "independence_note": "n=1 per cell, no rep pseudo-replication. 25 distinct UAV123 sequences, but car3/car3_s and person1/person1_s share source video, and 6 clips are re-used from P5.1 - so P5.1 and P5.2a are not independent confirmations of each other.",
+   "n_effective": 24,
+   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 24, no 23. El colapso a 23 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.747, que es la que se usa). Con tamaño medio de conglomerado 1.08, el efecto de diseño es 1.06 y 25/1.06 = 24. **Suelo publicado: 23** — el valor colapsado se conserva como análisis de sensibilidad conservador. — n=1 per cell, no rep pseudo-replication. 25 distinct UAV123 sequences, but car3/car3_s and person1/person1_s share source video, and 6 clips are re-used from P5.1 - so P5.1 and P5.2a are not independent confirmations of each other.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-04-warm-start-generalization/runs/WARM_*/results.json"
@@ -1020,7 +1052,15 @@
    "gate_p": null,
    "caveats": "EL RESULTADO CON MÁS POTENCIA ESTADÍSTICA DE LA PARTE V Y CON EL QUE LA TESIS DEBERÍA ABRIR. Deflactado a 23 clips independientes: b=15, c=0, McNemar exacto p = 6.10e-05, y sobrevive a la corrección de Holm en toda la familia (sin deflactar era b=16, c=0, p = 3.05e-05). 15 clips vuelcan de fallo a éxito y ninguno vuelca de vuelta. Esta es la afirmación del warm-start, debidamente certificada.",
    "caveats_en": "THE BEST-POWERED RESULT IN PART V AND THE ONE THE THESIS SHOULD LEAD WITH. Deflated to 23 independent clips: b=15, c=0, exact McNemar p = 6.10e-05, and it survives Holm correction across the whole family (undeflated it was b=16, c=0, p = 3.05e-05). 15 clips flip from fail to pass and not one flips back. This is the warm-start claim, properly certified.",
-   "machine": "both"
+   "machine": "both",
+   "icc": {
+    "point": 0.0,
+    "upper95": 0.746527,
+    "mean_cluster_size": 1.083636,
+    "clusters": 23,
+    "collapsed_floor": 23,
+    "rule": "R-29: n_effective = round(n_rows / (1 + (mean_cluster_size - 1) * upper95))"
+   }
   },
   {
    "id": "P5.2b-speed-sweep",
@@ -1092,8 +1132,8 @@
    "design": "single-arm-binary",
    "verdict": "NO [match/carry-bound]",
    "n_rows": 5,
-   "n_effective": 4,
-   "independence_note": "6 cells from FOUR sequences; the newly-added gating cell car9:560 is cut from the same video as car9:300",
+   "n_effective": 3,
+   "independence_note": "DEFECTO DE REGISTRO DESTAPADO POR R-29: el n efectivo anterior era **4** sobre **3** conglomerados reales — R-4 debió colapsar a 3 y anotó 4. La calibración APRIETA aquí en vez de aflojar (4 -> 3), que es la prueba de que la regla no está sintonizada para recuperar significación. R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 3, no 4. El colapso a 3 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.901, que es la que se usa). Con tamaño medio de conglomerado 1.60, el efecto de diseño es 1.54 y 5/1.54 = 3. **Suelo publicado: 4** — el valor colapsado se conserva como análisis de sensibilidad conservador. — 6 cells from FOUR sequences; the newly-added gating cell car9:560 is cut from the same video as car9:300",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-14-select-generalization/runs/MC_WSEL_*/results.json"
@@ -1105,7 +1145,15 @@
    "gate_p": 0.8,
    "caveats": "Tercer NO de select consecutivo sobre un diseño cuya puerta ningún resultado podía superar. El contenido genuinamente informativo es diagnóstico, no inferencial: el re-anclaje en reposo se disparó y fue aceptado en las 16 celdas, y dos fallos NO_MATCH por deriva de carry sobrevivieron a ello. Eso es un mecanismo, y es lo que motivó el cambio del contrato de entrega.",
    "caveats_en": "Third consecutive select NO on a design whose gate no outcome could clear. The genuinely informative content is diagnostic, not inferential: the idle re-anchor fired and was accepted on all 16 cells, and two carry-drift NO_MATCH failures survived it. That is a mechanism, and it is what motivated the delivery-contract change.",
-   "machine": "both"
+   "machine": "both",
+   "icc": {
+    "point": 0.0,
+    "upper95": 0.901235,
+    "mean_cluster_size": 1.6,
+    "clusters": 3,
+    "collapsed_floor": 3,
+    "rule": "R-29: n_effective = round(n_rows / (1 + (mean_cluster_size - 1) * upper95))"
+   }
   },
   {
    "id": "P5.9-kerbsafe-scenebank",
@@ -1185,8 +1233,8 @@
    "design": "paired-binary",
    "verdict": "NO [branch 3]",
    "n_rows": 24,
-   "n_effective": 12,
-   "independence_note": "12 clips x 2 legs over identical pixels; DD and RG are scored from the SAME within-cell SAM2 carry, so the arms are coupled by construction",
+   "n_effective": 15,
+   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 15, no 12. El colapso a 12 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.548, que es la que se usa). Con tamaño medio de conglomerado 2.00, el efecto de diseño es 1.55 y 24/1.55 = 15. **Suelo publicado: 12** — el valor colapsado se conserva como análisis de sensibilidad conservador. — 12 clips x 2 legs over identical pixels; DD and RG are scored from the SAME within-cell SAM2 carry, so the arms are coupled by construction",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-19-v2disc-select/runs/bank09_white/results.json"
@@ -1201,7 +1249,15 @@
    "gate_p": null,
    "caveats": "UN solo par discordante: p = 1.0 bilateral. El SEP_MARGIN pre-registrado de 4 estaba él mismo por debajo del efecto mínimo detectable: alcanzar alfa requería 6 discordantes en un solo sentido. Y DD está en 24/24, de modo que el rango observable de DD-RG queda acotado por arriba por el único fallo de RG. «Los contratos son equivalentes» no está respaldado; «este diseño no tenía potencia para distinguirlos», sí.",
    "caveats_en": "ONE discordant pair: p = 1.0 two-sided. The pre-registered SEP_MARGIN of 4 was itself below the minimum detectable effect - reaching alpha needed 6 one-way discordants. And DD sits at 24/24, so the observable range of DD-RG is bounded above by RG's single failure. 'The contracts are equivalent' is not supported; 'this design had no power to distinguish them' is.",
-   "machine": "both"
+   "machine": "both",
+   "icc": {
+    "point": 0.0,
+    "upper95": 0.548493,
+    "mean_cluster_size": 2.0,
+    "clusters": 12,
+    "collapsed_floor": 12,
+    "rule": "R-29: n_effective = round(n_rows / (1 + (mean_cluster_size - 1) * upper95))"
+   }
   },
   {
    "id": "P5.14-wsel",
@@ -1290,8 +1346,8 @@
     "n": 25
    },
    "gate_p": 0.72,
-   "caveats": "24/25 frente al suelo pre-registrado de 18/25 (0,72) da un valor p exacto unilateral de 0,002908, que Holm eleva a 0,07852: **no sobrevive a la corrección por multiplicidad**, y la tabla de este mismo informe lo archiva en «probadas, no significativas». La caveat anterior citaba p = 0,0016 y lo llamaba «debidamente certificado»; ese 0,0016 es P(X>=24 | n=25, p=0,70), calculado contra una puerta de 0,70 que la pre-registración nunca fijó (README de la campaña, «RQ-a floor 18/25 (72%)»). Corregido por R-33 el 2026-07-23. Lo que queda en pie es descriptivo y sigue siendo portante: el intervalo Wilson es [0,80, 0,99] y el arrastre no es la parte frágil, lo que redirige el análisis de fallos hacia la entrega y la selección — pero el «sí» inferencial de la Parte V es P5.2a, no éste.",
-   "caveats_en": "24/25 against the pre-registered floor of 18/25 (0.72) gives an exact one-sided p of 0.002908, which Holm raises to 0.07852: it does NOT survive the multiplicity correction, and this report's own table files it under 'tested, not significant'. The previous caveat quoted p = 0.0016 and called it 'a properly certified result'; that 0.0016 is P(X>=24 | n=25, p=0.70), computed against a 0.70 gate the pre-registration never set (campaign README, 'RQ-a floor 18/25 (72%)'). Corrected by R-33 on 2026-07-23. What stands is descriptive and still load-bearing: the Wilson interval is [0.80, 0.99] and the carry is not the fragile part, which redirects the failure analysis onto delivery and selection - but Part V's inferential YES is P5.2a, not this one.",
+   "caveats": "24/25 frente al suelo pre-registrado de 18/25 (0,72) da un valor p exacto unilateral de 0,002908, que Holm por Parte —la familia adoptada en R-30— eleva a 0,04653: **sobrevive por poco**, mientras que en familia global queda en 0,08724 y **no sobrevive**. La afirmación depende por completo de una convención de familia que el autor eligió a sabiendas de ambos números, así que se cita con esa condición explícita y nunca sin ella. La caveat anterior citaba p = 0,0016 y lo llamaba «debidamente certificado»; ese 0,0016 es P(X>=24 | n=25, p=0,70), calculado contra una puerta de 0,70 que la pre-registración nunca fijó (README de la campaña, «RQ-a floor 18/25 (72%)»). Corregido por R-33 el 2026-07-23. Lo que queda en pie es descriptivo y sigue siendo portante: el intervalo Wilson es [0,80, 0,99] y el arrastre no es la parte frágil, lo que redirige el análisis de fallos hacia la entrega y la selección — pero el «sí» inferencial de la Parte V es P5.2a, no éste.",
+   "caveats_en": "24/25 against the pre-registered floor of 18/25 (0.72) gives an exact one-sided p of 0.002908, which per-Part Holm - the family adopted in R-30 - raises to 0.04653: it survives, barely; under the global family it is 0.08724 and does NOT survive. The claim rests entirely on a family convention the author picked with both numbers in view, so it is cited with that condition attached and never without it. The previous caveat quoted p = 0.0016 and called it 'a properly certified result'; that 0.0016 is P(X>=24 | n=25, p=0.70), computed against a 0.70 gate the pre-registration never set (campaign README, 'RQ-a floor 18/25 (72%)'). Corrected by R-33 on 2026-07-23. What stands is descriptive and still load-bearing: the Wilson interval is [0.80, 0.99] and the carry is not the fragile part, which redirects the failure analysis onto delivery and selection - but Part V's inferential YES is P5.2a, not this one.",
    "machine": "both"
   },
   {
@@ -1348,8 +1404,8 @@
    "design": "single-arm-binary",
    "verdict": "clears",
    "n_rows": 26,
-   "n_effective": 13,
-   "independence_note": "R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. The previous note discussed a different independence problem (the 5 P5.16 cells are re-measured rather than replicated; the 21 NEW cells give WSEL 18/21) and never mentioned the clip clustering. Collapsing the two wakeboard clips, which share one recurring boarder-vs-boat pair, would give 10; 13 is the mechanical distinct-clip count and is what the test checks.",
+   "n_effective": 15,
+   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 15, no 13. El colapso a 13 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.454 (cota superior al 95 % = 0.795, que es la que se usa). Con tamaño medio de conglomerado 1.90, el efecto de diseño es 1.72 y 26/1.72 = 15. **Suelo publicado: 13** — el valor colapsado se conserva como análisis de sensibilidad conservador. — R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. The previous note discussed a different independence problem (the 5 P5.16 cells are re-measured rather than replicated; the 21 NEW cells give WSEL 18/21) and never mentioned the clip clustering. Collapsing the two wakeboard clips, which share one recurring boarder-vs-boat pair, would give 10; 13 is the mechanical distinct-clip count and is what the test checks.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-20-n25-select/runs/"
@@ -1362,7 +1418,15 @@
    "caveats": "22/26 = 0.846 frente a una barra de 0.8: p exacto = 0.37, de modo que se supera DESCRIPTIVAMENTE pero no inferencialmente. El intervalo Wilson [0.67, 0.94] contiene el umbral. La frase correcta es 'coherente con la tasa pre-registrada', no 'la supera'. CORRECCIÓN R-4: la n efectiva baja de 26 a 13 porque las 26 celdas proceden de sólo 13 videoclips distintos. La proporción se conserva (11/13 = 0,846) y el intervalo se ensancha; la lectura «coherente con la tasa pre-registrada, no la supera» no cambia, sólo se refuerza.",
    "caveats_en": "22/26 = 0.846 against a 0.8 bar: exact p = 0.37, so it clears DESCRIPTIVELY but not inferentially. The Wilson interval [0.67, 0.94] contains the gate. The right sentence is 'consistent with the pre-registered rate', not 'exceeds it'.",
    "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
-   "machine": "both"
+   "machine": "both",
+   "icc": {
+    "point": 0.454044,
+    "upper95": 0.794666,
+    "mean_cluster_size": 1.903846,
+    "clusters": 13,
+    "collapsed_floor": 13,
+    "rule": "R-29: n_effective = round(n_rows / (1 + (mean_cluster_size - 1) * upper95))"
+   }
   },
   {
    "id": "P5.18-n25-swap",
@@ -1371,8 +1435,8 @@
    "design": "single-arm-binary",
    "verdict": "NO [SWAP-bound]",
    "n_rows": 26,
-   "n_effective": 13,
-   "independence_note": "R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. Previous note: same 26 cells, recomputed independently from the 54 committed results.json and matching the frozen baseline dict exactly - still true, and orthogonal to the clip clustering.",
+   "n_effective": 16,
+   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 16, no 13. El colapso a 13 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.254 (cota superior al 95 % = 0.695, que es la que se usa). Con tamaño medio de conglomerado 1.90, el efecto de diseño es 1.63 y 26/1.63 = 16. **Suelo publicado: 13** — el valor colapsado se conserva como análisis de sensibilidad conservador. — R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. Previous note: same 26 cells, recomputed independently from the 54 committed results.json and matching the frozen baseline dict exactly - still true, and orthogonal to the clip clustering.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-20-n25-select/runs/"
@@ -1385,7 +1449,15 @@
    "caveats": "EL RESULTADO MÁS VALIOSO DEL RE-ANÁLISIS ESTADÍSTICO. En las 5 celdas compartidas, P5.18 reproduce P5.16 EXACTAMENTE (4/5, cero inversiones); todo el vuelco procede de las 21 celdas nuevas, donde SWAP es 13/21 = 0.62. Esta es una demostración directa y medida de que los veredictos de n pequeño eran optimistas - y es el repositorio detectando su propio error, que es la forma más fuerte que la tesis puede presentar. CORRECCIÓN R-4: n efectiva 26 → 13 (13 videoclips distintos). El fallo se mantiene: 8/13 = 0,615 frente a la barra de 0,8. Una deflación sólo puede ensanchar el intervalo, de modo que no puede rescatar un NO.",
    "caveats_en": "THE MOST VALUABLE RESULT IN THE STATISTICAL RE-ANALYSIS. On the 5 shared cells P5.18 reproduces P5.16 EXACTLY (4/5, zero flips); the entire overturn comes from the 21 new cells, where SWAP is 13/21 = 0.62. This is a direct, measured demonstration that the small-n verdicts were optimistic - and it is the repo catching its own error, which is the strongest form the thesis can present.",
    "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
-   "machine": "both"
+   "machine": "both",
+   "icc": {
+    "point": 0.25417,
+    "upper95": 0.69513,
+    "mean_cluster_size": 1.903846,
+    "clusters": 13,
+    "collapsed_floor": 13,
+    "rule": "R-29: n_effective = round(n_rows / (1 + (mean_cluster_size - 1) * upper95))"
+   }
   },
   {
    "id": "P5.19-swap-late-entry-rescue",
@@ -1394,8 +1466,8 @@
    "design": "paired-binary",
    "verdict": "YES [branch 1]",
    "n_rows": 26,
-   "n_effective": 13,
-   "independence_note": "R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. The pairing itself is clean (same cells under both configurations); what is not clean is treating 26 cells as 26 independent units. THIS IS THE CLAIM THE OMISSION PROTECTED: the pre-registered gate was 20/26 cells, which at 13 units is 10/13 against a baseline 8/13.",
+   "n_effective": 15,
+   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 15, no 13. El colapso a 13 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.418 (cota superior al 95 % = 0.778, que es la que se usa). Con tamaño medio de conglomerado 1.90, el efecto de diseño es 1.70 y 26/1.70 = 15. **Suelo publicado: 13** — el valor colapsado se conserva como análisis de sensibilidad conservador. — R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. The pairing itself is clean (same cells under both configurations); what is not clean is treating 26 cells as 26 independent units. THIS IS THE CLAIM THE OMISSION PROTECTED: the pre-registered gate was 20/26 cells, which at 13 units is 10/13 against a baseline 8/13.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-20-late-entry-rescue/runs/"
@@ -1411,7 +1483,15 @@
    "caveats": "b=3, c=0, p = 0.25. EL YES JUSTO EN LA BARRA NO ES SIGNIFICATIVO. Tres celdas pasan de fallo a acierto y ninguna vuelve atrás, que es la FORMA correcta para un arreglo real, pero tres es la mitad de los seis cambios en un solo sentido que alfa exigiría con esta n. El mecanismo de apoyo es fuerte (el guardián de P5.18 estaba desalineado respecto al fotograma y se disparó 0/108 veces; la entrega de gracia cuesta 0.37-0.60 s frente a 4.68 s en frío) y P5.20 reprodujo de forma independiente el brazo T celda por celda. Preséntese así: una mejora explicada mecánicamente y del signo correcto, todavía no certificada. CORRECCIÓN R-4: n efectiva 26 → 13 (13 videoclips distintos). Ésta es la afirmación a la que la omisión beneficiaba, así que conviene decir con precisión qué cambia y qué no. El valor p NO empeora de significativo a no significativo: ya era p = 0,25 con la n completa, nunca fue significativo. Lo que la deflación elimina es el margen justo en la barra: la puerta pre-registrada de 20/26 celdas pasa a ser 10/13 sobre una línea base de 8/13. Enunciado correcto: no pudimos distinguir los brazos; la puerta se superó con un margen que no sobrevive al agrupamiento por clip.",
    "caveats_en": "b=3, c=0, p = 0.25. THE BAR-EXACT YES IS NOT SIGNIFICANT. Three cells flip fail-to-pass and none flip back, which is the right SHAPE for a real fix, but three is half of the six one-way flips alpha would require at this n. The supporting mechanism is strong (P5.18's guard was frame-misaligned and fired 0/108 times; grace delivery costs 0.37-0.60 s against 4.68 s cold) and P5.20 independently reproduced arm T cell-for-cell. Present as: a mechanically-explained improvement of the right sign, not yet certified.",
    "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
-   "machine": "both"
+   "machine": "both",
+   "icc": {
+    "point": 0.417875,
+    "upper95": 0.77785,
+    "mean_cluster_size": 1.903846,
+    "clusters": 13,
+    "collapsed_floor": 13,
+    "rule": "R-29: n_effective = round(n_rows / (1 + (mean_cluster_size - 1) * upper95))"
+   }
   },
   {
    "id": "P5.19-wsel-no-regression",
@@ -1469,8 +1549,8 @@
    "design": "single-arm-binary",
    "verdict": "ceiling, not a paired result",
    "n_rows": 48,
-   "n_effective": 13,
-   "independence_note": "The 48 (P5.18) / 50 (P5.19) paired cells come from 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count -- same deflation as the DD claims on the same cells (R-4). Cells whose `meta.shadow` is absent are dropped, and that missingness is INFORMATIVE, not random: the shadow block sits after the early `fail()` returns, so every dropped cell is a DD failure (4 in P5.18, 2 in P5.19, all `selected track lost during idle` or `discovery-failed`). Dropping them conditions the number on DD surviving to the prompt.",
+   "n_effective": 25,
+   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 25, no 13. El colapso a 13 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.354, que es la que se usa). Con tamaño medio de conglomerado 3.51, el efecto de diseño es 1.89 y 48/1.89 = 25. **Suelo publicado: 13** — el valor colapsado se conserva como análisis de sensibilidad conservador. — The 48 (P5.18) / 50 (P5.19) paired cells come from 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count -- same deflation as the DD claims on the same cells (R-4). Cells whose `meta.shadow` is absent are dropped, and that missingness is INFORMATIVE, not random: the shadow block sits after the early `fail()` returns, so every dropped cell is a DD failure (4 in P5.18, 2 in P5.19, all `selected track lost during idle` or `discovery-failed`). Dropping them conditions the number on DD surviving to the prompt.",
    "data_status": "counts_only",
    "data_paths": [
     "experiments/2026-07-20-n25-select/runs/",
@@ -1484,7 +1564,15 @@
    "caveats": "ESTO ES UN TECHO, NO UNA TASA (R-5, 2026-07-21). Elegir el candidato correcto es necesario pero no suficiente para que RG apruebe: la sombra nunca arrastra una pista tras su re-anclaje, luego nunca se le cobra cobertura ni IoU entregado. La tasa real de aprobado de RG es <= 38/48. NO ES UNA PRUEBA PAREADA, Y EL NÚMERO PAREADO DEL CUADERNO QUEDA RETIRADO: el «n=50, b=4, c=2, p=0,6875, contratos indistinguibles» que se había registrado es reproducible aritméticamente (thesis/analyse_shadow_rg.py), pero parea el `pass` de DD —enganche genuino + cobertura + IoU + supervivencia del arrastre— contra el `selected` de RG, que es sólo selección. Dos cantidades definidas de forma distinta yuxtapuestas como si fueran una comparación. EL PAREADO EQUIVALENTE ES VACUO: DD saca 48/48 en selección porque `select_p56.bind_by_caption` es igualdad de cadenas contra el pie almacenado, con un assert de que sólo uno coincide. DD no puede elegir mal. Es un recorte de alcance registrado en el README de P5.14 (la campaña aísla el mecanismo de entrega, no la comprensión de la frase), así que ninguna prueba puede mostrar a DD «ganando» a RG en selección. RG NO ES INDEPENDIENTE: empareja su caja del VLM contra `cand_at_prompt`, es decir las propias pistas mantenidas por DD, luego un arrastre a la deriva le cuesta a RG un emparejamiento. Sus fallos son fallos de re-anclaje MÁS fallos de arrastre heredados. 9 de los 10 fallos de RG son NO_MATCH (la caja re-anclada no emparejó con ningún candidato por encima del umbral); 1 es una elección de objeto equivocado.",
    "caveats_en": "THIS IS A CEILING, NOT A RATE (R-5, 2026-07-21). Selecting the right candidate is necessary but not sufficient for an RG pass: the shadow never carries a track after its re-ground, so it is never charged coverage or delivered IoU. RG's true pass rate is <= 38/48. NOT A PAIRED TEST, AND THE LEDGER'S PAIRED NUMBER IS RETIRED: the previously recorded 'n=50, b=4, c=2, p=0.6875, contracts indistinguishable' is arithmetically reproducible (thesis/analyse_shadow_rg.py) but pairs DD `pass` -- genuine lock + coverage + IoU + carry survival -- against RG `selected`, which is selection only. Two differently-defined quantities juxtaposed as a comparison. THE LIKE-FOR-LIKE PAIRING IS VACUOUS: DD scores 48/48 on selection because `select_p56.bind_by_caption` is string equality against the stored caption with an assert that exactly one matches. DD cannot mis-select. That is a scope cut recorded in P5.14's README (the campaign isolates the delivery mechanism, not phrase understanding), so no test can show DD 'beating' RG at selection. RG IS NOT INDEPENDENT: it matches its VLM box against `cand_at_prompt`, i.e. DD's own maintained tracks, so a drifted carry costs RG a match. Its failures are re-ground failures PLUS inherited carry failures. 9 of the 10 RG failures are NO_MATCH (the re-ground box matched no candidate above the floor); 1 is a wrong-object pick.",
    "machine": "rtx-3090",
-   "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json"
+   "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
+   "icc": {
+    "point": 0.0,
+    "upper95": 0.354425,
+    "mean_cluster_size": 3.506944,
+    "clusters": 13,
+    "collapsed_floor": 13,
+    "rule": "R-29: n_effective = round(n_rows / (1 + (mean_cluster_size - 1) * upper95))"
+   }
   },
   {
    "id": "P5.19-shadow-rg-ceiling",
@@ -1493,8 +1581,8 @@
    "design": "single-arm-binary",
    "verdict": "ceiling, not a paired result",
    "n_rows": 50,
-   "n_effective": 13,
-   "independence_note": "The 48 (P5.18) / 50 (P5.19) paired cells come from 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count -- same deflation as the DD claims on the same cells (R-4). Cells whose `meta.shadow` is absent are dropped, and that missingness is INFORMATIVE, not random: the shadow block sits after the early `fail()` returns, so every dropped cell is a DD failure (4 in P5.18, 2 in P5.19, all `selected track lost during idle` or `discovery-failed`). Dropping them conditions the number on DD surviving to the prompt.",
+   "n_effective": 23,
+   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 23, no 13. El colapso a 13 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.086 (cota superior al 95 % = 0.445, que es la que se usa). Con tamaño medio de conglomerado 3.65, el efecto de diseño es 2.18 y 50/2.18 = 23. **Suelo publicado: 13** — el valor colapsado se conserva como análisis de sensibilidad conservador. — The 48 (P5.18) / 50 (P5.19) paired cells come from 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count -- same deflation as the DD claims on the same cells (R-4). Cells whose `meta.shadow` is absent are dropped, and that missingness is INFORMATIVE, not random: the shadow block sits after the early `fail()` returns, so every dropped cell is a DD failure (4 in P5.18, 2 in P5.19, all `selected track lost during idle` or `discovery-failed`). Dropping them conditions the number on DD surviving to the prompt.",
    "data_status": "counts_only",
    "data_paths": [
     "experiments/2026-07-20-late-entry-rescue/runs/",
@@ -1508,7 +1596,15 @@
    "caveats": "ESTO ES UN TECHO, NO UNA TASA (R-5, 2026-07-21). Elegir el candidato correcto es necesario pero no suficiente para que RG apruebe: la sombra nunca arrastra una pista tras su re-anclaje, luego nunca se le cobra cobertura ni IoU entregado. La tasa real de aprobado de RG es <= 42/50. NO ES UNA PRUEBA PAREADA, Y EL NÚMERO PAREADO DEL CUADERNO QUEDA RETIRADO: el «n=52, b=3, c=2, p=1,0, contratos indistinguibles» que se había registrado es reproducible aritméticamente (thesis/analyse_shadow_rg.py), pero parea el `pass` de DD —enganche genuino + cobertura + IoU + supervivencia del arrastre— contra el `selected` de RG, que es sólo selección. Dos cantidades definidas de forma distinta yuxtapuestas como si fueran una comparación. EL PAREADO EQUIVALENTE ES VACUO: DD saca 50/50 en selección porque `select_p56.bind_by_caption` es igualdad de cadenas contra el pie almacenado, con un assert de que sólo uno coincide. DD no puede elegir mal. Es un recorte de alcance registrado en el README de P5.14 (la campaña aísla el mecanismo de entrega, no la comprensión de la frase), así que ninguna prueba puede mostrar a DD «ganando» a RG en selección. RG NO ES INDEPENDIENTE: empareja su caja del VLM contra `cand_at_prompt`, es decir las propias pistas mantenidas por DD, luego un arrastre a la deriva le cuesta a RG un emparejamiento. Sus fallos son fallos de re-anclaje MÁS fallos de arrastre heredados. los 8 fallos de RG son NO_MATCH. Coincidencia que conviene no sobreinterpretar: el techo de RG en SWAP es 20/26, el mismo recuento que la tasa de aprobado realizada de DD en el SWAP reforzado de P5.19 — uno es un techo sobre la selección y el otro un aprobado realizado, luego no son comparables y su igualdad no es un empate.",
    "caveats_en": "THIS IS A CEILING, NOT A RATE (R-5, 2026-07-21). Selecting the right candidate is necessary but not sufficient for an RG pass: the shadow never carries a track after its re-ground, so it is never charged coverage or delivered IoU. RG's true pass rate is <= 42/50. NOT A PAIRED TEST, AND THE LEDGER'S PAIRED NUMBER IS RETIRED: the previously recorded 'n=52, b=3, c=2, p=1.0, contracts indistinguishable' is arithmetically reproducible (thesis/analyse_shadow_rg.py) but pairs DD `pass` -- genuine lock + coverage + IoU + carry survival -- against RG `selected`, which is selection only. Two differently-defined quantities juxtaposed as a comparison. THE LIKE-FOR-LIKE PAIRING IS VACUOUS: DD scores 50/50 on selection because `select_p56.bind_by_caption` is string equality against the stored caption with an assert that exactly one matches. DD cannot mis-select. That is a scope cut recorded in P5.14's README (the campaign isolates the delivery mechanism, not phrase understanding), so no test can show DD 'beating' RG at selection. RG IS NOT INDEPENDENT: it matches its VLM box against `cand_at_prompt`, i.e. DD's own maintained tracks, so a drifted carry costs RG a match. Its failures are re-ground failures PLUS inherited carry failures. 8 of the 8 RG failures are NO_MATCH. Note the coincidence worth not over-reading: RG's SWAP ceiling is 20/26, the same count as DD's realized strengthened-SWAP pass rate in P5.19 -- one is a ceiling on selection, the other a realized pass, so they are not comparable and their equality is not a tie.",
    "machine": "rtx-3090",
-   "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json"
+   "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
+   "icc": {
+    "point": 0.086442,
+    "upper95": 0.445199,
+    "mean_cluster_size": 3.65,
+    "clusters": 13,
+    "collapsed_floor": 13,
+    "rule": "R-29: n_effective = round(n_rows / (1 + (mean_cluster_size - 1) * upper95))"
+   }
   },
   {
    "id": "P5.20-carry-capacity",
@@ -1517,8 +1613,8 @@
    "design": "paired-binary",
    "verdict": "NO [capacity-flat] - dead lever",
    "n_rows": 52,
-   "n_effective": 13,
-   "independence_note": "R-4 CORRECTION 2026-07-21: was 52 -> 26. 52 pairs = 26 cells x 2 legs and the two legs of a cell share the video and the carry, which the old note got right; it then stopped one step short. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4, so 52 -> 13.",
+   "n_effective": 37,
+   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 37, no 13. El colapso a 13 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.150, que es la que se usa). Con tamaño medio de conglomerado 3.81, el efecto de diseño es 1.42 y 52/1.42 = 37. **Suelo publicado: 13** — el valor colapsado se conserva como análisis de sensibilidad conservador. — R-4 CORRECTION 2026-07-21: was 52 -> 26. 52 pairs = 26 cells x 2 legs and the two legs of a cell share the video and the carry, which the old note got right; it then stopped one step short. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4, so 52 -> 13.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-20-carry-capacity/runs/"
@@ -1534,7 +1630,15 @@
    "caveats": "b=0, c=1: p = 1.0. No es evidencia de que la capacidad no ayude, es evidencia de que este diseño no vio efecto alguno en ninguna dirección. Lo que hace defendible lo de «palanca muerta» no es el recuento sino el MECANISMO: el mismo bloqueo de deriva de la familia de coches aparece en ambos brazos, de modo que los fallos no están limitados por la capacidad. Una n mayor tendría que justificarse con un mecanismo plausible, y ninguno sobrevive. CORRECCIÓN R-4: n efectiva 26 → 13 (13 videoclips distintos). El único par discordante (c=1) se redondea a cero al deflactar, de modo que la lectura pasa de p = 1,0 a NO HAY PRUEBA. Las dos lecturas son no significativas y la segunda es la más honesta: con 13 unidades independientes nunca hubo resolución para ver un solo cambio. El argumento de «palanca muerta» se sostiene sobre el mecanismo, no sobre el recuento, y eso no cambia.",
    "caveats_en": "b=0, c=1: p = 1.0. Not evidence that capacity does not help - evidence that this design saw no effect either way. What makes 'dead lever' defensible is not the count but the MECHANISM: the same car-family drift block appears in both arms, so the failures are not capacity-limited. A larger n would have to be justified by a plausible mechanism, and none survives.",
    "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
-   "machine": "both"
+   "machine": "both",
+   "icc": {
+    "point": 0.0,
+    "upper95": 0.150333,
+    "mean_cluster_size": 3.807692,
+    "clusters": 13,
+    "collapsed_floor": 13,
+    "rule": "R-29: n_effective = round(n_rows / (1 + (mean_cluster_size - 1) * upper95))"
+   }
   },
   {
    "id": "P5.20-replication-of-P5.19",
@@ -1569,8 +1673,8 @@
    "design": "paired-binary",
    "verdict": "NO [branch 3] - sim-select discrimination CLOSED",
    "n_rows": 56,
-   "n_effective": 28,
-   "independence_note": "56 cells = 28 procedurally-generated scenes x 2 phrase legs over identical renders. The 28 scenes are seed-varied draws from ONE generator with one town and one asset set - exchangeable within a narrow distribution, not a sample of a target population.",
+   "n_effective": 41,
+   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 41, no 28. El colapso a 28 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.365, que es la que se usa). Con tamaño medio de conglomerado 2.00, el efecto de diseño es 1.37 y 56/1.37 = 41. **Suelo publicado: 28** — el valor colapsado se conserva como análisis de sensibilidad conservador. — 56 cells = 28 procedurally-generated scenes x 2 phrase legs over identical renders. The 28 scenes are seed-varied draws from ONE generator with one town and one asset set - exchangeable within a narrow distribution, not a sample of a target population.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-20-bankv3-select/runs/s003_white/results.json"
@@ -1585,7 +1689,15 @@
    "gate_p": null,
    "caveats": "LA DEMOSTRACIÓN MÁS CLARA DEL REPOSITORIO DE QUE n NO ERA LA RESTRICCIÓN VINCULANTE. Pasar de 24 a 56 celdas no aumentó la potencia, porque lo que cayó fue la TASA de fallo en vez de aparecer el efecto: b=1, c=0, p=1.0, exactamente igual que con n=24. El SEP_MARGIN pre-registrado de 7 exigía que RG fallara 7 celdas; RG falló 1 en toda la matriz. La conclusión correcta es que el simulador renderiza demasiado limpio para separar los contratos, lo cual es una afirmación sobre el instrumento, no sobre la hipótesis.",
    "caveats_en": "THE CLEAREST DEMONSTRATION IN THE REPOSITORY THAT n WAS NOT THE BINDING CONSTRAINT. Going from 24 to 56 cells did not increase power, because the failure RATE fell rather than the effect appearing: b=1, c=0, p=1.0, exactly as at n=24. The pre-registered SEP_MARGIN of 7 needed RG to fail 7 cells; RG failed 1 in the whole matrix. The correct conclusion is that the simulator renders too cleanly to separate the contracts, which is a statement about the instrument, not the hypothesis.",
-   "machine": "both"
+   "machine": "both",
+   "icc": {
+    "point": 0.0,
+    "upper95": 0.365317,
+    "mean_cluster_size": 2.0,
+    "clusters": 28,
+    "collapsed_floor": 28,
+    "rule": "R-29: n_effective = round(n_rows / (1 + (mean_cluster_size - 1) * upper95))"
+   }
   },
   {
    "id": "P6.0-flight-rig-gate",

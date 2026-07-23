@@ -71,7 +71,9 @@ Estas son las cifras concretas, todas de este repositorio, todas trazables a un
   exactamente el ajuste que **falló** (3/3 a 2,5 m/s, 0/2 a 3,0).
 - **El re-análisis estadístico retroactivo** (`thesis/01-metodo-estadistico.md`)
   encontró que **33 de 65 diseños no podían alcanzar alfa = 0,05 con ningún
-  resultado posible** y que solo **6 sobreviven a la corrección de Holm**. Una
+  resultado posible** y que solo **6 sobreviven a la corrección de Holm** (el
+  registro creció después a 70 afirmaciones y los supervivientes a 10 por Parte;
+  las cifras vigentes están en `thesis/stats-report.md`). Una
   búsqueda por `mcnemar|binomtest|scipy.stats` sobre el repositorio devolvía cero
   ficheros antes de ese trabajo.
 - **Dos defectos silenciosos en la plataforma de vuelo**, encontrados por la puerta

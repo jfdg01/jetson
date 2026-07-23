@@ -52,7 +52,7 @@ written down — the reproduction command is in the task.
 | R-26 | `README.md` is stale against R-13/R-14/R-16 | **P0** | — | **DONE** 2026-07-23 |
 | R-27 | `P3-E1-TRT-fps` never marked superseded by R-16 | **P0** | — | **DONE** 2026-07-23 |
 | R-28 | The defended sentence claims *select*; nothing inferential carries it | P1 | — | **DONE** 2026-07-23 (author decided) |
-| R-29 | `n_effective` = 13 vs the measured ICC | P1 | — | **AUTHOR** |
+| R-29 | `n_effective` = 13 vs the measured ICC | P1 | — | **DONE** 2026-07-23 (calibrated) |
 | R-30 | Holm family boundary + undisclosed dependencies | P1 | — | **DONE** 2026-07-23 (per-Part) |
 | R-31 | Retire or re-run P3-T2 / P3-T3; backlog commands are fiction | P1 | — | **DONE** 2026-07-23 (retired) |
 | R-32 | Spot-check the assertion-only DONEs (R-19, R-7, R-21) | P1 | — | **DONE** 2026-07-23 |
@@ -1632,7 +1632,7 @@ parse failure reports "no defects" and "the parser never matched" as the same ou
 Every scanner in `thesis/` and `tests/` that catches an exception in a match loop
 should count what it skipped and assert the count is 0.
 
-## R-29 — `n_effective` = 13 vs the measured ICC — **AUTHOR**
+## R-29 — `n_effective` = 13 vs the measured ICC — DONE P1 (2026-07-23T16:40Z)
 
 Collapsing P5.19's 26 cells to 13 clips assumes cells within a clip are perfectly
 correlated. Measured, they are not: `bike1`'s six SWAP cells are `[1,1,0,1,0,1]`,
@@ -1652,7 +1652,73 @@ calibrated.
 
 **Done when:** the author has decided whether to keep, calibrate or revise.
 
-## R-30 — Holm family boundary + undisclosed dependencies — **AUTHOR**
+### Resolution — AUTHOR DECIDED: revise, landed 2026-07-23T16:40Z
+
+**Decision: calibrate, not keep.** The collapse-to-clusters rule is the design-effect
+formula `deff = 1 + (n0 - 1) * ICC` evaluated at ICC = 1 — an assumption nobody
+measured. R-29 measures it instead, by one-way random-effects ANOVA on the per-cell
+outcome grouped by source clip, on the **14 claims deflated for clustering**. Claims
+deflated for *determinism* (E18's two identical repetitions, `P4-R16`'s single
+benchmark, E13's 4.16/4.16/4.17) are untouched: there ICC really is 1.
+
+**The guard is the whole design, and it is load-bearing.** Deflation uses the **upper
+95 % confidence bound** on the ICC (Searle), never the point estimate. Naive point
+estimates undo R-4 wholesale — P3-R13 goes 316 -> 439, the P5.18 shadow ceiling
+13 -> 48 — because an ICC of 0.000 measured over 13 clusters is noise, not evidence of
+independence. With the upper bound, few clusters give a wide interval, the bound sits
+near 1, and `n_effective` stays near the conservative collapse. The calibration only
+moves away from the collapse when the data actually *rule out* high correlation.
+
+| claim | N | clusters | ICC | ICC hi95 | deff | old n_eff | new |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| P3-ROI-M2.0-512-ondevice | 439 | 316 | 0.039 | 0.226 | 1.09 | 316 | 404 |
+| P3-R13-owlv2-vs-vlm | 439 | 316 | 0.000 | 0.138 | 1.05 | 316 | 417 |
+| P3-SR-swin2sr-accuracy | 429 | 312 | 0.000 | 0.110 | 1.04 | 312 | 412 |
+| P3-carry-OP768-accuracy | 186 | 93 | 0.185 | 0.373 | 1.37 | 93 | 135 |
+| P5.2a-warm-generalization | 25 | 23 | 0.000 | 0.747 | 1.06 | 23 | 24 |
+| P5.5-select-generalization | 5 | 3 | 0.000 | 0.901 | 1.54 | 4 | **3** |
+| P5.13-dd-vs-rg-tie | 24 | 12 | 0.000 | 0.548 | 1.55 | 12 | 15 |
+| P5.17-dd-vs-rg-tie-n56 | 56 | 28 | 0.000 | 0.365 | 1.37 | 28 | 41 |
+| P5.18-n25-wsel | 26 | 13 | 0.454 | 0.795 | 1.72 | 13 | 15 |
+| P5.18-n25-swap | 26 | 13 | 0.254 | 0.695 | 1.63 | 13 | 16 |
+| P5.18-shadow-rg-ceiling | 48 | 13 | 0.000 | 0.354 | 1.89 | 13 | 25 |
+| P5.19-swap-late-entry-rescue | 26 | 13 | 0.418 | 0.778 | 1.70 | 13 | 15 |
+| P5.19-shadow-rg-ceiling | 50 | 13 | 0.086 | 0.445 | 2.18 | 13 | 23 |
+| P5.20-carry-capacity | 52 | 13 | 0.000 | 0.150 | 1.42 | 13 | 37 |
+
+**The result that makes it defensible: it recovers zero survivors.** Ten before, ten
+after; none gained, none lost. What it does change:
+
+- **Two gates stop being unreachable-by-design.** `P5.18-n25-wsel` and `-swap` flip
+  `reachable` False -> True (15/15 and 16/16 now clear alpha). This is exactly what
+  R-29 argued: the deflation had *manufactured* part of the unreachability.
+- **Three "no test" readings become tests again.** P5.13, P5.17 and P5.20 had their
+  single discordant pair rounded to zero by the rescale, producing `p = nan` and the
+  self-contradictory "0 discordant pairs [deflated from b=1, c=0]" line R-23 flagged.
+  They now read `p = 1`. Still not significant — but said by a test, not a division.
+- **Two Part III survivors strengthen without changing side.** P3-ROI on-device
+  2.50e-14 -> 6.38e-18; P3-R13 2.26e-07 -> 2.21e-09.
+- **One claim tightens.** P5.5 goes 4 -> 3, because the registry had assigned
+  `n_effective = 4` over 3 real clusters — an R-4 defect the calibration exposed by
+  requiring `collapsed_floor <= n_effective`.
+- **One borderline to state before a reader finds it.** P3-carry-OP768 moves
+  p = 0.096 -> 0.030, uncorrected-significant; per-Part Holm leaves it at 0.060, so it
+  is still cited as not significant.
+
+Landed in: `thesis/claims.json` (14 `icc` blocks + rewritten `independence_note`s, each
+ending `**Suelo publicado: {old}**`), `grounding/stats.py` (the `icc` dataclass field),
+`thesis/01-metodo-estadistico.md` (new subsection *Calibrar el agrupamiento en lugar de
+colapsarlo*), `HANDOFF.md` (new invariant **I2b**, since this is the one operation that
+may raise `n_effective`), and `tests/test_thesis_integrity.py`
+(`test_icc_calibrated_n_effective_is_derived_not_chosen` recomputes `n_effective` from
+the stored ICC, so it cannot be hand-tuned; `test_n_effective_respects_the_distinct_clip_count`
+now skips `icc`-bearing claims, since it encodes R-4's superseded rule).
+
+**What this does not buy.** Calibrating recovers some of the power the collapse threw
+away; it recovers none of the power that was never recorded. The design rule stands
+unchanged: **n counts clusters, not cells** — see R-36.
+
+## R-30 — Holm family boundary + undisclosed dependencies — DONE P1 (2026-07-23T15:20Z)
 
 Global family of 34 live p-values gives 8 survivors; per-Part families give 10. The
 two extras are `P5.15-plain-carry-survival` (p=0.0029) and `P2-RQ4.1-deploy-fidelity`
@@ -1691,7 +1757,7 @@ every reader sees both numbers on the same row. A new section, *La familia de
 corrección, y por qué ésta y no la otra*, carries the justification, the family
 sizes, the two claims that change hands, and the counter-argument in full: at
 m = 2..15 per Part, Holm barely corrects, so per-Part buys credibility it has not
-earned everywhere except Part V (m = 26), which is the only family where it still
+earned everywhere except Part V (m = 18 after R-29), which is the only family where it still
 bites. It also records that the author saw both numbers before choosing — that
 belongs on the page, not in a commit message.
 
@@ -1701,7 +1767,7 @@ Both dependencies are now disclosed in the generated report rather than only in
 Direction is noted too — double-counting enlarges m and *hardens* the correction, so
 it works against the thesis, which is why it can be disclosed rather than fixed.
 
-## R-29 — `n_effective` = 13 vs the measured ICC — **AUTHOR**
+## R-31 — Retire or re-run P3-T2 / P3-T3 — DONE P1 (2026-07-23T15:30Z)
 
 Both are `GATE PASS` on prose alone, no raw data, and both are Chapter 5 spine.
 `thesis/rerun-backlog.md` already argues against re-running: T2 is one scripted clip
