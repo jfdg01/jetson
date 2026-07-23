@@ -22,6 +22,17 @@ RAW = HERE / "raw"
 PROOF = HERE / "proof"
 GATE = 0.25
 
+# R-24. `gt` and `pred` in the raw rows are CONTRACT space, [0, COORD_SCALE], not
+# pixels -- see grounding/contract.py. The sibling `win` field in items-roi.jsonl
+# IS in pixels, which is exactly what made the bug invisible: one row carries both
+# conventions and neither is labelled. The first version of this script passed the
+# contract boxes straight to cv2.rectangle, so on a 1360x765 VisDrone frame a box
+# at [27, 48, 34, 65] became a sliver in the top-left corner -- and then the panel
+# zoomed to that sliver. The committed figure showed a tennis court, a grey blur, a
+# blank facade and a cream gradient, with no GT box visible anywhere despite the
+# title promising green=GT. Nobody opened it.
+COORD_SCALE = 100
+
 
 def load(name: str) -> dict[str, dict]:
     rows = [json.loads(l) for l in (RAW / name).read_text().splitlines() if l.strip()]
@@ -58,44 +69,84 @@ def prefill_vs_tokens() -> None:
     fig.savefig(PROOF / "prefill-vs-tokens.png", dpi=130); plt.close(fig)
 
 
+def to_pixels(box: list[int] | None, W: int, H: int) -> list[int] | None:
+    """Contract [0, COORD_SCALE] -> pixels. See the R-24 note at the top."""
+    if not box:
+        return None
+    x0, y0, x1, y1 = box
+    return [round(x0 * W / COORD_SCALE), round(y0 * H / COORD_SCALE),
+            round(x1 * W / COORD_SCALE), round(y1 * H / COORD_SCALE)]
+
+
+def _assert_looks_like_pixels(box: list[int], W: int, H: int, where: str) -> None:
+    """The check that would have caught R-24 on the day the figure was committed.
+
+    A box whose four coordinates all fit inside [0, COORD_SCALE] on an image
+    substantially larger than that is contract space wearing a pixel costume. It
+    is a legal pixel box in principle -- a genuinely tiny object in the top-left
+    corner -- so this fires only when the frame is much bigger than the scale,
+    which is every VisDrone frame in this campaign.
+    """
+    if max(W, H) <= COORD_SCALE * 2:
+        return
+    assert max(box) > COORD_SCALE, (
+        f"{where}: box {box} fits entirely inside [0, {COORD_SCALE}] on a {W}x{H} "
+        "frame -- these are contract coords, not pixels (R-24)")
+
+
 def discordant_examples(full: dict, roi: dict, n: int = 6) -> None:
     """b-cells: ROI passes the gate, full frame does not. Draw GT + both preds.
 
     RefDrone targets are tiny aerial objects (single-digit-percent of frame
     width), so each panel zooms to the union of GT+preds with padding -- a
     full-frame view renders the boxes as invisible dots and defeats the point.
+
+    R-24: the six panels used to be `sort(delta)[:6]`, i.e. the best ~5 % of the
+    112 discordant cells, all at delta exactly 1.0, captioned as if they were a
+    sample. They are now a STRATIFIED sample: the list is sorted by delta and six
+    evenly-spaced ranks are taken, so the panel spans the range the campaign
+    actually produced instead of only its top. Each title carries its rank.
     """
     disc = [(k, full[k], roi[k]) for k in full if k in roi
             and roi[k]["gate_pass"] and not full[k]["gate_pass"]]
     disc.sort(key=lambda t: t[2]["iou"] - t[1]["iou"], reverse=True)
-    picks = disc[:n]
+    ranks = [round(i * (len(disc) - 1) / (n - 1)) for i in range(n)] if len(disc) >= n else \
+            list(range(len(disc)))
+    picks = [(rank, disc[rank]) for rank in ranks]
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
     shown = 0
-    for (k, f, r), ax in zip(picks, axes.flat):
+    for (rank, (k, f, r)), ax in zip(picks, axes.flat):
         img = cv2.imread(f["image_path"])
         if img is None:
             ax.set_title("image not found"); ax.axis("off"); continue
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         H, W = img.shape[:2]
-        boxes = [b for b in (f["gt"], f["pred"], r["pred"]) if b]
+        drawn = [(to_pixels(f["gt"], W, H), (0, 200, 0)),
+                 (to_pixels(f["pred"], W, H), (220, 0, 0)),
+                 (to_pixels(r["pred"], W, H), (0, 90, 255))]
+        boxes = [b for b, _ in drawn if b]
+        for b in boxes:
+            _assert_looks_like_pixels(b, W, H, f"{f['image_path']} :: {f['caption'][:40]}")
         xs = [c for b in boxes for c in (b[0], b[2])]
         ys = [c for b in boxes for c in (b[1], b[3])]
         pad = max(40, (max(xs) - min(xs)), (max(ys) - min(ys)))
         cx0, cy0 = max(0, min(xs) - pad), max(0, min(ys) - pad)
         cx1, cy1 = min(W, max(xs) + pad), min(H, max(ys) + pad)
-        for box, col in [(f["gt"], (0, 200, 0)),
-                         (f["pred"], (220, 0, 0)),
-                         (r["pred"], (0, 90, 255))]:
+        for box, col in drawn:
             if box:
-                x0, y0, x1, y1 = map(int, box)
-                cv2.rectangle(img, (x0, y0), (x1, y1), col, 2)
-        ax.imshow(img[cy0:cy1, cx0:cx1]); ax.axis("off")
-        ax.set_title(f"{f['caption'][:44]}\nfull {f['iou']:.2f}  ROI {r['iou']:.2f}", fontsize=8)
+                cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), col, 2)
+        crop = img[cy0:cy1, cx0:cx1]
+        assert crop.size and crop.std() > 1.0, (
+            f"panel {rank} crop is {crop.shape} with std {crop.std():.2f} -- a flat "
+            "crop is a failed render, not a picture of anything")
+        ax.imshow(crop); ax.axis("off")
+        ax.set_title(f"#{rank + 1}/{len(disc)}  {f['caption'][:40]}\n"
+                     f"full {f['iou']:.2f}  ROI {r['iou']:.2f}", fontsize=8)
         shown += 1
     for ax in axes.flat[shown:]:
         ax.axis("off")
-    fig.suptitle("R-14 discordant cells (zoomed): green=GT, red=full-frame pred, blue=ROI pred",
-                 fontsize=11)
+    fig.suptitle(f"R-14 discordant cells, stratified over all {len(disc)} (zoomed): "
+                 "green=GT, red=full-frame pred, blue=ROI pred", fontsize=11)
     fig.tight_layout(); fig.savefig(PROOF / "discordant-examples.png", dpi=110); plt.close(fig)
 
 

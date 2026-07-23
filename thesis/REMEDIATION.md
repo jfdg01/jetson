@@ -47,7 +47,7 @@ written down — the reproduction command is in the task.
 |---|---|---|---|---|
 | R-22 | Paired deflation uses the wrong denominator; report contradicts itself | **P0** | R-23 | **DONE** 2026-07-23 |
 | R-23 | The four claim buckets overlap and are mislabelled | **P0** | — | **DONE** 2026-07-23 |
-| R-24 | R-14 proof figure draws contract coords as pixels | **P0** | — | TODO |
+| R-24 | R-14 proof figure draws contract coords as pixels | **P0** | — | **DONE** 2026-07-23 |
 | R-25 | Registry + module hygiene (`gate_p`, selfcheck, hand-counts) | **P0** | — | TODO |
 | R-26 | `README.md` is stale against R-13/R-14/R-16 | **P0** | — | TODO |
 | R-27 | `P3-E1-TRT-fps` never marked superseded by R-16 | **P0** | — | TODO |
@@ -1330,7 +1330,7 @@ believing the rest of the chapter.
 The intro line *"Sobre 70 afirmaciones con puerta"* was also wrong on its face:
 24 of the 70 never had anything to contrast. Corrected.
 
-## R-24 — R-14 proof figure draws contract coords as pixels — TODO **P0**
+## R-24 — R-14 proof figure draws contract coords as pixels — DONE **P0** (2026-07-23T12:47Z)
 
 `experiments/2026-07-21-roi-ondevice/make_proof.py:75-92` passes `gt` and `pred`
 straight to `cv2.rectangle`. Those are contract-space [0, `COORD_SCALE`] values
@@ -1360,6 +1360,39 @@ Inputs are all local: 548 frames under `data/VisDrone2019-DET/images/val/`. No G
 the Read tool** and described in the README by what it actually shows, the panel
 selection is either stated as best-case or made a stratified sample, and a mechanical
 assert rejects a box whose coords are all <= COORD_SCALE on an image larger than that.
+
+### Resolution (2026-07-23T12:47Z)
+
+`make_proof.py` gains `to_pixels()` (contract -> pixels, `round(x * W / COORD_SCALE)`)
+and two mechanical checks that run on every regeneration:
+
+- `_assert_looks_like_pixels()` per box: fails if all four coordinates fit inside
+  [0, COORD_SCALE] on a frame more than twice that size. Verified to fire on the
+  exact box the old code drew — `[27, 48, 34, 65]` on 1360x765 — and to pass on its
+  converted form `[367, 367, 462, 497]`.
+- a flat-crop check per panel: `crop.std() > 1.0`. The old figure's cream-gradient
+  panel would not have survived it.
+
+Panel selection is now stratified: ranks 1, 23, 45, 68, 90 and 112 of the 112
+discordant cells by ROI−full delta, each title carrying its rank and the suptitle
+saying "stratified over all 112". The old `sort(delta)[:6]` was the top ~5 %, every
+panel at delta exactly 1.0, captioned as a sample.
+
+**Regenerated and opened with the Read tool at 2026-07-23T12:47Z.** It shows six real
+aerial scenes: a crowded basketball court, two multi-lane roads, a parking row, a
+crossroads, and a motion-blurred street. In four of the six the blue ROI box is on a
+plausible target while the red full-frame box is on a *different object elsewhere in
+the scene* — which is the b-cell mechanism made visible: the full-frame arm does not
+miss by pixels, it grounds the wrong instance. Green GT appears as its own box only
+where ROI IoU < 1.0; at 1.00 it is exactly under the blue box, which is the correct
+appearance rather than the old failure to render. The README caption is rewritten to
+this, with the retraction stated rather than the old text quietly swapped.
+
+**The statistic never moved.** 85.19 % vs 63.10 % re-derives from
+`raw/items-{full,roi}.jsonl`, 439 rows each; the drawing path was never in it. What
+was dead was the deliverable, in the campaign that cites the "look at it" rule by
+name, backing one of the eight Holm survivors — and its caption said "Verified by
+opening the image".
 
 ## R-25 — Registry and module hygiene — TODO **P0**
 

@@ -159,11 +159,37 @@ on-device effect, and the ROI intervention transfers across runtime and quantisa
 1. `proof/paired-iou.png` — per-item IoU, arm A vs arm B, one point per sample, 0.25 gate lines.
    Mass sits above the diagonal with a dense upper-left b-cell cluster (full-frame misses at
    IoU~0, ROI hits high). Verified by opening the image.
-2. `proof/discordant-examples.png` — six b-cells, zoomed to the target neighbourhood (the objects
-   are single-digit-percent of frame width, so a full-frame view renders the boxes as invisible
-   dots). In every panel the ROI box (blue) lands on the target while the full-frame box (red)
-   drifts to a wrong object; the GT (green) is hidden under the near-perfect ROI box. The "look at
-   it" rule: the +22 pp is visibly true on individual images. Verified by opening the image.
+2. `proof/discordant-examples.png` — **regenerated 2026-07-23T12:45Z; the first version of this
+   figure was dead and the caption below it was false. See the R-24 note at the end of this
+   section.** Six b-cells stratified over all 112 (ranks 1, 23, 45, 68, 90, 112 by ROI−full delta),
+   each zoomed to the target neighbourhood; the objects are single-digit-percent of frame width, so
+   a full-frame view renders the boxes as invisible dots.
+
+   What the regenerated figure actually shows, opened with the Read tool at 2026-07-23T12:47Z:
+   six real aerial scenes — a basketball court crowded with people, two multi-lane roads, a
+   parking row, a crossroads with pedestrians, and a motion-blurred street. In panels #1, #23,
+   #68 and #90 the blue ROI box sits on a plausible target while the red full-frame box is on a
+   *different* object elsewhere in the scene, which is the b-cell mechanism made visible: the
+   full-frame arm does not miss by a few pixels, it grounds the wrong instance. Green GT is
+   visible as a separate box only where ROI IoU < 1.0 (#45, #68, #90, #112); at IoU 1.00 (#1,
+   #23) it is exactly under the blue box and cannot be seen, which is the correct appearance and
+   not a rendering failure. The worst-of-stratum panel #112 (ROI 0.25, a blurred frame) is
+   included on purpose: it is what a *bare pass* looks like.
+
+   **R-24 (2026-07-23).** The originally committed figure drew `gt` and `pred` — which are
+   contract-space [0, 100] values, `grounding/contract.py` — straight into `cv2.rectangle` as
+   pixels. On a 1360x765 frame every box collapsed into a sliver in the top-left corner, and the
+   panel then zoomed to that sliver. The committed image showed a tennis court, a grey blur, a
+   blank building facade and a flat cream gradient, with no green box anywhere despite the title
+   promising `green=GT`. The caption above claimed it had been verified by opening the image; it
+   had not. What makes this worth recording rather than quietly fixing is that it happened
+   *inside the campaign that cites the "look at it" rule by name*, and it backs one of the eight
+   Holm survivors. **The statistic is untouched** — 85.19 % vs 63.10 % re-derives from
+   `raw/items-{full,roi}.jsonl`, 439 rows each, which never used the drawing path. Only the
+   deliverable was dead. `make_proof.py` now converts to pixels in `to_pixels()` and asserts
+   `_assert_looks_like_pixels()` per box plus a flat-crop check per panel, so this figure cannot
+   silently render nothing again. The panel selection was also best-case-only — `sort(delta)[:6]`,
+   all six at delta exactly 1.0, i.e. the top ~5 % captioned as a sample — and is now stratified.
 3. `proof/prefill-vs-tokens.png` — on-device prefill ms vs prompt tokens, both arms, n=878. Two
    clean clusters, prefill linear in tokens; ROI cuts median prefill 3680 -> 1371 ms (2.68x).
    Verified by opening the image.
