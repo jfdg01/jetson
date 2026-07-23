@@ -85,7 +85,8 @@ alpha=0.05 at their n, 26 produced 0 discordant pairs (no test, not equality), 3
 Three recorded conclusions are corrected: Swin2SR's rejection is latency-bound not accuracy-bound;
 the Part I fidelity catastrophe is the export not the quantisation (F16 vs Q8_0 p=0.2478); carry at
 768 *does* lose accuracy vs 1024 (p=0.013). The thesis's central contribution
-(`P5.2a-warm-generalization`, p=3.052e-5) is among the survivors.
+(`P5.2a-warm-generalization`, p=6.10e-05 deflated to 23 clips — the citable figure per HANDOFF I2;
+3.052e-5 undeflated) is among the survivors.
 
 ## Q-MACH.1 — Cross-cutting (2026-07-21T18:05Z)
 

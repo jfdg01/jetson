@@ -468,3 +468,80 @@ def test_readme_quotes_no_stale_claim_count(claims):
     stale = sorted({int(m) for m in re.findall(r"las (\d+) afirmaciones", text)} - {n})
     assert not stale, (
         f"README.md says 'las {stale} afirmaciones'; the registry holds {n}")
+
+
+# The surfaces an agent or a reader hits before anything else. A wrong number here
+# propagates into every later session; a wrong number in an experiment README is
+# read by whoever is already looking at that experiment.
+_FIRST_READ = ("README.md", "CLAUDE.md", "docs/questions/part5-anticipatory.md",
+               "docs/questions/part6-flight.md", "thesis/00-esquema.md")
+
+# Any mention of deflation on the same line clears it: the correct construction
+# is "p = X, and p = Y al deflactar a N clips", which names both on one line.
+_UNDEFLATED_OK = re.compile(r"undeflat|deflact|deflated", re.IGNORECASE)
+
+
+def test_first_read_surfaces_cite_the_deflated_p(claims):
+    """R-32/I2. An undeflated p may appear, but never bare.
+
+    Found by R-32's spot-check of R-19: the Part V QUESTIONS banner told the reader
+    "P5.2 is the properly powered claim (p = 3.05e-05, survives Holm)" - the
+    undeflated value, in the one sentence on that page whose whole job is to say
+    which figure to cite. CLAUDE.md and the auto-memory both had it right, so this
+    was not a misunderstanding; it was the surface nothing swept twice.
+
+    The undeflated number is legitimate content (it belongs in the derivation, and
+    in a record of what was published before), so this does not forbid it. It
+    requires the word that marks it as the superseded one on the same line.
+    """
+    import sys
+    sys.path.insert(0, str(REPO / "thesis"))
+    from run_stats import load_claims
+    from grounding.stats import evaluate, mcnemar
+
+    parsed, _ = load_claims()
+    # p as it would read WITHOUT deflation, for every paired claim where deflating
+    # actually moved it. Those are the only strings that can be quoted by mistake.
+    undeflated, by_id = {}, {c.id: c for c in parsed}
+    for c in parsed:
+        if c.design != "paired-binary":
+            continue
+        counts = c.counts or {}
+        if "b" not in counts or "c" not in counts:
+            continue
+        b, cc = counts["b"], counts["c"]
+        if b + cc == 0:
+            continue
+        raw = mcnemar(b, cc)
+        got = evaluate(c).p_value
+        if got == got and abs(raw - got) > 1e-12:
+            undeflated[c.id] = raw
+
+    # Only `p = X` forms, never a bare number: 0.25 is also an IoU threshold, and
+    # matching it loose flags every line in the repo that mentions IoU@0.25.
+    quoted = re.compile(r"\bp\s*=\s*([0-9][0-9.,]*(?:e[-+]?[0-9]+)?)", re.IGNORECASE)
+
+    bad = []
+    for rel in _FIRST_READ:
+        for lineno, line in enumerate((REPO / rel).read_text().splitlines(), 1):
+            if _UNDEFLATED_OK.search(line):
+                continue
+            for m in quoted.finditer(line):
+                try:
+                    val = float(m.group(1).replace(",", "."))
+                except ValueError:
+                    continue
+                for cid, raw in undeflated.items():
+                    # same to the precision the prose actually printed, AND
+                    # attributable: p = 0,25 is McNemar for b=3, c=0 and also the
+                    # p of four unrelated claims, so a loose match flags every
+                    # correct sentence in the repo. Either the line names the claim
+                    # or the value is small enough that coincidence is not credible.
+                    if not (val and abs(val - raw) / raw < 0.02):
+                        continue
+                    if raw < 0.01 or cid.split("-")[0] in line or cid in line:
+                        bad.append(
+                            f"{rel}:{lineno} quotes {cid}'s undeflated p = {m.group(1)} bare "
+                            f"(deflated: {evaluate(by_id[cid]).p_value:.3g})")
+    assert not bad, (
+        "first-read surfaces must cite the deflated p (HANDOFF I2):\n  " + "\n  ".join(bad))

@@ -13,7 +13,8 @@
 > exact-test pass (R-4/R-19, 2026-07-21) found that several are descriptively right but were
 > never inferential at their n, and that three "ties" ran no test at all. Sections with a
 > material correction carry a **Statistical standing** note inline. **P5.2 is the properly
-> powered claim** (p = 3.05e-05, survives Holm). Per-claim detail: `thesis/claims.json`,
+> powered claim** (p = 6.10e-05 deflated to 23 independent clips — cite that one, per HANDOFF
+invariant I2; 3.05e-05 undeflated, and it survives Holm either way). Per-claim detail: `thesis/claims.json`,
 > `thesis/stats-report.md`.
 
 <!-- append one RQ + one-line verdict per campaign below -->

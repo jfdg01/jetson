@@ -55,7 +55,7 @@ written down — the reproduction command is in the task.
 | R-29 | `n_effective` = 13 vs the measured ICC | P1 | — | **AUTHOR** |
 | R-30 | Holm family boundary + undisclosed dependencies | P1 | — | **AUTHOR** |
 | R-31 | Retire or re-run P3-T2 / P3-T3; backlog commands are fiction | P1 | — | **AUTHOR** |
-| R-32 | Spot-check the assertion-only DONEs (R-19, R-7, R-21) | P1 | — | TODO |
+| R-32 | Spot-check the assertion-only DONEs (R-19, R-7, R-21) | P1 | — | **DONE** 2026-07-23 |
 
 `AUTHOR` means the task is a judgement call reserved for the human and **must not
 be resolved by an agent**. An agent may prepare the evidence; it may not pick.
@@ -1623,7 +1623,7 @@ never that it resolves.
 replaced by an honest "no runnable command exists, here is what would have to be
 built"; and the test checks resolvability.
 
-## R-32 — Spot-check the assertion-only DONEs — TODO P1
+## R-32 — Spot-check the assertion-only DONEs — DONE P1 (2026-07-23T13:05Z)
 
 Eight of the 21 first-wave tasks are artifact-backed (R-1, R-2, R-3, R-5, R-8, R-9,
 R-12, R-15) — the statistics and the survivor set reproduce. The rest are the agents'
@@ -1645,3 +1645,104 @@ word about their own work. Ranked by what breaks if the word was wrong:
    evidence, and this is the second wave's own campaign.
 
 **Done when:** each of the four has a recorded spot-check result, pass or fail.
+
+### Resolution (2026-07-23T13:05Z)
+
+All four run. Three pass outright; the fourth passes on its own criterion and
+turned up one defect of a different kind, now fixed and tested. Every draw uses
+`random.Random(1926)` over a sorted key list, so any of them re-runs identically.
+
+**1. R-19 — the 10-verdict spot-check its own done-criterion named. PASS 10/10.**
+Drawn from the 28 Part V/VI registry ids:
+`P5.5-select-generalization`, `P6.0-flight-rig-gate`, `P5.2b-speed-sweep`,
+`P5.9-kerbsafe-scenebank`, `P5.16-autodisc-wsel`, `P5.18-n25-wsel`,
+`P5.15-plain-carry-survival`, `P5.3-multi-candidate-select`, `P5.14-swap`,
+`P5.1-warm-vs-cold`. Each was checked on all three surfaces R-19 claimed to have
+swept. Every one either matches `thesis/claims.json` or carries its correction
+inline: the QUESTIONS doc has a *Statistical standing (R-19)* note on each section
+the registry materially contradicts, all nine sampled memories carry a
+`CORRECTED 2026-07-21` block, and the `CLAUDE.md` Part V block quotes the deflated
+P5.2 p-value with the undeflated one marked as such.
+
+**The one defect, found while checking the surface rather than the sample.** The
+banner at the top of `docs/questions/part5-anticipatory.md` — the sentence whose
+entire job is to tell the reader which figure to cite — said *"**P5.2 is the
+properly powered claim** (p = 3.05e-05, survives Holm)"*. That is the **undeflated**
+value, which HANDOFF invariant I2 forbids citing. `CLAUDE.md` and the auto-memory
+both had it right, so this was not a misunderstanding of the rule; it was the one
+surface nobody swept twice. `docs/questions/part6-flight.md:88` had the same value
+in the same shape. Both now lead with 6.10e-05 and name 3.052e-5 as undeflated.
+
+New test: `test_first_read_surfaces_cite_the_deflated_p`. For every paired claim
+where deflation actually moved the p, it scans the five first-read surfaces for a
+`p = X` matching the **undeflated** value and requires the word "deflat"/"deflact"
+on the same line. It is scoped two ways on purpose — the match must be attributable
+(the line names the claim, or the value is < 0.01), because p = 0,25 is McNemar for
+b=3, c=0 *and* the p of four unrelated claims, and a loose match flags every correct
+sentence in the repo. Same judgement as the R-22 test docstring records, for the
+same reason.
+
+**2. R-7 — five numbers it dropped as clean, re-derived. PASS 5/5 (20 values).**
+The complaint is that 2320 numbers were examined and 279 recorded, so 88 % were
+dropped as clean with no record of the check. Sampled from the ledger rows that
+carry a manifest path and a rate but appear in no sweep row — 17 such rows exist —
+and recomputed every cell from `runners/runs/<id>/results.json`:
+
+| ledger row | run | ledger | artifact |
+|---|---|---|---|
+| `part2:59` ladder @1024 | `20260617T191739Z` | 91.8 % / 30.3 % / 0.202 / 192.0 | 0.918 / 0.303 / 0.2019 / 191.986 |
+| `part2:74` +LoRA in-loop | `20260617T212559Z` `final` | 100.0 % / 65.0 % / 0.497 / 226.6 | 1.0 / 0.65 / 0.4969 / 226.579 |
+| `part2:20` Qwen2-VL-2B base HF | `20260617T170339Z` | 24 % / 15.0 % / 0.393 / 162.1 | 0.24 / 0.15 / 0.3933 / 162.078 |
+| `part2:22` Qwen2-VL-2B base Q8_0 | `20260617T172502Z` | 19 % / 14.0 % / 0.533 / 187.5 | 0.19 / 0.14 / 0.5335 / 187.534 |
+| `part2:18` smolvlm_ft3 Q8_0 | `20260617T121756Z` | 100 % / 67.0 % / 0.389 / 148.0 | 1.0 / 0.67 / 0.3889 / 148.015 |
+
+Every value matches to the digit the ledger prints. This does not prove the other
+2041 were checked; it says the dropped-as-clean population, where sampled, is clean.
+
+**3. R-21 — five resolutions re-derived from the artifact each one cites. PASS 5/5.**
+Sampled from the 7 of 74 rows whose `detail` names a `results.json` or
+`sweep_summary.json`, since those are the only ones a third party can re-derive
+without re-reading a prose source:
+
+- **`0.2`** (export parity, `part2-rebuild.md`) — HF `full_val` 0.595, F16 0.621868,
+  Q8_0 0.626424. HF→F16 = **+2.69 pp**, F16→Q8_0 = **+0.46 pp**; both gains, so the
+  published minus signs were indeed backwards. 439 × those rates = 261 / 273 / 275,
+  which is the "12 and 14 items above the HF reference" the rewritten line claims.
+- **`0.18`** (resolution ladder) — 30.296 − 10.706 = **19.590 pp**, 30.296 / 38.724 =
+  **78.2 %**, 30.3 % = **133/439**, and the 4.1 % → 38.7 % span is **9.44×**. The
+  arithmetic was never wrong; only its status as a "gate" was.
+- **`5.10`** (reground-chase, `part4-end-to-end.md`) — all ten `runs/rh-*/results.json`
+  read back: `in_fov_frac` **0.2279–0.2305**, `carry_frames` **464–474**,
+  `carry_px_err_mean` **8.6** in all ten, `n_regrounds` **1** in all ten,
+  `relock_walls_s` empty in all ten. Every figure in the resolution reproduces; the
+  field is named `relock_walls_s`, not `relock_on`.
+- **`4.13`** (P6.1 CARLA, `part6-flight.md`) — `runs/g1-scripted/results.json` has
+  `ticks` **400**, `frames_received` **399**; the 599 that had been published there
+  is `runs/g3-mavlink/results.json`'s frame count (600 ticks). Confirmed as stated.
+- **`5.12`** (streaming-carry parity) — the negative claim holds. A whole-repo search
+  for `0.9974` and `0.9968` returns the ledger line, the campaign README prose, and
+  otherwise only `frag` values inside `experiments/2026-07-17-bankv2-crossing/runs/*/gt.jsonl`.
+  No parity log, `results.json` or CSV exists. The figures are correctly flagged
+  unbacked, and landing an artifact for that leg is still open.
+
+**4. R-16's raw rows edited after DONE (`81df727`). PASS — labels only, and
+re-derivable.** 16 rows across the two committed `raw/*.jsonl`, 15 changed. The key
+set is byte-identical before and after and the **only** field that differs anywhere
+is `carry`; every timing, memory and rate field is untouched. Each rewritten label
+is re-derivable from a field in its own row: `m3-clean.jsonl` rows carry
+`prune_after` directly, and `m34.jsonl` rows — which have no `prune_after` field —
+encode it in `tag` (`ring32`/`ring100`, absent on the three rows predating the flag,
+which now read `prune_after=None`). The source fix in `cores_bench.py` makes the
+label an f-string over `a.prune_after`, so it cannot recur.
+
+One inaccuracy worth recording: the commit message says the rows were normalised
+"from that field", meaning `prune_after`. That is true of `m3-clean.jsonl` only.
+`m34.jsonl` has no such field and was normalised from `tag`. Both are in-row and
+both check out, so the labels are right and the message is loose about which field.
+
+**What the four together say.** The assertion-only DONEs hold where sampled, which
+is the honest form of this result — a spot-check licenses the population it drew
+from, not the whole. The defect that turned up was not in any sampled *verdict*; it
+was in the sentence directing which p-value to cite, on the page that exists to be
+read first. That is the shape to keep watching: the corrections landed and the
+correction *instructions* drifted.
