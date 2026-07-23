@@ -2,7 +2,7 @@
 title: Resultados estadísticos retroactivos
 subtitle: Cada afirmación con puerta de las Partes I-VI, re-analizada
 author: Javier Francisco Dibo Gómez
-comment: Generado por thesis/run_stats.py, 2026-07-23T12:28Z
+comment: Generado por thesis/run_stats.py, 2026-07-23T12:34Z
 locale: es
 ---
 
@@ -19,10 +19,9 @@ diseño no podía llegar a alpha = 0,05 con ningún resultado posible.
 La columna **Máquina** dice qué hardware produjo el número. `ambas` es la
 respuesta honesta y mayoritaria en las Partes IV-V: el anclaje del VLM corrió
 en la Jetson mientras el arrastre de SAM2 corría en la RTX 3090 con un tope
-de tasa. Seis afirmaciones se midieron íntegramente en la placa, y dos de
-ellas son inferenciales: la confirmación en dispositivo del recorte ROI
-(R-14) y la comparación contra el detector externo OWLv2 (R-13). La
-derivación por afirmación está en
+de tasa. Seis afirmaciones se midieron íntegramente en la placa,
+y dos de ellas son
+inferenciales: P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm. La derivación por afirmación está en
 `experiments/2026-07-21-machine-disclosure/README.md`.
 
 <!-- caption: Re-análisis exacto de las afirmaciones con puerta, con corrección de Holm-Bonferroni -->

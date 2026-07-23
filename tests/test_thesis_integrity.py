@@ -334,3 +334,59 @@ def test_the_claim_buckets_are_a_partition():
         n = sum(1 for b in assigned.values() if b == key)
         assert f"**{label} ({n}).**" in text, (
             f"report does not print {label} at {n}; regenerate with thesis/run_stats.py")
+
+
+def test_paired_claims_carry_no_gate_p(claims):
+    """R-25. `gate_p` is the PRE-registration; a paired design never reads it.
+
+    Two of the eight Holm survivors stored their own achieved p-value there,
+    bit-identical to what `evaluate()` recomputes: `P3-ROI-M2.0-512-ondevice` held
+    2.501505063220086e-14 and `P3-R13-owlv2-vs-vlm` held 2.2605981543610277e-07.
+    The pre-registration for both was prose, so the field was empty and the result
+    got written into it. Inert, because the paired branch of `evaluate` never reads
+    `gate_p` — but a field named "the bar we set in advance" holding the number we
+    got is the exact shape of the mistake this registry exists to prevent.
+    """
+    populated = [f"{c['id']}: gate_p={c['gate_p']}" for c in claims
+                 if c.get("design") == "paired-binary" and c.get("gate_p") is not None]
+    assert not populated, (
+        "paired-binary claims carry a gate_p, which nothing reads and which has "
+        "already been used to store an achieved p-value:\n  " + "\n  ".join(populated))
+
+
+def test_the_stats_module_selfcheck_passes():
+    """R-25. `python -m grounding.stats` had been exiting 1 since eacf746.
+
+    The self-check asserted the English string "absence of a test" and kept
+    asserting it after every reading was translated to Spanish. `make test` stayed
+    green because `tests/test_stats.py` never enters that branch, so the module's
+    own advertised check was the only thing that could catch the drift, and it was
+    the broken thing. Running it from the suite closes that gap.
+    """
+    import subprocess
+    import sys
+    r = subprocess.run([sys.executable, "-m", "grounding.stats"],
+                       cwd=REPO, capture_output=True, text=True)
+    assert r.returncode == 0, f"grounding.stats self-check failed:\n{r.stdout}\n{r.stderr}"
+
+
+def test_no_generated_report_line_hand_counts_the_registry(claims):
+    """R-25. A generated document must not carry a typed constant about itself.
+
+    `run_stats.py` shipped "Solo tres afirmaciones se midieron íntegramente en la
+    placa", then someone edited it by hand to "Seis" under a commit message saying
+    a generated document should not carry a hand-counted constant. It still did; it
+    just counted higher. Both counts are derived now, and this asserts the report
+    agrees with the registry rather than with whoever last edited the string.
+    """
+    report = REPO / "thesis" / "stats-report.md"
+    if not report.exists():
+        pytest.skip("report not generated yet; run thesis/run_stats.py")
+    text = report.read_text()
+    spelled = {1: "Una", 2: "Dos", 3: "Tres", 4: "Cuatro", 5: "Cinco", 6: "Seis",
+               7: "Siete", 8: "Ocho", 9: "Nueve", 10: "Diez"}
+    n = sum(1 for c in claims if c.get("machine") == "jetson-orin-nano-8gb")
+    want = spelled.get(n, str(n))
+    assert f"{want} afirmaciones se midieron íntegramente en la placa" in text, (
+        f"registry has {n} on-device claims; the report does not say so. "
+        "Regenerate with thesis/run_stats.py.")

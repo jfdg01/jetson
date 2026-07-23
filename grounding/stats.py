@@ -464,7 +464,12 @@ def _selfcheck() -> None:
                 design="paired-binary", verdict="NO", n_rows=24, n_effective=24,
                 independence_note="", data_status="counts_only", counts={"b": 0, "c": 0})
     o = evaluate(tie)
-    assert o.p_value != o.p_value and "absence of a test" in o.reading
+    # R-25. This asserted the English "absence of a test" and kept asserting it
+    # after eacf746 translated every reading to Spanish, so the module's own
+    # advertised self-check has been exiting 1 since then. `make test` stayed
+    # green because tests/test_stats.py never enters this branch -- the one thing
+    # that was supposed to catch it was the broken thing.
+    assert o.p_value != o.p_value and "ausencia de prueba" in o.reading, o.reading
 
     # An underpowered design must be flagged even when the count looks decisive.
     weak = Claim(id="P5.1", part="V", headline="WARM 5/6 vs COLD 1/6",

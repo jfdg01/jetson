@@ -48,7 +48,7 @@ written down — the reproduction command is in the task.
 | R-22 | Paired deflation uses the wrong denominator; report contradicts itself | **P0** | R-23 | **DONE** 2026-07-23 |
 | R-23 | The four claim buckets overlap and are mislabelled | **P0** | — | **DONE** 2026-07-23 |
 | R-24 | R-14 proof figure draws contract coords as pixels | **P0** | — | **DONE** 2026-07-23 |
-| R-25 | Registry + module hygiene (`gate_p`, selfcheck, hand-counts) | **P0** | — | TODO |
+| R-25 | Registry + module hygiene (`gate_p`, selfcheck, hand-counts) | **P0** | — | **DONE** 2026-07-23 |
 | R-26 | `README.md` is stale against R-13/R-14/R-16 | **P0** | — | TODO |
 | R-27 | `P3-E1-TRT-fps` never marked superseded by R-16 | **P0** | — | TODO |
 | R-28 | The defended sentence claims *select*; nothing inferential carries it | P1 | — | **AUTHOR** |
@@ -1394,7 +1394,7 @@ was dead was the deliverable, in the campaign that cites the "look at it" rule b
 name, backing one of the eight Holm survivors — and its caption said "Verified by
 opening the image".
 
-## R-25 — Registry and module hygiene — TODO **P0**
+## R-25 — Registry and module hygiene — DONE **P0** (2026-07-23T12:58Z)
 
 Three small things, each of which makes a future session distrust the core:
 
@@ -1416,6 +1416,25 @@ Three small things, each of which makes a future session distrust the core:
 
 **Done when:** the self-check exits 0, both `gate_p` are null with a test, and no
 generated line contains a literal count.
+
+### Resolution (2026-07-23T12:58Z)
+
+All three, each with a test so it cannot rot back:
+
+- **`python -m grounding.stats` exits 0.** The assertion now checks the Spanish
+  *"ausencia de prueba"* and prints `o.reading` on failure.
+  `test_the_stats_module_selfcheck_passes` runs it as a subprocess from the suite,
+  which is the actual repair: the self-check was the only thing positioned to catch
+  that drift, and nothing was positioned to catch the self-check.
+- **Both `gate_p` are null.** `test_paired_claims_carry_no_gate_p` fails on any
+  `paired-binary` claim that carries one. The field is inert for paired designs, so
+  nothing in the numbers moves — the point is that a field meaning *"the bar we set
+  in advance"* was holding *the number we got*, on two of the eight survivors.
+- **The machine sentence is derived.** `on_device` and `on_device_sig` are computed
+  from `claim.machine` and the Holm result, spelled through `_spell()`, and the two
+  inferential ones are named by claim id instead of by a hand-typed *"(R-14) y
+  (R-13)"*. `test_no_generated_report_line_hand_counts_the_registry` asserts the
+  rendered sentence agrees with the registry.
 
 ## R-26 — `README.md` is stale against R-13/R-14/R-16 — TODO **P0**
 

@@ -377,7 +377,7 @@
    },
    "n_rows": 439,
    "n_effective": 316,
-   "gate_p": 2.501505063220086e-14,
+   "gate_p": null,
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-21-roi-ondevice/raw/items-roi.jsonl",
@@ -403,7 +403,7 @@
    },
    "n_rows": 439,
    "n_effective": 316,
-   "gate_p": 2.2605981543610277e-07,
+   "gate_p": null,
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-21-detector-baseline/raw/owlv2.jsonl",

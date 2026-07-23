@@ -94,6 +94,15 @@ BUCKETS = [
 ]
 
 
+_NUM_ES = {0: "Ninguna", 1: "Una", 2: "Dos", 3: "Tres", 4: "Cuatro", 5: "Cinco",
+           6: "Seis", 7: "Siete", 8: "Ocho", 9: "Nueve", 10: "Diez"}
+
+
+def _spell(n: int) -> str:
+    """Small counts read better spelled out in Spanish prose; big ones as digits."""
+    return _NUM_ES.get(n, str(n))
+
+
 def bucket_of(claim: Claim, outcome, rejected: bool) -> str:
     """Which single bucket this claim belongs to. See BUCKETS for the order."""
     if claim.data_status == "missing":
@@ -213,6 +222,9 @@ def main() -> int:
     outcomes = {c.id: evaluate(c) for c in claims}
     holm = holm_bonferroni({cid: o.p_value for cid, o in outcomes.items()})
 
+    on_device = [c for c in claims if c.machine == "jetson-orin-nano-8gb"]
+    on_device_sig = [c.id for c in on_device if holm[c.id]["reject"]]
+
     lines = [
         "---",
         "title: Resultados estadísticos retroactivos",
@@ -235,10 +247,13 @@ def main() -> int:
         "La columna **Máquina** dice qué hardware produjo el número. `ambas` es la",
         "respuesta honesta y mayoritaria en las Partes IV-V: el anclaje del VLM corrió",
         "en la Jetson mientras el arrastre de SAM2 corría en la RTX 3090 con un tope",
-        "de tasa. Seis afirmaciones se midieron íntegramente en la placa, y dos de",
-        "ellas son inferenciales: la confirmación en dispositivo del recorte ROI",
-        "(R-14) y la comparación contra el detector externo OWLv2 (R-13). La",
-        "derivación por afirmación está en",
+        # R-25. This sentence carried a literal "Seis" -- and before 71b0128 it
+        # carried "Solo tres", changed by hand under a commit message saying a
+        # generated document should not carry a hand-counted constant. Derived now.
+        f"de tasa. {_spell(len(on_device))} afirmaciones se midieron íntegramente en la placa,",
+        f"y {_spell(len(on_device_sig)).lower()} de ellas {'son' if len(on_device_sig) != 1 else 'es'}",
+        "inferencial" + ("es" if len(on_device_sig) != 1 else "") + ": "
+        + ", ".join(on_device_sig) + ". La derivación por afirmación está en",
         "`experiments/2026-07-21-machine-disclosure/README.md`.",
         "",
         "<!-- caption: Re-análisis exacto de las afirmaciones con puerta, con corrección de Holm-Bonferroni -->",
