@@ -1,0 +1,48 @@
+# E18-n25 scoring  (25/25 complete)
+
+| clip | class | O | C | O gl/cov | C gl/cov | C mean_iou | disc |
+|---|---|---|---|---|---|---|---|
+| car10 | car | Y | n | Y True/1.0 | n True/0.2137 | 0.0928 | O>C |
+| car3 | car | Y | n | Y True/0.9831 | n False/0.0 | 0.0 | O>C |
+| car9 | car | Y | n | Y True/0.9931 | n False/0.0 | 0.0 | O>C |
+| car14 | car | Y | n | Y True/0.9 | n False/0.0009 | 0.0106 | O>C |
+| car7 | car | n | n | n True/0.3396 | n False/0.0 | 0.0032 | = |
+| boat2 | boat | Y | Y | Y True/1.0 | Y True/0.9909 | 0.2998 | = |
+| boat3 | boat | Y | n | Y True/1.0 | n False/0.9974 | 0.6889 | O>C |
+| person15 | person | Y | n | Y True/1.0 | n False/0.0235 | 0.0768 | O>C |
+| bike1 | cyclist | Y | n | Y True/0.9874 | n False/0.0 | 0.0 | O>C |
+| person13 | person | Y | n | Y True/0.966 | n False/0.0 | 0.0 | O>C |
+| person6 | person | Y | n | Y True/0.9256 | n False/0.0 | 0.0 | O>C |
+| person1 | person | Y | n | Y True/0.9312 | n False/0.0 | 0.0 | O>C |
+| wakeboard8 | wakeboarder | Y | n | Y True/0.7097 | n False/0.0 | 0.0 | O>C |
+| wakeboard3 | wakeboarder | Y | n | Y True/0.7424 | n False/0.0 | 0.0 | O>C |
+| car18 | car | Y | n | Y True/0.9851 | n False/0.0 | 0.0 | O>C |
+| car17 | car | Y | n | Y True/0.9839 | n False/0.0 | 0.0 | O>C |
+| car4_s | car | Y | n | Y True/0.8855 | n False/0.0 | 0.0008 | O>C |
+| car1_s | car | n | Y | n True/0.4095 | Y True/0.5015 | 0.2868 | C>O |
+| car3_s | car | Y | n | Y True/0.8392 | n False/0.0043 | 0.0115 | O>C |
+| person18 | person | Y | Y | Y True/1.0 | Y True/0.6381 | 0.2834 | = |
+| person20 | person | Y | n | Y True/0.9647 | n False/0.0 | 0.0015 | O>C |
+| person10 | person | Y | n | Y True/0.8234 | n False/0.0 | 0.0 | O>C |
+| person1_s | person | Y | n | Y True/0.7306 | n False/0.0743 | 0.0462 | O>C |
+| wakeboard6 | wakeboarder | Y | n | Y True/0.5665 | n False/0.0 | 0.0 | O>C |
+| wakeboard2 | wakeboarder | Y | n | Y True/0.6821 | n False/0.0 | 0.0 | O>C |
+
+- o_pass: 23
+- c_pass: 3
+- n: 25
+- n_src: 23
+- b_O>C: 21
+- c_C>O: 1
+- p_raw: 1.0967254638671875e-05
+- icc_point: 1.0
+- icc_upper95: 1.0
+- n0: 1.084
+- deff: 1.0836
+- n_eff: 23
+- collapsed_floor: 23
+- b_def: 19
+- c_def: 1
+- p_deflated: 4.00543212890625e-05
+- p_holm_partIV: 0.00016021728515625
+- incomplete: []

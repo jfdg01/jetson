@@ -1,0 +1,73 @@
+{
+  "leg": "COLD",
+  "clip": "wakeboard6",
+  "caption": "the wakeboarder",
+  "fps": 30.0,
+  "n_frames_gt": 1165,
+  "wall_s": 42.4,
+  "cap_hz": 6.15,
+  "n_events": 5,
+  "meta": {
+    "leg": "COLD",
+    "acquire_s": 4.71,
+    "seed": "vlm[0]",
+    "deliver_frame": 141,
+    "acq_frames": 141,
+    "seed_box": [
+      742.4,
+      453.6,
+      768.0,
+      496.8
+    ],
+    "n_gate_reject": 8
+  },
+  "score": {
+    "t_lock": 4.7,
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "mean_iou": 0.0,
+    "n_scored": 1024
+  },
+  "events": [
+    [
+      4.7,
+      [
+        742.4,
+        453.6,
+        768.0,
+        496.8
+      ]
+    ],
+    [
+      4.748,
+      [
+        738.0,
+        451.0,
+        789.0,
+        497.0
+      ]
+    ],
+    [
+      4.914,
+      [
+        732.0,
+        448.0,
+        795.0,
+        494.0
+      ]
+    ],
+    [
+      5.081,
+      [
+        732.0,
+        448.0,
+        794.0,
+        492.0
+      ]
+    ],
+    [
+      6.237,
+      null
+    ]
+  ]
+}

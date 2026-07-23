@@ -2,7 +2,7 @@
 title: Resultados estadísticos retroactivos
 subtitle: Cada afirmación con puerta de las Partes I-VI, re-analizada
 author: Javier Francisco Dibo Gómez
-comment: Generado por thesis/run_stats.py, 2026-07-23T19:01Z
+comment: Generado por thesis/run_stats.py, 2026-07-23T20:38Z
 locale: es
 ---
 
@@ -38,13 +38,13 @@ inferenciales: P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm. La derivación por
 | P1-S1.4-phaseC-vlm-closed-loop | I | binario pareado | **ambas** | 0 | ninguna | indefinido | — | — | **no** | SIN DATOS - no se defiende; en cola de re-ejecución |
 | P2-RQ0.3-spine-selection | II | binario de un brazo | 3090 | 100 | IC de Wilson | indefinido | — | — | **no** | sin puerta pre-registrada; solo intervalo |
 | P2-RQ1.1-dataset-well-posedness | II | descriptivo | 3090 | 1421 | descriptiva | indefinido | — | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
-| P2-RQ2.1-resolution-ladder-1024 | II | binario de un brazo | 3090 | 316 | binomial exacta | 7.771e-06 | 1.554e-05 | 0.0002642 | sí | 133/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 133/439: ver independence_note] |
-| P2-RQ3.1-lora-aerial-gate | II | binario de un brazo | 3090 | 316 | binomial exacta | 3.679e-53 | 1.104e-52 | 1.398e-51 | sí | 261/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 261/439: ver independence_note] |
+| P2-RQ2.1-resolution-ladder-1024 | II | binario de un brazo | 3090 | 316 | binomial exacta | 7.771e-06 | 1.554e-05 | 0.000272 | sí | 133/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 133/439: ver independence_note] |
+| P2-RQ3.1-lora-aerial-gate | II | binario de un brazo | 3090 | 316 | binomial exacta | 3.679e-53 | 1.104e-52 | 1.435e-51 | sí | 261/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 261/439: ver independence_note] |
 | P2-RQ4.1-deploy-fidelity | II | binario de un brazo | **ambas** | 316 | binomial exacta | 0.0355 | 0.0355 | 0.9939 | sí | 275/439 contra puerta 0.57; hacían falta >=197/316 para alpha=0,05 [deflactado desde 275/439: ver independence_note] |
 | P3-wholeframe-resolution-knee | III | descriptivo | Jetson | 316 | descriptiva | indefinido | — | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis [deflactado desde 277/439] |
-| P3-ROI-M2.0-512 | III | binario de un brazo | **ambas** | 316 | binomial exacta | 7.235e-19 | 3.618e-18 | 2.677e-17 | sí | 374/439 contra puerta 0.63; hacían falta >=213/316 para alpha=0,05 [deflactado desde 374/439: ver independence_note] |
-| P3-ROI-M2.0-512-ondevice | III | binario pareado | Jetson | 404 | McNemar exacta | 6.384e-18 | 2.554e-17 | 2.298e-16 | sí | significativa (b=103, c=14) [deflactado desde b=112, c=15] |
-| P3-R13-owlv2-vs-vlm | III | binario pareado | Jetson | 417 | McNemar exacta | 2.205e-09 | 6.614e-09 | 7.716e-08 | sí | significativa (b=95, c=29) [deflactado desde b=100, c=31] |
+| P3-ROI-M2.0-512 | III | binario de un brazo | **ambas** | 316 | binomial exacta | 7.235e-19 | 3.618e-18 | 2.749e-17 | sí | 374/439 contra puerta 0.63; hacían falta >=213/316 para alpha=0,05 [deflactado desde 374/439: ver independence_note] |
+| P3-ROI-M2.0-512-ondevice | III | binario pareado | Jetson | 404 | McNemar exacta | 6.384e-18 | 2.554e-17 | 2.362e-16 | sí | significativa (b=103, c=14) [deflactado desde b=112, c=15] |
+| P3-R13-owlv2-vs-vlm | III | binario pareado | Jetson | 417 | McNemar exacta | 2.205e-09 | 6.614e-09 | 7.937e-08 | sí | significativa (b=95, c=29) [deflactado desde b=100, c=31] |
 | P3-ROI-drift-robustness | III | descriptivo | **ambas** | 316 | descriptiva | indefinido | — | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis [deflactado desde 326/439] |
 | P3-SR-swin2sr-accuracy | III | binario pareado | 3090 | 412 | McNemar exacta | 0.2962 | 0.2962 | 1 | sí | no significativa (b=20, c=13); hacían falta >=6 discordantes en una dirección, hubo 20 [deflactado desde b=21, c=14] |
 | P3-carry-OP768-accuracy | III | binario pareado | **ambas** | 135 | McNemar exacta | 0.03002 | 0.06003 | 0.8705 | sí | significativa (b=40, c=22) [deflactado desde b=55, c=31] |
@@ -56,6 +56,7 @@ inferenciales: P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm. La derivación por
 | P3-T0a-anchor-cadence | III | descriptivo | **ambas** | 1 | descriptiva | indefinido | — | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
 | P3-T4a-tracker-cost | III | descriptivo | **ambas** | 1 | descriptiva | indefinido | — | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
 | E18-cold-acquire-vs-warm-oracle | IV | binario pareado | **ambas** | 6 | McNemar exacta | 0.0625 | 0.5 | 1 | sí | no significativa (b=5, c=0); hacían falta >=6 discordantes en una dirección, hubo 5 |
+| E18-cold-acquire-vs-warm-oracle-n25 | IV | binario pareado | **ambas** | 23 | McNemar exacta | 4.005e-05 | 0.0003605 | 0.001362 | sí | significativa (b=19, c=1) [deflactado desde b=21, c=1] |
 | E18-A-vs-gate | IV | binario de un brazo | **ambas** | 6 | binomial exacta | 0.9986 | 1 | 1 | **no** | 1/6 contra puerta 0.67; ningún k habría alcanzado alpha |
 | E20-operator-crop-hint | IV | binario pareado | **ambas** | 6 | McNemar exacta | 0.5 | 1 | 1 | sí | no significativa (b=2, c=0); hacían falta >=6 discordantes en una dirección, hubo 2 |
 | E20-acquire-latency | IV | continuo pareado | **ambas** | 6 | ninguna | indefinido | — | — | **no** | solo sobreviven estadísticos agregados; hacen falta los valores por elemento para una prueba |
@@ -106,9 +107,9 @@ dentro de cada capítulo empírico, no sobre el registro entero. La justificaci�
 que cada Parte es una pregunta de investigación distinta, pre-registrada con meses
 de diferencia, y ninguna afirmación se eligió comparando Partes entre sí.
 
-Tamaños de familia (sólo p definidos): Parte I m = 4, Parte II m = 3, Parte III m = 5, Parte IV m = 8, Parte V m = 18, Parte VI m = 0.
+Tamaños de familia (sólo p definidos): Parte I m = 4, Parte II m = 3, Parte III m = 5, Parte IV m = 9, Parte V m = 18, Parte VI m = 0.
 
-**Sobreviven 10 por Parte frente a 8 en familia global.**
+**Sobreviven 11 por Parte frente a 9 en familia global.**
 Las que sólo sobreviven por Parte: `P2-RQ4.1-deploy-fidelity`, `P5.15-plain-carry-survival`.
 
 **El contraargumento, que se registra porque es fuerte.** Con m entre 2 y 15 en
@@ -134,14 +135,14 @@ la corrección. Se declara igualmente, porque el lector no puede deducirlo de la
 
 ## Qué sobrevive
 
-Las 70 afirmaciones, repartidas en ocho categorías **disjuntas**:
+Las 71 afirmaciones, repartidas en ocho categorías **disjuntas**:
 cada afirmación aparece exactamente una vez, y los recuentos suman
-70. Cuando dos categorías podrían aplicar, gana la más
+71. Cuando dos categorías podrían aplicar, gana la más
 específica — «la puerta era inalcanzable» dice algo del diseño y prevalece
 sobre «la prueba no rechazó», que sólo dice algo del resultado.
 
 - **Sin datos crudos, en cola de re-ejecución (3).** No hay fichero por elemento. No se defienden. P1-S1.4-phaseC-vlm-closed-loop, P3-T2-permanence-reid, P3-T3-closedloop-coverage
-- **Significativas tras corrección de Holm (10).** Se pueden defender como efectos. P1-S3.3-export-parity-catastrophe, P2-RQ2.1-resolution-ladder-1024, P2-RQ3.1-lora-aerial-gate, P2-RQ4.1-deploy-fidelity, P3-ROI-M2.0-512, P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm, P5.2a-warm-generalization, P5.12-bankv21-recal, P5.15-plain-carry-survival
+- **Significativas tras corrección de Holm (11).** Se pueden defender como efectos. P1-S3.3-export-parity-catastrophe, P2-RQ2.1-resolution-ladder-1024, P2-RQ3.1-lora-aerial-gate, P2-RQ4.1-deploy-fidelity, P3-ROI-M2.0-512, P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm, E18-cold-acquire-vs-warm-oracle-n25, P5.2a-warm-generalization, P5.12-bankv21-recal, P5.15-plain-carry-survival
 - **Puerta pre-registrada inalcanzable por diseño (10).** Corrió una prueba contra una puerta que NINGÚN resultado posible habría superado a esa n. El fallo es del diseño, no del sistema. E18-A-vs-gate, E22-cv-prior-phase0, E16-relock-replication, P5.3-multi-candidate-select, P5.4-crop-select, P5.5-select-generalization, P5.14-wsel, P5.14-swap, P5.14-shadow-rg-disagreement, P5.16-autodisc-wsel
 - **Probadas, no significativas (18).** La prueba corrió y no rechazó. Es el resultado honesto de un contraste real. P1-S2.1-stage2-mode-collapse, P1-S3.3-quantisation-is-not-the-cost, P1-S4.1-stage4-narrow-miss, P3-SR-swin2sr-accuracy, P3-carry-OP768-accuracy, E18-cold-acquire-vs-warm-oracle, E20-operator-crop-hint, E19-motion-compensated-acquire, E21-coarse-to-fine, E23-tolerant-cells, P5.1-warm-vs-cold, P5.13-dd-vs-rg-tie, P5.15-maint-vs-plain, P5.18-n25-wsel, P5.18-n25-swap, P5.19-swap-late-entry-rescue, P5.20-carry-capacity, P5.17-dd-vs-rg-tie-n56
 - **Pareadas sin un solo par discordante (3).** Los brazos no se separaron en ninguna celda, luego no hubo contraste. No es equivalencia demostrada: es ausencia de prueba. P5.10-simbank-select, P5.19-wsel-no-regression, P5.20-replication-of-P5.19
@@ -151,7 +152,7 @@ sobre «la prueba no rechazó», que sólo dice algo del resultado.
 
 ## Salvedades por afirmación
 
-Las 70 afirmaciones con salvedad registrada, **literales**
+Las 71 afirmaciones con salvedad registrada, **literales**
 desde `thesis/claims.json`. Una salvedad limita lo que su fila de la tabla
 puede sostener: léase junto al valor p, nunca en su lugar. Varias retiran
 por completo la lectura ingenua del número.
@@ -211,6 +212,8 @@ por completo la lectura ingenua del número.
 **P3-T4a-tracker-cost** — Pseudorreplicación que no importa: la afirmación supera su presupuesto por dos órdenes de magnitud, de modo que ninguna corrección por dependencia podría invertirla. Vale la pena declararlo explícitamente en lugar de citar n=1180 en silencio.
 
 **E18-cold-acquire-vs-warm-oracle** — EL NÚMERO QUE LANZÓ LA PARTE V, y se queda en p = 0.0625 — justo fuera de alfa, porque con n=6 hacen falta LOS SEIS pares para volcar y solo volcaron cinco. El efecto es casi con seguridad real (el mecanismo es un retardo de entrega medido de 4.85 s, no un lanzamiento de moneda), pero el EXPERIMENTO no pudo certificarlo. Seis clips eran un clip de menos.
+
+**E18-cold-acquire-vs-warm-oracle-n25** — La re-ejecución con potencia de E18 (R-34): los dos mismos brazos, onset en el frame 0, sobre las 25 secuencias de UAV123 de P5.2a, una celda por clip. ORACLE 23/25 frente a COLD 3/25; b=21, c=1. Deflactado por ICC (R-29): sólo dos clústeres de origen tienen réplica (car3/car3_s, person1/person1_s) y ambos son internamente concordantes, así que el ICC superior es 1,0 y colapsa a n efectivo = 23 (b=19, c=1); McNemar exacta p = 4,0e-05, sobrevive Holm por Parte y global. E18 pasa de negativo sin potencia (p = 0,0625 con n=6) a confirmado con n=25. COLD 3/25 (no >=10/25): en el conjunto amplio el efecto no se atenuó, se reforzó. La única celda a favor de COLD es car1_s (cobertura ORACLE 0,41 < 0,50 por deriva del arrastre, no por el brazo frío). Corroboración independiente ya en disco: P5.2a corrió estos mismos brazos con onset a mitad de vuelo (t_p = 8 s) y da ORACLE 22/25 vs COLD 5/25 (b=17); segundo régimen de onset que concuerda, NO contado dos veces.
 
 **E18-A-vs-gate** — La dirección del fallo es lo que un diseño de 6 ítems SÍ puede establecer: 1/6 frente a una tasa de 2/3 tiene un p unilateral de 0.10. Sigue sin llegar a alpha, pero la brecha descriptiva es grande y el mecanismo se comprende.
 

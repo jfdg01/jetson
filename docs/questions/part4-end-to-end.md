@@ -497,3 +497,18 @@
   "co-residency costs 0 FPS", which was measured against an *idle* resident server. The pre-
   registered estimate that M3 would land "within 5% of solo" was taken on faith from E1 and is the
   one badly wrong estimate; it was wrong for the same reason the number it trusted was.
+
+### 2026-07-23 — E18 powered to n=25 (R-34)
+
+- **RQ-R34 — is E18's cold-acquire staleness effect (ORACLE vs COLD) significant once it is powered
+  past n=6?** **YES [delivery-lag].** ORACLE 23/25 vs COLD 3/25 over P5.2a's 25-clip bank at frame-0
+  onset; paired McNemar b=21, c=1, raw p=1.10e-05, ICC-deflated to n_eff=23 (b=19, c=1) p=4.01e-05,
+  survives per-Part Holm (3.61e-04) and global Holm (1.36e-03). E18's n=6 landed at p=0.0625 — just
+  outside alpha, one discordant pair short — because six clips gave six observations; nothing about
+  the design was unreachable, it was underpowered. The powered re-run confirms it. The pre-registered
+  surprise (COLD >= 10/25 → E18's margin was a 6-clip artefact) did **not** fire: COLD scored 3/25,
+  even lower than E18's 1/6, so the effect strengthened on the broad set rather than attenuating. The
+  binder is delivery lag, not model accuracy — the ~4.85 s real-Jetson acquire drops ~146 frames and
+  the (correct) box lands stale on a moving target. Independent second regime agrees (P5.2a t_p=8 s:
+  ORACLE 22/25 vs COLD 5/25). This is the number that launched Part V, now the only inferential
+  survivor in Part IV.

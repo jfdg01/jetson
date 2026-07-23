@@ -690,6 +690,40 @@
    "machine": "both"
   },
   {
+   "id": "E18-cold-acquire-vs-warm-oracle-n25",
+   "part": "IV",
+   "headline": "The cold-acquire staleness effect, powered to n=25: ORACLE 23/25 vs COLD 3/25 (frame-0 onset)",
+   "design": "paired-binary",
+   "verdict": "YES [delivery-lag]",
+   "n_rows": 25,
+   "n_effective": 23,
+   "independence_note": "R-34 replication of E18 at n=25. One cell per clip (no reps: E18 found n=2 reps bit-identical). Rows cluster by SOURCE video: car3/car3_s and person1/person1_s are sub-sequences of one capture each, so 25 clips -> 23 distinct sources. Both replicated clusters are internally concordant (both cells ORACLE>COLD), so ICC(1) upper 95% = 1.0 and the R-29 design effect collapses them fully: n_effective = 23. The P5.2a re-score (ORACLE 22/25 vs COLD 5/25 at t_p=8s) is disclosed as a second onset regime but NOT counted here - this campaign's COLD is a fresh frame-0 run, independent of P5.2a's COLD.",
+   "data_status": "per_item",
+   "data_paths": [
+    "experiments/2026-07-23-e18-n25-replication/runs/ORACLE_*/results.json",
+    "experiments/2026-07-23-e18-n25-replication/runs/COLD_*/results.json"
+   ],
+   "icc": {
+    "point": 1.0,
+    "upper95": 1.0,
+    "mean_cluster_size": 1.0836,
+    "clusters": 23,
+    "collapsed_floor": 23,
+    "rule": "R-29: n_effective = round(n_rows / (1 + (mean_cluster_size - 1) * upper95))"
+   },
+   "counts": {
+    "b": 21,
+    "c": 1,
+    "k1": 23,
+    "k2": 3,
+    "n": 25
+   },
+   "gate_p": null,
+   "caveats": "La re-ejecución con potencia de E18 (R-34): los dos mismos brazos, onset en el frame 0, sobre las 25 secuencias de UAV123 de P5.2a, una celda por clip. ORACLE 23/25 frente a COLD 3/25; b=21, c=1. Deflactado por ICC (R-29): sólo dos clústeres de origen tienen réplica (car3/car3_s, person1/person1_s) y ambos son internamente concordantes, así que el ICC superior es 1,0 y colapsa a n efectivo = 23 (b=19, c=1); McNemar exacta p = 4,0e-05, sobrevive Holm por Parte y global. E18 pasa de negativo sin potencia (p = 0,0625 con n=6) a confirmado con n=25. COLD 3/25 (no >=10/25): en el conjunto amplio el efecto no se atenuó, se reforzó. La única celda a favor de COLD es car1_s (cobertura ORACLE 0,41 < 0,50 por deriva del arrastre, no por el brazo frío). Corroboración independiente ya en disco: P5.2a corrió estos mismos brazos con onset a mitad de vuelo (t_p = 8 s) y da ORACLE 22/25 vs COLD 5/25 (b=17); segundo régimen de onset que concuerda, NO contado dos veces.",
+   "caveats_en": "The powered re-run of E18 (R-34): the same two arms, frame-0 onset, over P5.2a's 25 UAV123 sequences, one cell per clip. ORACLE 23/25 vs COLD 3/25; b=21, c=1. ICC-deflated (R-29): only two source clusters have replication (car3/car3_s, person1/person1_s) and both are internally concordant, so the upper ICC is 1.0 and it collapses fully to n_effective = 23 (b=19, c=1); exact McNemar p = 4.0e-05, survives per-Part and global Holm. E18 moves from underpowered negative (p = 0.0625 at n=6) to confirmed at n=25. COLD 3/25 (not >=10/25): on the broad set the effect did not attenuate, it strengthened. The one COLD-favouring cell is car1_s (ORACLE coverage 0.41 < 0.50 from carry drift, not the cold arm). Independent corroboration already on disk: P5.2a ran these same arms at a mid-flight onset (t_p = 8 s) giving ORACLE 22/25 vs COLD 5/25 (b=17); a second onset regime that agrees, NOT double-counted.",
+   "machine": "both"
+  },
+  {
    "id": "E18-A-vs-gate",
    "part": "IV",
    "headline": "Cold acquire scores 1/6 against a pre-registered 4/6 gate",

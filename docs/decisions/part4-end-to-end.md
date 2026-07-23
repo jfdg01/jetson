@@ -694,3 +694,27 @@
   the carry layer, not a flag. *Given up:* a free 1.4-1.6x, deliberately deferred to whoever
   rebuilds the carry for P6.2 — where it composes with D-R16.2, since batching also flattens the
   per-candidate memory cost (state cost 1516 MB batched vs 2611 MB separate at n=2).
+
+### 2026-07-23 — R-34 (E18 powered to n=25)
+
+- **D-R34.1 — re-run E18 on the broad 25-clip P5.2a bank, not just more cars.** *What:* powered the
+  E18 comparison over 25 UAV123 sequences across 5 target classes (car/boat/person/cyclist/
+  wakeboarder) instead of adding car clips to reach n>=25. *Why:* a broader set is the stronger test —
+  if COLD had scored well above 1/6 on non-car targets, E18's original margin would have been a
+  6-clip artefact, and that falsification was worth risking (pre-registered as the surprise case). It
+  held: COLD 3/25. *Given up:* exact clip-for-clip comparability with E18's six cars; bought
+  generality and a falsification opportunity.
+- **D-R34.2 — fork `replay_e18_clean.py` rather than score E18's harness as-is.** *What:* the pre-run
+  smoke caught `replay_e18`'s oracle leg stamping its seed after SAM2 init (scored at frame ~33 not
+  0), which spuriously fails `genuine_lock` on fast targets when the GPU is cold. Forked a clean
+  harness reusing P5.2a's `coverage_realtime` (delivery decoupled from init latency). *Why:* scoring
+  known-biased oracle data would have understated ORACLE and inflated the apparent effect — correcting
+  it is the honest direction even though it makes ORACLE look better, i.e. against a null result.
+  *Given up:* nothing real; the fix is E18's own intended semantics. The artifact and its correction
+  are documented in the harness docstring.
+- **D-R34.3 — register `E18-...-n25` as a NEW claim, keep E18 (n=6) as the as-run record.** *What:*
+  both coexist in `thesis/claims.json`; E18 keeps its p=0.0625 "one clip too few" caveat, E18-n25
+  carries the confirmation. *Why:* the as-run underpowered result is itself thesis content (the
+  motivation for Part V), and overwriting it would erase the honest history. Counting both in one Holm
+  family enlarges m against us (conservative), disclosed in `independence_note`. *Given up:* a
+  slightly smaller family; bought an intact provenance trail.

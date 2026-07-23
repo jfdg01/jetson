@@ -57,7 +57,7 @@ written down — the reproduction command is in the task.
 | R-31 | Retire or re-run P3-T2 / P3-T3; backlog commands are fiction | P1 | — | **DONE** 2026-07-23 (retired) |
 | R-32 | Spot-check the assertion-only DONEs (R-19, R-7, R-21) | P1 | — | **DONE** 2026-07-23 |
 | R-33 | `claims.json` caveats quote numbers the registry contradicts (P5.15) | P1 | R-22 | **DONE** 2026-07-23 |
-| R-34 | Re-run E18 at n>=25 — Chapter 6 has zero surviving claims | P2 | R-30 | **TODO** |
+| R-34 | Re-run E18 at n>=25 — Chapter 6 has zero surviving claims | P2 | R-30 | **DONE** 2026-07-23 (YES, ORACLE 23/25 vs COLD 3/25, deflated p=4.01e-05) |
 | R-35 | Run P6.2 — Chapter 8 has zero surviving claims | P2 | R-16 | **TODO** |
 | R-36 | SWAP arm at n>=25 **distinct clips**, not 26 cells from 13 | P2 | R-29 | **TODO** |
 
@@ -1991,6 +1991,31 @@ P5.2a harness with the E18 arms. Estimated cost is hours, not days.
 failure case too: if the effect is real at 20/25 the claim clears Part IV's family
 comfortably; if the cold arm scores well above 1/6 on a broader clip set, the honest
 result is that E18's original margin was a 6-clip artefact, and *that is also content*.
+
+**RESOLVED 2026-07-23 (confirmed). YES [delivery-lag].** Pre-registered
+2026-07-23T19:40Z; matrix `2026-07-23T19:45–20:20Z`; 50 result files, 0 INVALID.
+`experiments/2026-07-23-e18-n25-replication/`.
+
+    ORACLE 23/25   COLD 3/25   b(O>C)=21  c(C>O)=1   raw McNemar p = 1.10e-05
+    R-29 deflation: 2 two-cell source clusters (car3/car3_s, person1/person1_s),
+      both internally concordant -> ICC(1) upper95 = 1.0 -> n_eff = 23, b=19, c=1
+    deflated p = 4.01e-05   Holm(Parte IV) 3.61e-04   Holm(global) 1.36e-03
+
+E18 promotes from underpowered negative (p=0.0625, n=6) to confirmed at n=25. It is
+now **Part IV's only inferential survivor** and the **9th global-Holm survivor**;
+per-Part survivors 10→11, global 8→9 (`E18-...-n25` in `thesis/stats-report.md`).
+The pre-registered surprise case did **not** fire — COLD scored 3/25, *below* E18's
+1/6, so the effect strengthened on the broad set (b 17→21) rather than attenuating.
+
+Three notes for the record: (1) the design line above said "no Jetson"; that
+understates the cold arm — E18's leg A *is* a real Jetson q8_0 acquire (the ~4.85 s
+wall time is the mechanism), so the COLD leg self-boots `JetsonBackend` per clip and
+uses real Orin latency, which is the faithful choice. (2) The pre-run smoke caught a
+latent init-latency stamping artifact in `replay_e18`'s oracle leg; forked
+`replay_e18_clean.py` reusing P5.2a's `coverage_realtime` (D-R34.2). (3) Registered as
+a NEW claim; E18 (n=6) kept as the as-run record with its "one clip too few" caveat
+(D-R34.3). Proof: `proof/{discordant-bike1,pass-grid,effect-3regimes}.png`.
+`make test` green (172 passed).
 
 ## R-35 — Run P6.2 — P2
 

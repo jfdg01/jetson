@@ -88,11 +88,14 @@ the Part I fidelity catastrophe is the export not the quantisation (F16 vs Q8_0 
 (`P5.2a-warm-generalization`, p=6.10e-05 deflated to 23 clips — the citable figure per HANDOFF I2;
 3.052e-5 undeflated) is among the survivors.
 
-**Update 2026-07-23:** the registry has since grown to 70 claims (R-13, R-14), the
+**Update 2026-07-23:** the registry has since grown to 71 claims (R-13, R-14, R-34), the
 Holm family was fixed at the Part (R-30) and the clustering deflation was calibrated
-against a measured ICC (R-29). Current counts: **10 survive per-Part Holm, 8 global**;
+against a measured ICC (R-29). Current counts: **11 survive per-Part Holm, 9 global**;
 38 designs unreachable. `P5.2a-warm-generalization` is still among the survivors and
-the three corrected conclusions still stand. Live figures: `thesis/stats-report.md`.
+the three corrected conclusions still stand. R-34 added the Part IV survivor
+`E18-...-n25` (the cold-acquire staleness effect, ORACLE 23/25 vs COLD 3/25 at n=25,
+p=4.0e-05), promoting the number that launched Part V from p=0.0625 at n=6. Live
+figures: `thesis/stats-report.md`.
 
 ## Q-MACH.1 — Cross-cutting (2026-07-21T18:05Z)
 

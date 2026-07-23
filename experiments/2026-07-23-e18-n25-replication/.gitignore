@@ -1,0 +1,5 @@
+# Dataset (UAV123) stays out of git — large, redistributable from source
+data/
+# Overlay clips are large regen artifacts; results.json is the committed evidence.
+# Regenerate with run_e18_n25.py; the proof/ frames are the curated stills.
+runs/*/overlay.mp4

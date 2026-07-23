@@ -966,3 +966,29 @@ measured against an *idle* server and is falsified under real load (uniform ~2.3
 ~2x on the VLM). Proof: `proof/boxes-on-frame.png`, `proof/rate-decomposition.png`,
 `proof/scaling-and-batching.png`, `proof/coresidency.png`. Raw:
 `experiments/2026-07-22-sam2-coresidency/raw/`.
+
+### 2026-07-23 — E18 cold-acquire staleness, powered to n=25 (R-34) ([`experiments/2026-07-23-e18-n25-replication/`](../../experiments/2026-07-23-e18-n25-replication/README.md))
+
+Replication of E18's two arms at frame-0 onset over P5.2a's frozen 25-clip UAV123 bank (5 classes),
+one cell per clip. Host 3090 SAM2.1-hiera-tiny @1024 carry (CARRY_HZ 6.15, E18-comparability); COLD's
+anchor is REAL Jetson q8_0 wall time via `JetsonBackend` (15 W + jetson_clocks). PASS = `genuine_lock
+AND coverage >= 0.50` (E18's `score_run`, unchanged). Harness `replay_e18_clean.py` corrects a latent
+init-latency stamping artifact in `replay_e18`'s oracle leg (seed stamped after SAM2 init → scored at
+frame ~33 not 0), reusing P5.2a's `coverage_realtime`; stack otherwise identical.
+
+| arm | seed | REGROUND | PASS | genuine_lock rate |
+|---|---|---|---|---|
+| ORACLE (leg B) | GT[0] fresh @ frame 0 | off | **23/25** | 24/25 |
+| COLD (leg A) | real Jetson VLM[0], stale @ frame ~146 | on (mask gate) | **3/25** | 3/25 |
+
+Paired McNemar: b(O>C)=21, c(C>O)=1, raw p=1.10e-05. R-29 deflation — rows cluster by source video;
+`car3`/`car3_s` and `person1`/`person1_s` are the only two-cell clusters and both internally
+concordant, so ICC(1) upper 95%=1.0 collapses fully → **n_eff=23, b=19, c=1, p=4.01e-05**
+(Holm Parte IV 3.61e-04, Holm global 1.36e-03). **YES [delivery-lag].** E18 promotes from
+underpowered negative (p=0.0625 at n=6) to confirmed at n=25; now Part IV's only inferential
+survivor and the 9th global-Holm survivor (`E18-...-n25` in `thesis/stats-report.md`). COLD 3/25 (not
+>=10) — the effect did not attenuate on the broad set, it strengthened (b 17→21 vs E18's snapshot).
+The one C>O cell is `car1_s` (ORACLE carry drifts to coverage 0.41; a carry-quality miss, not a cold
+win). Corroboration on disk: P5.2a ran these arms at t_p=8 s → ORACLE 22/25 vs COLD 5/25 (b=17), a
+second onset regime that agrees, not double-counted. Proof: `proof/discordant-bike1.png`,
+`proof/pass-grid.png`, `proof/effect-3regimes.png`. Raw: `experiments/2026-07-23-e18-n25-replication/raw/`.
