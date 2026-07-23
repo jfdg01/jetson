@@ -432,3 +432,39 @@ def test_supersede_markers_are_bidirectional_and_qualify_the_verdict(claims):
         if verdict.strip().lower() in _BARE_POSITIVE:
             problems.append(f"{c['id']}: superseded but the verdict still reads {verdict!r}")
     assert not problems, "supersede markers:\n  " + "\n  ".join(problems)
+
+
+def test_readme_machine_table_is_generated_and_current():
+    """R-26. The front door must not carry a hand-typed count of the registry.
+
+    R-6 swept every number in README.md against the registry on 2026-07-21 and it
+    resolved. No task owned the re-sweep, so by 23 July the file said "65
+    afirmaciones" against a registry of 70, and its machine table read 47/13/3/2
+    against a real 47/15/6/2 — under-reporting the wholly-on-device claims by half,
+    which is the exact axis the entire first remediation wave was about.
+
+    `run_stats.py` writes the table between HTML markers now. This asserts the
+    committed block equals what the registry would render, so the front door cannot
+    drift again without `make test` going red.
+    """
+    import sys
+    sys.path.insert(0, str(REPO / "thesis"))
+    from run_stats import MACHINE_BEGIN, MACHINE_END, load_claims, machine_table
+
+    parsed, _ = load_claims()
+    text = (REPO / "README.md").read_text()
+    assert MACHINE_BEGIN in text and MACHINE_END in text, (
+        "README.md lost the generated-block markers; run thesis/run_stats.py")
+    got = text[text.index(MACHINE_BEGIN) + len(MACHINE_BEGIN):text.index(MACHINE_END)]
+    assert machine_table(parsed).strip() == got.strip(), (
+        "README.md machine table is stale against thesis/claims.json. "
+        "Regenerate with thesis/run_stats.py.")
+
+
+def test_readme_quotes_no_stale_claim_count(claims):
+    """R-26. The registry grew 65 -> 70 and three prose sentences did not notice."""
+    text = (REPO / "README.md").read_text()
+    n = len(claims)
+    stale = sorted({int(m) for m in re.findall(r"las (\d+) afirmaciones", text)} - {n})
+    assert not stale, (
+        f"README.md says 'las {stale} afirmaciones'; the registry holds {n}")

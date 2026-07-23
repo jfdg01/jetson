@@ -159,13 +159,13 @@ on-device effect, and the ROI intervention transfers across runtime and quantisa
 1. `proof/paired-iou.png` — per-item IoU, arm A vs arm B, one point per sample, 0.25 gate lines.
    Mass sits above the diagonal with a dense upper-left b-cell cluster (full-frame misses at
    IoU~0, ROI hits high). Verified by opening the image.
-2. `proof/discordant-examples.png` — **regenerated 2026-07-23T12:45Z; the first version of this
+2. `proof/discordant-examples.png` — **regenerated 2026-07-23T12:30Z; the first version of this
    figure was dead and the caption below it was false. See the R-24 note at the end of this
    section.** Six b-cells stratified over all 112 (ranks 1, 23, 45, 68, 90, 112 by ROI−full delta),
    each zoomed to the target neighbourhood; the objects are single-digit-percent of frame width, so
    a full-frame view renders the boxes as invisible dots.
 
-   What the regenerated figure actually shows, opened with the Read tool at 2026-07-23T12:47Z:
+   What the regenerated figure actually shows, opened with the Read tool at 2026-07-23T12:31Z:
    six real aerial scenes — a basketball court crowded with people, two multi-lane roads, a
    parking row, a crossroads with pedestrians, and a motion-blurred street. In panels #1, #23,
    #68 and #90 the blue ROI box sits on a plausible target while the red full-frame box is on a

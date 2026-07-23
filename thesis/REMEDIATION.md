@@ -49,7 +49,7 @@ written down — the reproduction command is in the task.
 | R-23 | The four claim buckets overlap and are mislabelled | **P0** | — | **DONE** 2026-07-23 |
 | R-24 | R-14 proof figure draws contract coords as pixels | **P0** | — | **DONE** 2026-07-23 |
 | R-25 | Registry + module hygiene (`gate_p`, selfcheck, hand-counts) | **P0** | — | **DONE** 2026-07-23 |
-| R-26 | `README.md` is stale against R-13/R-14/R-16 | **P0** | — | TODO |
+| R-26 | `README.md` is stale against R-13/R-14/R-16 | **P0** | — | **DONE** 2026-07-23 |
 | R-27 | `P3-E1-TRT-fps` never marked superseded by R-16 | **P0** | — | **DONE** 2026-07-23 |
 | R-28 | The defended sentence claims *select*; nothing inferential carries it | P1 | — | **AUTHOR** |
 | R-29 | `n_effective` = 13 vs the measured ICC | P1 | — | **AUTHOR** |
@@ -1330,7 +1330,7 @@ believing the rest of the chapter.
 The intro line *"Sobre 70 afirmaciones con puerta"* was also wrong on its face:
 24 of the 70 never had anything to contrast. Corrected.
 
-## R-24 — R-14 proof figure draws contract coords as pixels — DONE **P0** (2026-07-23T12:47Z)
+## R-24 — R-14 proof figure draws contract coords as pixels — DONE **P0** (2026-07-23T12:32Z)
 
 `experiments/2026-07-21-roi-ondevice/make_proof.py:75-92` passes `gt` and `pred`
 straight to `cv2.rectangle`. Those are contract-space [0, `COORD_SCALE`] values
@@ -1361,7 +1361,7 @@ the Read tool** and described in the README by what it actually shows, the panel
 selection is either stated as best-case or made a stratified sample, and a mechanical
 assert rejects a box whose coords are all <= COORD_SCALE on an image larger than that.
 
-### Resolution (2026-07-23T12:47Z)
+### Resolution (2026-07-23T12:32Z)
 
 `make_proof.py` gains `to_pixels()` (contract -> pixels, `round(x * W / COORD_SCALE)`)
 and two mechanical checks that run on every regeneration:
@@ -1378,7 +1378,7 @@ discordant cells by ROI−full delta, each title carrying its rank and the supti
 saying "stratified over all 112". The old `sort(delta)[:6]` was the top ~5 %, every
 panel at delta exactly 1.0, captioned as a sample.
 
-**Regenerated and opened with the Read tool at 2026-07-23T12:47Z.** It shows six real
+**Regenerated and opened with the Read tool at 2026-07-23T12:32Z.** It shows six real
 aerial scenes: a crowded basketball court, two multi-lane roads, a parking row, a
 crossroads, and a motion-blurred street. In four of the six the blue ROI box is on a
 plausible target while the red full-frame box is on a *different object elsewhere in
@@ -1394,7 +1394,7 @@ was dead was the deliverable, in the campaign that cites the "look at it" rule b
 name, backing one of the eight Holm survivors — and its caption said "Verified by
 opening the image".
 
-## R-25 — Registry and module hygiene — DONE **P0** (2026-07-23T12:58Z)
+## R-25 — Registry and module hygiene — DONE **P0** (2026-07-23T12:34Z)
 
 Three small things, each of which makes a future session distrust the core:
 
@@ -1417,7 +1417,7 @@ Three small things, each of which makes a future session distrust the core:
 **Done when:** the self-check exits 0, both `gate_p` are null with a test, and no
 generated line contains a literal count.
 
-### Resolution (2026-07-23T12:58Z)
+### Resolution (2026-07-23T12:34Z)
 
 All three, each with a test so it cannot rot back:
 
@@ -1436,7 +1436,7 @@ All three, each with a test so it cannot rot back:
   (R-13)"*. `test_no_generated_report_line_hand_counts_the_registry` asserts the
   rendered sentence agrees with the registry.
 
-## R-26 — `README.md` is stale against R-13/R-14/R-16 — TODO **P0**
+## R-26 — `README.md` is stale against R-13/R-14/R-16 — DONE **P0** (2026-07-23T12:42Z)
 
 The repo's front door. Last touched `95228e2` (2026-07-21); R-13, R-14 and R-16
 landed 22-23 July and appear nowhere (`grep -c 'R-13\|R-14\|R-16\|OWLv2'` = 0).
@@ -1457,7 +1457,47 @@ claim"*. It did, on 2026-07-21. No task owned the re-sweep after new claims land
 **Done when:** every number in `README.md` resolves to a current registry claim, and
 a test asserts the claim count and machine table are generated, not typed.
 
-## R-27 — `P3-E1-TRT-fps` never marked superseded — DONE **P0** (2026-07-23T13:05Z)
+### Resolution (2026-07-23T12:42Z)
+
+Four stale things, one of them load-bearing:
+
+- **`:19`, the carry rate.** Rewritten to lead with R-16's measurement — 2.69 Hz solo
+  at the deployed `image_size` 1024, a **2.30x** correction on the 6.15 FPS the line
+  used to headline (`P4-R16-carry-rate-1024`, measured wholly on the board). The same
+  paragraph now records that E1's most-quoted corollary — *"co-residency costs 0 FPS"* —
+  was timed against an **idle** `llama-server`, and that the previous "~2x optimistic"
+  hedge pointed the right way but fell short.
+- **The machine table at `:62-67`** read 47/13/**3**/2 against a registry that says
+  47/15/**6**/2. It under-reported the wholly-on-device claims by half — the exact
+  axis the entire first remediation wave was about. It is no longer typed: the block
+  between `<!-- BEGIN generated: machine-table -->` and `<!-- END ... -->` is written
+  by `sync_readme()` in `thesis/run_stats.py`, from the same `load_claims()` the
+  report uses.
+- **`:51`, the ROI headline.** Now leads with `P3-ROI-M2.0-512-ondevice` (+22.1 pp,
+  n=439 paired, p = 2.5e-14, survives Holm) and names the superseded 3090-control
+  version (`P3-ROI-M2.0-512`, +21.2 pp) as superseded. A new bullet carries
+  `P3-R13-owlv2-vs-vlm` (277 vs 208, p = 2.26e-07, survives Holm) with both of its
+  caveats: the 16.0x latency comparison **excludes the selection stage** a decomposed
+  route would still need, and the 90.4% `D-oracle` arm picks with ground truth, so it
+  is a ceiling on any re-ranker and **not** an OWLv2 result. The tracker bullet now
+  says 372 ms at the deployed 1024, not ~162 ms at 768.
+- **"las 65 afirmaciones"**, twice, against a registry of 70 — now 70, with the
+  Holm/24/12 bucket detail.
+
+Two tests replace the sweep: `test_readme_machine_table_is_generated_and_current`
+regenerates the block and asserts the file already matches it, and
+`test_readme_quotes_no_stale_claim_count` fails on any "N afirmaciones" whose N is
+not the live registry size.
+
+R-6's done-criterion — *"every number in the front matter resolves to a registry
+claim"* — was true when it was written on 2026-07-21. Nothing owned the re-sweep
+after R-13, R-14 and R-16 landed new claims two days later. Generation plus the two
+tests is the part that survives the next claim landing; another manual sweep would
+not have.
+
+`make test`: 169 passed, 1 skipped.
+
+## R-27 — `P3-E1-TRT-fps` never marked superseded — DONE **P0** (2026-07-23T12:36Z)
 
 R-14 wrote a supersede marker into the verdict of the claim it replaced. R-16 wrote
 none. `P3-E1-TRT-fps` still reads headline *"TensorRT fp16 lifts the co-resident
@@ -1473,7 +1513,7 @@ worse. That asymmetry is the part worth noticing.
 **Done when:** the claim carries a supersede marker naming `P4-R16-carry-rate-1024`,
 and a test asserts that a claim whose successor exists cannot read `PASS` unqualified.
 
-### Resolution (2026-07-23T13:05Z)
+### Resolution (2026-07-23T12:36Z)
 
 `P3-E1-TRT-fps` verdict `PASS` becomes:
 

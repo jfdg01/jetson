@@ -125,6 +125,46 @@ def stamp() -> str:
     return datetime.now().strftime("%Y-%m-%dT%H:%MZ")
 
 
+# R-26. The front-door README carried a hand-typed machine table and a hand-typed
+# claim count. R-6 swept them once on 2026-07-21 and no task owned the re-sweep, so
+# by 23 July it said "65 afirmaciones" against a registry of 70 and 47/13/3/2
+# against a real 47/15/6/2 — under-reporting the wholly-on-device claims by half,
+# which is the exact axis the first remediation wave was about. Generated now, with
+# a test that fails if the block drifts from the registry.
+MACHINE_ROWS = [
+    ("both", "**ambas** (anclaje VLM en la Orin, arrastre SAM2 en la 3090 con tope de tasa)"),
+    ("rtx-3090", "RTX 3090 (ablaciones, referencia de fidelidad HF bf16, simulador, generación de escenas)"),
+    ("jetson-orin-nano-8gb", "Jetson Orin Nano, íntegramente"),
+    ("n/a", "sin máquina (sin datos)"),
+]
+MACHINE_BEGIN = "<!-- BEGIN generated: machine-table -->"
+MACHINE_END = "<!-- END generated: machine-table -->"
+
+
+def machine_table(claims: list[Claim]) -> str:
+    """The README machine table, rendered from the registry."""
+    counts = {key: sum(1 for c in claims if c.machine == key) for key, _ in MACHINE_ROWS}
+    other = len(claims) - sum(counts.values())
+    assert other == 0, f"{other} claims carry a machine value MACHINE_ROWS does not list"
+    rows = [f"| {label} | {counts[key]} |" for key, label in MACHINE_ROWS]
+    return "\n".join([
+        f"| Máquina que produjo la cifra | Afirmaciones (de {len(claims)}) |",
+        "|---|---|", *rows,
+    ])
+
+
+def sync_readme(claims: list[Claim], readme: Path) -> bool:
+    """Rewrite the generated block in README.md. Returns True if it changed."""
+    text = readme.read_text()
+    i, j = text.index(MACHINE_BEGIN), text.index(MACHINE_END)
+    block = f"{MACHINE_BEGIN}\n\n{machine_table(claims)}\n\n"
+    new = text[:i] + block + text[j:]
+    if new == text:
+        return False
+    readme.write_text(new)
+    return True
+
+
 def load_claims() -> tuple[list[Claim], list[dict]]:
     reg = json.loads(REGISTRY.read_text())
     # `caveats_en` is the pre-translation English original, kept in the registry so a
@@ -346,6 +386,8 @@ def main() -> int:
                       "", f"![]({f2.relative_to(THESIS)})", ""]
 
     (THESIS / "stats-report.md").write_text("\n".join(lines) + "\n")
+    if sync_readme(claims, THESIS.parent / "README.md"):
+        print("  README.md machine table updated")
 
     print(f"[{stamp()}] {len(claims)} claims analysed")
     for key, label, _ in BUCKETS:

@@ -16,7 +16,7 @@ Los drones se pilotan con mando o con waypoints GPS. Nadie le dice a un dron *"s
 
 Este TFM demuestra que un dron puede aceptar órdenes en lenguaje natural y seguir el objetivo **sobre hardware embarcado**, en una Jetson Orin Nano de 8 GB a **15 W**, sin conexión a internet.
 
-El sistema *desplegado* sí corre entero en la placa: E1 midió el VLM y el arrastre SAM2 **co-residentes en la Orin** a 6.15 FPS con SAM2 a `image_size` **768** (4980 MB de 7607) (`P3-E1-TRT-fps`). Ese 768 es el único punto de operación medido, y la matización no es menor: a los **1024** px que corren en realidad las campañas de las Partes IV/V la tasa **no** está medida, y la propia E1 estimó que allí haría falta 1.9× de rendimiento (con un encoder ≥~2.5× más rápido) para sostener siquiera 5 FPS. Es el hallazgo M1 de la auditoría de máquinas: el paso de arrastre emulado es optimista, plausiblemente por ~2×. Lo que no corrió entero en la placa son muchos de los *experimentos*: 47 de las 65 afirmaciones con puerta se midieron a caballo entre la Orin y una RTX 3090. Eso está desglosado abajo, en «Sobre las cifras», y auditado afirmación por afirmación en [`experiments/2026-07-21-machine-disclosure/`](experiments/2026-07-21-machine-disclosure/README.md).
+El sistema *desplegado* sí corre entero en la placa, pero **más despacio de lo que este README dijo hasta el 2026-07-22**. E1 midió el VLM y el arrastre SAM2 co-residentes en la Orin a 6.15 FPS con SAM2 a `image_size` **768**; el despliegue real corre a **1024**, y esa tasa nunca se había medido allí. R-16 la midió: **2.69 Hz en solitario**, una corrección de **2.30×** (`P4-R16-carry-rate-1024`, medida íntegramente en la placa). La misma campaña falsifica el corolario más citado de E1 — «la co-residencia no cuesta FPS» se midió contra un `llama-server` **ocioso**; bajo un cliente de grounding real el arrastre paga ~2.3× y el VLM ~2×. `P3-E1-TRT-fps` queda marcada como superada. La estimación previa de «~2× optimista» estaba en la dirección correcta y se quedaba corta. Lo que no corrió entero en la placa son muchos de los *experimentos*: 47 de las 70 afirmaciones del registro se midieron a caballo entre la Orin y una RTX 3090. Eso está desglosado abajo, en «Sobre las cifras», y auditado afirmación por afirmación en [`experiments/2026-07-21-machine-disclosure/`](experiments/2026-07-21-machine-disclosure/README.md).
 
 ---
 
@@ -48,23 +48,32 @@ El sistema es un **bucle de seguimiento de dos niveles**: un modelo pesado que a
 >
 > - **Modelo en el dispositivo:** Qwen2-VL-2B GGUF **Q8_0 = 1.65 GB** (vs 3.09 GB en F16). La cuantización a 8 bits **no** cuesta precisión medible: F16 62/100 frente a Q8_0 55/100, p = 0.248 (`P1-S3.3-quantisation-is-not-the-cost`).
 > - **Grounding en la Orin:** **62.6 %** IoU@0.25 en RefDrone (n=439) (`P2-RQ4.1-deploy-fidelity`, ambas máquinas), y **63.1 %** a max_side=1024 medido **íntegramente en la placa** (`P3-wholeframe-resolution-knee`). Frente a la referencia HF bf16 (59.5 %) lo defendible es «sin pérdida medible por la exportación», no «la mejora»: la diferencia de 14 ítems entra en lo que el emparejamiento produce por azar.
-> - **Re-anclaje ROI:** **374/439 = 85.2 %** IoU@0.25 con recorte alrededor del objetivo, y 2.7× menos prefill (`P3-ROI-M2.0-512`). La ganancia limpia es **+21.2 pp**: dentro del mismo barrido y con el mismo backend, el control de fotograma completo sin límite de reescalado da 64.0 %. El **+22.6 pp** que figuraba aquí restaba la línea base desplegada en la Orin (62.6 %) de un brazo medido en la 3090 — un compuesto entre máquinas, no una comparación. La rejilla es una **meseta**: M=1.5 @512 da 368/439, seis ítems de diferencia sobre los mismos ítems; se tomó un punto sobre la meseta, no se descubrió un óptimo.
+> - **Re-anclaje ROI, medido íntegramente en la placa:** **85.2 %** IoU@0.25 con el recorte M=2.0 @512 frente a **63.1 %** del control de fotograma completo, ambos brazos en la misma sesión Q8_0 de la Orin, n=439 pareados: **+22.1 pp**, McNemar exacto **p = 2.5e-14**, y sobrevive a Holm (`P3-ROI-M2.0-512-ondevice`, R-14). Ésta es la forma que hay que citar. La versión anterior (`P3-ROI-M2.0-512`, +21.2 pp) sigue en el registro marcada como superada: su control era el barrido en la 3090, no la placa. La rejilla es una **meseta** — M=1.5 @512 da 368/439, seis ítems de diferencia sobre los mismos ítems — así que se tomó un punto sobre la meseta, no se descubrió un óptimo. El prefill baja de 3680 a 1371 ms en dispositivo (2.68×).
+> - **Contra un detector externo, en la placa:** el VLM afinado bate a **OWLv2** en grounding referencial sobre RefDrone (n=439, ambos medidos en la Orin): 277 aciertos frente a 208 del mejor brazo del detector, McNemar exacto **p = 2.26e-07**, sobrevive a Holm (`P3-R13-owlv2-vs-vlm`). Con dos salvedades que la afirmación necesita: la comparación de latencia (263.5 ms por pasada del detector frente a 4216 ms de cómputo del VLM, **16.0×**) enfrenta *una pasada* del detector con un anclaje generativo completo y **excluye la etapa de selección** que una ruta descompuesta seguiría necesitando; y el brazo `D-oracle` del 90.4 % elige entre las diez primeras propuestas usando la verdad-terreno, luego es una cota superior sobre cualquier reordenador y **no** un resultado de OWLv2.
 > - **Seguimiento temporal sostenido:** el arrastre con memoria (SAM2.1-tiny, zero-shot) da **0.830** IoU@0.25 medio por track en el punto de operación **desplegado** (768 px) sobre 186 tracks de AerialMind (`P3-carry-OP768-accuracy`). A 1024 px sube a 0.849. Esa diferencia **no** llega a significación una vez que se cuenta la unidad independiente correcta: los 186 tracks salen de 93 secuencias, y sobre ellas la prueba de signos da p = 0.096 (sin deflactar, p = 0.013). 768 se eligió por la restricción de FPS, y lo que los datos permiten decir es que el coste de precisión, si existe, es pequeño — no que esté medido.
-> - **Latencia del tracker ligero:** 0.143 ms/frame en la Orin, 350× de margen sobre su presupuesto de control de 50 ms (`P3-T4a-tracker-cost`). **No es el coste por fotograma del sistema:** el arrastre SAM2 domina con ~162 ms (p50 medido a `image_size` 768, el mismo punto de operación que los 6.15 FPS de arriba y con la misma reserva de M1) (`P3-E1-TRT-fps`), y es ese número, no el del tracker, el que fija la cadencia.
+> - **Latencia del tracker ligero:** 0.143 ms/frame en la Orin, 350× de margen sobre su presupuesto de control de 50 ms (`P3-T4a-tracker-cost`). **No es el coste por fotograma del sistema:** el arrastre SAM2 domina, y a la resolución que corre de verdad (1024) son **372 ms** por paso, no los ~162 ms medidos a 768 (`P4-R16-carry-rate-1024`, R-16; `P3-E1-TRT-fps` queda superada). Es ese número, no el del tracker, el que fija la cadencia.
 > - **Techo de seguimiento validado:** **2.5 m/s** de objetivo en SITL de extremo a extremo, techo medido con un barrido de cuatro velocidades (1.5 → 1/1, 2.0 → 3/3, 2.5 → 3/3, 3.0 → 0/2): la última configuración que engancha es 2.5 m/s (`E10-fast-follow-ceiling`). Presentarlo como «3/3 frente a 0/2» invitaría a una prueba que con estos tamaños no tendría sentido. La cifra de 3.0 m/s que figuraba aquí era el ajuste que falló.
 
 ### Sobre las cifras
 
 La premisa de la tesis es el despliegue en el borde, así que dónde se midió cada número
-forma parte del número. El registro `thesis/claims.json` lo hace explícito en las 65
-afirmaciones con puerta:
+forma parte del número. El registro `thesis/claims.json` lo hace explícito.
 
-| Máquina que produjo la cifra | Afirmaciones |
+La tabla siguiente **se genera** desde el registro (`thesis/run_stats.py`), no se teclea:
+hasta el 2026-07-23 decía 47/13/3/2 y el registro decía otra cosa, infra-reportando a la
+mitad las afirmaciones medidas íntegramente en la placa — el eje exacto del que trata
+toda la primera oleada de remediación.
+
+<!-- BEGIN generated: machine-table -->
+
+| Máquina que produjo la cifra | Afirmaciones (de 70) |
 |---|---|
 | **ambas** (anclaje VLM en la Orin, arrastre SAM2 en la 3090 con tope de tasa) | 47 |
-| RTX 3090 (ablaciones, referencia de fidelidad HF bf16, simulador, generación de escenas) | 13 |
-| Jetson Orin Nano, íntegramente | 3 |
+| RTX 3090 (ablaciones, referencia de fidelidad HF bf16, simulador, generación de escenas) | 15 |
+| Jetson Orin Nano, íntegramente | 6 |
 | sin máquina (sin datos) | 2 |
+
+<!-- END generated: machine-table -->
 
 Ejecutar una ablación en una estación de trabajo es práctica corriente y a menudo la
 opción correcta — la referencia de fidelidad HF bf16 **tiene** que correr en la 3090,
@@ -88,7 +97,7 @@ El trabajo posterior extiende esta base: seguimiento persistente y permanencia d
 - **[`RESULTS.md`](RESULTS.md)** — índice de resultados por parte (`docs/results/`).
 - **[`QUESTIONS.md`](QUESTIONS.md)** — pregunta de investigación y veredicto por ejecución (`docs/questions/`).
 - **[`DECISIONS.md`](DECISIONS.md)** — registro de decisiones por parte (`docs/decisions/`).
-- **[`thesis/stats-report.md`](thesis/stats-report.md)** — las 65 afirmaciones con puerta, con su prueba exacta, su máquina y sus salvedades.
+- **[`thesis/stats-report.md`](thesis/stats-report.md)** — las 70 afirmaciones del registro, con su prueba exacta, su máquina y sus salvedades. **Ocho** sobreviven a la corrección de Holm; 24 nunca tuvieron nada que contrastar y 12 llevaban una puerta que ningún resultado posible habría superado. El reparto completo, en ocho categorías disjuntas, está en la sección «Qué sobrevive» del informe.
 
 ---
 
