@@ -53,10 +53,13 @@ written down — the reproduction command is in the task.
 | R-27 | `P3-E1-TRT-fps` never marked superseded by R-16 | **P0** | — | **DONE** 2026-07-23 |
 | R-28 | The defended sentence claims *select*; nothing inferential carries it | P1 | — | **DONE** 2026-07-23 (author decided) |
 | R-29 | `n_effective` = 13 vs the measured ICC | P1 | — | **AUTHOR** |
-| R-30 | Holm family boundary + undisclosed dependencies | P1 | — | **AUTHOR** |
-| R-31 | Retire or re-run P3-T2 / P3-T3; backlog commands are fiction | P1 | — | **AUTHOR** |
+| R-30 | Holm family boundary + undisclosed dependencies | P1 | — | **DONE** 2026-07-23 (per-Part) |
+| R-31 | Retire or re-run P3-T2 / P3-T3; backlog commands are fiction | P1 | — | **DONE** 2026-07-23 (retired) |
 | R-32 | Spot-check the assertion-only DONEs (R-19, R-7, R-21) | P1 | — | **DONE** 2026-07-23 |
 | R-33 | `claims.json` caveats quote numbers the registry contradicts (P5.15) | P1 | R-22 | **DONE** 2026-07-23 |
+| R-34 | Re-run E18 at n>=25 — Chapter 6 has zero surviving claims | P2 | R-30 | **TODO** |
+| R-35 | Run P6.2 — Chapter 8 has zero surviving claims | P2 | R-16 | **TODO** |
+| R-36 | SWAP arm at n>=25 **distinct clips**, not 26 cells from 13 | P2 | R-29 | **TODO** |
 
 `AUTHOR` means the task is a judgement call reserved for the human and **must not
 be resolved by an agent**. An agent may prepare the evidence; it may not pick.
@@ -1675,7 +1678,30 @@ render both dependency notes into `stats-report.md`.
 **Done when:** the author has picked the family, and both dependencies appear in the
 generated report.
 
-## R-31 — Retire or re-run P3-T2 / P3-T3 — **AUTHOR**
+### Resolution — AUTHOR DECIDED: per-Part, landed 2026-07-23T15:20Z
+
+**Decision: the family is the Part.** Holm now runs inside each empirical chapter,
+not over the whole registry. Survivors go from **8 to 10**; the two that only clear
+per-Part are `P2-RQ4.1-deploy-fidelity` (p=0.0355 — the claim that the Part I
+fidelity catastrophe was eliminated) and `P5.15-plain-carry-survival` (p=0.002908).
+
+Implemented in `thesis/run_stats.py:263-273`. The global family is **not deleted** —
+it is rendered in a neighbouring `p (Holm, global)` column of the main table, so
+every reader sees both numbers on the same row. A new section, *La familia de
+corrección, y por qué ésta y no la otra*, carries the justification, the family
+sizes, the two claims that change hands, and the counter-argument in full: at
+m = 2..15 per Part, Holm barely corrects, so per-Part buys credibility it has not
+earned everywhere except Part V (m = 26), which is the only family where it still
+bites. It also records that the author saw both numbers before choosing — that
+belongs on the page, not in a commit message.
+
+Both dependencies are now disclosed in the generated report rather than only in
+`00-esquema.md`: the `P3-ROI-M2.0-512` / `-ondevice` double count, and
+`P3-R13-owlv2-vs-vlm`'s VLM arm being R-14's arm A on the same `items-full.jsonl`.
+Direction is noted too — double-counting enlarges m and *hardens* the correction, so
+it works against the thesis, which is why it can be disclosed rather than fixed.
+
+## R-29 — `n_effective` = 13 vs the measured ICC — **AUTHOR**
 
 Both are `GATE PASS` on prose alone, no raw data, and both are Chapter 5 spine.
 `thesis/rerun-backlog.md` already argues against re-running: T2 is one scripted clip
@@ -1693,6 +1719,36 @@ never that it resolves.
 **Done when:** the author has said retire-or-run; the commands either work or are
 replaced by an honest "no runnable command exists, here is what would have to be
 built"; and the test checks resolvability.
+
+### Resolution — AUTHOR DECIDED: retire, landed 2026-07-23T15:20Z
+
+**Decision: retire both.** `P3-T2-permanence-reid` and `P3-T3-closedloop-coverage`
+are no longer defended and will not be re-run. Their `verdict` in `claims.json` is now
+`RETIRED (R-31, author decision) - was GATE PASS on README prose alone`, and both
+caveats lead with the reasoning: recovering the lost file would make each number
+*citable*, not *defensible*, and a citable number that cannot be defended is worse
+than none — it invites a tribunal question with no answer. Doing either properly is
+not "an hour", it is a fresh n>=25 campaign on ground the registry already calls thin.
+
+**The fiction is gone.** All three backlog commands claimed a runnable path and had
+none. Each `rerun.command` now begins `NO RUNNABLE COMMAND EXISTS` and states what
+would actually have to be built:
+
+- T2: `grounding.eval.score_clips` does not exist (`grounding/eval/` holds `backends`,
+  `harness`, `parity`, `run`). Building it = a per-clip scorer plus a crossing-clip
+  bank at n>=25.
+- T3: `runners/run_phase_c.py` has no `--arms`, no `--reps` (its flag is `--runs`) and
+  zero references to CARLA. Building it = memoryless/reid arms on the P6.1 rig with
+  n>=10 flights per arm, which is effectively P6.2.
+- `P1-S1.4-phaseC-vlm-closed-loop` carried the same fiction and got the same treatment.
+
+**The test now checks resolvability, not presence.** `test_missing_claims_declare_a_rerun`
+asserted only that a `rerun` key existed, which is how a backlog of unrunnable commands
+read as a costed, actionable plan for two days. New
+`test_rerun_commands_resolve` resolves every `-m module` through `importlib.util.find_spec`,
+checks every `*.py` path exists, and greps every `--flag` against the script it is passed
+to. An honest `NO RUNNABLE COMMAND EXISTS` passes; a command naming a module or flag that
+does not exist fails.
 
 ## R-32 — Spot-check the assertion-only DONEs — DONE P1 (2026-07-23T13:05Z)
 
@@ -1817,3 +1873,87 @@ from, not the whole. The defect that turned up was not in any sampled *verdict*;
 was in the sentence directing which p-value to cite, on the page that exists to be
 read first. That is the shape to keep watching: the corrections landed and the
 correction *instructions* drifted.
+
+
+# Third wave — the empirical gaps the per-Part family exposes, R-34..R-36
+
+Opened 2026-07-23T15:40Z, directly out of the R-30 decision. With Holm applied per
+Part, the survivor count by chapter is:
+
+| Parte | Cap. | m (p definidos) | Sobreviven |
+|---|---|---|---|
+| I | 4 | 8 | 1 |
+| II | 4-5 | 5 | 3 |
+| III | 5 | 14 | 3 |
+| **IV** | **6** | **15** | **0** |
+| V | 7 | 26 | 3 |
+| **VI** | **8** | **2** | **0** |
+
+**Chapters 6 and 8 have no inferential claim at all.** That is the gap, and it is not
+uniformly serious — read each one before spending GPU on it.
+
+**Chapter 6 is mostly fine as a negative chapter.** Its thesis is *"cold acquire is the
+bottleneck, and optimising acquisition does not fix it"*. E19/E21/E22/E23 failing to
+reject is **consistent with** that thesis, not a hole in it — you do not need Holm
+survival to report five levers that did not work. The hole is the chapter's one
+*positive* spine claim, and it is a single observation wide. See R-34.
+
+**Chapter 8 has no claim because Part VI has run no experiment.** P6.0 and P6.1 are
+capability gates, correctly recorded as descriptive. The fix is not statistical, it is
+to run the experiment that was already proposed. See R-35.
+
+## R-34 — Re-run E18 at n>=25 — P2
+
+`E18-cold-acquire-vs-warm-oracle` is the closest miss in the entire registry:
+
+    counts  b=5, c=0   k1=6/6 (warm oracle)  k2=1/6 (cold)
+    n_rows 12 -> n_effective 6 (deterministic n=2 reps, correctly collapsed)
+    exact McNemar p = 0.0625        reachable = yes, and it needs b = 6
+
+Five discordant pairs, all one-way, out of six effective observations. **One more
+one-way pair and it clears alpha**, and the design was reachable all along — this is
+not an unreachable gate, it is an underpowered one. It is also Chapter 6's only
+positive claim: *the ~4.85 s cold acquire delivers a box that is already stale on a
+moving target*, which is the finding that motivated the whole of Part V.
+
+**Design.** Same paired arms (cold blocking acquire vs the GT-seed warm oracle) on
+**25 distinct UAV123 sequences**, one cell per sequence — not multiple onsets per
+clip, per the R-29 lesson. Pure replay, no Jetson, no new infrastructure: this is the
+P5.2a harness with the E18 arms. Estimated cost is hours, not days.
+
+**Pre-register before running**, per the project workflow, and pre-register the
+failure case too: if the effect is real at 20/25 the claim clears Part IV's family
+comfortably; if the cold arm scores well above 1/6 on a broader clip set, the honest
+result is that E18's original margin was a 6-clip artefact, and *that is also content*.
+
+## R-35 — Run P6.2 — P2
+
+Chapter 8's first real claim. Already proposed
+(`experiments/PART6-PROPOSAL-closed-loop-flight.md`), already unblocked — the "missing
+deployed checkpoint" that was recorded as a P6.2 blocker was a stale-format search
+error, corrected 2026-07-20T20:10Z. R-16 additionally handed it a concrete lever: the
+ring length. `PRUNE_AFTER=32` survives co-residency where the deployed 100 is
+OOM-killed at N=2.
+
+Nothing statistical is required to unblock this; it needs the Part V select modules
+ported out of `experiments/` into `runners/run_phase_c.py`. Scope it at n>=25 flights
+from the start — a closed-loop campaign that produces one flight per arm reproduces
+exactly the P3-T3 defect this ledger just retired.
+
+## R-36 — SWAP at n>=25 distinct clips — P2
+
+Part V's residual, and the cleanest illustration of the R-29 lesson. P5.18/P5.19's
+SWAP arm keeps missing, and the sample is **26 cells cut from 13 clips**. Measured
+ICC on that data is ~0.25, so the 26 cells are worth roughly 21 independent
+observations, not 26 and not 13. Cutting a 27th scene from `bike1` would add almost
+nothing; a 14th clip would add a full observation.
+
+**The rule this yields, which belongs in the method chapter:** *n counts clusters, not
+cells.* Every future arm samples distinct source sequences first and extra onsets per
+sequence only after the cluster count is met.
+
+**Design.** 25+ distinct UAV123 sequences, one SWAP cell each, arms as in P5.19
+(aligned dedup + bounded grace). This is the arm that decides whether the select
+refinement is a real effect at 0.65-0.77 or noise around the 0.8 gate. Lower priority
+than R-34: it strengthens a chapter that already has three survivors, where R-34
+rescues a chapter that has none.

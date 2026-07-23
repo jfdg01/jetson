@@ -256,11 +256,39 @@ def figure_forest(claims: list[Claim], outcomes: dict) -> Path:
     return out
 
 
+def holm_by_family(claims, outcomes) -> dict[str, dict]:
+    """Holm within each Part. R-30 (author decision, 2026-07-23).
+
+    The correction family is ONE PART, not the whole registry: each Part is a
+    separate research question, pre-registered months apart, and no claim was
+    shopped across Parts. The global family is still computed and printed as a
+    declared sensitivity analysis -- the author saw both numbers before choosing,
+    which belongs on the page, not in a commit message.
+
+    This lives in one function because the report and
+    `tests/test_thesis_integrity.py` both need it and must not drift apart: the
+    partition test computed the global family for one commit and disagreed with
+    the report it was auditing.
+    """
+    out: dict[str, dict] = {}
+    for part in sorted({c.part for c in claims}):
+        ids = [c.id for c in claims if c.part == part]
+        out.update(holm_bonferroni({i: outcomes[i].p_value for i in ids}))
+    return out
+
+
 def main() -> int:
     PROOF.mkdir(exist_ok=True)
     claims, backlog = load_claims()
     outcomes = {c.id: evaluate(c) for c in claims}
-    holm = holm_bonferroni({cid: o.p_value for cid, o in outcomes.items()})
+
+    # R-30 (author decision, 2026-07-23): the correction family is ONE PART, not
+    # the whole registry. Each Part is a separate research question, pre-registered
+    # months apart, and no claim was shopped across Parts. The global family is kept
+    # and reported as a declared sensitivity analysis, because the author saw both
+    # numbers before choosing and that has to be on the page rather than in a commit.
+    holm = holm_by_family(claims, outcomes)
+    holm_global = holm_bonferroni({cid: o.p_value for cid, o in outcomes.items()})
 
     on_device = [c for c in claims if c.machine == "jetson-orin-nano-8gb"]
     on_device_sig = [c.id for c in on_device if holm[c.id]["reject"]]
@@ -296,20 +324,66 @@ def main() -> int:
         + ", ".join(on_device_sig) + ". La derivación por afirmación está en",
         "`experiments/2026-07-21-machine-disclosure/README.md`.",
         "",
-        "<!-- caption: Re-análisis exacto de las afirmaciones con puerta, con corrección de Holm-Bonferroni -->",
+        "<!-- caption: Re-análisis exacto de las afirmaciones con puerta, con corrección de Holm-Bonferroni por Parte -->",
         "",
-        "| Afirmación | Parte | Diseño | Máquina | n efectivo | Prueba | p | p (Holm) | Alcanzable | Lectura |",
-        "|---|---|---|---|---|---|---|---|---|---|",
+        "| Afirmación | Parte | Diseño | Máquina | n efectivo | Prueba | p | p (Holm, Parte) | p (Holm, global) | Alcanzable | Lectura |",
+        "|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for c in claims:
         o = outcomes[c.id]
         p = "indefinido" if o.p_value != o.p_value else f"{o.p_value:.4g}"
         ph = holm[c.id]["p_holm"]
         ph_s = "—" if ph != ph else f"{ph:.4g}"
+        pg = holm_global[c.id]["p_holm"]
+        pg_s = "—" if pg != pg else f"{pg:.4g}"
         lines.append(
             f"| {c.id} | {c.part} | {DESIGN_ES.get(c.design, c.design)} | {MACHINE_ES.get(c.machine, c.machine or '—')} | {c.n_effective} | {o.test} | "
-            f"{p} | {ph_s} | {'sí' if o.could_ever_reach_alpha else '**no**'} | {o.reading} |"
+            f"{p} | {ph_s} | {pg_s} | {'sí' if o.could_ever_reach_alpha else '**no**'} | {o.reading} |"
         )
+
+    # --- R-30: the family choice, its cost, and the dependencies it does not fix
+    per_part_sig = sorted(c.id for c in claims if holm[c.id]["reject"])
+    global_sig = sorted(c.id for c in claims if holm_global[c.id]["reject"])
+    only_per_part = sorted(set(per_part_sig) - set(global_sig))
+    sizes = {part: sum(1 for c in claims if c.part == part and outcomes[c.id].p_value == outcomes[c.id].p_value)
+             for part in sorted({c.part for c in claims})}
+    lines += [
+        "",
+        "## La familia de corrección, y por qué esta y no la otra",
+        "",
+        "**Decisión de autor (R-30, 2026-07-23): la familia es la Parte.** Holm se aplica",
+        "dentro de cada capítulo empírico, no sobre el registro entero. La justificación es",
+        "que cada Parte es una pregunta de investigación distinta, pre-registrada con meses",
+        "de diferencia, y ninguna afirmación se eligió comparando Partes entre sí.",
+        "",
+        "Tamaños de familia (sólo p definidos): "
+        + ", ".join(f"Parte {k} m = {v}" for k, v in sizes.items()) + ".",
+        "",
+        f"**Sobreviven {len(per_part_sig)} por Parte frente a {len(global_sig)} en familia global.**",
+        "Las que sólo sobreviven por Parte: "
+        + (", ".join(f"`{i}`" for i in only_per_part) if only_per_part else "ninguna") + ".",
+        "",
+        "**El contraargumento, que se registra porque es fuerte.** Con m entre 2 y 15 en",
+        "casi todas las Partes, Holm por Parte apenas corrige: conserva prácticamente toda",
+        "afirmación que ya era significativa sin corregir. Sólo la Parte V, la mayor, sigue",
+        "mordiendo. Una corrección que casi nunca cambia nada compra credibilidad que no ha",
+        "ganado, y por eso la familia global se reporta en la columna contigua como",
+        "**análisis de sensibilidad declarado**, no se esconde. El autor vio ambos números",
+        "antes de elegir; decirlo aquí es parte de la elección.",
+        "",
+        "### Dos dependencias que inflan la familia en cualquiera de las dos versiones",
+        "",
+        "Holm asume que las pruebas de la familia son distintas. Dos pares no lo son del todo,",
+        "y ninguna de las dos versiones lo corrige:",
+        "",
+        "- `P3-ROI-M2.0-512` y su propio reemplazo declarado en placa, `P3-ROI-M2.0-512-ondevice`,",
+        "  se cuentan como dos pruebas. Son el mismo experimento medido en dos máquinas.",
+        "- El brazo VLM de `P3-R13-owlv2-vs-vlm` **es** el brazo A de R-14: el mismo",
+        "  `items-full.jsonl`, la misma k. Dos supervivientes comparten una medición.",
+        "",
+        "El efecto va en contra de la tesis, no a favor: contar dos veces agranda m y endurece",
+        "la corrección. Se declara igualmente, porque el lector no puede deducirlo de la tabla.",
+    ]
 
     # --- what survives -----------------------------------------------------
     # R-23: a partition, not four overlapping filters. Every claim appears once.

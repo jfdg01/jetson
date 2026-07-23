@@ -203,7 +203,7 @@
    "rerun": {
     "missing": "píxeles válidos — la medida es inválida en origen",
     "cost": "superado; el rig de CARLA (P6.1) es el sitio correcto para volver a preguntarlo",
-    "command": "runners/run_phase_c.py con el renderizador CARLA, tras corregir el pitch de cámara"
+    "command": "NO RUNNABLE COMMAND EXISTS. runners/run_phase_c.py has no CARLA path today (it drives the Gazebo renderer); re-asking this needs the P6.1 CARLA rig wired into run_phase_c.py, which is P6.2's own build work."
    },
    "caveats_en": "13 phase-c CSVs with full per-frame columns exist and were deliberately NOT extracted: the input pixels were a blank sky frame (gz camera pitch +pi/2 is DOWN, not up). Extracting them would produce well-formed numbers about nothing. This is the repo's own motivating case for the 'look at it' rule.",
    "machine": "both"
@@ -549,7 +549,7 @@
    "part": "III",
    "headline": "Re-ID drives ID switches 1 -> 0 and purity 0.725 -> 1.000 on the crossing clip",
    "design": "paired-binary",
-   "verdict": "GATE PASS",
+   "verdict": "RETIRED (R-31, author decision) - was GATE PASS on README prose alone",
    "n_rows": 2,
    "n_effective": 1,
    "independence_note": "one discriminating clip; the control is at ceiling in every arm by design",
@@ -560,13 +560,13 @@
     "c": 0
    },
    "gate_p": null,
-   "caveats": "NO HAY FICHERO CRUDO EN DISCO: los números solo sobreviven en el README y en el registro. Incluso si se recuperaran, todo el PASS descansa sobre un único clip guionizado en el que un cambio de ID ocurre o no ocurre: una sola extracción de Bernoulli, sin intervalo, sin prueba.",
+   "caveats": "**RETIRADA POR DECISIÓN DE AUTOR (R-31, 2026-07-23).** No se defiende en el TFM y no se vuelve a ejecutar. El argumento decisivo es de la propia cola de re-ejecución: recuperar el fichero la haría *citable*, no *defendible*, y una cifra citable que no se puede defender es peor que ninguna — invita en el tribunal a una pregunta sin respuesta. Ejecutarla bien no es «una hora»: es una campaña nueva a n>=25 sobre terreno que el propio registro ya considera fino. El comando de re-ejecución que este fichero anunciaba era ficticio (ver `rerun`). grounding.eval.score_clips NO EXISTE (grounding/eval/ contiene backends, harness, parity, run). No hay comando ejecutable. Construirlo = un scorer por clip + un banco de clips con cruces a n>=25. NO HAY FICHERO CRUDO EN DISCO: los números solo sobreviven en el README y en el registro. Incluso si se recuperaran, todo el PASS descansa sobre un único clip guionizado en el que un cambio de ID ocurre o no ocurre: una sola extracción de Bernoulli, sin intervalo, sin prueba.",
    "rerun": {
     "missing": "puntuaciones por clip; solo sobrevive la prosa del README",
-    "cost": "~1 h en la 3090; los clips y el scorer están versionados",
-    "command": ".venv-ft/bin/python -m grounding.eval.score_clips --clips experiments/2026-06-18-t1-temporal-contract/clips --arms memoryless,reid"
+    "cost": "RETIRED - not re-run. No hay comando ejecutable. Construirlo = un scorer por clip + un banco de clips con cruces a n>=25.",
+    "command": "NO RUNNABLE COMMAND EXISTS. grounding.eval.score_clips DOES NOT EXIST (grounding/eval/ holds backends, harness, parity, run). There is no runnable command. Building one = a per-clip scorer plus a crossing-clip bank at n>=25."
    },
-   "caveats_en": "NO RAW FILE ON DISK - the numbers survive only in the README and the ledger. Even if recovered, the entire PASS rests on a single scripted clip in which one ID switch either happens or does not: one Bernoulli draw, no interval, no test.",
+   "caveats_en": "**RETIRED BY AUTHOR DECISION (R-31, 2026-07-23).** Not defended in the thesis and not re-run. The decisive argument is the backlog's own: recovering the file would make it *citable*, not *defensible*, and a citable number you cannot defend is worse than none - it invites a tribunal question with no answer. Doing it properly is not 'an hour', it is a fresh n>=25 campaign on ground the registry already calls thin. The re-run command this file advertised was fiction (see `rerun`). grounding.eval.score_clips DOES NOT EXIST (grounding/eval/ holds backends, harness, parity, run). There is no runnable command. Building one = a per-clip scorer plus a crossing-clip bank at n>=25. NO RAW FILE ON DISK - the numbers survive only in the README and the ledger. Even if recovered, the entire PASS rests on a single scripted clip in which one ID switch either happens or does not: one Bernoulli draw, no interval, no test.",
    "machine": "n/a"
   },
   {
@@ -574,7 +574,7 @@
    "part": "III",
    "headline": "Re-ID lifts kinematic oracle coverage 49.2% -> 97.6% in the closed loop",
    "design": "paired-binary",
-   "verdict": "GATE PASS",
+   "verdict": "RETIRED (R-31, author decision) - was GATE PASS on README prose alone",
    "n_rows": 1,
    "n_effective": 1,
    "independence_note": "each percentage is a frame fraction within ONE flight of ONE scripted scenario. In a closed loop the controller's output at t determines the pixels at t+1, so a single early divergence propagates through every later frame.",
@@ -585,13 +585,13 @@
     "c": 0
    },
    "gate_p": null,
-   "caveats": "EL n MÁS EXAGERADO DEL REPOSITORIO. No hay ningún archivo en disco; solo prosa del README. Las diferencias de fracción de fotogramas procedentes de vuelos únicos no deben presentarse nunca como si tuvieran error de muestreo entre vuelos.",
+   "caveats": "**RETIRADA POR DECISIÓN DE AUTOR (R-31, 2026-07-23).** No se defiende en el TFM y no se vuelve a ejecutar. El argumento decisivo es de la propia cola de re-ejecución: recuperar el fichero la haría *citable*, no *defendible*, y una cifra citable que no se puede defender es peor que ninguna — invita en el tribunal a una pregunta sin respuesta. Ejecutarla bien no es «una hora»: es una campaña nueva a n>=25 sobre terreno que el propio registro ya considera fino. El comando de re-ejecución que este fichero anunciaba era ficticio (ver `rerun`). runners/run_phase_c.py no tiene --arms ni --reps (su flag es --runs) y no menciona CARLA en ninguna línea. No hay comando ejecutable. Construirlo = brazos memoryless/reid en el rig P6.1 + n>=10 vuelos por brazo; es efectivamente P6.2. EL n MÁS EXAGERADO DEL REPOSITORIO. No hay ningún archivo en disco; solo prosa del README. Las diferencias de fracción de fotogramas procedentes de vuelos únicos no deben presentarse nunca como si tuvieran error de muestreo entre vuelos.",
    "rerun": {
     "missing": "registros por vuelo; solo prosa del README",
-    "cost": "~2 h; necesita n>=10 vuelos por brazo para decir algo sobre una tasa",
-    "command": "runners/run_phase_c.py --arms memoryless,reid --reps 10 (renderizador CARLA)"
+    "cost": "RETIRED - not re-run. No hay comando ejecutable. Construirlo = brazos memoryless/reid en el rig P6.1 + n>=10 vuelos por brazo; es efectivamente P6.2.",
+    "command": "NO RUNNABLE COMMAND EXISTS. runners/run_phase_c.py has no --arms and no --reps (its flag is --runs) and contains zero references to CARLA. There is no runnable command. Building one = memoryless/reid arms on the P6.1 rig plus n>=10 flights per arm; that is effectively P6.2."
    },
-   "caveats_en": "THE MOST OVERSTATED n IN THE REPOSITORY. No file on disk; README prose only. Frame-fraction differences from single flights must never be reported as if they had sampling error over flights.",
+   "caveats_en": "**RETIRED BY AUTHOR DECISION (R-31, 2026-07-23).** Not defended in the thesis and not re-run. The decisive argument is the backlog's own: recovering the file would make it *citable*, not *defensible*, and a citable number you cannot defend is worse than none - it invites a tribunal question with no answer. Doing it properly is not 'an hour', it is a fresh n>=25 campaign on ground the registry already calls thin. The re-run command this file advertised was fiction (see `rerun`). runners/run_phase_c.py has no --arms and no --reps (its flag is --runs) and contains zero references to CARLA. There is no runnable command. Building one = memoryless/reid arms on the P6.1 rig plus n>=10 flights per arm; that is effectively P6.2. THE MOST OVERSTATED n IN THE REPOSITORY. No file on disk; README prose only. Frame-fraction differences from single flights must never be reported as if they had sampling error over flights.",
    "machine": "n/a"
   },
   {

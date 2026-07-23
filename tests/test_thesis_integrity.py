@@ -100,6 +100,55 @@ def test_missing_claims_declare_a_rerun(claims):
             assert c.get("rerun"), f"{c['id']} is missing data but has no rerun block"
 
 
+_NO_COMMAND = "NO RUNNABLE COMMAND EXISTS"
+
+
+def test_rerun_commands_resolve(claims):
+    """A re-run command must run, or say plainly that it cannot.
+
+    R-31 (2026-07-23) found all three backlog commands were fiction:
+    `grounding.eval.score_clips` does not exist, and `run_phase_c.py` has no
+    `--arms`, no `--reps` and no CARLA path. The old test asserted only that a
+    `rerun` key was *present*, so a backlog of unrunnable commands read as a
+    costed, actionable plan for two days. Presence is not resolvability.
+
+    An honest "no runnable command exists, here is what would have to be built"
+    passes. A command naming a module or a flag that does not exist does not.
+    """
+    import importlib.util
+
+    bad = []
+    for c in claims:
+        cmd = ((c.get("rerun") or {}).get("command") or "").strip()
+        if not cmd or cmd.startswith(_NO_COMMAND):
+            continue
+
+        for mod in re.findall(r"-m\s+([A-Za-z_][\w.]*)", cmd):
+            try:
+                found = importlib.util.find_spec(mod) is not None
+            except (ImportError, ModuleNotFoundError, ValueError):
+                found = False
+            if not found:
+                bad.append(f"{c['id']}: `-m {mod}` does not exist")
+
+        scripts = re.findall(r"([\w/]+\.py)", cmd)
+        for rel in scripts:
+            if not (REPO / rel).exists():
+                bad.append(f"{c['id']}: script `{rel}` does not exist")
+
+        # flags are only checkable against a script we can read
+        readable = [REPO / s for s in scripts if (REPO / s).exists()]
+        if readable:
+            text = "\n".join(p.read_text() for p in readable)
+            for flag in set(re.findall(r"(?<![\w-])(--[a-z][\w-]*)", cmd)):
+                if flag not in text:
+                    bad.append(f"{c['id']}: `{flag}` not accepted by {scripts[0]}")
+
+    assert not bad, (
+        "re-run commands that do not resolve (say " + _NO_COMMAND + " instead):\n  "
+        + "\n  ".join(bad))
+
+
 def test_n_effective_never_exceeds_n_rows(claims):
     """Deflation may only ever reduce. n_effective > n_rows manufactures independence."""
     bad = [f"{c['id']}: n_effective={c['n_effective']} > n_rows={c['n_rows']}"
@@ -312,12 +361,15 @@ def test_the_claim_buckets_are_a_partition():
     """
     import sys
     sys.path.insert(0, str(REPO / "thesis"))
-    from run_stats import BUCKETS, bucket_of, load_claims
-    from grounding.stats import evaluate, holm_bonferroni
+    from run_stats import BUCKETS, bucket_of, holm_by_family, load_claims
+    from grounding.stats import evaluate
 
     parsed, _ = load_claims()
     outcomes = {c.id: evaluate(c) for c in parsed}
-    holm = holm_bonferroni({k: v.p_value for k, v in outcomes.items()})
+    # R-30: the family is the Part. Import the helper rather than re-deriving it -
+    # this test disagreed with the report it audits because it computed the global
+    # family by hand while the report had moved to per-Part.
+    holm = holm_by_family(parsed, outcomes)
 
     known = {key for key, _, _ in BUCKETS}
     assigned = {c.id: bucket_of(c, outcomes[c.id], holm[c.id]["reject"]) for c in parsed}
