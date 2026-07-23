@@ -256,6 +256,31 @@ DEFLATION_PROBES = [
 ]
 
 
+def test_paired_deflation_measures_from_the_scale_bc_were_recorded_at():
+    """R-22. Deflate b/c from `counts["n"]` when it exists, not from `n_rows`.
+
+    Seven registry claims record discordants ALREADY collapsed to the clip scale:
+    `counts["n"]=6` beside `n_rows=12`, with the independence_note spelling it out
+    ("12 rows, 6 observations"). R-3 deflated every paired claim from n_rows, so
+    those seven were halved a second time. It read as conservative, which is why it
+    survived review, but it is just wrong: E18 -- the pivot claim of the whole
+    Part IV -> V argument -- printed p=0.5 where the correct value is 0.0625, and
+    E19 was published as "0 discordant pairs, absence of a test" when it has one.
+
+    The tell was in the repo the whole time: the hand-written caveats carried the
+    right numbers, so `stats-report.md` contradicted its own prose 112 lines apart.
+    A generated document disagreeing with itself is the cheapest possible signal and
+    nothing was checking for it.
+    """
+    already_collapsed = _probe("paired-binary", {"b": 5, "c": 0, "n": 6}, 12, 6)
+    raw_rows = _probe("paired-binary", {"b": 5, "c": 0}, 12, 6)
+
+    # b/c are at the clip scale and n_effective IS the clip count: nothing to do.
+    assert evaluate(already_collapsed).p_value == pytest.approx(0.0625)
+    # No counts["n"], so n_rows is the honest fallback and 5/12 -> ~2/6 still deflates.
+    assert evaluate(raw_rows).p_value == pytest.approx(0.5)
+
+
 @pytest.mark.parametrize("design,counts,n_rows,n_eff", DEFLATION_PROBES)
 def test_every_design_branch_honours_n_effective(design, counts, n_rows, n_eff):
     """R-3. A branch that reads raw counts and ignores n_effective overstates us.

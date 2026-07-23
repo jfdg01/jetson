@@ -744,8 +744,8 @@
     "n": 6
    },
    "gate_p": null,
-   "caveats": "UN solo par discordante: p = 1.0. El brazo BUF es estadísticamente vacuo frente a la línea base E18-A - b=0, c=0, McNemar indefinido. Ninguno de los dos brazos es evidencia de nada; ambos quedan correctamente registrados como fracasos en alcanzar la puerta, lo cual es una afirmación distinta y más débil que 'la compensación de movimiento no funciona'.",
-   "caveats_en": "ONE discordant pair: p = 1.0. The BUF arm is statistically vacuous against the E18-A baseline - b=0, c=0, McNemar undefined. Neither arm is evidence of anything; both are correctly recorded as failures to reach the gate, which is a different and weaker statement than 'motion compensation does not work'.",
+   "caveats": "UN solo par discordante (b=1, c=0): p = 1.0. El brazo BUF es estadísticamente vacuo frente a la línea base E18-A: un único par no alcanza alfa a ningún n, y con seis pares harían falta los seis. Ninguno de los dos brazos es evidencia de nada; ambos quedan correctamente registrados como fracasos en alcanzar la puerta, lo cual es una afirmación distinta y más débil que 'la compensación de movimiento no funciona'. (R-22: esta fila se publicó durante ocho días como si no tuviera par discordante alguno, y por tanto sin prueba, porque la deflación pareada dividía dos veces unas celdas ya colapsadas a escala de clip; el par existe.)",
+   "caveats_en": "ONE discordant pair (b=1, c=0): p = 1.0. The BUF arm is statistically vacuous against the E18-A baseline: a single pair cannot reach alpha at any n, and six pairs would need all six. Neither arm is evidence of anything; both are correctly recorded as failures to reach the gate, which is a different and weaker statement than 'motion compensation does not work'. (R-22: this row was published for eight days as having no discordant pair at all, and therefore no test, because the paired deflation halved counts that were already at clip scale; the pair is real.)",
    "machine": "both"
   },
   {

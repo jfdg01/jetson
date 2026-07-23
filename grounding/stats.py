@@ -330,8 +330,19 @@ def evaluate(claim: Claim) -> Outcome:
         # reachability floor below, which has used n_effective since day one. Deflating
         # only the floor and not the counts made every paired p-value too small - in the
         # direction that favours us - across the 16 deflated paired claims.
-        b, _ = deflate_to_effective(b_obs, claim.n_rows, claim.n_effective)
-        c, _ = deflate_to_effective(c_obs, claim.n_rows, claim.n_effective)
+        #
+        # R-22. ...but deflate from the scale b/c were RECORDED at, which is not always
+        # n_rows. Seven claims store discordants already collapsed to the clip scale
+        # (counts["n"]=6, n_rows=12, independence_note "12 rows, 6 observations"), and
+        # deflating those from n_rows halved them twice: E18 printed p=0.5 where the
+        # correct value is 0.0625, P5.1 printed 0.5 against a correct 0.125, and E19
+        # was reported as "0 discordant pairs, no test" when it has one. The registry's
+        # own hand-written caveats carried the right numbers all along, so the generated
+        # report contradicted its own prose 112 lines apart. counts["n"] is the paired
+        # denominator when present; n_rows is the fallback for claims that record raw rows.
+        den = claim.counts.get("n", claim.n_rows)
+        b, _ = deflate_to_effective(b_obs, den, claim.n_effective)
+        c, _ = deflate_to_effective(c_obs, den, claim.n_effective)
         p = mcnemar(b, c, "two-sided")
         note = "" if (b, c) == (b_obs, c_obs) else f" [deflactado desde b={b_obs}, c={c_obs}]"
         floor = min_discordant_for_significance(claim.n_effective)

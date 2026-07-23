@@ -231,9 +231,18 @@ se escribió para adornar resultados sino porque cambió varios**.
 | Categoría | N | Qué significa |
 |---|---|---|
 | Significativas tras Holm | 8 | Se pueden defender como efectos |
-| Sin prueba posible (0 discordantes o solo agregados) | 33 | No hubo contraste, en ninguna dirección |
+| Sin prueba posible (0 discordantes o solo agregados) | 32 | No hubo contraste, en ninguna dirección |
 | Diseño incapaz de alcanzar alfa | 38 | Ningún resultado posible habría bastado |
 | Sin datos crudos | 3 | En cola de re-ejecución, no se defienden |
+
+> **Esta tabla no suma 70 y su tercera fila está mal etiquetada.** 8 + 32 + 38 + 3
+> = 81: las categorías se solapan, porque una afirmación sin discordantes también
+> cuenta como diseño que no alcanza alfa. Y «diseño incapaz» mezcla tres cosas
+> distintas: lo puramente descriptivo, lo que nunca tuvo puerta pre-registrada, y
+> el puñado de diseños que sí fijaron una puerta inalcanzable. Corregirlo es la
+> tarea **R-23** de `thesis/REMEDIATION.md`; la partición que aquí falta es la que
+> irá al capítulo. El 32 bajó de 33 el 2026-07-23 al arreglar R-22: E19 tenía un
+> par discordante y el código lo había borrado.
 
 Sobre **70** afirmaciones con puerta. Estas cifras se regeneran desde
 `thesis/claims.json` y **se mueven cada vez que aterriza un brazo con puerta**:
@@ -506,7 +515,7 @@ Eso es la Parte V.
 ### Advertencias que acompañan a cada cifra de este capítulo
 
 - Los ~4,85 s **incluyen cable**: se midieron con un PNG sin pérdidas en base64 cruzando un túnel SSH desde la estación de trabajo hasta la Jetson, sobrecarga que un despliegue con cámara a bordo no pagaría. El instrumento `transfer_ms` construido para exactamente esta pregunta nunca se ejecutó sobre la cifra titular de E18. Quedan además ~450 ms sin atribuir entre el `t_lock` de 4,85 s y la mediana instrumentada de 4400 ms.
-- El arco completo E18-E23 es **n = 6 clips, todas coches, de un solo dataset**, con captions congeladas escritas a mano, n = 2 repeticiones por celda, **solo percepción** — sin actuación ni vehículo en el lazo — y con el arrastre en la 3090 limitado a 6,15 Hz como sustituto del Orin. Los veredictos son 1/6, 2/6 y 3/6: diferencias de una sola clip, sin prueba estadística posible.
+- El arco completo E18-E23 es **n = 6 clips, todas coches, de un solo dataset**, con captions congeladas escritas a mano, n = 2 repeticiones por celda, **solo percepción** — sin actuación ni vehículo en el lazo — y con el arrastre en la 3090 limitado a 6,15 Hz como sustituto del Orin. Los veredictos son 1/6, 2/6 y 3/6: diferencias de una sola clip. La prueba **sí corre** —McNemar exacto bilateral sobre los seis pares— pero no puede llegar lejos: E18, el mejor caso del arco, vuelca cinco de los seis pares y se queda en **p = 0,0625**, porque a n = 6 el suelo bilateral exige los seis. E20, E21 y E23 quedan en p = 0,5 con dos pares discordantes, y E19 en p = 1,0 con uno. Ninguna cifra de este capítulo es inferencial; el capítulo se defiende por mecanismo, y la certificación llega en el capítulo 7 con P5.2a.
 - E20 **no es autónomo**: exige que el operador dé una frase espacial correcta, y una pista **equivocada es peor que ninguna** (cobertura 0,000, plantilla de máscara envenenada, cero recuperación). El encuadre honesto es "un rodeo con humano en el lazo que resistió tres intentos de automatización", no "una solución".
 - El techo de seguimiento de 2,5 m/s (3,0 con chase-hold) se midió en SITL contra un **renderizador nadir sintético** — una textura plana con un rover dibujado a 640x480 — no sobre imagen real, con n = 2 o 3 por peldaño. El propio repositorio contiene la refutación: E11 dio PASS a 3,5 m/s con 2/2 y **E12 lo revirtió** a n = 3.
 - **E14 no replica.** Su "3/3, agujero de identidad cerrado" se convierte en **6/8, CUALIFICADO y explícitamente no fiable** en la replicación E16. El matiz atenuante, que merece decirse: 0 de 8 violaron la identidad, luego los dos fallos son de temporización aguas arriba de la puerta, no de la puerta.
@@ -558,7 +567,7 @@ documento; el unilateral es la mitad y no se usa para decidir nada.
 
 | Resultado | Discordancia | McNemar exacto | Lectura |
 |---|---|---|---|
-| P5.1 WARM 5/6 vs COLD 1/6 | b = 2, c = 0 | p = 0,5 | No significativo por sí solo |
+| P5.1 WARM 5/6 vs COLD 1/6 | b = 4, c = 0 | p = 0,125 | No significativo por sí solo |
 | P5.2a WARM 21/25 vs COLD 5/25 | b = 15, c = 0 | **p = 6,10e-5** | **El ancla estadística de la parte**; sobrevive a Holm |
 | P5.10 DD 24/24 vs RG 24/24 | b = 0, c = 0 | **indefinido** | No hubo prueba, no hubo empate demostrado |
 | P5.13 y P5.17 | b = 0, c = 0 | **indefinido** | La única celda discordante se colapsa al agrupar por clip |
@@ -566,17 +575,30 @@ documento; el unilateral es la mitad y no se usa para decidir nada.
 
 Todos los b/c de esta tabla son **posteriores a la deflación** por unidad
 independiente (R-4): las cifras sin deflactar, mayores, están en
-`thesis/stats-report.md` entre corchetes en cada fila.
+`thesis/stats-report.md` entre corchetes en cada fila, cuando difieren.
+
+La fila de P5.1 decía `b = 2, c = 0, p = 0,5` hasta el 2026-07-23. Era un
+artefacto de código, no una medida: la deflación pareada dividía dos veces las
+celdas discordantes de siete afirmaciones que ya las registraban a escala de
+clip (**R-22**). P5.1 tiene seis pares y seis clips, luego no hay nada que
+deflactar: `b = 4, c = 0, p = 0,125`. El caveat escrito a mano en
+`thesis/claims.json` llevaba la cifra correcta desde el principio, y era el
+informe generado el que se contradecía a sí mismo. La conclusión no se mueve —
+0,125 tampoco alcanza alfa — pero el número publicado sí.
 
 La fila de P5.10 estaba mal agrupada en el borrador anterior de este esquema, y
-la distinción importa: P5.13 y P5.17 **corrieron** una prueba que no separó nada,
-mientras que P5.10, con cero pares discordantes, **no corrió ninguna**. Reportar
-p = 1,0 allí habría sido afirmar equivalencia demostrada.
+la distinción importa. Sin deflactar, P5.13 y P5.17 **corrieron** una prueba que
+no separó nada —una celda discordante, McNemar exacto bilateral p = 1,0—
+mientras que P5.10, con cero pares discordantes en bruto, **no corrió ninguna**.
+Al agrupar por clip las tres acaban en el mismo sitio, b = 0 y c = 0, y la
+lectura publicada es "no hubo prueba". Reportar p = 1,0 como resultado habría
+sido afirmar equivalencia demostrada, que es exactamente lo que un McNemar sin
+discordancias no puede decir.
 
 De aquí salen dos consecuencias narrativas:
 
 - **P5.1 no puede ser el titular.** Es defendible solo porque P5.2 lo replica a n = 25 y cinco categorías. El titular es P5.2.
-- **Los tres empates de simulación no demuestran equivalencia.** Con una sola celda discordante, McNemar da p = 0,5, que es literalmente ninguna información. La afirmación correcta es "este banco no pudo discriminar los contratos", que es lo que dice el repositorio.
+- **Los tres empates de simulación no demuestran equivalencia.** Con una sola celda discordante McNemar exacto bilateral da p = 1,0, y al deflactar por clip no queda ninguna: cero información en ambos casos. La afirmación correcta es "este banco no pudo discriminar los contratos", que es lo que dice el repositorio.
 
 ### Advertencia obligatoria sobre P5.19
 

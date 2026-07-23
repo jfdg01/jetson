@@ -2,7 +2,7 @@
 title: Resultados estadísticos retroactivos
 subtitle: Cada afirmación con puerta de las Partes I-VI, re-analizada
 author: Javier Francisco Dibo Gómez
-comment: Generado por thesis/run_stats.py, 2026-07-23T00:09Z
+comment: Generado por thesis/run_stats.py, 2026-07-23T12:24Z
 locale: es
 ---
 
@@ -31,7 +31,7 @@ derivación por afirmación está en
 |---|---|---|---|---|---|---|---|---|---|
 | P1-S1.2-zeroshot-smolvlm | I | binario de un brazo | Jetson | 47 | IC de Wilson | indefinido | — | **no** | sin puerta pre-registrada; solo intervalo [deflactado desde 0/50: ver independence_note] |
 | P1-S2.1-stage2-mode-collapse | I | binario de un brazo | **ambas** | 200 | binomial exacta | 1 | 1 | sí | 2/200 contra puerta 0.30; hacían falta >=72/200 para alpha=0,05 |
-| P1-S3.3-export-parity-catastrophe | I | binario pareado | **ambas** | 100 | McNemar exacta | 0.0001345 | 0.003766 | sí | significativa (b=45, c=15) |
+| P1-S3.3-export-parity-catastrophe | I | binario pareado | **ambas** | 100 | McNemar exacta | 0.0001345 | 0.003901 | sí | significativa (b=45, c=15) |
 | P1-S3.3-quantisation-is-not-the-cost | I | binario pareado | **ambas** | 100 | McNemar exacta | 0.2478 | 1 | sí | no significativa (b=17, c=10); hacían falta >=6 discordantes en una dirección, hubo 17 |
 | P1-S3.4-coco-to-aerial-domain-shift | I | binario de un brazo | **ambas** | 47 | IC de Wilson | indefinido | — | **no** | sin puerta pre-registrada; solo intervalo [deflactado desde 1/50: ver independence_note] |
 | P1-S4.1-stage4-narrow-miss | I | binario de un brazo | 3090 | 200 | binomial exacta | 0.5981 | 1 | sí | 39/200 contra puerta 0.20; hacían falta >=50/200 para alpha=0,05 |
@@ -39,13 +39,13 @@ derivación por afirmación está en
 | P1-S1.4-phaseC-vlm-closed-loop | I | binario pareado | **ambas** | 0 | ninguna | indefinido | — | **no** | SIN DATOS - no se defiende; en cola de re-ejecución |
 | P2-RQ0.3-spine-selection | II | binario de un brazo | 3090 | 100 | IC de Wilson | indefinido | — | **no** | sin puerta pre-registrada; solo intervalo |
 | P2-RQ1.1-dataset-well-posedness | II | descriptivo | 3090 | 1421 | descriptiva | indefinido | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
-| P2-RQ2.1-resolution-ladder-1024 | II | binario de un brazo | 3090 | 316 | binomial exacta | 7.771e-06 | 0.0002331 | sí | 133/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 133/439: ver independence_note] |
-| P2-RQ3.1-lora-aerial-gate | II | binario de un brazo | 3090 | 316 | binomial exacta | 3.679e-53 | 1.251e-51 | sí | 261/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 261/439: ver independence_note] |
-| P2-RQ4.1-deploy-fidelity | II | binario de un brazo | **ambas** | 316 | binomial exacta | 0.0355 | 0.8874 | sí | 275/439 contra puerta 0.57; hacían falta >=197/316 para alpha=0,05 [deflactado desde 275/439: ver independence_note] |
+| P2-RQ2.1-resolution-ladder-1024 | II | binario de un brazo | 3090 | 316 | binomial exacta | 7.771e-06 | 0.0002409 | sí | 133/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 133/439: ver independence_note] |
+| P2-RQ3.1-lora-aerial-gate | II | binario de un brazo | 3090 | 316 | binomial exacta | 3.679e-53 | 1.288e-51 | sí | 261/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 261/439: ver independence_note] |
+| P2-RQ4.1-deploy-fidelity | II | binario de un brazo | **ambas** | 316 | binomial exacta | 0.0355 | 0.9229 | sí | 275/439 contra puerta 0.57; hacían falta >=197/316 para alpha=0,05 [deflactado desde 275/439: ver independence_note] |
 | P3-wholeframe-resolution-knee | III | descriptivo | Jetson | 316 | descriptiva | indefinido | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis [deflactado desde 277/439] |
-| P3-ROI-M2.0-512 | III | binario de un brazo | **ambas** | 316 | binomial exacta | 7.235e-19 | 2.388e-17 | sí | 374/439 contra puerta 0.63; hacían falta >=213/316 para alpha=0,05 [deflactado desde 374/439: ver independence_note] |
-| P3-ROI-M2.0-512-ondevice | III | binario pareado | Jetson | 316 | McNemar exacta | 2.502e-14 | 8.005e-13 | sí | significativa (b=81, c=11) [deflactado desde b=112, c=15] |
-| P3-R13-owlv2-vs-vlm | III | binario pareado | Jetson | 316 | McNemar exacta | 2.261e-07 | 7.008e-06 | sí | significativa (b=72, c=22) [deflactado desde b=100, c=31] |
+| P3-ROI-M2.0-512 | III | binario de un brazo | **ambas** | 316 | binomial exacta | 7.235e-19 | 2.46e-17 | sí | 374/439 contra puerta 0.63; hacían falta >=213/316 para alpha=0,05 [deflactado desde 374/439: ver independence_note] |
+| P3-ROI-M2.0-512-ondevice | III | binario pareado | Jetson | 316 | McNemar exacta | 2.502e-14 | 8.255e-13 | sí | significativa (b=81, c=11) [deflactado desde b=112, c=15] |
+| P3-R13-owlv2-vs-vlm | III | binario pareado | Jetson | 316 | McNemar exacta | 2.261e-07 | 7.234e-06 | sí | significativa (b=72, c=22) [deflactado desde b=100, c=31] |
 | P3-ROI-drift-robustness | III | descriptivo | **ambas** | 316 | descriptiva | indefinido | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis [deflactado desde 326/439] |
 | P3-SR-swin2sr-accuracy | III | binario pareado | 3090 | 312 | McNemar exacta | 0.4244 | 1 | sí | no significativa (b=15, c=10); hacían falta >=6 discordantes en una dirección, hubo 15 [deflactado desde b=21, c=14] |
 | P3-carry-OP768-accuracy | III | binario pareado | **ambas** | 93 | McNemar exacta | 0.09614 | 1 | sí | no significativa (b=28, c=16); hacían falta >=6 discordantes en una dirección, hubo 28 [deflactado desde b=55, c=31] |
@@ -56,14 +56,14 @@ derivación por afirmación está en
 | P3-T3-closedloop-coverage | III | binario pareado | — | 1 | ninguna | indefinido | — | **no** | SIN DATOS - no se defiende; en cola de re-ejecución |
 | P3-T0a-anchor-cadence | III | descriptivo | **ambas** | 1 | descriptiva | indefinido | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
 | P3-T4a-tracker-cost | III | descriptivo | **ambas** | 1 | descriptiva | indefinido | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
-| E18-cold-acquire-vs-warm-oracle | IV | binario pareado | **ambas** | 6 | McNemar exacta | 0.5 | 1 | sí | no significativa (b=2, c=0); hacían falta >=6 discordantes en una dirección, hubo 2 [deflactado desde b=5, c=0] |
+| E18-cold-acquire-vs-warm-oracle | IV | binario pareado | **ambas** | 6 | McNemar exacta | 0.0625 | 1 | sí | no significativa (b=5, c=0); hacían falta >=6 discordantes en una dirección, hubo 5 |
 | E18-A-vs-gate | IV | binario de un brazo | **ambas** | 6 | binomial exacta | 0.9986 | 1 | **no** | 1/6 contra puerta 0.67; ningún k habría alcanzado alpha |
-| E20-operator-crop-hint | IV | binario pareado | **ambas** | 6 | McNemar exacta | 1 | 1 | sí | no significativa (b=1, c=0); hacían falta >=6 discordantes en una dirección, hubo 1 [deflactado desde b=2, c=0] |
+| E20-operator-crop-hint | IV | binario pareado | **ambas** | 6 | McNemar exacta | 0.5 | 1 | sí | no significativa (b=2, c=0); hacían falta >=6 discordantes en una dirección, hubo 2 |
 | E20-acquire-latency | IV | continuo pareado | **ambas** | 6 | ninguna | indefinido | — | **no** | solo sobreviven estadísticos agregados; hacen falta los valores por elemento para una prueba |
-| E19-motion-compensated-acquire | IV | binario pareado | **ambas** | 6 | McNemar exacta | indefinido | — | sí | 0 pares discordantes - los brazos son indistinguibles con estos datos. No es equivalencia; es ausencia de prueba. [deflactado desde b=1, c=0] |
-| E21-coarse-to-fine | IV | binario pareado | **ambas** | 6 | McNemar exacta | 1 | 1 | sí | no significativa (b=1, c=0); hacían falta >=6 discordantes en una dirección, hubo 1 [deflactado desde b=2, c=0] |
+| E19-motion-compensated-acquire | IV | binario pareado | **ambas** | 6 | McNemar exacta | 1 | 1 | sí | no significativa (b=1, c=0); hacían falta >=6 discordantes en una dirección, hubo 1 |
+| E21-coarse-to-fine | IV | binario pareado | **ambas** | 6 | McNemar exacta | 0.5 | 1 | sí | no significativa (b=2, c=0); hacían falta >=6 discordantes en una dirección, hubo 2 |
 | E22-cv-prior-phase0 | IV | binario de un brazo | 3090 | 6 | binomial exacta | 0.9822 | 1 | **no** | 2/6 contra puerta 0.67; ningún k habría alcanzado alpha |
-| E23-tolerant-cells | IV | binario pareado | **ambas** | 6 | McNemar exacta | 1 | 1 | sí | no significativa (b=0, c=1); hacían falta >=6 discordantes en una dirección, hubo 1 [deflactado desde b=0, c=2] |
+| E23-tolerant-cells | IV | binario pareado | **ambas** | 6 | McNemar exacta | 0.5 | 1 | sí | no significativa (b=0, c=2); hacían falta >=6 discordantes en una dirección, hubo 2 |
 | E16-relock-replication | IV | binario de un brazo | **ambas** | 8 | binomial exacta | 0.9327 | 1 | **no** | 6/8 contra puerta 0.88; ningún k habría alcanzado alpha |
 | E17-reground-chase | IV | binario de un brazo | **ambas** | 1 | IC de Wilson | indefinido | — | **no** | sin puerta pre-registrada; solo intervalo [deflactado desde 0/10: ver independence_note] |
 | E14-identity-hole | IV | binario de un brazo | **ambas** | 1 | IC de Wilson | indefinido | — | **no** | sin puerta pre-registrada; solo intervalo [deflactado desde 3/3: ver independence_note] |
@@ -71,20 +71,20 @@ derivación por afirmación está en
 | E9-retarget-switch | IV | binario de un brazo | **ambas** | 1 | IC de Wilson | indefinido | — | **no** | sin puerta pre-registrada; solo intervalo [deflactado desde 3/3: ver independence_note] |
 | E10-fast-follow-ceiling | IV | descriptivo | **ambas** | 4 | descriptiva | indefinido | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
 | P4-R16-carry-rate-1024 | IV | descriptivo | Jetson | 1 | descriptiva | indefinido | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
-| P5.1-warm-vs-cold | V | binario pareado | **ambas** | 6 | McNemar exacta | 0.5 | 1 | sí | no significativa (b=2, c=0); hacían falta >=6 discordantes en una dirección, hubo 2 [deflactado desde b=4, c=0] |
-| P5.2a-warm-generalization | V | binario pareado | **ambas** | 23 | McNemar exacta | 6.104e-05 | 0.00177 | sí | significativa (b=15, c=0) [deflactado desde b=16, c=0] |
+| P5.1-warm-vs-cold | V | binario pareado | **ambas** | 6 | McNemar exacta | 0.125 | 1 | sí | no significativa (b=4, c=0); hacían falta >=6 discordantes en una dirección, hubo 4 |
+| P5.2a-warm-generalization | V | binario pareado | **ambas** | 23 | McNemar exacta | 6.104e-05 | 0.001831 | sí | significativa (b=15, c=0) [deflactado desde b=16, c=0] |
 | P5.2b-speed-sweep | V | continuo pareado | **ambas** | 23 | ninguna | indefinido | — | **no** | solo sobreviven estadísticos agregados; hacen falta los valores por elemento para una prueba |
 | P5.3-multi-candidate-select | V | binario de un brazo | **ambas** | 4 | binomial exacta | 0.9728 | 1 | **no** | 3/5 contra puerta 0.80; ningún k habría alcanzado alpha [deflactado desde 3/5: ver independence_note] |
 | P5.4-crop-select | V | binario de un brazo | **ambas** | 4 | binomial exacta | 0.9728 | 1 | **no** | 3/5 contra puerta 0.80; ningún k habría alcanzado alpha [deflactado desde 3/5: ver independence_note] |
 | P5.5-select-generalization | V | binario de un brazo | **ambas** | 4 | binomial exacta | 0.9728 | 1 | **no** | 3/5 contra puerta 0.80; ningún k habría alcanzado alpha [deflactado desde 3/5: ver independence_note] |
 | P5.9-kerbsafe-scenebank | V | binario de un brazo | 3090 | 15 | IC de Wilson | indefinido | — | **no** | sin puerta pre-registrada; solo intervalo |
 | P5.10-simbank-select | V | binario pareado | **ambas** | 12 | McNemar exacta | indefinido | — | sí | 0 pares discordantes - los brazos son indistinguibles con estos datos. No es equivalencia; es ausencia de prueba. |
-| P5.12-bankv21-recal | V | binario no pareado | 3090 | 12 | Fisher exacta | 0.0003365 | 0.009086 | sí | 12/12 contra 3/12 (grupos independientes) |
+| P5.12-bankv21-recal | V | binario no pareado | 3090 | 12 | Fisher exacta | 0.0003365 | 0.009423 | sí | 12/12 contra 3/12 (grupos independientes) |
 | P5.13-dd-vs-rg-tie | V | binario pareado | **ambas** | 12 | McNemar exacta | indefinido | — | sí | 0 pares discordantes - los brazos son indistinguibles con estos datos. No es equivalencia; es ausencia de prueba. [deflactado desde b=1, c=0] |
 | P5.14-wsel | V | binario de un brazo | **ambas** | 3 | binomial exacta | 0.512 | 1 | **no** | 5/5 contra puerta 0.80; ningún k habría alcanzado alpha [deflactado desde 5/5: ver independence_note] |
 | P5.14-swap | V | binario de un brazo | **ambas** | 3 | binomial exacta | 0.896 | 1 | **no** | 4/5 contra puerta 0.80; ningún k habría alcanzado alpha [deflactado desde 4/5: ver independence_note] |
 | P5.14-shadow-rg-disagreement | V | binario pareado | **ambas** | 3 | McNemar exacta | 1 | 1 | **no** | n=3 pares no alcanzan alpha=0,05 bilateral ni volteando todos. Diseño sin potencia por construcción. [deflactado desde b=3, c=0] |
-| P5.15-plain-carry-survival | V | binario de un brazo | **ambas** | 25 | binomial exacta | 0.002908 | 0.07561 | sí | 24/25 contra puerta 0.72; hacían falta >=23/25 para alpha=0,05 |
+| P5.15-plain-carry-survival | V | binario de un brazo | **ambas** | 25 | binomial exacta | 0.002908 | 0.07852 | sí | 24/25 contra puerta 0.72; hacían falta >=23/25 para alpha=0,05 |
 | P5.15-maint-vs-plain | V | binario pareado | **ambas** | 25 | McNemar exacta | 0.625 | 1 | sí | no significativa (b=3, c=1); hacían falta >=6 discordantes en una dirección, hubo 3 |
 | P5.16-autodisc-wsel | V | binario de un brazo | **ambas** | 3 | binomial exacta | 0.896 | 1 | **no** | 4/5 contra puerta 0.80; ningún k habría alcanzado alpha [deflactado desde 4/5: ver independence_note] |
 | P5.18-n25-wsel | V | binario de un brazo | **ambas** | 13 | binomial exacta | 0.5017 | 1 | **no** | 22/26 contra puerta 0.80; ningún k habría alcanzado alpha [deflactado desde 22/26: ver independence_note] |
@@ -103,7 +103,7 @@ derivación por afirmación está en
 ## Qué sobrevive
 
 - **Significativas tras corrección de Holm (8):** P1-S3.3-export-parity-catastrophe, P2-RQ2.1-resolution-ladder-1024, P2-RQ3.1-lora-aerial-gate, P3-ROI-M2.0-512, P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm, P5.2a-warm-generalization, P5.12-bankv21-recal
-- **Sin prueba posible, 0 pares discordantes (33):** P1-S1.2-zeroshot-smolvlm, P1-S3.4-coco-to-aerial-domain-shift, P1-S1.3-phaseB-control-stack, P2-RQ0.3-spine-selection, P2-RQ1.1-dataset-well-posedness, P3-wholeframe-resolution-knee, P3-ROI-drift-robustness, P3-E1-TRT-fps, P3-E1-TRT-mask-parity, P3-T1-memoryless-baseline, P3-T0a-anchor-cadence, P3-T4a-tracker-cost, E20-acquire-latency, E19-motion-compensated-acquire, E17-reground-chase, E14-identity-hole, E13-colour-gate, E9-retarget-switch, E10-fast-follow-ceiling, P4-R16-carry-rate-1024, P5.2b-speed-sweep, P5.9-kerbsafe-scenebank, P5.10-simbank-select, P5.13-dd-vs-rg-tie, P5.19-wsel-no-regression, P5.19-grace-precision, P5.18-shadow-rg-ceiling, P5.19-shadow-rg-ceiling, P5.20-carry-capacity, P5.20-replication-of-P5.19, P5.17-dd-vs-rg-tie-n56, P6.0-flight-rig-gate, P6.1-carla-renderer
+- **Sin prueba posible, 0 pares discordantes (32):** P1-S1.2-zeroshot-smolvlm, P1-S3.4-coco-to-aerial-domain-shift, P1-S1.3-phaseB-control-stack, P2-RQ0.3-spine-selection, P2-RQ1.1-dataset-well-posedness, P3-wholeframe-resolution-knee, P3-ROI-drift-robustness, P3-E1-TRT-fps, P3-E1-TRT-mask-parity, P3-T1-memoryless-baseline, P3-T0a-anchor-cadence, P3-T4a-tracker-cost, E20-acquire-latency, E17-reground-chase, E14-identity-hole, E13-colour-gate, E9-retarget-switch, E10-fast-follow-ceiling, P4-R16-carry-rate-1024, P5.2b-speed-sweep, P5.9-kerbsafe-scenebank, P5.10-simbank-select, P5.13-dd-vs-rg-tie, P5.19-wsel-no-regression, P5.19-grace-precision, P5.18-shadow-rg-ceiling, P5.19-shadow-rg-ceiling, P5.20-carry-capacity, P5.20-replication-of-P5.19, P5.17-dd-vs-rg-tie-n56, P6.0-flight-rig-gate, P6.1-carla-renderer
 - **Diseño incapaz de alcanzar alpha (38):** P1-S1.2-zeroshot-smolvlm, P1-S3.4-coco-to-aerial-domain-shift, P1-S1.3-phaseB-control-stack, P2-RQ0.3-spine-selection, P2-RQ1.1-dataset-well-posedness, P3-wholeframe-resolution-knee, P3-ROI-drift-robustness, P3-E1-TRT-fps, P3-E1-TRT-mask-parity, P3-T1-memoryless-baseline, P3-T0a-anchor-cadence, P3-T4a-tracker-cost, E18-A-vs-gate, E20-acquire-latency, E22-cv-prior-phase0, E16-relock-replication, E17-reground-chase, E14-identity-hole, E13-colour-gate, E9-retarget-switch, E10-fast-follow-ceiling, P4-R16-carry-rate-1024, P5.2b-speed-sweep, P5.3-multi-candidate-select, P5.4-crop-select, P5.5-select-generalization, P5.9-kerbsafe-scenebank, P5.14-wsel, P5.14-swap, P5.14-shadow-rg-disagreement, P5.16-autodisc-wsel, P5.18-n25-wsel, P5.18-n25-swap, P5.19-grace-precision, P5.18-shadow-rg-ceiling, P5.19-shadow-rg-ceiling, P6.0-flight-rig-gate, P6.1-carla-renderer
 - **Sin datos crudos, en cola de re-ejecución (3):** P1-S1.4-phaseC-vlm-closed-loop, P3-T2-permanence-reid, P3-T3-closedloop-coverage
 
@@ -176,7 +176,7 @@ por completo la lectura ingenua del número.
 
 **E20-acquire-latency** — Nunca debe ponerse un intervalo de confianza sobre esto. Es un modelo de coste determinista, no una muestra ruidosa, y la presentación honesta es el mecanismo (menos tokens de prefill) más las dos medianas. Una reducción de latencia de 2.6x con una causa conocida no necesita valor p; afirmar uno sería falsa precisión.
 
-**E19-motion-compensated-acquire** — UN solo par discordante: p = 1.0. El brazo BUF es estadísticamente vacuo frente a la línea base E18-A - b=0, c=0, McNemar indefinido. Ninguno de los dos brazos es evidencia de nada; ambos quedan correctamente registrados como fracasos en alcanzar la puerta, lo cual es una afirmación distinta y más débil que 'la compensación de movimiento no funciona'.
+**E19-motion-compensated-acquire** — UN solo par discordante (b=1, c=0): p = 1.0. El brazo BUF es estadísticamente vacuo frente a la línea base E18-A: un único par no alcanza alfa a ningún n, y con seis pares harían falta los seis. Ninguno de los dos brazos es evidencia de nada; ambos quedan correctamente registrados como fracasos en alcanzar la puerta, lo cual es una afirmación distinta y más débil que 'la compensación de movimiento no funciona'. (R-22: esta fila se publicó durante ocho días como si no tuviera par discordante alguno, y por tanto sin prueba, porque la deflación pareada dividía dos veces unas celdas ya colapsadas a escala de clip; el par existe.)
 
 **E21-coarse-to-fine** — Emparejado contra el brazo de celda de E20: b=2, c=0, p=0.50. El mecanismo de apoyo es más fuerte que el recuento de resultados: la propia votación gruesa de celda solo acierta 2/6, de modo que la automatización falla en un paso intermedio medible y no de forma misteriosa.
 

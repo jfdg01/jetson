@@ -118,6 +118,49 @@ def test_deflated_claims_explain_themselves(claims):
     assert not silent, f"deflated without an independence_note: {silent}"
 
 
+_NO_TEST_RAN = re.compile(
+    r"0 pares discordantes|cero pares discordantes|"
+    r"\bb\s*=\s*0\s*,?\s*(?:y\s+)?c\s*=\s*0|"
+    r"McNemar (?:queda )?indefinid[oa]|no (?:se )?corri[oó] (?:ninguna )?prueba",
+    re.IGNORECASE)
+
+
+def test_paired_caveats_do_not_contradict_their_own_discordant_counts(claims):
+    """R-22. A caveat may not say "no test ran" when the registry records discordants.
+
+    This is the table/prose agreement check, and it is deliberately narrow. Most
+    caveats quote p-values that are NOT this claim's own result - a counterfactual
+    ("even a perfect 5/5 would give p = 0.33"), a sibling arm, an undeflated value
+    that the same sentence then deflates, or a number explicitly marked retired.
+    Comparing every `p = X` in the prose against the computed p flags thirteen
+    claims, all thirteen legitimate, so that test would be noise with a maintenance
+    bill attached.
+
+    The zero-discordance assertion has no such ambiguity: either the registry
+    records b + c > 0 or it does not. E19 published "b=0, c=0, McNemar indefinido"
+    for eight days while its counts said b=1, c=0, because the paired deflation
+    halved already-collapsed counts a second time (see `grounding.stats`, R-22).
+    The prose was generated from the caveat and the table from the counts, so the
+    same file disagreed with itself 112 lines apart and nothing caught it.
+    """
+    lying = []
+    for c in claims:
+        if c.get("design") != "paired-binary":
+            continue
+        counts = c.get("counts") or {}
+        discordant = counts.get("b", 0) + counts.get("c", 0)
+        if discordant == 0:
+            continue
+        for field in ("caveats", "caveats_en"):
+            text = c.get(field) or ""
+            hit = _NO_TEST_RAN.search(text)
+            if hit:
+                lying.append(f"{c['id']}.{field}: says {hit.group(0)!r} "
+                             f"but counts record b={counts.get('b')}, c={counts.get('c')}")
+    assert not lying, ("paired caveats contradict their own counts:\n  "
+                       + "\n  ".join(lying))
+
+
 # --- ratchets ---------------------------------------------------------------
 # Lower these as the remediation tasks in thesis/REMEDIATION.md land. Never raise
 # one: a rising ceiling is the regression this file exists to prevent.

@@ -36,6 +36,34 @@ its done-criterion is mechanically satisfied — not when it feels finished.
 | R-20 | Translate the 65 `caveats` to Spanish | R-12 | **DONE** |
 | R-21 | Work the 74 MISLEADING/UNVERIFIED rows from the R-7 sweep | R-7 | **DONE** (70 rewritten, 4 accepted; resolutions in `provenance-resolutions.json`) |
 
+**Second wave, R-22..R-32.** Opened 2026-07-23T11:55Z from the arc audit
+(`wf_3976b3e6-a4f`, 9 agents, 28 findings, all surviving an adversarial refutation
+pass). The first wave fixed the *claims*; this wave fixes the *apparatus that
+reports them*, which the first wave never audited because it was the thing doing
+the auditing. Every P0 below was independently reproduced by hand before being
+written down — the reproduction command is in the task.
+
+| ID | Task | Pri | Blocks | Status |
+|---|---|---|---|---|
+| R-22 | Paired deflation uses the wrong denominator; report contradicts itself | **P0** | R-23 | **DONE** 2026-07-23 |
+| R-23 | The four claim buckets overlap and are mislabelled | **P0** | — | TODO |
+| R-24 | R-14 proof figure draws contract coords as pixels | **P0** | — | TODO |
+| R-25 | Registry + module hygiene (`gate_p`, selfcheck, hand-counts) | **P0** | — | TODO |
+| R-26 | `README.md` is stale against R-13/R-14/R-16 | **P0** | — | TODO |
+| R-27 | `P3-E1-TRT-fps` never marked superseded by R-16 | **P0** | — | TODO |
+| R-28 | The defended sentence claims *select*; nothing inferential carries it | P1 | — | **AUTHOR** |
+| R-29 | `n_effective` = 13 vs the measured ICC | P1 | — | **AUTHOR** |
+| R-30 | Holm family boundary + undisclosed dependencies | P1 | — | **AUTHOR** |
+| R-31 | Retire or re-run P3-T2 / P3-T3; backlog commands are fiction | P1 | — | **AUTHOR** |
+| R-32 | Spot-check the assertion-only DONEs (R-19, R-7, R-21) | P1 | — | TODO |
+
+`AUTHOR` means the task is a judgement call reserved for the human and **must not
+be resolved by an agent**. An agent may prepare the evidence; it may not pick.
+
+The P0 set is mechanical, needs no GPU, no Jetson and no new measurement. It is
+worth doing before any thesis text is written, because every one of these defects
+is in a surface the text would quote.
+
 R-12..R-18 come from the sufficiency audit (`wf_b81c3191-d12`, 6 agents,
 2026-07-21T21:05Z). **Verdict: the thesis is sufficient — YES, without running a
 single new experiment.** Six defensible contributions survive the correction, four
@@ -480,6 +508,11 @@ pre-deflation values that the R-4 pass never propagated forward:
   collapses to zero, so their p goes from 1,0 to undefined. A line now states
   that the whole table is post-deflation and points at the report for the raw
   counts.
+  > **Superseded in part by R-22 (2026-07-23).** The "P5.1 is b=2" edit above was
+  > propagating a bug, not a correction. P5.1 records its discordants already at
+  > clip scale (`counts["n"]=6`, `n_rows=12`), so R-3's deflation halved them a
+  > second time. P5.1 is **b=4, c=0, p=0,125** — which is what its hand-written
+  > caveat said all along. The other three rows in this bullet are unaffected.
 - The "three corrections the re-analysis forces" list asserted that carry at 768
   **does** lose accuracy against 1024 at p=0,013. That is the same error R-7
   caught in README.md and the registry caveat: the 186 tracks come from 93
@@ -1124,3 +1157,335 @@ D-oracle decomposition that keeps it from being a strawman. It is blocked on R-1
 the VLM comparator and is holding the board) and on installing `transformers` into the Jetson's
 existing torch venv. The install path is recorded in that README; the constraint is that
 `~/sam2-bench/.venv` holds the JetPack aarch64 torch wheel and no package manager may replace it.
+
+---
+
+# Second wave — the apparatus, R-22..R-32
+
+Opened 2026-07-23T11:55Z. Wave one audited the claims; nobody audited the code that
+computes and prints them. These are its defects.
+
+## R-22 — Paired deflation uses the wrong denominator — DONE **P0** (2026-07-23T12:25Z)
+
+`grounding/stats.py:333` deflates `b`/`c` against `claim.n_rows`. The single-arm
+branch at `:355` deflates against `counts["n"]`. Seven paired claims record `b`/`c`
+**already collapsed to the clip scale** (`counts["n"] = 6`, `n_rows = 12`, and the
+`independence_note` says so: *"12 rows, 6 observations"*), so R-3's fix halves them a
+second time.
+
+Reproduce:
+
+```
+.venv-ft/bin/python -c "
+import json,sys; sys.path.insert(0,'thesis')
+from grounding.stats import deflate_to_effective, mcnemar
+for x in json.load(open('thesis/claims.json'))['claims']:
+    co = x.get('counts') or {}
+    if x['design']!='paired-binary' or 'b' not in co or co.get('n') in (None, x['n_rows']): continue
+    f=lambda d: mcnemar(*[deflate_to_effective(co[k], d, x['n_effective'])[0] for k in 'bc'])
+    print(x['id'], 'as-is', f(x['n_rows']), 'correct', f(co['n']))"
+```
+
+| claim | report prints | correct |
+|---|---|---|
+| `E18-cold-acquire-vs-warm-oracle` | 0.5 | **0.0625** |
+| `P5.1-warm-vs-cold` | 0.5 | **0.125** |
+| `E19-motion-compensated-acquire` | *"0 pares discordantes"* (NaN) | **1.0**, b=1 |
+| `E20`, `E21`, `E23` | 1.0 | 0.5 |
+
+`thesis/stats-report.md` therefore **contradicts itself**: `:59` prints E18 at
+`p=0.5, b=2, c=0` while `:171` says *"se queda en p = 0,0625 ... solo volcaron
+cinco"*. The hand-written caveat is right; the generated table is wrong. Same at
+`:74` vs `:201` for P5.1 — and `CLAUDE.md` has said 0.125 all along, so the repo has
+been carrying both numbers.
+
+E18 is the pivot claim of Chapter 6. p=0.5 reads *compatible with chance*; p=0.0625
+reads *the floor a 6-pair design can reach — five of six flipped, six were needed*.
+
+Blast radius, measured: **all 8 Holm survivors unchanged**; live family 34 -> 35.
+
+`tests/test_stats.py:251` currently pins the bug — it must be corrected, not deleted.
+
+**Done when:** the paired branch deflates against `counts["n"]` where present, the
+regenerated `stats-report.md` prints 0.0625 for E18 in BOTH places, a test asserts
+the table/prose agreement, and every doc quoting the six p-values is swept.
+
+### Resolution (2026-07-23T12:25Z)
+
+`grounding/stats.py` now reads `den = claim.counts.get("n", claim.n_rows)` in the
+paired branch, with the whole diagnosis in the comment above it. Six p-values move,
+exactly the six predicted: E18 0.5 -> 0.0625, P5.1 0.5 -> 0.125, E19 NaN -> 1.0, and
+E20/E21/E23 1.0 -> 0.5. **All 8 Holm survivors are unchanged**, which is the point
+worth stating plainly: this was a reporting defect, not a result that moved.
+
+`DEFLATION_PROBES` was the wrong home for the regression. That list asserts deflation
+**must move** the p-value, and R-22's property is the opposite — that it moves
+*nothing* when b/c are already at clip scale. `tests/test_stats.py` gets a dedicated
+`test_paired_deflation_measures_from_the_scale_bc_were_recorded_at` instead, pinning
+both directions: `{"b": 5, "c": 0, "n": 6}` stays at 0.0625, and the same counts with
+no `"n"` still deflate to 0.5 off `n_rows`.
+
+**The fix exposed a second defect the bug had been hiding.** E19's caveat read *"UN
+solo par discordante: p = 1.0 ... b=0, c=0, McNemar indefinido"* — self-contradictory
+in a single sentence, and it had been in the registry for eight days. Rewritten in
+both `caveats` and `caveats_en`, with the R-22 history stated rather than quietly
+swapped.
+
+**The doc sweep, in full.** Every claim's hand-written caveat was checked against its
+recomputed counts, not just the six:
+
+- The five other changed claims (E18, E20, E21, E23, P5.1) needed **no edit** — their
+  caveats carried the correct numbers all along. That is the finding, not an aside:
+  the prose was right and the code was wrong, for eight days, in a repository whose
+  premise is that the generated artefact is the trustworthy one.
+- `00-esquema.md` P5.1 row: `b = 2, c = 0, p = 0,5` -> `b = 4, c = 0, p = 0,125`, with
+  a paragraph naming R-22 as the cause so the changed number is not silent.
+- `00-esquema.md` Ch. 6 caveat list said the arc had *"sin prueba estadística
+  posible"*. Overstated: the tests do run, they just cannot get far. Replaced with the
+  actual four p-values and the reason (n = 6 needs all six pairs).
+- `00-esquema.md` sim-tie prose said one discordant cell gives *"p = 0,5"*. That is
+  the one-sided value in a document that reports two-sided everywhere; it is 1,0
+  undeflated and undefined after deflation. Both spots rewritten.
+- `00-esquema.md` bucket table 33 -> 32, with a note that the table still does not sum
+  to 70 and that R-23 owns the partition.
+- The R-19 resolution block above carries a `Superseded in part` note: its
+  *"P5.1 is b=2 (not 4)"* edit was propagating this bug, not correcting anything.
+
+**A test the Done-when asked for and did not get, deliberately.** A general
+"caveat p-value must equal computed p-value" check flags **thirteen** claims and all
+thirteen are legitimate — counterfactuals (*"even a perfect 5/5 would give p = 0.33"*),
+sibling arms (P3-R13's D-full at 2.2e-24), undeflated values the same sentence goes on
+to deflate, and numbers explicitly marked retired. That test would be noise with a
+maintenance bill. What went into `tests/test_thesis_integrity.py` instead is the
+unambiguous half:
+`test_paired_caveats_do_not_contradict_their_own_discordant_counts` fails if a caveat
+asserts zero discordance while the counts record some. It is exactly the shape of the
+E19 defect and has no judgement call in it.
+
+`make test`: 162 passed, 1 skipped.
+
+## R-23 — The four claim buckets overlap and are mislabelled — TODO **P0**
+
+`thesis/00-esquema.md` reports 8 + 33 + 38 + 3 over 70 claims. That sums to 82, and
+recomputing from the registry gives 8 + 36 + 41 + 3 = **88** — because **29 claims
+sit in two buckets at once**. A partition that double-counts 29 of 70 is not a
+partition.
+
+The labels are also wrong:
+
+- *"33 tuvieron 0 pares discordantes"* — only **4** paired claims genuinely observed
+  b=c=0 (`P1-S1.4`, `P5.10`, `P5.19-wsel-no-regression`, `P5.20-replication`). Of the
+  36 with no defined p, **26 are not paired designs at all**. Four more had exactly
+  one discordant pair that deflation rounded to zero, and print *"0 pares
+  discordantes"* immediately followed by *"[deflactado desde b=1, c=0]"*.
+- *"38 diseños no podían alcanzar alfa"* — of the 41 flagged, only **4** are gated
+  paired designs no outcome could have cleared. 23 are `single-arm-binary` with no
+  pre-registered gate (hardcoded `could_ever_reach_alpha=False` at `stats.py:358`,
+  no power calculation), 12 are `descriptive` (`:411`, never a hypothesis by intent),
+  2 are aggregate-only.
+
+"Twelve gated designs could never have cleared" is damning and true. "38" is
+refutable in a minute and takes the framework's credibility with it.
+
+**Done when:** the buckets are disjoint and sum to exactly 70, each label says what
+its bucket actually contains, `run_stats.py` computes them (no hand-counts), and a
+test asserts the partition sums to `len(claims)`.
+
+## R-24 — R-14 proof figure draws contract coords as pixels — TODO **P0**
+
+`experiments/2026-07-21-roi-ondevice/make_proof.py:75-92` passes `gt` and `pred`
+straight to `cv2.rectangle`. Those are contract-space [0, `COORD_SCALE`] values
+(`grounding/contract.py:30`, `COORD_SCALE = 100`); the sibling `win` field is in
+pixels, which is what makes the mistake invisible in the data. On a 1360x765
+VisDrone frame a box at `[27, 48, 34, 65]` is a sliver in the top-left corner, and
+the panel then *zooms to that sliver*.
+
+Opened with the Read tool 2026-07-23T11:40Z. The committed
+`proof/discordant-examples.png` shows: both boxes on a **tennis court** for *"The
+yellow pedestrian is near the center of"*; a **grey blur** for *"The cars on the
+road"*; a **blank building facade** for *"The pedestrians in red walk near the
+center"*; a **flat cream gradient** for *"The yellow bus in left side"*. No green GT
+box renders anywhere, though the title promises `green=GT`.
+
+This is a live I5 violation inside the campaign that cites I5 by name, backing one
+of the 8 Holm survivors. **The statistic is unaffected** — 85.19 % vs 63.10 %
+re-derives from `raw/items-{full,roi}.jsonl`, 439 rows each. Only the deliverable is
+dead.
+
+Second, smaller defect: the six panels are `sort(key=roi_iou - full_iou)[:6]`, all
+at delta exactly 1.0 — the best ~5 % of 112 discordant cells, captioned as a sample.
+
+Inputs are all local: 548 frames under `data/VisDrone2019-DET/images/val/`. No GPU.
+
+**Done when:** boxes are scaled to pixels, the regenerated figure is **opened with
+the Read tool** and described in the README by what it actually shows, the panel
+selection is either stated as best-case or made a stratified sample, and a mechanical
+assert rejects a box whose coords are all <= COORD_SCALE on an image larger than that.
+
+## R-25 — Registry and module hygiene — TODO **P0**
+
+Three small things, each of which makes a future session distrust the core:
+
+- **`python -m grounding.stats` exits 1.** `stats.py:456` still asserts the English
+  `"absence of a test"` after `eacf746` translated the reading to *"ausencia de
+  prueba"*. `make test` stays green because `tests/test_stats.py` never enters that
+  branch, so the module's own advertised self-check is the only thing that catches
+  it, and it is broken.
+- **Two Holm survivors store their achieved p-value in `gate_p`.**
+  `P3-ROI-M2.0-512-ondevice` holds `2.501505063220086e-14` and `P3-R13-owlv2-vs-vlm`
+  holds `2.2605981543610277e-07`, bit-identical to what `evaluate()` recomputes: the
+  pre-registration was prose, so the result got written into the pre-registration
+  field. Inert only because the paired branch never reads `gate_p`. Set both to null
+  and add a test that no `paired-binary` claim carries one.
+- **`thesis/run_stats.py:185` still hand-counts.** `71b0128` replaced *"Solo tres
+  afirmaciones"* with *"Seis afirmaciones"* under a commit message saying a generated
+  document should not carry a hand-counted constant. It still does; it just counts
+  higher. Derive it.
+
+**Done when:** the self-check exits 0, both `gate_p` are null with a test, and no
+generated line contains a literal count.
+
+## R-26 — `README.md` is stale against R-13/R-14/R-16 — TODO **P0**
+
+The repo's front door. Last touched `95228e2` (2026-07-21); R-13, R-14 and R-16
+landed 22-23 July and appear nowhere (`grep -c 'R-13\|R-14\|R-16\|OWLv2'` = 0).
+
+- `:19` still says the 1024 carry rate *"no está medida ... plausiblemente por ~2x"*.
+  R-16 measured it: 2.688 Hz, a 2.30x correction. The line also still leads with
+  6.15 FPS, which R-16 retired.
+- `:59` and `:91` say *"las 65 afirmaciones"*. The registry holds 70.
+- The machine table at `:62-67` reads 47/13/**3**/2. The registry says 47/15/**6**/2
+  — it under-reports the on-device claims by half, which is the exact axis the whole
+  first wave was about.
+- `:51` still leads with the superseded `P3-ROI-M2.0-512` and +21.2 pp, while
+  `00-esquema.md:415` says the headline is now the on-device +22.1 pp.
+
+R-6's done-criterion was *"every number in the front matter resolves to a registry
+claim"*. It did, on 2026-07-21. No task owned the re-sweep after new claims landed.
+
+**Done when:** every number in `README.md` resolves to a current registry claim, and
+a test asserts the claim count and machine table are generated, not typed.
+
+## R-27 — `P3-E1-TRT-fps` never marked superseded — TODO **P0**
+
+R-14 wrote a supersede marker into the verdict of the claim it replaced. R-16 wrote
+none. `P3-E1-TRT-fps` still reads headline *"TensorRT fp16 lifts the co-resident
+carry rate 4.89 -> 6.15 FPS"*, verdict `PASS`, `machine: jetson-orin-nano-8gb`, and
+is pinned by name in `tests/test_thesis_integrity.py:163` — for a configuration
+(`image_size` 768, **idle** server) that R-16 proved was never deployed.
+`experiments/2026-07-22-sam2-coresidency/README.md:278` states flatly: *"E1's
+'co-residency costs 0 FPS' is falsified."*
+
+The supersede marker went on the number that got better and not on the one that got
+worse. That asymmetry is the part worth noticing.
+
+**Done when:** the claim carries a supersede marker naming `P4-R16-carry-rate-1024`,
+and a test asserts that a claim whose successor exists cannot read `PASS` unqualified.
+
+## R-28 — The defended sentence claims *select* — **AUTHOR**
+
+`thesis/00-esquema.md:53-57` defends spending the idle window to keep candidates
+alive and *"limitarse a **seleccionar**"*. The maintain-and-deliver half is carried
+by P5.2a (p=6.10e-05, survives Holm). The **select** half has produced no inferential
+result in eight campaigns — and from P5.13 onward the DD arm *cannot mis-select by
+construction*: `experiments/2026-07-19-realvid-dd-select/select_p56.py:87`
+`bind_by_caption` is string equality plus `assert len(matches) == 1`.
+
+That is a **disclosed** scope cut — the docstring says so, and
+`thesis/analyse_shadow_rg.py:11` says *"DD cannot lose on selection"*. What never
+happened is propagating it to the sentence the thesis defends.
+
+Prepared recommendation, for the author to accept or reject: re-scope to *mantener y
+entregar sin latencia de adquisición*. Everything surviving supports that; Chapter 7
+becomes a well-measured negative about selection instead of a weak positive.
+
+**Done when:** the author has decided, and the sentence and Chapter 7 framing match
+the decision.
+
+## R-29 — `n_effective` = 13 vs the measured ICC — **AUTHOR**
+
+Collapsing P5.19's 26 cells to 13 clips assumes cells within a clip are perfectly
+correlated. Measured, they are not: `bike1`'s six SWAP cells are `[1,1,0,1,0,1]`,
+`car9`'s four are `[0,1,1,0]`. A one-way ANOVA ICC over the committed `results.json`
+gives roughly 0.13-0.25, so deff ~ 1.1-1.5 and n_eff ~ 18-24, not 13. Only 5 clusters
+are non-singleton, so the estimate is noisy — that caveat is part of the finding.
+
+It has a consequence: `min_successes_for_gate(26, 0.8) = 25` is reachable while
+`0.8^13` is not, so the deflation *created* the unreachability that `R-4` describes
+as having been hidden by it.
+
+Invariant I2 forbids moving to the less conservative number. The prepared
+recommendation is therefore: **keep 13 as citable**, put the measured ICC in the
+`independence_note`, and give the method chapter a paragraph. That turns the most
+aggressive and most probe-able judgement in the framework from unexamined into
+calibrated.
+
+**Done when:** the author has decided whether to keep, calibrate or revise.
+
+## R-30 — Holm family boundary + undisclosed dependencies — **AUTHOR**
+
+Global family of 34 live p-values gives 8 survivors; per-Part families give 10. The
+two extras are `P5.15-plain-carry-survival` (p=0.0029) and `P2-RQ4.1-deploy-fidelity`
+(p=0.0355) — the latter being the claim that the Part I fidelity catastrophe is
+eliminated. Counter-argument to record: at m=3..7 per part, per-Part Holm keeps every
+uncorrected-significant claim, i.e. it barely corrects at all. Part V (m=15) is the
+only family where it still bites.
+
+Two dependencies inflate the family either way:
+
+- `P3-ROI-M2.0-512` and its own declared on-device replacement are both counted.
+- `P3-R13-owlv2-vs-vlm`'s VLM arm **is** R-14's arm A — the same `items-full.jsonl`,
+  same k. Two of the 8 survivors share a measurement.
+
+`00-esquema.md:794-804` discloses the R-13/R-14 shared arm. It does not disclose the
+ROI double-count, and `stats-report.md` — the file the project's own rules point
+readers at — discloses neither.
+
+Prepared recommendation: keep the global family, state the choice in two sentences in
+`01-metodo-estadistico.md`, report per-Part as a declared sensitivity analysis, and
+render both dependency notes into `stats-report.md`.
+
+**Done when:** the author has picked the family, and both dependencies appear in the
+generated report.
+
+## R-31 — Retire or re-run P3-T2 / P3-T3 — **AUTHOR**
+
+Both are `GATE PASS` on prose alone, no raw data, and both are Chapter 5 spine.
+`thesis/rerun-backlog.md` already argues against re-running: T2 is one scripted clip
+= one Bernoulli draw, and *"regenerar el vuelo único no hace la afirmación
+defendible; solo la haría citable, que es distinto y peor"*.
+
+Separately, and this is a plain defect rather than a judgement: **all three backlog
+commands are fiction.** `grounding.eval.score_clips` does not exist (`grounding/eval/`
+holds `backends`, `harness`, `parity`, `run`); `runners/run_phase_c.py` has no
+`--arms` and no `--reps` (its flag is `--runs`) and contains zero references to CARLA.
+`rerun-backlog.md:16` also still says *"Son tres sobre 65"*.
+`test_missing_claims_declare_a_rerun` asserts only that a `rerun` key is present —
+never that it resolves.
+
+**Done when:** the author has said retire-or-run; the commands either work or are
+replaced by an honest "no runnable command exists, here is what would have to be
+built"; and the test checks resolvability.
+
+## R-32 — Spot-check the assertion-only DONEs — TODO P1
+
+Eight of the 21 first-wave tasks are artifact-backed (R-1, R-2, R-3, R-5, R-8, R-9,
+R-12, R-15) — the statistics and the survivor set reproduce. The rest are the agents'
+word about their own work. Ranked by what breaks if the word was wrong:
+
+1. **R-19** (`:987`). Its done-criterion is literally *"a spot-check of 10 verdicts
+   drawn at random"*. No record of that spot-check exists. Run it and write the
+   result into the row — it is the criterion the task chose for itself.
+2. **R-7** (`:362`). *"Done when: every number in the ledgers appears in that table
+   with a tag."* 279 rows delivered of 2320 numbers examined. 88 % were dropped as
+   clean without being recorded as such.
+3. **R-21** (`:420`, `:1080`). 74 rows closed: 62 recovered from a workflow journal,
+   12 reconstructed from the diff, exactly 2 independently re-derived. The file itself
+   says *"that is their own account of their work, not an audit of it"* three lines
+   before declaring CLOSED. Re-derive 5 from the cited `results.json`.
+4. **R-16 raw edited after DONE** (`81df727`). 30 rows across two committed
+   `raw/*.jsonl` had their `carry` label rewritten *after* `6073cf5` recorded R-16
+   DONE. Labels only, timings untouched — but raw files are supposed to be immutable
+   evidence, and this is the second wave's own campaign.
+
+**Done when:** each of the four has a recorded spot-check result, pass or fail.
