@@ -390,3 +390,45 @@ def test_no_generated_report_line_hand_counts_the_registry(claims):
     assert f"{want} afirmaciones se midieron íntegramente en la placa" in text, (
         f"registry has {n} on-device claims; the report does not say so. "
         "Regenerate with thesis/run_stats.py.")
+
+
+_SUPERSEDED = re.compile(r"SUPERSEDED\b[^]]*?\bby\s+([A-Za-z0-9.\-]+)", re.IGNORECASE)
+_BARE_POSITIVE = {"pass", "yes", "gate pass", "ok", "pass "}
+
+
+def test_supersede_markers_are_bidirectional_and_qualify_the_verdict(claims):
+    """R-27. The marker went on the number that got better, not the one that got worse.
+
+    R-14 wrote a supersede marker into the verdict of the claim it replaced. R-16
+    wrote none, so `P3-E1-TRT-fps` kept reading headline "TensorRT fp16 lifts the
+    co-resident carry rate 4.89 -> 6.15 FPS", verdict `PASS`, `machine:
+    jetson-orin-nano-8gb` — for a configuration (`image_size` 768, against an IDLE
+    llama-server) that R-16 proved was never deployed. The campaign README says it
+    flatly: "E1's 'co-residency costs 0 FPS' is falsified."
+
+    Two rules, because one alone was not enough to catch it:
+
+    1. A `SUPERSEDED by X` marker must name a real claim, and X must name it back.
+       A one-way link is what R-16 left; requiring both ends is what makes the
+       omission fail rather than pass silently.
+    2. A superseded claim may not still read as a bare `PASS`.
+    """
+    by_id = {c["id"]: c for c in claims}
+    problems = []
+    for c in claims:
+        verdict = c.get("verdict") or ""
+        m = _SUPERSEDED.search(verdict)
+        if not m:
+            continue
+        successor = m.group(1).rstrip(",;.")
+        if successor not in by_id:
+            problems.append(f"{c['id']}: superseded by {successor!r}, which is not a claim id")
+            continue
+        back = by_id[successor].get("verdict") or ""
+        if c["id"] not in back:
+            problems.append(
+                f"{c['id']} points at {successor}, but {successor}'s verdict never names it back. "
+                "A one-way supersede link is how P3-E1-TRT-fps stayed at PASS for a day")
+        if verdict.strip().lower() in _BARE_POSITIVE:
+            problems.append(f"{c['id']}: superseded but the verdict still reads {verdict!r}")
+    assert not problems, "supersede markers:\n  " + "\n  ".join(problems)

@@ -2,7 +2,7 @@
 title: Resultados estadísticos retroactivos
 subtitle: Cada afirmación con puerta de las Partes I-VI, re-analizada
 author: Javier Francisco Dibo Gómez
-comment: Generado por thesis/run_stats.py, 2026-07-23T12:34Z
+comment: Generado por thesis/run_stats.py, 2026-07-23T12:36Z
 locale: es
 ---
 

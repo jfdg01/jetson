@@ -50,7 +50,7 @@ written down — the reproduction command is in the task.
 | R-24 | R-14 proof figure draws contract coords as pixels | **P0** | — | **DONE** 2026-07-23 |
 | R-25 | Registry + module hygiene (`gate_p`, selfcheck, hand-counts) | **P0** | — | **DONE** 2026-07-23 |
 | R-26 | `README.md` is stale against R-13/R-14/R-16 | **P0** | — | TODO |
-| R-27 | `P3-E1-TRT-fps` never marked superseded by R-16 | **P0** | — | TODO |
+| R-27 | `P3-E1-TRT-fps` never marked superseded by R-16 | **P0** | — | **DONE** 2026-07-23 |
 | R-28 | The defended sentence claims *select*; nothing inferential carries it | P1 | — | **AUTHOR** |
 | R-29 | `n_effective` = 13 vs the measured ICC | P1 | — | **AUTHOR** |
 | R-30 | Holm family boundary + undisclosed dependencies | P1 | — | **AUTHOR** |
@@ -1457,7 +1457,7 @@ claim"*. It did, on 2026-07-21. No task owned the re-sweep after new claims land
 **Done when:** every number in `README.md` resolves to a current registry claim, and
 a test asserts the claim count and machine table are generated, not typed.
 
-## R-27 — `P3-E1-TRT-fps` never marked superseded — TODO **P0**
+## R-27 — `P3-E1-TRT-fps` never marked superseded — DONE **P0** (2026-07-23T13:05Z)
 
 R-14 wrote a supersede marker into the verdict of the claim it replaced. R-16 wrote
 none. `P3-E1-TRT-fps` still reads headline *"TensorRT fp16 lifts the co-resident
@@ -1472,6 +1472,31 @@ worse. That asymmetry is the part worth noticing.
 
 **Done when:** the claim carries a supersede marker naming `P4-R16-carry-rate-1024`,
 and a test asserts that a claim whose successor exists cannot read `PASS` unqualified.
+
+### Resolution (2026-07-23T13:05Z)
+
+`P3-E1-TRT-fps` verdict `PASS` becomes:
+
+> PASS at image_size=768 against an IDLE server [SUPERSEDED by P4-R16-carry-rate-1024,
+> R-16: the deployed carry runs at 1024 and delivers 2.69 Hz solo, a 2.30x correction;
+> "co-residency costs 0 FPS" was measured against an idle llama-server and is falsified]
+
+The test enforces **two** rules, because the obvious one alone would not have caught
+this. `test_supersede_markers_are_bidirectional_and_qualify_the_verdict` requires that
+a `SUPERSEDED by X` marker names a real claim **and that X names it back**, plus that a
+superseded verdict is not a bare `PASS`. R-16's omission was precisely a missing link,
+so a rule that only checks the marker end would have been satisfied by writing the
+marker and nothing else. `P4-R16-carry-rate-1024` now carries `; supersedes
+P3-E1-TRT-fps`, which is the half that was missing.
+
+Verified the test fails on the pre-fix state: removing that clause and re-running gives
+*"P3-E1-TRT-fps points at P4-R16-carry-rate-1024, but P4-R16-carry-rate-1024's verdict
+never names it back."*
+
+`P3-E1-TRT-fps` stays pinned in `test_on_device_claims_really_are_on_device` and stays
+`machine: jetson-orin-nano-8gb` — the measurement did happen on the Orin. What was
+wrong was the configuration it stood for, and that is now in the verdict where a reader
+meets it.
 
 ## R-28 — The defended sentence claims *select* — **AUTHOR**
 
