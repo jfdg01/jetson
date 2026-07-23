@@ -50,11 +50,24 @@ Eso está en la Sección "Deuda de evidencia".
 
 Una sola frase, porque si no cabe en una frase no está clara:
 
-> Cuando la orden del operador llega a mitad de vuelo y no en el instante cero,
-> la ventana previa a la orden es cómputo gratuito; gastarla en mantener
-> candidatos vivos y limitarse a **seleccionar** al recibir la orden elimina la
-> latencia de adquisición que hace que un sistema de grounding sobre vídeo aéreo
-> entregue una caja ya obsoleta.
+> Cuando la orden del operador llega a mitad de vuelo y no en el instante cero, la
+> ventana previa es cómputo gratuito: gastarla en mantener el objetivo vivo y
+> limitarse a **entregar** la pista ya arrastrada elimina la latencia de
+> adquisición que hace que un sistema de grounding sobre vídeo aéreo entregue una
+> caja ya obsoleta; **seleccionar** entre varios candidatos mantenidos se queda en
+> propuesta medida, porque el selector multi-candidato no cabe en un Orin Nano de
+> 8 GB y, allí donde la memoria no ataba, la selección seguía fallando por deriva
+> del arrastre y por ambigüedad de la expresión referencial.
+
+**Decisión de autor (R-28, 2026-07-23).** La frase anterior defendía
+«mantener + **seleccionar**» como una sola cosa demostrada. No lo está, y la
+reformulación es del autor: *se intentó montar un selector y un arrastre; el
+arrastre y la entrega funcionan y están certificados, el selector se quedó en
+propuesta*. Lo que la evidencia sostiene y lo que no:
+
+- **Sí, y es la única afirmación de la Parte V que sobrevive a Holm.** El brazo WARM de P5.2a *es* el sistema completo de mantener-y-entregar — semilla del VLM en la ventana previa, arrastre SAM2, entrega sin re-anclar — 21/25 frente a 5/25, p = 6,10e-05 deflactado a 23 clips, Holm 0,001831. «Ni el arrastre funcionó» sería falso contra el propio mejor resultado del proyecto.
+- **La placa veta el selector, no el arrastre.** R-16 midió los dos candidatos co-residentes con el VLM en el Orin: a N = 2 con el anillo desplegado (`PRUNE_AFTER=100`) el proceso **muere por OOM**; con anillo 32 sobrevive a 0,540 Hz por candidato. La restricción vinculante es **memoria**, y aparece exactamente al segundo candidato — que es lo que un selector necesita por definición.
+- **Pero el hardware no explica los fallos que sí se midieron.** Las celdas de selección corrieron en réplica sobre la 3090, donde la memoria nunca ató. P5.20 dio un SAM2 mayor gratis (26,3 frente a 26,4 min) y recuperó **0** celdas; P5.4 recortó la adquisición de 4,9 s a 2,08 s y movió el veredicto **cero celdas**. Las causas medidas son deriva del arrastre y ambigüedad referencial (P5.18, 17/26). Atribuirlo todo al hardware sería cómodo y falso.
 
 De ahí salen tres afirmaciones subordinadas, y cada capítulo empírico existe para
 sostener una de ellas:
@@ -65,7 +78,7 @@ sostener una de ellas:
 |---|---|---|
 | Un VLM de 2B cuantizado hace grounding referencial útil sobre imagen aérea y cabe en un Orin Nano de 8 GB | 4-5 | Protocolo propio, más fácil que el benchmark publicado. La parte medida **en la placa** es el grounding de un frame (R-13, R-14); la precisión del arrastre nunca se midió allí |
 | La adquisición en frío es el cuello de botella del sistema integrado, y no se arregla optimizando la adquisición | 6 | n = 6 clips, todas coches, sin vehículo en el lazo |
-| Anticipar (mantener + seleccionar) sí lo arregla, acotado por la calidad del arrastre | 7 | Desigual: el **arranque en caliente** es inferencial (P5.2a, p = 6,10e-05, sobrevive a Holm), el **refinamiento de la selección** no lo es — el único SÍ a n real (P5.19, 20/26) queda en p = 0,25 y en p = 0,5 al deflactar a 13 clips |
+| Anticipar **mantener + entregar** sí lo arregla; **seleccionar** entre candidatos queda propuesto, no demostrado | 7 | Desigual, y esa es la tesis: mantener-y-entregar es inferencial (P5.2a, p = 6,10e-05, sobrevive a Holm) — el **refinamiento de la selección** no lo es, el único SÍ a n real (P5.19, 20/26) queda en p = 0,25 y en p = 0,5 al deflactar a 13 clips, y el selector multi-candidato ni siquiera cabe en la placa (R-16: OOM a N = 2) |
 
 La Parte VI (Cap. 8) no sostiene ninguna de las tres todavía.
 
@@ -569,10 +582,11 @@ Parte V, P5.1 a P5.20. El capítulo más largo y el que contiene la contribució
 
 No se narran veinte experimentos en orden. Se narran cuatro hilos:
 
-- **El arranque en caliente funciona.** P5.1 (5/6 frente a 1/6 en frío) y P5.2 (21/25 frente a 5/25 sobre 25 clips y 5 categorías).
+- **Mantener y entregar funciona, y es lo que se defiende.** P5.1 (5/6 frente a 1/6 en frío) y P5.2 (21/25 frente a 5/25 sobre 25 clips y 5 categorías). Es la única celda de la Parte V que sobrevive a Holm.
 - **Seleccionar entre candidatos es donde duele.** P5.3, P5.4, P5.5, P5.10, P5.13 y P5.17: seis intentos sin separación o sin robustez, agrupados por causa y no por número.
 - **Lo que sí lo desbloqueó.** P5.14 cambia el **contrato de entrega** — entregar la pista ya arrastrada en lugar de re-anclar al recibir la orden. P5.16 quita el oráculo de la semilla y cuesta una celda de doce.
-- **Dónde está el límite.** P5.15 (el arrastre aguanta 24 s de espera, 24/25: **el arrastre no es la parte frágil**), P5.18 (a n = 26 el SWAP reforzado cae a 17/26), P5.19 (sube a 20/26) y P5.20 (un SAM2 mayor no recupera ninguna celda: palanca muerta).
+- **Dónde está el límite.** P5.15 (el arrastre aguanta 24 s de espera, 24/25: **el arrastre no es la parte frágil** — descriptivo, no certificado; p = 0,002908, Holm 0,07852), P5.18 (a n = 26 el SWAP reforzado cae a 17/26), P5.19 (sube a 20/26) y P5.20 (un SAM2 mayor no recupera ninguna celda: palanca muerta).
+- **Por qué el selector se queda en propuesta, y no es una sola razón.** La placa lo veta por arriba: R-16 (Cap. 5) mata por OOM el segundo candidato con el anillo desplegado, así que el multi-candidato no es desplegable. Y por abajo, en la réplica sobre la 3090 donde la memoria no ataba, la selección seguía fallando por **deriva del arrastre** y **ambigüedad referencial** — dos palancas de capacidad y de latencia (P5.20, P5.4) movieron cero celdas. El capítulo debe cerrar diciendo las dos cosas; quedarse solo con el hardware es la versión cómoda.
 
 ### El estadístico, ya calculado
 

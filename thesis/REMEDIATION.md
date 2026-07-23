@@ -51,11 +51,12 @@ written down — the reproduction command is in the task.
 | R-25 | Registry + module hygiene (`gate_p`, selfcheck, hand-counts) | **P0** | — | **DONE** 2026-07-23 |
 | R-26 | `README.md` is stale against R-13/R-14/R-16 | **P0** | — | **DONE** 2026-07-23 |
 | R-27 | `P3-E1-TRT-fps` never marked superseded by R-16 | **P0** | — | **DONE** 2026-07-23 |
-| R-28 | The defended sentence claims *select*; nothing inferential carries it | P1 | — | **AUTHOR** |
+| R-28 | The defended sentence claims *select*; nothing inferential carries it | P1 | — | **DONE** 2026-07-23 (author decided) |
 | R-29 | `n_effective` = 13 vs the measured ICC | P1 | — | **AUTHOR** |
 | R-30 | Holm family boundary + undisclosed dependencies | P1 | — | **AUTHOR** |
 | R-31 | Retire or re-run P3-T2 / P3-T3; backlog commands are fiction | P1 | — | **AUTHOR** |
 | R-32 | Spot-check the assertion-only DONEs (R-19, R-7, R-21) | P1 | — | **DONE** 2026-07-23 |
+| R-33 | `claims.json` caveats quote numbers the registry contradicts (P5.15) | P1 | R-22 | **DONE** 2026-07-23 |
 
 `AUTHOR` means the task is a judgement call reserved for the human and **must not
 be resolved by an agent**. An agent may prepare the evidence; it may not pick.
@@ -1557,6 +1558,76 @@ becomes a well-measured negative about selection instead of a weak positive.
 
 **Done when:** the author has decided, and the sentence and Chapter 7 framing match
 the decision.
+
+### Resolution — AUTHOR DECIDED, landed 2026-07-23T14:05Z
+
+The author's own words: *"intenté montar un selector y tracker, pero con el hardware
+constraint no conseguí que funcionase, me quedé en un (proposed)"* — accept the
+re-scope, and name the hardware as the reason the selector stayed proposed.
+
+Landed in `thesis/00-esquema.md`: the defended sentence (`:53-60`), a
+`Decisión de autor` block under it, subordinate-claim row 3, and two Chapter-7
+thread bullets. Two corrections were folded in, because the author's framing taken
+literally is falsifiable against this repo's own record:
+
+1. **"ni el tracker funcionó" is false.** P5.2a's WARM arm *is* maintain-and-deliver
+   end to end (idle-window VLM seed, SAM2 carry, no re-ground at delivery): 21/25 vs
+   5/25, p=6.10e-05 deflated, Holm 0.001831. It is the only Part V claim that survives
+   Holm. The thesis defends it; it does not concede it.
+2. **Hardware forecloses the selector but does not explain the measured failures.**
+   R-16 is the real wall and it is specific: at N=2 with the deployed ring
+   (`PRUNE_AFTER=100`) the process is OOM-killed on the Orin, surviving only at ring
+   32 and 0.540 Hz/candidate — the binding constraint is MEMORY and it appears at
+   exactly the second candidate. But every select cell that was actually measured ran
+   in replay on the 3090, where memory never bound. P5.20 handed the arm a larger SAM2
+   for free (26.3 vs 26.4 min wall) and recovered **0** cells; P5.4 cut acquire
+   4.9 s to 2.08 s and moved the verdict by **0** cells. The measured causes are carry
+   drift and referring-expression ambiguity. Both reasons are stated; attributing the
+   whole thing to hardware would be the comfortable version.
+
+What is given up: Chapter 7 no longer claims a positive select result. It becomes a
+well-measured negative plus a deployability veto, which matches the project's own
+stated preference (`00-esquema.md:40`) for a well-measured negative over a badly
+delimited positive.
+
+## R-33 — `claims.json` caveats quote numbers the registry itself contradicts — DONE P1 (2026-07-23T14:05Z)
+
+Opened and closed the same day. R-22 ran a caveat-p vs computed-p sweep, got 13 flags,
+judged **all thirteen legitimate** and scoped its shipped test down to the deflation
+case only. That judgement was wrong for one of the 13, and the reason it was invisible
+is a bug in the scanner R-22 itself used: the regex `([0-9][0-9.,]*...)` captures the
+trailing comma in `p = 0.0016,`, `float()` raises `ValueError`, and the `except:
+continue` swallows the row without a word. The same hole shipped in
+`tests/test_thesis_integrity.py::test_first_read_surfaces_cite_the_deflated_p`
+(commit `5e38265`). Fixed: greedy capture plus `.rstrip(".,")` before `float()`.
+
+**The real defect — P5.15.** The caveat said *"an exact one-sided p of 0.0016"* and
+*"THIS IS A PROPERLY CERTIFIED RESULT"*. Against the pre-registered floor the claim
+actually declares (`gate_p: 0.72`, and `experiments/2026-07-19-carry-horizon/README.md:87`
+*"RQ-a floor 18/25 (72%)"*), `binomial_gate_test(24, 25, 0.72)` = **0.002908**, Holm
+**0.07852** — it does **not** survive the correction, and `stats-report.md:113` files it
+under *"Probadas, no significativas"*, contradicting its own caveat prose eleven pages
+later. The 0.0016 is `P(X>=24 | n=25, p=0.70)`: computed against a 0.70 gate nobody
+pre-registered. Corrected in `claims.json` (both language fields),
+`thesis/provenance-sweep.md:361`, and the regenerated `stats-report.md`. The Wilson
+interval [0.80, 0.99] and the load-bearing reading (*the carry is not the fragile
+part*) stand — as description, not as certification.
+
+**Re-triage of the other 12 flags** (done, not deferred): 2 are the undeflated value
+disclosed in the same sentence as the deflated one (`P5.2a` 3.05e-05,
+`P3-carry-OP768` 0.013); 4 are explicit counterfactuals — *"even a perfect 5/5 would
+give p = X"* (`P5.3`, `P5.14-wsel`, `E16`, `E18-A-vs-gate`); 3 are the claim's own
+undeflated p quoted with the deflation named in the next clause (`P5.14-swap`,
+`P5.18-n25-wsel`, `P5.19`); 2 are sibling-arm p values (`P3-R13` 2.2e-24 for the
+D-full arm, `P3-SR` for the three bicubic/lanczos comparisons); 1 is
+`P5.14-shadow-rg` quoting its own p where the deflated and undeflated agree. Twelve
+legitimate, one defect. R-22's verdict was 13/13 legitimate; the corrected count is
+12/13.
+
+**Standing lesson, worth more than the fix:** a sweep that silently `continue`s on a
+parse failure reports "no defects" and "the parser never matched" as the same output.
+Every scanner in `thesis/` and `tests/` that catches an exception in a match loop
+should count what it skipped and assert the count is 0.
 
 ## R-29 — `n_effective` = 13 vs the measured ICC — **AUTHOR**
 

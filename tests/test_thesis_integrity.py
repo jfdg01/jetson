@@ -519,6 +519,12 @@ def test_first_read_surfaces_cite_the_deflated_p(claims):
 
     # Only `p = X` forms, never a bare number: 0.25 is also an IoU threshold, and
     # matching it loose flags every line in the repo that mentions IoU@0.25.
+    # The trailing [.,] is stripped, not captured: "p = 0.25," would otherwise
+    # parse as "0.25," -> ValueError -> silently skipped, which is how the same
+    # scanner missed a real defect in P5.15's caveat (R-33).
+    # greedy, then strip trailing sentence punctuation - a lazy quantifier here
+    # captures a single digit, and a greedy one without the strip swallows the
+    # comma in "p = 0.0016," so float() raises and the line is silently skipped.
     quoted = re.compile(r"\bp\s*=\s*([0-9][0-9.,]*(?:e[-+]?[0-9]+)?)", re.IGNORECASE)
 
     bad = []
@@ -527,8 +533,9 @@ def test_first_read_surfaces_cite_the_deflated_p(claims):
             if _UNDEFLATED_OK.search(line):
                 continue
             for m in quoted.finditer(line):
+                txt = m.group(1).rstrip(".,")
                 try:
-                    val = float(m.group(1).replace(",", "."))
+                    val = float(txt.replace(",", "."))
                 except ValueError:
                     continue
                 for cid, raw in undeflated.items():

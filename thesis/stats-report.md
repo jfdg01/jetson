@@ -2,7 +2,7 @@
 title: Resultados estadísticos retroactivos
 subtitle: Cada afirmación con puerta de las Partes I-VI, re-analizada
 author: Javier Francisco Dibo Gómez
-comment: Generado por thesis/run_stats.py, 2026-07-23T12:37Z
+comment: Generado por thesis/run_stats.py, 2026-07-23T13:19Z
 locale: es
 ---
 
@@ -233,7 +233,7 @@ por completo la lectura ingenua del número.
 
 **P5.14-shadow-rg-disagreement** — p = 0.25. Los tres desacuerdos son RG devolviendo NO_MATCH: no llegó a seleccionar en absoluto, en lugar de seleccionar de otro modo. Esa asimetría es más informativa que el recuento: sobre imagen real el contrato de re-grounding no se limita a perder, se abstiene. Contrástese con los bancos de simulación (P5.10/13/17), donde RG consigue el grounding de casi todo: la diferencia es la fragilidad ante imagen real. R-5 (2026-07-21) AÑADE EL LÍMITE DE LA COMPARACIÓN: el 10/10 de DD en este pareado es cierto POR CONSTRUCCIÓN. `select_p56.bind_by_caption` es igualdad de cadenas contra el pie almacenado, con un assert de que sólo uno coincide, así que DD no puede elegir mal; es un recorte de alcance (la campaña aísla el mecanismo de entrega, no la comprensión de la frase), no una medida. Por tanto b=3, c=0 no dice «DD gana a RG»: dice «RG falla 3 veces en una tarea que DD no realiza». Y RG empareja contra las propias pistas mantenidas de DD (`cand_at_prompt`), luego sus fallos incluyen deriva de arrastre heredada. La lectura defendible es unidireccional: mide el coste que la hipótesis de vinculación por pie de DD se ahorra. Mismo tratamiento en [P5.18|P5.19]-shadow-rg-ceiling.
 
-**P5.15-plain-carry-survival** — 24/25 frente al suelo pre-registrado de 18/25 da un valor p exacto unilateral de 0.0016, y el intervalo Wilson es [0.80, 0.99]. ESTE ES UN RESULTADO DEBIDAMENTE CERTIFICADO y es portante: el carry no es la parte frágil, lo que redirige todo el análisis de fallos hacia la entrega y la selección.
+**P5.15-plain-carry-survival** — 24/25 frente al suelo pre-registrado de 18/25 (0,72) da un valor p exacto unilateral de 0,002908, que Holm eleva a 0,07852: **no sobrevive a la corrección por multiplicidad**, y la tabla de este mismo informe lo archiva en «probadas, no significativas». La caveat anterior citaba p = 0,0016 y lo llamaba «debidamente certificado»; ese 0,0016 es P(X>=24 | n=25, p=0,70), calculado contra una puerta de 0,70 que la pre-registración nunca fijó (README de la campaña, «RQ-a floor 18/25 (72%)»). Corregido por R-33 el 2026-07-23. Lo que queda en pie es descriptivo y sigue siendo portante: el intervalo Wilson es [0,80, 0,99] y el arrastre no es la parte frágil, lo que redirige el análisis de fallos hacia la entrega y la selección — pero el «sí» inferencial de la Parte V es P5.2a, no éste.
 
 **P5.15-maint-vs-plain** — p = 0.625. La regresión NO está estadísticamente establecida, y la afirmación honesta es que el mantenimiento no compró nada medible mientras costaba cómputo. El mecanismo (100/100 re-anclajes aceptados sin suelo de IoU, que provocan intercambios de identidad dentro de la misma clase) es evidencia diagnóstica que un recuento de 25 clips no puede aportar, y es la razón por la que retirar la palanca seguía siendo correcto.
 
