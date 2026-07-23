@@ -46,7 +46,7 @@ written down — the reproduction command is in the task.
 | ID | Task | Pri | Blocks | Status |
 |---|---|---|---|---|
 | R-22 | Paired deflation uses the wrong denominator; report contradicts itself | **P0** | R-23 | **DONE** 2026-07-23 |
-| R-23 | The four claim buckets overlap and are mislabelled | **P0** | — | TODO |
+| R-23 | The four claim buckets overlap and are mislabelled | **P0** | — | **DONE** 2026-07-23 |
 | R-24 | R-14 proof figure draws contract coords as pixels | **P0** | — | TODO |
 | R-25 | Registry + module hygiene (`gate_p`, selfcheck, hand-counts) | **P0** | — | TODO |
 | R-26 | `README.md` is stale against R-13/R-14/R-16 | **P0** | — | TODO |
@@ -1264,7 +1264,7 @@ E19 defect and has no judgement call in it.
 
 `make test`: 162 passed, 1 skipped.
 
-## R-23 — The four claim buckets overlap and are mislabelled — TODO **P0**
+## R-23 — The four claim buckets overlap and are mislabelled — DONE **P0** (2026-07-23T12:35Z)
 
 `thesis/00-esquema.md` reports 8 + 33 + 38 + 3 over 70 claims. That sums to 82, and
 recomputing from the registry gives 8 + 36 + 41 + 3 = **88** — because **29 claims
@@ -1290,6 +1290,45 @@ refutable in a minute and takes the framework's credibility with it.
 **Done when:** the buckets are disjoint and sum to exactly 70, each label says what
 its bucket actually contains, `run_stats.py` computes them (no hand-counts), and a
 test asserts the partition sums to `len(claims)`.
+
+### Resolution (2026-07-23T12:35Z)
+
+`run_stats.py` grows a `BUCKETS` list and a `bucket_of()` that returns **one** key
+per claim, assigned by the first rule that fires. The order is the semantics:
+specific beats generic, so *"the pre-registered gate was unreachable"* outranks
+*"the test did not reject"* — the first says something about the design, the second
+only about the result.
+
+| bucket | n | what it actually contains |
+|---|---|---|
+| Significativas tras Holm | 8 | defensible as effects |
+| Probadas, no significativas | 15 | a real contrast that did not reject |
+| **Puerta pre-registrada inalcanzable por diseño** | **12** | a gate no possible outcome could clear at that n |
+| Descriptivas, sin hipótesis | 12 | nothing to contrast, by design |
+| Sin puerta pre-registrada, sólo intervalo | 12 | Wilson interval and nothing more |
+| Pareadas sin un solo par discordante | 6 | the arms never separated in any cell |
+| Sin datos crudos | 3 | in the re-run queue |
+| Sólo sobreviven agregados | 2 | per-item values lost |
+
+Sums to 70 exactly. `tests/test_thesis_integrity.py::test_the_claim_buckets_are_a_partition`
+asserts the total and that the report prints each count, so the table cannot drift
+from the registry again.
+
+**One number in the task description above was itself wrong.** It said 23 claims
+are `single-arm-binary` with no pre-registered gate. There are 30 single-arm claims
+and **12** of them have `gate_p is None`. The 50-claim figure you get from counting
+`gate_p is None` across all designs is meaningless, because paired designs never use
+that field. Fixed here and in `00-esquema.md`, which had been about to inherit it.
+
+`00-esquema.md` now carries the eight-row table, a note that the eight are disjoint
+and why, and a boxed record of what the four-row version claimed. The framing that
+matters is preserved rather than softened: **twelve gated designs that no outcome
+could have cleared** is the sentence the chapter should carry. It is damning and
+true, where "38" is refutable in a minute — and a reader who refutes it stops
+believing the rest of the chapter.
+
+The intro line *"Sobre 70 afirmaciones con puerta"* was also wrong on its face:
+24 of the 70 never had anything to contrast. Corrected.
 
 ## R-24 — R-14 proof figure draws contract coords as pixels — TODO **P0**
 

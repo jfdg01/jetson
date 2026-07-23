@@ -291,3 +291,46 @@ def test_claims_from_a_banked_campaign_declare_their_scene_set(claims):
         f"claims drawn from a campaign with a frozen scene set but declaring no "
         f"`scene_set`: {silent}. Add it, or the clip-clustering check skips them."
     )
+
+
+def test_the_claim_buckets_are_a_partition():
+    """R-23. Every claim lands in exactly one bucket and the counts sum to 70.
+
+    The report used to print four overlapping filters summing to 88 over 70
+    claims: "no defined p" and "could never reach alpha" are the same claims
+    twice for 29 of them. Both labels also lied about their contents. "33 had 0
+    discordant pairs" was true of four; the rest were not paired designs at all,
+    and four more had a single discordant pair that deflation rounded away, so
+    they printed "0 pares discordantes" directly followed by "[deflactado desde
+    b=1, c=0]". "38 designs could never reach alpha" folded twelve genuinely
+    unreachable gates in with 23 arms that had no gate to miss and 12 that were
+    descriptive on purpose.
+
+    Twelve gated designs no outcome could have cleared is the sentence the
+    chapter should carry. It is damning and it is true. 38 is refutable in a
+    minute, and a reader who refutes it stops believing the rest of the chapter.
+    """
+    import sys
+    sys.path.insert(0, str(REPO / "thesis"))
+    from run_stats import BUCKETS, bucket_of, load_claims
+    from grounding.stats import evaluate, holm_bonferroni
+
+    parsed, _ = load_claims()
+    outcomes = {c.id: evaluate(c) for c in parsed}
+    holm = holm_bonferroni({k: v.p_value for k, v in outcomes.items()})
+
+    known = {key for key, _, _ in BUCKETS}
+    assigned = {c.id: bucket_of(c, outcomes[c.id], holm[c.id]["reject"]) for c in parsed}
+
+    unknown = {i: b for i, b in assigned.items() if b not in known}
+    assert not unknown, f"bucket_of returned a key BUCKETS does not declare: {unknown}"
+    assert len(assigned) == len(parsed), "a claim was assigned twice or not at all"
+
+    report = REPO / "thesis" / "stats-report.md"
+    if not report.exists():
+        pytest.skip("report not generated yet; run thesis/run_stats.py")
+    text = report.read_text()
+    for key, label, _ in BUCKETS:
+        n = sum(1 for b in assigned.values() if b == key)
+        assert f"**{label} ({n}).**" in text, (
+            f"report does not print {label} at {n}; regenerate with thesis/run_stats.py")

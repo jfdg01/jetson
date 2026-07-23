@@ -231,20 +231,37 @@ se escribió para adornar resultados sino porque cambió varios**.
 | Categoría | N | Qué significa |
 |---|---|---|
 | Significativas tras Holm | 8 | Se pueden defender como efectos |
-| Sin prueba posible (0 discordantes o solo agregados) | 32 | No hubo contraste, en ninguna dirección |
-| Diseño incapaz de alcanzar alfa | 38 | Ningún resultado posible habría bastado |
+| Probadas, no significativas | 15 | Contraste real que no rechazó |
+| Puerta pre-registrada **inalcanzable por diseño** | 12 | Ningún resultado posible habría bastado a esa n |
+| Descriptivas, sin hipótesis | 12 | Nunca hubo nada que contrastar, por diseño |
+| Sin puerta pre-registrada, sólo intervalo | 12 | Se reporta el Wilson y nada más |
+| Pareadas sin un solo par discordante | 6 | Los brazos no se separaron en ninguna celda |
 | Sin datos crudos | 3 | En cola de re-ejecución, no se defienden |
+| Sólo sobreviven agregados | 2 | Se perdieron los valores por elemento |
 
-> **Esta tabla no suma 70 y su tercera fila está mal etiquetada.** 8 + 32 + 38 + 3
-> = 81: las categorías se solapan, porque una afirmación sin discordantes también
-> cuenta como diseño que no alcanza alfa. Y «diseño incapaz» mezcla tres cosas
-> distintas: lo puramente descriptivo, lo que nunca tuvo puerta pre-registrada, y
-> el puñado de diseños que sí fijaron una puerta inalcanzable. Corregirlo es la
-> tarea **R-23** de `thesis/REMEDIATION.md`; la partición que aquí falta es la que
-> irá al capítulo. El 32 bajó de 33 el 2026-07-23 al arreglar R-22: E19 tenía un
-> par discordante y el código lo había borrado.
+Suman **70**, que es el total, porque las ocho categorías son **disjuntas**:
+cada afirmación aparece exactamente una vez. Cuando dos podrían aplicar gana la
+más específica — «la puerta era inalcanzable» dice algo del diseño y prevalece
+sobre «la prueba no rechazó», que sólo dice algo del resultado. `run_stats.py`
+las calcula y `tests/test_thesis_integrity.py` comprueba que suman el total, de
+modo que la tabla no puede volver a descuadrarse en silencio.
 
-Sobre **70** afirmaciones con puerta. Estas cifras se regeneran desde
+> **Esta tabla tenía cuatro filas hasta el 2026-07-23 y sumaba 82.** Las
+> categorías se solapaban: 29 afirmaciones se contaban dos veces, porque una
+> pareada sin discordancia es además un diseño que no alcanza alfa. Y las dos
+> filas grandes mentían sobre su contenido. «33 con 0 pares discordantes» era
+> cierto de **cuatro**; el resto no eran diseños pareados siquiera. «38 diseños
+> incapaces de alcanzar alfa» mezclaba **12** puertas genuinamente inalcanzables
+> con 23 brazos que nunca tuvieron puerta que fallar y 12 descriptivos por
+> intención. La corrección (**R-23**) no suaviza el diagnóstico: doce diseños con
+> puerta que ningún resultado posible habría superado es la frase que el capítulo
+> debe llevar. Es demoledora y es cierta. «38» se refuta en un minuto, y quien la
+> refute deja de creerse el resto del capítulo.
+
+Sobre las **70** afirmaciones del registro — no «70 afirmaciones con puerta»,
+como decía este esquema hasta el 2026-07-23: **24 de ellas nunca tuvieron nada
+que contrastar** (12 descriptivas por intención y 12 de un brazo sin puerta
+pre-registrada), y ese es justamente uno de los hallazgos. Estas cifras se regeneran desde
 `thesis/claims.json` y **se mueven cada vez que aterriza un brazo con puerta**:
 no se citan de memoria, se leen de `thesis/stats-report.md`. El re-análisis
 original del 2026-07-21 dio 6 sobre 65; R-13 y R-14 añadieron las dos

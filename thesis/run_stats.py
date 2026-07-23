@@ -58,6 +58,59 @@ DESIGN_ES = {
     "descriptive": "descriptivo",
 }
 
+# R-23. The report used to print four overlapping buckets that summed to 88 over
+# 70 claims, because "no defined p" and "could never reach alpha" are the same
+# claims twice for 29 of them. Worse, both labels were wrong about their own
+# contents: "33 had 0 discordant pairs" was true of 4, and "38 designs could
+# never reach alpha" folded twelve genuinely-unreachable gates together with 23
+# arms that never had a gate at all and 12 that were descriptive by intent.
+# Twelve gated designs that no outcome could have cleared is the damning, true
+# sentence; 38 is refutable in a minute and takes the framework down with it.
+#
+# So: ONE bucket per claim, assigned by the first rule that fires, and the order
+# below IS the semantics. Specific beats generic — "the gate was unreachable"
+# outranks "the test did not reject", because it says something about the design
+# rather than about the result.
+BUCKETS = [
+    ("sin-datos", "Sin datos crudos, en cola de re-ejecución",
+     "No hay fichero por elemento. No se defienden."),
+    ("holm", "Significativas tras corrección de Holm",
+     "Se pueden defender como efectos."),
+    ("puerta-inalcanzable", "Puerta pre-registrada inalcanzable por diseño",
+     "Corrió una prueba contra una puerta que NINGÚN resultado posible habría "
+     "superado a esa n. El fallo es del diseño, no del sistema."),
+    ("probada-no-sig", "Probadas, no significativas",
+     "La prueba corrió y no rechazó. Es el resultado honesto de un contraste real."),
+    ("sin-discordancia", "Pareadas sin un solo par discordante",
+     "Los brazos no se separaron en ninguna celda, luego no hubo contraste. "
+     "No es equivalencia demostrada: es ausencia de prueba."),
+    ("descriptiva", "Descriptivas, sin hipótesis pre-registrada",
+     "Nunca hubo nada que contrastar, por diseño. Se citan como medidas."),
+    ("sin-puerta", "Sin puerta pre-registrada; sólo intervalo",
+     "Se reporta el intervalo de Wilson y nada más. Un umbral elegido después "
+     "de ver el número no es una puerta."),
+    ("solo-agregados", "Sólo sobreviven agregados",
+     "Los valores por elemento se perdieron; ninguna prueba es posible."),
+]
+
+
+def bucket_of(claim: Claim, outcome, rejected: bool) -> str:
+    """Which single bucket this claim belongs to. See BUCKETS for the order."""
+    if claim.data_status == "missing":
+        return "sin-datos"
+    if rejected:
+        return "holm"
+    has_p = outcome.p_value == outcome.p_value  # not NaN
+    if has_p:
+        return "probada-no-sig" if outcome.could_ever_reach_alpha else "puerta-inalcanzable"
+    if claim.design == "descriptive":
+        return "descriptiva"
+    if claim.design == "single-arm-binary" and claim.gate_p is None:
+        return "sin-puerta"
+    if claim.design == "paired-binary":
+        return "sin-discordancia"
+    return "solo-agregados"
+
 
 def stamp() -> str:
     return datetime.now().strftime("%Y-%m-%dT%H:%MZ")
@@ -204,27 +257,31 @@ def main() -> int:
         )
 
     # --- what survives -----------------------------------------------------
-    survives = [c.id for c in claims if holm[c.id]["reject"]]
-    undefined = [c.id for c in claims if outcomes[c.id].p_value != outcomes[c.id].p_value
-                 and c.data_status != "missing"]
-    unreachable = [c.id for c in claims if not outcomes[c.id].could_ever_reach_alpha
-                   and c.data_status != "missing"]
-    missing = [c.id for c in claims if c.data_status == "missing"]
+    # R-23: a partition, not four overlapping filters. Every claim appears once.
+    members: dict[str, list[str]] = {key: [] for key, _, _ in BUCKETS}
+    for c in claims:
+        members[bucket_of(c, outcomes[c.id], holm[c.id]["reject"])].append(c.id)
+    assert sum(len(v) for v in members.values()) == len(claims)
+
+    survives = members["holm"]
+    missing = members["sin-datos"]
 
     lines += [
         "",
         "## Qué sobrevive",
         "",
-        f"- **Significativas tras corrección de Holm ({len(survives)}):** "
-        + (", ".join(survives) if survives else "ninguna"),
-        f"- **Sin prueba posible, 0 pares discordantes ({len(undefined)}):** "
-        + (", ".join(undefined) if undefined else "ninguna"),
-        f"- **Diseño incapaz de alcanzar alpha ({len(unreachable)}):** "
-        + (", ".join(unreachable) if unreachable else "ninguna"),
-        f"- **Sin datos crudos, en cola de re-ejecución ({len(missing)}):** "
-        + (", ".join(missing) if missing else "ninguna"),
+        f"Las {len(claims)} afirmaciones, repartidas en ocho categorías **disjuntas**:",
+        "cada afirmación aparece exactamente una vez, y los recuentos suman",
+        f"{len(claims)}. Cuando dos categorías podrían aplicar, gana la más",
+        "específica — «la puerta era inalcanzable» dice algo del diseño y prevalece",
+        "sobre «la prueba no rechazó», que sólo dice algo del resultado.",
         "",
     ]
+    for key, label, meaning in BUCKETS:
+        ids = members[key]
+        lines.append(f"- **{label} ({len(ids)}).** {meaning} "
+                     + (", ".join(ids) if ids else "*(ninguna)*"))
+    lines.append("")
 
     # --- caveats ------------------------------------------------------------
     # These are the most honest text in the project and the report used to drop
@@ -276,10 +333,8 @@ def main() -> int:
     (THESIS / "stats-report.md").write_text("\n".join(lines) + "\n")
 
     print(f"[{stamp()}] {len(claims)} claims analysed")
-    print(f"  significant after Holm : {len(survives)}")
-    print(f"  no test possible       : {len(undefined)}")
-    print(f"  design could not reach : {len(unreachable)}")
-    print(f"  missing raw data       : {len(missing)}")
+    for key, label, _ in BUCKETS:
+        print(f"  {label:52s}: {len(members[key])}")
     for c in claims:
         print("  " + outcomes[c.id].line())
     return 0

@@ -2,7 +2,7 @@
 title: Resultados estadísticos retroactivos
 subtitle: Cada afirmación con puerta de las Partes I-VI, re-analizada
 author: Javier Francisco Dibo Gómez
-comment: Generado por thesis/run_stats.py, 2026-07-23T12:24Z
+comment: Generado por thesis/run_stats.py, 2026-07-23T12:28Z
 locale: es
 ---
 
@@ -102,10 +102,20 @@ derivación por afirmación está en
 
 ## Qué sobrevive
 
-- **Significativas tras corrección de Holm (8):** P1-S3.3-export-parity-catastrophe, P2-RQ2.1-resolution-ladder-1024, P2-RQ3.1-lora-aerial-gate, P3-ROI-M2.0-512, P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm, P5.2a-warm-generalization, P5.12-bankv21-recal
-- **Sin prueba posible, 0 pares discordantes (32):** P1-S1.2-zeroshot-smolvlm, P1-S3.4-coco-to-aerial-domain-shift, P1-S1.3-phaseB-control-stack, P2-RQ0.3-spine-selection, P2-RQ1.1-dataset-well-posedness, P3-wholeframe-resolution-knee, P3-ROI-drift-robustness, P3-E1-TRT-fps, P3-E1-TRT-mask-parity, P3-T1-memoryless-baseline, P3-T0a-anchor-cadence, P3-T4a-tracker-cost, E20-acquire-latency, E17-reground-chase, E14-identity-hole, E13-colour-gate, E9-retarget-switch, E10-fast-follow-ceiling, P4-R16-carry-rate-1024, P5.2b-speed-sweep, P5.9-kerbsafe-scenebank, P5.10-simbank-select, P5.13-dd-vs-rg-tie, P5.19-wsel-no-regression, P5.19-grace-precision, P5.18-shadow-rg-ceiling, P5.19-shadow-rg-ceiling, P5.20-carry-capacity, P5.20-replication-of-P5.19, P5.17-dd-vs-rg-tie-n56, P6.0-flight-rig-gate, P6.1-carla-renderer
-- **Diseño incapaz de alcanzar alpha (38):** P1-S1.2-zeroshot-smolvlm, P1-S3.4-coco-to-aerial-domain-shift, P1-S1.3-phaseB-control-stack, P2-RQ0.3-spine-selection, P2-RQ1.1-dataset-well-posedness, P3-wholeframe-resolution-knee, P3-ROI-drift-robustness, P3-E1-TRT-fps, P3-E1-TRT-mask-parity, P3-T1-memoryless-baseline, P3-T0a-anchor-cadence, P3-T4a-tracker-cost, E18-A-vs-gate, E20-acquire-latency, E22-cv-prior-phase0, E16-relock-replication, E17-reground-chase, E14-identity-hole, E13-colour-gate, E9-retarget-switch, E10-fast-follow-ceiling, P4-R16-carry-rate-1024, P5.2b-speed-sweep, P5.3-multi-candidate-select, P5.4-crop-select, P5.5-select-generalization, P5.9-kerbsafe-scenebank, P5.14-wsel, P5.14-swap, P5.14-shadow-rg-disagreement, P5.16-autodisc-wsel, P5.18-n25-wsel, P5.18-n25-swap, P5.19-grace-precision, P5.18-shadow-rg-ceiling, P5.19-shadow-rg-ceiling, P6.0-flight-rig-gate, P6.1-carla-renderer
-- **Sin datos crudos, en cola de re-ejecución (3):** P1-S1.4-phaseC-vlm-closed-loop, P3-T2-permanence-reid, P3-T3-closedloop-coverage
+Las 70 afirmaciones, repartidas en ocho categorías **disjuntas**:
+cada afirmación aparece exactamente una vez, y los recuentos suman
+70. Cuando dos categorías podrían aplicar, gana la más
+específica — «la puerta era inalcanzable» dice algo del diseño y prevalece
+sobre «la prueba no rechazó», que sólo dice algo del resultado.
+
+- **Sin datos crudos, en cola de re-ejecución (3).** No hay fichero por elemento. No se defienden. P1-S1.4-phaseC-vlm-closed-loop, P3-T2-permanence-reid, P3-T3-closedloop-coverage
+- **Significativas tras corrección de Holm (8).** Se pueden defender como efectos. P1-S3.3-export-parity-catastrophe, P2-RQ2.1-resolution-ladder-1024, P2-RQ3.1-lora-aerial-gate, P3-ROI-M2.0-512, P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm, P5.2a-warm-generalization, P5.12-bankv21-recal
+- **Puerta pre-registrada inalcanzable por diseño (12).** Corrió una prueba contra una puerta que NINGÚN resultado posible habría superado a esa n. El fallo es del diseño, no del sistema. E18-A-vs-gate, E22-cv-prior-phase0, E16-relock-replication, P5.3-multi-candidate-select, P5.4-crop-select, P5.5-select-generalization, P5.14-wsel, P5.14-swap, P5.14-shadow-rg-disagreement, P5.16-autodisc-wsel, P5.18-n25-wsel, P5.18-n25-swap
+- **Probadas, no significativas (15).** La prueba corrió y no rechazó. Es el resultado honesto de un contraste real. P1-S2.1-stage2-mode-collapse, P1-S3.3-quantisation-is-not-the-cost, P1-S4.1-stage4-narrow-miss, P2-RQ4.1-deploy-fidelity, P3-SR-swin2sr-accuracy, P3-carry-OP768-accuracy, E18-cold-acquire-vs-warm-oracle, E20-operator-crop-hint, E19-motion-compensated-acquire, E21-coarse-to-fine, E23-tolerant-cells, P5.1-warm-vs-cold, P5.15-plain-carry-survival, P5.15-maint-vs-plain, P5.19-swap-late-entry-rescue
+- **Pareadas sin un solo par discordante (6).** Los brazos no se separaron en ninguna celda, luego no hubo contraste. No es equivalencia demostrada: es ausencia de prueba. P5.10-simbank-select, P5.13-dd-vs-rg-tie, P5.19-wsel-no-regression, P5.20-carry-capacity, P5.20-replication-of-P5.19, P5.17-dd-vs-rg-tie-n56
+- **Descriptivas, sin hipótesis pre-registrada (12).** Nunca hubo nada que contrastar, por diseño. Se citan como medidas. P2-RQ1.1-dataset-well-posedness, P3-wholeframe-resolution-knee, P3-ROI-drift-robustness, P3-E1-TRT-fps, P3-E1-TRT-mask-parity, P3-T1-memoryless-baseline, P3-T0a-anchor-cadence, P3-T4a-tracker-cost, E10-fast-follow-ceiling, P4-R16-carry-rate-1024, P6.0-flight-rig-gate, P6.1-carla-renderer
+- **Sin puerta pre-registrada; sólo intervalo (12).** Se reporta el intervalo de Wilson y nada más. Un umbral elegido después de ver el número no es una puerta. P1-S1.2-zeroshot-smolvlm, P1-S3.4-coco-to-aerial-domain-shift, P1-S1.3-phaseB-control-stack, P2-RQ0.3-spine-selection, E17-reground-chase, E14-identity-hole, E13-colour-gate, E9-retarget-switch, P5.9-kerbsafe-scenebank, P5.19-grace-precision, P5.18-shadow-rg-ceiling, P5.19-shadow-rg-ceiling
+- **Sólo sobreviven agregados (2).** Los valores por elemento se perdieron; ninguna prueba es posible. E20-acquire-latency, P5.2b-speed-sweep
 
 ## Salvedades por afirmación
 
