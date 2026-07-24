@@ -40,6 +40,9 @@ harness refuses to emit a FOLLOW-PASS verdict in this mode. A real P6.2 number n
 import argparse
 import json
 import math
+import pickle
+import struct
+import subprocess
 import sys
 import threading
 import time
@@ -214,7 +217,34 @@ class OracleStubProducer:
         pass
 
 
-def build_grounding_carry(caption, prune_after, ssh_host, out_dir, carry_only=False):
+# --- ssh-stdio carry framing (mirrors carry_ssh_bridge.py + ssh_carry_probe.py) ------
+# 4-byte big-endian length + pickled payload, both directions, on the raw ssh pipe.
+# The sandbox blocks local port-binding, so ssh -L is out; a stdio pipe is the transport.
+def _ssh_send(f, obj):
+    data = pickle.dumps(obj)
+    f.write(struct.pack(">I", len(data))); f.write(data); f.flush()
+
+
+def _ssh_readn(f, n):
+    buf = b""
+    while len(buf) < n:
+        c = f.read(n - len(buf))
+        if not c:
+            return None
+        buf += c
+    return buf
+
+
+def _ssh_recv(f):
+    hdr = _ssh_readn(f, 4)
+    if hdr is None:
+        return None
+    (n,) = struct.unpack(">I", hdr)
+    return pickle.loads(_ssh_readn(f, n))
+
+
+def build_grounding_carry(caption, prune_after, ssh_host, out_dir, carry_only=False,
+                          showcase_ssh=False):
     """Boot the EXPENSIVE, reusable backends ONCE: Jetson q8_0 grounding + 3090 SAM2 carry.
 
     Returns (backend, acquire_fn, carry_factory, close). Split from the per-flight producer
@@ -247,6 +277,19 @@ def build_grounding_carry(caption, prune_after, ssh_host, out_dir, carry_only=Fa
     tmp = Path(out_dir); tmp.mkdir(parents=True, exist_ok=True)
     ctr = [0]
 
+    # showcase: route the carry LITERALLY to the Jetson over ssh-stdio (P6.2-SHOWCASE
+    # flight half). Launch the bridge ONCE here so its ~7 s model load overlaps CARLA
+    # world setup, not the idle window -- then _SSHCarry.__init__ only sends the seed
+    # frame. A 3090 _HostCarry twin runs in lockstep for the in-rig parity gate
+    # (median IoU >= 0.95 => the ssh-stdio path reproduces the parity-checked carry).
+    ssh_proc = None
+    parity = []      # per-step {jetson, host, iou, compute_ms, rtt_ms}
+    if showcase_ssh:
+        ssh_proc = subprocess.Popen(
+            ["ssh", "-T", "-q", ssh_host,
+             "cd ~/sam2-bench && ./.venv/bin/python -u carry_ssh_bridge.py"],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=sys.stderr, bufsize=0)
+
     def acquire(frame_bgr, w, h):
         if backend is None:
             raise RuntimeError("carry_only backend has no grounding (oracle designation only)")
@@ -265,10 +308,52 @@ def build_grounding_carry(caption, prune_after, ssh_host, out_dir, carry_only=Fa
                 _, box = self.sc.step(frame_rgb)
             return box
 
+    class _SSHCarry:
+        """Carry stepped ON THE JETSON over ssh-stdio; a 3090 _HostCarry twin runs in
+        lockstep for the in-rig parity gate. step() returns the JETSON box (the on-device
+        deliverable); the twin box is only scored, never delivered. One bridge = one carry
+        state, so only ONE _SSHCarry may exist per build (showcase = one warm flight)."""
+        _live = [0]
+
+        def __init__(self, frame_rgb, box):
+            assert self._live[0] == 0, "ssh bridge holds one carry state; only one _SSHCarry"
+            self._live[0] = 1
+            self.twin = _HostCarry(frame_rgb, box)
+            jpg = cv2.imencode(".jpg", frame_rgb)[1].tobytes()   # RGB in, bridge sends RGB through
+            _ssh_send(ssh_proc.stdin, ("init", jpg, [int(v) for v in box]))
+            ack = _ssh_recv(ssh_proc.stdout)
+            assert ack and ack.get("ok"), f"ssh bridge init failed: {ack}"
+
+        def step(self, frame_rgb):
+            jpg = cv2.imencode(".jpg", frame_rgb)[1].tobytes()
+            ta = time.time()
+            _ssh_send(ssh_proc.stdin, ("step", jpg))
+            r = _ssh_recv(ssh_proc.stdout)
+            rtt_ms = (time.time() - ta) * 1000.0
+            jbox = tuple(r["box"]) if r and r["box"] is not None else None
+            hbox = self.twin.step(frame_rgb)                     # 3090 twin, scored not delivered
+            parity.append({"jetson": list(jbox) if jbox else None,
+                           "host": list(hbox) if hbox else None,
+                           "iou": round(iou(list(jbox) if jbox else None,
+                                            list(hbox) if hbox else None), 3),
+                           "compute_ms": r.get("ms") if r else None,
+                           "rtt_ms": round(rtt_ms, 1)})
+            return jbox
+
+    def carry_factory(rgb, box):
+        return _SSHCarry(rgb, box) if showcase_ssh else _HostCarry(rgb, box)
+
     def close():
         if backend is not None:
             backend.close()
-    return backend, acquire, lambda rgb, box: _HostCarry(rgb, box), close
+        if ssh_proc is not None:
+            try:
+                ssh_proc.stdin.close()
+                ssh_proc.wait(timeout=10)
+            except Exception:
+                ssh_proc.kill()
+            (tmp / "parity.json").write_text(json.dumps(parity, indent=1))
+    return backend, acquire, carry_factory, close
 
 
 def build_real_producer(args, slot, W, H):
@@ -278,10 +363,15 @@ def build_real_producer(args, slot, W, H):
     boots the backends once; this convenience keeps run()'s single-flight path one call.
     """
     from p62_producers import WarmColdProducer
+    showcase = getattr(args, "showcase_ssh_carry", False)
     _, acquire, carry_factory, close_backends = build_grounding_carry(
-        args.caption, args.prune_after, args.ssh_host, args.out)
+        args.caption, args.prune_after, args.ssh_host, args.out,
+        showcase_ssh=showcase)
+    # showcase carry lives on the Jetson (oracle designation only -- P6's novelty is the
+    # loop, not grounding; the Jetson q8_0 nadir grounding is non-discriminative, G6).
     prod = WarmColdProducer(slot, acquire, carry_factory,
-                            mode=args.arm, t_prompt=args.t_prompt, w=W, h=H)
+                            mode=args.arm, t_prompt=args.t_prompt, w=W, h=H,
+                            oracle_gt=showcase)
 
     def close():
         prod.close()
@@ -634,6 +724,9 @@ def main():
     ap.add_argument("--prune-after", type=int, default=32,
                     help="SAM2 carry ring length (R-16: 32 co-resident, 100 OOMs)")
     ap.add_argument("--ssh-host", default="jetson")
+    ap.add_argument("--showcase-ssh-carry", action="store_true",
+                    help="P6.2-SHOWCASE: route SAM2 carry LITERALLY to the Jetson over "
+                         "ssh-stdio + score a 3090 twin for parity (oracle designation)")
     ap.add_argument("--seconds", type=float, default=12.0)
     ap.add_argument("--out", default="runs/p62_smoke")
     args = ap.parse_args()

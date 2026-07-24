@@ -491,6 +491,64 @@ def run_coupling(args):
     return coupling
 
 
+# --- P6.2-SHOWCASE: one WARM flight, SAM2 carry routed LITERALLY to the Jetson --------
+
+def run_showcase(args):
+    """P6.2-SHOWCASE flight half: ONE closed-loop WARM flight whose SAM2 carry runs on the
+    Orin over ssh-stdio (build_grounding_carry showcase_ssh=True), with a 3090 twin scored
+    for in-rig parity. Reuses the DELIVERY geometry EXACTLY -- densest_base render + a frozen
+    centred target released from centre -- so the target is in-frame at the warm seed (the
+    run_p62_flight nearest-to-origin path seeded off-screen). Oracle designation, no grounding
+    in the loop (P6's novelty is the loop, not grounding). parity.json is written by the carry's
+    close() into out/_acq."""
+    import carla
+    out_root = Path(args.out); out_root.mkdir(parents=True, exist_ok=True)
+    client = carla.Client(args.host, args.port); client.set_timeout(60.0)
+    print(f"connected: server {client.get_server_version()}", flush=True)
+    world, cam, _ = cr.setup_world(client, args.town, args.vehicles)
+    n_hidden = hide_baked_vehicles(world)
+    base, nbr = densest_base(world)
+    cr.BASE_N, cr.BASE_E = float(base.x), float(base.y)
+    print(f"hid {n_hidden} baked meshes; render base=({base.x:.1f},{base.y:.1f}) nbr={nbr}; "
+          f"alt={args.alt}m SHOWCASE (carry on Jetson via ssh-stdio; 3090 twin for parity)",
+          flush=True)
+
+    backend, acquire, carry_factory, close_backends = build_grounding_carry(
+        CAPTION, args.prune_after, args.ssh_host, out_root / "_acq", showcase_ssh=True)
+    flight = MavlinkFlight(args.mavlink_url, args.alt, kp_lat=args.kp_lat, max_v=args.max_v)
+    res = None
+    try:
+        wname, weather = _weathers()[0]
+        kmh = seed_speed_kmh(0)
+        allv, tgt, tm = _spawn_scene(world, client, args.seed0, weather, base, kmh)
+        if tgt is None:
+            raise SystemExit("showcase: target spawn blocked -- rerun (traffic occupies the centre)")
+        bb = {v.id: v.bounding_box for v in allv}
+        flight.reset()                                  # copter to origin; bridge model-loads meanwhile
+        tgt.set_autopilot(True, 8000)                   # release from centre -> in-frame at warm seed
+        set_target_speed(tm, tgt, kmh)
+        for _ in range(2):
+            world.wait_for_tick()
+        prod = WarmColdProducer(_fresh_slot(), acquire, carry_factory,
+                                mode="warm", t_prompt=args.t_prompt, w=W, h=H,
+                                oracle_gt=True, cold_latency_s=ACQUIRE_WINDOW_S)
+        res = one_flight("warm", world, cam, allv, tgt, bb, flight, prod, out_root / "flight",
+                         t_prompt=args.t_prompt, seconds=args.seconds, caption=CAPTION,
+                         alt=args.alt, scenario=0, reset=False)
+    finally:
+        flight.close()
+        close_backends()                                # writes _acq/parity.json
+        cam.stop(); cam.destroy()
+        client.apply_batch([carla.command.DestroyActor(v)
+                            for v in world.get_actors().filter("vehicle.*")])
+    if res is not None:
+        print(f"coverage={res['coverage']} lock_frames={res['genuine_lock_frames']} "
+              f"seeded={res['producer'].get('seeded')} seed_box={res['producer'].get('seed_box')}",
+              flush=True)
+    print("NOT verified until the written overlays + parity.json are opened and viewed.")
+    return res
+
+
 # --- offline selftest (pure logic; no CARLA / no Jetson) -------------------
 
 def _selftest():
@@ -542,6 +600,9 @@ def main():
                     help="operator-designation arm: seed carry from GT box, skip G6 grounding "
                          "(isolates closed-loop delivery from the nadir-grounding center-bias)")
     ap.add_argument("--out", default="runs/p62_delivery")
+    ap.add_argument("--showcase", action="store_true",
+                    help="P6.2-SHOWCASE: ONE warm flight, SAM2 carry on the Jetson via ssh-stdio "
+                         "(3090 twin scored for parity); reuses the DELIVERY centred-target geometry")
     ap.add_argument("--coupling", action="store_true",
                     help="P6.2-COUPLING: re-fly admitted DELIVERY seeds DECOUPLED (oracle drives "
                          "the PID); coupled arm = the DELIVERY WARM flights, reused from disk")
@@ -550,6 +611,8 @@ def main():
     args = ap.parse_args()
     if args.selftest:
         _selftest(); return
+    if args.showcase:
+        run_showcase(args); return
     if args.coupling:
         run_coupling(args); return
     run(args)

@@ -5,6 +5,8 @@ Spine: `experiments/PART6-PROGRAM-warm-start-significance.md`. Decision:
 `docs/decisions/part6-flight.md` (2026-07-24, "P6.2 matrix runs SAM2 carry on the 3090 rate-capped
 ... with one on-Jetson end-to-end showcase flight alongside"). **Qualitative demonstration, NOT an
 inferential claim** — it is not registered in the Holm family; it demonstrates on-device capability.
+**DONE 2026-07-24: both halves complete** — on-device carry seam (standalone) + closed-loop flight
+(carry on the Orin over ssh-stdio, parity 0.960 vs 3090, coverage 0.495). See Status + Results below.
 
 ## Status / next step
 
@@ -18,23 +20,22 @@ inferential claim** — it is not registered in the Holm family; it demonstrates
   Jetson-carried box on the real car. Harness: `ondevice_carry_demo.py` (host stage+score) +
   `carry_client.py` (on-device). Proof: `proof/ondevice_carry_midrun.png`,
   `proof/ondevice_carry_trace.png`. This de-risks the flight to the CARLA closed loop alone.
-- **The FLIGHT (closed loop) is still BLOCKED on the host GPU (2026-07-24).** The host RTX 3090 has an nvidia
-  kernel-module / userspace version mismatch — loaded module **595.71.05** (`/proc/driver/nvidia/version`)
-  vs libnvidia-ml **595.84** (an apt driver upgrade landed mid-session, 2026-07-22..24, without a
-  module reload). `nvidia-smi` fails: `Failed to initialize NVML: Driver/library version mismatch`.
-  **CARLA cannot render without the GPU, so the closed-loop flight cannot run.** Host `sudo` needs a
-  password (not NOPASSWD, unlike the Jetson), so the fix is a **human action**:
-  ```bash
-  # no display manager holds the GPU here, so a module reload (no reboot) should suffice:
-  sudo rmmod nvidia_uvm nvidia_drm nvidia_modeset nvidia && sudo modprobe nvidia nvidia_uvm
-  nvidia-smi                 # confirm it initializes
-  sudo nvidia-smi -pl 220    # re-apply the 220 W cap (session directive: keep the fans sane)
-  # if rmmod reports the module is in use, a reboot is the fallback.
-  ```
-  Everything downstream of a working GPU is ready: the Jetson SSH-carry path is already proven end to
-  end (R-16 measured it at 2.69 Hz using this exact `jetson_carry_service.py`), the rig exists
-  (`runners/run_p62_flight.py` / `run_p62_matrix.py`), and the carry backend is swappable at one seam
-  (below). Once the GPU initializes this is a single flight + a parity re-check.
+- **The FLIGHT (closed loop) is DONE (2026-07-24).** The host RTX 3090 GPU blocker (kernel module
+  595.71.05 vs libnvidia-ml 595.84 after a mid-session apt driver upgrade) was cleared by a **reboot**
+  (the on-disk module was already 595.84, so a clean boot loads the matching module; a live `rmmod`
+  was impossible — a full GNOME/Xorg session held `/dev/nvidia0`). The 220 W cap is re-applied and
+  now **persists** via a `nvidia-powercap.service` systemd oneshot. One WARM closed-loop flight then
+  ran with SAM2 carry routed **literally to the Orin over ssh-stdio** (the sandbox blocks local
+  port-binding, so `ssh -L` is out; a framed pickle stream over the ssh channel is the transport),
+  a 3090 `_HostCarry` twin scored in lockstep for the in-rig parity gate. The target (a police
+  charger, oracle-designated) was held through a 28 s flight including a road curve, the copter
+  flying its own PID control output. **Result:** post-prompt coverage **0.495** (202/560 lock frames),
+  and the **parity gate PASSES — Jetson-carried vs 3090-twin median IoU 0.960** (min 0.805, 90 % of
+  steps ≥ 0.9) over 52 in-loop carry steps, transport ~2 ms on top of the ~422 ms carry compute
+  (~2.4 Hz round-trip). So the on-device carry reproduces the parity-checked 3090 carry live in the
+  loop. Harness: `runners/run_p62_matrix.py --showcase` (reuses the DELIVERY centred-target geometry)
+  + `carry_ssh_bridge.py` (on the Jetson). Proof: `proof/flight_follow_overlay.png`,
+  `proof/flight_trace.png`.
 
 ## Question
 
@@ -134,15 +135,27 @@ drone's own compute on real imagery. Proof: `proof/ondevice_carry_midrun.png` (v
 Jetson-carried box tight on the car9 sedan, GT coincident), `proof/ondevice_carry_trace.png` (per-step
 IoU 0.86-0.98 above the 0.25 floor + 2.35 Hz on-device compute trace).
 
-## Results — closed-loop flight (TBD — blocked on the host GPU reload)
+## Results — closed-loop flight (RAN 2026-07-24)
+
+One WARM flight, `runs/p62_showcase`, `run_p62_matrix.py --showcase --alt 45 --t-prompt 14
+--seconds 28`. Target `vehicle.dodge.charger_police_2020` (id190), oracle designation, seed box
+`[315.7, 233.0, 354.8, 248.5]` (centred). CARLA Town10HD_Opt + ArduCopter SITL, copter-slaved
+nadir camera, PID driven by the delivered box (`kp_lat=0.05`, `max_v=4.0`).
 
 | metric | value | note |
 |---|---|---|
-| flight lock held (Jetson carry) | | VIEWED overlay frame |
-| parity SSH-Jetson vs 3090 (median IoU/frame) | | expected >= 0.95 (E1 1.000) |
-| SSH round-trip latency (median ms/frame) | | bench artifact, not deployment cost |
+| flight lock held (Jetson carry) | **coverage 0.495**, 202/560 lock frames | VIEWED overlays (idle t=7s, prompt t=14s, curve t=28s); target held through a road curve |
+| parity Jetson-carry vs 3090-twin (median IoU/step) | **0.960** (min 0.805, 90 % ≥ 0.9) | 52/52 steps both-boxed; gate ≥ 0.95 PASS |
+| ssh round-trip (median ms/step) | **424 ms** (~2.4 Hz); compute 422 ms | transport ~2 ms; carry compute dominates, NOT deployment cost |
+| seed / delivery | acquire ≈ 0 s (oracle), first deliver t=1.95 s | idle-window seed, no cold-acquire latency |
 
-**Verdict:** TBD. **Proof (>=2):** (1) mid-run flight overlay with the Jetson-carried track on the
-target, opened with the Read tool; (2) parity figure (SSH-Jetson vs 3090 carry IoU per frame); (3)
-SSH round-trip latency distribution. From a committed `make_proof.py`, reproducible from
+**Verdict:** PASS (qualitative). The closed loop holds a lock on the moving target with SAM2 carry
+running **literally on the Jetson** in-loop; the in-rig parity gate confirms the on-device carry
+reproduces the parity-checked 3090 carry (median IoU 0.960), so E1's mask parity 1.000 holds live.
+The follow is honest, not perfect — coverage 0.495 reflects the 2.69 Hz carry cadence against a
+20 Hz GT (delivered box goes stale between carry updates; IoU sawtooths, peaks ~0.5–0.6). **Proof:**
+(1) `proof/flight_follow_overlay.png` — end-of-flight overlay, GT + Jetson-carried box on the police
+charger driven through a curve, opened with the Read tool; (2) `proof/flight_trace.png` — top:
+delivered-vs-GT IoU over the flight (prompt marked); bottom: on-device carry parity vs the 3090 twin
+per step + ssh round-trip. From a committed `make_proof.py flight`, reproducible from
 `runs/p62_showcase/`.
