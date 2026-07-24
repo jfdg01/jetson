@@ -7,9 +7,9 @@ disagree on the frozen gate, the program doc wins.
 
 ## Status / next step
 
-- **PRE-REGISTERED, NOT RUN.** Shares the R-36 bank (same clips + their distractor_gt boxes). Next:
-  pilot the distractor-grounding base rate (the P5.18 0.65 is end-to-end, confounded), then the
-  paired on-device matrix.
+- **DONE 2026-07-24 — SYMMETRIC [pre-registered branch]: grounding is NOT the bottleneck.** Pilot +
+  paired matrix ran on-device (Jetson q8_0). See Results below. Verdict fed into `claims.json`
+  (`R-38-REG-grounding-isolation`), the three Part-V ledgers, and REMEDIATION R-38.
 
 ## Question
 
@@ -89,15 +89,42 @@ set in the integrity test is not extended). Pins -> `runs/reg/env.json`.
   independent test — inflating the family with a correlated test would be p-hacking by multiplicity.
   Recorded in `docs/decisions/part5-anticipatory.md`.
 
-## Results (TBD)
+## Results (RAN 2026-07-24)
 
 | metric | target phrase | distractor phrase | note |
 |---|---|---|---|
-| pilot base rate | (n/a) | | reachability check |
-| correct (/28) | | | IoU>=0.25 vs respective GT |
-| McNemar b / c | | | b=target-ok&distractor-wrong |
-| deflated p, n_eff, Holm | | | same family as R-36 |
+| pilot base rate (distractor arm only) | (n/a) | 12/14 = 0.857 | **>> P5.18's 0.65 end-to-end** — that 0.65 confounded carry+delivery, not grounding |
+| correct (matrix, gating n=14) | 13/14 | 12/14 | IoU>=0.25 vs respective hand GT (never crossed) |
+| McNemar b / c | — | b=2, c=1 | b=target-ok&distractor-miss; c=target-miss&distractor-ok |
+| deflated p, n_eff | — | p=1.0, n_eff=14 | b+c=3 < floor 6 ⇒ no test reaches α; symmetric branch; Holm moot |
 
-**Verdict:** TBD. **Proof (>=2):** (1) the same frame with target-phrase box (on target) and
-distractor-phrase box (where it landed) drawn and viewed; (2) per-clip target-vs-distractor grounding
-outcome figure (`make_proof.py`).
+**Verdict: SYMMETRIC [pre-registered branch] — grounding is NOT the bottleneck.** The deployed q8_0
+VLM resolves an arbitrary distractor phrase (12/14) nearly as well as the target phrase (13/14) on
+the *same* frame, so the residual select failure is **not isolable to grounding**; attribution
+redirects downstream to carry / delivery, supporting maintain-and-deliver. The OOD
+"collapse-to-salient" reading is **refuted on looking**: the distractor box lands on the distractor
+*object* (car9 = sign gantry, car10 = a distinct distant car, wakeboard8 = the boat). The 3
+discordants on visual audit are IoU-floor near-misses on tiny objects (car10 distractor, wakeboard8
+target) plus person13 — whose distractor GT is the mis-placed-on-empty-ground box R-36 already
+flagged and withdrew; excluding it → b=1/c=1, even more symmetric.
+
+### As-run deviations from the pre-registration
+
+- **`--bank` path.** The intended CLI used `runs/r36/bank`; the bank actually lives under the R-36
+  experiment dir. As-run: `--bank experiments/2026-07-23-r36-maintain-vs-select/runs/r36/bank`
+  (`_load_scenes` globs `*scenes*.json` → `scenes_r36.json`). No repo-root `runs/` symlink exists.
+- **n = 14, not the estimated 28.** The n>=28 estimate assumed a richer SWAP-hard population; R-36
+  established UAV123 is scene-starved for it (14 gating scenes, all distinct base captures). The
+  frozen gate (b+c>=6 one-directional) was still reachable at n_eff=14 — and the effect is genuinely
+  symmetric, so power is not the binder here.
+- **Verdict CLI.** Used `reg_isolate.py --verdict runs/reg` (the `verdict_reg.py` shim in the
+  intended-command block was never authored; the `--verdict` subcommand in `reg_isolate.py` is the
+  same computation).
+- **Machine.** Registered `machine='both'` per S6; grounding boxes are Jetson-only (q8_0,
+  15 W + jetson_clocks, max_side 1024), McNemar on host CPU. No SAM2 / carry / CARLA / 3090.
+
+**Proof (2, committed):** (1) `proof/reg_landing.png` — the same prompt frame with the target-phrase
+box and distractor-phrase box drawn against their own GTs, for one concordant clip + the 3
+discordants, opened with the Read tool (distractor lands on the distractor object; discordants are
+floor near-misses). (2) `proof/reg_per_clip_outcome.png` — per-clip target-vs-distractor outcome grid
+with the frozen b/c/p annotated, reproducible from `runs/reg/results.json` via `make_proof.py`.

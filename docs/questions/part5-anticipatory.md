@@ -662,3 +662,17 @@ prefill; do not re-propose it as a carry improver.
 headroom, not a construction trap). **Visual gate: PASS** — all 4 discordant cells + pilot overlays
 opened with the Read tool; car10's ROI loss (green GT, no red pred) confirmed by eye.
 Detail: [`../../experiments/2026-07-23-p521-roi-carry/README.md`](../../experiments/2026-07-23-p521-roi-carry/README.md).
+
+**RQ-REG (R-38): are the residual select failures a grounding asymmetry — the deployed VLM resolves
+the target referent but not an arbitrary distractor phrase on the same frame — or does the failure
+live downstream in carry/delivery?** **SYMMETRIC — grounding is NOT the bottleneck.** On the same
+prompt frame, target-phrase grounding 13/14 vs distractor-phrase 12/14; paired McNemar b=2, c=1,
+p=1.0 (n_eff=14, b+c=3 < the 6-discordant floor). The pre-registered pilot settles reachability: the
+*isolated* distractor-grounding rate is 12/14 = 0.857, far above P5.18's 0.65 end-to-end — so that
+0.65 was never a grounding deficit, it confounded carry+delivery. The distractor box lands on the
+distractor *object* (viewed: car9 sign gantry, car10 distant car, wakeboard8 boat), refuting the OOD
+"always-lands-on-salient" hypothesis. The residual select failure is therefore **not isolable to
+grounding** → carry/delivery, consistent with P5.19 (carry drift owns 8/10 residuals) and
+maintain-and-deliver. Declared a **dependent decomposition of R-36** in the same Part-V Holm family
+(not double-counted). **Visual gate: PASS.**
+Detail: [`../../experiments/2026-07-23-reg-grounding-isolation/README.md`](../../experiments/2026-07-23-reg-grounding-isolation/README.md).

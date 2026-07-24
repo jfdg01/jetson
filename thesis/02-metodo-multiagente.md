@@ -72,7 +72,7 @@ Estas son las cifras concretas, todas de este repositorio, todas trazables a un
 - **El re-análisis estadístico retroactivo** (`thesis/01-metodo-estadistico.md`)
   encontró que **33 de 65 diseños no podían alcanzar alfa = 0,05 con ningún
   resultado posible** y que solo **6 sobreviven a la corrección de Holm** (el
-  registro creció después a 75 afirmaciones y los supervivientes a 12 por Parte;
+  registro creció después a 76 afirmaciones y los supervivientes a 12 por Parte;
   las cifras vigentes están en `thesis/stats-report.md`). Una
   búsqueda por `mcnemar|binomtest|scipy.stats` sobre el repositorio devolvía cero
   ficheros antes de ese trabajo.

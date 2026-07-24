@@ -61,7 +61,7 @@ written down — the reproduction command is in the task.
 | R-35 | Run P6.2 — Chapter 8 has zero surviving claims | P2 | R-16 | **DONE** 2026-07-24 (P6.2-DELIVERY WARM 23/25 vs COLD 2/25, McNemar p=9.5e-07 survives Holm; P6.2-COUPLING bounded null — Chapter 8 now has a surviving claim) |
 | R-36 | SWAP arm at n>=25 **distinct clips**, not 26 cells from 13 | P2 | R-29 | **DONE** 2026-07-24 (NO [underpowered, scene-starved]; pre-registered MISS branch, b=5/c=0 p=0.0625 at audit-clean n=14; UAV123 is scene-starved for SWAP-hard pairs, 8/10 curated candidates single-target) |
 | R-37 | P5.21 ROI-carry vs plain carry (paired, pilot-gated) | P2 | R-16 | **DONE** 2026-07-24 (TIE [measured negative]; pilot 5/8 headroom PASS; plain 28/34 vs ROI 26/34, b=1/c=3 p=0.625, direction AGAINST ROI; drift-reinforcement fired on car10; closes the last non-capacity carry lever) |
-| R-38 | REG grounding isolation (paired, on-device) | P2 | R-16 | **TODO** |
+| R-38 | REG grounding isolation (paired, on-device) | P2 | R-16 | **DONE** 2026-07-24 (SYMMETRIC [pre-registered branch]; isolated distractor grounding 12/14=0.857 >> P5.18's 0.65 end-to-end; matrix target 13/14 vs distractor 12/14, b=2/c=1 p=1.0; grounding is NOT the bottleneck — residual select failure redirects downstream to carry/delivery; dependent decomposition of R-36, same Holm family) |
 
 `AUTHOR` means the task is a judgement call reserved for the human and **must not
 be resolved by an agent**. An agent may prepare the evidence; it may not pick.
@@ -2136,3 +2136,20 @@ A **dependent decomposition** of R-36 — declared in the same Part-V Holm famil
 independent confirmation. Decides whether the residual select failures are a grounding
 asymmetry or live downstream (carry/delivery). Pilot the isolated distractor-grounding rate
 first (P5.18's 0.65 is end-to-end, confounded). Wave B, on-device (`machine='both'`).
+
+**RESOLVED 2026-07-24 — SYMMETRIC [pre-registered branch]: grounding is NOT the bottleneck.**
+The n>=28 estimate was unreachable — the R-36 bank is scene-starved (14 gating scenes, all
+distinct base captures) — but the frozen gate (b+c>=6 one-directional) *was* reachable at
+n_eff=14, and the effect is genuinely symmetric so power was not the binder. **Pilot:** the
+isolated distractor-grounding rate is 12/14 = 0.857, far above P5.18's 0.65 end-to-end — so
+that 0.65 was never a grounding deficit, it confounded carry+delivery. **Matrix:** on the same
+prompt frame, target-phrase 13/14 vs distractor-phrase 12/14; paired McNemar b=2, c=1, p=1.0
+(n_eff=14, b+c=3 < the 6-discordant floor). The distractor box lands on the distractor *object*
+(viewed: car9 sign gantry, car10 distant car, wakeboard8 boat), refuting the OOD
+"always-lands-on-salient" reading. The 3 discordants are IoU-floor near-misses on tiny objects
+plus person13 — the same mis-placed-GT cell R-36 withdrew (excluding it → b=1/c=1, more
+symmetric). The residual select failure is therefore **not isolable to grounding** → attribution
+redirects downstream to carry/delivery, supporting maintain-and-deliver. Registered
+`R-38-REG-grounding-isolation` in `claims.json` as a dependent decomposition (76 claims;
+"Probadas, no significativas" 22→23; survivors unchanged 12/10). Proof: `proof/reg_landing.png`,
+`proof/reg_per_clip_outcome.png`. Visual gate PASS.

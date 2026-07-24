@@ -1,0 +1,356 @@
+{
+  "machine": "jetson-orin-nano-8gb",
+  "model": "phase3-terse100eos-1024-q8_0.gguf",
+  "mmproj": "mmproj-phase3-terse100eos-1024-f16.gguf",
+  "remote_dir": "/home/jfdg/grounding",
+  "max_side": 1024,
+  "power_mode": "15W + jetson_clocks",
+  "iou_floor": 0.25,
+  "arms": [
+    "distractor"
+  ],
+  "pilot": true,
+  "fps": 30.0,
+  "bank": "experiments/2026-07-23-r36-maintain-vs-select/runs/r36/bank",
+  "rows": [
+    {
+      "clip": "bike1",
+      "f0": 450,
+      "prompt_frame": 690,
+      "gating": true,
+      "arms": [
+        "distractor"
+      ],
+      "distractor_box": [
+        307.2,
+        475.20000000000005,
+        409.6,
+        626.4
+      ],
+      "distractor_gt": [
+        298,
+        478,
+        408,
+        640
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "car10",
+      "f0": 240,
+      "prompt_frame": 480,
+      "gating": true,
+      "arms": [
+        "distractor"
+      ],
+      "distractor_box": [
+        601.5999999999999,
+        187.20000000000002,
+        614.4,
+        201.60000000000002
+      ],
+      "distractor_gt": [
+        614,
+        193,
+        636,
+        209
+      ],
+      "distractor_correct": false
+    },
+    {
+      "clip": "car18",
+      "f0": 150,
+      "prompt_frame": 390,
+      "gating": true,
+      "arms": [
+        "distractor"
+      ],
+      "distractor_box": [
+        1036.8000000000002,
+        309.6,
+        1139.2,
+        396.00000000000006
+      ],
+      "distractor_gt": [
+        1052,
+        313,
+        1148,
+        388
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "car3",
+      "f0": 200,
+      "prompt_frame": 440,
+      "gating": false,
+      "arms": [
+        "distractor"
+      ],
+      "distractor_box": [
+        345.6,
+        201.60000000000002,
+        371.2,
+        237.60000000000002
+      ],
+      "distractor_gt": [
+        344,
+        200,
+        366,
+        240
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "car7",
+      "f0": 460,
+      "prompt_frame": 700,
+      "gating": true,
+      "arms": [
+        "distractor"
+      ],
+      "distractor_box": [
+        678.4000000000001,
+        597.6,
+        780.8,
+        648.0
+      ],
+      "distractor_gt": [
+        660,
+        595,
+        780,
+        650
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "car9",
+      "f0": 300,
+      "prompt_frame": 540,
+      "gating": true,
+      "arms": [
+        "distractor"
+      ],
+      "distractor_box": [
+        627.2,
+        57.6,
+        652.8,
+        79.2
+      ],
+      "distractor_gt": [
+        632,
+        60,
+        658,
+        81
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "person10",
+      "f0": 450,
+      "prompt_frame": 690,
+      "gating": true,
+      "arms": [
+        "distractor"
+      ],
+      "distractor_box": [
+        563.2,
+        612.0,
+        601.5999999999999,
+        698.4
+      ],
+      "distractor_gt": [
+        558,
+        612,
+        600,
+        700
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "person15",
+      "f0": 150,
+      "prompt_frame": 390,
+      "gating": true,
+      "arms": [
+        "distractor"
+      ],
+      "distractor_box": [
+        268.8,
+        309.6,
+        320.0,
+        381.6
+      ],
+      "distractor_gt": [
+        281,
+        312,
+        324,
+        389
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "person20",
+      "f0": 1050,
+      "prompt_frame": 1290,
+      "gating": true,
+      "arms": [
+        "distractor"
+      ],
+      "distractor_box": [
+        704.0,
+        352.8,
+        780.8,
+        561.6
+      ],
+      "distractor_gt": [
+        700,
+        356,
+        780,
+        566
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "wakeboard2",
+      "f0": 150,
+      "prompt_frame": 390,
+      "gating": true,
+      "arms": [
+        "distractor"
+      ],
+      "distractor_box": [
+        601.5999999999999,
+        14.4,
+        742.4,
+        136.8
+      ],
+      "distractor_gt": [
+        567,
+        12,
+        760,
+        195
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "wakeboard3",
+      "f0": 150,
+      "prompt_frame": 390,
+      "gating": true,
+      "arms": [
+        "distractor"
+      ],
+      "distractor_box": [
+        512.0,
+        266.4,
+        563.2,
+        309.6
+      ],
+      "distractor_gt": [
+        501,
+        264,
+        552,
+        302
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "wakeboard6",
+      "f0": 150,
+      "prompt_frame": 390,
+      "gating": true,
+      "arms": [
+        "distractor"
+      ],
+      "distractor_box": [
+        883.1999999999999,
+        446.4,
+        1049.6,
+        532.8
+      ],
+      "distractor_gt": [
+        893,
+        458,
+        1048,
+        530
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "wakeboard8",
+      "f0": 150,
+      "prompt_frame": 390,
+      "gating": true,
+      "arms": [
+        "distractor"
+      ],
+      "distractor_box": [
+        294.40000000000003,
+        244.8,
+        396.8,
+        288.0
+      ],
+      "distractor_gt": [
+        303,
+        242,
+        420,
+        290
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "boat2",
+      "f0": 202,
+      "prompt_frame": 442,
+      "gating": true,
+      "arms": [
+        "distractor"
+      ],
+      "distractor_box": [
+        601.5999999999999,
+        165.6,
+        652.8,
+        187.20000000000002
+      ],
+      "distractor_gt": [
+        607,
+        155,
+        640,
+        177
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "person13",
+      "f0": 244,
+      "prompt_frame": 484,
+      "gating": true,
+      "arms": [
+        "distractor"
+      ],
+      "distractor_box": [
+        204.8,
+        295.2,
+        256.0,
+        381.6
+      ],
+      "distractor_gt": [
+        360,
+        300,
+        408,
+        412
+      ],
+      "distractor_correct": false
+    }
+  ],
+  "pilot_summary": {
+    "distractor_correct": 12,
+    "n": 14,
+    "rate": 0.8571,
+    "wilson95": [
+      0.6005862050302965,
+      0.9599060787285351
+    ]
+  }
+}

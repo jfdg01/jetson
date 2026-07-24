@@ -703,3 +703,25 @@ Record: `experiments/2026-07-23-p521-roi-carry/README.md`.
   pre-declared as content (closes the last non-capacity carry lever). **Given up:** a deployable
   carry win — but the direction is *against* ROI (c=3>b=1) with the drift-reinforcement mechanism
   visible (car10), so there was no win to find. Keep ROI for acquire prefill only.
+
+## R-38 / REG — grounding isolation (2026-07-24)
+
+- **Declared REG a dependent decomposition of R-36, in the SAME Part-V Holm family — not a second
+  independent test.** **Why:** it re-uses the R-36 bank and asks a sub-question of the same
+  population; adding it to the family as if independent would be p-hacking by multiplicity. Registered
+  with an `independence_note` saying so; it is non-significant (p=1.0) and changes no survivor count.
+  **Given up:** the rhetorical option of citing it as a second confirmation — correctly, since it is
+  correlated with R-36.
+- **Piloted the isolated distractor-grounding base rate BEFORE claiming reachability.** **Why:**
+  P5.18's 0.65 distractor rate was end-to-end and confounds carry+delivery; the isolated grounding
+  rate could be better or worse. It came back 12/14 = 0.857 — far higher — which by itself localizes
+  the P5.18 deficit *out of* grounding. **Given up:** nothing; the pilot is cheap and decisive.
+- **Reported the pre-registered SYMMETRIC branch as the finding rather than hardening the bank to
+  chase an asymmetry.** **Why:** the scarcity ceiling is R-36's, inherited here (n=14, not the
+  estimated 28); the frozen gate (b+c>=6 one-directional) was reachable but the effect is genuinely
+  symmetric (b=2, c=1). A symmetric result is honest content — it attributes the residual select
+  failure downstream to carry/delivery, which is what the thesis maintain-and-deliver stance rests on.
+  **Given up:** an independent grounding-asymmetry claim — there was none to find.
+- **Excluded no cell mechanically, but noted person13's b-count is the same mis-placed-GT artifact
+  R-36 withdrew.** **Why:** consistency with the R-36 audit; excluding it makes the result *more*
+  symmetric (b=1/c=1), so the verdict is robust either way. **Given up:** nothing.

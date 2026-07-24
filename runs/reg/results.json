@@ -1,0 +1,572 @@
+{
+  "machine": "jetson-orin-nano-8gb",
+  "model": "phase3-terse100eos-1024-q8_0.gguf",
+  "mmproj": "mmproj-phase3-terse100eos-1024-f16.gguf",
+  "remote_dir": "/home/jfdg/grounding",
+  "max_side": 1024,
+  "power_mode": "15W + jetson_clocks",
+  "iou_floor": 0.25,
+  "arms": [
+    "target",
+    "distractor"
+  ],
+  "pilot": false,
+  "fps": 30.0,
+  "bank": "experiments/2026-07-23-r36-maintain-vs-select/runs/r36/bank",
+  "rows": [
+    {
+      "clip": "bike1",
+      "f0": 450,
+      "prompt_frame": 690,
+      "gating": true,
+      "arms": [
+        "target",
+        "distractor"
+      ],
+      "target_box": [
+        691.2,
+        295.2,
+        729.5999999999999,
+        374.40000000000003
+      ],
+      "target_gt": [
+        678.0,
+        293.0,
+        734.0,
+        390.0
+      ],
+      "target_correct": true,
+      "distractor_box": [
+        307.2,
+        475.20000000000005,
+        409.6,
+        626.4
+      ],
+      "distractor_gt": [
+        298,
+        478,
+        408,
+        640
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "car10",
+      "f0": 240,
+      "prompt_frame": 480,
+      "gating": true,
+      "arms": [
+        "target",
+        "distractor"
+      ],
+      "target_box": [
+        627.2,
+        223.2,
+        665.6,
+        259.2
+      ],
+      "target_gt": [
+        625.0,
+        221.0,
+        663.0,
+        255.0
+      ],
+      "target_correct": true,
+      "distractor_box": [
+        601.5999999999999,
+        187.20000000000002,
+        614.4,
+        201.60000000000002
+      ],
+      "distractor_gt": [
+        614,
+        193,
+        636,
+        209
+      ],
+      "distractor_correct": false
+    },
+    {
+      "clip": "car18",
+      "f0": 150,
+      "prompt_frame": 390,
+      "gating": true,
+      "arms": [
+        "target",
+        "distractor"
+      ],
+      "target_box": [
+        704.0,
+        280.8,
+        793.6,
+        331.2
+      ],
+      "target_gt": [
+        701.0,
+        281.0,
+        806.0,
+        332.0
+      ],
+      "target_correct": true,
+      "distractor_box": [
+        1036.8000000000002,
+        309.6,
+        1139.2,
+        396.00000000000006
+      ],
+      "distractor_gt": [
+        1052,
+        313,
+        1148,
+        388
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "car3",
+      "f0": 200,
+      "prompt_frame": 440,
+      "gating": false,
+      "arms": [
+        "target",
+        "distractor"
+      ],
+      "target_box": [
+        345.6,
+        201.60000000000002,
+        371.2,
+        230.4
+      ],
+      "target_gt": [
+        380.0,
+        257.0,
+        396.0,
+        297.0
+      ],
+      "target_correct": false,
+      "distractor_box": [
+        345.6,
+        201.60000000000002,
+        371.2,
+        237.60000000000002
+      ],
+      "distractor_gt": [
+        344,
+        200,
+        366,
+        240
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "car7",
+      "f0": 460,
+      "prompt_frame": 700,
+      "gating": true,
+      "arms": [
+        "target",
+        "distractor"
+      ],
+      "target_box": [
+        806.4,
+        525.6,
+        896.0,
+        604.8
+      ],
+      "target_gt": [
+        816.0,
+        530.0,
+        895.0,
+        607.0
+      ],
+      "target_correct": true,
+      "distractor_box": [
+        678.4000000000001,
+        597.6,
+        780.8,
+        648.0
+      ],
+      "distractor_gt": [
+        660,
+        595,
+        780,
+        650
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "car9",
+      "f0": 300,
+      "prompt_frame": 540,
+      "gating": true,
+      "arms": [
+        "target",
+        "distractor"
+      ],
+      "target_box": [
+        640.0,
+        381.6,
+        678.4000000000001,
+        432.0
+      ],
+      "target_gt": [
+        640.0,
+        378.0,
+        681.0,
+        436.0
+      ],
+      "target_correct": true,
+      "distractor_box": [
+        627.2,
+        57.6,
+        652.8,
+        79.2
+      ],
+      "distractor_gt": [
+        632,
+        60,
+        658,
+        81
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "person10",
+      "f0": 450,
+      "prompt_frame": 690,
+      "gating": true,
+      "arms": [
+        "target",
+        "distractor"
+      ],
+      "target_box": [
+        614.4,
+        511.2,
+        652.8,
+        597.6
+      ],
+      "target_gt": [
+        608.0,
+        516.0,
+        649.0,
+        609.0
+      ],
+      "target_correct": true,
+      "distractor_box": [
+        563.2,
+        612.0,
+        601.5999999999999,
+        698.4
+      ],
+      "distractor_gt": [
+        558,
+        612,
+        600,
+        700
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "person15",
+      "f0": 150,
+      "prompt_frame": 390,
+      "gating": true,
+      "arms": [
+        "target",
+        "distractor"
+      ],
+      "target_box": [
+        601.5999999999999,
+        151.2,
+        640.0,
+        230.4
+      ],
+      "target_gt": [
+        611.0,
+        153.0,
+        638.0,
+        229.0
+      ],
+      "target_correct": true,
+      "distractor_box": [
+        268.8,
+        309.6,
+        320.0,
+        381.6
+      ],
+      "distractor_gt": [
+        281,
+        312,
+        324,
+        389
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "person20",
+      "f0": 1050,
+      "prompt_frame": 1290,
+      "gating": true,
+      "arms": [
+        "target",
+        "distractor"
+      ],
+      "target_box": [
+        294.40000000000003,
+        338.4,
+        486.4,
+        720.0
+      ],
+      "target_gt": [
+        307.0,
+        338.0,
+        471.0,
+        721.0
+      ],
+      "target_correct": true,
+      "distractor_box": [
+        704.0,
+        352.8,
+        780.8,
+        561.6
+      ],
+      "distractor_gt": [
+        700,
+        356,
+        780,
+        566
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "wakeboard2",
+      "f0": 150,
+      "prompt_frame": 390,
+      "gating": true,
+      "arms": [
+        "target",
+        "distractor"
+      ],
+      "target_box": [
+        665.6,
+        511.2,
+        729.5999999999999,
+        604.8
+      ],
+      "target_gt": [
+        675.0,
+        516.0,
+        730.0,
+        582.0
+      ],
+      "target_correct": true,
+      "distractor_box": [
+        601.5999999999999,
+        14.4,
+        742.4,
+        136.8
+      ],
+      "distractor_gt": [
+        567,
+        12,
+        760,
+        195
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "wakeboard3",
+      "f0": 150,
+      "prompt_frame": 390,
+      "gating": true,
+      "arms": [
+        "target",
+        "distractor"
+      ],
+      "target_box": [
+        665.6,
+        309.6,
+        678.4000000000001,
+        331.2
+      ],
+      "target_gt": [
+        662.0,
+        305.0,
+        674.0,
+        333.0
+      ],
+      "target_correct": true,
+      "distractor_box": [
+        512.0,
+        266.4,
+        563.2,
+        309.6
+      ],
+      "distractor_gt": [
+        501,
+        264,
+        552,
+        302
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "wakeboard6",
+      "f0": 150,
+      "prompt_frame": 390,
+      "gating": true,
+      "arms": [
+        "target",
+        "distractor"
+      ],
+      "target_box": [
+        460.79999999999995,
+        482.40000000000003,
+        486.4,
+        518.4
+      ],
+      "target_gt": [
+        468.0,
+        489.0,
+        488.0,
+        525.0
+      ],
+      "target_correct": true,
+      "distractor_box": [
+        883.1999999999999,
+        446.4,
+        1049.6,
+        532.8
+      ],
+      "distractor_gt": [
+        893,
+        458,
+        1048,
+        530
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "wakeboard8",
+      "f0": 150,
+      "prompt_frame": 390,
+      "gating": true,
+      "arms": [
+        "target",
+        "distractor"
+      ],
+      "target_box": [
+        640.0,
+        273.6,
+        652.8,
+        295.2
+      ],
+      "target_gt": [
+        650.0,
+        274.0,
+        663.0,
+        295.0
+      ],
+      "target_correct": false,
+      "distractor_box": [
+        294.40000000000003,
+        244.8,
+        396.8,
+        288.0
+      ],
+      "distractor_gt": [
+        303,
+        242,
+        420,
+        290
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "boat2",
+      "f0": 202,
+      "prompt_frame": 442,
+      "gating": true,
+      "arms": [
+        "target",
+        "distractor"
+      ],
+      "target_box": [
+        473.6,
+        432.0,
+        652.8,
+        597.6
+      ],
+      "target_gt": [
+        476.0,
+        429.0,
+        654.0,
+        579.0
+      ],
+      "target_correct": true,
+      "distractor_box": [
+        601.5999999999999,
+        165.6,
+        652.8,
+        187.20000000000002
+      ],
+      "distractor_gt": [
+        607,
+        155,
+        640,
+        177
+      ],
+      "distractor_correct": true
+    },
+    {
+      "clip": "person13",
+      "f0": 244,
+      "prompt_frame": 484,
+      "gating": true,
+      "arms": [
+        "target",
+        "distractor"
+      ],
+      "target_box": [
+        742.4,
+        266.4,
+        780.8,
+        345.59999999999997
+      ],
+      "target_gt": [
+        744.0,
+        254.0,
+        783.0,
+        350.0
+      ],
+      "target_correct": true,
+      "distractor_box": [
+        204.8,
+        295.2,
+        256.0,
+        381.6
+      ],
+      "distractor_gt": [
+        360,
+        300,
+        408,
+        412
+      ],
+      "distractor_correct": false
+    }
+  ],
+  "verdict": {
+    "b_obs": 2,
+    "c_obs": 1,
+    "n_rows": 14,
+    "n_eff": 14,
+    "b": 2,
+    "c": 1,
+    "p_raw": 1.0,
+    "p_deflated": 1.0,
+    "min_discordant_for_alpha": 6,
+    "reachable": true,
+    "gate_pass": false,
+    "branch": "symmetric"
+  }
+}

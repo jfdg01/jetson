@@ -976,3 +976,31 @@ with P5.15 (carry is not the fragile part) and P5.20 (bigger SAM2 recovers nothi
 PASS** — all 4 discordant cells + the pilot overlays opened with the Read tool.
 Proof: `proof/p521_drift_reinforcement.png` (plain-holds vs ROI-drops vs the one ROI-win),
 `proof/p521_per_seq_iou.png` (per-seq plain-vs-ROI IoU scatter).
+
+### R-38 / REG — grounding isolation: target-phrase vs distractor-phrase on the same frame (RAN 2026-07-24)
+
+Isolates the grounding stage of the select pipeline from everything downstream (carry / delivery).
+On the ONE prompt frame of each R-36-bank scene the deployed Jetson q8_0 VLM grounds twice — target
+phrase and distractor phrase — each box scored by IoU>=0.25 against its OWN hand GT (never crossed).
+On-device (phase3-terse100eos-1024, 15 W + jetson_clocks, max_side 1024, JetsonBackend over SSH);
+McNemar on host CPU; no SAM2 / carry / CARLA / 3090.
+
+| metric | target phrase | distractor phrase | note |
+|---|---|---|---|
+| pilot base rate (distractor arm only) | (n/a) | 12/14 = 0.857 | **>> P5.18's 0.65 end-to-end** — that 0.65 confounded carry+delivery, not grounding |
+| correct (matrix, gating n=14) | 13/14 | 12/14 | IoU>=0.25 vs respective hand GT |
+| McNemar b / c | — | b=2, c=1 | b=target-ok&distractor-miss; c=target-miss&distractor-ok |
+| deflated p, n_eff, Holm | — | p=1.0, n_eff=14 | b+c=3 < floor 6 ⇒ no test reaches α; symmetric |
+
+**Verdict: SYMMETRIC [pre-registered branch — grounding is NOT the bottleneck].** The deployed VLM
+resolves an arbitrary distractor phrase (12/14) nearly as well as the target phrase (13/14) on the
+same frame → the residual select failure is **not isolable to grounding**; attribution redirects
+downstream to carry/delivery, supporting maintain-and-deliver. The OOD "collapse-to-salient" reading
+is **refuted on looking**: the distractor box lands on the distractor *object* (car9 = the sign
+gantry, car10 = a distinct distant car, wakeboard8 = the boat), not the salient target. The 3
+discordants on visual audit are IoU-floor near-misses on tiny objects (car10 distractor,
+wakeboard8 target) plus person13 — whose distractor GT is the mis-placed-on-empty-ground box R-36
+already flagged; excluding it → b=1/c=1, even more symmetric. **Dependent decomposition of R-36**
+(same Part-V Holm family, not an independent survivor). **Visual gate: PASS** — `reg_landing.png`
+(4 cells) + `reg_per_clip_outcome.png` opened with the Read tool.
+Proof: `proof/reg_landing.png`, `proof/reg_per_clip_outcome.png`.
