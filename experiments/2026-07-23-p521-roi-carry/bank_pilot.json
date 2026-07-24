@@ -1,0 +1,36 @@
+{
+ "sequences": [
+  {
+   "seq": "uav4",
+   "caption": "the drone"
+  },
+  {
+   "seq": "car13",
+   "caption": "the car"
+  },
+  {
+   "seq": "uav5",
+   "caption": "the drone"
+  },
+  {
+   "seq": "car11",
+   "caption": "the car"
+  },
+  {
+   "seq": "car15",
+   "caption": "the car"
+  },
+  {
+   "seq": "truck2",
+   "caption": "the truck"
+  },
+  {
+   "seq": "wakeboard9",
+   "caption": "the wakeboarder"
+  },
+  {
+   "seq": "wakeboard6",
+   "caption": "the wakeboarder"
+  }
+ ]
+}

@@ -1,0 +1,89 @@
+{
+  "experiment": "P5.21",
+  "arm": "roi",
+  "seq": "building3",
+  "source": "building3",
+  "caption": "the building",
+  "seed_idx": 0,
+  "final_idx": 828,
+  "n_steps": 76,
+  "prune_after": 32,
+  "reanchor_stride": 90,
+  "carry_stride": 11,
+  "carry_hz": 2.69,
+  "machine": "SAM2 carry=RTX-3090 (timing not claimed on-device); Arm-B ROI re-anchor VLM=Jetson-Orin-Nano-8GB via JetsonBackend; per-seq PASS/McNemar=both",
+  "final_box": [
+    107.0,
+    157.0,
+    168.0,
+    185.0
+  ],
+  "final_iou": 0.2711,
+  "pass": true,
+  "reanchors": [
+    {
+      "frame": 88,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=3.91",
+      "accepted": false
+    },
+    {
+      "frame": 176,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=7.39",
+      "accepted": false
+    },
+    {
+      "frame": 264,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=11.16",
+      "accepted": false
+    },
+    {
+      "frame": 352,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=15.26",
+      "accepted": false
+    },
+    {
+      "frame": 440,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=19.73",
+      "accepted": false
+    },
+    {
+      "frame": 528,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=24.86",
+      "accepted": false
+    },
+    {
+      "frame": 616,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=30.25",
+      "accepted": false
+    },
+    {
+      "frame": 704,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=32.67",
+      "accepted": false
+    },
+    {
+      "frame": 792,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=32.53",
+      "accepted": false
+    }
+  ],
+  "drift_reinforced": false
+}

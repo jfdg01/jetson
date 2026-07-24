@@ -1,0 +1,35 @@
+{
+  "experiment": "P5.21",
+  "arm": "roi",
+  "seq": "uav3",
+  "source": "uav3",
+  "caption": "the drone",
+  "seed_idx": 0,
+  "final_idx": 264,
+  "n_steps": 24,
+  "prune_after": 32,
+  "reanchor_stride": 90,
+  "carry_stride": 11,
+  "carry_hz": 2.69,
+  "machine": "SAM2 carry=RTX-3090 (timing not claimed on-device); Arm-B ROI re-anchor VLM=Jetson-Orin-Nano-8GB via JetsonBackend; per-seq PASS/McNemar=both",
+  "final_box": null,
+  "final_iou": 0.0,
+  "pass": false,
+  "reanchors": [
+    {
+      "frame": 88,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.27",
+      "accepted": false
+    },
+    {
+      "frame": 176,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.22",
+      "accepted": false
+    }
+  ],
+  "drift_reinforced": false
+}

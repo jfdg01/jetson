@@ -1,0 +1,25 @@
+{
+  "experiment": "P5.21",
+  "arm": "plain",
+  "seq": "wakeboard5",
+  "source": "wakeboard5",
+  "caption": "the wakeboarder",
+  "seed_idx": 0,
+  "final_idx": 1674,
+  "n_steps": 153,
+  "prune_after": 32,
+  "reanchor_stride": 90,
+  "carry_stride": 11,
+  "carry_hz": 2.69,
+  "machine": "SAM2 carry=RTX-3090 (timing not claimed on-device); Arm-B ROI re-anchor VLM=Jetson-Orin-Nano-8GB via JetsonBackend; per-seq PASS/McNemar=both",
+  "final_box": [
+    665.0,
+    363.0,
+    673.0,
+    386.0
+  ],
+  "final_iou": 0.7263,
+  "pass": true,
+  "reanchors": [],
+  "drift_reinforced": false
+}

@@ -643,3 +643,22 @@ supports maintain-and-deliver rather than refuting it.
 **Visual gate: PASS.** All discordant + SWAP-pass cells opened with the Read tool; the audit
 caught and excluded person13's mis-placed distractor GT (would have manufactured a fragile p=0.031).
 Detail: [`../../experiments/2026-07-23-r36-maintain-vs-select/README.md`](../../experiments/2026-07-23-r36-maintain-vs-select/README.md).
+
+## RQ-P5.21 (ROI-carry vs plain carry, 2026-07-24)
+
+**Does the ROI-crop + lanczos re-anchor carry beat plain SAM2 carry as a paired outcome on hard
+sequences?** **NO — TIE [measured negative].** Plain 28/34 vs ROI 26/34; McNemar b=1, c=3 (p=0.625,
+n_eff=34) — the discordants run *against* ROI, so the lever is net-negative, not merely
+indistinguishable. The lever was adopted for cold-acquire *prefill* on a single-frame-IoU argument
+and had never been tested as a carry *outcome*; here it is, and it does not improve carry survival.
+The pre-registered drift-reinforcement failure fired: on car10 the re-anchor cropped around an
+already-drifted predicted box, the on-device VLM grounded off-target, and the track was lost while
+plain held (IoU 0.86). One b-side win exists (car14: ROI recovers a small car plain lost) but is
+outweighed 3-to-1. This closes the **last non-capacity carry lever** — bigger SAM2 was already dead
+(P5.20) and the carry was already shown not to be the fragile part (P5.15). Keep ROI for acquire
+prefill; do not re-propose it as a carry improver.
+
+**Pilot / S2 gate: PASS** (plain base rate 5/8 = 0.62 on the held-out bank, strictly in (0,1) — real
+headroom, not a construction trap). **Visual gate: PASS** — all 4 discordant cells + pilot overlays
+opened with the Read tool; car10's ROI loss (green GT, no red pred) confirmed by eye.
+Detail: [`../../experiments/2026-07-23-p521-roi-carry/README.md`](../../experiments/2026-07-23-p521-roi-carry/README.md).

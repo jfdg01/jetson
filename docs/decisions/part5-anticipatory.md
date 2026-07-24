@@ -682,3 +682,24 @@ Record: `experiments/2026-07-23-r36-maintain-vs-select/README.md`.
   it" rule — its `distractor_gt_prompt` sat on empty ground, not on the green-shirt person; scoring
   SWAP against it would have manufactured a discordant and pushed n=15 across p=0.031 on a defect.
   **Given up:** the only reading that clears significance — correctly, because it was an artifact.
+
+### P5.21 — as-run: the pilot gate held, the lever closed as a measured negative (2026-07-24)
+
+Record: `experiments/2026-07-23-p521-roi-carry/README.md`.
+
+- **Rate-capped the carry to the deployed 2.69 Hz (R-16; stride 11) instead of carrying every
+  frame.** **Why:** full-frame carry overstates robustness vs the co-resident deployment and
+  ceilings both arms (the P5.15 24/25 regime), which would manufacture a tie by construction. The
+  device-faithful rate is the honest test bed. **Given up:** the optimistic full-frame numbers —
+  correctly, they are not what deploys.
+- **Reused the existing frozen `carry_p521.py` (pilot/matrix/verdict subcommands, 10-case
+  `--selftest`) as the harness of record; deleted redundant draft scripts.** **Why:** it was
+  pre-registered with the design frozen; re-authoring would fork the record. Fixed one real bug in
+  it — the roi-arm `replay_e24` import pointed at the wrong experiment dir (never exercised by
+  `--selftest`, which skips the Jetson). **Given up:** nothing.
+- **Locked the gate on the pilot, then reported the tie rather than hardening the bank to chase a
+  win.** **Why:** the pilot showed genuine headroom (5/8), so the bank is neither trivial nor
+  impossible — the tie is a real outcome, not an artifact of an easy/hard bank. A tie was
+  pre-declared as content (closes the last non-capacity carry lever). **Given up:** a deployable
+  carry win — but the direction is *against* ROI (c=3>b=1) with the drift-reinforcement mechanism
+  visible (car10), so there was no win to find. Keep ROI for acquire prefill only.

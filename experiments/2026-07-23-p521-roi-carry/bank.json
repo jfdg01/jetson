@@ -1,0 +1,140 @@
+{
+ "sequences": [
+  {
+   "seq": "uav2",
+   "caption": "the drone"
+  },
+  {
+   "seq": "uav3",
+   "caption": "the drone"
+  },
+  {
+   "seq": "uav7",
+   "caption": "the drone"
+  },
+  {
+   "seq": "uav6",
+   "caption": "the drone"
+  },
+  {
+   "seq": "uav8",
+   "caption": "the drone"
+  },
+  {
+   "seq": "car12",
+   "caption": "the car"
+  },
+  {
+   "seq": "wakeboard2",
+   "caption": "the wakeboarder"
+  },
+  {
+   "seq": "wakeboard5",
+   "caption": "the wakeboarder"
+  },
+  {
+   "seq": "person21",
+   "caption": "the person"
+  },
+  {
+   "seq": "wakeboard8",
+   "caption": "the wakeboarder"
+  },
+  {
+   "seq": "truck3",
+   "caption": "the truck"
+  },
+  {
+   "seq": "wakeboard4",
+   "caption": "the wakeboarder"
+  },
+  {
+   "seq": "wakeboard7",
+   "caption": "the wakeboarder"
+  },
+  {
+   "seq": "person10",
+   "caption": "the person"
+  },
+  {
+   "seq": "wakeboard3",
+   "caption": "the wakeboarder"
+  },
+  {
+   "seq": "building3",
+   "caption": "the building"
+  },
+  {
+   "seq": "person22",
+   "caption": "the person"
+  },
+  {
+   "seq": "bike3",
+   "caption": "the bicycle"
+  },
+  {
+   "seq": "car14",
+   "caption": "the car"
+  },
+  {
+   "seq": "car17",
+   "caption": "the car"
+  },
+  {
+   "seq": "car3",
+   "caption": "the car"
+  },
+  {
+   "seq": "car18",
+   "caption": "the car"
+  },
+  {
+   "seq": "person6",
+   "caption": "the person"
+  },
+  {
+   "seq": "person1",
+   "caption": "the person"
+  },
+  {
+   "seq": "car7",
+   "caption": "the car"
+  },
+  {
+   "seq": "bike1",
+   "caption": "the bicycle"
+  },
+  {
+   "seq": "person13",
+   "caption": "the person"
+  },
+  {
+   "seq": "car9",
+   "caption": "the car"
+  },
+  {
+   "seq": "car10",
+   "caption": "the car"
+  },
+  {
+   "seq": "person15",
+   "caption": "the person"
+  },
+  {
+   "seq": "person20",
+   "caption": "the person"
+  },
+  {
+   "seq": "person18",
+   "caption": "the person"
+  },
+  {
+   "seq": "boat2",
+   "caption": "the boat"
+  },
+  {
+   "seq": "boat3",
+   "caption": "the boat"
+  }
+ ]
+}

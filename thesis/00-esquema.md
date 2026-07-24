@@ -120,9 +120,10 @@ Los tres movimientos que salen de ahí:
 
 1. **Cap. 7, de 14 a 12.** Es el capítulo menos comprimido del esquema original
    (82 % de retención, frente al 35 % del Cap. 5) y descansa sobre **una sola
-   prueba superviviente no definicional**, P5.2a. Baja, pero no baja a 8: son 26
-   de las 74 afirmaciones del registro, diez de ellas negativos que **acotan la
-   contribución**, y P5.15 es el diseño mejor potenciado de la Parte V (24/25,
+   prueba superviviente no definicional**, P5.2a. Baja, pero no baja a 8: son 28
+   de las 75 afirmaciones del registro, once de ellas negativos que **acotan la
+   contribución** (P5.21 cierra la última palanca de carry no-de-capacidad),
+   y P5.15 es el diseño mejor potenciado de la Parte V (24/25,
    n = 25, p = 0,0029) aunque no sobreviva a Holm (0,0756).
 2. **Cap. 5, de 9 a 11.** Era el más comprimido del documento y es ahora el más
    fuerte en inferencia de placa: R-14 y R-16 aterrizaron después de escribirse
@@ -271,7 +272,7 @@ modo que la tabla no puede volver a descuadrarse en silencio.
 > debe llevar. Es demoledora y es cierta. «38» se refuta en un minuto, y quien la
 > refute deja de creerse el resto del capítulo.
 
-Sobre las **74** afirmaciones del registro — no «74 afirmaciones con puerta»,
+Sobre las **75** afirmaciones del registro — no «75 afirmaciones con puerta»,
 como decía este esquema hasta el 2026-07-23: **24 de ellas nunca tuvieron nada
 que contrastar** (12 descriptivas por intención y 12 de un brazo sin puerta
 pre-registrada), y ese es justamente uno de los hallazgos. Estas cifras se regeneran desde

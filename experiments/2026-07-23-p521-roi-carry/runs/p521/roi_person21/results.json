@@ -1,0 +1,54 @@
+{
+  "experiment": "P5.21",
+  "arm": "roi",
+  "seq": "person21",
+  "source": "person21",
+  "caption": "the person",
+  "seed_idx": 0,
+  "final_idx": 486,
+  "n_steps": 45,
+  "prune_after": 32,
+  "reanchor_stride": 90,
+  "carry_stride": 11,
+  "carry_hz": 2.69,
+  "machine": "SAM2 carry=RTX-3090 (timing not claimed on-device); Arm-B ROI re-anchor VLM=Jetson-Orin-Nano-8GB via JetsonBackend; per-seq PASS/McNemar=both",
+  "final_box": [
+    1176.0,
+    557.0,
+    1249.0,
+    720.0
+  ],
+  "final_iou": 0.1453,
+  "pass": false,
+  "reanchors": [
+    {
+      "frame": 88,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=4.14",
+      "accepted": false
+    },
+    {
+      "frame": 176,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=4.19",
+      "accepted": false
+    },
+    {
+      "frame": 264,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=9.20",
+      "accepted": false
+    },
+    {
+      "frame": 440,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=34.22",
+      "accepted": false
+    }
+  ],
+  "drift_reinforced": false
+}

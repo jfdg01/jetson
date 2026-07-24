@@ -1,0 +1,61 @@
+{
+  "experiment": "P5.21",
+  "arm": "roi",
+  "seq": "bike3",
+  "source": "bike3",
+  "caption": "the bicycle",
+  "seed_idx": 0,
+  "final_idx": 432,
+  "n_steps": 40,
+  "prune_after": 32,
+  "reanchor_stride": 90,
+  "carry_stride": 11,
+  "carry_hz": 2.69,
+  "machine": "SAM2 carry=RTX-3090 (timing not claimed on-device); Arm-B ROI re-anchor VLM=Jetson-Orin-Nano-8GB via JetsonBackend; per-seq PASS/McNemar=both",
+  "final_box": [
+    1195.0,
+    619.0,
+    1219.0,
+    683.0
+  ],
+  "final_iou": 0.7642,
+  "pass": true,
+  "reanchors": [
+    {
+      "frame": 88,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=2.94",
+      "accepted": false
+    },
+    {
+      "frame": 176,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=6.26",
+      "accepted": false
+    },
+    {
+      "frame": 264,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=8.72",
+      "accepted": false
+    },
+    {
+      "frame": 352,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=3.35",
+      "accepted": false
+    },
+    {
+      "frame": 432,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=9.04",
+      "accepted": false
+    }
+  ],
+  "drift_reinforced": false
+}

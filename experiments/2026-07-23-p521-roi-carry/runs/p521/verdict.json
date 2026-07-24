@@ -1,0 +1,18 @@
+{
+  "b": 1,
+  "c": 3,
+  "n_pairs": 34,
+  "n_effective": 34,
+  "p_deflated": 0.625,
+  "p_raw": 0.625,
+  "reading": "no significativa (b=1, c=3); hac\u00edan falta >=6 discordantes en una direcci\u00f3n, hubo 3",
+  "reject_h0": false,
+  "plain_pass": 28,
+  "roi_pass": 26,
+  "c_side_seqs": [
+    "bike1",
+    "car10",
+    "person15"
+  ],
+  "c_side_drift_reinforced": 1
+}

@@ -1,0 +1,140 @@
+{
+ "scenes": [
+  {
+   "clip": "uav2",
+   "gating": true
+  },
+  {
+   "clip": "uav3",
+   "gating": true
+  },
+  {
+   "clip": "uav7",
+   "gating": true
+  },
+  {
+   "clip": "uav6",
+   "gating": true
+  },
+  {
+   "clip": "uav8",
+   "gating": true
+  },
+  {
+   "clip": "car12",
+   "gating": true
+  },
+  {
+   "clip": "wakeboard2",
+   "gating": true
+  },
+  {
+   "clip": "wakeboard5",
+   "gating": true
+  },
+  {
+   "clip": "person21",
+   "gating": true
+  },
+  {
+   "clip": "wakeboard8",
+   "gating": true
+  },
+  {
+   "clip": "truck3",
+   "gating": true
+  },
+  {
+   "clip": "wakeboard4",
+   "gating": true
+  },
+  {
+   "clip": "wakeboard7",
+   "gating": true
+  },
+  {
+   "clip": "person10",
+   "gating": true
+  },
+  {
+   "clip": "wakeboard3",
+   "gating": true
+  },
+  {
+   "clip": "building3",
+   "gating": true
+  },
+  {
+   "clip": "person22",
+   "gating": true
+  },
+  {
+   "clip": "bike3",
+   "gating": true
+  },
+  {
+   "clip": "car14",
+   "gating": true
+  },
+  {
+   "clip": "car17",
+   "gating": true
+  },
+  {
+   "clip": "car3",
+   "gating": true
+  },
+  {
+   "clip": "car18",
+   "gating": true
+  },
+  {
+   "clip": "person6",
+   "gating": true
+  },
+  {
+   "clip": "person1",
+   "gating": true
+  },
+  {
+   "clip": "car7",
+   "gating": true
+  },
+  {
+   "clip": "bike1",
+   "gating": true
+  },
+  {
+   "clip": "person13",
+   "gating": true
+  },
+  {
+   "clip": "car9",
+   "gating": true
+  },
+  {
+   "clip": "car10",
+   "gating": true
+  },
+  {
+   "clip": "person15",
+   "gating": true
+  },
+  {
+   "clip": "person20",
+   "gating": true
+  },
+  {
+   "clip": "person18",
+   "gating": true
+  },
+  {
+   "clip": "boat2",
+   "gating": true
+  },
+  {
+   "clip": "boat3",
+   "gating": true
+  }
+ ]
+}

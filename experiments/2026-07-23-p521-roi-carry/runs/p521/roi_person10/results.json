@@ -1,0 +1,96 @@
+{
+  "experiment": "P5.21",
+  "arm": "roi",
+  "seq": "person10",
+  "source": "person10",
+  "caption": "the person",
+  "seed_idx": 0,
+  "final_idx": 1020,
+  "n_steps": 93,
+  "prune_after": 32,
+  "reanchor_stride": 90,
+  "carry_stride": 11,
+  "carry_hz": 2.69,
+  "machine": "SAM2 carry=RTX-3090 (timing not claimed on-device); Arm-B ROI re-anchor VLM=Jetson-Orin-Nano-8GB via JetsonBackend; per-seq PASS/McNemar=both",
+  "final_box": [
+    410.0,
+    110.0,
+    448.0,
+    202.0
+  ],
+  "final_iou": 0.8078,
+  "pass": true,
+  "reanchors": [
+    {
+      "frame": 88,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=2.69",
+      "accepted": false
+    },
+    {
+      "frame": 176,
+      "drifted": false,
+      "clamped": false,
+      "reason": "ok",
+      "accepted": true
+    },
+    {
+      "frame": 264,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.12",
+      "accepted": false
+    },
+    {
+      "frame": 352,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=2.81",
+      "accepted": false
+    },
+    {
+      "frame": 440,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=3.14",
+      "accepted": false
+    },
+    {
+      "frame": 528,
+      "drifted": false,
+      "clamped": false,
+      "reason": "ok",
+      "accepted": true
+    },
+    {
+      "frame": 704,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=2.20",
+      "accepted": false
+    },
+    {
+      "frame": 792,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=3.05",
+      "accepted": false
+    },
+    {
+      "frame": 880,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=2.86",
+      "accepted": false
+    },
+    {
+      "frame": 968,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=5.92",
+      "accepted": false
+    }
+  ],
+  "drift_reinforced": false
+}

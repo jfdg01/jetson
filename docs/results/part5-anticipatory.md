@@ -948,3 +948,31 @@ reachable clean n.** The powered ceiling of the select negative; supports mainta
 Proof: `runs/r36/bank/curation_r36_findings.json` (8/10 scarcity), `proof/r36_scarcity.png`,
 `proof/r36_person13_swap_delivers_target.png` (the select failure + the mis-placed GT the audit caught).
 Detail: [`../../experiments/2026-07-23-r36-maintain-vs-select/README.md`](../../experiments/2026-07-23-r36-maintain-vs-select/README.md).
+
+## P5.21 — ROI-crop re-anchor carry vs plain SAM2 carry, paired McNemar (2026-07-24)
+
+Record: [`../../experiments/2026-07-23-p521-roi-carry/README.md`](../../experiments/2026-07-23-p521-roi-carry/README.md).
+The ROI-crop + lanczos re-anchor (adopted `293c83b` on a *prefill-cost / single-frame-IoU* argument
+for cold acquire) tested for the first time as a paired *carry-outcome* contrast on hard-carry
+UAV123 sequences. Arm A = plain `StreamCarry` (GT frame-0 seed, `prune_after=32`); Arm B = same carry
++ `roi_reanchor` (MARGIN 2.0 / RES 512 / LANCZOS4) grounding each crop on the **Jetson** q8_0. Carry
+rate-capped to the deployed 2.69 Hz (R-16; stride 11), re-anchor every ~90 source frames. Unit =
+distinct UAV123 source; all 34 distinct ⇒ n_eff = 34.
+
+| stage | plain | ROI | note |
+|---|---|---|---|
+| pilot base rate (held-out 8) | 5/8 = 0.62 | (n/a) | **HEADROOM OK** (0<rate<1) — S2 gate locked before the matrix |
+| final-IoU PASS (matrix, n=34) | 28/34 | 26/34 | ROI **net-negative** |
+| McNemar b / c | — | b=1, c=3 | b=ROI-pass&plain-fail; **c>b, wrong direction** |
+| deflated p, n_eff, Holm | — | p=0.625, n_eff=34 | b+c=4 < floor 6 ⇒ no test reaches α; Holm moot |
+| drift-reinforcement (c-side) | (n/a) | 1/3 | **car10** guard-flagged; bike1, person15 unflagged |
+
+**Verdict: TIE [measured negative — closes the last non-capacity carry lever].** ROI-carry does not
+beat plain SAM2 carry; it mildly regresses. The single b-side win (car14: ROI re-anchor recovers a
+small car plain lost) is outweighed by 3 c-side losses, one the pre-registered drift-reinforcement
+failure made concrete (car10: re-anchor cropped a drifted box → grounded off-target → track lost,
+while plain held 0.86). Keep the lever for acquire *prefill*; it is not a carry improver. Consistent
+with P5.15 (carry is not the fragile part) and P5.20 (bigger SAM2 recovers nothing). **Visual gate:
+PASS** — all 4 discordant cells + the pilot overlays opened with the Read tool.
+Proof: `proof/p521_drift_reinforcement.png` (plain-holds vs ROI-drops vs the one ROI-win),
+`proof/p521_per_seq_iou.png` (per-seq plain-vs-ROI IoU scatter).

@@ -1,0 +1,25 @@
+{
+  "experiment": "P5.21",
+  "arm": "plain",
+  "seq": "building3",
+  "source": "building3",
+  "caption": "the building",
+  "seed_idx": 0,
+  "final_idx": 828,
+  "n_steps": 76,
+  "prune_after": 32,
+  "reanchor_stride": 90,
+  "carry_stride": 11,
+  "carry_hz": 2.69,
+  "machine": "SAM2 carry=RTX-3090 (timing not claimed on-device); Arm-B ROI re-anchor VLM=Jetson-Orin-Nano-8GB via JetsonBackend; per-seq PASS/McNemar=both",
+  "final_box": [
+    107.0,
+    157.0,
+    168.0,
+    185.0
+  ],
+  "final_iou": 0.2711,
+  "pass": true,
+  "reanchors": [],
+  "drift_reinforced": false
+}

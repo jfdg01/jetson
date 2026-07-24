@@ -1,0 +1,25 @@
+{
+  "experiment": "P5.21",
+  "arm": "plain",
+  "seq": "car18",
+  "source": "car18",
+  "caption": "the car",
+  "seed_idx": 0,
+  "final_idx": 1206,
+  "n_steps": 110,
+  "prune_after": 32,
+  "reanchor_stride": 90,
+  "carry_stride": 11,
+  "carry_hz": 2.69,
+  "machine": "SAM2 carry=RTX-3090 (timing not claimed on-device); Arm-B ROI re-anchor VLM=Jetson-Orin-Nano-8GB via JetsonBackend; per-seq PASS/McNemar=both",
+  "final_box": [
+    842.0,
+    513.0,
+    1003.0,
+    609.0
+  ],
+  "final_iou": 0.9576,
+  "pass": true,
+  "reanchors": [],
+  "drift_reinforced": false
+}

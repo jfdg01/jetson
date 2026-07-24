@@ -1,0 +1,89 @@
+{
+  "experiment": "P5.21",
+  "arm": "roi",
+  "seq": "wakeboard3",
+  "source": "wakeboard3",
+  "caption": "the wakeboarder",
+  "seed_idx": 0,
+  "final_idx": 822,
+  "n_steps": 75,
+  "prune_after": 32,
+  "reanchor_stride": 90,
+  "carry_stride": 11,
+  "carry_hz": 2.69,
+  "machine": "SAM2 carry=RTX-3090 (timing not claimed on-device); Arm-B ROI re-anchor VLM=Jetson-Orin-Nano-8GB via JetsonBackend; per-seq PASS/McNemar=both",
+  "final_box": [
+    1181.0,
+    429.0,
+    1250.0,
+    498.0
+  ],
+  "final_iou": 0.8451,
+  "pass": true,
+  "reanchors": [
+    {
+      "frame": 88,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=5.40",
+      "accepted": false
+    },
+    {
+      "frame": 176,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=2.78",
+      "accepted": false
+    },
+    {
+      "frame": 264,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.31",
+      "accepted": false
+    },
+    {
+      "frame": 352,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.29",
+      "accepted": false
+    },
+    {
+      "frame": 440,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.24",
+      "accepted": false
+    },
+    {
+      "frame": 528,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=3.67",
+      "accepted": false
+    },
+    {
+      "frame": 616,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=4.53",
+      "accepted": false
+    },
+    {
+      "frame": 704,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=6.78",
+      "accepted": false
+    },
+    {
+      "frame": 792,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=5.56",
+      "accepted": false
+    }
+  ],
+  "drift_reinforced": false
+}

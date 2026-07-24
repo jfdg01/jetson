@@ -1,0 +1,7 @@
+{
+  "plain_pass": 5,
+  "n": 8,
+  "rate": 0.625,
+  "headroom": "HEADROOM OK",
+  "machine": "SAM2 carry=RTX-3090 (timing not claimed on-device); Arm-B ROI re-anchor VLM=Jetson-Orin-Nano-8GB via JetsonBackend; per-seq PASS/McNemar=both"
+}

@@ -1,0 +1,264 @@
+{
+  "experiment": "P5.21",
+  "arm": "roi",
+  "seq": "bike1",
+  "source": "bike1",
+  "caption": "the bicycle",
+  "seed_idx": 0,
+  "final_idx": 3084,
+  "n_steps": 281,
+  "prune_after": 32,
+  "reanchor_stride": 90,
+  "carry_stride": 11,
+  "carry_hz": 2.69,
+  "machine": "SAM2 carry=RTX-3090 (timing not claimed on-device); Arm-B ROI re-anchor VLM=Jetson-Orin-Nano-8GB via JetsonBackend; per-seq PASS/McNemar=both",
+  "final_box": [
+    416.0,
+    653.0,
+    533.0,
+    720.0
+  ],
+  "final_iou": 0.0,
+  "pass": false,
+  "reanchors": [
+    {
+      "frame": 88,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=3.74",
+      "accepted": false
+    },
+    {
+      "frame": 176,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=3.56",
+      "accepted": false
+    },
+    {
+      "frame": 264,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=2.05",
+      "accepted": false
+    },
+    {
+      "frame": 352,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=1.51",
+      "accepted": false
+    },
+    {
+      "frame": 440,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=1.80",
+      "accepted": false
+    },
+    {
+      "frame": 528,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=2.55",
+      "accepted": false
+    },
+    {
+      "frame": 616,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=2.24",
+      "accepted": false
+    },
+    {
+      "frame": 704,
+      "drifted": false,
+      "clamped": false,
+      "reason": "ok",
+      "accepted": true
+    },
+    {
+      "frame": 792,
+      "drifted": false,
+      "clamped": false,
+      "reason": "ok",
+      "accepted": true
+    },
+    {
+      "frame": 880,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=3.05",
+      "accepted": false
+    },
+    {
+      "frame": 968,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=2.42",
+      "accepted": false
+    },
+    {
+      "frame": 1056,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=2.10",
+      "accepted": false
+    },
+    {
+      "frame": 1144,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=5.70",
+      "accepted": false
+    },
+    {
+      "frame": 1232,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.35",
+      "accepted": false
+    },
+    {
+      "frame": 1320,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.26",
+      "accepted": false
+    },
+    {
+      "frame": 1408,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.30",
+      "accepted": false
+    },
+    {
+      "frame": 1496,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.21",
+      "accepted": false
+    },
+    {
+      "frame": 1584,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.14",
+      "accepted": false
+    },
+    {
+      "frame": 1672,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.08",
+      "accepted": false
+    },
+    {
+      "frame": 1760,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.08",
+      "accepted": false
+    },
+    {
+      "frame": 1848,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.08",
+      "accepted": false
+    },
+    {
+      "frame": 1936,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.15",
+      "accepted": false
+    },
+    {
+      "frame": 2024,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=11.42",
+      "accepted": false
+    },
+    {
+      "frame": 2112,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=6.54",
+      "accepted": false
+    },
+    {
+      "frame": 2200,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=4.51",
+      "accepted": false
+    },
+    {
+      "frame": 2288,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=4.50",
+      "accepted": false
+    },
+    {
+      "frame": 2376,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=6.61",
+      "accepted": false
+    },
+    {
+      "frame": 2464,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=6.93",
+      "accepted": false
+    },
+    {
+      "frame": 2552,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=2.74",
+      "accepted": false
+    },
+    {
+      "frame": 2640,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=4.52",
+      "accepted": false
+    },
+    {
+      "frame": 2728,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=2.77",
+      "accepted": false
+    },
+    {
+      "frame": 2904,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=8.38",
+      "accepted": false
+    },
+    {
+      "frame": 2992,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=21.02",
+      "accepted": false
+    },
+    {
+      "frame": 3080,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=4.95",
+      "accepted": false
+    }
+  ],
+  "drift_reinforced": false
+}

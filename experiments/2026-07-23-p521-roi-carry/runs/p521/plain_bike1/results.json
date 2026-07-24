@@ -1,0 +1,25 @@
+{
+  "experiment": "P5.21",
+  "arm": "plain",
+  "seq": "bike1",
+  "source": "bike1",
+  "caption": "the bicycle",
+  "seed_idx": 0,
+  "final_idx": 3084,
+  "n_steps": 281,
+  "prune_after": 32,
+  "reanchor_stride": 90,
+  "carry_stride": 11,
+  "carry_hz": 2.69,
+  "machine": "SAM2 carry=RTX-3090 (timing not claimed on-device); Arm-B ROI re-anchor VLM=Jetson-Orin-Nano-8GB via JetsonBackend; per-seq PASS/McNemar=both",
+  "final_box": [
+    585.0,
+    59.0,
+    625.0,
+    158.0
+  ],
+  "final_iou": 0.7949,
+  "pass": true,
+  "reanchors": [],
+  "drift_reinforced": false
+}

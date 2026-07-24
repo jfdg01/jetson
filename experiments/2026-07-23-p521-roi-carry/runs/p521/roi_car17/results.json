@@ -1,0 +1,110 @@
+{
+  "experiment": "P5.21",
+  "arm": "roi",
+  "seq": "car17",
+  "source": "car17",
+  "caption": "the car",
+  "seed_idx": 0,
+  "final_idx": 1056,
+  "n_steps": 96,
+  "prune_after": 32,
+  "reanchor_stride": 90,
+  "carry_stride": 11,
+  "carry_hz": 2.69,
+  "machine": "SAM2 carry=RTX-3090 (timing not claimed on-device); Arm-B ROI re-anchor VLM=Jetson-Orin-Nano-8GB via JetsonBackend; per-seq PASS/McNemar=both",
+  "final_box": [
+    94.0,
+    505.0,
+    233.0,
+    675.0
+  ],
+  "final_iou": 0.9813,
+  "pass": true,
+  "reanchors": [
+    {
+      "frame": 88,
+      "drifted": false,
+      "clamped": false,
+      "reason": "ok",
+      "accepted": true
+    },
+    {
+      "frame": 176,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=3.16",
+      "accepted": false
+    },
+    {
+      "frame": 264,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=18.46",
+      "accepted": false
+    },
+    {
+      "frame": 352,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=45.57",
+      "accepted": false
+    },
+    {
+      "frame": 440,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=56.43",
+      "accepted": false
+    },
+    {
+      "frame": 528,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=41.23",
+      "accepted": false
+    },
+    {
+      "frame": 616,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=43.14",
+      "accepted": false
+    },
+    {
+      "frame": 704,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=35.93",
+      "accepted": false
+    },
+    {
+      "frame": 792,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=17.58",
+      "accepted": false
+    },
+    {
+      "frame": 880,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=26.77",
+      "accepted": false
+    },
+    {
+      "frame": 968,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=33.94",
+      "accepted": false
+    },
+    {
+      "frame": 1056,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=72.11",
+      "accepted": false
+    }
+  ],
+  "drift_reinforced": false
+}

@@ -1,0 +1,145 @@
+{
+  "experiment": "P5.21",
+  "arm": "roi",
+  "seq": "wakeboard8",
+  "source": "wakeboard8",
+  "caption": "the wakeboarder",
+  "seed_idx": 0,
+  "final_idx": 1542,
+  "n_steps": 141,
+  "prune_after": 32,
+  "reanchor_stride": 90,
+  "carry_stride": 11,
+  "carry_hz": 2.69,
+  "machine": "SAM2 carry=RTX-3090 (timing not claimed on-device); Arm-B ROI re-anchor VLM=Jetson-Orin-Nano-8GB via JetsonBackend; per-seq PASS/McNemar=both",
+  "final_box": [
+    1013.0,
+    666.0,
+    1053.0,
+    711.0
+  ],
+  "final_iou": 0.8428,
+  "pass": true,
+  "reanchors": [
+    {
+      "frame": 88,
+      "drifted": false,
+      "clamped": false,
+      "reason": "ok",
+      "accepted": true
+    },
+    {
+      "frame": 176,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=5.68",
+      "accepted": false
+    },
+    {
+      "frame": 264,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=2.31",
+      "accepted": false
+    },
+    {
+      "frame": 352,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.37",
+      "accepted": false
+    },
+    {
+      "frame": 440,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.29",
+      "accepted": false
+    },
+    {
+      "frame": 528,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.27",
+      "accepted": false
+    },
+    {
+      "frame": 616,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.21",
+      "accepted": false
+    },
+    {
+      "frame": 704,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=6.63",
+      "accepted": false
+    },
+    {
+      "frame": 792,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=5.49",
+      "accepted": false
+    },
+    {
+      "frame": 880,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=4.48",
+      "accepted": false
+    },
+    {
+      "frame": 968,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=6.76",
+      "accepted": false
+    },
+    {
+      "frame": 1056,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.37",
+      "accepted": false
+    },
+    {
+      "frame": 1144,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.34",
+      "accepted": false
+    },
+    {
+      "frame": 1232,
+      "drifted": true,
+      "clamped": true,
+      "reason": "area_ratio=0.35",
+      "accepted": false
+    },
+    {
+      "frame": 1320,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=7.33",
+      "accepted": false
+    },
+    {
+      "frame": 1408,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=6.91",
+      "accepted": false
+    },
+    {
+      "frame": 1496,
+      "drifted": true,
+      "clamped": true,
+      "reason": "disp_ratio=8.13",
+      "accepted": false
+    }
+  ],
+  "drift_reinforced": false
+}

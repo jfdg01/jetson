@@ -79,8 +79,15 @@ MACHINE = ("SAM2 carry=RTX-3090 (timing not claimed on-device); "
            "per-seq PASS/McNemar=both")
 
 PRUNE_AFTER = 32          # R-16: the deployed ring OOM-kills at 100 with n>=2 + VLM.
-REANCHOR_STRIDE = 90      # re-anchor every ~90 carry frames (P5.5 idle-round cadence).
+REANCHOR_STRIDE = 90      # re-anchor every ~90 source frames (P5.5 idle-round cadence).
 IOU_PASS = 0.25           # final-frame track PASS threshold.
+# Device-faithful carry rate (R-16): the deployed co-resident SAM2 runs at 2.69 Hz
+# solo @ image_size 1024 (6.15 retired). Over 30 fps footage the carry therefore
+# processes 1 in CARRY_STRIDE source frames -- carrying EVERY frame would overstate
+# carry robustness vs deployment (and ceiling the arms, the P5.15 24/25 regime).
+FPS = 30.0
+CARRY_HZ = 2.69
+CARRY_STRIDE = max(1, round(FPS / CARRY_HZ))   # 11
 
 # Drift-reinforcement guard thresholds (clamp the crop when the predicted box has
 # clearly drifted from the last accepted box). Cropping around a drifted box grounds
@@ -300,17 +307,25 @@ def _run_seq(arm, entry, *, carry_factory, reanchor_fn, out_dir: Path):
 
     rgb_at, bgr_at = _frame_accessors(entry["paths"])
     seed_idx, final_idx = entry["seed_idx"], entry["final_idx"]
-    reanchor_frames = set(range(seed_idx + REANCHOR_STRIDE, final_idx,
-                                REANCHOR_STRIDE))
+    # Device-faithful carry: process 1 in CARRY_STRIDE source frames (R-16 2.69 Hz),
+    # not every frame -- full-frame carry ceilings the arms (P5.15 24/25). Always land
+    # exactly on final_idx (the survival-check frame). Re-anchor every ~REANCHOR_STRIDE
+    # source frames == every K processed steps.
+    steps = list(range(seed_idx + CARRY_STRIDE, final_idx + 1, CARRY_STRIDE))
+    if not steps or steps[-1] != final_idx:
+        steps.append(final_idx)
+    K = max(1, round(REANCHOR_STRIDE / CARRY_STRIDE))
+    reanchor_frames = set(steps[K - 1::K])
     res = run_arm(arm, seed_idx, entry["seed_box"], entry["caption"],
-                  range(seed_idx + 1, final_idx + 1), reanchor_frames,
+                  steps, reanchor_frames,
                   entry["gt"][final_idx], carry_factory=carry_factory,
                   reanchor_fn=reanchor_fn, frame_rgb_at=rgb_at,
                   frame_bgr_at=bgr_at)
     out = {"experiment": "P5.21", "arm": arm, "seq": entry["seq"],
            "source": source_id(entry["seq"]), "caption": entry["caption"],
-           "seed_idx": seed_idx, "final_idx": final_idx,
+           "seed_idx": seed_idx, "final_idx": final_idx, "n_steps": len(steps),
            "prune_after": PRUNE_AFTER, "reanchor_stride": REANCHOR_STRIDE,
+           "carry_stride": CARRY_STRIDE, "carry_hz": CARRY_HZ,
            "machine": MACHINE, **res}
     d = out_dir / f"{arm}_{entry['seq']}"
     d.mkdir(parents=True, exist_ok=True)
@@ -357,8 +372,9 @@ def _jetson_reanchor_fn():
     import cv2
 
     sys.path.insert(0, str(REPO / "experiments" / "2026-07-14-select-generalization"))
-    from replay_e24 import MAX_SIDE, vlm_acquire
-    from select_p55 import roi_reanchor
+    sys.path.insert(0, str(REPO / "experiments" / "2026-07-04-warm-start-acquire"))
+    from replay_e24 import MAX_SIDE, vlm_acquire   # 2026-07-04-warm-start-acquire
+    from select_p55 import roi_reanchor            # 2026-07-14-select-generalization
     from grounding.deploy.serve import _DEFAULT_REMOTE_DIR
     from grounding.deploy.video import _REMOTE_MMPROJ, _REMOTE_MODELS
     from grounding.eval.backends import JetsonBackend

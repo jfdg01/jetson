@@ -58,8 +58,10 @@ written down — the reproduction command is in the task.
 | R-32 | Spot-check the assertion-only DONEs (R-19, R-7, R-21) | P1 | — | **DONE** 2026-07-23 |
 | R-33 | `claims.json` caveats quote numbers the registry contradicts (P5.15) | P1 | R-22 | **DONE** 2026-07-23 |
 | R-34 | Re-run E18 at n>=25 — Chapter 6 has zero surviving claims | P2 | R-30 | **DONE** 2026-07-23 (YES, ORACLE 23/25 vs COLD 3/25, deflated p=4.01e-05) |
-| R-35 | Run P6.2 — Chapter 8 has zero surviving claims | P2 | R-16 | **TODO** |
+| R-35 | Run P6.2 — Chapter 8 has zero surviving claims | P2 | R-16 | **DONE** 2026-07-24 (P6.2-DELIVERY WARM 23/25 vs COLD 2/25, McNemar p=9.5e-07 survives Holm; P6.2-COUPLING bounded null — Chapter 8 now has a surviving claim) |
 | R-36 | SWAP arm at n>=25 **distinct clips**, not 26 cells from 13 | P2 | R-29 | **DONE** 2026-07-24 (NO [underpowered, scene-starved]; pre-registered MISS branch, b=5/c=0 p=0.0625 at audit-clean n=14; UAV123 is scene-starved for SWAP-hard pairs, 8/10 curated candidates single-target) |
+| R-37 | P5.21 ROI-carry vs plain carry (paired, pilot-gated) | P2 | R-16 | **DONE** 2026-07-24 (TIE [measured negative]; pilot 5/8 headroom PASS; plain 28/34 vs ROI 26/34, b=1/c=3 p=0.625, direction AGAINST ROI; drift-reinforcement fired on car10; closes the last non-capacity carry lever) |
+| R-38 | REG grounding isolation (paired, on-device) | P2 | R-16 | **TODO** |
 
 `AUTHOR` means the task is a judgement call reserved for the human and **must not
 be resolved by an agent**. An agent may prepare the evidence; it may not pick.
@@ -2105,7 +2107,7 @@ inferential separation. Registered `R-36-maintain-vs-select` in `claims.json` (n
 b=5/c=0). The scene-starvation is itself the finding. Detail:
 `experiments/2026-07-23-r36-maintain-vs-select/README.md`.
 
-## R-37 — P5.21 ROI-carry vs plain carry (paired) — P2
+## R-37 — P5.21 ROI-carry vs plain carry (paired) — DONE 2026-07-24
 
 Pre-registered `experiments/2026-07-23-p521-roi-carry/README.md`. Paired McNemar, n>=27
 distinct UAV123 hard-carry sequences. Closes the last non-capacity carry lever (bigger
@@ -2113,6 +2115,18 @@ SAM2 is dead, P5.20) as an OUTCOME contrast — the ROI re-anchor was only ever 
 prefill cost / single-frame IoU, never as plain-vs-ROI carry survival. **Pilot-gated
 (S2):** the plain-carry base rate must show headroom (0<rate<1) before the gate is locked,
 or it repeats the P5.3/P5.4/P5.5 construction trap. Wave B.
+
+**RESOLVED — TIE [measured negative]. Pilot gate PASS (5/8 = 0.62, headroom).** Matrix at
+n=34 distinct-base hard-carry sequences (42 available locally after streaming the UAV123
+tarball; 8 held out for the pilot). Plain 28/34 vs ROI 26/34; McNemar b=1, c=3, p=0.625
+(n_eff=34, no deflation) — **direction is AGAINST ROI** (net-negative, not a clean tie).
+The pre-registered drift-reinforcement failure fired: car10 re-anchor cropped a drifted box,
+on-device VLM grounded off-target, track lost while plain held (IoU 0.86); guard flagged 1/3
+c-side. One b-side win (car14). Grounding on Jetson q8_0, SAM2 carry on 3090 (rate-capped to
+the deployed 2.69 Hz per R-16). Closes the last non-capacity carry lever — keep ROI for
+acquire prefill only. Registered `P5.21-roi-carry` in `thesis/claims.json` (75 claims;
+"Probadas, no significativas" 20→21; survivors unchanged 12/10). Proof:
+`proof/p521_drift_reinforcement.png`, `proof/p521_per_seq_iou.png`. Visual gate PASS.
 
 ## R-38 — REG grounding isolation (paired, on-device) — P2
 
