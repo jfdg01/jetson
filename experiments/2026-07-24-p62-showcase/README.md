@@ -8,7 +8,17 @@ inferential claim** — it is not registered in the Holm family; it demonstrates
 
 ## Status / next step
 
-- **PRE-REGISTERED, BLOCKED on the host GPU (2026-07-24).** The host RTX 3090 has an nvidia
+- **On-device carry seam: DEMONSTRATED standalone (2026-07-24, GPU-independent half done).** Before
+  the flight, the one new seam — routing SAM2 carry LITERALLY to the Orin — is proven end to end on
+  real UAV123 imagery, with no 3090 and no CARLA. The deployed carry (`jetson_carry_service.py` on
+  the Jetson, `image_size=1024`) was seeded by the oracle GT box and stepped over 24 frames of `car9`
+  (stride 11 = the 2.69 Hz cadence): **held 24/24 at IoU>=0.25, median IoU 0.92 vs GT, 2.35 Hz
+  on-device (425 ms/step compute), ~10 ms socket overhead** (client run on the Orin, 127.0.0.1 — the
+  flight's `ssh -L` will add the LAN round-trip on top). Viewed mid-run overlay confirms the cyan
+  Jetson-carried box on the real car. Harness: `ondevice_carry_demo.py` (host stage+score) +
+  `carry_client.py` (on-device). Proof: `proof/ondevice_carry_midrun.png`,
+  `proof/ondevice_carry_trace.png`. This de-risks the flight to the CARLA closed loop alone.
+- **The FLIGHT (closed loop) is still BLOCKED on the host GPU (2026-07-24).** The host RTX 3090 has an nvidia
   kernel-module / userspace version mismatch — loaded module **595.71.05** (`/proc/driver/nvidia/version`)
   vs libnvidia-ml **595.84** (an apt driver upgrade landed mid-session, 2026-07-22..24, without a
   module reload). `nvidia-smi` fails: `Failed to initialize NVML: Driver/library version mismatch`.
@@ -106,7 +116,25 @@ both **15 W + jetson_clocks**, over SSH), host loop. RENDER_ALT 45 m, PID kp_lat
   LAN, dwarfed by the 2.69 Hz (~370 ms) carry step — i.e. transport is a small fraction even on the
   bench, but non-zero, hence the caveat.
 
-## Results (TBD — blocked on the host GPU reload)
+## Results — on-device carry seam (RAN 2026-07-24)
+
+`ondevice_carry_demo.py stage` (host) picked `car9` (first candidate with 24 contiguous-GT steps
+@ stride 11), seeded the deployed carry with GT frame 1, stepped it over 24 real frames through
+`jetson_carry_service.py` on the Orin (`carry_client.py`, local 127.0.0.1 socket), scored on host.
+
+| metric | value | note |
+|---|---|---|
+| on-device carry held | **24/24** IoU>=0.25 | deployed SAM2 carry, `image_size=1024`, run literally on the Orin |
+| median IoU vs GT | **0.92** (min 0.86, final 0.91) | oracle-GT-seeded, no drift over 264 video frames |
+| on-device carry rate | **2.35 Hz** (425 ms/step) | consistent with R-16's 2.69 Hz solo (this rig, `image_size=1024`) |
+| socket overhead | **~10 ms/step** | client on the Orin (127.0.0.1); the flight's `ssh -L` adds the LAN RTT on top |
+
+**On-device carry seam: PASS (qualitative).** The deployed maintain path runs end to end on the
+drone's own compute on real imagery. Proof: `proof/ondevice_carry_midrun.png` (viewed — cyan
+Jetson-carried box tight on the car9 sedan, GT coincident), `proof/ondevice_carry_trace.png` (per-step
+IoU 0.86-0.98 above the 0.25 floor + 2.35 Hz on-device compute trace).
+
+## Results — closed-loop flight (TBD — blocked on the host GPU reload)
 
 | metric | value | note |
 |---|---|---|
