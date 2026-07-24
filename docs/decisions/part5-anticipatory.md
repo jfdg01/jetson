@@ -624,3 +624,39 @@ flips P5.8's failing gate — disclosed, deliberate, grounded in third-party-che
   gate. Gate a failed, so that work is correctly never done — but the record must say the capacity
   arm was evaluated **only** for accuracy under equal-stride emulation, not for on-device
   feasibility. **Given up:** an on-device number for hiera-small, which no longer has a use.
+
+### R-36 / REG — powered select negative + grounding isolation (pre-registered 2026-07-23T23:05Z)
+
+Records: `experiments/2026-07-23-r36-maintain-vs-select/README.md`,
+`experiments/2026-07-23-reg-grounding-isolation/README.md`. Part of the closed-loop significance
+slate (`experiments/PART6-PROGRAM-warm-start-significance.md`).
+
+- ★ **R-36 becomes a PAIRED maintain-vs-select McNemar, superseding the original single-arm SWAP
+  rate.** **Why:** the thesis defends *maintain beats select*, not "select fails" in isolation — the
+  paired WSEL-vs-SWAP contrast is the claim that matters and is strictly more powerful (McNemar on
+  discordant pairs vs a one-sample proportion against 0.8). **Given up:** the simpler single-arm
+  design named in the REMEDIATION R-36 stub. **Recorded because** it changes what number the chapter
+  reports, so the change is a decision, not a detail.
+- **R-36's reachability is disclosed up front, not discovered post-run.** The committed 13-clip SWAP
+  data is b=3, c=0, p=0.25 — three discordant pairs short of the six McNemar needs, so R-36 requires
+  >=12 NEW distinct SWAP-hard clips and is over-provisioned to n~30 (projected b~7, marginal). **The
+  miss branch is pre-registered:** b<6 or two-directional -> "select fails but is not
+  separable-from-maintain at this n." **Why recorded:** so a tie is read as the powered ceiling of a
+  known negative, never as a gate chosen after seeing p (the P5.3/P5.4/P5.5 unreachable-gate scar).
+- **REG is declared a DEPENDENT decomposition of R-36, inside the same Part-V Holm family — not
+  independent confirmation.** **Why:** REG re-grounds the same clips/frames R-36 uses; treating it
+  as a second independent test would spend alpha twice on correlated data (multiplicity p-hacking).
+  **Given up:** the appearance of a second confirming result. **Kept:** an honest attribution of
+  whether the residual select failure is a grounding asymmetry or lives downstream — piloted first,
+  because P5.18's 0.65 distractor rate is end-to-end and confounded.
+
+### P5.21 — ROI-carry lever tested as an outcome (pre-registered 2026-07-23T23:05Z)
+
+Record: `experiments/2026-07-23-p521-roi-carry/README.md`.
+
+- **The ROI-crop re-anchor is finally tested as plain-vs-ROI carry *survival*, not prefill cost.**
+  **Why:** the lever was adopted on a per-frame-IoU / prefill-cost argument (ROI-crop overnight,
+  2026-06-26) and never as a paired outcome; with bigger-SAM2 dead (P5.20), it is the last
+  non-capacity carry lever and deserves a powered verdict. **Pilot-gated (headroom check before the
+  gate is locked)** so it does not repeat the construction trap. **Given up:** nothing — a tie is
+  the measured negative that closes the lever, still content.

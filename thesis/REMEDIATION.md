@@ -2017,19 +2017,51 @@ a NEW claim; E18 (n=6) kept as the as-run record with its "one clip too few" cav
 (D-R34.3). Proof: `proof/{discordant-bike1,pass-grid,effect-3regimes}.png`.
 `make test` green (172 passed).
 
-## R-35 — Run P6.2 — P2
+## R-35 — Build the closed-loop CARLA harness + run P6.2-DELIVERY — P1 (IN PROGRESS 2026-07-23)
 
-Chapter 8's first real claim. Already proposed
-(`experiments/PART6-PROPOSAL-closed-loop-flight.md`), already unblocked — the "missing
-deployed checkpoint" that was recorded as a P6.2 blocker was a stale-format search
-error, corrected 2026-07-20T20:10Z. R-16 additionally handed it a concrete lever: the
-ring length. `PRUNE_AFTER=32` survives co-residency where the deployed 100 is
-OOM-killed at N=2.
+Chapter 8's first real claim and **the round's flagship** (author steer 2026-07-23:
+CARLA-primary, piloting-first — see below). Pre-registered:
+`experiments/2026-07-23-p62-delivery/README.md`; full build spec + frozen gates in
+`experiments/PART6-PROGRAM-warm-start-significance.md` §4.
 
-Nothing statistical is required to unblock this; it needs the Part V select modules
-ported out of `experiments/` into `runners/run_phase_c.py`. Scope it at n>=25 flights
-from the start — a closed-loop campaign that produces one flight per arm reproduces
-exactly the P3-T3 defect this ledger just retired.
+**Not a simple port — a merge.** Grounding the rig (2026-07-23) corrected the earlier
+"port the select modules into `run_phase_c.py`" framing: `run_phase_c.py` is the OLD
+Gazebo rig (scripted rover, SmolVLM, no `import carla`). CARLA lives in two **disjoint**
+scripts — `runners/carla_render.py` (async flight + position-slaved camera, NO GT/target)
+and `runners/carla_gt_bank.py` (per-frame identity GT for a designated moving target, NO
+SITL/MAVLink). R-35 = **merge both into one async closed-loop harness**
+(`runners/run_p62_flight.py`) wired into `run_phase_c.py`'s source-agnostic seams
+(`LatestDetectionSlot` :123, `_control_step_c` :584).
+
+**Must be WRITTEN (Part V modules are replay-only):** the WARM and COLD detection
+producers, and a **live ring buffer** for the idle window — `idle_catchup_multi`
+re-walks PAST frames by index, structurally impossible on a live camera. Only
+`StreamCarry.step` is stream-native. Latency becomes real `time.monotonic` wall-clock,
+not frame-index emulation. Ring length **`PRUNE_AFTER=32`** (R-16: the deployed 100 is
+OOM-killed at N=2). `CARRY_HZ=6.15` is retired (R-16: 2.69 Hz solo @1024). Fix/bound the
+R-10 yaw (immaterial under the nadir camera, so bound it explicitly).
+
+**G6 first:** run the never-executed grounding-over-CARLA check — does the deployed q8_0
+resolve ~25x50 px cars at 60 m AGL? Unknown, gates every P6.x number.
+
+Scope at n>=25 distinct CARLA scenarios from the start (one flight per arm per scenario)
+— a closed-loop campaign at one flight per arm reproduces exactly the P3-T3 defect this
+ledger retired. Determinism is lost (async on purpose); mitigate with a measured
+schedule-noise band (P5.20 precedent).
+
+**Author steer (frozen 2026-07-23T23:05Z):** CARLA `Town10HD_Opt` is the primary
+substrate (reusable, controllable scenarios — weather/ToD/camera-angle), and piloting a
+moving-target follow is the round's priority. Real-imagery perception/carry claims (R-36,
+P5.21, REG) stay on UAV123 per the S5 honesty caveat. Weather/ToD/angle enter this round
+only as seed-bank covariate diversity; a powered condition-robustness sweep is next round.
+
+## R-35b — P6.2-COUPLING (isolates C1) — P2
+
+Pre-registered `experiments/2026-07-23-p62-coupling/README.md`. Rides the R-35 harness and
+reuses the P6.2-DELIVERY WARM flights as the coupled arm; only the decoupled (oracle-drive)
+arm is new. Paired-continuous Wilcoxon + bootstrap CI — **cannot be cluster-deflated**
+(`n_effective==n_rows`), so one flight per arm per seed, no reps, per-item values saved.
+Runs after DELIVERY.
 
 ## R-36 — SWAP at n>=25 distinct clips — P2
 
@@ -2043,8 +2075,35 @@ nothing; a 14th clip would add a full observation.
 cells.* Every future arm samples distinct source sequences first and extra onsets per
 sequence only after the cluster count is met.
 
-**Design.** 25+ distinct UAV123 sequences, one SWAP cell each, arms as in P5.19
-(aligned dedup + bounded grace). This is the arm that decides whether the select
-refinement is a real effect at 0.65-0.77 or noise around the 0.8 gate. Lower priority
-than R-34: it strengthens a chapter that already has three survivors, where R-34
-rescues a chapter that has none.
+**Design (UPDATED 2026-07-23 — paired maintain-vs-select supersedes the single-arm SWAP).**
+Pre-registered `experiments/2026-07-23-r36-maintain-vs-select/README.md`. The claim the
+thesis defends is *maintain beats select*, so R-36 is now the **paired** WSEL-vs-SWAP
+McNemar contrast (more powerful than a one-sample SWAP proportion), not a lone SWAP rate.
+Decision + rationale in `docs/decisions/part5-anticipatory.md`.
+
+**Reachability, disclosed up front:** the committed 13-clip SWAP data is **b=3, c=0,
+p=0.25 — NOT reachable** (3 discordant pairs short of the 6 McNemar needs). R-36 requires
+**>=12 NEW distinct SWAP-hard clips** (late-entry / carry-drift / distractor-confusion
+families), one hard SWAP scene per clip, over-provisioned to **n~30** (projected b~7,
+marginal). Pre-registered miss branch: b<6 or two-directional -> "select fails but is not
+separable-from-maintain at this n," the powered ceiling of the select negative. Lower
+priority than the R-35 flight (which rescues a chapter with zero claims); runs as a
+Wave-B real-imagery bank in parallel.
+
+## R-37 — P5.21 ROI-carry vs plain carry (paired) — P2
+
+Pre-registered `experiments/2026-07-23-p521-roi-carry/README.md`. Paired McNemar, n>=27
+distinct UAV123 hard-carry sequences. Closes the last non-capacity carry lever (bigger
+SAM2 is dead, P5.20) as an OUTCOME contrast — the ROI re-anchor was only ever justified on
+prefill cost / single-frame IoU, never as plain-vs-ROI carry survival. **Pilot-gated
+(S2):** the plain-carry base rate must show headroom (0<rate<1) before the gate is locked,
+or it repeats the P5.3/P5.4/P5.5 construction trap. Wave B.
+
+## R-38 — REG grounding isolation (paired, on-device) — P2
+
+Pre-registered `experiments/2026-07-23-reg-grounding-isolation/README.md`. Paired McNemar
+on the same prompt frame, target-phrase vs distractor-phrase, n>=28 (shares the R-36 bank).
+A **dependent decomposition** of R-36 — declared in the same Part-V Holm family, not
+independent confirmation. Decides whether the residual select failures are a grounding
+asymmetry or live downstream (carry/delivery). Pilot the isolated distractor-grounding rate
+first (P5.18's 0.65 is end-to-end, confounded). Wave B, on-device (`machine='both'`).
