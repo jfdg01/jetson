@@ -41,3 +41,48 @@
 2026-07-23T18:01:26+0200 INFO heartbeat: no banner after 18h of watching w6:p1
 2026-07-23T19:01:26+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
 2026-07-23T19:01:26+0200 INFO heartbeat: no banner after 19h of watching w6:p1
+2026-07-23T20:01:26+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-23T20:01:26+0200 INFO heartbeat: no banner after 20h of watching w6:p1
+2026-07-23T21:01:26+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-23T21:01:26+0200 INFO heartbeat: no banner after 21h of watching w6:p1
+2026-07-23T22:01:26+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-23T22:01:26+0200 INFO heartbeat: no banner after 22h of watching w6:p1
+2026-07-23T23:01:26+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-23T23:01:26+0200 INFO heartbeat: no banner after 23h of watching w6:p1
+2026-07-24T00:01:26+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T00:01:26+0200 INFO heartbeat: no banner after 24h of watching w6:p1
+2026-07-24T01:01:26+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T01:01:26+0200 INFO heartbeat: no banner after 25h of watching w6:p1
+2026-07-24T02:01:26+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T02:01:26+0200 INFO heartbeat: no banner after 26h of watching w6:p1
+2026-07-24T03:01:26+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T03:01:26+0200 INFO heartbeat: no banner after 27h of watching w6:p1
+2026-07-24T04:01:26+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T04:01:26+0200 INFO heartbeat: no banner after 28h of watching w6:p1
+2026-07-24T05:01:26+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T05:01:26+0200 INFO heartbeat: no banner after 29h of watching w6:p1
+2026-07-24T06:01:26+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T06:01:26+0200 INFO heartbeat: no banner after 30h of watching w6:p1
+2026-07-24T07:01:27+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T07:01:27+0200 INFO heartbeat: no banner after 31h of watching w6:p1
+2026-07-24T08:01:27+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T08:01:27+0200 INFO heartbeat: no banner after 32h of watching w6:p1
+2026-07-24T09:01:27+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T09:01:27+0200 INFO heartbeat: no banner after 33h of watching w6:p1
+2026-07-24T10:00:09+0200 INFO armed: watching w6:p1 (term_65756bf6a9a3e1) 'rework' for 'hit your session limit'
+2026-07-24T11:00:09+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T11:00:09+0200 INFO heartbeat: no banner after 1h of watching w6:p1
+2026-07-24T12:00:09+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T12:00:09+0200 INFO heartbeat: no banner after 2h of watching w6:p1
+2026-07-24T13:00:09+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T13:00:09+0200 INFO heartbeat: no banner after 3h of watching w6:p1
+2026-07-24T14:00:09+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T14:00:09+0200 INFO heartbeat: no banner after 4h of watching w6:p1
+2026-07-24T15:00:09+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T15:00:09+0200 INFO heartbeat: no banner after 5h of watching w6:p1
+2026-07-24T16:00:09+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T16:00:09+0200 INFO heartbeat: no banner after 6h of watching w6:p1
+2026-07-24T17:00:09+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T17:00:09+0200 INFO heartbeat: no banner after 7h of watching w6:p1
+2026-07-24T18:00:09+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T18:00:09+0200 INFO heartbeat: no banner after 8h of watching w6:p1

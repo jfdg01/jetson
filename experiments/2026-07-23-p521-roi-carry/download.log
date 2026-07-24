@@ -1,0 +1,7 @@
+launching stream-extract of 24 seqs -> experiments/2026-07-03-real-video-replay/data/UAV123/data_seq/UAV123/
+patterns: UAV123/data_seq/UAV123/uav2/* UAV123/data_seq/UAV123/uav3/* UAV123/data_seq/UAV123/uav4/* UAV123/data_seq/UAV123/uav7/* UAV123/data_seq/UAV123/car13/* UAV123/data_seq/UAV123/uav6/* UAV123/data_seq/UAV123/uav5/* UAV123/data_seq/UAV123/uav8/* UAV123/data_seq/UAV123/uav1_3/* UAV123/data_seq/UAV123/car12/* UAV123/data_seq/UAV123/car11/* UAV123/data_seq/UAV123/wakeboard5/* UAV123/data_seq/UAV123/group2_2/* UAV123/data_seq/UAV123/car15/* UAV123/data_seq/UAV123/wakeboard9/* UAV123/data_seq/UAV123/person21/* UAV123/data_seq/UAV123/truck2/* UAV123/data_seq/UAV123/person7_1/* UAV123/data_seq/UAV123/truck3/* UAV123/data_seq/UAV123/wakeboard4/* UAV123/data_seq/UAV123/wakeboard7/* UAV123/data_seq/UAV123/building3/* UAV123/data_seq/UAV123/person22/* UAV123/data_seq/UAV123/bike3/*
+tar: UAV123/data_seq/UAV123/uav1_3/*: Not found in archive
+tar: UAV123/data_seq/UAV123/group2_2/*: Not found in archive
+tar: UAV123/data_seq/UAV123/person7_1/*: Not found in archive
+tar: Exiting with failure status due to previous errors
+EXIT=2
