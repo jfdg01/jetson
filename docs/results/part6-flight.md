@@ -468,3 +468,64 @@ Jetson in-loop; the in-rig parity gate confirms the on-device carry reproduces t
 carry. Follow honest not perfect (2.69 Hz carry vs 20 Hz GT sawtooths delivered IoU, peaks ~0.5–0.6).
 Proof: `proof/flight_follow_overlay.png` (GT + Jetson-carried box on the charger through a curve),
 `proof/flight_trace.png` (delivered IoU over the flight + carry parity vs the 3090 twin per step).
+
+### EXP-1 — carry-res ELBOW (SAM2 track image_size 256→1024, on the Orin) (2026-07-24)
+
+Seed box held fixed (GT), only SAM2 internal `image_size` swept across 7 points. 38 UAV123 clips,
+contiguous-GT window (24 steps @ stride 11). Carry runs ON the Orin via the ssh-stdio bridge; 3090
+NOT used. Machine `jetson`, 15 W + `jetson_clocks`. `run_exp1.py`.
+
+| image_size | median-of-median IoU | mean held_frac | PASS (medIoU≥0.25) | on-device Hz |
+|---:|--:|--:|--:|--:|
+| 256 | 0.675 | 0.721 | 28/38 | **10.20** |
+| 384 | 0.760 | 0.768 | 29/38 | 9.64 |
+| 512 | 0.780 | 0.837 | 32/38 | 8.71 |
+| **640** | **0.811** | 0.859 | 32/38 | **5.76** |
+| 768 | 0.803 | 0.882 | 33/38 | 4.08 |
+| 896 | 0.805 | 0.897 | 35/38 | 2.99 |
+| 1024 | 0.816 | 0.921 | 36/38 | 2.34 |
+
+**Elbow = 512–640.** IoU plateaus above 512 (+0.036 over a 2× size jump; flat within noise from 640
+up); Hz is flat-high (~9–10 Hz, overhead-bound) below 640 then falls off a cliff (each step ~halves
+the rate). **640 = 99.4% of 1024's IoU at 2.5× throughput** (5.76 vs 2.34 Hz); 512 = 96% at 3.7×.
+Below 512 the speed saturates so it is pure IoU loss. Paired 768-vs-1024 (original contrast) holds:
+delta −0.0086, CI95 [−0.0135,−0.0017], McNemar b=0 c=3 p=0.25 (n.s.). **Tail is resolution-gated:**
+the bulk of clips is flat across all sizes but 9 small/distant clips (truck2/3, uav3, bike3, person21,
+car11/13…) collapse at low res and recover only by 896–1024 — so `held_frac` keeps rising to 1024
+even as median IoU plateaus. Deploy: carry at **640** default, **1024 size-gated fallback** for small
+targets. Proof: `proof/elbow_iou_hz.png`, `proof/per_clip_iou.png`, `proof/hz_ondevice.png`. Detail:
+`experiments/2026-07-24-resolution-decoupled-carry/README.md`.
+
+### EXP-2 — point-crop vs NL referring-expression select (26 P5.18 cells / 13 clips, on the Orin) (2026-07-24)
+
+Operator point → crop → VLM grounds crop → SAM2 carry (PT) vs whole-frame NL referring expression
+(NL). SAM2 carry on the Jetson; 3090 not used (`machine=jetson`).
+
+**Primary — delivered PASS at deployed res** (NL max_side=1024, PT crop=512, carry 1024):
+
+| Leg | NL | PT | McNemar (NL-only b / PT-only c) | p (deflated 13 clips) | verdict |
+|---|--:|--:|:--|--:|:--|
+| WSEL | 22/26 | 24/26 | b=1 c=3 | 0.625 | MISS (b+c=4 < floor 6) |
+| SWAP | 24/26 | 26/26 | b=0 c=2 | 0.5 | MISS (b+c=2 < floor 6) |
+
+Not separable at n=26, but every discordant leans PT (7 PT-only vs 1 NL-only; PT never loses a SWAP
+cell). Consistent with R-38: at the lenient 0.25-IoU delivery threshold the SAM2 carry rescues NL's
+rougher boxes, so the pointer buys no extra delivered PASS. 8/8 pass cells visually confirmed genuine.
+
+**Grounding-res elbow** (n=26 WSEL cells, strict IoU≥0.5, no carry) — the real separation:
+
+| feed px | 192 | 256 | 384 | 512 | 640 | 768 | 896 | 1024 |
+|---|--:|--:|--:|--:|--:|--:|--:|--:|
+| NL hit | — | — | — | 0.077 | 0.269 | 0.462 | 0.654 | **0.654** |
+| PT hit | 0.231 | **0.769** | 0.731 | 0.769 | — | 0.846 | — | — |
+
+**PT@256px (0.769) out-grounds NL@1024px (0.654)** — the point-crop concentrates the VLM's effective
+resolution onto the target; PT is flat-high from a 256px crop, NL climbs to a lower plateau. The
+point-crop is a grounding-efficiency + localization-precision win (≥ NL accuracy at 4× lower feed
+res), not a delivered-PASS win at the deployed threshold.
+
+**Carry-res robustness** — the verdict is flat in tracker-res: re-carrying the fixed acquire boxes at
+image_size 512/768/1024 gives byte-identical counts (WSEL 22/24, SWAP 24/26, same b/c) at every size
+(8.6/4.1/2.3 Hz on-device) — so EXP-1's 512–640 carry elbow costs zero select quality here. Proof:
+`proof/grounding_elbow.png`, `deliver_pass.png`, `carry_robustness.png`. Detail:
+`experiments/2026-07-24-point-crop-select/README.md`.

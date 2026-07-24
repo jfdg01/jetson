@@ -11,6 +11,7 @@ streams. stdout carries ONLY framed replies; all logging goes to stderr. cwd mus
 
   cd ~/sam2-bench && ./.venv/bin/python -u carry_ssh_bridge.py
 """
+import argparse
 import pickle
 import struct
 import sys
@@ -57,10 +58,15 @@ def _decode(jpg):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--image-size", type=int, default=1024)   # deployed default; EXP-1 sweeps 768
+    args = ap.parse_args()
     inp, out = sys.stdin.buffer, sys.stdout.buffer
     t0 = time.time()
-    predictor = SAM2VideoPredictor.from_pretrained(MODEL)   # image_size 1024 (deployed default)
-    print(f"[bridge] model loaded in {time.time()-t0:.1f}s, ready", file=sys.stderr, flush=True)
+    over = [f"++model.image_size={args.image_size}"] if args.image_size != 1024 else []
+    predictor = SAM2VideoPredictor.from_pretrained(MODEL, hydra_overrides_extra=over)
+    print(f"[bridge] model loaded in {time.time()-t0:.1f}s, image_size={args.image_size}, ready",
+          file=sys.stderr, flush=True)
     carry = None
     with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
         while True:

@@ -1,0 +1,1071 @@
+{
+  "n_scenes": 26,
+  "per_cell": {
+    "NL_WSEL_car10_240": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.7412,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_car10_240": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.7488,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_car10_240": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.0065,
+      "coverage": 0.0,
+      "genuine_lock": false,
+      "pass": false,
+      "reason": null
+    },
+    "PT_SWAP_car10_240": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.3569,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_car10_615": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 0.0,
+      "genuine_lock": false,
+      "pass": false,
+      "reason": null
+    },
+    "PT_WSEL_car10_615": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.8128,
+      "deliver_iou_distractor": 0.009,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_car10_615": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0049,
+      "deliver_iou_distractor": 0.8882,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_car10_615": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.8803,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_car9_300": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.8139,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_car9_300": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.5159,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 0.963,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_car9_300": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.5708,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_car9_300": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.5497,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_car7_460": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.8128,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_car7_460": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.8907,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_car7_460": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.7711,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_car7_460": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.6136,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_car9_560": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.7015,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 0.889,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_car9_560": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.5113,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 0.926,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_car9_560": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.6668,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_car9_560": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.4409,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_car9_950": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 0.0,
+      "genuine_lock": false,
+      "pass": false,
+      "reason": null
+    },
+    "PT_WSEL_car9_950": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.6861,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_car9_950": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.792,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_car9_950": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.8809,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_car9_1150": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.6438,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_car9_1150": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.7488,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_car9_1150": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 0.0,
+      "genuine_lock": false,
+      "pass": false,
+      "reason": null
+    },
+    "PT_SWAP_car9_1150": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.403,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_car3_1050": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 0.0,
+      "genuine_lock": false,
+      "pass": false,
+      "reason": null
+    },
+    "PT_WSEL_car3_1050": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.5781,
+      "coverage": 0.0,
+      "genuine_lock": false,
+      "pass": false,
+      "reason": null
+    },
+    "NL_SWAP_car3_1050": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.6502,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_car3_1050": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.7435,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_car10_850": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.4512,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_car10_850": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.4698,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_car10_850": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.7986,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_car10_850": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.7485,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_car18_150": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.8371,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_car18_150": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.8397,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_car18_150": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.6879,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_car18_150": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.9517,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_bike1_450": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.5599,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_bike1_450": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.5325,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_bike1_450": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.8154,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_bike1_450": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.783,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_bike1_750": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.6223,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_bike1_750": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.4389,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_bike1_750": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.6673,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_bike1_750": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.5947,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_bike1_1050": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.7263,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_bike1_1050": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.6616,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_bike1_1050": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.5543,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_bike1_1050": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.5163,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_bike1_1950": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.8054,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_bike1_1950": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.7247,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_bike1_1950": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.7534,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_bike1_1950": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.6854,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_bike1_2250": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.4524,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_bike1_2250": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.4044,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_bike1_2250": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.6777,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_bike1_2250": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.6964,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_bike1_2450": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.5011,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_bike1_2450": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.4867,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_bike1_2450": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.7504,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_bike1_2450": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.7475,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_person20_1050": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.8515,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_person20_1050": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.6468,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_person20_1050": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.9079,
+      "coverage": 0.037,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_person20_1050": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.6791,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_person10_450": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.6555,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_person10_450": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.817,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_person10_450": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.8292,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_person10_450": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.9104,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_person15_150": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.6747,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_person15_150": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.8616,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_person15_150": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.6338,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_person15_150": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.8235,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_wakeboard6_150": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.4915,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_wakeboard6_150": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.8714,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_wakeboard6_150": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.7762,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_wakeboard6_150": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.9627,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_wakeboard6_350": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.6991,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_wakeboard6_350": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.7924,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_wakeboard6_350": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.8608,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_wakeboard6_350": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.7033,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_wakeboard8_150": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.1198,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": false,
+      "pass": false,
+      "reason": null
+    },
+    "PT_WSEL_wakeboard8_150": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.7235,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_wakeboard8_150": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.6768,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_wakeboard8_150": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.7401,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_wakeboard8_450": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.5762,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 0.963,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_wakeboard8_450": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.6102,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 0.926,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_wakeboard8_450": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.6492,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_wakeboard8_450": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.5883,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_wakeboard8_750": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.4717,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_wakeboard8_750": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.1558,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": false,
+      "pass": false,
+      "reason": null
+    },
+    "NL_SWAP_wakeboard8_750": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.5669,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_wakeboard8_750": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.5531,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_wakeboard2_150": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.5989,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_wakeboard2_150": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.693,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_wakeboard2_150": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.488,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_wakeboard2_150": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.4887,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_WSEL_wakeboard3_150": {
+      "leg": "WSEL",
+      "arm": "NL",
+      "deliver_iou": 0.4209,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_WSEL_wakeboard3_150": {
+      "leg": "WSEL",
+      "arm": "PT",
+      "deliver_iou": 0.6319,
+      "deliver_iou_distractor": 0.0,
+      "coverage": 1.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "NL_SWAP_wakeboard3_150": {
+      "leg": "SWAP",
+      "arm": "NL",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.5224,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    },
+    "PT_SWAP_wakeboard3_150": {
+      "leg": "SWAP",
+      "arm": "PT",
+      "deliver_iou": 0.0,
+      "deliver_iou_distractor": 0.6183,
+      "coverage": 0.0,
+      "genuine_lock": true,
+      "pass": true,
+      "reason": null
+    }
+  },
+  "legs": {
+    "WSEL": {
+      "n": 26,
+      "n_clips_effective": 13,
+      "nl_pass": 22,
+      "pt_pass": 24,
+      "mcnemar": {
+        "b_nl_only": 1,
+        "c_pt_only": 3,
+        "p": 0.625,
+        "min_discordant": 6
+      }
+    },
+    "SWAP": {
+      "n": 26,
+      "n_clips_effective": 13,
+      "nl_pass": 24,
+      "pt_pass": 26,
+      "mcnemar": {
+        "b_nl_only": 0,
+        "c_pt_only": 2,
+        "p": 0.5,
+        "min_discordant": 6
+      }
+    }
+  }
+}

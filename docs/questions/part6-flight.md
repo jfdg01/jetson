@@ -216,3 +216,36 @@ in-loop steps ≥ 0.9), transport ~2 ms on ~422 ms carry compute — so E1's mas
 in the loop. The follow is honest not perfect: the 2.69 Hz carry against a 20 Hz GT sawtooths the
 delivered IoU (peaks ~0.5–0.6). Demonstrates on-device capability; not an inferential claim. Harness:
 `run_p62_matrix.py --showcase`. Detail: `experiments/2026-07-24-p62-showcase/README.md`.
+
+### EXP-1 — where is the SAM2 carry-resolution elbow on the Orin? (2026-07-24)
+
+**RQ-EXP1 (elbow):** sweep SAM2 track `image_size` 256→1024 — where does carry IoU stop paying for
+the throughput it costs? **Verdict: the elbow is 512–640.** IoU plateaus above 512 (0.675→0.780 over
+256→512, then only +0.036 to 1024); on-device Hz is flat-high (~9–10 Hz, overhead-bound) below 640
+then halves per step. **640 delivers 99.4% of 1024's IoU (0.811 vs 0.816) at 2.5× throughput (5.76 vs
+2.34 Hz)**; 512 = 96% at 3.7×; below 512 speed saturates so it is pure IoU loss. Paired 768-vs-1024
+holds (delta −0.0086, CI95 [−0.0135,−0.0017], McNemar b=0 c=3 p=0.25, n.s.). **Tail caveat:** 9/38
+small/distant clips collapse at low res and recover only by 896–1024, so `held_frac` keeps climbing
+to 1024 even after median IoU plateaus. Deploy: 640 default, 1024 size-gated fallback for small
+targets. The "ground high / track low" framing collapses on 720p UAV123 (VLM trained ≤1024, seed
+res-independent inside SAM2) — this maps the track-res knob only. Machine `jetson`. Detail:
+`experiments/2026-07-24-resolution-decoupled-carry/README.md`.
+
+### EXP-2 — does an operator point-crop beat NL referring expression for select? (2026-07-24)
+
+**RQ-EXP2a (delivered PASS):** on the 26 P5.18 cells (13 clips), does PT (operator point → crop
+→ VLM grounds crop → SAM2 carry) deliver more PASSes than NL (whole-frame referring expression)?
+**Verdict: MISS — not separable at n=26.** WSEL NL 22/26 vs PT 24/26 (McNemar b=1 c=3, p=0.625);
+SWAP NL 24/26 vs PT 26/26 (b=0 c=2, p=0.5); both deflate to 13 clips, `min_discordant`=6 so
+b+c=4 and 2 are below the reachable floor. Every discordant leans PT (7 PT-only vs 1 NL-only) and
+PT never loses a SWAP cell, but underpowered. This is the R-38 prediction: at the lenient 0.25-IoU
+delivery threshold the SAM2 carry rescues NL's rougher boxes, so the pointer buys no extra PASS.
+**RQ-EXP2b (grounding elbow):** sweeping the VLM feed resolution under a strict IoU≥0.5 grounding
+criterion, **PT@256px (hit 0.769) out-grounds NL@1024px (hit 0.654)** — the point-crop concentrates
+the VLM's effective resolution onto the target, hitting its ceiling at a 256px crop while NL climbs
+to a lower plateau at 896–1024. **The point-crop's win is grounding efficiency + localization
+precision (same/better accuracy at 4× lower feed res), not delivered PASS at the deployed
+threshold.** Supports maintain-and-deliver: NL grounding is not the select bottleneck; the pointer
+is an ergonomics/compute lever, not an accuracy fix. Visual audit: 8/8 pass cells confirmed
+genuine, 0 downgrades. Machine `jetson`. Detail:
+`experiments/2026-07-24-point-crop-select/README.md`.

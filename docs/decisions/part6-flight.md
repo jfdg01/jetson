@@ -405,3 +405,36 @@ this power is not equivalence. The frozen gate anticipated exactly this and name
 recorded:* the coupled/decoupled *mean* divergence is stochastic carry drift, not coupling — it fires
 in the decoupled arm (no feedback loop), so attributing it to the loop would be a causal error the
 median/signed-rank correctly avoid.
+
+### EXP-1 — carry at image_size 640 by default (the elbow), 1024 size-gated fallback (2026-07-24)
+
+**Adopt SAM2 track-res 640 as the default carry resolution — the measured elbow — keeping 1024 as a
+size-gated fallback for small/few-pixel targets.** Why: the 7-point sweep shows carry IoU plateaus above
+512 (640 = 0.811 vs 1024's 0.816, inside run-to-run noise) while on-device Hz is flat-high below 640
+(~9–10 Hz, overhead-bound) then halves per size step — so 640 buys **2.5× throughput (5.76 vs 2.34 Hz)
+for a −0.005 median-IoU cost**. The earlier 768-default call is superseded: 768 is past the knee (4.08
+Hz for the same accuracy 640 gives at 5.76 Hz). *What was given up:* not a blanket low-res switch — 9/38
+small/distant clips collapse below ~896 and only `held_frac` (not median IoU) exposes them, so a naive
+global 640 trades a tail-risk of dropping sub-pixel targets. The size-gated fallback keeps both; below
+512 is never worth it (speed saturates, IoU keeps dropping). *Also decided:* the "ground at 1080p /
+track at 640" premise stays **shelved** on this data — 720p UAV123, VLM trained ≤1024, seed box
+res-independent inside SAM2 — so the only live knob is track-res, which this maps. A true high-res-source
+variant needs new ≥1080p footage (follow-up, out of scope).
+
+### EXP-2 — keep NL referring-expression as the deployed select interface; the point-crop is an efficiency lever, not an accuracy fix (2026-07-24)
+
+**Do not replace the NL referring expression with the operator point-crop as the primary select
+interface on this evidence.** Why: at the deployed operating point (0.25-IoU delivery + on-device
+SAM2 carry) PT and NL are statistically indistinguishable — WSEL 24/26 vs 22/26 and SWAP 26/26 vs
+24/26, both McNemar MISS (b+c below the reachable floor at n=26). The carry closes whatever grounding
+gap the pointer opens, so the pointer earns no extra delivered PASS. *What the pointer DOES buy,
+recorded so it is not lost:* under a strict grounding-IoU criterion it grounds the target at **4×
+lower VLM feed resolution** (PT@256 ≥ NL@1024) with better peak localization — a real compute and
+precision win. So the point-crop is adopted as an **optional low-latency / low-res grounding path**
+(useful when the VLM feed budget is tight or the target is a few pixels in a wide scene), not as the
+default interface. *What was given up:* the stronger "language hurts select, the pointer fixes it"
+claim — the data says grounding is symmetric (R-38 confirmed), the residual select failures are
+carry/delivery, and the NL framing stands on its own. *Consistency:* every discordant leaned PT and
+PT never lost a SWAP cell, so a larger-n follow-up could still surface a small PT edge — noted, not
+claimed. All carry on the Orin (`machine=jetson`); the 3090 ran only the source frames' storage, no
+tracker.
