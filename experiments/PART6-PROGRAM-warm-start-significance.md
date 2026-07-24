@@ -1,6 +1,10 @@
 # PROGRAM — Warm-start maintain-and-deliver, powered to significance
 
-**Status:** pre-registered 2026-07-23T23:05Z (Madrid). Frozen. Resumable across sessions.
+**Status:** pre-registered 2026-07-23T23:05Z (Madrid). Frozen. **All five inferential experiments
+COMPLETE 2026-07-24** (rollup in §5; `thesis/claims.json` authoritative). P6.2-DELIVERY is the powered
+survivor; the other four are the pre-registered honest outcomes, all supporting maintain-and-deliver.
+The qualitative on-Jetson showcase's carry seam is demonstrated; its closed-loop flight is the one
+open item, BLOCKED on a host-GPU driver reload (interactive sudo — human action).
 **Owner doc.** This is the authoritative cross-experiment spine for the six experiments
 below. Each experiment has its own self-contained `experiments/2026-07-23-*/README.md`
 (the source of truth for running it); this file holds only the shared rules, the frozen
@@ -262,17 +266,32 @@ NOT put the copter under CARLA physics (P6.1 decision, still standing).
 detection producer that reads the oracle `actor_box`), dumping a mid-run overlay PNG for look-at-it.
 The heavy WARM/COLD producers (SAM2 ring buffer, on-device VLM) land in the next increment.
 
-## 5. Results (TBD)
+## 5. Results (COMPLETE 2026-07-24)
 
-Filled per experiment in each `experiments/2026-07-23-*/README.md`. This table is the rollup index.
+Filled per experiment in each `experiments/2026-07-2*/README.md`; `thesis/claims.json` is the source
+of truth. p-values are the as-run exact test (deflated where deflation is operative, per HANDOFF I2).
 
-| ID | Verdict | b/c or W | p (deflated) | n_eff | Holm | Date |
+| ID | Verdict | b/c or W | p | n_eff | Holm | Date |
 |---|---|---|---|---|---|---|
-| R-36 | TBD | | | | | |
-| P5.21 | TBD | | | | | |
-| REG | TBD | | | | | |
-| P6.2-DELIVERY | TBD | | | | | |
-| P6.2-COUPLING | TBD | | | | | |
+| R-36 | NO [sin potencia, escaso en escenas] — select falla pero NO es separable de maintain | b=5, c=0 | 0.0625 | 14 | no sig. | 2026-07-24 |
+| P5.21 | TIE [negativo medido] — ROI-crop NO mejora el carry, regresa (c>b); cierra la última palanca de carry no-de-capacidad | b=1, c=3 | 0.625 | 34 | no sig. | 2026-07-24 |
+| REG (R-38) | SIMÉTRICO [rama pre-registrada] — el fallo de select NO vive en el grounding, sino aguas abajo (carry/delivery) | b=2, c=1 | 1.0 | 14 | no sig. | 2026-07-24 |
+| P6.2-DELIVERY | **YES [oracle-designation scope]** — warm 23/25 vs cold 2/25; coste del frío = obsolescencia (~4.85 s), no salir de cuadro | b=21, c=0 | **1.9e-06** (defl; raw 9.5e-07) | 25 | **sobrevive** | 2026-07-24 |
+| P6.2-COUPLING | NULO ACOTADO [gate ii] — cerrar el lazo NO degrada la pista warm; penalización de acoplamiento bajo el suelo de ruido | W, mediana −0.42 px | 0.596 | 25 | no sig. | 2026-07-24 |
+
+**Reading.** The one properly-powered result is **P6.2-DELIVERY** (the flagship, survives Holm per
+Part and global): warm-start maintain-and-deliver beats cold acquire in the closed loop, and the cold
+cost is delivery *staleness*, not the target leaving frame. The other four are the pre-registered
+*honest* outcomes — R-36/REG/P5.21 all converge on the same attribution (the residual select failure
+is **not** in grounding and **not** recoverable by a carry-capacity lever; it lives in maintain/deliver),
+and P6.2-COUPLING confirms closing the loop does not degrade the warm track. Every one supports
+**maintain-and-deliver over select**. None is significant on its own — by construction (scene-scarce
+UAV123 SWAP population, R-36's disclosed reachability risk), not by a failed effect.
+
+**P6.2-SHOWCASE (qualitative, not in this inferential table):** the on-device carry seam is
+demonstrated standalone (`experiments/2026-07-24-p62-showcase/`, held 24/24 median IoU 0.92 at 2.35 Hz
+literally on the Orin); the closed-loop *flight* half is BLOCKED on a host-GPU driver reload
+(interactive sudo — human action). See that README.
 
 ## 6. Provenance / do-not-re-derive
 
