@@ -201,3 +201,18 @@ gap (26.8 vs 63.2 px) is stochastic SAM2 carry drift firing on different seeds p
 in the arm with no feedback loop, so it is run-specific carry variance, not a coupling penalty; the
 outlier-robust signed-rank sees no difference. Scope: control-coupling on this rig's ego-motion (S5),
 does not transfer to real-imagery perception.
+
+### P6.2-SHOWCASE — can the maintained track drive a closed-loop flight with carry ON the Jetson? (2026-07-24)
+
+**RQ-P6.2-SHOWCASE (qualitative, NOT in the Holm family):** run one on-Jetson end-to-end closed-loop
+flight — SAM2 carry routed *literally* to the Orin — and does the loop hold a lock on the moving
+target, with the on-device carry reproducing the parity-checked 3090 carry in-rig?
+
+**Verdict: PASS (qualitative demonstration).** One WARM flight, carry stepped ON the Orin over
+ssh-stdio, a 3090 twin scored in lockstep. The copter (flying its own PID output) held a police
+charger through a 28 s flight incl. a road curve: **post-prompt coverage 0.495 (202/560 lock frames)**.
+The **in-rig parity gate PASSES — Jetson-carried vs 3090-twin median IoU 0.960** (min 0.805, 90% of 52
+in-loop steps ≥ 0.9), transport ~2 ms on ~422 ms carry compute — so E1's mask parity 1.000 holds live
+in the loop. The follow is honest not perfect: the 2.69 Hz carry against a 20 Hz GT sawtooths the
+delivered IoU (peaks ~0.5–0.6). Demonstrates on-device capability; not an inferential claim. Harness:
+`run_p62_matrix.py --showcase`. Detail: `experiments/2026-07-24-p62-showcase/README.md`.

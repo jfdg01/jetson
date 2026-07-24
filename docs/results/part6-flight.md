@@ -449,3 +449,22 @@ equivalence (two-sided design). Control-coupling scope only (S5). Proof:
 `proof/coupled_seed24_i399_iou093.png` (coupled arm holding lock through its own ego-motion),
 `proof/decoupled_seed14_carryleak.png` (the failure mode is carry, not coupling — a leak in the arm
 with no feedback loop).
+
+### P6.2-SHOWCASE — on-Jetson closed-loop flight (2026-07-24) · qualitative, NOT in Holm family
+
+One WARM closed-loop flight, `run_p62_matrix.py --showcase --alt 45 --t-prompt 14 --seconds 28`,
+target police charger (oracle designation), CARLA Town10HD_Opt + ArduCopter SITL. SAM2 carry routed
+LITERALLY to the Orin over ssh-stdio; a 3090 `_HostCarry` twin scored in lockstep for the parity gate.
+
+| metric | value | note |
+|---|---|---|
+| post-prompt coverage | **0.495** (202/560 lock frames) | copter flies its own PID output; target held through a road curve |
+| carry parity (Jetson vs 3090-twin, median IoU/step) | **0.960** (min 0.805, 90% ≥ 0.9) | 52/52 both-boxed; gate ≥ 0.95 PASS — E1 mask parity 1.000 holds live |
+| ssh round-trip | 424 ms/step (~2.4 Hz), compute 422 ms | transport ~2 ms; carry compute dominates |
+| seed / acquire | oracle ≈ 0 s, first deliver t=1.95 s | idle-window seed, no cold-acquire lag |
+
+**Result: PASS (qualitative).** The closed loop holds a lock with SAM2 carry running literally on the
+Jetson in-loop; the in-rig parity gate confirms the on-device carry reproduces the parity-checked 3090
+carry. Follow honest not perfect (2.69 Hz carry vs 20 Hz GT sawtooths delivered IoU, peaks ~0.5–0.6).
+Proof: `proof/flight_follow_overlay.png` (GT + Jetson-carried box on the charger through a curve),
+`proof/flight_trace.png` (delivered IoU over the flight + carry parity vs the 3090 twin per step).
