@@ -398,3 +398,26 @@ every geometric test passed. Fixed at capture time; **the shipped bank predates 
 recapture that would invalidate the numbers already recorded above. The rate is gated at 1e-4 going
 forward and written down here, because a tolerance nobody records is indistinguishable from a bug
 nobody found.
+
+### P6.2-DELIVERY — closed-loop WARM maintain-and-deliver vs COLD blocking acquire (2026-07-24)
+
+Detail: [`../../experiments/2026-07-23-p62-delivery/README.md`](../../experiments/2026-07-23-p62-delivery/README.md).
+Config: RTX-3090 host + CARLA 0.9.16 `Town10HD_Opt` (pose-slaved nadir renderer, async on purpose —
+sync erases the delivery lag), ArduCopter SITL physics, SAM2 carry on the 3090 rate-capped to the
+Jetson 2.69 Hz (`prune_after=32`); **ORACLE target designation** — grounding held constant via GT-box
+seed because the deployed q8_0 is non-discriminative at 45 m nadir (G6 center-bias); PID kp_lat=0.05
+max_v=4.0; alt 45 m; 25 distinct seeds + first-3 x2 noise band. Run: `run_p62_matrix.py --oracle`.
+
+**FOLLOW PASS: WARM 23/25 vs COLD 2/25.** Exact McNemar b=21, c=0 (one-directional), n_eff=25,
+two-sided **p=9.54e-07**; reachable (b+c=21 >> 6), survives Part-VI Holm. WARM Wilson95
+**[0.750, 0.978]**. COLD `target-exits-frame=0` — cold fails by staleness, not frame-exit; surprise
+branch null. Schedule-noise band: 0 rep flips (seeds 0-2 both reps agree). WARM residuals: seed 8
+late carry-drift (cov 0.091), seed 13 non-lock + anomalous road-spanning GT box (author-flagged,
+counted WARM=0). The 2 COLD passes (seeds 14, 20) are slow/favorable targets (seed 20 world-disp
+15.2 m, lowest in the bank).
+
+**Result: YES [oracle-designation scope].** Closed-loop warm-start delivers a followable lock the PID
+holds; cold hovers blind through the ~4.85 s lag then delivers a stale box off-target. E18-n25
+delivery-lag staleness **holds and amplifies in closed loop** — self-induced ego-motion does not
+rescue cold. Control-coupling claim only (S5); does NOT license a nadir-grounding claim (G6). Proof:
+`proof/p62_warm_vs_cold.png` (behaviour), `proof/p62_follow_pass.png` (numbers).

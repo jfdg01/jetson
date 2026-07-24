@@ -163,6 +163,47 @@ def fly_in_background(m, north):
     return stop
 
 
+def send_velocity(m, vn, ve, vd=0.0, yaw_rate=0.0):
+    """One GUIDED velocity setpoint in LOCAL_NED (north, east, down; m/s + rad/s).
+
+    Same mask as hold_velocity (vx/vy/vz/yaw_rate used, position ignored). The
+    caller resends every control tick -- a GUIDED setpoint times out after ~3 s of
+    silence and the copter falls back to loiter, so a one-shot send looks like it
+    works then stops. Used by run_p62_flight's closed loop: PID output -> here.
+    """
+    m.mav.set_position_target_local_ned_send(
+        0, m.target_system, m.target_component,
+        mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+        0b0000111111000111,          # use vx/vy/vz + yaw_rate, ignore position/accel/yaw
+        0, 0, 0, vn, ve, vd, 0, 0, 0, 0, yaw_rate)
+
+
+def reset_to_origin(m, alt, tol=3.0, timeout=40):
+    """Fly back to LOCAL_NED (0,0,-alt) and block until within `tol` m. Returns final dist.
+
+    Between matrix flights the copter has chased a target away from origin; each seeded
+    scenario must start from the same pose so the nadir camera reacquires near origin. A
+    GUIDED *position* setpoint (not velocity), resent at 5 Hz -- a one-shot send times out
+    after ~3 s and drops to loiter, same failure mode as send_velocity.
+    """
+    t0 = time.time()
+    dist = float("inf")
+    while time.time() - t0 < timeout:
+        m.mav.set_position_target_local_ned_send(
+            0, m.target_system, m.target_component,
+            mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+            0b0000110111111000,          # position-only (x,y,z); ignore vel/accel/yaw
+            0.0, 0.0, -alt, 0, 0, 0, 0, 0, 0, 0, 0)
+        msg = m.recv_match(type="LOCAL_POSITION_NED", blocking=True, timeout=1)
+        if msg is None:
+            continue
+        dist = (msg.x ** 2 + msg.y ** 2 + ((-msg.z) - alt) ** 2) ** 0.5
+        if dist < tol:
+            return dist
+        time.sleep(0.2)
+    return dist
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", default="tcp:127.0.0.1:5760")

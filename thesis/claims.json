@@ -38,7 +38,7 @@
     "n": 50
    },
    "gate_p": null,
-   "caveats": "Ambos brazos están clavados en el suelo con 0 aciertos, de modo que una prueba pareada entre ellos es degenerada (b=c=0). El intervalo de Wilson sobre 0/50 es todo el contenido: [0, 0.071]. Eso basta para justificar el abandono del spine y es la forma correcta de enunciarlo.",
+   "caveats": "Ambos brazos est\u00e1n clavados en el suelo con 0 aciertos, de modo que una prueba pareada entre ellos es degenerada (b=c=0). El intervalo de Wilson sobre 0/50 es todo el contenido: [0, 0.071]. Eso basta para justificar el abandono del spine y es la forma correcta de enunciarlo.",
    "caveats_en": "Both arms are floor-pinned at 0 successes, so a paired test between them is degenerate (b=c=0). The Wilson interval on 0/50 is the whole content: [0, 0.071]. That is enough to justify abandoning the spine and is the correct way to state it.",
    "machine": "jetson-orin-nano-8gb"
   },
@@ -60,7 +60,7 @@
     "n": 200
    },
    "gate_p": 0.3,
-   "caveats": "2/200 frente a un umbral del 30% queda tan por debajo que ninguna corrección por agrupamiento podría cambiar el veredicto. El DIAGNÓSTICO de 'mode collapse', en cambio, se apoya en 5 predicciones inspeccionadas a mano y no es en sí mismo una afirmación medida.",
+   "caveats": "2/200 frente a un umbral del 30% queda tan por debajo que ninguna correcci\u00f3n por agrupamiento podr\u00eda cambiar el veredicto. El DIAGN\u00d3STICO de 'mode collapse', en cambio, se apoya en 5 predicciones inspeccionadas a mano y no es en s\u00ed mismo una afirmaci\u00f3n medida.",
    "caveats_en": "2/200 against a 30% gate is so far below that no clustering correction could change the verdict. The 'mode collapse' DIAGNOSIS, however, rests on 5 hand-inspected predictions and is not itself a measured claim.",
    "machine": "both"
   },
@@ -86,7 +86,7 @@
     "n": 100
    },
    "gate_p": null,
-   "caveats": "El brazo HF NO tiene fichero por ítem, así que b y c no son directamente recuperables. En su lugar están ACOTADOS: las marginales fijan b - c = 30, lo que deja c en [0, 15]. El PEOR caso para la significación es c=15, b=45, y aun así da p = 1.3e-04. Los b/c almacenados aquí son ese peor caso, de modo que el valor p reportado es una cota superior y la catástrofe es significativa bajo todo emparejamiento compatible con los datos. Este es el resultado individual más fuerte de la Parte I.",
+   "caveats": "El brazo HF NO tiene fichero por \u00edtem, as\u00ed que b y c no son directamente recuperables. En su lugar est\u00e1n ACOTADOS: las marginales fijan b - c = 30, lo que deja c en [0, 15]. El PEOR caso para la significaci\u00f3n es c=15, b=45, y aun as\u00ed da p = 1.3e-04. Los b/c almacenados aqu\u00ed son ese peor caso, de modo que el valor p reportado es una cota superior y la cat\u00e1strofe es significativa bajo todo emparejamiento compatible con los datos. Este es el resultado individual m\u00e1s fuerte de la Parte I.",
    "caveats_en": "The HF arm has NO per-item file, so b and c are not directly recoverable. They are BOUNDED instead: the marginals fix b - c = 30, which leaves c in [0, 15]. The WORST case for significance is c=15, b=45, and that still gives p = 1.3e-04. The b/c stored here are that worst case, so the reported p is an upper bound and the catastrophe is significant under every pairing consistent with the data. This is the strongest single result in Part I.",
    "machine": "both"
   },
@@ -111,7 +111,7 @@
     "n": 100
    },
    "gate_p": null,
-   "caveats": "Calculado aquí por primera vez: b=17, c=10, p=0.248. La pérdida de fidelidad está en la EXPORTACIÓN, no en la cuantización de 8 bits. Toda frase de la tesis que atribuya parte de la caída a Q8_0 debe matizarse.",
+   "caveats": "Calculado aqu\u00ed por primera vez: b=17, c=10, p=0.248. La p\u00e9rdida de fidelidad est\u00e1 en la EXPORTACI\u00d3N, no en la cuantizaci\u00f3n de 8 bits. Toda frase de la tesis que atribuya parte de la ca\u00edda a Q8_0 debe matizarse.",
    "caveats_en": "Computed here for the first time: b=17, c=10, p=0.248. The fidelity loss is in the EXPORT, not in the 8-bit quantisation. Any thesis sentence attributing part of the drop to Q8_0 must be softened.",
    "machine": "both"
   },
@@ -133,7 +133,7 @@
     "n": 50
    },
    "gate_p": null,
-   "caveats": "Pre-registrado como descriptivo y sin barra. El intervalo al 95% sobre 1/50 es aproximadamente [0.001, 0.106], de modo que '2.0% está en el suelo de acierto aleatorio' no es una afirmación que los datos puedan sostener — solo lo es 'como mucho en torno al 10%'.",
+   "caveats": "Pre-registrado como descriptivo y sin barra. El intervalo al 95% sobre 1/50 es aproximadamente [0.001, 0.106], de modo que '2.0% est\u00e1 en el suelo de acierto aleatorio' no es una afirmaci\u00f3n que los datos puedan sostener \u2014 solo lo es 'como mucho en torno al 10%'.",
    "caveats_en": "Pre-registered as descriptive with no bar. The 95% interval on 1/50 is roughly [0.001, 0.106], so '2.0% is at the random-guess floor' is not a statement the data can carry - only 'at most about 10%' is.",
    "machine": "both"
   },
@@ -155,7 +155,7 @@
     "n": 200
    },
    "gate_p": 0.2,
-   "caveats": "La puerta más instructiva de la Parte I. 39/200 frente a un umbral de 40/200 está dentro de una sola extracción de Bernoulli, y el intervalo de Wilson al 95% [0.146, 0.257] abarca holgadamente el 20%. Los datos no pueden distinguir 'incumplida' de 'cumplida'. El NARROW MISS registrado es una decisión de ingeniería defendible y una decisión estadística indefendible; la tesis debe presentarlo como lo primero.",
+   "caveats": "La puerta m\u00e1s instructiva de la Parte I. 39/200 frente a un umbral de 40/200 est\u00e1 dentro de una sola extracci\u00f3n de Bernoulli, y el intervalo de Wilson al 95% [0.146, 0.257] abarca holgadamente el 20%. Los datos no pueden distinguir 'incumplida' de 'cumplida'. El NARROW MISS registrado es una decisi\u00f3n de ingenier\u00eda defendible y una decisi\u00f3n estad\u00edstica indefendible; la tesis debe presentarlo como lo primero.",
    "caveats_en": "The most instructive gate in Part I. 39/200 vs a 40/200 threshold is within one Bernoulli draw, and the 95% Wilson interval [0.146, 0.257] straddles 20% comfortably. The data cannot distinguish 'missed' from 'met'. The recorded NARROW MISS is a defensible engineering decision and an indefensible statistical one; the thesis must present it as the former.",
    "machine": "rtx-3090"
   },
@@ -177,7 +177,7 @@
     "n": 3
    },
    "gate_p": null,
-   "caveats": "Una puerta de capacidad, no una medición muestreada. 3/3 en un único escenario demuestra que la pila PUEDE cerrar el lazo; no dice nada sobre una tasa a lo largo de escenarios. El recuento de fotogramas no debe usarse nunca como n.",
+   "caveats": "Una puerta de capacidad, no una medici\u00f3n muestreada. 3/3 en un \u00fanico escenario demuestra que la pila PUEDE cerrar el lazo; no dice nada sobre una tasa a lo largo de escenarios. El recuento de fotogramas no debe usarse nunca como n.",
    "caveats_en": "A capability gate, not a sampled measurement. 3/3 on one scenario shows the stack CAN close the loop; it says nothing about a rate over scenarios. The frame count must never be used as n.",
    "machine": "rtx-3090"
   },
@@ -199,9 +199,9 @@
     "c": 0
    },
    "gate_p": null,
-   "caveats": "Existen 13 CSVs de phase-c con todas las columnas por fotograma y deliberadamente NO se extrajeron: los píxeles de entrada eran un fotograma de cielo vacío (el pitch +pi/2 de la cámara de gz es HACIA ABAJO, no hacia arriba). Extraerlos produciría números bien formados sobre nada. Este es el caso que motivó, en el propio repositorio, la regla 'look at it'.",
+   "caveats": "Existen 13 CSVs de phase-c con todas las columnas por fotograma y deliberadamente NO se extrajeron: los p\u00edxeles de entrada eran un fotograma de cielo vac\u00edo (el pitch +pi/2 de la c\u00e1mara de gz es HACIA ABAJO, no hacia arriba). Extraerlos producir\u00eda n\u00fameros bien formados sobre nada. Este es el caso que motiv\u00f3, en el propio repositorio, la regla 'look at it'.",
    "rerun": {
-    "missing": "píxeles válidos — la medida es inválida en origen",
+    "missing": "p\u00edxeles v\u00e1lidos \u2014 la medida es inv\u00e1lida en origen",
     "cost": "superado; el rig de CARLA (P6.1) es el sitio correcto para volver a preguntarlo",
     "command": "NO RUNNABLE COMMAND EXISTS. runners/run_phase_c.py has no CARLA path today (it drives the Gazebo renderer); re-asking this needs the P6.1 CARLA rig wired into run_phase_c.py, which is P6.2's own build work."
    },
@@ -226,7 +226,7 @@
     "n": 100
    },
    "gate_p": null,
-   "caveats": "La decisión de spine se apoya TAMBIÉN en una comparación de fidelidad de exportación de -2 pp (Qwen) frente a -16 pp (SmolVLM). La cifra de -2 pp es 15/100 frente a 14/100 - una diferencia de UN SOLO ítem presentada como una propiedad de fidelidad. Esa pata del argumento no está respaldada; la pata de 15/100 frente a 0/100 sí lo está.",
+   "caveats": "La decisi\u00f3n de spine se apoya TAMBI\u00c9N en una comparaci\u00f3n de fidelidad de exportaci\u00f3n de -2 pp (Qwen) frente a -16 pp (SmolVLM). La cifra de -2 pp es 15/100 frente a 14/100 - una diferencia de UN SOLO \u00edtem presentada como una propiedad de fidelidad. Esa pata del argumento no est\u00e1 respaldada; la pata de 15/100 frente a 0/100 s\u00ed lo est\u00e1.",
    "caveats_en": "The spine decision ALSO rests on an export-fidelity comparison of -2 pp (Qwen) vs -16 pp (SmolVLM). The -2 pp figure is 15/100 vs 14/100 - a ONE-ITEM difference presented as a fidelity property. That leg of the argument is not supported; the 15/100 vs 0/100 leg is.",
    "machine": "rtx-3090"
   },
@@ -248,7 +248,7 @@
     "n": 1421
    },
    "gate_p": null,
-   "caveats": "Ninguna prueba es apropiada: esto es una enumeración completa, de modo que un intervalo de confianza sería un error de categoría. Su peso inferencial está aguas abajo: estos mismos 439 son el conjunto de evaluación de TODOS los números de la Parte II, y por eso la agrupación de las 316 imágenes únicas se propaga por toda la parte.",
+   "caveats": "Ninguna prueba es apropiada: esto es una enumeraci\u00f3n completa, de modo que un intervalo de confianza ser\u00eda un error de categor\u00eda. Su peso inferencial est\u00e1 aguas abajo: estos mismos 439 son el conjunto de evaluaci\u00f3n de TODOS los n\u00fameros de la Parte II, y por eso la agrupaci\u00f3n de las 316 im\u00e1genes \u00fanicas se propaga por toda la parte.",
    "caveats_en": "No test is appropriate: this is a complete enumeration, so a confidence interval would be a category error. Its inferential weight is downstream - this same 439 is the evaluation set for EVERY Part II number, which is why the 316-unique-images clustering propagates through the whole part.",
    "machine": "rtx-3090"
   },
@@ -270,7 +270,7 @@
     "n": 439
    },
    "gate_p": 0.2,
-   "caveats": "El umbral se supera con un margen amplio, de modo que el agrupamiento por imagen no amenaza el veredicto. El 'codo' de RQ-2.3 no tiene barra numérica y es un juicio a ojo — debe presentarse como una decisión de diseño, no como un hallazgo.",
+   "caveats": "El umbral se supera con un margen amplio, de modo que el agrupamiento por imagen no amenaza el veredicto. El 'codo' de RQ-2.3 no tiene barra num\u00e9rica y es un juicio a ojo \u2014 debe presentarse como una decisi\u00f3n de dise\u00f1o, no como un hallazgo.",
    "caveats_en": "The gate clears with a wide margin, so the image clustering does not threaten the verdict. The 'elbow' in RQ-2.3 has no numeric bar and is an eyeballed judgement - it should be presented as a design choice, not a finding.",
    "machine": "rtx-3090"
   },
@@ -292,7 +292,7 @@
     "n": 439
    },
    "gate_p": 0.2,
-   "caveats": "261 es el único entero compatible con el 0.595 redondeado y está corroborado por el gate_hits acumulado del log de evaluación (260 en i=435). El margen sobre la puerta es enorme; el agrupamiento no puede alterar el veredicto.",
+   "caveats": "261 es el \u00fanico entero compatible con el 0.595 redondeado y est\u00e1 corroborado por el gate_hits acumulado del log de evaluaci\u00f3n (260 en i=435). El margen sobre la puerta es enorme; el agrupamiento no puede alterar el veredicto.",
    "caveats_en": "261 is the only integer consistent with the rounded 0.595 and is corroborated by the eval log's running gate_hits (260 at i=435). Margin over the gate is enormous; clustering cannot touch the verdict.",
    "machine": "rtx-3090"
   },
@@ -314,7 +314,7 @@
     "n": 439
    },
    "gate_p": 0.575,
-   "caveats": "El número estrella de la Parte II. Los brazos de runtime (F16 273, Q8_0 275) quedan POR ENCIMA de la referencia HF (261), lo que el registro interpreta como una victoria de fidelidad; con estos marginales, esa diferencia de 14 ítems está dentro de lo que el emparejamiento podría producir por azar, de modo que la afirmación defendible es «no hay pérdida medible en la exportación», no «la exportación la mejoró».",
+   "caveats": "El n\u00famero estrella de la Parte II. Los brazos de runtime (F16 273, Q8_0 275) quedan POR ENCIMA de la referencia HF (261), lo que el registro interpreta como una victoria de fidelidad; con estos marginales, esa diferencia de 14 \u00edtems est\u00e1 dentro de lo que el emparejamiento podr\u00eda producir por azar, de modo que la afirmaci\u00f3n defendible es \u00abno hay p\u00e9rdida medible en la exportaci\u00f3n\u00bb, no \u00abla exportaci\u00f3n la mejor\u00f3\u00bb.",
    "caveats_en": "The headline Part II number. The runtime arms (F16 273, Q8_0 275) sit ABOVE the HF reference (261), which the ledger reads as a fidelity win; on these marginals that 14-item difference is within what the pairing could produce by chance, so the defensible claim is 'no measurable export loss', not 'the export improved it'.",
    "machine": "both"
   },
@@ -336,7 +336,7 @@
     "n": 439
    },
    "gate_p": null,
-   "caveats": "No se pre-registró ningún umbral numérico — un barrido de caracterización cuya función era establecer la línea base contra la que se mide la palanca ROI. Cuatro ejecuciones SMOKE de n=6 están en el mismo directorio runs/ y no deben confundirse con los brazos de n=439.",
+   "caveats": "No se pre-registr\u00f3 ning\u00fan umbral num\u00e9rico \u2014 un barrido de caracterizaci\u00f3n cuya funci\u00f3n era establecer la l\u00ednea base contra la que se mide la palanca ROI. Cuatro ejecuciones SMOKE de n=6 est\u00e1n en el mismo directorio runs/ y no deben confundirse con los brazos de n=439.",
    "caveats_en": "No numeric gate was pre-registered - a characterisation sweep whose job was to establish the baseline the ROI lever is measured against. Four n=6 SMOKE runs sit in the same runs/ directory and must not be confused with the n=439 arms.",
    "machine": "jetson-orin-nano-8gb"
   },
@@ -358,7 +358,7 @@
     "n": 439
    },
    "gate_p": 0.626,
-   "caveats": "Los recuentos se reconstruyeron a partir de las tasas almacenadas y caen exactamente en enteros, así que son exactos. La puerta se supera con un margen enorme y sobrevive a cualquier corrección por agrupamiento plausible. La SELECCIÓN de M=2.0 @512 como pico frente a M=1.5 @512 (368/439) es una diferencia de 6 ítems sobre ítems compartidos y debe presentarse como 'una meseta, y tomamos un punto sobre ella'.",
+   "caveats": "Los recuentos se reconstruyeron a partir de las tasas almacenadas y caen exactamente en enteros, as\u00ed que son exactos. La puerta se supera con un margen enorme y sobrevive a cualquier correcci\u00f3n por agrupamiento plausible. La SELECCI\u00d3N de M=2.0 @512 como pico frente a M=1.5 @512 (368/439) es una diferencia de 6 \u00edtems sobre \u00edtems compartidos y debe presentarse como 'una meseta, y tomamos un punto sobre ella'.",
    "caveats_en": "Counts were reconstructed from stored rates and land exactly on integers, so they are exact. The gate is cleared with a huge margin and survives any plausible clustering correction. The SELECTION of M=2.0 @512 as the peak over M=1.5 @512 (368/439) is a 6-item difference on shared items and should be presented as 'a plateau, we took a point on it'.",
    "machine": "both"
   },
@@ -383,9 +383,9 @@
     "experiments/2026-07-21-roi-ondevice/raw/items-roi.jsonl",
     "experiments/2026-07-21-roi-ondevice/raw/items-full.jsonl"
    ],
-   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 404, no 316. El colapso a 316 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.039 (cota superior al 95 % = 0.226, que es la que se usa). Con tamaño medio de conglomerado 1.39, el efecto de diseño es 1.09 y 439/1.09 = 404. **Suelo publicado: 316** — el valor colapsado se conserva como análisis de sensibilidad conservador. — 439 RefDrone val well-posed caption-box pairs over 316 unique images (pseudo-replication rule R-4); the paired b/c are deflated to the 316 image count before the McNemar test, b=81 c=11 deflated.",
+   "independence_note": "R-29 CALIBRACI\u00d3N POR ICC (2026-07-23): n efectivo = 404, no 316. El colapso a 316 conglomerados supon\u00eda correlaci\u00f3n intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.039 (cota superior al 95 % = 0.226, que es la que se usa). Con tama\u00f1o medio de conglomerado 1.39, el efecto de dise\u00f1o es 1.09 y 439/1.09 = 404. **Suelo publicado: 316** \u2014 el valor colapsado se conserva como an\u00e1lisis de sensibilidad conservador. \u2014 439 RefDrone val well-posed caption-box pairs over 316 unique images (pseudo-replication rule R-4); the paired b/c are deflated to the 316 image count before the McNemar test, b=81 c=11 deflated.",
    "caveats_en": "Both arms measured in one llama-server session on the deployed phase3-terse100eos-1024 Q8_0 checkpoint, so this is a single-machine single-quantisation paired test -- it replaces the original P3-ROI-M2.0-512 claim, whose 85.2% was HF bf16 on the RTX 3090 and whose 62.6% baseline was Q8_0 on the Orin (a cross-machine, cross-quant subtraction). The control arm A reproduced the published 63.1% on-device full-frame number exactly (RQ-R14.2), so the +22.1 pp is the intervention and not a harness change. The ROI prior is the oracle inflated GT box, identical to the original sweep, so this is an UPPER BOUND on what the deployed tracker-driven re-anchor gets from a drifted box; the original campaign's RQ4 quantified that decay (85.2% at 0 drift -> 74.3% at a full-box drift) and it is not re-run here.",
-   "caveats": "Ambos brazos se midieron en una sola sesión de llama-server sobre el checkpoint desplegado phase3-terse100eos-1024 Q8_0, de modo que es una prueba pareada de una sola máquina y una sola cuantización -- reemplaza la afirmación original P3-ROI-M2.0-512, cuyo 85.2% era HF bf16 en la RTX 3090 y cuya línea base de 62.6% era Q8_0 en la Orin (una resta entre máquinas y entre cuantizaciones). El brazo de control A reprodujo exactamente el 63.1% publicado en dispositivo a pantalla completa (RQ-R14.2), así que los +22.1 pp son la intervención y no un cambio del arnés. El prior de ROI es la caja GT oracular inflada, idéntica al barrido original, por lo que esto es una COTA SUPERIOR sobre lo que obtiene el re-anclaje desplegado a partir de una caja de tracker desviada; la RQ4 de la campaña original cuantificó esa caída (85.2% con 0 desviación -> 74.3% con desviación de caja completa) y no se reejecuta aquí.",
+   "caveats": "Ambos brazos se midieron en una sola sesi\u00f3n de llama-server sobre el checkpoint desplegado phase3-terse100eos-1024 Q8_0, de modo que es una prueba pareada de una sola m\u00e1quina y una sola cuantizaci\u00f3n -- reemplaza la afirmaci\u00f3n original P3-ROI-M2.0-512, cuyo 85.2% era HF bf16 en la RTX 3090 y cuya l\u00ednea base de 62.6% era Q8_0 en la Orin (una resta entre m\u00e1quinas y entre cuantizaciones). El brazo de control A reprodujo exactamente el 63.1% publicado en dispositivo a pantalla completa (RQ-R14.2), as\u00ed que los +22.1 pp son la intervenci\u00f3n y no un cambio del arn\u00e9s. El prior de ROI es la caja GT oracular inflada, id\u00e9ntica al barrido original, por lo que esto es una COTA SUPERIOR sobre lo que obtiene el re-anclaje desplegado a partir de una caja de tracker desviada; la RQ4 de la campa\u00f1a original cuantific\u00f3 esa ca\u00edda (85.2% con 0 desviaci\u00f3n -> 74.3% con desviaci\u00f3n de caja completa) y no se reejecuta aqu\u00ed.",
    "verdict": "YES (+22.1 pp, p=2.5e-14 deflated, survives Holm; supersedes the cross-machine P3-ROI-M2.0-512)",
    "icc": {
     "point": 0.038698,
@@ -418,9 +418,9 @@
     "experiments/2026-07-21-detector-baseline/raw/scored.jsonl",
     "experiments/2026-07-21-roi-ondevice/raw/items-full.jsonl"
    ],
-   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 417, no 316. El colapso a 316 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.138, que es la que se usa). Con tamaño medio de conglomerado 1.39, el efecto de diseño es 1.05 y 439/1.05 = 417. **Suelo publicado: 316** — el valor colapsado se conserva como análisis de sensibilidad conservador. — 439 RefDrone val well-posed caption-box pairs over 316 unique images (pseudo-replication rule R-4); b/c are deflated to the 316 image count before McNemar (b=72, c=22 deflated). Both arms scored through grounding/contract.py on the same items in the same order; the VLM comparator is arm A of R-14, not a re-run.",
+   "independence_note": "R-29 CALIBRACI\u00d3N POR ICC (2026-07-23): n efectivo = 417, no 316. El colapso a 316 conglomerados supon\u00eda correlaci\u00f3n intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.138, que es la que se usa). Con tama\u00f1o medio de conglomerado 1.39, el efecto de dise\u00f1o es 1.05 y 439/1.05 = 417. **Suelo publicado: 316** \u2014 el valor colapsado se conserva como an\u00e1lisis de sensibilidad conservador. \u2014 439 RefDrone val well-posed caption-box pairs over 316 unique images (pseudo-replication rule R-4); b/c are deflated to the 316 image count before McNemar (b=72, c=22 deflated). Both arms scored through grounding/contract.py on the same items in the same order; the VLM comparator is arm A of R-14, not a re-run.",
    "caveats_en": "The registered counts are the STRONGEST detector arm (D-phrase, the noun phrase with adjectives kept), not the end-to-end one -- D-full is 25.7% and would make the claim look far stronger (p=2.2e-24). D-phrase was added after pre-registration and before scoring, precisely so the detector was not strawmanned; it is declared in the campaign README. The 90.4% D-oracle arm is NOT a system: it picks among the detector's top-10 using the ground truth, so it is an upper bound on any re-ranker over those proposals and must never be quoted as an OWLv2 result. The latency comparison (263.5 ms detector forward vs 4216 ms of VLM on-device compute -- prefill 3680 + decode 536 -- so 16.0x, NOT the 16.4x a wall-vs-forward ratio gives, because the 4319 ms wall carries ~103 ms of base64 over an ssh tunnel) is one detector forward against one full generative anchor and excludes the selection stage a decomposed system would still need; if that stage were itself a VLM the saving disappears. OWLv2 ran fp16 via transformers/PyTorch while the VLM ran Q8_0 via llama.cpp, so the cost ratio is across two runtimes and is a system-level observation, not a controlled efficiency measurement. 5/439 captions (1.1%) exceed OWLv2's 16-token text encoder limit and were truncated.",
-   "caveats": "Los recuentos registrados corresponden al brazo MÁS FUERTE del detector (D-phrase, el sintagma nominal con adjetivos), no al extremo a extremo: D-full queda en 25.7% y haría parecer la afirmación mucho más contundente (p=2.2e-24). D-phrase se añadió después del preregistro y antes de puntuar, precisamente para no presentar al detector como un espantapájaros; queda declarado en el README de la campaña. El brazo D-oracle del 90.4% NO es un sistema: elige entre las diez primeras propuestas del detector usando la verdad-terreno, así que es una cota superior sobre cualquier reordenador de esas propuestas y nunca debe citarse como resultado de OWLv2. La comparación de latencia (263.5 ms por pasada del detector frente a 4216 ms de cómputo en la placa del VLM —prefill 3680 + decodificación 536—, es decir 16.0x y NO el 16.4x que sale de enfrentar reloj contra pasada, porque los 4319 ms de reloj incluyen unos 103 ms de base64 por un túnel ssh) enfrenta una sola pasada del detector con un anclaje generativo completo y excluye la etapa de selección que un sistema descompuesto seguiría necesitando; si esa etapa fuese a su vez un VLM, el ahorro desaparece. OWLv2 corrió en fp16 con transformers/PyTorch mientras que el VLM corrió en Q8_0 con llama.cpp, de modo que la razón de coste cruza dos motores de ejecución y es una observación de sistema, no una medición controlada de eficiencia. 5 de 439 descripciones (1.1%) superan el límite de 16 tokens del codificador de texto de OWLv2 y fueron truncadas.",
+   "caveats": "Los recuentos registrados corresponden al brazo M\u00c1S FUERTE del detector (D-phrase, el sintagma nominal con adjetivos), no al extremo a extremo: D-full queda en 25.7% y har\u00eda parecer la afirmaci\u00f3n mucho m\u00e1s contundente (p=2.2e-24). D-phrase se a\u00f1adi\u00f3 despu\u00e9s del preregistro y antes de puntuar, precisamente para no presentar al detector como un espantap\u00e1jaros; queda declarado en el README de la campa\u00f1a. El brazo D-oracle del 90.4% NO es un sistema: elige entre las diez primeras propuestas del detector usando la verdad-terreno, as\u00ed que es una cota superior sobre cualquier reordenador de esas propuestas y nunca debe citarse como resultado de OWLv2. La comparaci\u00f3n de latencia (263.5 ms por pasada del detector frente a 4216 ms de c\u00f3mputo en la placa del VLM \u2014prefill 3680 + decodificaci\u00f3n 536\u2014, es decir 16.0x y NO el 16.4x que sale de enfrentar reloj contra pasada, porque los 4319 ms de reloj incluyen unos 103 ms de base64 por un t\u00fanel ssh) enfrenta una sola pasada del detector con un anclaje generativo completo y excluye la etapa de selecci\u00f3n que un sistema descompuesto seguir\u00eda necesitando; si esa etapa fuese a su vez un VLM, el ahorro desaparece. OWLv2 corri\u00f3 en fp16 con transformers/PyTorch mientras que el VLM corri\u00f3 en Q8_0 con llama.cpp, de modo que la raz\u00f3n de coste cruza dos motores de ejecuci\u00f3n y es una observaci\u00f3n de sistema, no una medici\u00f3n controlada de eficiencia. 5 de 439 descripciones (1.1%) superan el l\u00edmite de 16 tokens del codificador de texto de OWLv2 y fueron truncadas.",
    "verdict": "YES (VLM 63.1% vs OWLv2 best 47.4%, p=2.3e-07 deflated, survives Holm; the detector's deficit is selection -- its recall@10 is 88.8% and its rank-2 proposal already ties the VLM's top-1)",
    "icc": {
     "point": 0.0,
@@ -449,7 +449,7 @@
     "n": 439
    },
    "gate_p": null,
-   "caveats": "Sin barra numérica pre-registrada. Como la dirección de la deriva es una sola extracción, los números por nivel de desplazamiento arrastran error muestral en la PERTURBACIÓN además de en los ítems, y solo el primero está cuantificado. El peor nivel (1.0, M=2.0) sigue superando la línea base del 62.6%, que es la forma honesta de la afirmación.",
+   "caveats": "Sin barra num\u00e9rica pre-registrada. Como la direcci\u00f3n de la deriva es una sola extracci\u00f3n, los n\u00fameros por nivel de desplazamiento arrastran error muestral en la PERTURBACI\u00d3N adem\u00e1s de en los \u00edtems, y solo el primero est\u00e1 cuantificado. El peor nivel (1.0, M=2.0) sigue superando la l\u00ednea base del 62.6%, que es la forma honesta de la afirmaci\u00f3n.",
    "caveats_en": "No pre-registered numeric bar. Because the drift direction is one draw, the shift-level numbers carry sampling error in the PERTURBATION as well as in the items, and only the first is quantified. Worst level (1.0, M=2.0) still clears the 62.6% baseline, which is the honest form of the claim.",
    "machine": "both"
   },
@@ -461,7 +461,7 @@
    "verdict": "NO - Swin2SR rejected",
    "n_rows": 429,
    "n_effective": 412,
-   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 412, no 312. El colapso a 312 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.110, que es la que se usa). Con tamaño medio de conglomerado 1.37, el efecto de diseño es 1.04 y 429/1.04 = 412. **Suelo publicado: 312** — el valor colapsado se conserva como análisis de sensibilidad conservador. — 429 samples over 312 unique images (211 with 1 caption, 85 with 2, 16 with 3). Two expressions over one aerial frame share scene, object density and JPEG degradation.",
+   "independence_note": "R-29 CALIBRACI\u00d3N POR ICC (2026-07-23): n efectivo = 412, no 312. El colapso a 312 conglomerados supon\u00eda correlaci\u00f3n intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.110, que es la que se usa). Con tama\u00f1o medio de conglomerado 1.37, el efecto de dise\u00f1o es 1.04 y 429/1.04 = 412. **Suelo publicado: 312** \u2014 el valor colapsado se conserva como an\u00e1lisis de sensibilidad conservador. \u2014 429 samples over 312 unique images (211 with 1 caption, 85 with 2, 16 with 3). Two expressions over one aerial frame share scene, object density and JPEG degradation.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-06-30-roi-sr-upscale/sr_probe_out/sr_per_sample.csv"
@@ -474,7 +474,7 @@
     "n": 429
    },
    "gate_p": null,
-   "caveats": "CORRIGE UNA CONCLUSIÓN YA REGISTRADA. Los pares discordantes se calculan aquí por primera vez: lanczos vs swin2sr b=21 c=14 p=0.31; bicubic vs swin2sr b=22 c=12 p=0.12; bicubic vs native p=0.26. NINGUNA diferencia de exactitud en este sondeo es significativa. El rechazo es correcto, pero debe justificarse por LATENCIA (+1331 ms por recorte, determinista y enorme), no por exactitud. Cualquier frase que diga que Swin2SR 'pierde' en IoU carece de respaldo; la frase respaldada es que no aporta nada medible a cambio de 1.3 s.",
+   "caveats": "CORRIGE UNA CONCLUSI\u00d3N YA REGISTRADA. Los pares discordantes se calculan aqu\u00ed por primera vez: lanczos vs swin2sr b=21 c=14 p=0.31; bicubic vs swin2sr b=22 c=12 p=0.12; bicubic vs native p=0.26. NINGUNA diferencia de exactitud en este sondeo es significativa. El rechazo es correcto, pero debe justificarse por LATENCIA (+1331 ms por recorte, determinista y enorme), no por exactitud. Cualquier frase que diga que Swin2SR 'pierde' en IoU carece de respaldo; la frase respaldada es que no aporta nada medible a cambio de 1.3 s.",
    "caveats_en": "CORRECTS A RECORDED CONCLUSION. Discordants computed here for the first time: lanczos vs swin2sr b=21 c=14 p=0.31; bicubic vs swin2sr b=22 c=12 p=0.12; bicubic vs native p=0.26. NO accuracy difference in this probe is significant. The rejection is correct but must be justified on LATENCY (+1331 ms per crop, deterministic and enormous), not on accuracy. Any sentence saying Swin2SR 'loses' on IoU is unsupported; the supported sentence is that it buys nothing measurable for 1.3 s.",
    "machine": "rtx-3090",
    "icc": {
@@ -494,7 +494,7 @@
    "verdict": "OP=768 adopted by the frozen rule",
    "n_rows": 186,
    "n_effective": 135,
-   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 135, no 93. El colapso a 93 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.185 (cota superior al 95 % = 0.373, que es la que se usa). Con tamaño medio de conglomerado 2.00, el efecto de diseño es 1.37 y 186/1.37 = 135. **Suelo publicado: 93** — el valor colapsado se conserva como análisis de sensibilidad conservador. — 186 tracks from exactly 93 sequences, 2 tracks per sequence with no exceptions. Two tracks from one clip share flight, altitude and lighting. n_effective is 93.",
+   "independence_note": "R-29 CALIBRACI\u00d3N POR ICC (2026-07-23): n efectivo = 135, no 93. El colapso a 93 conglomerados supon\u00eda correlaci\u00f3n intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.185 (cota superior al 95 % = 0.373, que es la que se usa). Con tama\u00f1o medio de conglomerado 2.00, el efecto de dise\u00f1o es 1.37 y 186/1.37 = 135. **Suelo publicado: 93** \u2014 el valor colapsado se conserva como an\u00e1lisis de sensibilidad conservador. \u2014 186 tracks from exactly 93 sequences, 2 tracks per sequence with no exceptions. Two tracks from one clip share flight, altitude and lighting. n_effective is 93.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-01-temporal-acquire-carry/runs/phase0-zeroshot-carry/per_track.csv"
@@ -507,7 +507,7 @@
     "n": 186
    },
    "gate_p": null,
-   "caveats": "Una prueba de signos sobre la comparación pareada por track: 1024 gana a 768 en 55 tracks, 768 gana a 1024 en 31, 100 empates; p exacto sin deflactar = 0.013. Pero los 186 tracks salen de 93 secuencias distintas, y sobre esa unidad independiente la prueba da b=28, c=16, p = 0.096: NO significativa, y Holm la deja en 1. La afirmación anterior de este registro («1024 SÍ es significativamente más preciso») se corrigió el 2026-07-21 (R-7). La adopción de 768 nunca fue una afirmación de igualdad - la regla congelada era un listón de TAMAÑO DEL EFECTO (dentro de 5 pp de la referencia de 1024) más una restricción de FPS. La tesis debe enunciarlo así: se eligió 768 por FPS, y el coste de precisión, si lo hay, es pequeño y estos datos no lo separan del azar.",
+   "caveats": "Una prueba de signos sobre la comparaci\u00f3n pareada por track: 1024 gana a 768 en 55 tracks, 768 gana a 1024 en 31, 100 empates; p exacto sin deflactar = 0.013. Pero los 186 tracks salen de 93 secuencias distintas, y sobre esa unidad independiente la prueba da b=28, c=16, p = 0.096: NO significativa, y Holm la deja en 1. La afirmaci\u00f3n anterior de este registro (\u00ab1024 S\u00cd es significativamente m\u00e1s preciso\u00bb) se corrigi\u00f3 el 2026-07-21 (R-7). La adopci\u00f3n de 768 nunca fue una afirmaci\u00f3n de igualdad - la regla congelada era un list\u00f3n de TAMA\u00d1O DEL EFECTO (dentro de 5 pp de la referencia de 1024) m\u00e1s una restricci\u00f3n de FPS. La tesis debe enunciarlo as\u00ed: se eligi\u00f3 768 por FPS, y el coste de precisi\u00f3n, si lo hay, es peque\u00f1o y estos datos no lo separan del azar.",
    "caveats_en": "A sign test on the per-track paired comparison: 1024 beats 768 on 55 tracks, 768 beats 1024 on 31, 100 ties; undeflated exact p = 0.013. But the 186 tracks come from 93 distinct sequences, and on that independent unit the test gives b=28, c=16, p = 0.096: NOT significant, and Holm leaves it at 1. This registry's earlier claim (\"1024 IS significantly more accurate\") was corrected on 2026-07-21 (R-7). The adoption of 768 was never a claim of equality - the frozen rule was an EFFECT-SIZE bar (within 5 pp of the 1024 reference) plus an FPS constraint. The thesis must state it that way: 768 was chosen for FPS, and the accuracy cost, if any, is small and this data cannot separate it from chance.",
    "machine": "both",
    "icc": {
@@ -534,7 +534,7 @@
    ],
    "counts": {},
    "gate_p": null,
-   "caveats": "No hay intervalo calculable y no debe citarse ninguno. Los fotogramas de una misma sesión comparten el estado térmico y el estado del gobernador de reloj. La afirmación es defendible como demostración de capacidad en este dispositivo y en esta sesión, que es lo que necesita una tesis de despliegue en el borde; no es defendible como tasa esperada.",
+   "caveats": "No hay intervalo calculable y no debe citarse ninguno. Los fotogramas de una misma sesi\u00f3n comparten el estado t\u00e9rmico y el estado del gobernador de reloj. La afirmaci\u00f3n es defendible como demostraci\u00f3n de capacidad en este dispositivo y en esta sesi\u00f3n, que es lo que necesita una tesis de despliegue en el borde; no es defendible como tasa esperada.",
    "caveats_en": "No interval is computable and none should be quoted. Frames inside one session share thermal state and clock governor state. The claim is defensible as a capability demonstration on this device in this session, which is what an edge-deployment thesis needs; it is not defensible as an expected rate.",
    "machine": "jetson-orin-nano-8gb"
   },
@@ -553,7 +553,7 @@
    ],
    "counts": {},
    "gate_p": null,
-   "caveats": "Una comprobación de equivalencia numérica, no una afirmación de exactitud muestreada, y es el tipo de evidencia adecuado para lo que se le pide mostrar: la exportación a fp16 no cambió la aritmética. Citar '100 fotogramas' como n sería pseudo-replicación de la clase más evidente.",
+   "caveats": "Una comprobaci\u00f3n de equivalencia num\u00e9rica, no una afirmaci\u00f3n de exactitud muestreada, y es el tipo de evidencia adecuado para lo que se le pide mostrar: la exportaci\u00f3n a fp16 no cambi\u00f3 la aritm\u00e9tica. Citar '100 fotogramas' como n ser\u00eda pseudo-replicaci\u00f3n de la clase m\u00e1s evidente.",
    "caveats_en": "A numerical-equivalence check, not a sampled accuracy claim, and it is the right kind of evidence for what it is asked to show: fp16 export did not change the arithmetic. Quoting '100 frames' as n would be pseudo-replication of the clearest kind.",
    "machine": "both"
   },
@@ -572,7 +572,7 @@
    ],
    "counts": {},
    "gate_p": null,
-   "caveats": "No se pre-registró ningún umbral; T1 fue un entregable de harness. Sus números son la referencia contra la que se compara el brazo de re-ID, y solo UNO de los dos clips puede discriminar en absoluto.",
+   "caveats": "No se pre-registr\u00f3 ning\u00fan umbral; T1 fue un entregable de harness. Sus n\u00fameros son la referencia contra la que se compara el brazo de re-ID, y solo UNO de los dos clips puede discriminar en absoluto.",
    "caveats_en": "No threshold was pre-registered; T1 was a harness deliverable. Its numbers are the reference the re-ID arm is compared against, and only ONE of the two clips can discriminate at all.",
    "machine": "rtx-3090"
   },
@@ -592,7 +592,7 @@
     "c": 0
    },
    "gate_p": null,
-   "caveats": "**RETIRADA POR DECISIÓN DE AUTOR (R-31, 2026-07-23).** No se defiende en el TFM y no se vuelve a ejecutar. El argumento decisivo es de la propia cola de re-ejecución: recuperar el fichero la haría *citable*, no *defendible*, y una cifra citable que no se puede defender es peor que ninguna — invita en el tribunal a una pregunta sin respuesta. Ejecutarla bien no es «una hora»: es una campaña nueva a n>=25 sobre terreno que el propio registro ya considera fino. El comando de re-ejecución que este fichero anunciaba era ficticio (ver `rerun`). grounding.eval.score_clips NO EXISTE (grounding/eval/ contiene backends, harness, parity, run). No hay comando ejecutable. Construirlo = un scorer por clip + un banco de clips con cruces a n>=25. NO HAY FICHERO CRUDO EN DISCO: los números solo sobreviven en el README y en el registro. Incluso si se recuperaran, todo el PASS descansa sobre un único clip guionizado en el que un cambio de ID ocurre o no ocurre: una sola extracción de Bernoulli, sin intervalo, sin prueba.",
+   "caveats": "**RETIRADA POR DECISI\u00d3N DE AUTOR (R-31, 2026-07-23).** No se defiende en el TFM y no se vuelve a ejecutar. El argumento decisivo es de la propia cola de re-ejecuci\u00f3n: recuperar el fichero la har\u00eda *citable*, no *defendible*, y una cifra citable que no se puede defender es peor que ninguna \u2014 invita en el tribunal a una pregunta sin respuesta. Ejecutarla bien no es \u00abuna hora\u00bb: es una campa\u00f1a nueva a n>=25 sobre terreno que el propio registro ya considera fino. El comando de re-ejecuci\u00f3n que este fichero anunciaba era ficticio (ver `rerun`). grounding.eval.score_clips NO EXISTE (grounding/eval/ contiene backends, harness, parity, run). No hay comando ejecutable. Construirlo = un scorer por clip + un banco de clips con cruces a n>=25. NO HAY FICHERO CRUDO EN DISCO: los n\u00fameros solo sobreviven en el README y en el registro. Incluso si se recuperaran, todo el PASS descansa sobre un \u00fanico clip guionizado en el que un cambio de ID ocurre o no ocurre: una sola extracci\u00f3n de Bernoulli, sin intervalo, sin prueba.",
    "rerun": {
     "missing": "puntuaciones por clip; solo sobrevive la prosa del README",
     "cost": "RETIRED - not re-run. No hay comando ejecutable. Construirlo = un scorer por clip + un banco de clips con cruces a n>=25.",
@@ -617,7 +617,7 @@
     "c": 0
    },
    "gate_p": null,
-   "caveats": "**RETIRADA POR DECISIÓN DE AUTOR (R-31, 2026-07-23).** No se defiende en el TFM y no se vuelve a ejecutar. El argumento decisivo es de la propia cola de re-ejecución: recuperar el fichero la haría *citable*, no *defendible*, y una cifra citable que no se puede defender es peor que ninguna — invita en el tribunal a una pregunta sin respuesta. Ejecutarla bien no es «una hora»: es una campaña nueva a n>=25 sobre terreno que el propio registro ya considera fino. El comando de re-ejecución que este fichero anunciaba era ficticio (ver `rerun`). runners/run_phase_c.py no tiene --arms ni --reps (su flag es --runs) y no menciona CARLA en ninguna línea. No hay comando ejecutable. Construirlo = brazos memoryless/reid en el rig P6.1 + n>=10 vuelos por brazo; es efectivamente P6.2. EL n MÁS EXAGERADO DEL REPOSITORIO. No hay ningún archivo en disco; solo prosa del README. Las diferencias de fracción de fotogramas procedentes de vuelos únicos no deben presentarse nunca como si tuvieran error de muestreo entre vuelos.",
+   "caveats": "**RETIRADA POR DECISI\u00d3N DE AUTOR (R-31, 2026-07-23).** No se defiende en el TFM y no se vuelve a ejecutar. El argumento decisivo es de la propia cola de re-ejecuci\u00f3n: recuperar el fichero la har\u00eda *citable*, no *defendible*, y una cifra citable que no se puede defender es peor que ninguna \u2014 invita en el tribunal a una pregunta sin respuesta. Ejecutarla bien no es \u00abuna hora\u00bb: es una campa\u00f1a nueva a n>=25 sobre terreno que el propio registro ya considera fino. El comando de re-ejecuci\u00f3n que este fichero anunciaba era ficticio (ver `rerun`). runners/run_phase_c.py no tiene --arms ni --reps (su flag es --runs) y no menciona CARLA en ninguna l\u00ednea. No hay comando ejecutable. Construirlo = brazos memoryless/reid en el rig P6.1 + n>=10 vuelos por brazo; es efectivamente P6.2. EL n M\u00c1S EXAGERADO DEL REPOSITORIO. No hay ning\u00fan archivo en disco; solo prosa del README. Las diferencias de fracci\u00f3n de fotogramas procedentes de vuelos \u00fanicos no deben presentarse nunca como si tuvieran error de muestreo entre vuelos.",
    "rerun": {
     "missing": "registros por vuelo; solo prosa del README",
     "cost": "RETIRED - not re-run. No hay comando ejecutable. Construirlo = brazos memoryless/reid en el rig P6.1 + n>=10 vuelos por brazo; es efectivamente P6.2.",
@@ -641,7 +641,7 @@
    ],
    "counts": {},
    "gate_p": null,
-   "caveats": "La comparación que importa (2.26 s frente a 1.5 s) es un cociente de dos cantidades deterministas con una dispersión mín-máx de 1.3 ms sobre 8 repeticiones. No hace falta ninguna prueba ni es posible; la conclusión arquitectónica se sigue de las magnitudes.",
+   "caveats": "La comparaci\u00f3n que importa (2.26 s frente a 1.5 s) es un cociente de dos cantidades deterministas con una dispersi\u00f3n m\u00edn-m\u00e1x de 1.3 ms sobre 8 repeticiones. No hace falta ninguna prueba ni es posible; la conclusi\u00f3n arquitect\u00f3nica se sigue de las magnitudes.",
    "caveats_en": "The comparison that matters (2.26 s vs 1.5 s) is a ratio of two deterministic quantities with a min-max spread of 1.3 ms over 8 reps. No test is needed or possible; the architectural conclusion follows from the magnitudes.",
    "machine": "both"
   },
@@ -660,7 +660,7 @@
    ],
    "counts": {},
    "gate_p": null,
-   "caveats": "Pseudorreplicación que no importa: la afirmación supera su presupuesto por dos órdenes de magnitud, de modo que ninguna corrección por dependencia podría invertirla. Vale la pena declararlo explícitamente en lugar de citar n=1180 en silencio.",
+   "caveats": "Pseudorreplicaci\u00f3n que no importa: la afirmaci\u00f3n supera su presupuesto por dos \u00f3rdenes de magnitud, de modo que ninguna correcci\u00f3n por dependencia podr\u00eda invertirla. Vale la pena declararlo expl\u00edcitamente en lugar de citar n=1180 en silencio.",
    "caveats_en": "Pseudo-replication that does not matter: the claim clears its budget by two orders of magnitude, so no dependence correction could reverse it. Worth stating explicitly rather than silently quoting n=1180.",
    "machine": "both"
   },
@@ -685,7 +685,7 @@
     "n": 6
    },
    "gate_p": null,
-   "caveats": "EL NÚMERO QUE LANZÓ LA PARTE V, y se queda en p = 0.0625 — justo fuera de alfa, porque con n=6 hacen falta LOS SEIS pares para volcar y solo volcaron cinco. El efecto es casi con seguridad real (el mecanismo es un retardo de entrega medido de 4.85 s, no un lanzamiento de moneda), pero el EXPERIMENTO no pudo certificarlo. Seis clips eran un clip de menos.",
+   "caveats": "EL N\u00daMERO QUE LANZ\u00d3 LA PARTE V, y se queda en p = 0.0625 \u2014 justo fuera de alfa, porque con n=6 hacen falta LOS SEIS pares para volcar y solo volcaron cinco. El efecto es casi con seguridad real (el mecanismo es un retardo de entrega medido de 4.85 s, no un lanzamiento de moneda), pero el EXPERIMENTO no pudo certificarlo. Seis clips eran un clip de menos.",
    "caveats_en": "THE NUMBER THAT LAUNCHED PART V, and it lands at p = 0.0625 - just outside alpha, because n=6 needs ALL SIX pairs to flip and only five did. The effect is almost certainly real (the mechanism is a measured 4.85 s delivery lag, not a coin flip) but the EXPERIMENT could not certify it. Six clips was one clip too few.",
    "machine": "both"
   },
@@ -719,7 +719,7 @@
     "n": 25
    },
    "gate_p": null,
-   "caveats": "La re-ejecución con potencia de E18 (R-34): los dos mismos brazos, onset en el frame 0, sobre las 25 secuencias de UAV123 de P5.2a, una celda por clip. ORACLE 23/25 frente a COLD 3/25; b=21, c=1. Deflactado por ICC (R-29): sólo dos clústeres de origen tienen réplica (car3/car3_s, person1/person1_s) y ambos son internamente concordantes, así que el ICC superior es 1,0 y colapsa a n efectivo = 23 (b=19, c=1); McNemar exacta p = 4,0e-05, sobrevive Holm por Parte y global. E18 pasa de negativo sin potencia (p = 0,0625 con n=6) a confirmado con n=25. COLD 3/25 (no >=10/25): en el conjunto amplio el efecto no se atenuó, se reforzó. La única celda a favor de COLD es car1_s (cobertura ORACLE 0,41 < 0,50 por deriva del arrastre, no por el brazo frío). Corroboración independiente ya en disco: P5.2a corrió estos mismos brazos con onset a mitad de vuelo (t_p = 8 s) y da ORACLE 22/25 vs COLD 5/25 (b=17); segundo régimen de onset que concuerda, NO contado dos veces.",
+   "caveats": "La re-ejecuci\u00f3n con potencia de E18 (R-34): los dos mismos brazos, onset en el frame 0, sobre las 25 secuencias de UAV123 de P5.2a, una celda por clip. ORACLE 23/25 frente a COLD 3/25; b=21, c=1. Deflactado por ICC (R-29): s\u00f3lo dos cl\u00fasteres de origen tienen r\u00e9plica (car3/car3_s, person1/person1_s) y ambos son internamente concordantes, as\u00ed que el ICC superior es 1,0 y colapsa a n efectivo = 23 (b=19, c=1); McNemar exacta p = 4,0e-05, sobrevive Holm por Parte y global. E18 pasa de negativo sin potencia (p = 0,0625 con n=6) a confirmado con n=25. COLD 3/25 (no >=10/25): en el conjunto amplio el efecto no se atenu\u00f3, se reforz\u00f3. La \u00fanica celda a favor de COLD es car1_s (cobertura ORACLE 0,41 < 0,50 por deriva del arrastre, no por el brazo fr\u00edo). Corroboraci\u00f3n independiente ya en disco: P5.2a corri\u00f3 estos mismos brazos con onset a mitad de vuelo (t_p = 8 s) y da ORACLE 22/25 vs COLD 5/25 (b=17); segundo r\u00e9gimen de onset que concuerda, NO contado dos veces.",
    "caveats_en": "The powered re-run of E18 (R-34): the same two arms, frame-0 onset, over P5.2a's 25 UAV123 sequences, one cell per clip. ORACLE 23/25 vs COLD 3/25; b=21, c=1. ICC-deflated (R-29): only two source clusters have replication (car3/car3_s, person1/person1_s) and both are internally concordant, so the upper ICC is 1.0 and it collapses fully to n_effective = 23 (b=19, c=1); exact McNemar p = 4.0e-05, survives per-Part and global Holm. E18 moves from underpowered negative (p = 0.0625 at n=6) to confirmed at n=25. COLD 3/25 (not >=10/25): on the broad set the effect did not attenuate, it strengthened. The one COLD-favouring cell is car1_s (ORACLE coverage 0.41 < 0.50 from carry drift, not the cold arm). Independent corroboration already on disk: P5.2a ran these same arms at a mid-flight onset (t_p = 8 s) giving ORACLE 22/25 vs COLD 5/25 (b=17); a second onset regime that agrees, NOT double-counted.",
    "machine": "both"
   },
@@ -741,7 +741,7 @@
     "n": 6
    },
    "gate_p": 0.667,
-   "caveats": "La dirección del fallo es lo que un diseño de 6 ítems SÍ puede establecer: 1/6 frente a una tasa de 2/3 tiene un p unilateral de 0.10. Sigue sin llegar a alpha, pero la brecha descriptiva es grande y el mecanismo se comprende.",
+   "caveats": "La direcci\u00f3n del fallo es lo que un dise\u00f1o de 6 \u00edtems S\u00cd puede establecer: 1/6 frente a una tasa de 2/3 tiene un p unilateral de 0.10. Sigue sin llegar a alpha, pero la brecha descriptiva es grande y el mecanismo se comprende.",
    "caveats_en": "The failure direction is what a 6-item design CAN establish: 1/6 against a 2/3 rate has a one-sided p of 0.10. Still not alpha, but the descriptive gap is large and the mechanism is understood.",
    "machine": "both"
   },
@@ -766,7 +766,7 @@
     "n": 6
    },
    "gate_p": null,
-   "caveats": "Exactamente DOS pares discordantes sostienen toda la afirmación: p = 0.50. La mitad de E20 relativa a la tasa de PASS no es evidencia. La mitad relativa a la LATENCIA es otra cosa —véase E20-acquire-latency— y es esa mitad la que debe sostener la narrativa de la Parte IV.",
+   "caveats": "Exactamente DOS pares discordantes sostienen toda la afirmaci\u00f3n: p = 0.50. La mitad de E20 relativa a la tasa de PASS no es evidencia. La mitad relativa a la LATENCIA es otra cosa \u2014v\u00e9ase E20-acquire-latency\u2014 y es esa mitad la que debe sostener la narrativa de la Parte IV.",
    "caveats_en": "Exactly TWO discordant pairs carry the entire claim: p = 0.50. The PASS-rate half of E20 is not evidence. The LATENCY half is a different matter - see E20-acquire-latency - and that is the half the Part IV narrative should rest on.",
    "machine": "both"
   },
@@ -785,7 +785,7 @@
    ],
    "counts": {},
    "gate_p": null,
-   "caveats": "Nunca debe ponerse un intervalo de confianza sobre esto. Es un modelo de coste determinista, no una muestra ruidosa, y la presentación honesta es el mecanismo (menos tokens de prefill) más las dos medianas. Una reducción de latencia de 2.6x con una causa conocida no necesita valor p; afirmar uno sería falsa precisión.",
+   "caveats": "Nunca debe ponerse un intervalo de confianza sobre esto. Es un modelo de coste determinista, no una muestra ruidosa, y la presentaci\u00f3n honesta es el mecanismo (menos tokens de prefill) m\u00e1s las dos medianas. Una reducci\u00f3n de latencia de 2.6x con una causa conocida no necesita valor p; afirmar uno ser\u00eda falsa precisi\u00f3n.",
    "caveats_en": "No confidence interval should ever be put on this. It is a deterministic cost model, not a noisy sample, and the honest presentation is the mechanism (fewer prefill tokens) plus the two medians. A 2.6x latency reduction with a known cause needs no p-value; claiming one would be false precision.",
    "machine": "both"
   },
@@ -810,7 +810,7 @@
     "n": 6
    },
    "gate_p": null,
-   "caveats": "UN solo par discordante (b=1, c=0): p = 1.0. El brazo BUF es estadísticamente vacuo frente a la línea base E18-A: un único par no alcanza alfa a ningún n, y con seis pares harían falta los seis. Ninguno de los dos brazos es evidencia de nada; ambos quedan correctamente registrados como fracasos en alcanzar la puerta, lo cual es una afirmación distinta y más débil que 'la compensación de movimiento no funciona'. (R-22: esta fila se publicó durante ocho días como si no tuviera par discordante alguno, y por tanto sin prueba, porque la deflación pareada dividía dos veces unas celdas ya colapsadas a escala de clip; el par existe.)",
+   "caveats": "UN solo par discordante (b=1, c=0): p = 1.0. El brazo BUF es estad\u00edsticamente vacuo frente a la l\u00ednea base E18-A: un \u00fanico par no alcanza alfa a ning\u00fan n, y con seis pares har\u00edan falta los seis. Ninguno de los dos brazos es evidencia de nada; ambos quedan correctamente registrados como fracasos en alcanzar la puerta, lo cual es una afirmaci\u00f3n distinta y m\u00e1s d\u00e9bil que 'la compensaci\u00f3n de movimiento no funciona'. (R-22: esta fila se public\u00f3 durante ocho d\u00edas como si no tuviera par discordante alguno, y por tanto sin prueba, porque la deflaci\u00f3n pareada divid\u00eda dos veces unas celdas ya colapsadas a escala de clip; el par existe.)",
    "caveats_en": "ONE discordant pair (b=1, c=0): p = 1.0. The BUF arm is statistically vacuous against the E18-A baseline: a single pair cannot reach alpha at any n, and six pairs would need all six. Neither arm is evidence of anything; both are correctly recorded as failures to reach the gate, which is a different and weaker statement than 'motion compensation does not work'. (R-22: this row was published for eight days as having no discordant pair at all, and therefore no test, because the paired deflation halved counts that were already at clip scale; the pair is real.)",
    "machine": "both"
   },
@@ -835,7 +835,7 @@
     "n": 6
    },
    "gate_p": null,
-   "caveats": "Emparejado contra el brazo de celda de E20: b=2, c=0, p=0.50. El mecanismo de apoyo es más fuerte que el recuento de resultados: la propia votación gruesa de celda solo acierta 2/6, de modo que la automatización falla en un paso intermedio medible y no de forma misteriosa.",
+   "caveats": "Emparejado contra el brazo de celda de E20: b=2, c=0, p=0.50. El mecanismo de apoyo es m\u00e1s fuerte que el recuento de resultados: la propia votaci\u00f3n gruesa de celda solo acierta 2/6, de modo que la automatizaci\u00f3n falla en un paso intermedio medible y no de forma misteriosa.",
    "caveats_en": "Paired against E20's cell arm: b=2, c=0, p=0.50. The supporting mechanism is stronger than the outcome count: the coarse cell-vote itself only hits 2/6, so the automation fails at a measurable intermediate step rather than mysteriously.",
    "machine": "both"
   },
@@ -857,7 +857,7 @@
     "n": 6
    },
    "gate_p": 0.667,
-   "caveats": "El tipo adecuado de pre-filtro barato: mató una matriz antes de ejecutarla. Las dos abstenciones en t=10 s están estructuralmente correlacionadas (mismo mecanismo de fallo), así que incluso 6 es generoso.",
+   "caveats": "El tipo adecuado de pre-filtro barato: mat\u00f3 una matriz antes de ejecutarla. Las dos abstenciones en t=10 s est\u00e1n estructuralmente correlacionadas (mismo mecanismo de fallo), as\u00ed que incluso 6 es generoso.",
    "caveats_en": "The right kind of cheap pre-gate: it killed a matrix before it was run. The two t=10 s abstentions are structurally correlated (same failure mechanism), so even 6 is generous.",
    "machine": "rtx-3090"
   },
@@ -882,7 +882,7 @@
     "n": 6
    },
    "gate_p": null,
-   "caveats": "b=0, c=2 frente al brazo de celdas de E20: p=0.50. La evidencia más fuerte aquí es el barrido de contención OFFLINE - la contención en el peor caso con HW*=0.38 se mantiene en 6/6 clips y 19/19 formulaciones - que es un cálculo geométrico determinista y no necesita inferencia. La regresión en dispositivo cierra el arco; el barrido de contención explica por qué ensanchar no puede ayudar.",
+   "caveats": "b=0, c=2 frente al brazo de celdas de E20: p=0.50. La evidencia m\u00e1s fuerte aqu\u00ed es el barrido de contenci\u00f3n OFFLINE - la contenci\u00f3n en el peor caso con HW*=0.38 se mantiene en 6/6 clips y 19/19 formulaciones - que es un c\u00e1lculo geom\u00e9trico determinista y no necesita inferencia. La regresi\u00f3n en dispositivo cierra el arco; el barrido de contenci\u00f3n explica por qu\u00e9 ensanchar no puede ayudar.",
    "caveats_en": "b=0, c=2 against E20's cell arm: p=0.50. The stronger evidence here is the OFFLINE containment sweep - worst-case containment at HW*=0.38 holds on 6/6 clips and 19/19 phrasings - which is a deterministic geometric computation and needs no inference. The device regression closes the arc; the containment sweep explains why widening cannot help.",
    "machine": "both"
   },
@@ -904,7 +904,7 @@
     "n": 8
    },
    "gate_p": 0.875,
-   "caveats": "La regla pre-registrada exigía 7/8 para «fiable». Esa barra es estadísticamente INALCANZABLE con n=8: incluso un 8/8 perfecto frente a una hipótesis nula de 0.875 da p = 0.34. El veredicto QUALIFIED fue la decisión correcta y el intervalo de Wilson [0.36, 0.89] es el resumen honesto: la verdadera tasa de reenganche podría estar en cualquier punto entre el lanzamiento de una moneda y la práctica certeza.",
+   "caveats": "La regla pre-registrada exig\u00eda 7/8 para \u00abfiable\u00bb. Esa barra es estad\u00edsticamente INALCANZABLE con n=8: incluso un 8/8 perfecto frente a una hip\u00f3tesis nula de 0.875 da p = 0.34. El veredicto QUALIFIED fue la decisi\u00f3n correcta y el intervalo de Wilson [0.36, 0.89] es el resumen honesto: la verdadera tasa de reenganche podr\u00eda estar en cualquier punto entre el lanzamiento de una moneda y la pr\u00e1ctica certeza.",
    "caveats_en": "The pre-registered rule needed 7/8 for 'reliable'. That bar is UNREACHABLE statistically at n=8: even a perfect 8/8 against a 0.875 null gives p = 0.34. The QUALIFIED verdict was the right call and the Wilson interval [0.36, 0.89] is the honest summary - the true relock rate could be anywhere from a coin flip to near-certain.",
    "machine": "both"
   },
@@ -926,7 +926,7 @@
     "n": 10
    },
    "gate_p": null,
-   "caveats": "n=10 parece la muestra más fuerte de la Parte IV y es la más débil. Informar del intervalo Wilson sobre 0/10 ([0, 0.28]) implicaría diez extracciones independientes; hubo una. La afirmación correcta es mecanicista — la palanca no se aplica a esta ruta de código — y está bien respaldada por las trazas idénticas.",
+   "caveats": "n=10 parece la muestra m\u00e1s fuerte de la Parte IV y es la m\u00e1s d\u00e9bil. Informar del intervalo Wilson sobre 0/10 ([0, 0.28]) implicar\u00eda diez extracciones independientes; hubo una. La afirmaci\u00f3n correcta es mecanicista \u2014 la palanca no se aplica a esta ruta de c\u00f3digo \u2014 y est\u00e1 bien respaldada por las trazas id\u00e9nticas.",
    "caveats_en": "n=10 looks like the strongest Part IV sample and is the weakest. Reporting the Wilson interval on 0/10 ([0, 0.28]) would imply ten independent draws; there was one. The correct claim is mechanistic - the lever does not apply to this code path - and it is well supported by the identical traces.",
    "machine": "both"
   },
@@ -948,7 +948,7 @@
     "n": 3
    },
    "gate_p": null,
-   "caveats": "3/3 tiene una cota inferior de Wilson de en torno a 0.44 incluso si los tres fueran independientes, y no lo son. E15 falló después en esa misma pata de regresión 0/1, lo que obligó a ejecutar E16 para zanjarlo - y E16 encontró 6/8, es decir, el arreglo es real pero NO determinista. E14 por sí solo lo sobrevaloró.",
+   "caveats": "3/3 tiene una cota inferior de Wilson de en torno a 0.44 incluso si los tres fueran independientes, y no lo son. E15 fall\u00f3 despu\u00e9s en esa misma pata de regresi\u00f3n 0/1, lo que oblig\u00f3 a ejecutar E16 para zanjarlo - y E16 encontr\u00f3 6/8, es decir, el arreglo es real pero NO determinista. E14 por s\u00ed solo lo sobrevalor\u00f3.",
    "caveats_en": "3/3 has a Wilson lower bound of about 0.44 even if the three were independent, and they are not. E15 then failed the same regression leg 0/1, which E16 had to be run to settle - and E16 found 6/8, i.e. the fix is real but NOT deterministic. E14 alone overstated it.",
    "machine": "both"
   },
@@ -970,7 +970,7 @@
     "n": 3
    },
    "gate_p": null,
-   "caveats": "Un 0/3 determinista. Afirmación mecanicista, no probabilística: la puerta nunca se dispara en este escenario. Que los tres tramos de regresión pasen 3/3 es lo que hace interpretable el resultado negativo: el cambio estaba activo y no hizo nada.",
+   "caveats": "Un 0/3 determinista. Afirmaci\u00f3n mecanicista, no probabil\u00edstica: la puerta nunca se dispara en este escenario. Que los tres tramos de regresi\u00f3n pasen 3/3 es lo que hace interpretable el resultado negativo: el cambio estaba activo y no hizo nada.",
    "caveats_en": "A deterministic 0/3. Mechanistic claim, not probabilistic: the gate never fires on this scenario. The three regression legs passing 3/3 is what makes the negative interpretable - the change was live and did nothing.",
    "machine": "both"
   },
@@ -992,7 +992,7 @@
     "n": 3
    },
    "gate_p": null,
-   "caveats": "Una demostración de capacidad sobre un único escenario. La prueba de humo de color (blanco 10/10, azul 10/10) es una pata distinta y mejor respaldada porque varía la entrada en lugar de repetir la ejecución.",
+   "caveats": "Una demostraci\u00f3n de capacidad sobre un \u00fanico escenario. La prueba de humo de color (blanco 10/10, azul 10/10) es una pata distinta y mejor respaldada porque var\u00eda la entrada en lugar de repetir la ejecuci\u00f3n.",
    "caveats_en": "A capability demonstration on one scenario. The colour smoke test (white 10/10, blue 10/10) is a separate and better-supported leg because it varies the input rather than repeating the run.",
    "machine": "both"
   },
@@ -1011,7 +1011,7 @@
    ],
    "counts": {},
    "gate_p": null,
-   "caveats": "Un barrido de búsqueda de umbral, y las repeticiones deterministas son en realidad una VIRTUD aquí: establecen que la frontera entre 2.5 y 3.0 es una propiedad del controlador y no de la extracción. Presentarlo como '3/3 frente a 0/2' invita a una prueba que carecería de sentido; presentarlo como un techo medido con cuatro configuraciones es lo correcto.",
+   "caveats": "Un barrido de b\u00fasqueda de umbral, y las repeticiones deterministas son en realidad una VIRTUD aqu\u00ed: establecen que la frontera entre 2.5 y 3.0 es una propiedad del controlador y no de la extracci\u00f3n. Presentarlo como '3/3 frente a 0/2' invita a una prueba que carecer\u00eda de sentido; presentarlo como un techo medido con cuatro configuraciones es lo correcto.",
    "caveats_en": "A threshold-finding sweep, and the deterministic repeats are actually a VIRTUE here: they establish that the boundary between 2.5 and 3.0 is a property of the controller and not of the draw. Presenting it as '3/3 vs 0/2' invites a test that would be meaningless; presenting it as a measured ceiling with four settings is correct.",
    "machine": "both"
   },
@@ -1034,7 +1034,7 @@
    ],
    "counts": {},
    "gate_p": null,
-   "caveats": "Medición determinista, no inferencial: no hay p-valor porque no hay muestreo — cada celda es una configuración fija cronometrada 94 veces. Tres salvedades. (1) El brazo 1024+TensorRT NO SE EJECUTÓ: el plan `enc768.plan` de la placa está compilado para 768 y no puede servir 1024, así que la descomposición 1,83x tamaño x 1,26x runtime se apoya en tres celdas, no en las cuatro de un diseño factorial completo. (2) La carga del VLM es un único cliente en bucle cerrado con la misma imagen y el mismo prompt, no una traza de vuelo real; mide contención de memoria y de iGPU, no un patrón de peticiones realista. (3) La corrección 2,30x NO invalida por sí sola ningún resultado de las Partes IV-V: esos resultados son mayoritariamente NEGATIVOS (los NO del select), y una tasa de arrastre optimista hace un resultado negativo más difícil de explicar, no más fácil. Lo que sí queda afectado es cualquier latencia de las Partes IV-V presentada como latencia del sistema desplegado, y el `PRUNE_AFTER = 100` desplegado, que con dos candidatos y el VLM bajo carga muere por OOM.",
+   "caveats": "Medici\u00f3n determinista, no inferencial: no hay p-valor porque no hay muestreo \u2014 cada celda es una configuraci\u00f3n fija cronometrada 94 veces. Tres salvedades. (1) El brazo 1024+TensorRT NO SE EJECUT\u00d3: el plan `enc768.plan` de la placa est\u00e1 compilado para 768 y no puede servir 1024, as\u00ed que la descomposici\u00f3n 1,83x tama\u00f1o x 1,26x runtime se apoya en tres celdas, no en las cuatro de un dise\u00f1o factorial completo. (2) La carga del VLM es un \u00fanico cliente en bucle cerrado con la misma imagen y el mismo prompt, no una traza de vuelo real; mide contenci\u00f3n de memoria y de iGPU, no un patr\u00f3n de peticiones realista. (3) La correcci\u00f3n 2,30x NO invalida por s\u00ed sola ning\u00fan resultado de las Partes IV-V: esos resultados son mayoritariamente NEGATIVOS (los NO del select), y una tasa de arrastre optimista hace un resultado negativo m\u00e1s dif\u00edcil de explicar, no m\u00e1s f\u00e1cil. Lo que s\u00ed queda afectado es cualquier latencia de las Partes IV-V presentada como latencia del sistema desplegado, y el `PRUNE_AFTER = 100` desplegado, que con dos candidatos y el VLM bajo carga muere por OOM.",
    "caveats_en": "Deterministic measurement, not inferential: there is no p-value because there is no sampling -- each cell is one fixed configuration timed 94 times. Three caveats. (1) The 1024+TensorRT arm was NOT RUN: the board's `enc768.plan` is built for 768 and cannot serve 1024, so the 1.83x-size x 1.26x-runtime decomposition rests on three cells, not the four of a full factorial. (2) The VLM load is a single closed-loop client resending one image and one prompt, not a real flight trace; it measures memory and iGPU contention, not a realistic request pattern. (3) The 2.30x correction does not by itself invalidate any Part IV/V result: those results are mostly NEGATIVE (the select NOs), and an optimistic carry rate makes a negative result harder to explain away, not easier. What it does affect is any Part IV/V latency presented as a deployed-system latency, and the deployed `PRUNE_AFTER = 100`, which is OOM-killed at two candidates with the VLM under load.",
    "machine": "jetson-orin-nano-8gb"
   },
@@ -1059,7 +1059,7 @@
     "n": 6
    },
    "gate_p": null,
-   "caveats": "p = 0.125. El primer YES de la Parte V no es estadísticamente significativo: n=6 exige que se inviertan los seis pares y se invirtieron cuatro. La condición pre-registrada de superconjunto (el conjunto de PASS de WARM contiene el de COLD) es una comprobación estructural más fuerte que el recuento y se cumplió: eso, más la coincidencia exacta con el oráculo, es la forma defendible de la afirmación. P5.2 es lo que realmente lo certifica.",
+   "caveats": "p = 0.125. El primer YES de la Parte V no es estad\u00edsticamente significativo: n=6 exige que se inviertan los seis pares y se invirtieron cuatro. La condici\u00f3n pre-registrada de superconjunto (el conjunto de PASS de WARM contiene el de COLD) es una comprobaci\u00f3n estructural m\u00e1s fuerte que el recuento y se cumpli\u00f3: eso, m\u00e1s la coincidencia exacta con el or\u00e1culo, es la forma defendible de la afirmaci\u00f3n. P5.2 es lo que realmente lo certifica.",
    "caveats_en": "p = 0.125. The first Part V YES is not statistically significant: n=6 requires all six pairs to flip and four did. The pre-registered superset condition (WARM's PASS set contains COLD's) is a stronger structural check than the count and it held - that, plus the exact match with the oracle, is the defensible form of the claim. P5.2 is what actually certifies it.",
    "machine": "both"
   },
@@ -1071,7 +1071,7 @@
    "verdict": "YES",
    "n_rows": 25,
    "n_effective": 24,
-   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 24, no 23. El colapso a 23 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.747, que es la que se usa). Con tamaño medio de conglomerado 1.08, el efecto de diseño es 1.06 y 25/1.06 = 24. **Suelo publicado: 23** — el valor colapsado se conserva como análisis de sensibilidad conservador. — n=1 per cell, no rep pseudo-replication. 25 distinct UAV123 sequences, but car3/car3_s and person1/person1_s share source video, and 6 clips are re-used from P5.1 - so P5.1 and P5.2a are not independent confirmations of each other.",
+   "independence_note": "R-29 CALIBRACI\u00d3N POR ICC (2026-07-23): n efectivo = 24, no 23. El colapso a 23 conglomerados supon\u00eda correlaci\u00f3n intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.747, que es la que se usa). Con tama\u00f1o medio de conglomerado 1.08, el efecto de dise\u00f1o es 1.06 y 25/1.06 = 24. **Suelo publicado: 23** \u2014 el valor colapsado se conserva como an\u00e1lisis de sensibilidad conservador. \u2014 n=1 per cell, no rep pseudo-replication. 25 distinct UAV123 sequences, but car3/car3_s and person1/person1_s share source video, and 6 clips are re-used from P5.1 - so P5.1 and P5.2a are not independent confirmations of each other.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-04-warm-start-generalization/runs/WARM_*/results.json"
@@ -1084,7 +1084,7 @@
     "n": 25
    },
    "gate_p": null,
-   "caveats": "EL RESULTADO CON MÁS POTENCIA ESTADÍSTICA DE LA PARTE V Y CON EL QUE LA TESIS DEBERÍA ABRIR. Deflactado a 23 clips independientes: b=15, c=0, McNemar exacto p = 6.10e-05, y sobrevive a la corrección de Holm en toda la familia (sin deflactar era b=16, c=0, p = 3.05e-05). 15 clips vuelcan de fallo a éxito y ninguno vuelca de vuelta. Esta es la afirmación del warm-start, debidamente certificada.",
+   "caveats": "EL RESULTADO CON M\u00c1S POTENCIA ESTAD\u00cdSTICA DE LA PARTE V Y CON EL QUE LA TESIS DEBER\u00cdA ABRIR. Deflactado a 23 clips independientes: b=15, c=0, McNemar exacto p = 6.10e-05, y sobrevive a la correcci\u00f3n de Holm en toda la familia (sin deflactar era b=16, c=0, p = 3.05e-05). 15 clips vuelcan de fallo a \u00e9xito y ninguno vuelca de vuelta. Esta es la afirmaci\u00f3n del warm-start, debidamente certificada.",
    "caveats_en": "THE BEST-POWERED RESULT IN PART V AND THE ONE THE THESIS SHOULD LEAD WITH. Deflated to 23 independent clips: b=15, c=0, exact McNemar p = 6.10e-05, and it survives Holm correction across the whole family (undeflated it was b=16, c=0, p = 3.05e-05). 15 clips flip from fail to pass and not one flips back. This is the warm-start claim, properly certified.",
    "machine": "both",
    "icc": {
@@ -1111,7 +1111,7 @@
    ],
    "counts": {},
    "gate_p": null,
-   "caveats": "Una hipótesis direccional pre-registrada (se exigía rho > 0) que salió en rho = -0.06, cuyo p bilateral con n=25 ronda 0.78 - es decir, ninguna asociación en absoluto, no una débil. Este es un negativo genuino e IMPORTA: dice que la ganancia del warm-start es la eliminación del retardo de entrega, no compensación de movimiento. Un nulo que remodela el mecanismo vale más que la mayoría de los positivos de aquí.",
+   "caveats": "Una hip\u00f3tesis direccional pre-registrada (se exig\u00eda rho > 0) que sali\u00f3 en rho = -0.06, cuyo p bilateral con n=25 ronda 0.78 - es decir, ninguna asociaci\u00f3n en absoluto, no una d\u00e9bil. Este es un negativo genuino e IMPORTA: dice que la ganancia del warm-start es la eliminaci\u00f3n del retardo de entrega, no compensaci\u00f3n de movimiento. Un nulo que remodela el mecanismo vale m\u00e1s que la mayor\u00eda de los positivos de aqu\u00ed.",
    "caveats_en": "A pre-registered directional hypothesis (rho > 0 required) that came out at rho = -0.06, whose two-sided p at n=25 is around 0.78 - i.e. no association whatsoever, not a weak one. This is a genuine negative and it MATTERS: it says the warm-start win is delivery-lag removal, not motion compensation. A null that reshapes the mechanism is worth more than most of the positives here.",
    "machine": "both"
   },
@@ -1133,7 +1133,7 @@
     "n": 5
    },
    "gate_p": 0.8,
-   "caveats": "LA PUERTA PRE-REGISTRADA ERA ESTADÍSTICAMENTE INALCANZABLE. Frente a una hipótesis nula de 0.8, incluso un 5/5 perfecto da p = 0.33, de modo que ningún resultado posible de este diseño podría haber superado 4/5 en ningún sentido inferencial. El NO es una parada de ingeniería legítima; no es evidencia de que el select-on-command no funcione.",
+   "caveats": "LA PUERTA PRE-REGISTRADA ERA ESTAD\u00cdSTICAMENTE INALCANZABLE. Frente a una hip\u00f3tesis nula de 0.8, incluso un 5/5 perfecto da p = 0.33, de modo que ning\u00fan resultado posible de este dise\u00f1o podr\u00eda haber superado 4/5 en ning\u00fan sentido inferencial. El NO es una parada de ingenier\u00eda leg\u00edtima; no es evidencia de que el select-on-command no funcione.",
    "caveats_en": "THE PRE-REGISTERED GATE WAS STATISTICALLY UNREACHABLE. Against a 0.8 null even a perfect 5/5 gives p = 0.33, so no possible outcome of this design could have cleared 4/5 in any inferential sense. The NO is a legitimate engineering stop; it is not evidence that select-on-command does not work.",
    "machine": "both"
   },
@@ -1155,7 +1155,7 @@
     "n": 5
    },
    "gate_p": 0.8,
-   "caveats": "El README revela un SESGO DE PILOTO: 3 de las 5 escenas del veredicto se usaron en el piloto. Combinada con el umbral inalcanzable, esta celda no informa nada sobre la exactitud del select. La pata de LATENCIA (4.9 s -> 2.08 s) es determinista y se sostiene por sí sola.",
+   "caveats": "El README revela un SESGO DE PILOTO: 3 de las 5 escenas del veredicto se usaron en el piloto. Combinada con el umbral inalcanzable, esta celda no informa nada sobre la exactitud del select. La pata de LATENCIA (4.9 s -> 2.08 s) es determinista y se sostiene por s\u00ed sola.",
    "caveats_en": "The README discloses a PILOT BIAS: 3 of the 5 verdict scenes were used in the pilot. Combined with the unreachable gate this cell is uninformative about select accuracy. The LATENCY leg (4.9 s -> 2.08 s) is deterministic and stands on its own.",
    "machine": "both"
   },
@@ -1167,7 +1167,7 @@
    "verdict": "NO [match/carry-bound]",
    "n_rows": 5,
    "n_effective": 3,
-   "independence_note": "DEFECTO DE REGISTRO DESTAPADO POR R-29: el n efectivo anterior era **4** sobre **3** conglomerados reales — R-4 debió colapsar a 3 y anotó 4. La calibración APRIETA aquí en vez de aflojar (4 -> 3), que es la prueba de que la regla no está sintonizada para recuperar significación. R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 3, no 4. El colapso a 3 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.901, que es la que se usa). Con tamaño medio de conglomerado 1.60, el efecto de diseño es 1.54 y 5/1.54 = 3. **Suelo publicado: 4** — el valor colapsado se conserva como análisis de sensibilidad conservador. — 6 cells from FOUR sequences; the newly-added gating cell car9:560 is cut from the same video as car9:300",
+   "independence_note": "DEFECTO DE REGISTRO DESTAPADO POR R-29: el n efectivo anterior era **4** sobre **3** conglomerados reales \u2014 R-4 debi\u00f3 colapsar a 3 y anot\u00f3 4. La calibraci\u00f3n APRIETA aqu\u00ed en vez de aflojar (4 -> 3), que es la prueba de que la regla no est\u00e1 sintonizada para recuperar significaci\u00f3n. R-29 CALIBRACI\u00d3N POR ICC (2026-07-23): n efectivo = 3, no 4. El colapso a 3 conglomerados supon\u00eda correlaci\u00f3n intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.901, que es la que se usa). Con tama\u00f1o medio de conglomerado 1.60, el efecto de dise\u00f1o es 1.54 y 5/1.54 = 3. **Suelo publicado: 4** \u2014 el valor colapsado se conserva como an\u00e1lisis de sensibilidad conservador. \u2014 6 cells from FOUR sequences; the newly-added gating cell car9:560 is cut from the same video as car9:300",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-14-select-generalization/runs/MC_WSEL_*/results.json"
@@ -1177,7 +1177,7 @@
     "n": 5
    },
    "gate_p": 0.8,
-   "caveats": "Tercer NO de select consecutivo sobre un diseño cuya puerta ningún resultado podía superar. El contenido genuinamente informativo es diagnóstico, no inferencial: el re-anclaje en reposo se disparó y fue aceptado en las 16 celdas, y dos fallos NO_MATCH por deriva de carry sobrevivieron a ello. Eso es un mecanismo, y es lo que motivó el cambio del contrato de entrega.",
+   "caveats": "Tercer NO de select consecutivo sobre un dise\u00f1o cuya puerta ning\u00fan resultado pod\u00eda superar. El contenido genuinamente informativo es diagn\u00f3stico, no inferencial: el re-anclaje en reposo se dispar\u00f3 y fue aceptado en las 16 celdas, y dos fallos NO_MATCH por deriva de carry sobrevivieron a ello. Eso es un mecanismo, y es lo que motiv\u00f3 el cambio del contrato de entrega.",
    "caveats_en": "Third consecutive select NO on a design whose gate no outcome could clear. The genuinely informative content is diagnostic, not inferential: the idle re-anchor fired and was accepted on all 16 cells, and two carry-drift NO_MATCH failures survived it. That is a mechanism, and it is what motivated the delivery-contract change.",
    "machine": "both",
    "icc": {
@@ -1207,7 +1207,7 @@
     "n": 12
    },
    "gate_p": null,
-   "caveats": "Una puerta de construcción, tratada correctamente como tal. 12/12 tiene un intervalo de Wilson de [0.76, 1.0]: el generador es bueno, no está demostrado que sea perfecto. Las 12 celdas proceden de un único generador con un único conjunto de activos, de modo que esto mide el artefacto, no una población de escenas.",
+   "caveats": "Una puerta de construcci\u00f3n, tratada correctamente como tal. 12/12 tiene un intervalo de Wilson de [0.76, 1.0]: el generador es bueno, no est\u00e1 demostrado que sea perfecto. Las 12 celdas proceden de un \u00fanico generador con un \u00fanico conjunto de activos, de modo que esto mide el artefacto, no una poblaci\u00f3n de escenas.",
    "caveats_en": "A build gate, correctly treated as one. 12/12 has a Wilson interval of [0.76, 1.0] - the generator is good, not proven perfect. All 12 cells come from one generator with one asset set, so this measures the artifact, not a scene population.",
    "machine": "rtx-3090"
   },
@@ -1232,7 +1232,7 @@
     "n": 24
    },
    "gate_p": null,
-   "caveats": "CERO pares discordantes: McNemar queda INDEFINIDO, no 1.0. Esta campaña no encontró que los brazos fueran iguales; no ejecutó ninguna prueba. Ambos brazos están en el techo, de modo que el diseño no tenía margen para separar nada — que es exactamente lo que dice el diagnóstico 'scene-bound' del registro, y la estadística coincide.",
+   "caveats": "CERO pares discordantes: McNemar queda INDEFINIDO, no 1.0. Esta campa\u00f1a no encontr\u00f3 que los brazos fueran iguales; no ejecut\u00f3 ninguna prueba. Ambos brazos est\u00e1n en el techo, de modo que el dise\u00f1o no ten\u00eda margen para separar nada \u2014 que es exactamente lo que dice el diagn\u00f3stico 'scene-bound' del registro, y la estad\u00edstica coincide.",
    "caveats_en": "ZERO discordant pairs: McNemar is UNDEFINED, not 1.0. This campaign did not find the arms equal; it ran no test. Both arms are at ceiling, so the design had no room to separate anything - which is exactly what the ledger's 'scene-bound' diagnosis says, and the statistics agree.",
    "machine": "both"
   },
@@ -1256,7 +1256,7 @@
     "n2": 12
    },
    "gate_p": null,
-   "caveats": "EL CAVEAT MÁS IMPORTANTE DEL ARCO DE SIMULACIÓN DE LA PARTE V. La mejora es en parte DEFINICIONAL: los suelos (G6c 60 -> 40, G8b 0.55 -> 0.40) se recalibraron a partir de la propia población registrada de P5.11. Bajar un umbral y luego informar de que más celdas lo superan no es un efecto. Lo que SÍ es legítimo es que los suelos se congelaron ANTES de la ejecución y que 6 semillas no vistas también lo superaron, y que el delta de predicción de frame limpio offline fue 0 en las 12. Preséntese como una corrección de calibrado, nunca como una mejora de 4x.",
+   "caveats": "EL CAVEAT M\u00c1S IMPORTANTE DEL ARCO DE SIMULACI\u00d3N DE LA PARTE V. La mejora es en parte DEFINICIONAL: los suelos (G6c 60 -> 40, G8b 0.55 -> 0.40) se recalibraron a partir de la propia poblaci\u00f3n registrada de P5.11. Bajar un umbral y luego informar de que m\u00e1s celdas lo superan no es un efecto. Lo que S\u00cd es leg\u00edtimo es que los suelos se congelaron ANTES de la ejecuci\u00f3n y que 6 semillas no vistas tambi\u00e9n lo superaron, y que el delta de predicci\u00f3n de frame limpio offline fue 0 en las 12. Pres\u00e9ntese como una correcci\u00f3n de calibrado, nunca como una mejora de 4x.",
    "caveats_en": "THE MOST IMPORTANT CAVEAT IN PART V's SIM ARC. The improvement is partly DEFINITIONAL: the floors (G6c 60 -> 40, G8b 0.55 -> 0.40) were recalibrated from P5.11's own recorded population. Lowering a threshold and then reporting that more cells clear it is not an effect. What IS legitimate is that the floors were frozen BEFORE the run and 6 unseen seeds also cleared, and that the offline clear-frame prediction delta was 0 on all 12. Present it as a calibration correction, never as a 4x improvement.",
    "machine": "rtx-3090"
   },
@@ -1268,7 +1268,7 @@
    "verdict": "NO [branch 3]",
    "n_rows": 24,
    "n_effective": 15,
-   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 15, no 12. El colapso a 12 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.548, que es la que se usa). Con tamaño medio de conglomerado 2.00, el efecto de diseño es 1.55 y 24/1.55 = 15. **Suelo publicado: 12** — el valor colapsado se conserva como análisis de sensibilidad conservador. — 12 clips x 2 legs over identical pixels; DD and RG are scored from the SAME within-cell SAM2 carry, so the arms are coupled by construction",
+   "independence_note": "R-29 CALIBRACI\u00d3N POR ICC (2026-07-23): n efectivo = 15, no 12. El colapso a 12 conglomerados supon\u00eda correlaci\u00f3n intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.548, que es la que se usa). Con tama\u00f1o medio de conglomerado 2.00, el efecto de dise\u00f1o es 1.55 y 24/1.55 = 15. **Suelo publicado: 12** \u2014 el valor colapsado se conserva como an\u00e1lisis de sensibilidad conservador. \u2014 12 clips x 2 legs over identical pixels; DD and RG are scored from the SAME within-cell SAM2 carry, so the arms are coupled by construction",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-19-v2disc-select/runs/bank09_white/results.json"
@@ -1281,7 +1281,7 @@
     "n": 24
    },
    "gate_p": null,
-   "caveats": "UN solo par discordante: p = 1.0 bilateral. El SEP_MARGIN pre-registrado de 4 estaba él mismo por debajo del efecto mínimo detectable: alcanzar alfa requería 6 discordantes en un solo sentido. Y DD está en 24/24, de modo que el rango observable de DD-RG queda acotado por arriba por el único fallo de RG. «Los contratos son equivalentes» no está respaldado; «este diseño no tenía potencia para distinguirlos», sí.",
+   "caveats": "UN solo par discordante: p = 1.0 bilateral. El SEP_MARGIN pre-registrado de 4 estaba \u00e9l mismo por debajo del efecto m\u00ednimo detectable: alcanzar alfa requer\u00eda 6 discordantes en un solo sentido. Y DD est\u00e1 en 24/24, de modo que el rango observable de DD-RG queda acotado por arriba por el \u00fanico fallo de RG. \u00abLos contratos son equivalentes\u00bb no est\u00e1 respaldado; \u00abeste dise\u00f1o no ten\u00eda potencia para distinguirlos\u00bb, s\u00ed.",
    "caveats_en": "ONE discordant pair: p = 1.0 two-sided. The pre-registered SEP_MARGIN of 4 was itself below the minimum detectable effect - reaching alpha needed 6 one-way discordants. And DD sits at 24/24, so the observable range of DD-RG is bounded above by RG's single failure. 'The contracts are equivalent' is not supported; 'this design had no power to distinguish them' is.",
    "machine": "both",
    "icc": {
@@ -1311,7 +1311,7 @@
     "n": 5
    },
    "gate_p": 0.8,
-   "caveats": "5/5 frente a una hipótesis nula de 0.8 da p = 0.33 — el umbral no pudo superarse inferencialmente con esta n. P5.18 volvió a ejecutar después esta afirmación con n=26 y encontró una tasa WSEL real cercana a 0.85, coherente con 5/5 y, con razón, menos llamativa. Cítese P5.18, no P5.14.",
+   "caveats": "5/5 frente a una hip\u00f3tesis nula de 0.8 da p = 0.33 \u2014 el umbral no pudo superarse inferencialmente con esta n. P5.18 volvi\u00f3 a ejecutar despu\u00e9s esta afirmaci\u00f3n con n=26 y encontr\u00f3 una tasa WSEL real cercana a 0.85, coherente con 5/5 y, con raz\u00f3n, menos llamativa. C\u00edtese P5.18, no P5.14.",
    "caveats_en": "5/5 against a 0.8 null gives p = 0.33 - the gate could not be cleared inferentially at this n. P5.18 later re-ran this claim at n=26 and found the true WSEL rate near 0.85, which is consistent with 5/5 and correctly less exciting. Cite P5.18, not P5.14.",
    "machine": "both"
   },
@@ -1333,7 +1333,7 @@
     "n": 5
    },
    "gate_p": 0.8,
-   "caveats": "4/5 frente a 0.8 es p = 0.74 - literalmente lo que predice la hipótesis nula. P5.18 halló la tasa real de SWAP en 0.65 (17/26), así que esta celda fue optimismo de n pequeño y el propio trabajo posterior del repositorio lo dice.",
+   "caveats": "4/5 frente a 0.8 es p = 0.74 - literalmente lo que predice la hip\u00f3tesis nula. P5.18 hall\u00f3 la tasa real de SWAP en 0.65 (17/26), as\u00ed que esta celda fue optimismo de n peque\u00f1o y el propio trabajo posterior del repositorio lo dice.",
    "caveats_en": "4/5 against 0.8 is p = 0.74 - literally what the null predicts. P5.18 found the true SWAP rate at 0.65 (17/26), so this cell was small-n optimism and the repo's own later work says so.",
    "machine": "both"
   },
@@ -1358,7 +1358,7 @@
     "n": 10
    },
    "gate_p": null,
-   "caveats": "p = 0.25. Los tres desacuerdos son RG devolviendo NO_MATCH: no llegó a seleccionar en absoluto, en lugar de seleccionar de otro modo. Esa asimetría es más informativa que el recuento: sobre imagen real el contrato de re-grounding no se limita a perder, se abstiene. Contrástese con los bancos de simulación (P5.10/13/17), donde RG consigue el grounding de casi todo: la diferencia es la fragilidad ante imagen real. R-5 (2026-07-21) AÑADE EL LÍMITE DE LA COMPARACIÓN: el 10/10 de DD en este pareado es cierto POR CONSTRUCCIÓN. `select_p56.bind_by_caption` es igualdad de cadenas contra el pie almacenado, con un assert de que sólo uno coincide, así que DD no puede elegir mal; es un recorte de alcance (la campaña aísla el mecanismo de entrega, no la comprensión de la frase), no una medida. Por tanto b=3, c=0 no dice «DD gana a RG»: dice «RG falla 3 veces en una tarea que DD no realiza». Y RG empareja contra las propias pistas mantenidas de DD (`cand_at_prompt`), luego sus fallos incluyen deriva de arrastre heredada. La lectura defendible es unidireccional: mide el coste que la hipótesis de vinculación por pie de DD se ahorra. Mismo tratamiento en [P5.18|P5.19]-shadow-rg-ceiling.",
+   "caveats": "p = 0.25. Los tres desacuerdos son RG devolviendo NO_MATCH: no lleg\u00f3 a seleccionar en absoluto, en lugar de seleccionar de otro modo. Esa asimetr\u00eda es m\u00e1s informativa que el recuento: sobre imagen real el contrato de re-grounding no se limita a perder, se abstiene. Contr\u00e1stese con los bancos de simulaci\u00f3n (P5.10/13/17), donde RG consigue el grounding de casi todo: la diferencia es la fragilidad ante imagen real. R-5 (2026-07-21) A\u00d1ADE EL L\u00cdMITE DE LA COMPARACI\u00d3N: el 10/10 de DD en este pareado es cierto POR CONSTRUCCI\u00d3N. `select_p56.bind_by_caption` es igualdad de cadenas contra el pie almacenado, con un assert de que s\u00f3lo uno coincide, as\u00ed que DD no puede elegir mal; es un recorte de alcance (la campa\u00f1a a\u00edsla el mecanismo de entrega, no la comprensi\u00f3n de la frase), no una medida. Por tanto b=3, c=0 no dice \u00abDD gana a RG\u00bb: dice \u00abRG falla 3 veces en una tarea que DD no realiza\u00bb. Y RG empareja contra las propias pistas mantenidas de DD (`cand_at_prompt`), luego sus fallos incluyen deriva de arrastre heredada. La lectura defendible es unidireccional: mide el coste que la hip\u00f3tesis de vinculaci\u00f3n por pie de DD se ahorra. Mismo tratamiento en [P5.18|P5.19]-shadow-rg-ceiling.",
    "caveats_en": "p = 0.25. All three disagreements are RG returning NO_MATCH - it failed to select at all, rather than selecting differently. That asymmetry is more informative than the count: on real imagery the re-ground contract does not merely lose, it abstains. Contrast with the sim banks (P5.10/13/17) where RG grounds nearly everything - the difference is real-imagery fragility. R-5 (2026-07-21) ADDS THE LIMIT OF THE COMPARISON: DD's 10/10 in this pairing is true BY CONSTRUCTION. `select_p56.bind_by_caption` is string equality against the stored caption with an assert that exactly one matches, so DD cannot mis-select; that is a scope cut (the campaign isolates the delivery mechanism, not phrase understanding), not a measurement. So b=3, c=0 does not say 'DD beats RG': it says 'RG fails 3 times at a task DD does not perform'. And RG matches against DD's own maintained tracks (`cand_at_prompt`), so its failures include inherited carry drift. The defensible reading is one-directional: it measures the cost DD's caption-binding assumption buys out. Same treatment in [P5.18|P5.19]-shadow-rg-ceiling.",
    "machine": "both"
   },
@@ -1380,7 +1380,7 @@
     "n": 25
    },
    "gate_p": 0.72,
-   "caveats": "24/25 frente al suelo pre-registrado de 18/25 (0,72) da un valor p exacto unilateral de 0,002908, que Holm por Parte —la familia adoptada en R-30— eleva a 0,04653: **sobrevive por poco**, mientras que en familia global queda en 0,08724 y **no sobrevive**. La afirmación depende por completo de una convención de familia que el autor eligió a sabiendas de ambos números, así que se cita con esa condición explícita y nunca sin ella. La caveat anterior citaba p = 0,0016 y lo llamaba «debidamente certificado»; ese 0,0016 es P(X>=24 | n=25, p=0,70), calculado contra una puerta de 0,70 que la pre-registración nunca fijó (README de la campaña, «RQ-a floor 18/25 (72%)»). Corregido por R-33 el 2026-07-23. Lo que queda en pie es descriptivo y sigue siendo portante: el intervalo Wilson es [0,80, 0,99] y el arrastre no es la parte frágil, lo que redirige el análisis de fallos hacia la entrega y la selección — pero el «sí» inferencial de la Parte V es P5.2a, no éste.",
+   "caveats": "24/25 frente al suelo pre-registrado de 18/25 (0,72) da un valor p exacto unilateral de 0,002908, que Holm por Parte \u2014la familia adoptada en R-30\u2014 eleva a 0,04653: **sobrevive por poco**, mientras que en familia global queda en 0,08724 y **no sobrevive**. La afirmaci\u00f3n depende por completo de una convenci\u00f3n de familia que el autor eligi\u00f3 a sabiendas de ambos n\u00fameros, as\u00ed que se cita con esa condici\u00f3n expl\u00edcita y nunca sin ella. La caveat anterior citaba p = 0,0016 y lo llamaba \u00abdebidamente certificado\u00bb; ese 0,0016 es P(X>=24 | n=25, p=0,70), calculado contra una puerta de 0,70 que la pre-registraci\u00f3n nunca fij\u00f3 (README de la campa\u00f1a, \u00abRQ-a floor 18/25 (72%)\u00bb). Corregido por R-33 el 2026-07-23. Lo que queda en pie es descriptivo y sigue siendo portante: el intervalo Wilson es [0,80, 0,99] y el arrastre no es la parte fr\u00e1gil, lo que redirige el an\u00e1lisis de fallos hacia la entrega y la selecci\u00f3n \u2014 pero el \u00abs\u00ed\u00bb inferencial de la Parte V es P5.2a, no \u00e9ste.",
    "caveats_en": "24/25 against the pre-registered floor of 18/25 (0.72) gives an exact one-sided p of 0.002908, which per-Part Holm - the family adopted in R-30 - raises to 0.04653: it survives, barely; under the global family it is 0.08724 and does NOT survive. The claim rests entirely on a family convention the author picked with both numbers in view, so it is cited with that condition attached and never without it. The previous caveat quoted p = 0.0016 and called it 'a properly certified result'; that 0.0016 is P(X>=24 | n=25, p=0.70), computed against a 0.70 gate the pre-registration never set (campaign README, 'RQ-a floor 18/25 (72%)'). Corrected by R-33 on 2026-07-23. What stands is descriptive and still load-bearing: the Wilson interval is [0.80, 0.99] and the carry is not the fragile part, which redirects the failure analysis onto delivery and selection - but Part V's inferential YES is P5.2a, not this one.",
    "machine": "both"
   },
@@ -1405,7 +1405,7 @@
     "n": 25
    },
    "gate_p": null,
-   "caveats": "p = 0.625. La regresión NO está estadísticamente establecida, y la afirmación honesta es que el mantenimiento no compró nada medible mientras costaba cómputo. El mecanismo (100/100 re-anclajes aceptados sin suelo de IoU, que provocan intercambios de identidad dentro de la misma clase) es evidencia diagnóstica que un recuento de 25 clips no puede aportar, y es la razón por la que retirar la palanca seguía siendo correcto.",
+   "caveats": "p = 0.625. La regresi\u00f3n NO est\u00e1 estad\u00edsticamente establecida, y la afirmaci\u00f3n honesta es que el mantenimiento no compr\u00f3 nada medible mientras costaba c\u00f3mputo. El mecanismo (100/100 re-anclajes aceptados sin suelo de IoU, que provocan intercambios de identidad dentro de la misma clase) es evidencia diagn\u00f3stica que un recuento de 25 clips no puede aportar, y es la raz\u00f3n por la que retirar la palanca segu\u00eda siendo correcto.",
    "caveats_en": "p = 0.625. The regression is NOT statistically established, and the honest statement is that maintenance bought nothing measurable while costing compute. The mechanism (100/100 re-anchors accepted with no IoU floor, causing same-class identity swaps) is diagnostic evidence that a 25-clip count cannot supply, and it is why removing the lever was still correct.",
    "machine": "both"
   },
@@ -1427,7 +1427,7 @@
     "n": 5
    },
    "gate_p": 0.8,
-   "caveats": "El número IMPORTANTE de P5.16 no es el 4/5: es 24/24 descubrimientos del VLM en la ventana ociosa aceptados, lo que hace que el pipeline sea GT-free de extremo a extremo. Esa es una afirmación de capacidad con un denominador limpio; la tasa de select con n=5 no lo es.",
+   "caveats": "El n\u00famero IMPORTANTE de P5.16 no es el 4/5: es 24/24 descubrimientos del VLM en la ventana ociosa aceptados, lo que hace que el pipeline sea GT-free de extremo a extremo. Esa es una afirmaci\u00f3n de capacidad con un denominador limpio; la tasa de select con n=5 no lo es.",
    "caveats_en": "The IMPORTANT number in P5.16 is not the 4/5 - it is 24/24 idle-window VLM discoveries accepted, which makes the pipeline GT-free end-to-end. That is a capability claim with a clean denominator; the select rate at n=5 is not.",
    "machine": "both"
   },
@@ -1439,7 +1439,7 @@
    "verdict": "clears",
    "n_rows": 26,
    "n_effective": 15,
-   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 15, no 13. El colapso a 13 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.454 (cota superior al 95 % = 0.795, que es la que se usa). Con tamaño medio de conglomerado 1.90, el efecto de diseño es 1.72 y 26/1.72 = 15. **Suelo publicado: 13** — el valor colapsado se conserva como análisis de sensibilidad conservador. — R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. The previous note discussed a different independence problem (the 5 P5.16 cells are re-measured rather than replicated; the 21 NEW cells give WSEL 18/21) and never mentioned the clip clustering. Collapsing the two wakeboard clips, which share one recurring boarder-vs-boat pair, would give 10; 13 is the mechanical distinct-clip count and is what the test checks.",
+   "independence_note": "R-29 CALIBRACI\u00d3N POR ICC (2026-07-23): n efectivo = 15, no 13. El colapso a 13 conglomerados supon\u00eda correlaci\u00f3n intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.454 (cota superior al 95 % = 0.795, que es la que se usa). Con tama\u00f1o medio de conglomerado 1.90, el efecto de dise\u00f1o es 1.72 y 26/1.72 = 15. **Suelo publicado: 13** \u2014 el valor colapsado se conserva como an\u00e1lisis de sensibilidad conservador. \u2014 R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. The previous note discussed a different independence problem (the 5 P5.16 cells are re-measured rather than replicated; the 21 NEW cells give WSEL 18/21) and never mentioned the clip clustering. Collapsing the two wakeboard clips, which share one recurring boarder-vs-boat pair, would give 10; 13 is the mechanical distinct-clip count and is what the test checks.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-20-n25-select/runs/"
@@ -1449,7 +1449,7 @@
     "n": 26
    },
    "gate_p": 0.8,
-   "caveats": "22/26 = 0.846 frente a una barra de 0.8: p exacto = 0.37, de modo que se supera DESCRIPTIVAMENTE pero no inferencialmente. El intervalo Wilson [0.67, 0.94] contiene el umbral. La frase correcta es 'coherente con la tasa pre-registrada', no 'la supera'. CORRECCIÓN R-4: la n efectiva baja de 26 a 13 porque las 26 celdas proceden de sólo 13 videoclips distintos. La proporción se conserva (11/13 = 0,846) y el intervalo se ensancha; la lectura «coherente con la tasa pre-registrada, no la supera» no cambia, sólo se refuerza.",
+   "caveats": "22/26 = 0.846 frente a una barra de 0.8: p exacto = 0.37, de modo que se supera DESCRIPTIVAMENTE pero no inferencialmente. El intervalo Wilson [0.67, 0.94] contiene el umbral. La frase correcta es 'coherente con la tasa pre-registrada', no 'la supera'. CORRECCI\u00d3N R-4: la n efectiva baja de 26 a 13 porque las 26 celdas proceden de s\u00f3lo 13 videoclips distintos. La proporci\u00f3n se conserva (11/13 = 0,846) y el intervalo se ensancha; la lectura \u00abcoherente con la tasa pre-registrada, no la supera\u00bb no cambia, s\u00f3lo se refuerza.",
    "caveats_en": "22/26 = 0.846 against a 0.8 bar: exact p = 0.37, so it clears DESCRIPTIVELY but not inferentially. The Wilson interval [0.67, 0.94] contains the gate. The right sentence is 'consistent with the pre-registered rate', not 'exceeds it'.",
    "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
    "machine": "both",
@@ -1470,7 +1470,7 @@
    "verdict": "NO [SWAP-bound]",
    "n_rows": 26,
    "n_effective": 16,
-   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 16, no 13. El colapso a 13 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.254 (cota superior al 95 % = 0.695, que es la que se usa). Con tamaño medio de conglomerado 1.90, el efecto de diseño es 1.63 y 26/1.63 = 16. **Suelo publicado: 13** — el valor colapsado se conserva como análisis de sensibilidad conservador. — R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. Previous note: same 26 cells, recomputed independently from the 54 committed results.json and matching the frozen baseline dict exactly - still true, and orthogonal to the clip clustering.",
+   "independence_note": "R-29 CALIBRACI\u00d3N POR ICC (2026-07-23): n efectivo = 16, no 13. El colapso a 13 conglomerados supon\u00eda correlaci\u00f3n intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.254 (cota superior al 95 % = 0.695, que es la que se usa). Con tama\u00f1o medio de conglomerado 1.90, el efecto de dise\u00f1o es 1.63 y 26/1.63 = 16. **Suelo publicado: 13** \u2014 el valor colapsado se conserva como an\u00e1lisis de sensibilidad conservador. \u2014 R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. Previous note: same 26 cells, recomputed independently from the 54 committed results.json and matching the frozen baseline dict exactly - still true, and orthogonal to the clip clustering.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-20-n25-select/runs/"
@@ -1480,7 +1480,7 @@
     "n": 26
    },
    "gate_p": 0.8,
-   "caveats": "EL RESULTADO MÁS VALIOSO DEL RE-ANÁLISIS ESTADÍSTICO. En las 5 celdas compartidas, P5.18 reproduce P5.16 EXACTAMENTE (4/5, cero inversiones); todo el vuelco procede de las 21 celdas nuevas, donde SWAP es 13/21 = 0.62. Esta es una demostración directa y medida de que los veredictos de n pequeño eran optimistas - y es el repositorio detectando su propio error, que es la forma más fuerte que la tesis puede presentar. CORRECCIÓN R-4: n efectiva 26 → 13 (13 videoclips distintos). El fallo se mantiene: 8/13 = 0,615 frente a la barra de 0,8. Una deflación sólo puede ensanchar el intervalo, de modo que no puede rescatar un NO.",
+   "caveats": "EL RESULTADO M\u00c1S VALIOSO DEL RE-AN\u00c1LISIS ESTAD\u00cdSTICO. En las 5 celdas compartidas, P5.18 reproduce P5.16 EXACTAMENTE (4/5, cero inversiones); todo el vuelco procede de las 21 celdas nuevas, donde SWAP es 13/21 = 0.62. Esta es una demostraci\u00f3n directa y medida de que los veredictos de n peque\u00f1o eran optimistas - y es el repositorio detectando su propio error, que es la forma m\u00e1s fuerte que la tesis puede presentar. CORRECCI\u00d3N R-4: n efectiva 26 \u2192 13 (13 videoclips distintos). El fallo se mantiene: 8/13 = 0,615 frente a la barra de 0,8. Una deflaci\u00f3n s\u00f3lo puede ensanchar el intervalo, de modo que no puede rescatar un NO.",
    "caveats_en": "THE MOST VALUABLE RESULT IN THE STATISTICAL RE-ANALYSIS. On the 5 shared cells P5.18 reproduces P5.16 EXACTLY (4/5, zero flips); the entire overturn comes from the 21 new cells, where SWAP is 13/21 = 0.62. This is a direct, measured demonstration that the small-n verdicts were optimistic - and it is the repo catching its own error, which is the strongest form the thesis can present.",
    "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
    "machine": "both",
@@ -1501,7 +1501,7 @@
    "verdict": "YES [branch 1]",
    "n_rows": 26,
    "n_effective": 15,
-   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 15, no 13. El colapso a 13 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.418 (cota superior al 95 % = 0.778, que es la que se usa). Con tamaño medio de conglomerado 1.90, el efecto de diseño es 1.70 y 26/1.70 = 15. **Suelo publicado: 13** — el valor colapsado se conserva como análisis de sensibilidad conservador. — R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. The pairing itself is clean (same cells under both configurations); what is not clean is treating 26 cells as 26 independent units. THIS IS THE CLAIM THE OMISSION PROTECTED: the pre-registered gate was 20/26 cells, which at 13 units is 10/13 against a baseline 8/13.",
+   "independence_note": "R-29 CALIBRACI\u00d3N POR ICC (2026-07-23): n efectivo = 15, no 13. El colapso a 13 conglomerados supon\u00eda correlaci\u00f3n intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.418 (cota superior al 95 % = 0.778, que es la que se usa). Con tama\u00f1o medio de conglomerado 1.90, el efecto de dise\u00f1o es 1.70 y 26/1.70 = 15. **Suelo publicado: 13** \u2014 el valor colapsado se conserva como an\u00e1lisis de sensibilidad conservador. \u2014 R-4 CORRECTION 2026-07-21: was 26 -> 26. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4. The pairing itself is clean (same cells under both configurations); what is not clean is treating 26 cells as 26 independent units. THIS IS THE CLAIM THE OMISSION PROTECTED: the pre-registered gate was 20/26 cells, which at 13 units is 10/13 against a baseline 8/13.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-20-late-entry-rescue/runs/"
@@ -1514,7 +1514,7 @@
     "n": 26
    },
    "gate_p": null,
-   "caveats": "b=3, c=0, p = 0.25. EL YES JUSTO EN LA BARRA NO ES SIGNIFICATIVO. Tres celdas pasan de fallo a acierto y ninguna vuelve atrás, que es la FORMA correcta para un arreglo real, pero tres es la mitad de los seis cambios en un solo sentido que alfa exigiría con esta n. El mecanismo de apoyo es fuerte (el guardián de P5.18 estaba desalineado respecto al fotograma y se disparó 0/108 veces; la entrega de gracia cuesta 0.37-0.60 s frente a 4.68 s en frío) y P5.20 reprodujo de forma independiente el brazo T celda por celda. Preséntese así: una mejora explicada mecánicamente y del signo correcto, todavía no certificada. CORRECCIÓN R-4: n efectiva 26 → 13 (13 videoclips distintos). Ésta es la afirmación a la que la omisión beneficiaba, así que conviene decir con precisión qué cambia y qué no. El valor p NO empeora de significativo a no significativo: ya era p = 0,25 con la n completa, nunca fue significativo. Lo que la deflación elimina es el margen justo en la barra: la puerta pre-registrada de 20/26 celdas pasa a ser 10/13 sobre una línea base de 8/13. Enunciado correcto: no pudimos distinguir los brazos; la puerta se superó con un margen que no sobrevive al agrupamiento por clip.",
+   "caveats": "b=3, c=0, p = 0.25. EL YES JUSTO EN LA BARRA NO ES SIGNIFICATIVO. Tres celdas pasan de fallo a acierto y ninguna vuelve atr\u00e1s, que es la FORMA correcta para un arreglo real, pero tres es la mitad de los seis cambios en un solo sentido que alfa exigir\u00eda con esta n. El mecanismo de apoyo es fuerte (el guardi\u00e1n de P5.18 estaba desalineado respecto al fotograma y se dispar\u00f3 0/108 veces; la entrega de gracia cuesta 0.37-0.60 s frente a 4.68 s en fr\u00edo) y P5.20 reprodujo de forma independiente el brazo T celda por celda. Pres\u00e9ntese as\u00ed: una mejora explicada mec\u00e1nicamente y del signo correcto, todav\u00eda no certificada. CORRECCI\u00d3N R-4: n efectiva 26 \u2192 13 (13 videoclips distintos). \u00c9sta es la afirmaci\u00f3n a la que la omisi\u00f3n beneficiaba, as\u00ed que conviene decir con precisi\u00f3n qu\u00e9 cambia y qu\u00e9 no. El valor p NO empeora de significativo a no significativo: ya era p = 0,25 con la n completa, nunca fue significativo. Lo que la deflaci\u00f3n elimina es el margen justo en la barra: la puerta pre-registrada de 20/26 celdas pasa a ser 10/13 sobre una l\u00ednea base de 8/13. Enunciado correcto: no pudimos distinguir los brazos; la puerta se super\u00f3 con un margen que no sobrevive al agrupamiento por clip.",
    "caveats_en": "b=3, c=0, p = 0.25. THE BAR-EXACT YES IS NOT SIGNIFICANT. Three cells flip fail-to-pass and none flip back, which is the right SHAPE for a real fix, but three is half of the six one-way flips alpha would require at this n. The supporting mechanism is strong (P5.18's guard was frame-misaligned and fired 0/108 times; grace delivery costs 0.37-0.60 s against 4.68 s cold) and P5.20 independently reproduced arm T cell-for-cell. Present as: a mechanically-explained improvement of the right sign, not yet certified.",
    "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
    "machine": "both",
@@ -1548,7 +1548,7 @@
     "n": 26
    },
    "gate_p": null,
-   "caveats": "Cero pares discordantes, así que no existe prueba alguna. Aquí el empate es el resultado DESEADO y su interpretación es segura de un modo en que la de P5.10 no lo es: ni una sola de las 26 celdas cambió de estado, lo que acota estrechamente cualquier regresión incluso sin un valor p. Enúnciese como 'ninguna celda cambió', nunca como 'demostrado inocuo'. CORRECCIÓN R-4: n efectiva 26 → 13. Sin efecto aquí: con cero discordantes no hay prueba ni antes ni después. La cota útil sigue siendo la observación en bruto —ninguna de las 26 celdas cambió de estado—, que no depende de cuántas unidades independientes haya.",
+   "caveats": "Cero pares discordantes, as\u00ed que no existe prueba alguna. Aqu\u00ed el empate es el resultado DESEADO y su interpretaci\u00f3n es segura de un modo en que la de P5.10 no lo es: ni una sola de las 26 celdas cambi\u00f3 de estado, lo que acota estrechamente cualquier regresi\u00f3n incluso sin un valor p. En\u00fanciese como 'ninguna celda cambi\u00f3', nunca como 'demostrado inocuo'. CORRECCI\u00d3N R-4: n efectiva 26 \u2192 13. Sin efecto aqu\u00ed: con cero discordantes no hay prueba ni antes ni despu\u00e9s. La cota \u00fatil sigue siendo la observaci\u00f3n en bruto \u2014ninguna de las 26 celdas cambi\u00f3 de estado\u2014, que no depende de cu\u00e1ntas unidades independientes haya.",
    "caveats_en": "Zero discordant pairs, so no test exists. Here the tie is the DESIRED outcome and its interpretation is safe in a way P5.10's is not: not one of 26 cells changed state, which bounds any regression tightly even without a p-value. State it as 'no cell changed', never as 'proved harmless'.",
    "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
    "machine": "both"
@@ -1571,7 +1571,7 @@
     "n": 4
    },
    "gate_p": null,
-   "caveats": "El intervalo de Wilson sobre 2/4 es [0.15, 0.85] - esta medición no aporta esencialmente ninguna información sobre la precisión real. Se registra como un residuo abierto y ese es el único uso defendible. Lo que importa cualitativamente es el MODO DE FALLO: los disparos erróneos entregan una caja con confianza en lugar de abstenerse, que es la dirección peligrosa para un sistema de cara al operador.",
+   "caveats": "El intervalo de Wilson sobre 2/4 es [0.15, 0.85] - esta medici\u00f3n no aporta esencialmente ninguna informaci\u00f3n sobre la precisi\u00f3n real. Se registra como un residuo abierto y ese es el \u00fanico uso defendible. Lo que importa cualitativamente es el MODO DE FALLO: los disparos err\u00f3neos entregan una caja con confianza en lugar de abstenerse, que es la direcci\u00f3n peligrosa para un sistema de cara al operador.",
    "caveats_en": "The Wilson interval on 2/4 is [0.15, 0.85] - this measurement carries essentially no information about the true precision. It is recorded as an open residual and that is the only defensible use. What matters qualitatively is the FAILURE MODE: the wrong firings deliver a confident box instead of abstaining, which is the dangerous direction for an operator-facing system.",
    "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
    "machine": "both"
@@ -1584,7 +1584,7 @@
    "verdict": "ceiling, not a paired result",
    "n_rows": 48,
    "n_effective": 25,
-   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 25, no 13. El colapso a 13 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.354, que es la que se usa). Con tamaño medio de conglomerado 3.51, el efecto de diseño es 1.89 y 48/1.89 = 25. **Suelo publicado: 13** — el valor colapsado se conserva como análisis de sensibilidad conservador. — The 48 (P5.18) / 50 (P5.19) paired cells come from 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count -- same deflation as the DD claims on the same cells (R-4). Cells whose `meta.shadow` is absent are dropped, and that missingness is INFORMATIVE, not random: the shadow block sits after the early `fail()` returns, so every dropped cell is a DD failure (4 in P5.18, 2 in P5.19, all `selected track lost during idle` or `discovery-failed`). Dropping them conditions the number on DD surviving to the prompt.",
+   "independence_note": "R-29 CALIBRACI\u00d3N POR ICC (2026-07-23): n efectivo = 25, no 13. El colapso a 13 conglomerados supon\u00eda correlaci\u00f3n intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.354, que es la que se usa). Con tama\u00f1o medio de conglomerado 3.51, el efecto de dise\u00f1o es 1.89 y 48/1.89 = 25. **Suelo publicado: 13** \u2014 el valor colapsado se conserva como an\u00e1lisis de sensibilidad conservador. \u2014 The 48 (P5.18) / 50 (P5.19) paired cells come from 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count -- same deflation as the DD claims on the same cells (R-4). Cells whose `meta.shadow` is absent are dropped, and that missingness is INFORMATIVE, not random: the shadow block sits after the early `fail()` returns, so every dropped cell is a DD failure (4 in P5.18, 2 in P5.19, all `selected track lost during idle` or `discovery-failed`). Dropping them conditions the number on DD surviving to the prompt.",
    "data_status": "counts_only",
    "data_paths": [
     "experiments/2026-07-20-n25-select/runs/",
@@ -1595,7 +1595,7 @@
     "n": 48
    },
    "gate_p": null,
-   "caveats": "ESTO ES UN TECHO, NO UNA TASA (R-5, 2026-07-21). Elegir el candidato correcto es necesario pero no suficiente para que RG apruebe: la sombra nunca arrastra una pista tras su re-anclaje, luego nunca se le cobra cobertura ni IoU entregado. La tasa real de aprobado de RG es <= 38/48. NO ES UNA PRUEBA PAREADA, Y EL NÚMERO PAREADO DEL CUADERNO QUEDA RETIRADO: el «n=50, b=4, c=2, p=0,6875, contratos indistinguibles» que se había registrado es reproducible aritméticamente (thesis/analyse_shadow_rg.py), pero parea el `pass` de DD —enganche genuino + cobertura + IoU + supervivencia del arrastre— contra el `selected` de RG, que es sólo selección. Dos cantidades definidas de forma distinta yuxtapuestas como si fueran una comparación. EL PAREADO EQUIVALENTE ES VACUO: DD saca 48/48 en selección porque `select_p56.bind_by_caption` es igualdad de cadenas contra el pie almacenado, con un assert de que sólo uno coincide. DD no puede elegir mal. Es un recorte de alcance registrado en el README de P5.14 (la campaña aísla el mecanismo de entrega, no la comprensión de la frase), así que ninguna prueba puede mostrar a DD «ganando» a RG en selección. RG NO ES INDEPENDIENTE: empareja su caja del VLM contra `cand_at_prompt`, es decir las propias pistas mantenidas por DD, luego un arrastre a la deriva le cuesta a RG un emparejamiento. Sus fallos son fallos de re-anclaje MÁS fallos de arrastre heredados. 9 de los 10 fallos de RG son NO_MATCH (la caja re-anclada no emparejó con ningún candidato por encima del umbral); 1 es una elección de objeto equivocado.",
+   "caveats": "ESTO ES UN TECHO, NO UNA TASA (R-5, 2026-07-21). Elegir el candidato correcto es necesario pero no suficiente para que RG apruebe: la sombra nunca arrastra una pista tras su re-anclaje, luego nunca se le cobra cobertura ni IoU entregado. La tasa real de aprobado de RG es <= 38/48. NO ES UNA PRUEBA PAREADA, Y EL N\u00daMERO PAREADO DEL CUADERNO QUEDA RETIRADO: el \u00abn=50, b=4, c=2, p=0,6875, contratos indistinguibles\u00bb que se hab\u00eda registrado es reproducible aritm\u00e9ticamente (thesis/analyse_shadow_rg.py), pero parea el `pass` de DD \u2014enganche genuino + cobertura + IoU + supervivencia del arrastre\u2014 contra el `selected` de RG, que es s\u00f3lo selecci\u00f3n. Dos cantidades definidas de forma distinta yuxtapuestas como si fueran una comparaci\u00f3n. EL PAREADO EQUIVALENTE ES VACUO: DD saca 48/48 en selecci\u00f3n porque `select_p56.bind_by_caption` es igualdad de cadenas contra el pie almacenado, con un assert de que s\u00f3lo uno coincide. DD no puede elegir mal. Es un recorte de alcance registrado en el README de P5.14 (la campa\u00f1a a\u00edsla el mecanismo de entrega, no la comprensi\u00f3n de la frase), as\u00ed que ninguna prueba puede mostrar a DD \u00abganando\u00bb a RG en selecci\u00f3n. RG NO ES INDEPENDIENTE: empareja su caja del VLM contra `cand_at_prompt`, es decir las propias pistas mantenidas por DD, luego un arrastre a la deriva le cuesta a RG un emparejamiento. Sus fallos son fallos de re-anclaje M\u00c1S fallos de arrastre heredados. 9 de los 10 fallos de RG son NO_MATCH (la caja re-anclada no emparej\u00f3 con ning\u00fan candidato por encima del umbral); 1 es una elecci\u00f3n de objeto equivocado.",
    "caveats_en": "THIS IS A CEILING, NOT A RATE (R-5, 2026-07-21). Selecting the right candidate is necessary but not sufficient for an RG pass: the shadow never carries a track after its re-ground, so it is never charged coverage or delivered IoU. RG's true pass rate is <= 38/48. NOT A PAIRED TEST, AND THE LEDGER'S PAIRED NUMBER IS RETIRED: the previously recorded 'n=50, b=4, c=2, p=0.6875, contracts indistinguishable' is arithmetically reproducible (thesis/analyse_shadow_rg.py) but pairs DD `pass` -- genuine lock + coverage + IoU + carry survival -- against RG `selected`, which is selection only. Two differently-defined quantities juxtaposed as a comparison. THE LIKE-FOR-LIKE PAIRING IS VACUOUS: DD scores 48/48 on selection because `select_p56.bind_by_caption` is string equality against the stored caption with an assert that exactly one matches. DD cannot mis-select. That is a scope cut recorded in P5.14's README (the campaign isolates the delivery mechanism, not phrase understanding), so no test can show DD 'beating' RG at selection. RG IS NOT INDEPENDENT: it matches its VLM box against `cand_at_prompt`, i.e. DD's own maintained tracks, so a drifted carry costs RG a match. Its failures are re-ground failures PLUS inherited carry failures. 9 of the 10 RG failures are NO_MATCH (the re-ground box matched no candidate above the floor); 1 is a wrong-object pick.",
    "machine": "rtx-3090",
    "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
@@ -1616,7 +1616,7 @@
    "verdict": "ceiling, not a paired result",
    "n_rows": 50,
    "n_effective": 23,
-   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 23, no 13. El colapso a 13 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.086 (cota superior al 95 % = 0.445, que es la que se usa). Con tamaño medio de conglomerado 3.65, el efecto de diseño es 2.18 y 50/2.18 = 23. **Suelo publicado: 13** — el valor colapsado se conserva como análisis de sensibilidad conservador. — The 48 (P5.18) / 50 (P5.19) paired cells come from 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count -- same deflation as the DD claims on the same cells (R-4). Cells whose `meta.shadow` is absent are dropped, and that missingness is INFORMATIVE, not random: the shadow block sits after the early `fail()` returns, so every dropped cell is a DD failure (4 in P5.18, 2 in P5.19, all `selected track lost during idle` or `discovery-failed`). Dropping them conditions the number on DD surviving to the prompt.",
+   "independence_note": "R-29 CALIBRACI\u00d3N POR ICC (2026-07-23): n efectivo = 23, no 13. El colapso a 13 conglomerados supon\u00eda correlaci\u00f3n intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.086 (cota superior al 95 % = 0.445, que es la que se usa). Con tama\u00f1o medio de conglomerado 3.65, el efecto de dise\u00f1o es 2.18 y 50/2.18 = 23. **Suelo publicado: 13** \u2014 el valor colapsado se conserva como an\u00e1lisis de sensibilidad conservador. \u2014 The 48 (P5.18) / 50 (P5.19) paired cells come from 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count -- same deflation as the DD claims on the same cells (R-4). Cells whose `meta.shadow` is absent are dropped, and that missingness is INFORMATIVE, not random: the shadow block sits after the early `fail()` returns, so every dropped cell is a DD failure (4 in P5.18, 2 in P5.19, all `selected track lost during idle` or `discovery-failed`). Dropping them conditions the number on DD surviving to the prompt.",
    "data_status": "counts_only",
    "data_paths": [
     "experiments/2026-07-20-late-entry-rescue/runs/",
@@ -1627,7 +1627,7 @@
     "n": 50
    },
    "gate_p": null,
-   "caveats": "ESTO ES UN TECHO, NO UNA TASA (R-5, 2026-07-21). Elegir el candidato correcto es necesario pero no suficiente para que RG apruebe: la sombra nunca arrastra una pista tras su re-anclaje, luego nunca se le cobra cobertura ni IoU entregado. La tasa real de aprobado de RG es <= 42/50. NO ES UNA PRUEBA PAREADA, Y EL NÚMERO PAREADO DEL CUADERNO QUEDA RETIRADO: el «n=52, b=3, c=2, p=1,0, contratos indistinguibles» que se había registrado es reproducible aritméticamente (thesis/analyse_shadow_rg.py), pero parea el `pass` de DD —enganche genuino + cobertura + IoU + supervivencia del arrastre— contra el `selected` de RG, que es sólo selección. Dos cantidades definidas de forma distinta yuxtapuestas como si fueran una comparación. EL PAREADO EQUIVALENTE ES VACUO: DD saca 50/50 en selección porque `select_p56.bind_by_caption` es igualdad de cadenas contra el pie almacenado, con un assert de que sólo uno coincide. DD no puede elegir mal. Es un recorte de alcance registrado en el README de P5.14 (la campaña aísla el mecanismo de entrega, no la comprensión de la frase), así que ninguna prueba puede mostrar a DD «ganando» a RG en selección. RG NO ES INDEPENDIENTE: empareja su caja del VLM contra `cand_at_prompt`, es decir las propias pistas mantenidas por DD, luego un arrastre a la deriva le cuesta a RG un emparejamiento. Sus fallos son fallos de re-anclaje MÁS fallos de arrastre heredados. los 8 fallos de RG son NO_MATCH. Coincidencia que conviene no sobreinterpretar: el techo de RG en SWAP es 20/26, el mismo recuento que la tasa de aprobado realizada de DD en el SWAP reforzado de P5.19 — uno es un techo sobre la selección y el otro un aprobado realizado, luego no son comparables y su igualdad no es un empate.",
+   "caveats": "ESTO ES UN TECHO, NO UNA TASA (R-5, 2026-07-21). Elegir el candidato correcto es necesario pero no suficiente para que RG apruebe: la sombra nunca arrastra una pista tras su re-anclaje, luego nunca se le cobra cobertura ni IoU entregado. La tasa real de aprobado de RG es <= 42/50. NO ES UNA PRUEBA PAREADA, Y EL N\u00daMERO PAREADO DEL CUADERNO QUEDA RETIRADO: el \u00abn=52, b=3, c=2, p=1,0, contratos indistinguibles\u00bb que se hab\u00eda registrado es reproducible aritm\u00e9ticamente (thesis/analyse_shadow_rg.py), pero parea el `pass` de DD \u2014enganche genuino + cobertura + IoU + supervivencia del arrastre\u2014 contra el `selected` de RG, que es s\u00f3lo selecci\u00f3n. Dos cantidades definidas de forma distinta yuxtapuestas como si fueran una comparaci\u00f3n. EL PAREADO EQUIVALENTE ES VACUO: DD saca 50/50 en selecci\u00f3n porque `select_p56.bind_by_caption` es igualdad de cadenas contra el pie almacenado, con un assert de que s\u00f3lo uno coincide. DD no puede elegir mal. Es un recorte de alcance registrado en el README de P5.14 (la campa\u00f1a a\u00edsla el mecanismo de entrega, no la comprensi\u00f3n de la frase), as\u00ed que ninguna prueba puede mostrar a DD \u00abganando\u00bb a RG en selecci\u00f3n. RG NO ES INDEPENDIENTE: empareja su caja del VLM contra `cand_at_prompt`, es decir las propias pistas mantenidas por DD, luego un arrastre a la deriva le cuesta a RG un emparejamiento. Sus fallos son fallos de re-anclaje M\u00c1S fallos de arrastre heredados. los 8 fallos de RG son NO_MATCH. Coincidencia que conviene no sobreinterpretar: el techo de RG en SWAP es 20/26, el mismo recuento que la tasa de aprobado realizada de DD en el SWAP reforzado de P5.19 \u2014 uno es un techo sobre la selecci\u00f3n y el otro un aprobado realizado, luego no son comparables y su igualdad no es un empate.",
    "caveats_en": "THIS IS A CEILING, NOT A RATE (R-5, 2026-07-21). Selecting the right candidate is necessary but not sufficient for an RG pass: the shadow never carries a track after its re-ground, so it is never charged coverage or delivered IoU. RG's true pass rate is <= 42/50. NOT A PAIRED TEST, AND THE LEDGER'S PAIRED NUMBER IS RETIRED: the previously recorded 'n=52, b=3, c=2, p=1.0, contracts indistinguishable' is arithmetically reproducible (thesis/analyse_shadow_rg.py) but pairs DD `pass` -- genuine lock + coverage + IoU + carry survival -- against RG `selected`, which is selection only. Two differently-defined quantities juxtaposed as a comparison. THE LIKE-FOR-LIKE PAIRING IS VACUOUS: DD scores 50/50 on selection because `select_p56.bind_by_caption` is string equality against the stored caption with an assert that exactly one matches. DD cannot mis-select. That is a scope cut recorded in P5.14's README (the campaign isolates the delivery mechanism, not phrase understanding), so no test can show DD 'beating' RG at selection. RG IS NOT INDEPENDENT: it matches its VLM box against `cand_at_prompt`, i.e. DD's own maintained tracks, so a drifted carry costs RG a match. Its failures are re-ground failures PLUS inherited carry failures. 8 of the 8 RG failures are NO_MATCH. Note the coincidence worth not over-reading: RG's SWAP ceiling is 20/26, the same count as DD's realized strengthened-SWAP pass rate in P5.19 -- one is a ceiling on selection, the other a realized pass, so they are not comparable and their equality is not a tie.",
    "machine": "rtx-3090",
    "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
@@ -1648,7 +1648,7 @@
    "verdict": "NO [capacity-flat] - dead lever",
    "n_rows": 52,
    "n_effective": 37,
-   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 37, no 13. El colapso a 13 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.150, que es la que se usa). Con tamaño medio de conglomerado 3.81, el efecto de diseño es 1.42 y 52/1.42 = 37. **Suelo publicado: 13** — el valor colapsado se conserva como análisis de sensibilidad conservador. — R-4 CORRECTION 2026-07-21: was 52 -> 26. 52 pairs = 26 cells x 2 legs and the two legs of a cell share the video and the carry, which the old note got right; it then stopped one step short. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4, so 52 -> 13.",
+   "independence_note": "R-29 CALIBRACI\u00d3N POR ICC (2026-07-23): n efectivo = 37, no 13. El colapso a 13 conglomerados supon\u00eda correlaci\u00f3n intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.150, que es la que se usa). Con tama\u00f1o medio de conglomerado 3.81, el efecto de dise\u00f1o es 1.42 y 52/1.42 = 37. **Suelo publicado: 13** \u2014 el valor colapsado se conserva como an\u00e1lisis de sensibilidad conservador. \u2014 R-4 CORRECTION 2026-07-21: was 52 -> 26. 52 pairs = 26 cells x 2 legs and the two legs of a cell share the video and the carry, which the old note got right; it then stopped one step short. the 26 gating cells are drawn from only 13 distinct UAV123 clips (bike1 6, car9 4, car10 3, wakeboard8 3, wakeboard6 2, and 8 singletons), so n_effective is the CLIP count, not the cell count - R-4, so 52 -> 13.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-20-carry-capacity/runs/"
@@ -1661,7 +1661,7 @@
     "n": 52
    },
    "gate_p": null,
-   "caveats": "b=0, c=1: p = 1.0. No es evidencia de que la capacidad no ayude, es evidencia de que este diseño no vio efecto alguno en ninguna dirección. Lo que hace defendible lo de «palanca muerta» no es el recuento sino el MECANISMO: el mismo bloqueo de deriva de la familia de coches aparece en ambos brazos, de modo que los fallos no están limitados por la capacidad. Una n mayor tendría que justificarse con un mecanismo plausible, y ninguno sobrevive. CORRECCIÓN R-4: n efectiva 26 → 13 (13 videoclips distintos). El único par discordante (c=1) se redondea a cero al deflactar, de modo que la lectura pasa de p = 1,0 a NO HAY PRUEBA. Las dos lecturas son no significativas y la segunda es la más honesta: con 13 unidades independientes nunca hubo resolución para ver un solo cambio. El argumento de «palanca muerta» se sostiene sobre el mecanismo, no sobre el recuento, y eso no cambia.",
+   "caveats": "b=0, c=1: p = 1.0. No es evidencia de que la capacidad no ayude, es evidencia de que este dise\u00f1o no vio efecto alguno en ninguna direcci\u00f3n. Lo que hace defendible lo de \u00abpalanca muerta\u00bb no es el recuento sino el MECANISMO: el mismo bloqueo de deriva de la familia de coches aparece en ambos brazos, de modo que los fallos no est\u00e1n limitados por la capacidad. Una n mayor tendr\u00eda que justificarse con un mecanismo plausible, y ninguno sobrevive. CORRECCI\u00d3N R-4: n efectiva 26 \u2192 13 (13 videoclips distintos). El \u00fanico par discordante (c=1) se redondea a cero al deflactar, de modo que la lectura pasa de p = 1,0 a NO HAY PRUEBA. Las dos lecturas son no significativas y la segunda es la m\u00e1s honesta: con 13 unidades independientes nunca hubo resoluci\u00f3n para ver un solo cambio. El argumento de \u00abpalanca muerta\u00bb se sostiene sobre el mecanismo, no sobre el recuento, y eso no cambia.",
    "caveats_en": "b=0, c=1: p = 1.0. Not evidence that capacity does not help - evidence that this design saw no effect either way. What makes 'dead lever' defensible is not the count but the MECHANISM: the same car-family drift block appears in both arms, so the failures are not capacity-limited. A larger n would have to be justified by a plausible mechanism, and none survives.",
    "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
    "machine": "both",
@@ -1695,7 +1695,7 @@
     "n": 52
    },
    "gate_p": null,
-   "caveats": "Cero discordantes, así que formalmente no hay prueba — pero este es el 'indefinido' más valioso del registro. Una re-ejecución independiente que reproduce las 52 celdas exactamente establece que la medición de P5.19 es estable y no una extracción afortunada. Certifica la REPETIBILIDAD, que es una propiedad distinta de la significación y que la tesis debería reclamar explícitamente porque la mayoría de las campañas de aquí no pueden. CORRECCIÓN R-4: n efectiva 26 → 13. La repetibilidad que esta entrada certifica no depende de la n efectiva: «las 52 celdas se reprodujeron exactamente» es una afirmación sobre determinismo de la medición, no una inferencia sobre una población.",
+   "caveats": "Cero discordantes, as\u00ed que formalmente no hay prueba \u2014 pero este es el 'indefinido' m\u00e1s valioso del registro. Una re-ejecuci\u00f3n independiente que reproduce las 52 celdas exactamente establece que la medici\u00f3n de P5.19 es estable y no una extracci\u00f3n afortunada. Certifica la REPETIBILIDAD, que es una propiedad distinta de la significaci\u00f3n y que la tesis deber\u00eda reclamar expl\u00edcitamente porque la mayor\u00eda de las campa\u00f1as de aqu\u00ed no pueden. CORRECCI\u00d3N R-4: n efectiva 26 \u2192 13. La repetibilidad que esta entrada certifica no depende de la n efectiva: \u00ablas 52 celdas se reprodujeron exactamente\u00bb es una afirmaci\u00f3n sobre determinismo de la medici\u00f3n, no una inferencia sobre una poblaci\u00f3n.",
    "caveats_en": "Zero discordants, so formally no test - but this is the most valuable 'undefined' in the registry. An independent re-run reproducing all 52 cells exactly establishes that the P5.19 measurement is stable and not a lucky draw. It certifies REPEATABILITY, which is a different property from significance and one the thesis should claim explicitly because most campaigns here cannot.",
    "scene_set": "experiments/2026-07-20-n25-select/scenes_p518.json",
    "machine": "both"
@@ -1708,7 +1708,7 @@
    "verdict": "NO [branch 3] - sim-select discrimination CLOSED",
    "n_rows": 56,
    "n_effective": 41,
-   "independence_note": "R-29 CALIBRACIÓN POR ICC (2026-07-23): n efectivo = 41, no 28. El colapso a 28 conglomerados suponía correlación intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.365, que es la que se usa). Con tamaño medio de conglomerado 2.00, el efecto de diseño es 1.37 y 56/1.37 = 41. **Suelo publicado: 28** — el valor colapsado se conserva como análisis de sensibilidad conservador. — 56 cells = 28 procedurally-generated scenes x 2 phrase legs over identical renders. The 28 scenes are seed-varied draws from ONE generator with one town and one asset set - exchangeable within a narrow distribution, not a sample of a target population.",
+   "independence_note": "R-29 CALIBRACI\u00d3N POR ICC (2026-07-23): n efectivo = 41, no 28. El colapso a 28 conglomerados supon\u00eda correlaci\u00f3n intra-conglomerado = 1,0; medida sobre los datos comprometidos es ICC(1) = 0.000 (cota superior al 95 % = 0.365, que es la que se usa). Con tama\u00f1o medio de conglomerado 2.00, el efecto de dise\u00f1o es 1.37 y 56/1.37 = 41. **Suelo publicado: 28** \u2014 el valor colapsado se conserva como an\u00e1lisis de sensibilidad conservador. \u2014 56 cells = 28 procedurally-generated scenes x 2 phrase legs over identical renders. The 28 scenes are seed-varied draws from ONE generator with one town and one asset set - exchangeable within a narrow distribution, not a sample of a target population.",
    "data_status": "per_item",
    "data_paths": [
     "experiments/2026-07-20-bankv3-select/runs/s003_white/results.json"
@@ -1721,7 +1721,7 @@
     "n": 56
    },
    "gate_p": null,
-   "caveats": "LA DEMOSTRACIÓN MÁS CLARA DEL REPOSITORIO DE QUE n NO ERA LA RESTRICCIÓN VINCULANTE. Pasar de 24 a 56 celdas no aumentó la potencia, porque lo que cayó fue la TASA de fallo en vez de aparecer el efecto: b=1, c=0, p=1.0, exactamente igual que con n=24. El SEP_MARGIN pre-registrado de 7 exigía que RG fallara 7 celdas; RG falló 1 en toda la matriz. La conclusión correcta es que el simulador renderiza demasiado limpio para separar los contratos, lo cual es una afirmación sobre el instrumento, no sobre la hipótesis.",
+   "caveats": "LA DEMOSTRACI\u00d3N M\u00c1S CLARA DEL REPOSITORIO DE QUE n NO ERA LA RESTRICCI\u00d3N VINCULANTE. Pasar de 24 a 56 celdas no aument\u00f3 la potencia, porque lo que cay\u00f3 fue la TASA de fallo en vez de aparecer el efecto: b=1, c=0, p=1.0, exactamente igual que con n=24. El SEP_MARGIN pre-registrado de 7 exig\u00eda que RG fallara 7 celdas; RG fall\u00f3 1 en toda la matriz. La conclusi\u00f3n correcta es que el simulador renderiza demasiado limpio para separar los contratos, lo cual es una afirmaci\u00f3n sobre el instrumento, no sobre la hip\u00f3tesis.",
    "caveats_en": "THE CLEAREST DEMONSTRATION IN THE REPOSITORY THAT n WAS NOT THE BINDING CONSTRAINT. Going from 24 to 56 cells did not increase power, because the failure RATE fell rather than the effect appearing: b=1, c=0, p=1.0, exactly as at n=24. The pre-registered SEP_MARGIN of 7 needed RG to fail 7 cells; RG failed 1 in the whole matrix. The correct conclusion is that the simulator renders too cleanly to separate the contracts, which is a statement about the instrument, not the hypothesis.",
    "machine": "both",
    "icc": {
@@ -1748,7 +1748,7 @@
    ],
    "counts": {},
    "gate_p": null,
-   "caveats": "n=1 es CORRECTO aquí y la tesis debería decir por qué: una puerta de capacidad pregunta «¿puede este montaje cerrar el lazo siquiera?», y una sola demostración lo responde. La mejora de px_err 64.7 -> 36.0 es un antes/después sobre un único vuelo y no debe citarse como error esperado. La afirmación retirada de px_err de Phase-C Branch-1 es el ejemplo aleccionador. CIFRA QUE NO DEBE CITARSE (R-10, 2026-07-21): «0 pérdidas de pista» es vacua, pero NO por el fallo de re-emparejamiento de ByteTrack que el cuaderno le atribuía. El contador sólo se incrementa cuando el rastreador devuelve lista vacía, lo que exige MAX_LOST_FRAMES=30 a 20 Hz, es decir 1,5 s sin ninguna detección; esa rama era igualmente alcanzable antes y después del arreglo, y ambas ejecuciones reportan 0. Lo que la hace inútil es que la inyección a 1 Hz nunca produjo una sequía de 1,5 s y la ejecución diseñada para forzarla (GAP_INJECT_RUN=3) nunca se lanzó con --runs 1. Enunciado correcto: 0 pérdidas de pista significa que el suministro de detecciones nunca se cortó; no es evidencia de que el lazo mantuviera el objetivo.",
+   "caveats": "n=1 es CORRECTO aqu\u00ed y la tesis deber\u00eda decir por qu\u00e9: una puerta de capacidad pregunta \u00ab\u00bfpuede este montaje cerrar el lazo siquiera?\u00bb, y una sola demostraci\u00f3n lo responde. La mejora de px_err 64.7 -> 36.0 es un antes/despu\u00e9s sobre un \u00fanico vuelo y no debe citarse como error esperado. La afirmaci\u00f3n retirada de px_err de Phase-C Branch-1 es el ejemplo aleccionador. CIFRA QUE NO DEBE CITARSE (R-10, 2026-07-21): \u00ab0 p\u00e9rdidas de pista\u00bb es vacua, pero NO por el fallo de re-emparejamiento de ByteTrack que el cuaderno le atribu\u00eda. El contador s\u00f3lo se incrementa cuando el rastreador devuelve lista vac\u00eda, lo que exige MAX_LOST_FRAMES=30 a 20 Hz, es decir 1,5 s sin ninguna detecci\u00f3n; esa rama era igualmente alcanzable antes y despu\u00e9s del arreglo, y ambas ejecuciones reportan 0. Lo que la hace in\u00fatil es que la inyecci\u00f3n a 1 Hz nunca produjo una sequ\u00eda de 1,5 s y la ejecuci\u00f3n dise\u00f1ada para forzarla (GAP_INJECT_RUN=3) nunca se lanz\u00f3 con --runs 1. Enunciado correcto: 0 p\u00e9rdidas de pista significa que el suministro de detecciones nunca se cort\u00f3; no es evidencia de que el lazo mantuviera el objetivo.",
    "caveats_en": "n=1 is CORRECT here and the thesis should say why: a capability gate asks 'can this rig close the loop at all', and one demonstration answers it. The px_err improvement 64.7 -> 36.0 is a before/after on one flight and must not be quoted as an expected error. The withdrawn Phase-C Branch-1 px_err claim is the cautionary example. NUMBER THAT MUST NOT BE CITED (R-10, 2026-07-21): '0 track losses' is vacuous, but NOT for the ByteTrack re-find reason the ledger recorded. The counter only increments when the tracker returns an empty list, which needs MAX_LOST_FRAMES=30 at 20 Hz -- 1.5 s with no detection at all -- a branch equally reachable before and after the fix, and both runs report 0. What makes it useless is that 1 Hz injection never produced a 1.5 s drought and the run designed to force one (GAP_INJECT_RUN=3) never fired under --runs 1. Correct statement: 0 track losses means the detection supply never stalled; it is not evidence the loop held the target.",
    "machine": "rtx-3090"
   },
@@ -1767,9 +1767,37 @@
    ],
    "counts": {},
    "gate_p": null,
-   "caveats": "Una afirmación de capacidad medida una sola vez, correctamente. CIFRAS QUE NO DEBEN CITARSE (R-10, 2026-07-21). (1) slave_err = 0,000 m es vacuo: la cámara es un sensor.camera.rgb sin attach_to, un actor cinemático, de modo que get_transform() devuelve exactamente lo que set_transform() acaba de recibir. Además el 0,000 no está en el fichero — el artefacto guarda 1,815e-06 y el cero es el formato :.3f. Y la métrica sólo lee .location, así que es ciega a la rotación: el yaw de pose_track tiene UN ÚNICO valor (0,0) en los 600 ticks porque el sondeo ATTITUDE nunca entregó nada. El renderizador estaba esclavizado EN POSICIÓN, no en pose. (2) Sustituto no vacuo, calculable del artefacto ya comprometido (experiments/2026-07-20-p61-carla-renderer/pose_staleness.py): 60,4 % de los ticks reutilizan una pose MAVLink caducada, hueco máximo entre muestras frescas 0,547 s, y a 7,21 m/s eso son ~3,9 m de retraso de cámara en el peor caso (0,38 m típico). (3) «2,4x la tasa de control» queda RETIRADO: la ejecución fue en modo síncrono, 600 ticks de 0,05 s de tiempo simulado en 12,46 s de reloj de pared, luego 48,08/19,93 y 30/12,46 son el mismo 2,41 — el desfase de reloj reenunciado, no holgura. Los 48,1 Hz son tasa del bucle de renderizado SIN percepción en la ventana (ni VLM, ni SAM2, ni ByteTrack, ni PID) y sin límite de potencia.",
+   "caveats": "Una afirmaci\u00f3n de capacidad medida una sola vez, correctamente. CIFRAS QUE NO DEBEN CITARSE (R-10, 2026-07-21). (1) slave_err = 0,000 m es vacuo: la c\u00e1mara es un sensor.camera.rgb sin attach_to, un actor cinem\u00e1tico, de modo que get_transform() devuelve exactamente lo que set_transform() acaba de recibir. Adem\u00e1s el 0,000 no est\u00e1 en el fichero \u2014 el artefacto guarda 1,815e-06 y el cero es el formato :.3f. Y la m\u00e9trica s\u00f3lo lee .location, as\u00ed que es ciega a la rotaci\u00f3n: el yaw de pose_track tiene UN \u00daNICO valor (0,0) en los 600 ticks porque el sondeo ATTITUDE nunca entreg\u00f3 nada. El renderizador estaba esclavizado EN POSICI\u00d3N, no en pose. (2) Sustituto no vacuo, calculable del artefacto ya comprometido (experiments/2026-07-20-p61-carla-renderer/pose_staleness.py): 60,4 % de los ticks reutilizan una pose MAVLink caducada, hueco m\u00e1ximo entre muestras frescas 0,547 s, y a 7,21 m/s eso son ~3,9 m de retraso de c\u00e1mara en el peor caso (0,38 m t\u00edpico). (3) \u00ab2,4x la tasa de control\u00bb queda RETIRADO: la ejecuci\u00f3n fue en modo s\u00edncrono, 600 ticks de 0,05 s de tiempo simulado en 12,46 s de reloj de pared, luego 48,08/19,93 y 30/12,46 son el mismo 2,41 \u2014 el desfase de reloj reenunciado, no holgura. Los 48,1 Hz son tasa del bucle de renderizado SIN percepci\u00f3n en la ventana (ni VLM, ni SAM2, ni ByteTrack, ni PID) y sin l\u00edmite de potencia.",
    "caveats_en": "A capability claim measured once, correctly. NUMBERS THAT MUST NOT BE CITED (R-10, 2026-07-21). (1) slave_err = 0.000 m is vacuous: the camera is an unattached sensor.camera.rgb, a kinematic actor, so get_transform() returns exactly what set_transform() was just given. The 0.000 is also not in the file -- the artifact holds 1.815e-06 and the zero is the :.3f print format. And the metric reads only .location, so it is blind to rotation: pose_track yaw has ONE unique value (0.0) across all 600 ticks because the ATTITUDE poll never delivered. The renderer was POSITION-slaved, not pose-slaved. (2) Non-vacuous replacement, computable from the already-committed artifact (experiments/2026-07-20-p61-carla-renderer/pose_staleness.py): 60.4% of ticks reuse a stale MAVLink pose, worst gap between fresh samples 0.547 s, and at 7.21 m/s that is ~3.9 m of worst-case camera lag (0.38 m typical). (3) '2.4x the control rate' is WITHDRAWN: the run was in sync mode, 600 ticks of 0.05 s sim time delivered in 12.46 s wall, so 48.08/19.93 and 30/12.46 are the same 2.41 -- the clock skew restated, not headroom. The 48.1 Hz is render-loop throughput with NO perception in the window (no VLM, no SAM2, no ByteTrack, no PID) and no power cap.",
    "machine": "rtx-3090"
+  },
+  {
+   "id": "P6.2-DELIVERY-warm-vs-cold-closedloop",
+   "part": "VI",
+   "headline": "Cierre de lazo: warm-start mantener-y-entregar vs adquisicion fria bloqueante - WARM 23/25 vs COLD 2/25",
+   "design": "paired-binary",
+   "verdict": "YES [oracle-designation scope]",
+   "n_rows": 25,
+   "n_effective": 25,
+   "independence_note": "25 semillas CARLA distintas, cada una un sorteo generativo independiente (S1): trafico, identidad/indice de spawn del objetivo, region y condicion sorteados por semilla. Sin subsecuencias tipo UAV123 _s, asi que no hay agrupamiento por video de origen y n_effective = 25 = n_rows (lo fija score_p62.score_delivery). Las replicas de la banda de ruido de programacion (primeras 3 semillas x2) se colapsan por mayoria ANTES de contar, no se agrupan: 0 volteos de replica, asi que no inflan n.",
+   "data_status": "per_item",
+   "data_paths": [
+    "runs/p62_delivery/delivery.json",
+    "runs/p62_delivery/warm_seed*/results.json",
+    "runs/p62_delivery/cold_seed*/results.json",
+    "experiments/2026-07-23-p62-delivery/README.md"
+   ],
+   "counts": {
+    "b": 21,
+    "c": 0,
+    "k1": 23,
+    "k2": 2,
+    "n": 25
+   },
+   "gate_p": null,
+   "machine": "rtx-3090",
+   "caveats": "P6.2-DELIVERY, el experimento estrella de la Parte VI: por primera vez un copter que vuela su propia salida de control (ArduCopter SITL como fisica, CARLA Town10HD_Opt como renderizador nadir esclavizado a la pose, asincrono a proposito \u2014 el modo sincrono borraria el retardo de entrega bajo prueba). FOLLOW PASS = lock genuino en la entrega Y cobertura post-prompt \u2265 0,5 Y sin cambio de identidad. WARM 23/25 vs COLD 2/25; b=21, c=0 (unidireccional); McNemar exacta bilateral p=9,5e-07; sin deflacion (semillas independientes, n_effective=25), sobrevive Holm por Parte y global. WARM Wilson95 [0,750, 0,978]. El coste del brazo frio no es salir de cuadro (cold_target_exits_frame=0) sino la obsolescencia: cada vuelo frio entrega una caja tras el retardo bloqueante de ~4,85 s y en 23/25 cae fuera del objetivo (on_target=0). Los dos aciertos frios (semillas 14, 20) son objetivos lentos/favorables (la 20 tiene el menor desplazamiento del banco, 15,2 m). ALCANCE ORACULO (salvedad S5): el grounding se mantiene constante mediante designacion por oraculo (caja GT), porque el q8_0 desplegado NO es discriminativo en nadir a 45 m (puerta G6: solo fija el objetivo con un caption espacial escogido a mano, IoU 0,329; agarra el coche equivocado de la misma clase con frases genericas; sonda descentrada 0/8). Por tanto la afirmacion es de ACOPLAMIENTO DE CONTROL condicionada a designacion correcta, NO una afirmacion de grounding+entrega. Los dos residuales WARM son deriva de arrastre / no-lock (semillas 8, 13), no de entrega; la 13 muestra ademas una caja GT anomala que abarca la calzada, MARCADA para revision de autor. Desviacion registrada del pre-registro (que especificaba semillas vlm_acquire de ventana ociosa): el cambio a oraculo es abierto, no silencioso. Matriz medida integramente en la 3090 (grounding retirado = sin Jetson en este experimento); el arrastre SAM2 va topado a la tasa de la Jetson 2,69 Hz (paridad E1) y el retardo frio se aplica como stub, asi que ninguna cifra dependiente de dispositivo se sirve desde la 3090.",
+   "caveats_en": "P6.2-DELIVERY, the Part VI flagship: for the first time a copter flying its own control output (ArduCopter SITL physics, CARLA Town10HD_Opt as a pose-slaved nadir renderer, async on purpose \u2014 sync would erase the delivery lag under test). FOLLOW PASS = genuine lock at delivery AND post-prompt coverage >= 0.5 AND no identity swap. WARM 23/25 vs COLD 2/25; b=21, c=0 (one-directional); exact two-sided McNemar p=9.5e-07; no deflation (independent seeds, n_effective=25), survives per-Part and global Holm. WARM Wilson95 [0.750, 0.978]. The cold arm's cost is not exiting frame (cold_target_exits_frame=0) but staleness: every cold flight delivers a box after the ~4.85 s blocking lag and for 23/25 it lands off-target (on_target=0). The 2 cold passes (seeds 14, 20) are slow/favorable targets (seed 20 has the lowest world-displacement in the bank, 15.2 m). ORACLE SCOPE (S5 caveat): grounding is held constant via oracle designation (GT box) because the deployed q8_0 is non-discriminative at 45 m nadir (G6 gate: locks the target only under a hand-picked spatial caption, IoU 0.329; grabs the wrong same-class car under generic phrases; off-center probe 0/8). So the claim is CONTROL-COUPLING conditional on correct designation, NOT a grounding+delivery claim. The 2 WARM residuals are carry-drift / non-lock (seeds 8, 13), not delivery; seed 13 also shows an anomalous road-spanning GT box, FLAGGED for author review. Recorded deviation from the pre-registration (which specified idle-window vlm_acquire seeds): the oracle switch is open, not silent. Matrix measured entirely on the 3090 (grounding removed = no Jetson in this experiment); SAM2 carry is rate-capped to the Jetson 2.69 Hz (E1 parity) and the cold lag is applied as a stub, so no device-dependent number is served from the 3090."
   }
  ]
 }

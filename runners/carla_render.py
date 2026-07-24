@@ -47,6 +47,12 @@ SEED = 20260720              # same traffic layout + TM decisions every run
 _latest = {"bgr": None, "n": 0}
 _lock = threading.Lock()
 
+# Render base: NED (0,0) maps to CARLA (BASE_N, BASE_E). Default 0 => CARLA origin,
+# which in Town10HD is an empty plaza. Set to a road spawn so the flight renders over
+# traffic and grounding sees cars, not dead ground. The copter flies its own NED frame;
+# this only shifts where that frame is painted in the city.
+BASE_N, BASE_E = 0.0, 0.0
+
 
 def ned_to_carla(n, e, d, yaw_rad=0.0, pitch_deg=-90.0):
     """NED metres + yaw -> carla.Transform.
@@ -57,7 +63,7 @@ def ned_to_carla(n, e, d, yaw_rad=0.0, pitch_deg=-90.0):
     it against a viewed frame before any number is recorded.
     """
     return carla.Transform(
-        carla.Location(x=float(n), y=float(e), z=float(-d)),
+        carla.Location(x=float(n) + BASE_N, y=float(e) + BASE_E, z=float(-d)),
         carla.Rotation(pitch=float(pitch_deg), yaw=math.degrees(yaw_rad), roll=0.0),
     )
 

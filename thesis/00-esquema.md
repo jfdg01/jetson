@@ -121,7 +121,7 @@ Los tres movimientos que salen de ahí:
 1. **Cap. 7, de 14 a 12.** Es el capítulo menos comprimido del esquema original
    (82 % de retención, frente al 35 % del Cap. 5) y descansa sobre **una sola
    prueba superviviente no definicional**, P5.2a. Baja, pero no baja a 8: son 26
-   de las 71 afirmaciones del registro, diez de ellas negativos que **acotan la
+   de las 72 afirmaciones del registro, diez de ellas negativos que **acotan la
    contribución**, y P5.15 es el diseño mejor potenciado de la Parte V (24/25,
    n = 25, p = 0,0029) aunque no sobreviva a Holm (0,0756).
 2. **Cap. 5, de 9 a 11.** Era el más comprimido del documento y es ahora el más
@@ -271,7 +271,7 @@ modo que la tabla no puede volver a descuadrarse en silencio.
 > debe llevar. Es demoledora y es cierta. «38» se refuta en un minuto, y quien la
 > refute deja de creerse el resto del capítulo.
 
-Sobre las **71** afirmaciones del registro — no «71 afirmaciones con puerta»,
+Sobre las **72** afirmaciones del registro — no «72 afirmaciones con puerta»,
 como decía este esquema hasta el 2026-07-23: **24 de ellas nunca tuvieron nada
 que contrastar** (12 descriptivas por intención y 12 de un brazo sin puerta
 pre-registrada), y ese es justamente uno de los hallazgos. Estas cifras se regeneran desde
@@ -863,7 +863,7 @@ pero hay que decirlo donde se citen los dos números juntos.
 
 ### El re-análisis es post-hoc, y la deflación es una decisión
 
-Ninguna de las 71 afirmaciones se pre-registró con su contraste. La familia sobre
+Ninguna de las 72 afirmaciones se pre-registró con su contraste. La familia sobre
 la que corre Holm se ensambló **retroactivamente**, en julio de 2026, sobre
 experimentos ya ejecutados: eso protege contra la comparación múltiple, no contra
 la selección del contraste una vez vistos los datos.

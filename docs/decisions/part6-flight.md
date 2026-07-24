@@ -313,3 +313,70 @@ Record: `experiments/2026-07-21-machine-disclosure/README.md` (R-1).
   in pixels, worst case 3.35 px. *Why it is recorded:* the check cost nothing, needed no server,
   and turned a blocking re-capture question into a bounded one; `check_pose_lag.py` is committed so
   it re-runs on any future bank.
+
+## P6.2 program — closed-loop significance slate (pre-registered 2026-07-23T23:05Z)
+
+Record: `experiments/PART6-PROGRAM-warm-start-significance.md` + the five per-experiment READMEs.
+Tracked as R-35/R-35b/R-36/R-37/R-38.
+
+- ★ **CARLA `Town10HD_Opt` is the primary substrate; piloting a moving-target follow is the
+  round's priority (author steer).** *Why:* reusable, controllable scenarios — the same seeded
+  traffic re-run under different weather / time-of-day / camera angle — are far higher ROI than
+  scavenging one-off UAV clips, and they make the *next* round (a condition-robustness sweep) a
+  factor change on the same rig rather than a new capture campaign. *Given up:* real-imagery
+  fidelity for the flight claims — bounded by the S5 honesty caveat (a sim PASS is a
+  control-coupling claim only, never a real-imagery perception claim; P5.17 grounds 56/56 clean).
+  Real-imagery perception/carry claims stay on UAV123 (R-36, P5.21, REG); CARLA cannot substitute.
+- ★ **The R-35 build is a MERGE, not a port.** `run_phase_c.py` is the old Gazebo rig;
+  `carla_render.py` (flies, no GT) and `carla_gt_bank.py` (has GT, no flight) are disjoint. R-35
+  merges both into one async closed-loop harness at `run_phase_c.py`'s source-agnostic seams.
+  *Given up:* the simpler "drop the select modules in" story — the WARM/COLD producers and a live
+  idle-window ring buffer must be written new (Part V modules are replay-only; `idle_catchup_multi`
+  re-walks past frames, impossible live). *Precedent for async:* the P6.1 decision above.
+- **Target-exits-frame is a first-class COLD failure mode, engineered via CARLA controllability.**
+  The point of the round is that ~4.85 s lock-in latency can leave the target *gone from frame*, not
+  merely stale. The admission screen requires the target to move >=1 box-width during the acquire
+  window; the per-flight record logs whether it is still in-frame at COLD delivery. *Given up:*
+  scenarios where COLD merely lags — those are less informative and screened toward the exit case.
+- **Weather/ToD/camera-angle are covariate diversity this round, a powered factor next round.**
+  Each of the 25 distinct seeds draws one condition, so WARM>COLD is shown to hold across
+  conditions without spending n on a factor. *Given up:* a robustness claim this round — deferred,
+  not dropped, and named as the next round's starting point.
+- **P6.3-LAT and P6.2-CEILING are descriptive companions, never inferential.** They ride the P6.2
+  matrix but are reported as distribution + jitter band / bounded gap, not as a p-value — the E20
+  false-precision lesson. *Given up:* two more Holm-family entries that would have been either
+  tautological (CEILING vs its own oracle) or noise-dominated (LAT under SSH jitter).
+- **P6.2 matrix runs the SAM2 carry on the 3090 rate-capped to the Jetson's measured 2.69 Hz, NOT
+  literally over SSH — with one on-Jetson end-to-end showcase flight alongside** (decided
+  2026-07-24, in response to an author question "why does the 3090 do SAM2 — that's not end-to-end
+  on the Jetson"). *Why:* the faithful model of an on-board Jetson is (i) the box VALUES, which are
+  device-identical by E1 mask parity 1.000, delivered at (ii) the on-device CADENCE, measured at
+  2.69 Hz by R-16, with (iii) ~zero camera->compute transport (the Jetson is on the drone). 3090
+  carry rate-capped to 2.69 Hz reproduces all three. Literally routing each frame Jetson-ward over
+  the SSH tunnel (`jetson_carry_service.py`, which DOES exist and is reused for the showcase) would
+  inject a per-frame round-trip latency the real on-board drone never pays — and P6.2 is a
+  *delivery-timing* experiment, so that artifact lands squarely on the variable under test. Grounding
+  stays on the Jetson unconditionally (device-specific: quantization changes the box; carry masks do
+  not). *Given up:* a literal every-flight on-device run for the matrix — recovered as the single
+  end-to-end showcase flight (real device + in-rig parity re-check + documented SSH-transport
+  caveat), so the on-device capability is still demonstrated, just not as the 25x2 timing substrate.
+  The carry backend is written swappable so redirecting the whole matrix to SSH-carry stays cheap.
+
+### P6.2-DELIVERY — oracle target-designation scope (2026-07-24)
+
+★ **Isolate the closed-loop delivery-timing variable via ORACLE target designation (operator
+designation = GT box), dropping VLM grounding from the gating path.** Why: the G6 gate showed the
+deployed q8_0 grounder is non-discriminative at the 45 m nadir geometry — it locks the target only
+under a hand-picked spatial caption (`the car in the center`, IoU 0.329), grabs the wrong same-class
+car under any generic phrase, and an off-center probe bank locked 0/8. Part VI's declared novelty is
+the closed control loop, not grounding (that authority is Part V / E18-n25). Holding grounding
+constant makes the WARM/COLD contrast a clean test of delivery-timing + control-coupling, which is
+what P6.2 is for. *Given up:* a grounding+delivery joint claim — the nadir-grounding center-bias is
+instead recorded as a documented limitation and the claim authority is narrowed to control-coupling
+conditional on correct designation (S5). *Also decided:* RENDER_ALT 60 -> 45 m (cars render ~40 px,
+inside SAM2's reliable carry band); PID gains tuned kp_lat 0.02 -> 0.05, max_v 3.0 -> 4.0 (the carry
+*rate* stays pinned to the Jetson 2.69 Hz = device faithfulness; only the controller is tuned).
+**Author-review flag:** the oracle scope is a deviation from the frozen pre-registration (which
+specified `vlm_acquire` idle-window seeds); recorded openly here and in the experiment README, not
+silently swapped. The result stands as a control-coupling claim; whether the thesis also wants an
+on-device grounded closed-loop number is the author's call (the showcase flight is the seam for it).

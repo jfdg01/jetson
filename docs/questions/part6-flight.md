@@ -88,9 +88,9 @@ the Part I fidelity catastrophe is the export not the quantisation (F16 vs Q8_0 
 (`P5.2a-warm-generalization`, p=6.10e-05 deflated to 23 clips — the citable figure per HANDOFF I2;
 3.052e-5 undeflated) is among the survivors.
 
-**Update 2026-07-23:** the registry has since grown to 71 claims (R-13, R-14, R-34), the
+**Update 2026-07-23:** the registry has since grown to 72 claims (R-13, R-14, R-34, P6.2-DELIVERY), the
 Holm family was fixed at the Part (R-30) and the clustering deflation was calibrated
-against a measured ICC (R-29). Current counts: **11 survive per-Part Holm, 9 global**;
+against a measured ICC (R-29). Current counts: **12 survive per-Part Holm, 10 global**;
 38 designs unreachable. `P5.2a-warm-generalization` is still among the survivors and
 the three corrected conclusions still stand. R-34 added the Part IV survivor
 `E18-...-n25` (the cold-acquire staleness effect, ORACLE 23/25 vs COLD 3/25 at n=25,
@@ -167,3 +167,19 @@ camera at a known reference car and is therefore blind to whether the *sampling 
 The fix (anchor each clip on a vehicle) matters less than the guard: **target coverage is now a
 measured, asserted per-clip field**. The general form is this repo's standing rule — a check that
 only verifies the pixels are *valid* will not notice that they are *uninteresting*.
+
+### P6.2-DELIVERY — closed-loop delivery-timing (2026-07-24)
+
+**RQ-P6.2-DELIVERY:** on a copter that flies its own control output, does warm-start
+maintain-and-deliver land a usable, followable lock on a moving target where a cold blocking acquire
+lands stale or off-frame?
+
+**Verdict: YES [oracle-designation scope, control-coupling only].** WARM 23/25 vs COLD 2/25, exact
+McNemar b=21 c=0, **p=9.5e-07** (reachable, survives Holm); WARM Wilson95 [0.750, 0.978]. The
+~4.85 s cold lock-in latency, now paid in real wall-clock while both copter and target move, leaves
+cold hovering blind through the lag then delivering a stale box off-target (`cold_target_exits_frame=0`
+— staleness, not exit). Self-induced ego-motion does not rescue cold; the closed loop **amplifies**
+the E18-n25 delivery-lag finding rather than narrowing it. Grounding was held constant via oracle
+target designation (the deployed q8_0 is non-discriminative at 45 m nadir, G6), so the verdict is a
+control-coupling claim conditional on correct designation — it does **not** license a
+grounding+delivery claim. Two WARM residuals are carry-drift / non-lock (seeds 8, 13), not delivery.

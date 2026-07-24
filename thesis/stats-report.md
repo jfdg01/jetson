@@ -2,7 +2,7 @@
 title: Resultados estadísticos retroactivos
 subtitle: Cada afirmación con puerta de las Partes I-VI, re-analizada
 author: Javier Francisco Dibo Gómez
-comment: Generado por thesis/run_stats.py, 2026-07-23T20:38Z
+comment: Generado por thesis/run_stats.py, 2026-07-24T04:21Z
 locale: es
 ---
 
@@ -39,12 +39,12 @@ inferenciales: P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm. La derivación por
 | P2-RQ0.3-spine-selection | II | binario de un brazo | 3090 | 100 | IC de Wilson | indefinido | — | — | **no** | sin puerta pre-registrada; solo intervalo |
 | P2-RQ1.1-dataset-well-posedness | II | descriptivo | 3090 | 1421 | descriptiva | indefinido | — | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
 | P2-RQ2.1-resolution-ladder-1024 | II | binario de un brazo | 3090 | 316 | binomial exacta | 7.771e-06 | 1.554e-05 | 0.000272 | sí | 133/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 133/439: ver independence_note] |
-| P2-RQ3.1-lora-aerial-gate | II | binario de un brazo | 3090 | 316 | binomial exacta | 3.679e-53 | 1.104e-52 | 1.435e-51 | sí | 261/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 261/439: ver independence_note] |
+| P2-RQ3.1-lora-aerial-gate | II | binario de un brazo | 3090 | 316 | binomial exacta | 3.679e-53 | 1.104e-52 | 1.472e-51 | sí | 261/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 261/439: ver independence_note] |
 | P2-RQ4.1-deploy-fidelity | II | binario de un brazo | **ambas** | 316 | binomial exacta | 0.0355 | 0.0355 | 0.9939 | sí | 275/439 contra puerta 0.57; hacían falta >=197/316 para alpha=0,05 [deflactado desde 275/439: ver independence_note] |
 | P3-wholeframe-resolution-knee | III | descriptivo | Jetson | 316 | descriptiva | indefinido | — | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis [deflactado desde 277/439] |
-| P3-ROI-M2.0-512 | III | binario de un brazo | **ambas** | 316 | binomial exacta | 7.235e-19 | 3.618e-18 | 2.749e-17 | sí | 374/439 contra puerta 0.63; hacían falta >=213/316 para alpha=0,05 [deflactado desde 374/439: ver independence_note] |
-| P3-ROI-M2.0-512-ondevice | III | binario pareado | Jetson | 404 | McNemar exacta | 6.384e-18 | 2.554e-17 | 2.362e-16 | sí | significativa (b=103, c=14) [deflactado desde b=112, c=15] |
-| P3-R13-owlv2-vs-vlm | III | binario pareado | Jetson | 417 | McNemar exacta | 2.205e-09 | 6.614e-09 | 7.937e-08 | sí | significativa (b=95, c=29) [deflactado desde b=100, c=31] |
+| P3-ROI-M2.0-512 | III | binario de un brazo | **ambas** | 316 | binomial exacta | 7.235e-19 | 3.618e-18 | 2.822e-17 | sí | 374/439 contra puerta 0.63; hacían falta >=213/316 para alpha=0,05 [deflactado desde 374/439: ver independence_note] |
+| P3-ROI-M2.0-512-ondevice | III | binario pareado | Jetson | 404 | McNemar exacta | 6.384e-18 | 2.554e-17 | 2.426e-16 | sí | significativa (b=103, c=14) [deflactado desde b=112, c=15] |
+| P3-R13-owlv2-vs-vlm | III | binario pareado | Jetson | 417 | McNemar exacta | 2.205e-09 | 6.614e-09 | 8.157e-08 | sí | significativa (b=95, c=29) [deflactado desde b=100, c=31] |
 | P3-ROI-drift-robustness | III | descriptivo | **ambas** | 316 | descriptiva | indefinido | — | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis [deflactado desde 326/439] |
 | P3-SR-swin2sr-accuracy | III | binario pareado | 3090 | 412 | McNemar exacta | 0.2962 | 0.2962 | 1 | sí | no significativa (b=20, c=13); hacían falta >=6 discordantes en una dirección, hubo 20 [deflactado desde b=21, c=14] |
 | P3-carry-OP768-accuracy | III | binario pareado | **ambas** | 135 | McNemar exacta | 0.03002 | 0.06003 | 0.8705 | sí | significativa (b=40, c=22) [deflactado desde b=55, c=31] |
@@ -99,6 +99,7 @@ inferenciales: P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm. La derivación por
 | P5.17-dd-vs-rg-tie-n56 | V | binario pareado | **ambas** | 41 | McNemar exacta | 1 | 1 | 1 | sí | no significativa (b=1, c=0); hacían falta >=6 discordantes en una dirección, hubo 1 |
 | P6.0-flight-rig-gate | VI | descriptivo | 3090 | 1 | descriptiva | indefinido | — | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
 | P6.1-carla-renderer | VI | descriptivo | 3090 | 1 | descriptiva | indefinido | — | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
+| P6.2-DELIVERY-warm-vs-cold-closedloop | VI | binario pareado | 3090 | 25 | McNemar exacta | 9.537e-07 | 9.537e-07 | 3.433e-05 | sí | significativa (b=21, c=0) |
 
 ## La familia de corrección, y por qué esta y no la otra
 
@@ -107,9 +108,9 @@ dentro de cada capítulo empírico, no sobre el registro entero. La justificaci�
 que cada Parte es una pregunta de investigación distinta, pre-registrada con meses
 de diferencia, y ninguna afirmación se eligió comparando Partes entre sí.
 
-Tamaños de familia (sólo p definidos): Parte I m = 4, Parte II m = 3, Parte III m = 5, Parte IV m = 9, Parte V m = 18, Parte VI m = 0.
+Tamaños de familia (sólo p definidos): Parte I m = 4, Parte II m = 3, Parte III m = 5, Parte IV m = 9, Parte V m = 18, Parte VI m = 1.
 
-**Sobreviven 11 por Parte frente a 9 en familia global.**
+**Sobreviven 12 por Parte frente a 10 en familia global.**
 Las que sólo sobreviven por Parte: `P2-RQ4.1-deploy-fidelity`, `P5.15-plain-carry-survival`.
 
 **El contraargumento, que se registra porque es fuerte.** Con m entre 2 y 15 en
@@ -135,14 +136,14 @@ la corrección. Se declara igualmente, porque el lector no puede deducirlo de la
 
 ## Qué sobrevive
 
-Las 71 afirmaciones, repartidas en ocho categorías **disjuntas**:
+Las 72 afirmaciones, repartidas en ocho categorías **disjuntas**:
 cada afirmación aparece exactamente una vez, y los recuentos suman
-71. Cuando dos categorías podrían aplicar, gana la más
+72. Cuando dos categorías podrían aplicar, gana la más
 específica — «la puerta era inalcanzable» dice algo del diseño y prevalece
 sobre «la prueba no rechazó», que sólo dice algo del resultado.
 
 - **Sin datos crudos, en cola de re-ejecución (3).** No hay fichero por elemento. No se defienden. P1-S1.4-phaseC-vlm-closed-loop, P3-T2-permanence-reid, P3-T3-closedloop-coverage
-- **Significativas tras corrección de Holm (11).** Se pueden defender como efectos. P1-S3.3-export-parity-catastrophe, P2-RQ2.1-resolution-ladder-1024, P2-RQ3.1-lora-aerial-gate, P2-RQ4.1-deploy-fidelity, P3-ROI-M2.0-512, P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm, E18-cold-acquire-vs-warm-oracle-n25, P5.2a-warm-generalization, P5.12-bankv21-recal, P5.15-plain-carry-survival
+- **Significativas tras corrección de Holm (12).** Se pueden defender como efectos. P1-S3.3-export-parity-catastrophe, P2-RQ2.1-resolution-ladder-1024, P2-RQ3.1-lora-aerial-gate, P2-RQ4.1-deploy-fidelity, P3-ROI-M2.0-512, P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm, E18-cold-acquire-vs-warm-oracle-n25, P5.2a-warm-generalization, P5.12-bankv21-recal, P5.15-plain-carry-survival, P6.2-DELIVERY-warm-vs-cold-closedloop
 - **Puerta pre-registrada inalcanzable por diseño (10).** Corrió una prueba contra una puerta que NINGÚN resultado posible habría superado a esa n. El fallo es del diseño, no del sistema. E18-A-vs-gate, E22-cv-prior-phase0, E16-relock-replication, P5.3-multi-candidate-select, P5.4-crop-select, P5.5-select-generalization, P5.14-wsel, P5.14-swap, P5.14-shadow-rg-disagreement, P5.16-autodisc-wsel
 - **Probadas, no significativas (18).** La prueba corrió y no rechazó. Es el resultado honesto de un contraste real. P1-S2.1-stage2-mode-collapse, P1-S3.3-quantisation-is-not-the-cost, P1-S4.1-stage4-narrow-miss, P3-SR-swin2sr-accuracy, P3-carry-OP768-accuracy, E18-cold-acquire-vs-warm-oracle, E20-operator-crop-hint, E19-motion-compensated-acquire, E21-coarse-to-fine, E23-tolerant-cells, P5.1-warm-vs-cold, P5.13-dd-vs-rg-tie, P5.15-maint-vs-plain, P5.18-n25-wsel, P5.18-n25-swap, P5.19-swap-late-entry-rescue, P5.20-carry-capacity, P5.17-dd-vs-rg-tie-n56
 - **Pareadas sin un solo par discordante (3).** Los brazos no se separaron en ninguna celda, luego no hubo contraste. No es equivalencia demostrada: es ausencia de prueba. P5.10-simbank-select, P5.19-wsel-no-regression, P5.20-replication-of-P5.19
@@ -152,7 +153,7 @@ sobre «la prueba no rechazó», que sólo dice algo del resultado.
 
 ## Salvedades por afirmación
 
-Las 71 afirmaciones con salvedad registrada, **literales**
+Las 72 afirmaciones con salvedad registrada, **literales**
 desde `thesis/claims.json`. Una salvedad limita lo que su fila de la tabla
 puede sostener: léase junto al valor p, nunca en su lugar. Varias retiran
 por completo la lectura ingenua del número.
@@ -298,6 +299,8 @@ por completo la lectura ingenua del número.
 **P6.0-flight-rig-gate** — n=1 es CORRECTO aquí y la tesis debería decir por qué: una puerta de capacidad pregunta «¿puede este montaje cerrar el lazo siquiera?», y una sola demostración lo responde. La mejora de px_err 64.7 -> 36.0 es un antes/después sobre un único vuelo y no debe citarse como error esperado. La afirmación retirada de px_err de Phase-C Branch-1 es el ejemplo aleccionador. CIFRA QUE NO DEBE CITARSE (R-10, 2026-07-21): «0 pérdidas de pista» es vacua, pero NO por el fallo de re-emparejamiento de ByteTrack que el cuaderno le atribuía. El contador sólo se incrementa cuando el rastreador devuelve lista vacía, lo que exige MAX_LOST_FRAMES=30 a 20 Hz, es decir 1,5 s sin ninguna detección; esa rama era igualmente alcanzable antes y después del arreglo, y ambas ejecuciones reportan 0. Lo que la hace inútil es que la inyección a 1 Hz nunca produjo una sequía de 1,5 s y la ejecución diseñada para forzarla (GAP_INJECT_RUN=3) nunca se lanzó con --runs 1. Enunciado correcto: 0 pérdidas de pista significa que el suministro de detecciones nunca se cortó; no es evidencia de que el lazo mantuviera el objetivo.
 
 **P6.1-carla-renderer** — Una afirmación de capacidad medida una sola vez, correctamente. CIFRAS QUE NO DEBEN CITARSE (R-10, 2026-07-21). (1) slave_err = 0,000 m es vacuo: la cámara es un sensor.camera.rgb sin attach_to, un actor cinemático, de modo que get_transform() devuelve exactamente lo que set_transform() acaba de recibir. Además el 0,000 no está en el fichero — el artefacto guarda 1,815e-06 y el cero es el formato :.3f. Y la métrica sólo lee .location, así que es ciega a la rotación: el yaw de pose_track tiene UN ÚNICO valor (0,0) en los 600 ticks porque el sondeo ATTITUDE nunca entregó nada. El renderizador estaba esclavizado EN POSICIÓN, no en pose. (2) Sustituto no vacuo, calculable del artefacto ya comprometido (experiments/2026-07-20-p61-carla-renderer/pose_staleness.py): 60,4 % de los ticks reutilizan una pose MAVLink caducada, hueco máximo entre muestras frescas 0,547 s, y a 7,21 m/s eso son ~3,9 m de retraso de cámara en el peor caso (0,38 m típico). (3) «2,4x la tasa de control» queda RETIRADO: la ejecución fue en modo síncrono, 600 ticks de 0,05 s de tiempo simulado en 12,46 s de reloj de pared, luego 48,08/19,93 y 30/12,46 son el mismo 2,41 — el desfase de reloj reenunciado, no holgura. Los 48,1 Hz son tasa del bucle de renderizado SIN percepción en la ventana (ni VLM, ni SAM2, ni ByteTrack, ni PID) y sin límite de potencia.
+
+**P6.2-DELIVERY-warm-vs-cold-closedloop** — P6.2-DELIVERY, el experimento estrella de la Parte VI: por primera vez un copter que vuela su propia salida de control (ArduCopter SITL como fisica, CARLA Town10HD_Opt como renderizador nadir esclavizado a la pose, asincrono a proposito — el modo sincrono borraria el retardo de entrega bajo prueba). FOLLOW PASS = lock genuino en la entrega Y cobertura post-prompt ≥ 0,5 Y sin cambio de identidad. WARM 23/25 vs COLD 2/25; b=21, c=0 (unidireccional); McNemar exacta bilateral p=9,5e-07; sin deflacion (semillas independientes, n_effective=25), sobrevive Holm por Parte y global. WARM Wilson95 [0,750, 0,978]. El coste del brazo frio no es salir de cuadro (cold_target_exits_frame=0) sino la obsolescencia: cada vuelo frio entrega una caja tras el retardo bloqueante de ~4,85 s y en 23/25 cae fuera del objetivo (on_target=0). Los dos aciertos frios (semillas 14, 20) son objetivos lentos/favorables (la 20 tiene el menor desplazamiento del banco, 15,2 m). ALCANCE ORACULO (salvedad S5): el grounding se mantiene constante mediante designacion por oraculo (caja GT), porque el q8_0 desplegado NO es discriminativo en nadir a 45 m (puerta G6: solo fija el objetivo con un caption espacial escogido a mano, IoU 0,329; agarra el coche equivocado de la misma clase con frases genericas; sonda descentrada 0/8). Por tanto la afirmacion es de ACOPLAMIENTO DE CONTROL condicionada a designacion correcta, NO una afirmacion de grounding+entrega. Los dos residuales WARM son deriva de arrastre / no-lock (semillas 8, 13), no de entrega; la 13 muestra ademas una caja GT anomala que abarca la calzada, MARCADA para revision de autor. Desviacion registrada del pre-registro (que especificaba semillas vlm_acquire de ventana ociosa): el cambio a oraculo es abierto, no silencioso. Matriz medida integramente en la 3090 (grounding retirado = sin Jetson en este experimento); el arrastre SAM2 va topado a la tasa de la Jetson 2,69 Hz (paridad E1) y el retardo frio se aplica como stub, asi que ninguna cifra dependiente de dispositivo se sirve desde la 3090.
 
 ## Cola de re-ejecución
 
