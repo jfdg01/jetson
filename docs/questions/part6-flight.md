@@ -88,9 +88,11 @@ the Part I fidelity catastrophe is the export not the quantisation (F16 vs Q8_0 
 (`P5.2a-warm-generalization`, p=6.10e-05 deflated to 23 clips — the citable figure per HANDOFF I2;
 3.052e-5 undeflated) is among the survivors.
 
-**Update 2026-07-23:** the registry has since grown to 72 claims (R-13, R-14, R-34, P6.2-DELIVERY), the
+**Update 2026-07-24:** the registry has since grown to 73 claims (R-13, R-14, R-34, P6.2-DELIVERY,
+P6.2-COUPLING), the
 Holm family was fixed at the Part (R-30) and the clustering deflation was calibrated
-against a measured ICC (R-29). Current counts: **12 survive per-Part Holm, 10 global**;
+against a measured ICC (R-29). Current counts: **12 survive per-Part Holm, 10 global**
+(P6.2-COUPLING is a bounded null — a real two-sided Wilcoxon that did not reject, not a survivor);
 38 designs unreachable. `P5.2a-warm-generalization` is still among the survivors and
 the three corrected conclusions still stand. R-34 added the Part IV survivor
 `E18-...-n25` (the cold-acquire staleness effect, ORACLE 23/25 vs COLD 3/25 at n=25,
@@ -183,3 +185,19 @@ the E18-n25 delivery-lag finding rather than narrowing it. Grounding was held co
 target designation (the deployed q8_0 is non-discriminative at 45 m nadir, G6), so the verdict is a
 control-coupling claim conditional on correct designation — it does **not** license a
 grounding+delivery claim. Two WARM residuals are carry-drift / non-lock (seeds 8, 13), not delivery.
+
+### P6.2-COUPLING — does closing the loop degrade the maintained track? (2026-07-24)
+
+**RQ-P6.2-COUPLING (C1):** does letting the warm-maintained track *drive* the copter — so the pixels
+become a consequence of its own control output — degrade the maintained track, versus feeding the
+same warm perception while an oracle drives?
+
+**Verdict: BOUNDED NULL (frozen gate ii) — "warm carry survives self-induced ego-motion."** Wilcoxon
+two-sided **p=0.596 (n.s.)**, median paired diff **−0.42 px**, bootstrap 95% CI **[−4.56, +4.08] px**
+lying within the warm-arm schedule-noise band (±6.70 px). Closing the control loop does **not**
+systematically degrade the track vs oracle-driven; any coupling penalty is below the noise floor.
+This is a bounded null, **not** proven equivalence (two-sided by design). The coupled/decoupled *mean*
+gap (26.8 vs 63.2 px) is stochastic SAM2 carry drift firing on different seeds per run — it appears
+in the arm with no feedback loop, so it is run-specific carry variance, not a coupling penalty; the
+outlier-robust signed-rank sees no difference. Scope: control-coupling on this rig's ego-motion (S5),
+does not transfer to real-imagery perception.

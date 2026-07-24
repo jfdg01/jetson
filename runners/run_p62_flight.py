@@ -214,7 +214,7 @@ class OracleStubProducer:
         pass
 
 
-def build_grounding_carry(caption, prune_after, ssh_host, out_dir):
+def build_grounding_carry(caption, prune_after, ssh_host, out_dir, carry_only=False):
     """Boot the EXPENSIVE, reusable backends ONCE: Jetson q8_0 grounding + 3090 SAM2 carry.
 
     Returns (backend, acquire_fn, carry_factory, close). Split from the per-flight producer
@@ -222,6 +222,11 @@ def build_grounding_carry(caption, prune_after, ssh_host, out_dir):
     50 flights. Heavy imports are lazy so --selftest / oracle never touch torch/sam2/Jetson.
     Grounding ALWAYS on-device (quantization moves the box); carry on the 3090
     (E1 parity -> device-identical boxes, D-part6), prune_after=32 ring (R-16 OOM).
+
+    carry_only=True skips the Jetson boot entirely (backend=None, acquire raises): the
+    P6.2-COUPLING decoupled re-fly seeds from the operator's GT designation (oracle_gt),
+    so grounding is never in the loop -- booting an unused llama-server would only add a
+    pointless Jetson dependency the arm can fail on.
     """
     import torch
     sys.path.insert(0, str(REPO / "experiments" / "2026-07-04-warm-start-acquire"))
@@ -229,18 +234,22 @@ def build_grounding_carry(caption, prune_after, ssh_host, out_dir):
     from replay_e24 import vlm_acquire
     from stream_carry import MODEL, StreamCarry
     from sam2.sam2_video_predictor import SAM2VideoPredictor
-    from grounding.deploy.serve import _DEFAULT_REMOTE_DIR
-    from grounding.deploy.video import _REMOTE_MMPROJ, _REMOTE_MODELS
-    from grounding.eval.backends import JetsonBackend
 
-    backend = JetsonBackend(f"{_DEFAULT_REMOTE_DIR}/{_REMOTE_MODELS['q8_0']}",
-                            f"{_DEFAULT_REMOTE_DIR}/{_REMOTE_MMPROJ}",
-                            ssh_host=ssh_host, max_side=1024)
+    backend = None
+    if not carry_only:
+        from grounding.deploy.serve import _DEFAULT_REMOTE_DIR
+        from grounding.deploy.video import _REMOTE_MMPROJ, _REMOTE_MODELS
+        from grounding.eval.backends import JetsonBackend
+        backend = JetsonBackend(f"{_DEFAULT_REMOTE_DIR}/{_REMOTE_MODELS['q8_0']}",
+                                f"{_DEFAULT_REMOTE_DIR}/{_REMOTE_MMPROJ}",
+                                ssh_host=ssh_host, max_side=1024)
     predictor = SAM2VideoPredictor.from_pretrained(MODEL)   # loads once on the 3090
     tmp = Path(out_dir); tmp.mkdir(parents=True, exist_ok=True)
     ctr = [0]
 
     def acquire(frame_bgr, w, h):
+        if backend is None:
+            raise RuntimeError("carry_only backend has no grounding (oracle designation only)")
         ctr[0] += 1
         p = tmp / f"acq_{ctr[0]:04d}.png"
         cv2.imwrite(str(p), frame_bgr)
@@ -257,7 +266,8 @@ def build_grounding_carry(caption, prune_after, ssh_host, out_dir):
             return box
 
     def close():
-        backend.close()
+        if backend is not None:
+            backend.close()
     return backend, acquire, lambda rgb, box: _HostCarry(rgb, box), close
 
 
@@ -511,8 +521,12 @@ def fly_once(world, cam, vehicles, target, bboxes, slot, producer, flight, args,
         fr = fr.copy() if fr is not None else None
         producer.step(fr, gt, now - t0)               # loop-relative time (t_prompt is relative)
         det = slot.read()                            # control loop reads newest
-        flight.send(det.bbox)                        # delivered bbox -> copter (PID, mavlink)
-        deliver_box = bbox_to_box(det.bbox)
+        # oracle_drive (DECOUPLED arm, P6.2-COUPLING): the oracle actor_box steers the PID
+        # while the warm track is still scored but never touches control -- cuts the
+        # perception->control feedback path to isolate self-induced ego-motion (C1).
+        drive_bbox = box_to_bbox(gt) if getattr(args, "oracle_drive", False) else det.bbox
+        flight.send(drive_bbox)                       # driven bbox -> copter (PID, mavlink)
+        deliver_box = bbox_to_box(det.bbox)          # warm track ALWAYS scored (never steers under oracle_drive)
         lock_iou = iou(deliver_box, gt)
         if i % 50 == 0:
             print(f"  tick {i}/{n} t={now - t0:.1f}s iou={lock_iou:.2f} gt={bool(gt)} bbox={bool(deliver_box)}", flush=True)
@@ -546,14 +560,15 @@ def fly_once(world, cam, vehicles, target, bboxes, slot, producer, flight, args,
     gt_frames = [r for r in rows if r["gt"] is not None]
     locks = [r for r in gt_frames if r["lock_iou"] >= 0.25]
     # post-prompt window: WARM/COLD deliver only after t_prompt; oracle has no prompt.
-    if args.arm in ("warm", "cold"):
+    if args.arm in ("warm", "cold", "decoupled"):
         post = [r for r in gt_frames if r["t"] >= args.t_prompt]
     else:
         post = gt_frames[len(gt_frames) // 4:]        # crude proxy for the oracle stub
     coverage = (sum(r["lock_iou"] >= 0.25 for r in post) / len(post)) if post else 0.0
     res = {
         "mode": "plumbing_smoke" if not verdict_allowed else "flight",
-        "arm": args.arm, "producer": producer.info,
+        "arm": args.arm, "oracle_drive": bool(getattr(args, "oracle_drive", False)),
+        "producer": producer.info,
         "pose": args.pose, "verdict_allowed": verdict_allowed,
         "town": args.town, "vehicles": len(vehicles), "target_id": target.id,
         "target_type": target.type_id, "alt": args.alt, "latency_s": args.latency,
@@ -607,7 +622,10 @@ def main():
     ap.add_argument("--alt", type=float, default=60.0)
     ap.add_argument("--pitch", type=float, default=-90.0)
     ap.add_argument("--latency", type=float, default=0.0, help="stub producer delivery latency, s")
-    ap.add_argument("--arm", default="oracle", choices=["oracle", "warm", "cold"],
+    ap.add_argument("--oracle-drive", action="store_true",
+                    help="DECOUPLED arm (P6.2-COUPLING): oracle actor_box steers the PID; the "
+                         "warm track is scored but never steers (cuts the perception->control loop)")
+    ap.add_argument("--arm", default="oracle", choices=["oracle", "warm", "cold", "decoupled"],
                     help="detection producer: oracle stub, or real WARM/COLD (Jetson+3090)")
     ap.add_argument("--t-prompt", type=float, default=8.0,
                     help="operator command time (s into loop); idle window before it")

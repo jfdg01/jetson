@@ -421,3 +421,31 @@ holds; cold hovers blind through the ~4.85 s lag then delivers a stale box off-t
 delivery-lag staleness **holds and amplifies in closed loop** — self-induced ego-motion does not
 rescue cold. Control-coupling claim only (S5); does NOT license a nadir-grounding claim (G6). Proof:
 `proof/p62_warm_vs_cold.png` (behaviour), `proof/p62_follow_pass.png` (numbers).
+
+### P6.2-COUPLING — coupled vs decoupled warm carry (isolates C1) (2026-07-24)
+
+Detail: [`../../experiments/2026-07-23-p62-coupling/README.md`](../../experiments/2026-07-23-p62-coupling/README.md).
+Config: identical rig to P6.2-DELIVERY (RTX-3090, CARLA `Town10HD_Opt` pose-slaved nadir, SITL
+physics, SAM2 carry rate-capped 2.69 Hz, ORACLE designation, alt 45 m). Paired-continuous, same 25
+CARLA seeds. **COUPLED arm** = the DELIVERY WARM flights reused (warm track drives the PID);
+**DECOUPLED arm** = byte-identical warm perception but the oracle `actor_box` drives the PID
+(feedback path cut). Metric = per-seed post-prompt follow-error (px) of the warm track vs `actor_box`.
+Run: `run_p62_matrix.py --coupling --coupled-root runs/p62_delivery` (decoupled re-fly uses
+`build_grounding_carry(carry_only=True)` — no Jetson `llama-server`, oracle_gt seeds from GT).
+
+**Wilcoxon signed-rank (two-sided) p=0.596 (n.s.).** Median paired diff **−0.42 px**, bootstrap 95%
+CI **[−4.56, +4.08] px**, within the warm-arm schedule-noise band (max |rep diff| **6.70 px**, mean
+2.58; from DELIVERY seeds 0-2 ×2). Mean follow-error coupled **26.77** vs decoupled **63.18** — the
+mean gap is entirely stochastic SAM2 carry drift firing on different seeds per run (decoupled re-fly
+drew two fresh catastrophic leaks: seed14 760 px, seed21 249 px; both arms drifted on seed13 377/285
+and seed8 ~72), which the outlier-robust median/signed-rank do not see. 22 of 25 seeds sit in 5-25 px
+both arms.
+
+**Result: BOUNDED NULL (frozen gate outcome ii). C1 closed = "warm carry survives self-induced
+ego-motion."** Closing the control loop does not systematically degrade the maintained track vs an
+oracle driving the same warm perception; any coupling penalty is below the noise floor. Not proven
+equivalence (two-sided design). Control-coupling scope only (S5). Proof:
+`proof/p62_coupling_paired.png` (numbers), `proof/coupled_seed24_i200_iou084.png` +
+`proof/coupled_seed24_i399_iou093.png` (coupled arm holding lock through its own ego-motion),
+`proof/decoupled_seed14_carryleak.png` (the failure mode is carry, not coupling — a leak in the arm
+with no feedback loop).

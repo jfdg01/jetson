@@ -380,3 +380,28 @@ inside SAM2's reliable carry band); PID gains tuned kp_lat 0.02 -> 0.05, max_v 3
 specified `vlm_acquire` idle-window seeds); recorded openly here and in the experiment README, not
 silently swapped. The result stands as a control-coupling claim; whether the thesis also wants an
 on-device grounded closed-loop number is the author's call (the showcase flight is the seam for it).
+
+### P6.2-COUPLING — decoupled arm built minimally in the matrix driver, not the pre-registered flag (2026-07-24)
+
+**Build the DECOUPLED arm as a `--oracle-drive` control path in `run_p62_flight.py` plus a
+`refly_decoupled` loop in `run_p62_matrix.py --coupling`, rather than the pre-registered
+`run_p62_flight.py --arms decoupled`.** Why: the pre-registered command named a flag surface that did
+not exist. The design is unchanged — same 25 seeds, warm perception byte-identical to the coupled arm,
+only the PID input swaps warm-track → oracle `actor_box`. Recorded openly as a deviation. *Given up:*
+nothing measurable; the *implementation path* differs, the experiment does not. *Also decided:* the
+decoupled re-fly runs `build_grounding_carry(carry_only=True)` so it never boots a Jetson
+`llama-server` — in `oracle_gt` mode the warm producer seeds from the GT box and never calls
+`acquire`, so only SAM2 carry (3090, capped 2.69 Hz) + PID + CARLA render are exercised. Avoids a
+pointless device dependency that could fail the re-fly for a component it does not use.
+
+### P6.2-COUPLING — read the bounded null as a null, never as equivalence (2026-07-24)
+
+**Report the non-significant Wilcoxon (p=0.596, CI within the noise band) as a *bounded null* — "any
+coupling penalty is below the noise floor" — and never as "coupling proven harmless."** Why: the test
+is two-sided and n=25 with a warm-arm noise band estimated from only 3 rep pairs (one of which,
+seed1, carries the whole 6.70 px band while the other two are <1 px). Absence of a detected effect at
+this power is not equivalence. The frozen gate anticipated exactly this and named it a bounded null.
+*Given up:* a stronger "closed-loop coupling is free" headline the data cannot support. *Also
+recorded:* the coupled/decoupled *mean* divergence is stochastic carry drift, not coupling — it fires
+in the decoupled arm (no feedback loop), so attributing it to the loop would be a causal error the
+median/signed-rank correctly avoid.

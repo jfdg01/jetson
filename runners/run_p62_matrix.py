@@ -228,19 +228,20 @@ def screen_target_motion(world, target):
 
 # --- per-flight harness ----------------------------------------------------
 
-def flight_args(arm, out, *, t_prompt, seconds, caption, alt, latency=0.0):
+def flight_args(arm, out, *, t_prompt, seconds, caption, alt, latency=0.0, oracle_drive=False):
     return argparse.Namespace(
         arm=arm, out=str(out), t_prompt=t_prompt, seconds=seconds, caption=caption,
         alt=alt, pitch=-90.0, pose="mavlink", latency=latency, town=TOWN,
-        vehicles=0, prune_after=32, ssh_host="jetson")
+        vehicles=0, prune_after=32, ssh_host="jetson", oracle_drive=oracle_drive)
 
 
 def one_flight(arm, world, cam, vehicles, target, bboxes, flight, producer, out, *,
-               t_prompt, seconds, caption, alt, scenario, reset=True):
+               t_prompt, seconds, caption, alt, scenario, reset=True, oracle_drive=False):
     """Reset copter (unless caller already did), run one fly_once, stamp scenario. Returns res|None."""
     if reset:
         flight.reset()
-    args = flight_args(arm, out, t_prompt=t_prompt, seconds=seconds, caption=caption, alt=alt)
+    args = flight_args(arm, out, t_prompt=t_prompt, seconds=seconds, caption=caption,
+                       alt=alt, oracle_drive=oracle_drive)
     try:
         res = fly_once(world, cam, vehicles, target, bboxes, producer.slot, producer, flight, args, out)
     except Exception as e:
@@ -406,6 +407,90 @@ def run(args):
     return delivery
 
 
+# --- P6.2-COUPLING: re-fly the admitted DELIVERY seeds, DECOUPLED (oracle drives) ----
+
+def _admitted_from_bank(coupled_root):
+    """Admitted (scenario, seed) pairs from a DELIVERY run's bank.jsonl -- the coupled
+    arm's own seeds, re-flown decoupled so the only difference is who steers the PID."""
+    bank = Path(coupled_root) / "bank.jsonl"
+    if not bank.exists():
+        raise SystemExit(f"no bank.jsonl under {coupled_root} -- run DELIVERY first")
+    recs = [json.loads(l) for l in bank.read_text().splitlines() if l.strip()]
+    return [(r["scenario"], r["seed"]) for r in recs if r.get("admitted")]
+
+
+def refly_decoupled(k, seed, world, client, cam, base, alt, carry_factory, flight,
+                    t_prompt, seconds, out_root):
+    """One DECOUPLED warm flight for admitted scenario k: identical warm perception
+    (oracle_gt seed + SAM2 carry) but the oracle actor_box drives the PID. Same scene
+    construction as the coupled DELIVERY WARM arm (respawn_traffic + frozen centred
+    target), so the pair differs only in the control input. Returns res|None."""
+    wname, weather = _weathers()[k % 4]
+    kmh = seed_speed_kmh(k)
+    allv, tgt, tm = _spawn_scene(world, client, seed, weather, base, kmh)   # frozen centred target
+    if tgt is None:
+        print(f"  [decoupled seed{k}] scene respawn blocked -- skip", flush=True)
+        return None
+    bb = {v.id: v.bounding_box for v in allv}
+    flight.reset()                                     # copter to origin; target STILL frozen at centre
+    tgt.set_autopilot(True, 8000)                      # release NOW: target starts centred, in-frame
+    set_target_speed(tm, tgt, kmh)
+    for _ in range(2):
+        world.wait_for_tick()
+    prod = WarmColdProducer(_fresh_slot(), None, carry_factory,       # acquire=None: oracle seed only
+                            mode="warm", t_prompt=t_prompt, w=W, h=H,
+                            oracle_gt=True, cold_latency_s=ACQUIRE_WINDOW_S)
+    res = one_flight("decoupled", world, cam, allv, tgt, bb, flight, prod,
+                     out_root / f"decoupled_seed{k:02d}",
+                     t_prompt=t_prompt, seconds=seconds, caption=CAPTION, alt=alt,
+                     scenario=k, reset=False, oracle_drive=True)
+    if res is not None:
+        print(f"  [decoupled_seed{k:02d}] coverage={res['coverage']} "
+              f"lock_frames={res['genuine_lock_frames']} seeded={res['producer'].get('seeded')}",
+              flush=True)
+    return res
+
+
+def run_coupling(args):
+    """P6.2-COUPLING driver: re-fly every admitted DELIVERY seed with the DECOUPLED arm
+    (oracle drives the PID), then Wilcoxon coupled-vs-decoupled per-seed follow-error.
+    Coupled arm = the DELIVERY WARM flights, reused from disk (never re-flown)."""
+    import carla
+    if Path(args.out).resolve() == Path(args.coupled_root).resolve():
+        raise SystemExit("--out must differ from --coupled-root (would clobber the coupled arm)")
+    admitted = _admitted_from_bank(args.coupled_root)
+    out_root = Path(args.out); out_root.mkdir(parents=True, exist_ok=True)
+    client = carla.Client(args.host, args.port); client.set_timeout(60.0)
+    print(f"connected: server {client.get_server_version()}; {len(admitted)} admitted seeds "
+          f"from {args.coupled_root}", flush=True)
+    world, cam, _ = cr.setup_world(client, args.town, args.vehicles)
+    n_hidden = hide_baked_vehicles(world)
+    base, nbr = densest_base(world)
+    cr.BASE_N, cr.BASE_E = float(base.x), float(base.y)
+    print(f"hid {n_hidden} baked meshes; render base=({base.x:.1f},{base.y:.1f}) nbr={nbr}; "
+          f"alt={args.alt}m DECOUPLED (oracle drives PID; warm track scored, not steering)", flush=True)
+
+    _, _, carry_factory, close_backends = build_grounding_carry(   # carry_only: no Jetson boot
+        CAPTION, args.prune_after, args.ssh_host, out_root / "_acq", carry_only=True)
+    flight = MavlinkFlight(args.mavlink_url, args.alt, kp_lat=args.kp_lat, max_v=args.max_v)
+    try:
+        for k, seed in admitted:
+            refly_decoupled(k, seed, world, client, cam, base, args.alt, carry_factory, flight,
+                            args.t_prompt, args.seconds, out_root)
+    finally:
+        flight.close()
+        close_backends()
+        cam.stop(); cam.destroy()
+        client.apply_batch([carla.command.DestroyActor(v)
+                            for v in world.get_actors().filter("vehicle.*")])
+
+    coupling = score_p62.score_coupling(args.coupled_root, out_root)
+    (out_root / "coupling.json").write_text(json.dumps(coupling, indent=2))
+    print(json.dumps(coupling, indent=2))
+    print("NOT verified until the written overlays are opened and viewed.")
+    return coupling
+
+
 # --- offline selftest (pure logic; no CARLA / no Jetson) -------------------
 
 def _selftest():
@@ -457,9 +542,16 @@ def main():
                     help="operator-designation arm: seed carry from GT box, skip G6 grounding "
                          "(isolates closed-loop delivery from the nadir-grounding center-bias)")
     ap.add_argument("--out", default="runs/p62_delivery")
+    ap.add_argument("--coupling", action="store_true",
+                    help="P6.2-COUPLING: re-fly admitted DELIVERY seeds DECOUPLED (oracle drives "
+                         "the PID); coupled arm = the DELIVERY WARM flights, reused from disk")
+    ap.add_argument("--coupled-root", default="runs/p62_delivery",
+                    help="(coupling) DELIVERY run whose admitted WARM flights are the coupled arm")
     args = ap.parse_args()
     if args.selftest:
         _selftest(); return
+    if args.coupling:
+        run_coupling(args); return
     run(args)
 
 

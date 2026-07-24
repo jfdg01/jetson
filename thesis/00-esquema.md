@@ -121,7 +121,7 @@ Los tres movimientos que salen de ahí:
 1. **Cap. 7, de 14 a 12.** Es el capítulo menos comprimido del esquema original
    (82 % de retención, frente al 35 % del Cap. 5) y descansa sobre **una sola
    prueba superviviente no definicional**, P5.2a. Baja, pero no baja a 8: son 26
-   de las 72 afirmaciones del registro, diez de ellas negativos que **acotan la
+   de las 73 afirmaciones del registro, diez de ellas negativos que **acotan la
    contribución**, y P5.15 es el diseño mejor potenciado de la Parte V (24/25,
    n = 25, p = 0,0029) aunque no sobreviva a Holm (0,0756).
 2. **Cap. 5, de 9 a 11.** Era el más comprimido del documento y es ahora el más
@@ -271,7 +271,7 @@ modo que la tabla no puede volver a descuadrarse en silencio.
 > debe llevar. Es demoledora y es cierta. «38» se refuta en un minuto, y quien la
 > refute deja de creerse el resto del capítulo.
 
-Sobre las **72** afirmaciones del registro — no «72 afirmaciones con puerta»,
+Sobre las **73** afirmaciones del registro — no «73 afirmaciones con puerta»,
 como decía este esquema hasta el 2026-07-23: **24 de ellas nunca tuvieron nada
 que contrastar** (12 descriptivas por intención y 12 de un brazo sin puerta
 pre-registrada), y ese es justamente uno de los hallazgos. Estas cifras se regeneran desde
@@ -281,16 +281,19 @@ original del 2026-07-21 dio 6 sobre 65; R-13 y R-14 añadieron las dos
 supervivientes nuevas el 2026-07-22, y ambas son de la Parte III y están medidas
 **íntegramente en la Jetson**.
 
-Las nueve que sobreviven son la catástrofe de fidelidad de la Parte I, la escalera
+Las diez que sobreviven son la catástrofe de fidelidad de la Parte I, la escalera
 de resolución y la puerta LoRA de la Parte II, la palanca ROI de la Parte III en
 sus dos versiones —la original y la **confirmación en dispositivo a Q8\_0**
 (R-14, p = 2,50e-14)—, la comparación contra el detector externo OWLv2 (R-13,
 p = 2,26e-07), **el efecto de obsolescencia del anclaje frío de la Parte IV,
 ahora con potencia** (R-34: `E18-...-n25`, ORACLE 23/25 vs COLD 3/25, p = 4,0e-05,
 el número que lanzó la Parte V, promovido de p = 0,0625 con n=6 a confirmado con
-n=25), la generalización del arranque en caliente (P5.2a) y la
-recalibración del banco (P5.12). **La contribución central del TFM está entre
-ellas**, que es lo que hacía falta comprobar.
+n=25), la generalización del arranque en caliente (P5.2a), la
+recalibración del banco (P5.12) y **el primer resultado de lazo cerrado de la
+Parte VI** (P6.2-DELIVERY: un copter que vuela su propia salida de control, WARM
+23/25 vs COLD 2/25, p = 9,5e-07, con alcance de designación por oráculo). **La
+contribución central del TFM está entre ellas**, que es lo que hacía falta
+comprobar.
 
 Dos matices que hay que dar con la lista, o la lista miente por omisión. La
 recalibración del banco (P5.12) sobrevive a Holm pero su propia salvedad la
