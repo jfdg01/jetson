@@ -59,7 +59,7 @@ written down — the reproduction command is in the task.
 | R-33 | `claims.json` caveats quote numbers the registry contradicts (P5.15) | P1 | R-22 | **DONE** 2026-07-23 |
 | R-34 | Re-run E18 at n>=25 — Chapter 6 has zero surviving claims | P2 | R-30 | **DONE** 2026-07-23 (YES, ORACLE 23/25 vs COLD 3/25, deflated p=4.01e-05) |
 | R-35 | Run P6.2 — Chapter 8 has zero surviving claims | P2 | R-16 | **TODO** |
-| R-36 | SWAP arm at n>=25 **distinct clips**, not 26 cells from 13 | P2 | R-29 | **TODO** |
+| R-36 | SWAP arm at n>=25 **distinct clips**, not 26 cells from 13 | P2 | R-29 | **DONE** 2026-07-24 (NO [underpowered, scene-starved]; pre-registered MISS branch, b=5/c=0 p=0.0625 at audit-clean n=14; UAV123 is scene-starved for SWAP-hard pairs, 8/10 curated candidates single-target) |
 
 `AUTHOR` means the task is a judgement call reserved for the human and **must not
 be resolved by an agent**. An agent may prepare the evidence; it may not pick.
@@ -2089,6 +2089,21 @@ marginal). Pre-registered miss branch: b<6 or two-directional -> "select fails b
 separable-from-maintain at this n," the powered ceiling of the select negative. Lower
 priority than the R-35 flight (which rescues a chapter with zero claims); runs as a
 Wave-B real-imagery bank in parallel.
+
+**RESOLVED 2026-07-24 — NO [underpowered, scene-starved], the pre-registered MISS branch.**
+The reachability risk fired at its worst: hand-curating 10 fresh candidates returned
+**8/10 single-target** — UAV123 follows one target and structurally almost never frames two
+co-visible same-class candidates, so the bank could not grow to n>=25 without contaminating
+it. Bank = 13 reused P5.18 clips (deterministic; P5.20 replicated P5.19 with 0 flips) + the 2
+usable-weak new clips (boat2, person13). Three reads, all miss or fragile: clean n=13 b=4
+c=0 p=0.125; **audit-clean n=14 b=5 c=0 p=0.0625 (REGISTERED)**; mechanical full n=15 b=6 c=0
+p=0.031 (WITHDRAWN — rests on person13's mis-placed distractor GT, which the mandatory visual
+audit caught and excluded, plus boat2's discovery-scarcity SWAP fail). Direction is consistent
+across all three (c=0 everywhere: select never wins a discordant), which **supports
+maintain-and-deliver** — but it is the powered ceiling of the select negative, not an
+inferential separation. Registered `R-36-maintain-vs-select` in `claims.json` (n_rows=14,
+b=5/c=0). The scene-starvation is itself the finding. Detail:
+`experiments/2026-07-23-r36-maintain-vs-select/README.md`.
 
 ## R-37 — P5.21 ROI-carry vs plain carry (paired) — P2
 

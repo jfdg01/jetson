@@ -88,8 +88,8 @@ the Part I fidelity catastrophe is the export not the quantisation (F16 vs Q8_0 
 (`P5.2a-warm-generalization`, p=6.10e-05 deflated to 23 clips — the citable figure per HANDOFF I2;
 3.052e-5 undeflated) is among the survivors.
 
-**Update 2026-07-24:** the registry has since grown to 73 claims (R-13, R-14, R-34, P6.2-DELIVERY,
-P6.2-COUPLING), the
+**Update 2026-07-24:** the registry has since grown to 74 claims (R-13, R-14, R-34, P6.2-DELIVERY,
+P6.2-COUPLING, R-36), the
 Holm family was fixed at the Part (R-30) and the clustering deflation was calibrated
 against a measured ICC (R-29). Current counts: **12 survive per-Part Holm, 10 global**
 (P6.2-COUPLING is a bounded null — a real two-sided Wilcoxon that did not reject, not a survivor);

@@ -1,0 +1,118 @@
+{
+  "arm": "DSC",
+  "leg": "SWAP",
+  "scene": {
+    "clip": "boat2",
+    "f0": 202,
+    "t_p": 8.0,
+    "target_caption": "the white motorboat with the canopy in the open water",
+    "distractor_caption": "the large white yacht docked at the marina by the tower",
+    "distractor_gt_prompt": [
+      607,
+      155,
+      640,
+      177
+    ],
+    "gating": true,
+    "note": "NEW R-36. WEAK distractor: distant (~300px above target) ambiguous marina-yacht cluster (one of ~4 similar), ~40px. Human-viewed zoom_boat2_442. Run for sensitivity, not to claim significance."
+  },
+  "cover_s": 10.0,
+  "fps": 30.0,
+  "wall_s": 17.4,
+  "cap_hz": 6.15,
+  "cand_hz": 3.075,
+  "match_floor": 0.1,
+  "dist_floor": 0.25,
+  "app_tau": 12.0,
+  "loss_s": 1.0,
+  "roi_margin": 2.0,
+  "roi_min_side": 256,
+  "roi_res": 512,
+  "reanchor_offsets": [
+    90,
+    165
+  ],
+  "ds_offset": 150,
+  "iou_same": 0.5,
+  "pass": false,
+  "swap_weak_pass": false,
+  "score": {
+    "genuine_lock": false,
+    "coverage": 0.0,
+    "n_scored": 0,
+    "deliver_frame": 442,
+    "selection": null,
+    "selection_correct": false,
+    "reason": "discovery-failed:distractor",
+    "leg": "SWAP"
+  },
+  "meta": {
+    "leg": "SWAP",
+    "f0": 202,
+    "t_p": 8.0,
+    "prompt_frame": 442,
+    "ds": 52,
+    "reanchor": [
+      {
+        "frame": 292,
+        "skipped": "in-discovery"
+      },
+      {
+        "frame": 367,
+        "skipped": "in-discovery"
+      }
+    ],
+    "discovery": [
+      {
+        "cand": "target",
+        "caption": "the white motorboat with the canopy in the open water",
+        "call_frame": 52,
+        "return_frame": 186,
+        "latency_s": 4.45,
+        "outcome": "accepted",
+        "box": [
+          627.2,
+          482.4,
+          755.2,
+          619.2
+        ],
+        "seed_iou_gt": 0.8538
+      },
+      {
+        "cand": "distractor",
+        "caption": "the large white yacht docked at the marina by the tower",
+        "call_frame": 186,
+        "return_frame": 320,
+        "latency_s": 4.48,
+        "outcome": "duplicate_reject",
+        "box": [
+          614.4,
+          432.0,
+          755.2,
+          576.0
+        ]
+      },
+      {
+        "cand": "distractor",
+        "caption": "the large white yacht docked at the marina by the tower",
+        "call_frame": 320,
+        "return_frame": 453,
+        "latency_s": 4.44,
+        "outcome": "in_flight_at_prompt"
+      }
+    ],
+    "discovery_done_frame": 442,
+    "acquire_s": 0.0,
+    "caption": "the large white yacht docked at the marina by the tower",
+    "selected": "distractor",
+    "cand_at_prompt": {
+      "target": [
+        476.0,
+        432.0,
+        657.0,
+        587.0
+      ]
+    }
+  },
+  "events": []
+}

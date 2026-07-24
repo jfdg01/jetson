@@ -620,3 +620,26 @@ how it is re-anchored*, not by making the tracker bigger.
 **Visual gate: PASS.** 42/42 mechanically-required cells opened with the Read tool, zero
 downgrades.
 Detail: [`../../experiments/2026-07-20-carry-capacity/README.md`](../../experiments/2026-07-20-carry-capacity/README.md).
+
+## R-36 — is select-among-candidates separable from maintain-and-deliver?
+
+**RQ-R36:** on a paired SWAP-hard bank (one distractor-present scene per distinct UAV123 clip),
+does maintain-and-deliver (WSEL) beat select-among-candidates (SWAP) by a McNemar-significant
+margin? **Verdict: NO [underpowered, scene-starved] — select fails but is not separable at
+reachable clean n.**
+
+The direction is what the thesis predicts (select never wins a discordant pair; b=5, c=0 on the
+registered audit-clean bank) but the effect is underpowered: McNemar needs b+c≥6 discordants and
+the clean bank yields 5, p=0.0625. The blocker is **not** analysis, it is data — hand-curating 10
+fresh candidates returned 8/10 single-target scenes, because UAV123 follows one target and rarely
+frames two co-visible same-class candidates. The bank could not grow to the pre-registered n≥25
+without contaminating it. A mechanical full-bank read (n=15) crosses the gate at p=0.031 but rests
+on person13, whose distractor GT the mandatory visual audit found mis-placed on empty ground
+(excluded), and boat2, whose SWAP fail is q8_0 failing to ground a tiny distant yacht (discovery
+scarcity, not a select-binding failure) — remove either and it reverts to a miss. This is the
+pre-registered MISS branch: honest content, the powered ceiling of the select negative, and it
+supports maintain-and-deliver rather than refuting it.
+
+**Visual gate: PASS.** All discordant + SWAP-pass cells opened with the Read tool; the audit
+caught and excluded person13's mis-placed distractor GT (would have manufactured a fragile p=0.031).
+Detail: [`../../experiments/2026-07-23-r36-maintain-vs-select/README.md`](../../experiments/2026-07-23-r36-maintain-vs-select/README.md).

@@ -660,3 +660,25 @@ Record: `experiments/2026-07-23-p521-roi-carry/README.md`.
   non-capacity carry lever and deserves a powered verdict. **Pilot-gated (headroom check before the
   gate is locked)** so it does not repeat the construction trap. **Given up:** nothing — a tie is
   the measured negative that closes the lever, still content.
+
+### R-36 — maintain-vs-select run as a data-availability probe, verdict is the scarcity (2026-07-24)
+
+Record: `experiments/2026-07-23-r36-maintain-vs-select/README.md`.
+
+- **The n≥25 sample-size rule was allowed to fail into its pre-registered MISS branch rather than
+  be forced.** **Why:** the frozen README's own risk note said "curation quality is the gating
+  variable, not n alone"; hand-curating 10 candidates confirmed it (8/10 single-target). Growing to
+  n=25 was only possible by admitting scenes with no real distractor or mis-placed GT — which is
+  exactly the construction trap the P5.3/P5.4/P5.5 gates fell into. **Given up:** an inferential
+  verdict on select; kept instead an honest underpowered miss (b=5/c=0, p=0.0625) plus the
+  scarcity finding itself. The scene-starvation IS the result: UAV123 structurally cannot supply a
+  powered SWAP-hard bank.
+- **Reused the P5.18 harness (`discover_p516.py`) and its 26 committed cells cell-for-cell instead
+  of re-running.** **Why:** P5.20 already showed this pipeline replicates P5.19 with 0 flips
+  (deterministic); the 2 new clips were run through the same GT-free discovery harness for contract
+  consistency, not `select_p56.py` (hand-seeded distractor, different contract). **Given up:**
+  nothing — determinism makes re-running the 13 reused clips pure cost.
+- **person13 SWAP excluded on the visual audit, not kept to reach the gate.** **Why:** the "look at
+  it" rule — its `distractor_gt_prompt` sat on empty ground, not on the green-shirt person; scoring
+  SWAP against it would have manufactured a discordant and pushed n=15 across p=0.031 on a defect.
+  **Given up:** the only reading that clears significance — correctly, because it was an artifact.

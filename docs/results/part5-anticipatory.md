@@ -922,3 +922,29 @@ Proof: `proof/ab_counts.png` (the headline null, both bars against bar 20 and th
 T and S, exactly one outlined flip), `proof/flip_evidence.png` (the one flip side by side at
 f=1090: tight 0.9714 in T vs bloated 0.2314 in S).
 Detail: [`../../experiments/2026-07-20-carry-capacity/README.md`](../../experiments/2026-07-20-carry-capacity/README.md).
+
+## R-36 — maintain-and-deliver vs select-among-candidates, paired McNemar (2026-07-24)
+
+Paired maintain(WSEL)-vs-select(SWAP) McNemar over one SWAP-hard scene per distinct UAV123 clip.
+Bank = 13 P5.18 clips reused cell-for-cell (first-onset blind collapse; deterministic harness) + the
+usable new clips from hand-curating 10 fresh candidates. **Headline: scene scarcity.** 8/10 fresh
+candidates are single-target — UAV123's drone-follows-one-target framing almost never shows two
+co-visible same-class candidates — so the bank could not grow to the pre-registered n≥25.
+
+| bank | n | WSEL | SWAP | b (WSEL+/SWAP-) | c | McNemar p (2-sided) | verdict |
+|---|---|---|---|---|---|---|---|
+| clean P5.18 subset | 13 | 13/13 | 9/13 | 4 | 0 | 0.125 | miss (floor 6) |
+| **audit-clean +boat2 (registered)** | **14** | **13/14** | **8/14** | **5** | **0** | **0.0625** | **MISS [b+c=5 < floor 6]** |
+| mechanical full (incl. defective person13) | 15 | 14/15 | 8/15 | 6 | 0 | 0.03125 | clears gate but **withdrawn** |
+
+The mechanical n=15 result crosses the frozen gate (b+c≥6, p<0.05, b>c) but is withdrawn on the
+mandatory visual audit: person13's `distractor_gt_prompt` is mis-placed on empty ground (excluded),
+and boat2's SWAP fail is a discovery-scarcity failure (q8_0 cannot ground a tiny distant yacht), not
+a select-binding error. Removing either weak clip returns it to a miss. Direction consistent across
+all three (select never wins a discordant) but underpowered — the pre-registered miss branch.
+
+**Verdict: NO [underpowered, scene-starved] — select fails but is not separable-from-maintain at
+reachable clean n.** The powered ceiling of the select negative; supports maintain-and-deliver.
+Proof: `runs/r36/bank/curation_r36_findings.json` (8/10 scarcity), `proof/r36_scarcity.png`,
+`proof/r36_person13_swap_delivers_target.png` (the select failure + the mis-placed GT the audit caught).
+Detail: [`../../experiments/2026-07-23-r36-maintain-vs-select/README.md`](../../experiments/2026-07-23-r36-maintain-vs-select/README.md).

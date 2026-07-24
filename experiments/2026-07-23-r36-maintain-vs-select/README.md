@@ -7,9 +7,10 @@ build). If this README and the program doc disagree on the frozen gate, the prog
 
 ## Status / next step
 
-- **PRE-REGISTERED, NOT RUN.** The P5.18 harness exists; the missing piece is **>=12 new
-  SWAP-hard distinct UAV123 clips** (see reachability below). Next: curate + GT-verify the new
-  clips, confirm the discordance direction on a small pilot, then run the paired matrix.
+- **DONE 2026-07-24 — verdict NO [underpowered, scene-starved].** The reachability risk fired:
+  8/10 curated candidates were single-target, the bank could not reach n>=25, and the analysis
+  landed in the pre-registered MISS branch (b=5/c=0, p=0.0625 on the audit-clean n=14 bank). See
+  `## Results` below. Claim registered; ledgers + `thesis/claims.json` updated.
 
 ## Question
 
@@ -98,13 +99,45 @@ jetson_clocks). UAV123 clips. Exact pins stamped into `runs/r36/env.json`.
   design. Recorded in `docs/decisions/part5-anticipatory.md`.
 - One hard SWAP scene per distinct clip (not multiple onsets) — onsets collapse under S1.
 
-## Results (TBD)
+## Results (RAN 2026-07-24)
 
-| metric | WSEL | SWAP | note |
-|---|---|---|---|
-| pass (/n) | | | |
-| McNemar b / c | | | b=WSEL-pass&SWAP-fail |
-| deflated p, n_eff, Holm | | | |
+**Headline: scene scarcity, not analysis.** The pre-registered reachability risk fired. Hand-curating
+10 fresh UAV123 candidates (5 background agents, 2 clips each) returned **8/10 single-target** — the
+drone-follows-one-target framing structurally almost never frames two co-visible same-class
+candidates. Only 2 were usable, and both weak (`boat2`: distant ambiguous yacht cluster; `person13`:
+distractor legs-only at f0). The bank could not reach n>=25 without contaminating it, so the analysis
+lands in the **pre-registered MISS branch**, not a forced pass.
 
-**Verdict:** TBD. **Proof (>=2):** (1) a WSEL-holds vs SWAP-swaps overlay clip on one new SWAP-hard
-clip; (2) per-clip WSEL/SWAP outcome figure (`make_proof.py`).
+Three readings, all miss or fragile (WSEL=maintain-and-deliver, SWAP=name-distractor select):
+
+| bank | n | WSEL pass | SWAP pass | b (WSEL+/SWAP-) | c | McNemar p (2-sided) | verdict |
+|---|---|---|---|---|---|---|---|
+| clean P5.18 subset | 13 | 13/13 | 9/13 | 4 | 0 | 0.125 | miss (b+c<6) |
+| **audit-clean +boat2 (REGISTERED)** | **14** | **13/14** | **8/14** | **5** | **0** | **0.0625** | **MISS [b+c=5 < floor 6]** |
+| mechanical full (incl. defective person13) | 15 | 14/15 | 8/15 | 6 | 0 | 0.03125 | clears gate, **WITHDRAWN** |
+
+**Verdict: NO [underpowered, scene-starved] — select fails but is not separable-from-maintain at
+reachable clean n.** Direction is consistent (select never wins a discordant: c=0 in every reading),
+which supports maintain-and-deliver, but the clean bank yields only 5 discordants against the frozen
+floor of 6. The mechanical n=15 crosses the gate but is withdrawn on the mandatory visual audit:
+`person13`'s `distractor_gt_prompt` sits on empty ground (excluded), and `boat2`'s SWAP fail is q8_0
+failing to ground a tiny distant yacht (discovery scarcity, not a select-binding error) — remove
+either weak clip and it reverts to a miss. Registered in `thesis/claims.json` as
+`R-36-maintain-vs-select` (n_rows=14, b=5/c=0, verdict "NO [SIN POTENCIA, escaso en escenas]").
+
+### As-run deviations from the frozen command
+
+- **Bank build:** `build_bank_r36.py` (not the aspirational `curate_r36.py --bank`) — reuses the 26
+  P5.18 committed cells cell-for-cell (deterministic; P5.20 replicated P5.19 with 0 flips) + 2 new
+  clips. `curate_r36.py` was kept as the proposer only; findings in `runs/r36/bank/curation_r36_findings.json`.
+- **Runner:** the 2 new clips ran through the P5.18 GT-free discovery harness `discover_p516.py`
+  (`DSC_` prefix), NOT `select_p56.py` — P5.18's actual harness discovers the distractor via VLM
+  rather than hand-seeding `distractor_box`, so this keeps the contract identical across the bank.
+- **Verdict:** `verdict_r36.py` (paired McNemar + mandatory discordant visual audit via
+  `runs/r36/visual_downgrades.json`), NOT `verdict_p518.py` (which is a per-leg n=26 bar counter, not
+  a paired test).
+
+**Proof (committed):** (1) `proof/r36_scarcity.png` — the 8/10 single-target curation outcome, the
+headline; (2) `proof/r36_person13_swap_delivers_target.png` — the SWAP select failure overlaid on the
+delivered frame, and the mis-placed distractor GT the "look at it" audit caught. From `make_proof.py`,
+reproducible from `runs/r36/`.
