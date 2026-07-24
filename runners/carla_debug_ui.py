@@ -49,15 +49,18 @@ FEED_EVERY = round(LIVE_HZ / CAM_HZ)
 # not the same fleet. Startup loads a fresh server, which is the case that counts.
 SPAWN_SEED = 1234
 AUTO_SPAWN = 50   # vehicles spawned once on startup; --auto-spawn 0 to skip
-# Replaying every buffered frame drains at (carry_fps - CAM_HZ), which measured
-# 4.9 frames/s -> 7.5 s to catch up, by which time the target had left frame.
-# Stride S consumes S*carry_fps, so S=3 drains ~25 frames/s instead. The cost is
-# a 0.6 s gap between replayed frames -- if the carry drops fast targets during
-# catch-up, this is the knob. P5.1's idle_catchup does the same thing.
-CARRY_STRIDE = 3
-CARRY_DIR = "experiments/2026-07-01-temporal-acquire-carry"   # StreamCarry lives here
-# 1080p30 cap: a 2144x1206 sensor rendered every frame is more than the 3090
-# has spare once SAM2 is co-resident on it.
+# On-Orin SAM2 carry runs ~6-10 Hz (image_size 512-640, measured), the feed 5 Hz.
+# Replaying EVERY buffered frame drains at only (carry_hz - CAM_HZ) ~= a few frames/s,
+# so a ~4.5 s grounding backlog took seconds to clear and never felt live. Instead,
+# when behind, JUMP toward the newest pending frame: SAM2 re-anchors by APPEARANCE
+# across the gap (it is a video segmenter, not a per-frame detector), and CARLA nadir
+# targets move <~10 px over the whole lag, so a big jump costs ~nothing. The cap stops
+# one step from skipping so far it loses a genuinely fast target. Steady-state this
+# self-regulates: when carry outpaces the feed there is <=1 pending and it takes it
+# (smooth); when it falls behind it jumps back to live. P5.1's idle_catchup, sharpened.
+CATCHUP_JUMP = 12
+# 1080p30 cap: a 2144x1206 sensor rendered every frame is more than the 3090 has
+# spare while it also drives CARLA. (Grounding + carry are on the Orin now, not here.)
 MAX_CAM_W = 1920
 THUMB_W = 300          # what the Jetson sees stays a thumbnail at any window size
 CARLA_SH = "/home/gara/carla/CARLA_0.9.16/CarlaUE4.sh"
@@ -102,6 +105,37 @@ CHASE_STALE = 0.6
 REMOTE_DIR = "/home/jfdg/grounding"
 REMOTE_GGUF = f"{REMOTE_DIR}/phase3-terse100eos-1024-q8_0.gguf"
 REMOTE_MMPROJ = f"{REMOTE_DIR}/mmproj-phase3-terse100eos-1024-f16.gguf"
+
+# EXP-3 "click -> ground -> track", BOTH on the Orin. The point-crop rich-caption
+# grounder + the SAM2 carry both run on the Jetson: grounding over JetsonBackend
+# (already ssh), carry over the ssh-stdio bridge that lives on the Orin at
+# ~/sam2-bench/carry_ssh_bridge.py. No SAM2 on the 3090 (constraint: the 3090 runs
+# only the CARLA simulator). Defaults are the resolutions EXP-1/EXP-2/EXP-3 found:
+# rich-caption grounding wants the 1024 crop (256 starves colour on a nadir car),
+# SAM2 carry is 99.4% of full IoU at image_size 640 for 2.5x the throughput.
+EXP3_DIR = Path(__file__).resolve().parent.parent / "experiments" / "2026-07-24-point-crop-select"
+CARRY_BRIDGE = "cd ~/sam2-bench && ./.venv/bin/python -u carry_ssh_bridge.py --image-size {size}"
+ORIN_GROUND_RES = 1024
+# 512 = tight box at 9.9 Hz on the Orin (measured), ~2x the 5 Hz feed so catch-up has
+# headroom; 640 (EXP-1 elbow) is only 6.3 Hz, 768 drops to 4.2. Live tool wants speed.
+ORIN_CARRY_SIZE = 512
+_EXP3 = {}
+
+
+def load_exp3():
+    """Lazily pull the point-crop grounder + rich caption + ssh-bridge framing.
+
+    One import of select_exp3 sets up its own sys.path and re-exports everything the
+    tab needs (rich_caption, roi_reanchor, select_p55, the _send/_recv/_rgb_jpg_arr
+    bridge framing, vlm_acquire, _valid, MAX_SIDE, _center_box). Lazy: not paid unless
+    the operator uses a tab.
+    """
+    if not _EXP3:
+        if str(EXP3_DIR) not in sys.path:
+            sys.path.insert(0, str(EXP3_DIR))
+        import select_exp3 as X
+        _EXP3["X"] = X
+    return _EXP3["X"]
 
 
 def center_delta(box, w=CAM_W, h=CAM_H, fov=CAM_FOV):
@@ -205,11 +239,24 @@ DRIFT_S = 5.0
 # a banner keeps only part of the vehicle, and that is still a lock, not a drift.
 MATCH_OVERLAP = 0.30
 
+# How often the carry loop re-runs the identity match (green/red + drift). It is
+# the loop's one GIL-heavy step -- projecting 8 verts x ~40 vehicles is ~320 numpy
+# calls that block the tk render tick, and per-step it starved the display to ~5 fps
+# the moment carry started (the CARLA server itself stayed at ~56 fps). The SAM2 box
+# updates every step regardless; identity only needs a few Hz for a 5 s drift window.
+MATCH_HZ = 4.0
 
-def actor_box(v, cam_tf):
-    """The actor's 3D bounding box projected to an axis-aligned pixel box."""
+
+def actor_box(bbox, cam_tf, actor_tf):
+    """An actor's 3D bounding box projected to an axis-aligned pixel box.
+
+    `bbox` is the actor's (constant) local bounding_box, and `actor_tf` its transform
+    read from a world SNAPSHOT (one RPC for the whole world). Both are passed in, not
+    read off the actor here, because v.bounding_box is a ~10 ms round-trip and this
+    runs for every vehicle every carry step -- the caller caches the box (see
+    veh_list) and snapshots the transform once."""
     pts = [project(p, cam_tf)
-           for p in v.bounding_box.get_world_vertices(v.get_transform())]
+           for p in bbox.get_world_vertices(actor_tf)]
     pts = [p for p in pts if p is not None]
     if len(pts) < 8:                      # partly behind the camera: not a match
         return None
@@ -217,20 +264,29 @@ def actor_box(v, cam_tf):
     return (min(xs), min(ys), max(xs), max(ys))
 
 
-def match_actor(world, cam_tf, box):
+def match_actor(world, cam_tf, box, vehicles, snap):
     """Which vehicle, if any, the tracker's box is on. None means drifted.
 
     The correctness check the throughput asserts could not give -- and it only
     reads the world, it draws nothing. Overlays go on the frames we receive, not
     into the engine, so the render stays the render.
 
+    RPC cost matters: this runs every carry step. `vehicles` is a cached list of
+    (actor, bounding_box) pairs (see veh_list) and `snap` is one world snapshot that
+    carries every transform, so the loop makes ZERO per-actor round-trips -- neither
+    v.get_transform() (was ~50-80 RPCs/step) nor v.bounding_box (was ~10 ms each,
+    ~540 ms/step). snap.find(id) is a local lookup.
+
     Overlap, not point-in-box: the mesh origin of a truck sits well outside a
     tight box drawn around its cargo body, so the old point test called a
     pixel-perfect lock a drift and never recovered.
     """
     best, best_o = None, MATCH_OVERLAP
-    for v in world.get_actors().filter("vehicle.*"):
-        a = actor_box(v, cam_tf)
+    for v, bb in vehicles:
+        s = snap.find(v.id)
+        if s is None:                     # actor gone since the list was fetched
+            continue
+        a = actor_box(bb, cam_tf, s.get_transform())
         if a is None:
             continue
         iw = min(a[2], box[2]) - max(a[0], box[0])
@@ -380,6 +436,13 @@ def apply_dark(root):
     style.map("TCombobox", fieldbackground=[("readonly", DARK_HI)],
               selectbackground=[("readonly", DARK_HI)],
               selectforeground=[("readonly", TEXT)])
+    # the two-tab strip is ttk too, so the clam theme paints it -- match the chrome
+    style.configure("TNotebook", background=DARK, borderwidth=0)
+    style.configure("TNotebook.Tab", background=DARK, foreground=TEXT,
+                    padding=(10, 4), borderwidth=0)
+    style.map("TNotebook.Tab", background=[("selected", DARK_HI)],
+              foreground=[("selected", TEXT)])
+    style.configure("TFrame", background=DARK)
     for k, v in (("background", DARK_HI), ("foreground", TEXT),
                  ("selectBackground", ACCENT), ("selectForeground", DARK)):
         root.option_add(f"*TCombobox*Listbox.{k}", v)
@@ -716,6 +779,22 @@ def main():
         if closing["done"]:
             return
         closing["done"] = True
+        # kill the on-Orin carry bridge first: it holds the Jetson GPU, and a window
+        # close that skips it leaves carry_ssh_bridge.py running on the device.
+        with track_lock:
+            if track["stop"] is not None:
+                track["stop"].set()
+            br = track.get("bridge")
+            track["bridge"] = None
+        if br is not None:
+            try:
+                br.stdin.close()
+            except Exception:
+                pass
+            try:
+                br.kill()
+            except Exception:
+                pass
         # a server we started dies with the window, so its sync-mode state is moot;
         # one that was already running is someone else's and must be handed back
         # unpaused -- left in sync mode with no ticker it hangs the next client.
@@ -797,34 +876,71 @@ def main():
     # the same one sitting there: a box that stopped updating (occlusion) is a fixed
     # pixel error, and steering on it every tick is an integrator with no feedback.
     track = {"box": None, "msg": "", "lag": 0, "stop": None, "actor": None,
-             "hits": 0, "steps": 0, "stamp": 0, "on_target": False, "drift": None}
+             "hits": 0, "steps": 0, "stamp": 0, "on_target": False, "drift": None,
+             # bridge = the live Orin carry subprocess (killed on drop/close); label =
+             # the caption the overlay draws (rich caption in click mode); the *_ms/hz
+             # fields are the live per-stage timings the status strip reads at 60 Hz.
+             "bridge": None, "label": None, "ground_ms": None,
+             "carry_ms": None, "carry_hz": None, "catchup_s": None}
     track_lock = threading.Lock()
     resize = {"job": None}
+
+    # Reading v.bounding_box is a ~10 ms server round-trip (measured), and match_actor
+    # projects every vehicle EVERY carry step -- 50 vehicles was ~540 ms/step of held
+    # GIL, which froze the 60 Hz render tick to a slideshow the moment carry started
+    # (the CARLA server itself stayed at ~56 fps). The box is the actor's constant
+    # local extent, so fetch each once and reuse. Not pruned: a debug session does not
+    # churn enough actors to matter.
+    veh_bbox = {}
+    def veh_list(world):
+        out = []
+        for v in world.get_actors().filter("vehicle.*"):
+            bb = veh_bbox.get(v.id)
+            if bb is None:
+                bb = veh_bbox[v.id] = v.bounding_box
+            out.append((v, bb))
+        return out
 
     def _pixels(box, w, h):
         """contract coords are 0-COORD_SCALE normalised, not pixels"""
         return [int(box[0] / COORD_SCALE * w), int(box[1] / COORD_SCALE * h),
                 int(box[2] / COORD_SCALE * w), int(box[3] / COORD_SCALE * h)]
 
-    def follow(caption, stop):
-        with frame_lock:
-            if latest["bgr"] is None:
-                track["msg"] = "no frame yet -- is the camera attached?"
-                return
-            seed_n, seed = latest["n"], latest["bgr"].copy()
+    def _stop_current():
+        """Stop whatever is following now and reap its on-Orin carry bridge.
 
-        if backend["be"] is None:
-            track["msg"] = "booting Jetson llama-server..."
-            from grounding.eval.backends import JetsonBackend
-            backend["be"] = JetsonBackend(REMOTE_GGUF, REMOTE_MMPROJ,
-                                          max_side=1024).__enter__()
+        Caller holds track_lock. Killing the ssh bridge here (not only on drop) is
+        what stops a re-follow from leaving an orphaned carry_ssh_bridge.py on the
+        Jetson holding the GPU."""
+        if track.get("stop") is not None:
+            track["stop"].set()
+        br = track.get("bridge")
+        if br is not None:
+            try:
+                br.stdin.close()
+            except Exception:
+                pass
+            try:
+                br.kill()
+            except Exception:
+                pass
+            track["bridge"] = None
+
+    def orin_carry(seed_n, seed, seed_box, caption, vlm_s, raw, carry_size,
+                   seed_actor_id, stop):
+        """SAM2 carry on the JETSON over the ssh-stdio bridge (never local).
+
+        Grounding produced seed_box on frame seed_n; the world is already ~vlm_s*CAM_HZ
+        frames past it, so replay the backlog to drag the track into the present, then
+        go live -- one persistent bridge process, one SAM2 state on the Orin. Identity:
+        a click passes the actor it hit (seed_actor_id) so lock is against THAT car from
+        frame one; a caption follow passes None and adopts identity at catch-up (lag<=1),
+        because the seed box and the world are only the same instant once caught up.
+        """
+        X = load_exp3()
         out_dir.mkdir(parents=True, exist_ok=True)
-        shot = out_dir / "frame.png"
-        cv2.imwrite(str(shot), seed)
-        # One trace per follow. Every carry step is a line; the seed frame and every
-        # frame where the matched actor CHANGES gets a PNG next to it. That pair --
-        # the row that shows the switch and the picture of it -- is the whole point:
-        # a drift or a target swap is unarguable from the log alone.
+        # One trace per follow: every carry step is a line, and the seed + every
+        # actor switch/drift gets a PNG. A drift is unarguable from the log alone.
         tdir = out_dir / f"trace-{seed_n}"
         tdir.mkdir(parents=True, exist_ok=True)
         trace = (tdir / "trace.jsonl").open("w", buffering=1)
@@ -833,54 +949,41 @@ def main():
             trace.write(json.dumps(row) + "\n")
 
         cv2.imwrite(str(tdir / f"seed-{seed_n}.png"), seed)
-        track["msg"] = f"grounding {caption!r}..."
-        t0 = time.time()
-        raw = backend["be"].generate(str(shot), caption)
-        vlm_s = time.time() - t0
-        box = parse_bbox(raw)
         emit(ev="ground", caption=caption, seed_n=seed_n, vlm_s=round(vlm_s, 3),
-             raw=raw[:200], box=box)
-        if box is None:
-            track["msg"] = f"NO_MATCH in {vlm_s:.1f}s (raw {raw!r:.40})"
-            trace.close()
-            return
+             raw=(raw or "")[:200], box=seed_box,
+             mode="click" if seed_actor_id is not None else "caption")
 
-        h, w = seed.shape[:2]
-        seed_box = _pixels(box, w, h)
-        with track_lock:                   # dropped during the ~4.5 s grounding?
-            if stop.is_set():              # then this box is not wanted on screen
+        log = open(out_dir / "ui_bridge.err", "wb")
+        proc = subprocess.Popen(
+            ["ssh", "-T", "-q", "jetson", CARRY_BRIDGE.format(size=int(carry_size))],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log)
+        with track_lock:
+            track["bridge"] = proc
+        t0 = time.time()
+        try:
+            X._send(proc.stdin, ("init", X._rgb_jpg_arr(seed),
+                                 [int(v) for v in seed_box]))
+            ack = X._recv(proc.stdout)
+            if not (ack and ack.get("ok")):
+                track["msg"] = f"carry bridge init failed: {ack}"
+                emit(ev="bridge_fail", ack=str(ack))
                 return
-            track["box"] = seed_box        # stale, but shows immediately
-            track["stamp"] += 1
-        track["msg"] = f"grounded in {vlm_s:.1f}s, catching up..."
-
-        # The box describes frame seed_n; the world is already ~vlm_s*CAM_HZ frames
-        # past it. Replay the backlog to drag the track into the present, THEN go
-        # live on the same carry object (P5.1 idle_catchup -> coverage_realtime).
-        sys.path.insert(0, str(Path(__file__).resolve().parent.parent / CARRY_DIR))
-        import torch
-        from sam2.sam2_video_predictor import SAM2VideoPredictor
-        from stream_carry import MODEL, StreamCarry
-
-        import grounding.sam2_cc  # noqa: F401  restores SAM2's mask hole-filling
-
-        if backend.get("pred") is None:
-            backend["pred"] = SAM2VideoPredictor.from_pretrained(MODEL)
-        with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
-            carry = StreamCarry(backend["pred"], seed[:, :, ::-1], seed_box)
             cursor, caught_at = seed_n, None
             seed_area = max(1, (seed_box[2] - seed_box[0]) * (seed_box[3] - seed_box[1]))
-            # Cumulative lock% is the metric that hid this bug: a box that has been
-            # right for 400 frames and wrong for the last 100 still reads 80%. The
-            # rolling window is what actually falls when the track drifts.
-            recent = collections.deque(maxlen=60)
+            recent = collections.deque(maxlen=60)   # rolling lock; cumulative hides drift
             prev_id = None
-            # The target's identity is adopted at catch-up, not at the seed: the seed
-            # box describes frame seed_n but match_actor reads the world NOW, and
-            # ~4.5 s of ego + target motion separate the two, so asking at seed time
-            # names whatever has since driven into that rectangle. At lag<=1 the box
-            # and the world are the same instant, which is the first honest answer.
-            seed_id, bad_since, flagged = None, None, False
+            # identity match is throttled to MATCH_HZ, so cache its verdict between runs
+            last_match, cur_actor, cur_aid = 0.0, None, None
+            seed_id, bad_since, flagged = seed_actor_id, None, False
+            # Fetch the world + vehicle list ONCE (cars are spawned up front). Each
+            # step then takes a SINGLE world snapshot and reads every transform from
+            # it, so match_actor makes ~1 RPC/step instead of one get_transform() per
+            # vehicle. That per-vehicle flood (~50-80 RPCs/step) was what dropped the
+            # 3090's CARLA render to ~5 fps the moment carry started. Refresh the list
+            # every ~2 s in case cars are added or removed.
+            world = client.get_world()
+            vehicles = veh_list(world)   # (actor, cached bbox) pairs -- see veh_list
+            veh_at = time.time()
             while not stop.is_set():
                 with frame_lock:
                     pending = [(n, f) for n, f in backlog if n > cursor]
@@ -888,29 +991,51 @@ def main():
                 if not pending:
                     time.sleep(0.01)
                     continue
-                # behind: skip ahead by the stride. caught up: take every frame.
-                n, frame = pending[min(len(pending), CARRY_STRIDE) - 1]
-                _, b = carry.step(frame[:, :, ::-1])
+                # behind: jump toward the newest pending frame (capped). caught up
+                # (<=1 pending): take it. See CATCHUP_JUMP -- this is what keeps the
+                # on-Orin carry feeling live instead of replaying stale history.
+                n, frame = pending[min(len(pending), CATCHUP_JUMP) - 1]
+                X._send(proc.stdin, ("step", X._rgb_jpg_arr(frame)))
+                r = X._recv(proc.stdout)
+                if r is None:
+                    track["msg"] = "carry bridge died -- see ui_bridge.err"
+                    emit(ev="bridge_died", n=n)
+                    break
+                b, ms = r.get("box"), r.get("ms")
                 cursor = n
                 track["lag"] = live_n - cursor
                 if b is None:
-                    emit(ev="lost", n=n, lag=track["lag"])
+                    emit(ev="lost", n=n, lag=track["lag"], ms=ms)
+                    with track_lock:
+                        if stop.is_set():
+                            break
+                        track["box"], track["on_target"] = None, False
+                        track["stamp"] += 1
                 elif cam["sensor"] is not None:
                     box = [int(v) for v in b]
-                    actor = match_actor(client.get_world(),
-                                        cam["sensor"].get_transform(), box)
-                    # publish only if this thread is still the live one: a drop that
-                    # landed during the step above must win, or its cleared box
-                    # comes straight back and the square never leaves the screen
-                    aid = actor.id if actor is not None else None
-                    if seed_id is None and track["lag"] <= 1 and aid is not None:
-                        seed_id = aid
-                        emit(ev="identity", n=n, actor=aid, actor_type=actor.type_id)
-                    # green means THE target, not "some car is in the box" -- the old
-                    # test read locked on a white van while following a blue car
+                    now = time.time()
+                    # Throttle the GIL-heavy identity match (see MATCH_HZ). The box is
+                    # pushed to the display every step below regardless; only the
+                    # green/red verdict is re-derived at MATCH_HZ. Force a match while
+                    # identity is still unadopted so lock happens the instant lag<=1.
+                    need_id = seed_id is None and track["lag"] <= 1
+                    if now - last_match >= 1.0 / MATCH_HZ or need_id:
+                        last_match = now
+                        if now - veh_at > 2.0:          # cheap refresh for spawns
+                            vehicles = veh_list(world)
+                            veh_at = now
+                        cur_actor = match_actor(world, cam["sensor"].get_transform(),
+                                                box, vehicles=vehicles,
+                                                snap=world.get_snapshot())
+                        cur_aid = cur_actor.id if cur_actor is not None else None
+                        if need_id and cur_aid is not None:
+                            seed_id = cur_aid
+                            emit(ev="identity", n=n, actor=cur_aid,
+                                 actor_type=cur_actor.type_id)
+                    actor, aid = cur_actor, cur_aid
+                    # green means THE target, not "some car is in the box"
                     on_target = aid is not None and (seed_id is None or aid == seed_id)
 
-                    now = time.time()
                     if on_target:
                         bad_since, flagged = None, False
                         track["drift"] = None
@@ -936,84 +1061,250 @@ def main():
                         track["steps"] += 1
                     recent.append(on_target)
                     area = (box[2] - box[0]) * (box[3] - box[1])
-                    emit(ev="step", n=n, lag=track["lag"], box=box,
+                    emit(ev="step", n=n, lag=track["lag"], box=box, ms=ms,
                          area_ratio=round(area / seed_area, 3),
                          aspect=round((box[2] - box[0]) / max(1, box[3] - box[1]), 3),
                          actor=aid, on_target=on_target,
                          actor_type=actor.type_id if actor is not None else None,
                          lock60=sum(recent))
                     if aid != prev_id:
-                        # the switch itself, with the picture that proves it
                         cv2.imwrite(str(tdir / f"switch-{n}.png"),
                                     draw_overlay(frame.copy(), box, caption,
                                                  actor is not None))
                         emit(ev="switch", n=n, was=prev_id, now=aid)
                         prev_id = aid
+                hz = (1000.0 / ms) if ms else 0.0
+                track["carry_ms"], track["carry_hz"] = ms, hz   # live timing readout
                 if caught_at is None and track["lag"] <= 1:
                     caught_at = time.time() - t0
-                    track["msg"] = (f"vlm {vlm_s:.1f}s + catchup "
-                                    f"{caught_at - vlm_s:.1f}s, now live")
-                    emit(ev="live", n=n, catchup_s=round(caught_at - vlm_s, 3))
+                    track["catchup_s"] = caught_at
+                    track["msg"] = (f"vlm {vlm_s:.1f}s + catchup {caught_at:.1f}s, live"
+                                    f"  --  carry {hz:.1f} Hz Orin")
+                    emit(ev="live", n=cursor, catchup_s=round(caught_at, 3))
                 elif caught_at is not None:
-                    # rolling lock is the honest signal, cumulative hides the drift
                     d = track["drift"]
                     track["msg"] = (
-                        (f"DRIFT {d:.0f}s off target -- drop and re-follow.  "
-                         if d else "")
-                        + f"tracking, lag {track['lag']}, lock "
+                        (f"DRIFT {d:.0f}s off target -- drop and re-follow.  " if d else "")
+                        + f"carry {hz:.1f} Hz Orin, lag {track['lag']}, lock "
                           f"{sum(recent)}/{len(recent)} "
                           f"({track['hits']}/{track['steps']} all)")
-        emit(ev="end", n=cursor)
-        trace.close()
-        # no "stopped" message here: the only way out of that loop is stop being
-        # set, i.e. a drop or a new follow, and both have already said their piece
+                else:
+                    track["msg"] = (f"catching up on Orin... lag {track['lag']}  "
+                                    f"carry {hz:.1f} Hz")
+            emit(ev="end", n=cursor)
+        finally:
+            trace.close()
+            try:
+                proc.stdin.close()
+            except Exception:
+                pass
+            try:
+                proc.wait(timeout=5)
+            except Exception:
+                proc.kill()
+            log.close()
+            with track_lock:
+                if track.get("bridge") is proc:
+                    track["bridge"] = None
+
+    def follow(caption, stop):
+        """Whole-frame caption grounding on the Jetson -> carry on the Jetson."""
+        with frame_lock:
+            if latest["bgr"] is None:
+                track["msg"] = "no frame yet -- is the camera attached?"
+                return
+            seed_n, seed = latest["n"], latest["bgr"].copy()
+        if backend["be"] is None:
+            track["msg"] = "booting Jetson llama-server..."
+            from grounding.eval.backends import JetsonBackend
+            backend["be"] = JetsonBackend(REMOTE_GGUF, REMOTE_MMPROJ,
+                                          max_side=1024).__enter__()
+        out_dir.mkdir(parents=True, exist_ok=True)
+        shot = out_dir / "frame.png"
+        cv2.imwrite(str(shot), seed)
+        track["msg"] = f"grounding {caption!r}..."
+        t0 = time.time()
+        raw = backend["be"].generate(str(shot), caption)
+        vlm_s = time.time() - t0
+        track["ground_ms"] = vlm_s * 1000        # live timing readout
+        box = parse_bbox(raw)
+        if box is None:
+            track["msg"] = f"NO_MATCH in {vlm_s:.1f}s (raw {raw!r:.40})"
+            return
+        h, w = seed.shape[:2]
+        seed_box = _pixels(box, w, h)
+        with track_lock:                   # dropped during the ~4.5 s grounding?
+            if stop.is_set():              # then this box is not wanted on screen
+                return
+            track["box"] = seed_box        # stale, but shows immediately
+            track["stamp"] += 1
+        track["msg"] = f"grounded in {vlm_s:.1f}s, carrying on Orin..."
+        orin_carry(seed_n, seed, seed_box, caption, vlm_s, raw,
+                   ORIN_CARRY_SIZE, None, stop)
+
+    def hit_test_live(feed_x, feed_y):
+        """Clicked feed pixel -> the CARLA vehicle under it (smallest projected box).
+
+        Same projection as match_actor (CAM_W x CAM_H, CAM_FOV), so the click lives in
+        the same pixel space the tracker and the grounder do. Smallest-area containing
+        box wins an overlap toward the nearer/topmost car."""
+        if cam["sensor"] is None:
+            return None
+        cam_tf = cam["sensor"].get_transform()
+        world = client.get_world()
+        snap = world.get_snapshot()          # one RPC, not one get_transform() per car
+        best, best_area = None, float("inf")
+        for v, bb in veh_list(world):        # cached bboxes -- no per-car round-trip
+            s = snap.find(v.id)
+            if s is None:
+                continue
+            a = actor_box(bb, cam_tf, s.get_transform())
+            if a is None or not (a[0] <= feed_x <= a[2] and a[1] <= feed_y <= a[3]):
+                continue
+            area = (a[2] - a[0]) * (a[3] - a[1])
+            if area < best_area:
+                best_area, best = area, v
+        return best
+
+    def follow_click(actor_id, click_xy, carry_size, ground_res, stop):
+        """EXP-3, both on the Orin: rich caption -> point-crop VLM ground -> SAM2 carry.
+
+        The crop centres on the click, so position is the constant "in the center"; the
+        colour is sampled from the clicked car's pixels and the object word from its
+        CARLA type. Grounding is a point-crop (roi_reanchor) at ground_res, carry at
+        carry_size -- the resolutions EXP-1/EXP-2/EXP-3 found."""
+        X = load_exp3()
+        with frame_lock:
+            if latest["bgr"] is None:
+                track["msg"] = "no frame yet -- is the camera attached?"
+                return
+            seed_n, seed = latest["n"], latest["bgr"].copy()
+        v = client.get_world().get_actor(actor_id)
+        if v is None:
+            track["msg"] = "the clicked car is gone"
+            return
+        a = (actor_box(v.bounding_box, cam["sensor"].get_transform(),  # one-off click
+                       v.get_transform()) if cam["sensor"] else None)
+        if a is None:
+            track["msg"] = "cannot project the clicked car"
+            return
+        caption = X.rich_caption(seed, a, v.type_id)
+        with track_lock:
+            track["label"] = caption
+        if backend["be"] is None:
+            track["msg"] = "booting Jetson llama-server..."
+            from grounding.eval.backends import JetsonBackend
+            backend["be"] = JetsonBackend(REMOTE_GGUF, REMOTE_MMPROJ,
+                                          max_side=1024).__enter__()
+        gms = {"ms": 0.0}
+
+        def submit_img(img_bgr, cap):
+            p = f"/dev/shm/uiclick_{time.monotonic_ns()}.png"
+            cv2.imwrite(p, img_bgr)
+            try:
+                t = time.perf_counter()
+                bx = X.vlm_acquire(backend["be"], p, cap,
+                                   img_bgr.shape[1], img_bgr.shape[0])
+                gms["ms"] = round(1000 * (time.perf_counter() - t), 1)
+                return bx
+            finally:
+                Path(p).unlink(missing_ok=True)
+
+        X.select_p55.ROI_RES = int(ground_res)
+        cx, cy = click_xy
+        track["msg"] = f"grounding {caption!r} @{int(ground_res)} on Orin..."
+        t0 = time.time()
+        box, _dbg = X.roi_reanchor(seed, X._center_box((cx, cy, cx, cy)),
+                                   caption, submit_img)
+        vlm_s = time.time() - t0
+        track["ground_ms"] = gms["ms"]           # on-device VLM point-crop time
+        if not X._valid(box, seed.shape):
+            track["msg"] = f"NO_MATCH {caption!r} in {gms['ms']:.0f} ms"
+            return
+        seed_box = [int(x) for x in box]
+        with track_lock:
+            if stop.is_set():
+                return
+            track["box"] = seed_box
+            track["stamp"] += 1
+        track["msg"] = f"grounded {caption!r} {gms['ms']:.0f} ms, carrying on Orin..."
+        orin_carry(seed_n, seed, seed_box, caption, vlm_s, None,
+                   int(carry_size), actor_id, stop)
 
     grow = tk.Frame(root)
     grow.pack(side=tk.TOP, fill=tk.X, padx=8, pady=(0, 6))
-    tk.Label(grow, text="follow").pack(side=tk.LEFT)
-    caption_entry = tk.Entry(grow, width=28)
-    caption_entry.insert(0, "the red car")
-    caption_entry.pack(side=tk.LEFT, padx=(4, 0))
-    gstatus = tk.Label(grow, text="", anchor=tk.W)
+    nb = ttk.Notebook(grow)
+    nb.pack(side=tk.TOP, fill=tk.X)
 
     def do_follow(_event=None):
         with track_lock:                 # same handover as do_drop
-            if track["stop"] is not None:
-                track["stop"].set()      # one target at a time
+            _stop_current()              # one target at a time; reap its Orin bridge
             track["stop"] = threading.Event()
             track["box"], track["actor"] = None, None
             track["on_target"], track["drift"] = False, None
+            track["label"] = None        # caption mode: overlay uses the entry text
+            track["ground_ms"] = track["carry_ms"] = track["carry_hz"] = None
+            track["catchup_s"] = None
         threading.Thread(target=follow, daemon=True,
                          args=(caption_entry.get(), track["stop"])).start()
 
     def do_drop():
         # set the event INSIDE the lock, so a follow thread holding it is either
-        # already past its publish (and this clear wins) or blocked before its
-        # stop check (and it will see the set and bail without publishing)
+        # already past its publish (and this clear wins) or blocked before its stop
+        # check (and it bails without publishing). _stop_current also kills the Orin
+        # carry bridge, or a dropped follow leaves SAM2 running on the device.
         with track_lock:
-            if track["stop"] is not None:
-                track["stop"].set()
+            _stop_current()
             track["box"], track["actor"], track["msg"] = None, None, "dropped"
-            track["on_target"], track["drift"] = False, None
+            track["on_target"], track["drift"], track["label"] = False, None, None
 
+    # -- tab 1: caption follow -- whole-frame VLM ground (Orin) -> SAM2 carry (Orin) --
+    tab_follow = ttk.Frame(nb)
+    nb.add(tab_follow, text="Follow (caption)")
+    tk.Label(tab_follow, text="follow").pack(side=tk.LEFT)
+    caption_entry = tk.Entry(tab_follow, width=28)
+    caption_entry.insert(0, "the red car")
+    caption_entry.pack(side=tk.LEFT, padx=(4, 0))
     caption_entry.bind("<Return>", do_follow)
-    tk.Button(grow, text="follow", command=do_follow).pack(side=tk.LEFT, padx=(4, 0))
-    tk.Button(grow, text="drop", command=do_drop).pack(side=tk.LEFT, padx=(4, 0))
-    # Two modes, one flag. MANUAL (off) = the operator has sole authority. ASSIST
-    # (on) = the model also steers, and its only authority is aim: it pans the
-    # tracked box to centre and never touches position. Operator keys are still live
-    # in both, and an arrow key outranks the model for as long as it is held.
+    tk.Button(tab_follow, text="follow", command=do_follow).pack(side=tk.LEFT, padx=(4, 0))
+    tk.Button(tab_follow, text="drop", command=do_drop).pack(side=tk.LEFT, padx=(4, 0))
+
+    # -- tab 2: click follow (EXP-3) -- Shift-click a car -> point-crop rich-caption
+    # ground (Orin) -> SAM2 carry (Orin); the two combos are the EXP-1/EXP-2/EXP-3 knobs
+    tab_click = ttk.Frame(nb)
+    nb.add(tab_click, text="Click to follow (EXP-3)")
+    tk.Label(tab_click, text="Shift-click a car in the flown view").pack(side=tk.LEFT)
+    tk.Label(tab_click, text="ground").pack(side=tk.LEFT, padx=(12, 2))
+    ground_res = tk.IntVar(value=ORIN_GROUND_RES)
+    ttk.Combobox(tab_click, textvariable=ground_res, width=5, state="readonly",
+                 values=(256, 512, 768, 1024)).pack(side=tk.LEFT)
+    tk.Label(tab_click, text="carry").pack(side=tk.LEFT, padx=(12, 2))
+    carry_size = tk.IntVar(value=ORIN_CARRY_SIZE)
+    ttk.Combobox(tab_click, textvariable=carry_size, width=5, state="readonly",
+                 values=(256, 384, 512, 640, 768, 1024)).pack(side=tk.LEFT)
+    tk.Button(tab_click, text="drop", command=do_drop).pack(side=tk.LEFT, padx=(12, 0))
+
+    # -- shared strips below the tabs -- assist + message, then the live timings --
+    # Two modes, one assist flag. MANUAL (off) = operator has sole authority. ASSIST
+    # (on) = the model also aims (pans the box to centre, never touches position).
+    # Operator keys stay live in both, and a held arrow outranks the model.
+    strip = tk.Frame(grow)
+    strip.pack(side=tk.TOP, fill=tk.X, pady=(4, 0))
     assist = tk.BooleanVar(value=False)
-    tk.Checkbutton(grow, text="assist: centre on target", variable=assist).pack(
-        side=tk.LEFT, padx=(12, 0))
+    tk.Checkbutton(strip, text="assist: centre on target", variable=assist).pack(
+        side=tk.LEFT)
+    gstatus = tk.Label(strip, text="", anchor=tk.W)
     gstatus.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(16, 0))
+    gtimes = tk.Label(grow, text="", anchor=tk.W, fg=ACCENT, font=("TkFixedFont", 10))
+    gtimes.pack(side=tk.TOP, fill=tk.X, pady=(2, 0))
 
     # Live feed with the track drawn on it. In-memory PPM into PhotoImage runs at
     # ~115 FPS (no PIL, no disk); a PNG-per-frame round-trip does not. The image
     # MUST stay referenced in `preview` -- a local gets collected and the label
     # renders blank with no error, the silent failure this repo keeps hitting.
     preview = {"live": None, "feed": None, "ln": -1, "fn": -1,
-               "t": time.time(), "n0": 0, "fps": 0.0}
+               "t": time.time(), "n0": 0, "fps": 0.0,
+               "disp": 0.0, "dt": time.time()}   # real render-tick rate (see tick)
     # grid, not pack: the weights are what make a resize redistribute the space.
     # 3:1 keeps the flown view dominant and the Jetson feed a thumbnail at any size.
     views = tk.Frame(root, bg=DARK)
@@ -1065,10 +1356,11 @@ def main():
             if ff is not None:
                 ff, preview["fn"] = ff.copy(), latest["n"]
         box, locked = track["box"], track["on_target"]
+        label = track.get("label") or caption_entry.get()   # rich caption in click mode
         if lf is not None:
             # the box is up to one feed period stale here -- it was measured on
             # the 5 Hz frame, drawn on the 60 Hz one. Same camera, so it lines up.
-            draw_overlay(lf, box, caption_entry.get(), locked,
+            draw_overlay(lf, box, label, locked,
                          scale=lf.shape[1] / CAM_W)
             preview["live"] = _photo(lf, big)
             big.config(image=preview["live"])
@@ -1086,6 +1378,51 @@ def main():
             preview["t"], preview["n0"] = time.time(), n
         gstatus.config(text=f"{preview['fps']:.0f} Hz live  {track['msg']}",
                        fg=ALERT if track["drift"] else TEXT)
+        # live per-stage timings, refreshed every tick straight off the track dict --
+        # ground = last VLM ms, carry = last on-Orin step ms + rate, catch-up + lag.
+        gm, cm, chz = track["ground_ms"], track["carry_ms"], track["carry_hz"]
+        cu = track["catchup_s"]
+        gtimes.config(text=(
+            f"ground {gm:.0f} ms" if gm is not None else "ground --"
+        ) + (
+            f"   |   carry {cm:.0f} ms ({chz:.1f} Hz) Orin" if cm is not None
+            else "   |   carry --"
+        ) + (
+            f"   |   catch-up {cu:.1f} s" if cu is not None else "   |   catch-up --"
+        ) + f"   |   lag {track['lag']} f"
+          + f"   |   disp {preview['disp']:.0f} Hz")
+
+    def do_click_follow(feed_x, feed_y):
+        v = hit_test_live(feed_x, feed_y)
+        if v is None:
+            track["msg"] = "no car under the click"
+            return
+        with track_lock:                 # same handover as do_follow/do_drop
+            _stop_current()
+            track["stop"] = threading.Event()
+            track["box"], track["actor"] = None, None
+            track["on_target"], track["drift"], track["label"] = False, None, None
+            track["ground_ms"] = track["carry_ms"] = track["carry_hz"] = None
+            track["catchup_s"] = None
+        threading.Thread(target=follow_click, daemon=True,
+                         args=(v.id, (feed_x, feed_y), carry_size.get(),
+                               ground_res.get(), track["stop"])).start()
+
+    def on_select_click(e):
+        # Shift-click on the flown view -> feed px. The photo is centred in the label
+        # with letterboxing, so recover scale+offset from the DISPLAYED photo size.
+        ph = preview["live"]
+        if ph is None:
+            return "break"
+        iw, ih = ph.width(), ph.height()
+        ox, oy = (big.winfo_width() - iw) / 2, (big.winfo_height() - ih) / 2
+        u, vv = (e.x - ox) / iw, (e.y - oy) / ih
+        if 0 <= u <= 1 and 0 <= vv <= 1:
+            big.focus_set()
+            do_click_follow(u * CAM_W, vv * CAM_H)
+        return "break"
+
+    big.bind("<Shift-Button-1>", on_select_click)
 
     def on_press(e):
         k = e.keysym.lower()
@@ -1311,6 +1648,14 @@ def main():
         if closing["want"]:
             unpause_on_exit()
             return
+        # real render-tick rate (EMA). This is the display Hz the operator sees --
+        # distinct from the CARLA server fps -- and it is what collapsed to ~5 when
+        # the carry loop stole the GIL. Surfaced in the gtimes strip as a health read.
+        now = time.time()
+        d = now - preview["dt"]
+        preview["dt"] = now
+        if 0 < d < 1:
+            preview["disp"] = 0.9 * preview["disp"] + 0.1 * (1.0 / d)
         fly()
         show_preview()
         root.after(int(DT * 1000), tick)
