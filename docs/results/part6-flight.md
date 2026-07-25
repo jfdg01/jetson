@@ -529,3 +529,111 @@ image_size 512/768/1024 gives byte-identical counts (WSEL 22/24, SWAP 24/26, sam
 (8.6/4.1/2.3 Hz on-device) — so EXP-1's 512–640 carry elbow costs zero select quality here. Proof:
 `proof/grounding_elbow.png`, `deliver_pass.png`, `carry_robustness.png`. Detail:
 `experiments/2026-07-24-point-crop-select/README.md`.
+
+### P6.7 — the handoff seam: designation -> live SAM2 track (25 CARLA clips x 2 lags x 2 arms, on the Orin) (2026-07-25)
+
+What the operator waits through between "locked in" and a live track. Paired arms on the same
+25 CARLA GT clips (`Town10HD_Opt`, replayed at 5 Hz from disk): **COLD** = one bridge `Popen`
+per designation (what `runners/carla_debug_ui.py` does today), **WARM** = bridge already
+resident and CUDA already warm. Two designation lags: 0.0 s (oracle click) and 4.85 s (the
+E18/R-34 cold grounding lag). SAM2 on the Orin via the ssh-stdio bridge, `image_size=512`,
+15 W + `jetson_clocks`, `llama-server` resident throughout; the 3090 was not used.
+`handoff_p67.py`. `machine=jetson-orin-nano-8gb`, n_effective = n_rows = 25.
+
+**Stage decomposition (medians, seconds).** Columns are independent medians, so they do not
+sum to the `t_handoff` median.
+
+| stage | COLD @ lag 0.0 | COLD @ lag 4.85 | WARM @ lag 0.0 | WARM @ lag 4.85 |
+|---|--:|--:|--:|--:|
+| `ssh_spawn` | 0.301 | 0.307 | 0 | 0 |
+| `import` (torch + sam2) | **2.846** | **2.893** | 0 | 0 |
+| `weights` (`from_pretrained`) | 1.800 | 1.800 | 0 | 0 |
+| `warmup_init` | 0.670 | 0.670 | 0.120 | 0.121 |
+| `drain` (catch-up proper) | 0.361 | 0.658 | 0.178 | 0.392 |
+| **`t_handoff`** | **6.148** | **6.311** | **0.299** | **0.515** |
+| `steps_to_live` (median) | 3 | 6 | 1 | 4 |
+
+**4.95 s of the 6.15 s — 80% — is process start-up**, and `import torch` alone exceeds
+everything else combined. Only 0.36 s is the tracker actually catching up, which is why the
+panel's `catchup_s` was invariant (0.06 s) between a 0-frame oracle click and a ~21-frame
+caption follow: it was never measuring catch-up.
+
+**G1 (the lever) = PASS at both lags.**
+
+| lag | COLD median | WARM median | speed-up | concordant pairs | Wilcoxon (two-sided) |
+|--:|--:|--:|--:|--:|--:|
+| 0.0 s | 6.148 s (IQR 5.95–6.20) | **0.299 s** (IQR 0.30–0.30) | 20.6x | 25/25 | p=5.96e-08 |
+| 4.85 s | 6.311 s (IQR 6.17–6.51) | **0.515 s** (IQR 0.51–0.53) | 12.3x | 25/25 | p=1.23e-05 |
+
+Every pair moves the same way in both lags. 5.96e-08 = 2/2^25 is the exact floor for a
+two-sided signed-rank test at n=25. At lag 4.85 two clips share an identical paired
+difference (5.7946 s) and that tie in `|d|` makes scipy's default method fall back to the
+normal approximation (**1.228e-05**); `method="exact"` on the same numbers gives 5.96e-08.
+The registry uses the default, so the claim is registered at the conservative 1.228e-05.
+
+**G2 (quality non-inferiority) = PASS**, paired, 20 000-resample percentile bootstrap.
+
+| lag | metric | COLD | WARM | paired delta | CI95 | p |
+|--:|---|--:|--:|--:|---|--:|
+| 0.0 | median IoU | 0.000 | **0.674** | +0.049 | [+0.006, +0.502] | 0.00021 |
+| 0.0 | box-present frac | — | — | 0.000 | [0.000, +0.010] | 0.027 |
+| 0.0 | identity swaps | 79 | 68 | 0 | [−1, 0] | 0.11 |
+| 4.85 | median IoU | 0.000 | 0.000 | 0.000 | — | 0.123 |
+| 4.85 | box-present frac | — | — | 0.000 | — | 0.065 |
+| 4.85 | identity swaps | — | — | 0.000 | — | 0.358 |
+
+n=24 on the IoU rows (in `clip01` the target leaves frame before COLD's tracker exists). The
+lag-4.85 rows pass **over a floor** — both arms sit at median IoU 0.000 — and are recorded as
+uninformative, not as reassurance.
+
+**The unanticipated result: COLD does not just delay the track, it loses it.** On-target clip
+counts, paired: lag 0 COLD **11/24** vs WARM **20/25**, exact McNemar b=8 c=0, **p=0.0078**;
+lag 4.85 COLD 7/24 vs WARM 10/25, b=4 c=1, p=0.375. The loss is altitude-gated (target size):
+
+| altitude | median target area | COLD on-target @ lag 0 | WARM on-target @ lag 0 |
+|--:|--:|--:|--:|
+| 40 m | 1595 px² | 4/5 | 5/5 |
+| 60 m | 659 px² | 3/5 | 5/5 |
+| 80 m | 289 px² | 2/5 | 4/5 |
+| 100 m | 132 px² | 1/5 | 3/5 |
+| 120 m | 160 px² | 1/4 | 3/5 |
+
+Mechanism: with `CATCHUP_JUMP=12` at `CAM_HZ=5`, one SAM2 step crosses **2.4 s of world**. A
+tracker that took 6.15 s to boot wakes to a ~31-frame backlog whose first hop is that 2.4 s;
+on `clip03` (100 m, 7x17 px seed) the *first* step already reads IoU 0.000 with the mask on an
+overpass 60 px away. Cold start-up -> long backlog -> large temporal jumps -> lost track.
+
+**G3 (residency, the pre-registered honest risk) = PASS, and not narrowly.**
+
+| quantity | value | limit |
+|---|--:|--:|
+| `rc=-9` over designations on one resident bridge | **0 / 50** | 0 over 25 |
+| `MemAvailable` floor, `llama-server` only | 2258 MB | — |
+| `MemAvailable` floor, + SAM2 resident | **1315 MB** | > 0 |
+| `ground_ms` median, SAM2 absent | 3791.1 ms | — |
+| `ground_ms` median, SAM2 resident | **3791.2 ms** | <= 4359.8 ms (+15%) |
+
+A resident SAM2 costs the VLM **x1.000** across 25 paired grounding requests with genuine
+per-request spread (3738.4–3876.5 vs 3738.6–3842.3 ms; server `prompt_ms` 3163.0 vs 3163.3).
+The pre-registered fallback arm `PIPELINE` was not run — it existed only for a G3 failure.
+
+**RQ-e (catch-up policy, no gate) — a monotone trade, and no setting wins both.** 75 WARM
+cells, 25 clips x `CATCHUP_JUMP` in {1, 12, 999}, all at lag 4.85 s.
+
+| `CATCHUP_JUMP` | median `t_handoff` | median steps to live | median IoU | on target (IoU >= 0.25) |
+|---|--:|--:|--:|--:|
+| 1 — replay every frame | 5.312 s | 50 | **0.596** | **17 / 25** |
+| 12 — deployed | **0.517 s** | 4 | 0.000 | 10 / 25 |
+| 999 — jump to live | **0.314 s** | 2 | 0.000 | 8 / 25 |
+
+Paired exact McNemar on per-clip on-target: `j1` vs `j999` b=11, c=2, p=0.0225; `j1` vs `j12`
+b=9, c=2, p=0.0654; `j12` vs `j999` b=4, c=2, p=0.6875. **Descriptive only** — RQ-e carried no
+gate, is not registered in `thesis/claims.json`, and is not Holm-corrected. Replaying the gap
+frame-by-frame is the only setting that keeps the track, and it gives back the whole latency
+win (5.31 s to cross 4.85 s of world). 12 and 999 are statistically the same policy, so the
+deployed value buys nothing over jumping straight to live: by 12 frames the identity is
+already lost. The residual therefore sits upstream in grounding latency, not in the bridge.
+
+Proof: `proof/stage-budget.png`, `proof/paired-handoff.png`, `proof/quality-paired.png`,
+`proof/jump-tradeoff.png`, `proof/seam-{COLD,WARM}.png`, `proof/loss-{COLD,WARM}.png`. Detail:
+`experiments/2026-07-25-handoff-latency/README.md`.

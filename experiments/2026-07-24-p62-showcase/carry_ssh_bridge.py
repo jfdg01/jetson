@@ -11,18 +11,26 @@ streams. stdout carries ONLY framed replies; all logging goes to stderr. cwd mus
 
   cd ~/sam2-bench && ./.venv/bin/python -u carry_ssh_bridge.py
 """
-import argparse
-import pickle
-import struct
 import sys
-import time
 
-import cv2
-import numpy as np
-import torch
-from sam2.sam2_video_predictor import SAM2VideoPredictor
+# P6.7: the interpreter is alive HERE, before torch/sam2 are imported. Without this
+# marker the host cannot separate "ssh + python startup" from "import torch" -- they
+# arrive as one ~4 s lump with different fixes (ControlMaster vs process residency).
+# stderr only: stdout carries the framed protocol and must not gain a message, or the
+# live panel's first _recv would read this instead of the init ack.
+print("[bridge] up", file=sys.stderr, flush=True)
 
-from stream_carry import MODEL, StreamCarry
+import argparse  # noqa: E402
+import pickle  # noqa: E402
+import struct  # noqa: E402
+import time  # noqa: E402
+
+import cv2  # noqa: E402
+import numpy as np  # noqa: E402
+import torch  # noqa: E402
+from sam2.sam2_video_predictor import SAM2VideoPredictor  # noqa: E402
+
+from stream_carry import MODEL, StreamCarry  # noqa: E402
 
 
 def _readn(f, n):
