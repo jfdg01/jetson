@@ -91,7 +91,6 @@ CATCHUP_JUMP = 12
 # 1080p30 cap: a 2144x1206 sensor rendered every frame is more than the 3090 has
 # spare while it also drives CARLA. (Grounding + carry are on the Orin now, not here.)
 MAX_CAM_W = 1920
-THUMB_W = 300          # what the Jetson sees stays a thumbnail at any window size
 CARLA_SH = "/home/gara/carla/CARLA_0.9.16/CarlaUE4.sh"
 # ASSIST mode: yaw/pitch to keep the tracked box centred. The knob is the fraction
 # of the OUTSTANDING correction spent per second, so the view eases in and never
@@ -123,10 +122,19 @@ DARK, DARK_HI, TEXT, ACCENT, ALERT = "#1e1e1e", "#2d2d2d", "#e0e0e0", "#3fbf5f",
 # MUTED = secondary text (a unit, a hint), LINE = card borders and unlit pills,
 # WARN = "this is the next thing to do" and "this number is not healthy but not dead".
 MUTED, LINE, WARN = "#8a8a8a", "#3a3a3a", "#e0a03f"
-# The stage rail is a FIXED width, not a fraction: it holds the Jetson thumbnail, and
-# everything in it is one column of controls, so it has nothing to do with how big the
+# Two FIXED-width columns, not fractions: the left rail is one column of controls and
+# the right one is one column of numbers, so neither has anything to do with how big the
 # window is. All the slack goes to the picture.
-RAIL_W = 340
+#
+# Everything that is a NUMBER lives in the right column, including the numbers that used
+# to sit in the card headers, in the lamps and in a bar across the bottom. Four places to
+# read one machine is three too many: the operator asked where to look, which is the same
+# complaint as not knowing what to press. Left = what you do, right = what happened, top
+# = is it alive (colour only), and nothing at the bottom at all.
+RAIL_W, INSTR_W = 340, 380
+# ~5 Hz x 240 samples = the last ~48 s, which comfortably covers a cold acquire plus its
+# catch-up drain -- the shape the graph exists to show.
+PLOT_HZ, PLOT_N, PLOT_H = 5.0, 240, 190
 # The operator's next action, one line each, keyed by the first unsatisfied stage.
 # A panel with 20 live controls and no opinion about which one to press is why this
 # exists -- see the NEXT/badge block in show_preview for who is satisfied when.
@@ -136,7 +144,7 @@ NEXT_TIP = {
     3: "step 3 -- Shift-click a car in the view, or type a caption and press follow",
     4: "step 4 -- press deliver (g). That press IS the operator's command",
     5: "step 5 -- pick assist or auto to close the loop",
-    6: "loop closed -- read the verdict bar",
+    6: "loop closed -- read the instruments column",
 }
 CHASE_CLIMB = 15.0
 CHASE_HIST = 5              # measurements median-filtered into one area reading
@@ -194,6 +202,10 @@ CMD_HZ = 10.0
 AUTO_KP_LAT = 0.06
 AUTO_MAX_V = 8.0
 FOLLOW_MODES = ("manual", "assist", "auto")
+# "to origin" is flown by the command loop, not by a blocking helper -- these are its
+# arrival test and its give-up. 3 m is reset_to_origin's own tolerance; 60 s covers the
+# ~150 m a chased copter ends up from origin at AUTO_MAX_V with margin.
+GOTO_TOL, GOTO_TIMEOUT = 3.0, 60.0
 
 
 def load_exp3():
@@ -274,16 +286,29 @@ def floor_climb(z, dt, goal):
     return min(goal - z, CHASE_SPEED * dt), goal
 
 
-def manual_velocity(held, v):
+def manual_velocity(held, v, yaw_deg=0.0):
     """Held keys -> a LOCAL_NED velocity setpoint (vn, ve, vd) in m/s.
 
-    Copter mode only. The camera is north-up nadir (R-10: yaw never arrives from
-    SITL, and rotating a nadir camera reframes nothing), so screen-up IS north and
-    the keys map to the world frame directly -- no body-frame rotation to get wrong.
+    Copter mode only. `w` is always UP THE SCREEN and `d` always screen-right, at
+    whatever yaw the operator has rotated the view to -- the keys are view-relative,
+    not world-absolute. Flying north while looking east is disorienting in exactly
+    the way a nadir view makes worst: there is no horizon to correct against, so an
+    absolute mapping means every heading change silently remaps every key.
+
+    The rotation is the camera's, not the airframe's. SITL never sends yaw (R-10) so
+    the copter has no heading we could use; the yaw here is the GIMBAL's, which is
+    ours, and `ned_to_carla(..., yaw_rad=psi, pitch_deg=-90)` puts world direction
+    (cos psi, sin psi) in (north, east) at the top of the frame. So screen-up is
+    (cos, sin) and screen-right is (-sin, cos), which is what this rotates into.
+    yaw_deg=0 is the north-up case and reduces to the old direct mapping.
+
     vd is DOWN-positive, hence `e` (up) being negative.
     """
-    vn = (("w" in held) - ("s" in held)) * v
-    ve = (("d" in held) - ("a" in held)) * v
+    f = ("w" in held) - ("s" in held)          # screen-up  (forward)
+    r = ("d" in held) - ("a" in held)          # screen-right
+    c, s = math.cos(math.radians(yaw_deg)), math.sin(math.radians(yaw_deg))
+    vn = (f * c - r * s) * v
+    ve = (f * s + r * c) * v
     vd = (("q" in held) - ("e" in held)) * v
     return vn, ve, vd
 
@@ -413,20 +438,30 @@ def match_actor(cam_tf, box, vehicles, snap):
 def draw_overlay(frame, box, label, locked, scale=1.0, delivered=True):
     """Box + caption onto a copy of the received frame. Green locked, red adrift.
 
-    An UNDELIVERED box (WARM: maintained, nobody has asked for it yet) is drawn grey
-    and hollow-thin. That is not decoration -- the whole warm-start claim is that the
-    system tracks things it has not been asked about, so the operator has to be able
-    to see at a glance which boxes are its own housekeeping and which one is theirs.
+    An UNDELIVERED box (WARM: maintained, nobody has asked for it yet) is AMBER and
+    drawn as four corner brackets instead of a closed rectangle. That is not
+    decoration -- the whole warm-start claim is that the system tracks things it has
+    not been asked about, so the operator has to be able to see at a glance which box
+    is its own housekeeping and which one is theirs. It was grey and 1 px for one
+    revision and the report was immediate: "the first track is grey and hard to see".
+    Amber is the same "not yet yours" colour the NEXT hint and the stage badges use,
+    and brackets keep the shape distinguishable from the delivered box in a still.
     """
     if box is None:
         return frame
+    p = [int(v * scale) for v in box]
     if not delivered:
-        c, th, label = (150, 150, 150), 1, f"maintaining: {label}"
+        c, th, label = (63, 160, 224), max(2, int(2 * scale)), f"maintaining: {label}"
+        # bracket length: a fifth of the shorter side, so it scales with the target
+        # and never closes into a rectangle on a small box
+        k = max(6, min(p[2] - p[0], p[3] - p[1]) // 5)
+        for x, dx in ((p[0], k), (p[2], -k)):
+            for y, dy in ((p[1], k), (p[3], -k)):
+                cv2.line(frame, (x, y), (x + dx, y), c, th)
+                cv2.line(frame, (x, y), (x, y + dy), c, th)
     else:
         c = (0, 255, 0) if locked else (0, 0, 255)
-        th = max(1, int(2 * scale))
-    p = [int(v * scale) for v in box]
-    cv2.rectangle(frame, (p[0], p[1]), (p[2], p[3]), c, th)
+        cv2.rectangle(frame, (p[0], p[1]), (p[2], p[3]), c, max(1, int(2 * scale)))
     cv2.putText(frame, label, (p[0], max(14, p[1] - 6)),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5 * scale, c, 1)
     return frame
@@ -601,13 +636,13 @@ def setw(w, **kw):
 
 
 def card(parent, num, title):
-    """One pipeline stage in the rail: numbered badge, name, its own live number.
+    """One pipeline stage in the rail: numbered badge + name. Controls only, no numbers.
 
-    Returns {"body", "badge", "val"}: the caller packs controls into body, and the tick
-    recolours badge (grey/amber/green = not yet / do this next / done) and rewrites val.
-    Keeping each stage's cost in its own header is the point -- the old panel had all
-    seven timings in one 9 pt strip at the bottom, so no number was next to the control
-    that produced it. num=None for the two cards that are not stages (KEYS, the feed).
+    Returns {"body", "badge"}: the caller packs controls into body, and the tick recolours
+    badge (grey/amber/green = not yet / do this next / done). The header carried the
+    stage's own live number for one revision, and that is what put the same facts in
+    four places at once -- they are all in the instruments column now, on a line with
+    the SAME stage number, so "what did stage 3 cost" is one horizontal glance.
     """
     outer = tk.Frame(parent, bg=DARK, highlightthickness=1, highlightbackground=LINE)
     outer.pack(side=tk.TOP, fill=tk.X, pady=(0, 6))
@@ -621,12 +656,9 @@ def card(parent, num, title):
     tk.Label(head, text=title, bg=DARK_HI, fg=TEXT, anchor=tk.W,
              font=("TkDefaultFont", 9, "bold")).pack(side=tk.LEFT, padx=(6 if num is None
                                                                         else 0, 0))
-    val = tk.Label(head, text="", bg=DARK_HI, fg=MUTED, anchor=tk.E,
-                   font=("TkFixedFont", 9))
-    val.pack(side=tk.RIGHT, padx=6)
     body = tk.Frame(outer, bg=DARK)
     body.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=6, pady=(3, 5))
-    return {"body": body, "badge": badge, "val": val}
+    return {"body": body, "badge": badge}
 
 
 def rrow(parent, pady=(0, 3)):
@@ -654,6 +686,92 @@ def pill(w, text, state):
     bg, fg = {"on": (ACCENT, DARK), "warn": (WARN, DARK),
               "bad": (ALERT, DARK), "off": (LINE, MUTED)}[state]
     setw(w, text=f" {text} ", bg=bg, fg=fg)
+
+
+def seg(parent, var, values, lit=ACCENT):
+    """A segmented switch: one lit pill per value, the lit one IS the current value.
+
+    Tk's radio indicator is a ~9 px circle whose selected and unselected states differ
+    by a fill colour that a dark palette flattens to nearly the same grey -- on a
+    screenshot of this panel you cannot tell `vlm` from `oracle`, which was the report.
+    indicatoron=0 gets rid of the dot and makes the whole button the indicator, and the
+    colours are then painted by us (lit = the same green the lamps use, unlit = LINE)
+    because Tk gives a flat radiobutton one background for both states.
+    """
+    btns = []
+    for v in values:
+        b = tk.Radiobutton(parent, text=v, value=v, variable=var, indicatoron=0,
+                           bd=0, padx=10, pady=3, font=("TkDefaultFont", 9, "bold"),
+                           highlightthickness=0, takefocus=0,
+                           selectcolor=lit, bg=LINE, fg=MUTED,
+                           activebackground=DARK_HI, activeforeground=TEXT)
+        b.pack(side=tk.LEFT, padx=(0, 3))
+        btns.append(b)
+
+    def paint(*_):
+        for b in btns:
+            on = b.cget("value") == var.get()
+            setw(b, bg=lit if on else LINE, fg=DARK if on else MUTED)
+
+    var.trace_add("write", paint)
+    paint()
+    return btns
+
+
+def draw_graph(hist, w, h=PLOT_H):
+    """The last ~48 s of the pipeline as three stacked lanes + a state ribbon.
+
+    hist is a list of (carry_hz, lag_frames, lock_frac, state) samples, oldest first,
+    where state is one of none|maintaining|live|bad. cv2 into a numpy array rather than
+    matplotlib: this is redrawn from the render tick, and the tick also flies the camera.
+
+    Why these three: carry Hz is the on-device throughput the whole thesis is about, lag
+    is the delivery staleness Parts IV/V exist to measure (it spikes on a cold ground and
+    drains through the catch-up -- that shape IS the warm-start argument), and the lock
+    fraction says whether any of it landed on the target. The ribbon is the same
+    green/amber/red the lamps use (green delivered, amber maintaining, red drift/lost --
+    the same three colours as the TRACK lamp and the overlay box), so a glance says "when
+    did it go wrong" and the lanes say "what went wrong".
+    """
+    img = np.full((h, w, 3), 30, np.uint8)          # #1e1e1e
+    if not hist:
+        cv2.putText(img, "no data yet", (8, h // 2), cv2.FONT_HERSHEY_SIMPLEX,
+                    0.4, (138, 138, 138), 1)
+        return img
+    rib = 6
+    lanes = (("carry Hz", 0, lambda s: s[0], (95, 191, 63)),        # green, BGR
+             ("lag frames", 1, lambda s: s[1], (63, 160, 224)),      # amber: staleness
+             ("on target %", 2, lambda s: None if s[2] is None else s[2] * 100,
+              (224, 160, 63)))                                      # blue
+    lane_h = (h - rib) // len(lanes)
+    STATE_BGR = {"none": (58, 58, 58), "maintaining": (63, 160, 224),
+                 "live": (95, 191, 63), "bad": (107, 107, 255)}
+    for i, s in enumerate(hist):                    # ribbon: one column per sample
+        x = int(i * (w - 1) / max(PLOT_N - 1, 1))
+        cv2.line(img, (x, 0), (x, rib - 2), STATE_BGR.get(s[3], (58, 58, 58)), 1)
+    for name, idx, get, colour in lanes:
+        y0 = rib + idx * lane_h
+        cv2.line(img, (0, y0), (w, y0), (58, 58, 58), 1)
+        vals = [get(s) for s in hist]
+        top = max([v for v in vals if v is not None], default=0.0)
+        top = max(top, 1.0)
+        # -22, not -12: the lane's own label and its current value are printed on the
+        # y0+11 baseline, and a full-scale sample plotted into that row put the trace
+        # through the text -- verified by screenshot, which is the only way this shows up
+        pts = [(int(i * (w - 1) / max(PLOT_N - 1, 1)),
+                int(y0 + lane_h - 4 - (v / top) * (lane_h - 22)))
+               for i, v in enumerate(vals) if v is not None]
+        if len(pts) > 1:
+            cv2.polylines(img, [np.array(pts, np.int32)], False, colour, 1)
+        cur = next((v for v in reversed(vals) if v is not None), None)
+        cv2.putText(img, name, (4, y0 + 11), cv2.FONT_HERSHEY_SIMPLEX, 0.33,
+                    (138, 138, 138), 1)
+        # the axis is autoscaled per lane, so the peak has to be printed or the
+        # curve is a shape with no units -- and "which number is this" is the whole
+        # complaint the graph is answering
+        cv2.putText(img, f"{'--' if cur is None else f'{cur:.0f}'} / max {top:.0f}",
+                    (w - 96, y0 + 11), cv2.FONT_HERSHEY_SIMPLEX, 0.33, colour, 1)
+    return img
 
 
 def reload_argv(argv, pgid):
@@ -807,28 +925,41 @@ def main():
     # whole panel. Widgets are only touched back on the main thread via after().
     # ponytail: one flag, not a queue -- these are all whole-world operations
     # that have no business overlapping anyway.
-    busy = {"on": False}
+    #
+    # `world` is the half that matters to the render tick. A world op (load, spawn,
+    # clear) invalidates the handles fly() steers, so fly() has to stand down for it;
+    # a LINK op (arm, takeoff, land) touches only MAVLink and leaves every CARLA
+    # handle valid. Sharing one flag meant a 40 s arm+takeoff also froze the camera
+    # and refused every unrelated button, which is exactly what "arm+takeoff freezes
+    # the world" was -- it was not stuck, it was doing a 20 s SITL boot in silence.
+    busy = {"on": False, "world": False, "what": ""}
 
-    def bg(target, fn, *a):
+    def bg(target, fn, *a, link=False, what=None):
         if busy["on"]:
-            status.config(text="busy, wait")
+            status.config(text=f"busy: {busy['what']}")
             return
-        busy["on"] = True
-        target.config(text="working...")
+        busy.update(on=True, world=not link, what=what or getattr(fn, "__name__", "?"))
+        target.config(text=f"working: {busy['what']}")
 
         def work():
             try:
                 msg = fn(*a)
             except Exception as e:
                 msg = f"{type(e).__name__}: {e}"
-            busy["on"] = False
+            busy.update(on=False, world=False)
             root.after(0, lambda: target.config(text=msg))
 
         threading.Thread(target=work, daemon=True).start()
+
+    def note(msg):
+        """Progress from a bg worker. Thread -> Tk the only legal way, via after()."""
+        busy["what"] = msg
+        root.after(0, lambda: status.config(text=msg))
     # ---- chrome: the layout IS the pipeline ------------------------------------
-    # Three regions. A header of lamps (which box is alive, and what is it doing), a
-    # numbered stage rail down the left in the order the operator has to act, and the
-    # verdict bar across the bottom. Everything else is picture.
+    # Three regions and one rule: left = what you DO, right = what HAPPENED, top = is
+    # it ALIVE (colour only, no numbers). A header of lamps, a numbered stage rail down
+    # the left in the order the operator has to act, an instruments column down the
+    # right that owns every number in the panel. Everything else is picture.
     #
     # What this replaced, and why: six full-width control rows of identical visual
     # weight stacked above the video, with the two lines that actually matter -- the
@@ -842,21 +973,16 @@ def main():
     # state change, and the tick that would pay for it is the one flying the camera.
     head = tk.Frame(root, bg=DARK_HI)
     head.pack(side=tk.TOP, fill=tk.X)
-    # foot BEFORE body: pack order decides who gets squeezed when the window is short,
-    # and the verdict must never be the thing that falls off the bottom of the screen.
-    foot = tk.Frame(root, bg=DARK_HI)
-    foot.pack(side=tk.BOTTOM, fill=tk.X)
     body = tk.Frame(root, bg=DARK)
     body.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
     tk.Label(head, text="CARLA live stack", bg=DARK_HI, fg=TEXT,
              font=("TkDefaultFont", 10, "bold")).pack(side=tk.LEFT, padx=(8, 14))
+    # Health lights, and ONLY lights: colour plus one word each, no numbers. The
+    # numbers they used to carry (rates, altitude, drift seconds) are all in the
+    # instruments column now -- a lamp answers "is it alive", the column answers
+    # "how well", and one fact in two places is how a panel gets unreadable.
     lamps = {k: lamp(head, k) for k in ("CARLA", "ORIN", "COPTER", "TRACK", "LOOP")}
-    # the world-operation result line (spawn counts, render size, "busy, wait"): a
-    # transient, so it lives with the lamps rather than in the verdict bar
-    status = tk.Label(head, text="", anchor=tk.E, bg=DARK_HI, fg=MUTED,
-                      font=("TkFixedFont", 9))
-    status.pack(side=tk.RIGHT, padx=8)
 
     rail = tk.Frame(body, bg=DARK, width=RAIL_W)
     rail.pack(side=tk.LEFT, fill=tk.Y, padx=8, pady=6)
@@ -876,6 +1002,53 @@ def main():
     w3_src, w3_click, w3_res, w3_cap, w3_drop = (rrow(w3) for _ in range(5))
     w4_src, w4_go = rrow(w4), rrow(w4)
     w5_auth = rrow(w5)
+
+    # ---- instruments: ONE column that owns every number -------------------------
+    # They were in four places at once (lamps, card headers, a bar across the bottom,
+    # a telemetry block in the rail) and the operator's complaint was the obvious
+    # consequence: no idea where to look. Reading order top to bottom is the order you
+    # care in a failure -- verdict, what the machine is doing, per-stage numbers, the
+    # timings behind them, the last 48 s as a picture, then the flight state.
+    instr = tk.Frame(body, bg=DARK, width=INSTR_W)
+    instr.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 8), pady=6)
+    instr.pack_propagate(False)
+    ihead = tk.Frame(instr, bg=DARK_HI)
+    ihead.pack(side=tk.TOP, fill=tk.X)
+    tk.Label(ihead, text="INSTRUMENTS", bg=DARK_HI, fg=TEXT, anchor=tk.W,
+             font=("TkDefaultFont", 9, "bold")).pack(side=tk.LEFT, padx=6, pady=2)
+    # The verdict, in the largest text on the panel: it is the one line that says
+    # whether what you are looking at worked. Wrapped, because LOST/DRIFT print an
+    # instruction with them and a truncated instruction is worse than none.
+    gstatus = tk.Label(instr, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=TEXT,
+                       wraplength=INSTR_W - 12, font=("TkDefaultFont", 11, "bold"))
+    gstatus.pack(side=tk.TOP, fill=tk.X, pady=(6, 2))
+    # transient: what a world/link operation just did, or is doing right now
+    status = tk.Label(instr, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=MUTED,
+                      wraplength=INSTR_W - 12, font=("TkFixedFont", 8))
+    status.pack(side=tk.TOP, fill=tk.X, pady=(0, 6))
+    # per-stage numbers, numbered to match the rail on the left: same 1-5, so "what
+    # did stage 3 cost" is one horizontal glance from the control that runs stage 3
+    inum = {}
+    for n, t in ((1, "WORLD"), (2, "PILOT"), (3, "DESIGNATE"), (4, "DELIVER"),
+                 (5, "FOLLOW")):
+        inum[n] = tk.Label(instr, text=f"{n} {t}", anchor=tk.W, bg=DARK, fg=TEXT,
+                           font=("TkFixedFont", 9))
+        inum[n].pack(side=tk.TOP, fill=tk.X)
+    gtimes = tk.Label(instr, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=ACCENT,
+                      wraplength=INSTR_W - 12, font=("TkFixedFont", 9))
+    gtimes.pack(side=tk.TOP, fill=tk.X, pady=(6, 4))
+    plot = tk.Label(instr, bg=DARK)
+    plot.pack(side=tk.TOP, anchor=tk.W)
+    ptel = tk.Label(instr, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=MUTED,
+                    font=("TkFixedFont", 8))
+    ptel.pack(side=tk.TOP, fill=tk.X, pady=(6, 0))
+    # Which box runs which stage, spelled out. The constraint is that SAM2 and the VLM
+    # run ONLY on the Orin and the 3090 runs ONLY the simulator; a demo that cannot be
+    # asked where the models are is a demo that can quietly answer "on the 3090".
+    gmodes = tk.Label(instr, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=MUTED,
+                      wraplength=INSTR_W - 12, font=("TkFixedFont", 8))
+    gmodes.pack(side=tk.BOTTOM, fill=tk.X, pady=(4, 0))
+
     picked = tk.StringVar(value=client.get_world().get_map().name.split("/")[-1])
     ttk.Combobox(w1_map, textvariable=picked, values=maps,
                  state="readonly", width=20).pack(side=tk.LEFT)
@@ -1640,17 +1813,25 @@ def main():
     pilot = {"mode": "spectator", "m": None, "fly": None,
              "ned": (0.0, 0.0, -args.alt), "ned_v": (0.0, 0.0, 0.0),
              "vel": (0.0, 0.0, 0.0), "sent": 0.0,
-             "gim": {"pitch": -90.0, "yaw": 0.0}, "pid": None, "hb": "no link"}
+             "gim": {"pitch": -90.0, "yaw": 0.0}, "pid": None, "hb": "no link",
+             "goto": None, "goto_t": 0.0, "goto_msg": "", "goto_done": False}
 
-    def connect_copter():
-        """Bring SITL up if needed, arm, take off. Blocking -- called through bg()."""
+    def connect_copter(note):
+        """Bring SITL up if needed, arm, take off. Blocking -- called through bg().
+
+        Takes ~40 s from cold (SITL boot ~20 s, climb to alt ~20 s) and reports each
+        phase through `note`, because a button that goes quiet for 40 s is
+        indistinguishable from a frozen one -- which is how it was reported.
+        """
         import carla_render as cr
         import sitl_fly_leg as mavfly
         pilot["cr"] = cr
         pilot["fly"] = mavfly
+        note("SITL: connecting (boots one if the port is dead, ~20 s)")
         m = pilot["m"] or ensure_sitl(args.mavlink_url)
         pilot["m"] = m
-        reached = mavfly.arm_and_takeoff(m, args.alt)   # reuses one already airborne
+        # reuses one already airborne
+        reached = mavfly.arm_and_takeoff(m, args.alt, note=note)
         pilot["mode"] = "copter"
         cam["t"] = None
         return f"copter airborne at {reached:.1f} m, camera slaved"
@@ -1674,22 +1855,24 @@ def main():
         pilot["mode"] = "spectator"       # stop slaving to a descending copter
         return "LAND commanded (pilot back to spectator)"
 
-    tk.Button(w2_pilot, text="arm + takeoff",
-              command=lambda: bg(status, connect_copter)).pack(side=tk.LEFT)
-    tk.Button(w2_pilot, text="spectator",
-              command=lambda: bg(status, go_spectator)).pack(side=tk.LEFT, padx=(4, 0))
-    tk.Button(w2_move, text="to origin",
-              command=lambda: bg(status, lambda: (
-                  f"origin: {pilot['fly'].reset_to_origin(pilot['m'], args.alt):.1f} m"
-                  if pilot["m"] else "no copter"))).pack(side=tk.LEFT)
-    tk.Button(w2_move, text="land", command=lambda: bg(status, do_land)).pack(
-        side=tk.LEFT, padx=(4, 0))
-    # telemetry last in the card, and wrapped to the rail: four short fixed-font lines
-    # instead of one 120-character row nobody reads to the end of
-    ptel = tk.Label(w2, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=MUTED,
-                    font=("TkFixedFont", 8))
-    ptel.pack(side=tk.TOP, fill=tk.X)
+    def do_to_origin():
+        """Hand the flight home to the command loop. Instant, so no bg() at all."""
+        if pilot["m"] is None or pilot["mode"] != "copter":
+            status.config(text="no copter -- 'arm + takeoff' first")
+            return
+        pilot["goto"], pilot["goto_t"] = (0.0, 0.0, -args.alt), time.time()
 
+    tk.Button(w2_pilot, text="arm + takeoff",
+              command=lambda: bg(status, connect_copter, note, link=True,
+                                 what="arm + takeoff: SITL boot + climb, ~40 s")
+              ).pack(side=tk.LEFT)
+    tk.Button(w2_pilot, text="spectator",
+              command=lambda: bg(status, go_spectator, link=True)).pack(side=tk.LEFT,
+                                                                       padx=(4, 0))
+    tk.Button(w2_move, text="to origin", command=do_to_origin).pack(side=tk.LEFT)
+    tk.Button(w2_move, text="land",
+              command=lambda: bg(status, do_land, link=True)).pack(side=tk.LEFT,
+                                                                   padx=(4, 0))
     def _arm_track():
         """Clear the old track, reap its Orin bridge, and set the WARM/COLD stance.
 
@@ -1768,9 +1951,7 @@ def main():
     # between a switch an operator can see the state of and one they have to open.
     tk.Label(w3_src, text="source", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(0, 6))
     designate = tk.StringVar(value=args.designate)
-    for m in ("vlm", "oracle"):
-        tk.Radiobutton(w3_src, text=m, value=m, variable=designate,
-                       bg=DARK, activebackground=DARK).pack(side=tk.LEFT)
+    seg(w3_src, designate, ("vlm", "oracle"))
     tk.Label(w3_click, text="Shift-click a car in the flown view", bg=DARK, fg=TEXT
              ).pack(side=tk.LEFT)
     tk.Label(w3_res, text="ground", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(0, 2))
@@ -1799,13 +1980,25 @@ def main():
     # which is exactly the comparison and the reason both live in one binary.
     tk.Label(w4_src, text="acquire", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(0, 6))
     acquire = tk.StringVar(value=args.acquire)
-    for m in ("warm", "cold"):
-        tk.Radiobutton(w4_src, text=m, value=m, variable=acquire,
-                       bg=DARK, activebackground=DARK).pack(side=tk.LEFT)
-    tk.Button(w4_go, text="deliver  (g)", command=do_deliver).pack(side=tk.LEFT)
-    tk.Label(w4_go, text="warm: already maintained,\nso this lands in one carry step",
-             bg=DARK, fg=MUTED, justify=tk.LEFT, font=("TkDefaultFont", 8)
-             ).pack(side=tk.LEFT, padx=(6, 0))
+    seg(w4_src, acquire, ("warm", "cold"))
+    deliver_btn = tk.Button(w4_go, text="deliver  (g)", command=do_deliver)
+    deliver_btn.pack(side=tk.LEFT)
+    # "why does g exist?" -- asked by the person who commissioned the panel, which is
+    # the whole experiment failing to explain itself. g IS the operator's command
+    # arriving mid-flight: the premise of Part V is that it arrives late, so the two
+    # acquire modes differ ONLY in what the system was allowed to do before it. Say
+    # that here, in the mode's own words, and re-say it when the mode changes.
+    why = tk.Label(w4, text="", bg=DARK, fg=MUTED, anchor=tk.W, justify=tk.LEFT,
+                   wraplength=RAIL_W - 28, font=("TkDefaultFont", 8))
+    why.pack(side=tk.TOP, fill=tk.X)
+    WHY = {"warm": "g = the operator's command. The box already exists (stage 3 has "
+                   "been carrying it unasked), so g just hands it over: one carry "
+                   "step, ~0 s. This is maintain-and-deliver.",
+           "cold": "g = the operator's command AND the start of grounding: nothing "
+                   "was carried, so the VLM runs now, under time pressure, and the "
+                   "box lands ~4.8 s stale on a moving target."}
+    acquire.trace_add("write", lambda *_: why.config(text=WHY[acquire.get()]))
+    why.config(text=WHY[acquire.get()])
 
     # -- stage 5, FOLLOW authority --------------------------------------------------
     # manual = operator alone. assist = the model AIMS (gimbal or spectator rotation;
@@ -1814,40 +2007,25 @@ def main():
     # needs a copter to fly. Operator input stays live in all three: a held key
     # outranks the model for as long as it is held.
     follow_mode = tk.StringVar(value="manual")
-    for m in FOLLOW_MODES:
-        tk.Radiobutton(w5_auth, text=m, value=m, variable=follow_mode,
-                       bg=DARK, activebackground=DARK).pack(side=tk.LEFT)
+    seg(w5_auth, follow_mode, FOLLOW_MODES)
     tk.Label(w5, text="assist aims the camera. auto flies the copter.",
              bg=DARK, fg=MUTED, anchor=tk.W, font=("TkDefaultFont", 8)
              ).pack(side=tk.TOP, fill=tk.X)
-
-    # -- the verdict bar: the three lines the demo is actually judged on ------------
-    # Promoted out of 9 pt grey at the bottom of the control stack into the widest,
-    # highest-contrast text on the screen. Line 1 is the verdict, line 2 is where the
-    # number came from, line 3 is which box ran which stage.
-    gstatus = tk.Label(foot, text="", anchor=tk.W, bg=DARK_HI,
-                       font=("TkDefaultFont", 11, "bold"))
-    gstatus.pack(side=tk.TOP, fill=tk.X, padx=8, pady=(4, 0))
-    gtimes = tk.Label(foot, text="", anchor=tk.W, bg=DARK_HI, fg=ACCENT,
-                      font=("TkFixedFont", 11))
-    gtimes.pack(side=tk.TOP, fill=tk.X, padx=8)
-    # Which box runs which stage, spelled out. The constraint is that SAM2 and the VLM
-    # run ONLY on the Orin and the 3090 runs ONLY the simulator; a demo that cannot be
-    # asked where the models are is a demo that can quietly answer "on the 3090".
-    gmodes = tk.Label(foot, text="", anchor=tk.W, bg=DARK_HI, fg=MUTED,
-                      font=("TkFixedFont", 9))
-    gmodes.pack(side=tk.TOP, fill=tk.X, padx=8, pady=(0, 4))
 
     # Live feed with the track drawn on it. In-memory PPM into PhotoImage runs at
     # ~115 FPS (no PIL, no disk); a PNG-per-frame round-trip does not. The image
     # MUST stay referenced in `preview` -- a local gets collected and the label
     # renders blank with no error, the silent failure this repo keeps hitting.
-    preview = {"live": None, "feed": None, "ln": -1, "fn": -1,
+    preview = {"live": None, "ln": -1, "plot": None, "hist": [], "ht": 0.0, "lock": None,
                "t": time.time(), "n0": 0, "fps": 0.0,
                "disp": 0.0, "dt": time.time()}   # real render-tick rate (see tick)
-    # The flown view gets every pixel the rail does not: one Label, no grid, no second
-    # column. The Jetson feed already lives in the rail under its own caption, so the
-    # old 3:1 grid (and the empty right-hand column it created) is gone.
+    # The flown view gets every pixel the two columns do not: one Label, no grid.
+    # There is no second view. The Jetson's own 960x540 feed was shown here (a rail
+    # card first, then a picture-in-picture) and it earned its removal: it is the SAME
+    # camera as the flown view at a fifth of the pixels, so it showed the operator
+    # nothing they were not already looking at, while costing a resize + a blit per
+    # feed frame. What the Jetson actually sees that the flown view cannot show is the
+    # box latency, and that is a number -- it is `lag` in the instruments column.
     vid = tk.Frame(body, bg=DARK)
     vid.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 8), pady=6)
     vhead = tk.Frame(vid, bg=DARK)
@@ -1867,20 +2045,6 @@ def main():
              bg=DARK, fg=MUTED, font=("TkFixedFont", 8)).pack(side=tk.RIGHT, padx=(0, 4))
     big = tk.Label(vid, bg=DARK)
     big.pack(side=tk.TOP, fill=tk.BOTH, expand=True, pady=(4, 0))
-    # The Jetson feed is a picture-in-picture over the bottom-right of the flown view.
-    # It was a rail card first, and at 300 px it cost the rail ~200 px of height: the
-    # KEYS card and the feed itself were both clipped off the bottom of the window
-    # (found by screenshot, not by reading the code). place() over the video is free,
-    # and next to the flown view is where it belongs anyway -- the point of showing it
-    # is comparing the two. Its own caption sits on it, not 800 px away.
-    pip = tk.Frame(vid, bg=DARK_HI)
-    pip.place(relx=1.0, rely=1.0, anchor=tk.SE, x=-10, y=-10)
-    tk.Label(pip, text=f"WHAT THE JETSON SEES -- {CAM_HZ:.0f} Hz, VLM + tracker",
-             bg=DARK_HI, fg=MUTED, font=("TkDefaultFont", 8, "bold")
-             ).pack(side=tk.TOP, anchor=tk.W, padx=5, pady=(2, 0))
-    small_lbl = tk.Label(pip, bg=DARK)
-    small_lbl.pack(side=tk.TOP, padx=5, pady=(0, 5))
-
     def _photo(bgr, widget, drop=0, fixed_w=None):
         """Fit the frame to the widget's current size, keep aspect. Grows AND shrinks.
 
@@ -1908,11 +2072,8 @@ def main():
     def show_preview():
         with frame_lock:
             lf = None if live["n"] == preview["ln"] else live["bgr"]
-            ff = None if latest["n"] == preview["fn"] else latest["bgr"]
             if lf is not None:
                 lf, preview["ln"] = lf.copy(), live["n"]
-            if ff is not None:
-                ff, preview["fn"] = ff.copy(), latest["n"]
         box, locked, deliv = track["box"], track["on_target"], track["delivered"]
         label = track.get("label") or caption_entry.get()   # rich caption in click mode
         if lf is not None:
@@ -1922,10 +2083,6 @@ def main():
                          scale=lf.shape[1] / CAM_W, delivered=deliv)
             preview["live"] = _photo(lf, big)
             big.config(image=preview["live"])
-        if ff is not None:
-            draw_overlay(ff, box, "", locked, delivered=deliv)
-            preview["feed"] = _photo(ff, pip, fixed_w=THUMB_W)
-            small_lbl.config(image=preview["feed"])
         # measured delivery rate, not the requested one -- headless or not, a
         # GPU-contended sensor quietly ships fewer frames than sensor_tick asks for
         dt = time.time() - preview["t"]
@@ -1956,45 +2113,47 @@ def main():
         for n in range(1, 6):
             pill(stg[n]["badge"], n,
                  "on" if done[n] else "warn" if n == nxt else "off")
-        setw(hint, text="NEXT   " + ("working -- one world operation at a time"
-                                     if busy["on"] else
+        setw(hint, text="NEXT   " + (f"working -- {busy['what']}" if busy["on"] else
                                      "waiting for the first camera frame" if fps < 1
                                      else NEXT_TIP[nxt]))
-        pill(lamps["CARLA"], f"CARLA {fps:.0f} Hz" if fps >= 1 else "CARLA no frame",
-             "on" if fps >= 1 else "bad")
+        # the deliver button is the one control the hint can point AT, so it lights
+        # with the badge rather than sitting identical to every other button
+        setw(deliver_btn, bg=WARN if nxt == 4 else DARK_HI,
+             fg=DARK if nxt == 4 else TEXT)
+        # lamps: colour + one word, no numbers (they are all below, in this column)
+        pill(lamps["CARLA"], "CARLA", "on" if fps >= 1 else "bad")
         hz_now, warm_be = track["carry_hz"], backend["be"] is not None
-        pill(lamps["ORIN"],
-             f"ORIN carry {hz_now:.1f} Hz" if hz_now else
-             "ORIN ready" if warm_be else "ORIN cold",
-             "on" if hz_now or warm_be else "off")
-        pill(lamps["COPTER"], f"COPTER {-pilot['ned'][2]:.0f} m" if armed
-             else "COPTER spectator", "on" if armed else "off")
-        if track["drift"]:
-            pill(lamps["TRACK"], f"TRACK drift {track['drift']:.0f} s", "bad")
-        elif track["lost_s"]:
-            pill(lamps["TRACK"], f"TRACK lost {track['lost_s']:.0f} s", "bad")
-        elif boxed:
-            pill(lamps["TRACK"], "TRACK live" if track["delivered"]
-                 else "TRACK maintaining", "on" if track["delivered"] else "warn")
-        else:
-            pill(lamps["TRACK"], "TRACK none", "off")
-        pill(lamps["LOOP"], f"LOOP closed {fm}" if closed else "LOOP open",
-             "on" if closed else "off")
-        # each stage's own cost, in its own header, next to the control that made it
-        setw(stg[1]["val"], text=f"{len(spawned)} spawned")
-        setw(stg[2]["val"], text=f"copter {-pilot['ned'][2]:.0f} m" if armed
-                                 else "spectator")
+        pill(lamps["ORIN"], "ORIN", "on" if hz_now or warm_be else "off")
+        pill(lamps["COPTER"], "COPTER", "on" if armed else "off")
+        state = ("bad" if track["drift"] or track["lost_s"] else
+                 "live" if boxed and track["delivered"] else
+                 "maintaining" if boxed else "none")
+        pill(lamps["TRACK"], "TRACK", {"bad": "bad", "live": "on",
+                                       "maintaining": "warn", "none": "off"}[state])
+        pill(lamps["LOOP"], "LOOP", "on" if closed else "off")
+        # --- the numbers, one line per stage, numbered to match the rail ------------
+        cn, ce, _cd = pilot["vel"]
+        setw(inum[1], text=f"1 WORLD      {len(spawned)} cars spawned   {fps:.0f} Hz render")
+        setw(inum[2], text=(f"2 PILOT      copter {-pilot['ned'][2]:5.1f} m AGL" if armed
+                            else "2 PILOT      spectator, no copter"))
         # oracle costs no grounding, so "ground 0 ms" would read as an instant VLM.
         # Say which one produced the box instead -- the ORACLE-designation caveat is
         # the whole reason P6.2-DELIVERY's claim is scoped, and it has to be visible.
-        setw(stg[3]["val"], text="oracle GT box" if designate.get() == "oracle"
-                                 else _f("ground {:.0f} ms", track["ground_ms"]))
-        setw(stg[4]["val"], text=_f("deliver {:.2f} s", track["deliver_s"]))
-        cn, ce, _cd = pilot["vel"]
-        setw(stg[5]["val"],
-             text=f"{fm}  {(cn ** 2 + ce ** 2) ** 0.5:.1f} m/s" if armed else fm)
-        gstatus.config(text=f"{preview['fps']:.0f} Hz live  {track['msg']}",
+        setw(inum[3], text="3 DESIGNATE  " + ("oracle GT box" if designate.get() == "oracle"
+                                              else _f("ground {:.0f} ms Orin",
+                                                      track["ground_ms"])))
+        setw(inum[4], text="4 DELIVER    " + _f("{:.2f} s command to box",
+                                                track["deliver_s"])
+                           + ("" if track["delivered"] else "   (maintaining)"))
+        setw(inum[5], text=f"5 FOLLOW     {fm}"
+                           + (f"   {(cn ** 2 + ce ** 2) ** 0.5:.1f} m/s" if armed else ""))
+        gstatus.config(text=f"{track['msg']}",
                        fg=ALERT if track["drift"] or track["lost_s"] else TEXT)
+        # a goto owns no thread and so cannot use bg()'s status line: it reports from
+        # the control loop that is actually flying it
+        if pilot["goto"] is not None or pilot["goto_done"]:
+            pilot["goto_done"] = False
+            setw(status, text=pilot["goto_msg"])
         # live per-stage timings, refreshed every tick straight off the track dict.
         # deliver comes FIRST because it is the number the whole warm-start argument
         # is about (command -> box in hand); the rest is where that number came from.
@@ -2009,6 +2168,20 @@ def main():
             f"feed {CAM_HZ:.0f} Hz",
             f"disp {preview['disp']:.0f} Hz",
         )))
+        # --- the last ~48 s as a picture -------------------------------------------
+        # An EMA, not a hit count: the lane is a percentage and a 0/1 square wave would
+        # read as "nothing is on target" for every frame the mask breathes off-centre.
+        preview["lock"] = (None if not (boxed and track["delivered"]) else
+                           0.9 * (preview["lock"] or 0.0)
+                           + 0.1 * (1.0 if track["on_target"] else 0.0))
+        now = time.time()
+        if now - preview["ht"] >= 1.0 / PLOT_HZ:
+            preview["ht"] = now
+            preview["hist"].append((chz or 0.0, track["lag"], preview["lock"], state))
+            del preview["hist"][:-PLOT_N]
+            preview["plot"] = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(
+                draw_graph(preview["hist"], INSTR_W - 12), cv2.COLOR_BGR2RGB)))
+            plot.config(image=preview["plot"])
         # Who is flying, what has been asked for, and which box runs which stage.
         gmodes.config(text="   ".join((
             f"pilot {pilot['mode']}",
@@ -2112,7 +2285,7 @@ def main():
         held.clear()
         stick.config(text="click the view to take the stick", fg=MUTED)
 
-    for w in (big, small_lbl):
+    for w in (big,):
         w.config(takefocus=True, highlightthickness=3,
                  highlightbackground=DARK, highlightcolor=ACCENT)
         w.bind("<Button-1>", lambda e, w=w: w.focus_set())
@@ -2375,7 +2548,11 @@ def main():
         # nothing held AUTO gets the stick and MANUAL/ASSIST hover.
         v = min(float(speed.get()), MANUAL_V_MAX)
         if held & MOVE.keys():
-            vn, ve, vd = manual_velocity(held & MOVE.keys(), v)
+            # view-relative: the gimbal yaw the operator is looking along, so `w` is
+            # up the screen at any heading. AUTO pins the gimbal to 0, so the closed
+            # loop keeps flying in the world frame it was measured in.
+            vn, ve, vd = manual_velocity(held & MOVE.keys(), v, gim["yaw"])
+            pilot["goto"] = None            # operator outranks a goto, same as ASSIST
         elif auto and box is not None:
             if pilot["pid"] is None:
                 from sitl.cascade_pid import CascadePID
@@ -2391,6 +2568,28 @@ def main():
         else:
             vn, ve, vd = 0.0, 0.0, 0.0
         pilot["vel"] = (vn, ve, vd)
+        # "to origin" is a POSITION setpoint owned by THIS loop. It used to call
+        # reset_to_origin() on a bg thread, which blocks on its own recv_match: a
+        # second reader of this socket eats the LOCAL_POSITION_NED the camera is
+        # slaved to (the heartbeat-starvation bug in another costume), so the view
+        # froze for the whole flight home and the button looked like it did nothing.
+        # Here the pose is already in hand and nothing blocks.
+        goto = pilot["goto"]
+        if goto is not None:
+            gn, ge, gd = goto
+            dist = ((n - gn) ** 2 + (e - ge) ** 2 + (d - gd) ** 2) ** 0.5
+            if dist < GOTO_TOL:
+                pilot["goto"], pilot["goto_done"] = None, True
+                pilot["goto_msg"] = f"at origin ({dist:.1f} m)"
+            elif now - pilot["goto_t"] > GOTO_TIMEOUT:
+                pilot["goto"], pilot["goto_done"] = None, True
+                pilot["goto_msg"] = f"to origin: gave up {dist:.0f} m out"
+            else:
+                pilot["goto_msg"] = f"to origin: {dist:.0f} m to go"
+                if now - pilot["sent"] >= 1.0 / CMD_HZ:
+                    pilot["sent"] = now
+                    mavfly.send_position(m, gn, ge, gd)
+                return                      # position setpoint OR velocity, not both
         # Resend on a timer even when the command has not changed: a GUIDED setpoint
         # expires after ~3 s of silence and the copter drops to loiter, so a one-shot
         # send looks like it works and then stops. 60 Hz would be 60 sends/s for no
@@ -2400,9 +2599,12 @@ def main():
             mavfly.send_velocity(m, vn, ve, vd)
 
     def fly():
-        if busy["on"]:
+        # WORLD ops only. A link op (arm, takeoff, land) leaves every CARLA handle
+        # valid, and standing down for one meant the camera sat frozen through a 40 s
+        # takeoff -- which read as a hung panel and was reported as one.
+        if busy["world"]:
             fly_t["last"] = None
-            return  # mid-load (or mid-takeoff) the handles are stale, RPCs raise
+            return  # mid-load the handles are stale and the RPCs raise
         now = time.time()
         box = model_box()
         charge_aim(now, box)
@@ -2448,22 +2650,25 @@ def main():
     # default spectator pose, which is not where the drone ends up. Both go through bg()
     # (SITL boot + climb is ~40 s of blocking MAVLink; the spawn is ~50 round-trips) and
     # bg() takes one whole-world operation at a time, refusing rather than waiting.
-    def queue(fn, *a):
+    def queue(fn, *a, link=False):
         """Run fn through bg() as soon as bg() is free."""
         def go():
             if busy["on"]:
                 root.after(500, go)
             else:
-                bg(status, fn, *a)
+                bg(status, fn, *a, link=link)
         return go
 
     if args.pilot == "copter" and not args.selftest:
         def boot_then_spawn():
-            msg = connect_copter()
+            msg = connect_copter(note)
             if args.auto_spawn:
-                msg += " | " + spawn_vehicles(args.auto_spawn)
+                # a SECOND bg op, not part of this one: the boot is a link op (the
+                # camera keeps flying through it) and the spawn is a world op (batched
+                # CARLA RPCs, which must not run while fly() is also issuing them).
+                root.after(0, queue(spawn_vehicles, args.auto_spawn))
             return msg
-        root.after(1000, queue(boot_then_spawn))
+        root.after(1000, queue(boot_then_spawn, link=True))
     elif args.auto_spawn and not args.selftest:
         root.after(200, queue(spawn_vehicles, args.auto_spawn))
 

@@ -52,8 +52,13 @@ def connect(url="tcp:127.0.0.1:5760", rate_hz=20):
     return m
 
 
-def wait_alt(m, target, timeout=90):
-    """Block until within 1 m of target altitude. Returns the altitude reached."""
+def wait_alt(m, target, timeout=90, note=None):
+    """Block until within 1 m of target altitude. Returns the altitude reached.
+
+    `note` is an optional progress sink (a one-arg callable). A climb to 45 m takes
+    ~20 s, and a caller with a screen has to be able to say so -- silence for 20 s
+    reads as a hang, which is exactly how the panel's "arm + takeoff" was reported.
+    """
     t0 = time.time()
     alt = 0.0
     while time.time() - t0 < timeout:
@@ -61,6 +66,8 @@ def wait_alt(m, target, timeout=90):
         if msg is None:
             continue
         alt = -msg.z
+        if note is not None:
+            note(f"climbing {alt:.0f}/{target:.0f} m")
         if abs(alt - target) < 1.0:
             return alt
     return alt
@@ -100,8 +107,10 @@ def arm(m, tries=60):
     return False
 
 
-def arm_and_takeoff(m, alt):
+def arm_and_takeoff(m, alt, note=None):
     """GUIDED -> armed -> at `alt`. Raises if any step does not actually happen.
+
+    `note` is an optional progress sink, passed through to wait_alt (see there).
 
     Step order is load-bearing and was expensive to find. GUIDED must be set
     BEFORE arming and never re-asserted after: setting the mode on an armed,
@@ -114,6 +123,8 @@ def arm_and_takeoff(m, alt):
     if pos is not None and -pos.z > 5.0:
         return -pos.z
 
+    if note is not None:
+        note("GUIDED + arm")
     if not set_guided(m):
         raise SystemExit("never entered GUIDED")
     if not arm(m):
@@ -135,7 +146,7 @@ def arm_and_takeoff(m, alt):
               f"mode={hb.custom_mode if hb else None}")
     else:
         raise SystemExit("takeoff rejected -- see state above")
-    reached = wait_alt(m, alt)
+    reached = wait_alt(m, alt, note=note)
     if reached < alt - 2.0:
         raise SystemExit(f"never reached {alt} m (got {reached:.1f})")
     return reached
@@ -176,6 +187,22 @@ def send_velocity(m, vn, ve, vd=0.0, yaw_rate=0.0):
         mavutil.mavlink.MAV_FRAME_LOCAL_NED,
         0b0000111111000111,          # use vx/vy/vz + yaw_rate, ignore position/accel/yaw
         0, 0, 0, vn, ve, vd, 0, 0, 0, 0, yaw_rate)
+
+
+def send_position(m, n, e, d):
+    """One GUIDED position setpoint in LOCAL_NED (north, east, down; metres).
+
+    The non-blocking half of reset_to_origin, for a caller that already runs its own
+    control tick and already reads the pose -- the interactive panel, where a helper
+    that blocks on recv_match would compete with the panel's own drain for the same
+    socket and stall the camera it is slaving (see CARLA_DEBUG_UI.md finding 15).
+    Same resend rule as send_velocity: a GUIDED setpoint expires after ~3 s of silence.
+    """
+    m.mav.set_position_target_local_ned_send(
+        0, m.target_system, m.target_component,
+        mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+        0b0000110111111000,          # position-only (x,y,z); ignore vel/accel/yaw
+        float(n), float(e), float(d), 0, 0, 0, 0, 0, 0, 0, 0)
 
 
 def reset_to_origin(m, alt, tol=3.0, timeout=40):

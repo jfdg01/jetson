@@ -540,3 +540,64 @@ matches the same name and is the *larger* window — picking "largest" produced 
 with a title bar) and fails the run if >99% of the image is one colour. *What was given
 up:* nothing. The earlier region-grab implementation was strictly worse: it captured
 whatever was on top, and once captured the user's browser.
+
+### Live demo panel — the numbers move into one column, and the freeze reports were one bug wearing two hats (unnumbered infrastructure, 2026-07-25T17:20Z)
+
+Second round on the same panel, all of it driven by an operator using it live. The reports
+were: the mode switches are unreadable, `g` is unexplained, the maintained box is invisible,
+the Jetson view is useless, the numbers are in four places, `to origin` and `arm + takeoff`
+freeze the view, and `wasd` fights the rotated view. Detail and pixels in
+`runners/CARLA_DEBUG_UI.md` (findings 17-20, `carla_ui_proof/ui-loop-closed.jpg`,
+`ui-maintained-vs-delivered.jpg`).
+
+**Every number in the panel lives in one 380 px instruments column; the rail carries
+controls only.** Why: they were in the lamps, in each card's header, in a bar across the
+bottom *and* in a telemetry block in the rail — four places to read one machine, which is
+what "please centralize it" was reporting. The column's five per-stage lines are numbered
+`1..5` to match the rail cards on the far side of the picture, so a stage's cost is one
+horizontal glance from the control that produced it, and the lamps drop to colour plus one
+word (a lamp answers *is it alive*, the column answers *how well*). Added at the same time,
+because the operator asked for it and because none of the existing readouts showed a
+*trend*: a 5 Hz x 240-sample sparkline (`draw_graph`, cv2 into a numpy array — matplotlib
+in the tick that flies the camera is not an option) with a state ribbon over carry Hz, lag
+frames and an on-target EMA. *What was given up:* one fact can no longer sit next to its
+own control, and the graph is a fixed-height blit whose cost is paid at 5 Hz.
+
+**The Jetson's own feed is no longer displayed at all.** Why: it is the *same camera* as
+the flown view at a fifth of the pixels, so it showed nothing new while costing a resize
+and a blit per feed frame. What the Jetson sees that the flown view cannot show is box
+latency — and that is a number (`lag`), not a picture. *What was given up:* the visual
+"these are two different machines" cue; the mode echo now carries that in words.
+
+**`busy` splits into world ops and link ops, and long ops report progress.** Why: `fly()`
+stood down for *any* background operation, so a ~40 s SITL boot + climb froze the render
+tick and refused every button in silence — reported as "arm+takeoff freezes the world". A
+world op (load, spawn, clear) invalidates the CARLA handles `fly()` steers and must still
+stop it; a link op (arm, takeoff, land) touches only MAVLink. `arm_and_takeoff`/`wait_alt`
+now take a `note` progress sink so the panel says `climbing 31/45 m`. *What was given up:*
+one flag became two plus a string, and a link op can now overlap the render tick — safe
+only because MAVLink and CARLA share no handles.
+
+**`to origin` is a target owned by the control loop, not a blocking helper.** Why:
+`reset_to_origin()` blocks up to 40 s *and* calls `recv_match("LOCAL_POSITION_NED")`
+itself, stealing the pose the camera is slaved to (finding 15's starvation, from the other
+side) — the copter kept flying and the view stopped following it. Split the non-blocking
+half out as `sitl_fly_leg.send_position()` and let the tick that already flies resend it,
+clearing on tolerance or timeout and reporting distance-to-go. *What was given up:* the
+blocking version's guarantee that the copter *is* at the origin when the call returns;
+callers that need that (the matrix harness) keep `reset_to_origin`.
+
+**`wasd` is view-relative in copter mode.** Why: the nadir camera yaws with the arrow keys,
+so world-absolute keys steer sideways on screen as soon as the view is rotated, which reads
+as broken controls. `manual_velocity` rotates the key vector by the gimbal yaw. *What was
+given up:* the ability to fly a known compass heading by key; the NED telemetry in the
+instruments column is what shows heading now. The rotation is the **gimbal's** because SITL
+never sends vehicle yaw (R-10).
+
+**The maintained box is amber corner brackets, not a thin grey rectangle.** Why: "the first
+track is grey and hard to see" — a distinction that only survives close inspection does not
+do the job, and this one carries the whole warm-start claim (the system tracks things nobody
+asked about). Amber is already the panel's "not yours yet" colour (the `NEXT` hint, the
+maintaining badge, the ribbon). *What was given up:* nothing measurable; the test now
+asserts colour, thickness *and* that the box stays open, since a closed rectangle would
+pass a colour-only check.
