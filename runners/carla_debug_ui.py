@@ -113,7 +113,9 @@ ASSIST_RATE = 3.0
 # setpoint, so a fixed fraction means a different standoff per target class (a truck
 # is held at 33 m, a pedestrian at 6 m). See CARLA_DEBUG_UI.md.
 CHASE_TARGET_FRAC = 0.012
-CHASE_SPEED = 30.0          # m/s cap along the boresight, either direction
+CHASE_SPEED = 15.0          # m/s cap along the boresight, either direction. Matches
+                            # MANUAL_V_MAX / WPNAV_SPEED -- the old 30 was above the
+                            # airframe's cruise limit, so the extra was never flown.
 # Min altitude the chase is allowed to reach, and how far above it the escape
 # climbs once breached. CARLA world z, and Town10's ground is ~0, so it doubles
 # as AGL. ponytail: flat-ground assumption. Raycast the terrain if a map with
@@ -156,7 +158,8 @@ CHASE_HIST = 5              # measurements median-filtered into one area reading
 # of range whether the target is near or far, so a single gain behaves the same
 # everywhere. GAIN is m/s per log unit; 0.15 is +-16% of area, inside the mask's
 # own breathing, and without it the drone hunts back and forth on nothing.
-CHASE_GAIN = 5.0
+CHASE_GAIN = 2.5            # halved with CHASE_SPEED: same approach shape against
+                            # half the cruise limit, instead of saturating the cap
 CHASE_DEADBAND = 0.15
 # How long a latched speed survives without a new box. One 5 Hz feed period is
 # 0.2 s, so this tolerates a couple of dropped measurements and no more.
@@ -192,8 +195,13 @@ MAVLINK_URL = "tcp:127.0.0.1:5760"
 COPTER_ALT = 45.0        # m AGL. P6.2-DELIVERY flew 45 m nadir. Note G6: q8_0 is
                          # non-discriminative on a car at that range, which is why
                          # the click designator (EXP-3 point crop) exists.
-MANUAL_V_MAX = 12.0      # m/s cap on operator velocity commands (the fly slider
-                         # goes to 300, which is a spectator speed, not a copter one)
+MANUAL_V_MAX = 15.0      # m/s cap on operator velocity commands (the fly slider
+                         # goes to 300, which is a spectator speed, not a copter one).
+                         # Matches SPORT_PARAMS["WPNAV_SPEED"] = 1500 cm/s: asking for
+                         # more than the airframe's cruise limit just commands a lie.
+                         # Dropped from 25 because reversal time is 2*v/a: the top
+                         # speed is what makes a direction change feel slow, and
+                         # 25 m/s at 45 m AGL outruns the camera anyway.
 GIMBAL_RATE = 90.0       # deg/s the arrow keys slew the gimbal in copter mode
 # A GUIDED velocity setpoint expires after ~3 s of silence and the copter drops to
 # loiter, so it must be resent -- but not at the 60 Hz render tick. 10 Hz is twice
@@ -1900,11 +1908,17 @@ def main():
         note("SITL: connecting (boots one if the port is dead, ~20 s)")
         m = pilot["m"] or ensure_sitl(args.mavlink_url)
         pilot["m"] = m
+        # Before GUIDED: pos_control reads the WPNAV_* limits at mode init, so a
+        # copter that is already flying keeps the stock sluggish ones.
+        note("SITL: sport params")
+        missed = [k for k, v in mavfly.set_params(m, mavfly.SPORT_PARAMS).items()
+                  if v is None]
         # reuses one already airborne
         reached = mavfly.arm_and_takeoff(m, args.alt, note=note)
         pilot["mode"] = "copter"
         cam["t"] = None
-        return f"copter airborne at {reached:.1f} m, camera slaved"
+        note_missed = f", params not applied: {','.join(missed)}" if missed else ""
+        return f"copter airborne at {reached:.1f} m, camera slaved{note_missed}"
 
     def go_spectator():
         """Hand the stick back. The copter is left hovering in GUIDED, not landed."""

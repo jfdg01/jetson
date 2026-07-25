@@ -52,6 +52,59 @@ def connect(url="tcp:127.0.0.1:5760", rate_hz=20):
     return m
 
 
+# Stock ArduCopter SITL is a conservative freighter: 30 deg of lean and 2.5 m/s^2 of
+# nav acceleration, which behind a GUIDED velocity stick reads as sluggish and
+# unresponsive -- the copter spends a second leaning before it goes anywhere, and
+# another one stopping. These are sport-airframe limits. They change the AIRFRAME,
+# not the control path (still CascadePID -> LOCAL_NED velocity), and the interactive
+# panel is a demo, so no P6 number is measured under them.
+#
+# Reversal time is what the operator actually feels: 2*v_max/accel. At 25 m/s and
+# 10 m/s^2 that is 5 s, which is the reported sluggishness. Accel is capped by lean,
+# not by WPNAV_ACCEL -- a_max = g*tan(ANGLE_MAX) -- and above ~60 deg a 2:1-thrust
+# copter can no longer hold altitude while leaning. So: 60 deg (17 m/s^2 of authority)
+# and a 15 m/s cruise, which reverses in ~1.8 s.
+SPORT_PARAMS = {
+    "ANGLE_MAX": 6000.0,      # cdeg lean limit (stock 3000) -- this is the accel authority
+    "WPNAV_ACCEL": 1700.0,    # cm/s^2 horizontal (stock 250); g*tan(60) is the real ceiling
+    "WPNAV_ACCEL_Z": 600.0,   # cm/s^2 vertical (stock 100)
+    "WPNAV_SPEED": 1500.0,    # cm/s horizontal cruise (stock 1000) -- lower ON PURPOSE
+    "WPNAV_SPEED_UP": 500.0,  # cm/s climb (stock 250)
+    "WPNAV_SPEED_DN": 400.0,  # cm/s descent (stock 150)
+    "WPNAV_JERK": 60.0,       # m/s^3 (stock 5) -- otherwise jerk re-imposes the old ramp
+    "ATC_INPUT_TC": 0.03,     # s of attitude smoothing (stock 0.15)
+}
+
+
+def set_params(m, params, timeout=2.0):
+    """PARAM_SET each entry, read back what the autopilot actually kept.
+
+    Returns {name: readback} with None for anything that never came back. The
+    readback IS the check: ArduPilot silently ignores a param it does not have, so
+    a typo'd or firmware-missing name is indistinguishable from an applied one
+    unless you ask for the value.
+
+    Set these BEFORE the mode is entered -- pos_control picks the WPNAV_* limits up
+    at mode init, so a copter already flying GUIDED keeps the old ones until it
+    re-enters.
+    """
+    out = {}
+    for name, value in params.items():
+        m.mav.param_set_send(m.target_system, m.target_component,
+                             name.encode(), float(value),
+                             mavutil.mavlink.MAV_PARAM_TYPE_REAL32)
+        out[name] = None
+        t0 = time.time()
+        while time.time() - t0 < timeout:
+            msg = m.recv_match(type="PARAM_VALUE", blocking=True, timeout=timeout)
+            if msg is None:
+                break
+            if msg.param_id.strip("\x00") == name:
+                out[name] = msg.param_value
+                break
+    return out
+
+
 def wait_alt(m, target, timeout=90, note=None):
     """Block until within 1 m of target altitude. Returns the altitude reached.
 
