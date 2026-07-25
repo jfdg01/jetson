@@ -18,7 +18,11 @@ asks and each one is a different demo:
             command (P5.1/P6.2-DELIVERY: maintain-and-deliver). cold does nothing
             until the command, then grounds under time pressure (E18/R-34: the
             ~4.8 s acquire lands the box stale). The `deliver` timing on screen is
-            that comparison, measured live.
+            that comparison, measured live. This is ONE maintained candidate, not a
+            shortlist to choose from: with N=1 maintain and select collapse, which
+            is the thesis position (R-28) and not a simplification of the demo --
+            the multi-candidate selector is OOM-killed at N=2 on the Orin (R-16) and
+            never beat a single-target carry in 8 runs (P5.3-P5.18, R-36).
   FOLLOW    manual | assist | auto
             manual = operator has sole authority. assist = the model aims (gimbal
             only, never position). auto = closed loop, the delivered box drives the
@@ -1971,6 +1975,19 @@ def main():
     tk.Button(w3_drop, text="drop", command=do_drop).pack(side=tk.LEFT)
     tk.Label(w3_drop, text="clears the track and the Orin bridge", bg=DARK, fg=MUTED,
              font=("TkDefaultFont", 8)).pack(side=tk.LEFT, padx=(6, 0))
+    # "the current system is only a prechoice of one" -- correct, and asked because the
+    # panel never said it. Your click stands in for the idle-window discovery (P5.16:
+    # 24/24 GT-free discoveries accepted), and with ONE candidate maintain and select
+    # collapse. That is the thesis position, not a demo shortcut: R-28 defends
+    # maintain-and-deliver, R-16 OOM-kills the selector at N=2 on the deployed ring, and
+    # select never won a discordant pair in 8 runs. Say it where the click happens.
+    tk.Label(w3, text="Your click stands in for the idle-window discovery: ONE "
+                      "candidate, not a shortlist. With N=1 maintain and select are "
+                      "the same act -- select is a measured dead end (R-16/R-28), so "
+                      "what stage 4 times is delivery, not choosing.",
+             bg=DARK, fg=MUTED, anchor=tk.W, justify=tk.LEFT,
+             wraplength=RAIL_W - 28, font=("TkDefaultFont", 8)).pack(side=tk.TOP,
+                                                                    fill=tk.X)
 
     # -- stage 4, DELIVER: who owns the box, and the press that hands it over -------
     # ACQUIRE. warm = maintain from designation, deliver on command (the thesis

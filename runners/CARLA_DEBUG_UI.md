@@ -668,6 +668,26 @@ other end.
     carrying it unasked), so `g` just hands it over: one carry step, ~0 s"; COLD = "`g` is
     also the *start* of grounding, so the VLM runs now, under time pressure, and the box
     lands ~4.8 s stale on a moving target".
+21. **The panel demoed maintain-and-deliver and let the viewer read it as select.** Next
+    report from the same person: *"i thought the idea was to have all candidates
+    pre-selected and then use them to choose between; the current system is only a
+    prechoice of one (that the user does itself, so functionally it is the same thing)"*.
+    The read is correct — with **N=1 the maintain step and the select step are the same
+    act**, and the panel's Shift-click stands in for the idle-window discovery (P5.16:
+    24/24 GT-free discoveries accepted) rather than reproducing it. What warm/cold
+    compares is not *which* target but **who owns the box while it is being produced**:
+    the interval between the click and `g` is the idle window, warm carries through it and
+    cold does not. That is exactly P6.2-DELIVERY, which held designation constant with
+    ORACLE in both arms so designation was *not* under test.
+    N=1 is the thesis position, not a demo shortcut: R-16 OOM-kills the multi-candidate
+    selector at N=2 on the Orin with the deployed `PRUNE_AFTER=100` ring, select never won
+    a discordant pair in 8 runs (P5.3 3/5, P5.4 3/5 cell-for-cell, P5.5 SWAP 3/5, P5.10
+    24/24 tie, P5.13 24/24 vs 23/24, P5.17 56/56 vs 55/56, P5.18 SWAP 17/26, R-36 b=5/c=0
+    p=0.0625), R-38 put the residual failure downstream of grounding, and R-28 settled the
+    scope. The DESIGNATE card now says all of that in four lines, because a demo that
+    invites the wrong claim is worse than one that shows less. **A live N=2 maintain-and-
+    select mode is still buildable** — R-16 measured `PRUNE_AFTER=32` as free — and would
+    demo the dead lever rather than the claim; it is not in the panel.
 
 ## Actors leak, and a leaked world lies (2026-07-25T13:50Z)
 
