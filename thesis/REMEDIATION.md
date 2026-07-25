@@ -2502,7 +2502,7 @@ ASCII-folded Spanish (`fisica`, `designacion`) — they were written after the 6
 diacritics pass, so they drifted back. The S6 text added to them is properly accented; the
 older prose around it is not, and one of them should be brought into line.
 
-## R-52 — What does maintaining cost? — **PROPOSED**, not started
+## R-52 — What does maintaining cost? — **PRE-REGISTERED as P6.6**, not run
 
 The author's own framing of warm-start is compute/timing efficiency, and the repository
 has **no watt figure for it**. WARM burns SAM2 at 2.69 Hz on the Orin for the whole idle
@@ -2522,6 +2522,18 @@ as likely to be bounded by throttling as by watts.
 a curve with a crossover point, it is a *deployment* number rather than another accuracy
 number, and it is the kind of measurement an edge-hardware thesis is expected to have and
 this one currently does not.
+
+**Landed 2026-07-25T21:40Z (`0a806bb`), execution deferred by the author:** the full
+pre-registration is `experiments/2026-07-25-maintain-cost/README.md` — five arms
+(`A0` idle-bare, `A1` idle-deployed with `llama-server` resident, `B` carry-640,
+`C` carry-512, `D` ground), 300 s each, 3 repeats, order shuffled inside a repeat,
+`tegrastats --interval 500` taking the **instant** mW, and one falsifiable gate
+(**G1**: last-60 s carry rate within 10% of the first 60 s). `run_p66.py` and
+`maintain_cost_dev.py` are committed and have **never been executed against the
+device**; their pure parts are covered offline by `tests/test_p66.py`.
+The ID is **P6.6**, left clear of R-45's proposed EXP-1/2/3 → P6.3/P6.4/P6.5 rename.
+Estimates are recorded up front (maintain **+5 to +8 W** over idle, ~2-5% of a
+150-400 W hover, G1 holds) so estimate-vs-actual is content either way.
 
 ---
 
