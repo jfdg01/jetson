@@ -601,3 +601,51 @@ asked about). Amber is already the panel's "not yours yet" colour (the `NEXT` hi
 maintaining badge, the ribbon). *What was given up:* nothing measurable; the test now
 asserts colour, thickness *and* that the box stays open, since a closed rectangle would
 pass a colour-only check.
+
+### The N=1 scope of warm-start is stated, and "anticipatory grounding" is retired as a headline (R-51, 2026-07-25T19:05Z)
+
+Raised by the author while driving the demo panel: *"if it only works for one object and
+the user has to preselect it manually, is it a bit useless? I'm starting to doubt the
+validity of warm vs cold."* The objection is half right, and the half that is right is a
+scope statement the thesis had not made explicitly.
+
+**"Anticipatory grounding" is retired as a framing.** Why: at N=1 the WARM arm's
+information advantage *is* the target identity — the system was told which object to hold,
+so it anticipates nothing, it holds. The mechanism that would have made the comparison
+non-trivial (maintain K unnamed candidates, let the command pick) is the select arc, dead
+across 8 runs with `c=0` throughout. Keeping the word would claim a capability the
+apparatus never demonstrated. *What was given up:* the most attractive framing in the
+project, and with it the narrative arc the Part V proposal was written around.
+
+**The claim is restated provenance-agnostically.** Why: read what P6.2-DELIVERY measures —
+`cold_target_exits_frame=0`, `on_target=0` in 23/25. Cold does not fail by picking wrong;
+it fails because the box lands ~4.85 s (~146 frames) after the command. So the defensible
+statement is *a box that exists **before** the command produces a followable lock; a box
+**computed after** it does not — grounding cannot sit on the command path at 8 GB*, and it
+holds whatever produced the box (click, prior track, pre-flight designation, an off-board
+datalink). This is strictly weaker than the retired framing and strictly more robust: the
+N=1 objection does not touch it. *What was given up:* an autonomy claim, in exchange for a
+hardware-capability claim — which is the thesis's actual question.
+
+**The cold arm is defended as a baseline, not softened.** Why: it is the system Parts II–IV
+built and deployed (phrase to VLM to follow), measured on real UAV123 video in R-34 at
+3/25. Calling it a strawman would require calling the project's own prior deliverable one.
+
+**The forward implication is recorded as the reason to run the comparison at all.** Why:
+the warm/cold pair localises the binding constraint to **acquire latency**, since
+everything downstream of a correct box at command time is certified separately — P5.15
+(the carry is not the fragile part, 24/25 vs floor 18, p=0.0016), P6.2-COUPLING (bounded
+null under self-induced ego-motion), P6.2-SHOWCASE (24/24 at median IoU 0.92 on the Orin,
+0.960 flight parity). An acquire pruned to ~1 s would put the deployed carry inside its
+already-demonstrated envelope, bounded to the tested regime (nadir, daytime, UAV123/CARLA,
+car or person) and with carry drift still owning the residual failure. *What was given up:*
+nothing — this was true before and simply unstated.
+
+**What was deliberately not done:** the energy cost of maintaining is still unmeasured, and
+it is the sharper criticism (R-52, proposed). WARM burns SAM2 at 2.69 Hz for the whole idle
+window to save 4.85 s once, and no watt figure in this repository says whether that trade
+survives a long window.
+
+Landed as caveat S6 on `P6.2-DELIVERY-warm-vs-cold-closedloop` with pointer caveats on
+`P5.1-warm-vs-cold` and `P5.2a-warm-generalization`, regenerated into `stats-report.md`;
+R-51/R-52 in `thesis/REMEDIATION.md`; finding 21 and the DESIGNATE card text in the panel.

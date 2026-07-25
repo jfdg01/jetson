@@ -2452,6 +2452,77 @@ the renderer lifecycle, **the exact surface that produced the sky-camera scar an
 "look at it" rule**, is never exercised on any machine, so a regression there lands
 green. At minimum, run it by hand before any Part VI result and record that you did.
 
+## R-51 — S6: at N=1 the warm arm's advantage is the target identity — **DOCUMENTED**, framing is **AUTHOR**
+
+Opened 2026-07-25 by the author, driving the live demo panel: *"if it only works for one
+object and the user has to preselect it manually, is it a bit useless? I'm starting to
+doubt the validity of warm vs cold — in theory of course it works, but in practice if
+it's only n=1 it's not actually useful."*
+
+**The objection is half right, and the half that is right is a scope statement.** With one
+maintained candidate the WARM arm's information advantage *is* the target identity: the
+system was told which object to hold, so it anticipates nothing, it holds. The mechanism
+that would have made the comparison non-trivial — maintain K unnamed candidates and let
+the command pick — is the select arc, dead across 8 runs with `c=0` throughout. So
+**"anticipatory grounding" must be retired as a headline**, which is the framing decision
+left to the author.
+
+**What survives, and it is not small.** Read what P6.2-DELIVERY actually measures:
+`cold_target_exits_frame=0`, `on_target=0` in 23/25. Cold does not fail by picking wrong,
+it fails because the box arrives ~4.85 s (~146 frames) after the command. That makes the
+finding **agnostic to the box's provenance** — click, prior track, pre-flight designation,
+a datalink from another asset. The defensible statement is: *on this device, a box that
+exists **before** the command produces a followable lock, and a box **computed after** it
+does not; grounding cannot sit on the command path at 8 GB.* Nor is the cold arm a
+strawman — it is the system Parts II–IV built and deployed, measured on real UAV123 video
+in R-34 at 3/25.
+
+**The forward implication the author asked to record.** The warm/cold pair localises the
+binding constraint to **acquire latency**, because everything downstream of a correct box
+at command time is certified separately: P5.15 (the carry is not the fragile part, 24/25
+against a floor of 18, p=0.0016), P6.2-COUPLING (bounded null under self-induced
+ego-motion), P6.2-SHOWCASE (24/24 at median IoU 0.92 on the Orin, 0.960 flight parity). So
+an acquire pruned to ~1 s would put the deployed carry inside its already-demonstrated
+envelope — bounded to the tested regime (nadir, daytime, UAV123/CARLA, car or person),
+with carry drift still owning the residual failure. That is what makes warm/cold worth
+running even at N=1: it is the measurement that says *which* component to spend hardware on.
+
+**Landed:** the full S6 caveat on `P6.2-DELIVERY-warm-vs-cold-closedloop` and a pointer
+caveat on `P5.1-warm-vs-cold` / `P5.2a-warm-generalization` in `claims.json`, regenerated
+into `stats-report.md`; a DECISIONS entry under Part VI; finding 21 and the DESIGNATE card
+text in the demo panel (`runners/CARLA_DEBUG_UI.md`).
+**Still open (author):** whether the thesis headline changes, and whether R-52 runs.
+Concretely, retiring the framing touches a chapter *title*: `cap07-grounding-anticipatorio.md`
+("Grounding anticipatorio", plus `00-esquema.md` §Capítulo 7) is named after the phrase this
+threat retires. Not renamed here — a chapter title is an author decision, and the honest
+minimum (the S6 section in cap09) is landed either way.
+
+*Side observation, not fixed here:* the P6.2-DELIVERY and P6.2-COUPLING caveats are
+ASCII-folded Spanish (`fisica`, `designacion`) — they were written after the 65-caveat
+diacritics pass, so they drifted back. The S6 text added to them is properly accented; the
+older prose around it is not, and one of them should be brought into line.
+
+## R-52 — What does maintaining cost? — **PROPOSED**, not started
+
+The author's own framing of warm-start is compute/timing efficiency, and the repository
+has **no watt figure for it**. WARM burns SAM2 at 2.69 Hz on the Orin for the whole idle
+window to save 4.85 s once. Over a 60 s window on a battery-limited airframe that trade
+may be *negative*, and nothing here says either way. It is the sharpest unaddressed
+criticism of the warm-start position — sharper than the N=1 one, because N=1 is a scope
+statement while this is a missing measurement.
+
+**Shape:** on-device only (`machine=jetson`), 15 W + `jetson_clocks`. Sample power with
+`jtop`/`tegrastats` over three arms at matched wall-clock — idle baseline, maintain N=1 at
+the deployed carry resolution, and a cold acquire — then report joules per delivered box
+as a function of idle-window length, i.e. the window length at which maintaining costs
+more energy than it saves. Report the thermal state too: sustained carry on this board is
+as likely to be bounded by throttling as by watts.
+
+**Why it is worth the afternoon:** it converts "compute efficient" from an assumption into
+a curve with a crossover point, it is a *deployment* number rather than another accuracy
+number, and it is the kind of measurement an edge-hardware thesis is expected to have and
+this one currently does not.
+
 ---
 
 ## The writing programme, W-1..W-9
