@@ -749,6 +749,46 @@ printed (`carry bridge died (rc=-9)`). `-9` is the Orin OOM killer, which leaves
 traceback and is exactly why `ui_bridge.err` looked clean. Seen once before the
 instrumentation existed; not reproduced since, so it stays open.
 
+## The carry bridge is resident, not per-designation (2026-07-25T20:20Z)
+
+Same lesson as the section above, one process along. The panel used to `Popen` a fresh
+`carry_ssh_bridge.py` for every designation, so the operator's wait from "locked in" to a
+live box included `ssh` + `import torch`/`sam2` + `from_pretrained` + the first CUDA
+forward. Driving the panel, that read as **6–10 s**, and the panel's own 64 live traces
+have a median `catchup_s` of **6.52 s**.
+
+P6.7 (`experiments/2026-07-25-handoff-latency/`) decomposed it on the Orin: `ssh` 0.301 +
+`import` 2.846 + `weights` 1.800 = **4.95 s of 6.15 s is process start-up**, and only
+0.36 s is the tracker catching up. None of it is optimisable on an Orin; it can only be
+paid in advance. So `get_bridge()` now keeps **one** bridge for the session, `prewarm_bridge()`
+pays the whole thing at start-up next to the `llama-server` prewarm, and each designation
+just re-`init`s (which rebuilds `StreamCarry` on the already-loaded predictor).
+
+First live designation after the change: **`catchup_s` 0.343 s**, on the panel's own
+readout, same metric as the 6.52 s median — `runs/p67-panel/trace-127/trace.jsonl`,
+`ev="live"`. `ui_bridge.err` from that run shows one `[bridge] model loaded in 1.8s` and
+*two* `init`s (the prewarm's dummy frame, then the real seed), which is the residency
+working. Consequences worth knowing:
+
+- **Dropping a track no longer kills the bridge.** `_stop_current()` only sets the stop
+  flag; the process is reaped on window close, so a re-follow costs one `init`, not a
+  6 s cold start. An orphan on the Orin is now possible only if the panel is killed
+  without closing its window.
+- **A carry-resolution change from the combobox respawns it**, as does a dead process
+  (`poll()` is not None — `rc=-9` is still the Orin OOM killer). Respawn is the failure
+  mode, not the normal mode, and it costs exactly today's old behaviour, once.
+- **`bridge_io` guards the pipe, not just the dict.** The framing is one framed send then
+  one framed recv, so a follow holds it for its whole life. The next follow has already
+  set the old one's stop flag, so it waits at most one carry step.
+- **G3 says residency is free on the 8 GB board**: a resident SAM2 costs the deployed
+  `llama-server` **x1.000** on grounding latency (3791.1 → 3791.2 ms over 25 paired
+  requests) and leaves 1315 MB of `MemAvailable`, with 0 `rc=-9` over 50 consecutive
+  designations on one bridge.
+
+What this does **not** fix: the seam is now short, but at 76 m the smoke run above still
+drifted (`lock 0/129`) from a 5x13 px VLM seed box. Latency and grounding quality are
+separate problems and this only closes the first.
+
 ## Walker AI is dead on Town10HD_Opt — and it is the simulator, not the tool
 
 The selftest's "walkers move" assert failed with `only 0 walkers moved`. Reproduced

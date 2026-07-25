@@ -2,9 +2,10 @@
 
 **Status: COMPLETE.** Pre-registered 2026-07-25T18:40Z, run 2026-07-25T18:48Z–20:01Z,
 written up 2026-07-25T20:10Z. **G1, G2 and G3 all PASS**; the registered claim is
-`P6.7-HANDOFF-warm-vs-cold-bridge` in `thesis/claims.json`. The one thing this campaign
-does **not** do is change the panel: `runners/carla_debug_ui.py` still spawns a bridge per
-designation, and applying the lever lands on `main` as a separate commit (tracked as R-53).
+`P6.7-HANDOFF-warm-vs-cold-bridge` in `thesis/claims.json`. The panel change itself is
+**not** part of this campaign: applying the lever to `runners/carla_debug_ui.py` landed on
+`main` as its own commit under R-53 (closed 2026-07-25T20:20Z), where the panel's own
+`catchup_s` read 0.343 s live against its 6.52 s pre-change median.
 
 **Origin:** an author observation from driving the live demo panel
 (`runners/carla_debug_ui.py`) on 2026-07-25: *"the most problematic thing is the catch-up

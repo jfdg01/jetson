@@ -682,6 +682,11 @@ and `carry_res_sweep.py` all already reuse one live bridge across cells. The off
 harnesses had the fast path and the live panel — the one an operator watches — had the slow
 one, because nobody wrote down which was intended. This entry is that missing record.
 
+*Where it landed:* `runners/carla_debug_ui.py` on `main` (R-53, closed 2026-07-25T20:20Z),
+as its own commit after the campaign merged. The panel's own `catchup_s` then read
+**0.343 s** on a live `--pilot copter --smoke` designation, against the 6.52 s median of
+the 64 pre-change traces.
+
 *Scope:* measured on the Orin at 15 W + `jetson_clocks`, `image_size=512`, over the CARLA
 GT bank replayed from disk through the deployed ssh-stdio bridge. The link to live flight is
 that the COLD arm reproduces the panel's own traces (`steps_to_live=3` matches 11 of 13

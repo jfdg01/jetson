@@ -1257,21 +1257,20 @@ def main():
             return
         closing["done"] = True
         # kill the on-Orin carry bridge first: it holds the Jetson GPU, and a window
-        # close that skips it leaves carry_ssh_bridge.py running on the device.
+        # close that skips it leaves carry_ssh_bridge.py running on the device. Since
+        # P6.7 the bridge is session-scoped, so this is the ONLY place it is reaped --
+        # dropping a track no longer kills it.
         with track_lock:
             if track["stop"] is not None:
                 track["stop"].set()
-            br = track.get("bridge")
-            track["bridge"] = None
-        if br is not None:
-            try:
-                br.stdin.close()
-            except Exception:
-                pass
-            try:
-                br.kill()
-            except Exception:
-                pass
+        # Bounded wait: a follow releases bridge_io within one carry step, but if the
+        # bridge is wedged in _recv the window still has to close. Kill either way.
+        got = bridge_io.acquire(timeout=5)
+        try:
+            _kill_bridge()
+        finally:
+            if got:
+                bridge_io.release()
         # Zero the GUIDED setpoint before letting go of the link. A copter left with a
         # live velocity command keeps flying it for ~3 s after the UI is gone; SITL is
         # cheap, but "it flew off after I closed the window" is not a demo.
@@ -1396,10 +1395,11 @@ def main():
              # a box on the wrong object). Both have to be visible or the panel reports
              # a healthy lock rate while nothing is being tracked.
              "lost_s": None,
-             # bridge = the live Orin carry subprocess (killed on drop/close); label =
-             # the caption the overlay draws (rich caption in click mode); the *_ms/hz
-             # fields are the live per-stage timings the status strip reads at 60 Hz.
-             "bridge": None, "label": None, "ground_ms": None,
+             # label = the caption the overlay draws (rich caption in click mode); the
+             # *_ms/hz fields are the live per-stage timings the status strip reads at
+             # 60 Hz. The carry bridge is NOT here: it outlives any single track, see
+             # `bridge` / get_bridge below (P6.7).
+             "label": None, "ground_ms": None,
              "carry_ms": None, "carry_hz": None, "catchup_s": None,
              # WARM/COLD delivery. `delivered` is the whole difference between the two
              # arms: a maintained track exists and is being carried but is NOT handed
@@ -1410,6 +1410,88 @@ def main():
              "delivered": True, "cmd_t": None, "deliver_s": None}
     track_lock = threading.Lock()
     resize = {"job": None}
+
+    # --- the resident on-Orin carry bridge (P6.7) -------------------------------
+    # One SAM2 process for the whole session, NOT one per designation. P6.7 measured
+    # what per-designation costs: 6.15 s from "locked in" to a live box, of which
+    # ssh 0.30 + `import torch`/`sam2` 2.85 + `from_pretrained` 1.80 = 4.95 s (80%)
+    # is process start-up that has nothing to do with the scene. Resident, the same
+    # seam is 0.30 s on a click and 0.52 s behind a 4.85 s grounding lag -- and the
+    # gate that mattered is that residency is free: a resident SAM2 costs the deployed
+    # llama-server x1.000 on grounding latency and leaves 1315 MB on the 8 GB board.
+    # `init` per designation rebuilds StreamCarry on the already-loaded predictor, so
+    # nothing leaks between targets except the loaded weights, which is the point.
+    bridge = {"proc": None, "size": None, "log": None}
+    # RLock, and it guards the PIPE, not just the dict: the framing is one framed
+    # send followed by one framed recv, so two threads in the pipe at once would read
+    # each other's replies. A follow holds it for its whole life; the next follow has
+    # already set the old one's stop flag, so it blocks for at most one carry step.
+    bridge_io = threading.RLock()
+
+    def _kill_bridge():
+        """Caller holds bridge_io. Close the pipe, kill the Orin process, drop the log."""
+        p, log = bridge["proc"], bridge["log"]
+        bridge["proc"], bridge["size"], bridge["log"] = None, None, None
+        if p is not None:
+            try:
+                p.stdin.close()
+            except Exception:
+                pass
+            try:
+                p.wait(timeout=2)
+            except Exception:
+                try:
+                    p.kill()
+                except Exception:
+                    pass
+        if log is not None:
+            try:
+                log.close()
+            except Exception:
+                pass
+
+    def get_bridge(size):
+        """The resident bridge for `size`, spawned if absent, dead, or wrong-sized.
+
+        Respawn is the failure mode, not the normal mode: a dead bridge (`poll()` is
+        not None -- rc=-9 is the Orin OOM killer) or a carry-resolution change from the
+        panel's combobox costs exactly today's 6 s cold start, once.
+        """
+        size = int(size)
+        with bridge_io:
+            p = bridge["proc"]
+            if p is not None and (p.poll() is not None or bridge["size"] != size):
+                _kill_bridge()
+                p = None
+            if p is None:
+                out_dir.mkdir(parents=True, exist_ok=True)
+                bridge["log"] = open(out_dir / "ui_bridge.err", "wb")
+                bridge["proc"] = p = subprocess.Popen(
+                    ["ssh", "-T", "-q", "jetson", CARRY_BRIDGE.format(size=size)],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=bridge["log"])
+                bridge["size"] = size
+            return p
+
+    def prewarm_bridge(size):
+        """Pay ssh + import + weights + the first CUDA forward before anyone clicks.
+
+        Runs off the UI thread at start-up, beside the llama-server prewarm and for the
+        same reason: otherwise the first designation is charged for the boot, and the
+        delivery latency this panel exists to show stops being honest. The dummy frame
+        is a 320x240 black image -- SAM2 does not care what it segments, only that the
+        graph is built and the kernels are compiled.
+        """
+        try:
+            X = load_exp3()
+            with bridge_io:
+                p = get_bridge(size)
+                dummy = np.zeros((240, 320, 3), np.uint8)
+                X._send(p.stdin, ("init", X._rgb_jpg_arr(dummy), [40, 40, 120, 120]))
+                X._recv(p.stdout)
+                X._send(p.stdin, ("step", X._rgb_jpg_arr(dummy)))
+                X._recv(p.stdout)
+        except Exception:
+            traceback.print_exc()   # a failed prewarm is a slow first click, not fatal
 
     # Reading v.bounding_box is a ~10 ms server round-trip (measured), and match_actor
     # projects every vehicle EVERY carry step -- 50 vehicles was ~540 ms/step of held
@@ -1433,24 +1515,15 @@ def main():
                 int(box[2] / COORD_SCALE * w), int(box[3] / COORD_SCALE * h)]
 
     def _stop_current():
-        """Stop whatever is following now and reap its on-Orin carry bridge.
+        """Stop whatever is following now. Caller holds track_lock.
 
-        Caller holds track_lock. Killing the ssh bridge here (not only on drop) is
-        what stops a re-follow from leaving an orphaned carry_ssh_bridge.py on the
-        Jetson holding the GPU."""
+        P6.7: this no longer kills the carry bridge. The bridge is session-scoped and
+        the next designation re-`init`s it in ~0.3 s; killing it here is what used to
+        make every re-follow pay a 6 s cold start. The stopped follow releases
+        bridge_io within one carry step, and the process is reaped on window close.
+        """
         if track.get("stop") is not None:
             track["stop"].set()
-        br = track.get("bridge")
-        if br is not None:
-            try:
-                br.stdin.close()
-            except Exception:
-                pass
-            try:
-                br.kill()
-            except Exception:
-                pass
-            track["bridge"] = None
 
     def _mark_delivered():
         """Stamp deliver_s the first time a box exists after the command lands.
@@ -1490,14 +1563,14 @@ def main():
              raw=(raw or "")[:200], box=seed_box,
              mode="click" if seed_actor_id is not None else "caption")
 
-        log = open(out_dir / "ui_bridge.err", "wb")
-        proc = subprocess.Popen(
-            ["ssh", "-T", "-q", "jetson", CARRY_BRIDGE.format(size=int(carry_size))],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log)
-        with track_lock:
-            track["bridge"] = proc
-        t0 = time.time()
+        # P6.7: take the resident bridge, do not spawn one. bridge_io is held for the
+        # whole follow -- one thread in the pipe at a time -- and the previous follow
+        # has already been told to stop, so the wait here is one carry step at worst.
+        # Acquired outside the `try` so the matching release lives in its `finally`.
+        bridge_io.acquire()
         try:
+            proc = get_bridge(carry_size)   # inside the try: a failed spawn must still release
+            t0 = time.time()
             X._send(proc.stdin, ("init", X._rgb_jpg_arr(seed),
                                  [int(v) for v in seed_box]))
             ack = X._recv(proc.stdout)
@@ -1653,18 +1726,11 @@ def main():
             emit(ev="end", n=cursor)
         finally:
             trace.close()
-            try:
-                proc.stdin.close()
-            except Exception:
-                pass
-            try:
-                proc.wait(timeout=5)
-            except Exception:
-                proc.kill()
-            log.close()
-            with track_lock:
-                if track.get("bridge") is proc:
-                    track["bridge"] = None
+            # The bridge stays up and stays loaded -- that is the whole lever. A follow
+            # that ended mid-protocol cannot leave a reply in the pipe: send and recv
+            # are adjacent with no stop check between them, so the next `init` reads its
+            # own ack. If the process died, get_bridge() respawns on the next follow.
+            bridge_io.release()
 
     def follow(caption, stop):
         """Whole-frame caption grounding on the Jetson -> carry on the Jetson."""
@@ -2694,6 +2760,12 @@ def main():
         # first acquire otherwise charges the server boot to the delivery latency,
         # which is the one number on this panel that has to be honest.
         threading.Thread(target=get_backend, daemon=True).start()
+        # Same argument, and P6.7 is the measurement behind it: prewarm the SAM2 carry
+        # bridge too, or the first designation pays 4.95 s of ssh + import + weights
+        # before a single box exists. Separate thread -- the two prewarms are on
+        # different Orin resources and there is no reason to serialise them.
+        threading.Thread(target=prewarm_bridge, args=(carry_size.get(),),
+                         daemon=True).start()
 
     if args.smoke and not args.selftest:
         # Unattended end-to-end run: designate the car nearest frame centre, deliver it,

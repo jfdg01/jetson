@@ -2197,7 +2197,7 @@ experiments continue. Everything below is therefore split by whether it can be w
 | R-48 | The only ratchet is closed, so HANDOFF's finish criterion is vacuous | P2 | OPEN |
 | R-49 | Branch clutter: 28 merged `experiment/*`, 3 unmerged carrying unique content | P3 | **AUTHOR** |
 | R-50 | `tests/test_carla_lifecycle.py` never runs in `make test` | P3 | OPEN |
-| R-53 | The live panel still cold-starts a SAM2 bridge per designation (P6.7 measured the fix) | **P1** | OPEN |
+| R-53 | The live panel cold-started a SAM2 bridge per designation (P6.7 measured the fix; panel now resident) | **P1** | DONE |
 
 ## Status board — W series (the writing programme; BLOCKED on the supervisor)
 
@@ -2536,7 +2536,7 @@ The ID is **P6.6**, left clear of R-45's proposed EXP-1/2/3 → P6.3/P6.4/P6.5 r
 Estimates are recorded up front (maintain **+5 to +8 W** over idle, ~2-5% of a
 150-400 W hover, G1 holds) so estimate-vs-actual is content either way.
 
-## R-53 — The live panel still cold-starts a SAM2 bridge per designation
+## R-53 — The live panel cold-started a SAM2 bridge per designation (DONE)
 
 P6.7 (2026-07-25) measured what that costs and what removing it buys, on the Orin, paired
 over 25 CARLA clips: median `t_handoff` 6.311 s -> **0.515 s** at the deployed 4.85 s
@@ -2547,13 +2547,19 @@ Wilcoxon p=1.228e-05. **80% of the 6.15 s is process start-up** (`import torch` 
 costs the VLM **x1.000** (`ground_ms` 3791.1 -> 3791.2 ms, 25 paired requests), 0/50
 `rc=-9`, `MemAvailable` floor 1315 MB.
 
-The campaign is landed (`experiments/2026-07-25-handoff-latency/`,
-`P6.7-HANDOFF-warm-vs-cold-bridge` in `claims.json`). **What is still open is the code
-change**: `runners/carla_debug_ui.py::orin_carry` still does one `Popen` per follow, so an
-operator watching the panel still waits ~6.5 s. The fix is to hoist the spawn into the
-start-up prewarm thread beside `get_backend()`, warm CUDA once, and `init_state` per
-designation. It lands on `main` as a separate commit from the campaign branch, per the
-pre-registration and the infra/experiment separation rule.
+**CLOSED 2026-07-25T20:20Z.** The campaign landed first
+(`experiments/2026-07-25-handoff-latency/`, `P6.7-HANDOFF-warm-vs-cold-bridge` in
+`claims.json`), then the code change on `main` as its own commit, per the infra/experiment
+separation rule. `runners/carla_debug_ui.py` now keeps one session-scoped bridge
+(`get_bridge` / `prewarm_bridge` / `bridge_io`), prewarms it at start-up beside
+`get_backend()`, and re-`init`s per designation; `_stop_current()` no longer kills it and
+the window-close path is the only reaper. Verified live, not by inspection: a `--pilot
+copter --smoke` run designated `vehicle.nissan.micra` and the panel's own `catchup_s` read
+**0.343 s** (`runs/p67-panel/trace-127/trace.jsonl`, `ev="live"`) against the 6.52 s median
+of the 64 pre-change traces — same metric, same panel. `ui_bridge.err` from that run shows
+one model load and two `init`s (prewarm + real seed), which is the residency working.
+Written up in `runners/CARLA_DEBUG_UI.md`. Not fixed by this and not claimed: the same run
+drifted at 76 m from a 5x13 px VLM seed — grounding quality is a separate problem.
 
 *R-46 datapoint (the "deployed" carry resolution is stated three different ways):* P6.7 is
 a fourth statement — its matrix ran at `image_size=512`, while EXP-1 adopted **640** as the
