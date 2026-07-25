@@ -1,0 +1,1652 @@
+{
+ "OPT_clip00": {
+  "clip": "clip00",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 40.0,
+  "target_id": 490,
+  "target_type": "vehicle.ford.mustang",
+  "click": [
+   329.9,
+   251.4
+  ],
+  "caption": "blue car in the center",
+  "hit_id": 490,
+  "hit_ok": true,
+  "target_box": [
+   319.1,
+   230.9,
+   340.8,
+   271.9
+  ],
+  "box": [
+   342.8,
+   230.5,
+   358.2,
+   261.2
+  ],
+  "ground_iou": 0.0,
+  "ground_ms": 1396.0,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 18.84,
+  "reason": null
+ },
+ "FULL_clip00": {
+  "clip": "clip00",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 40.0,
+  "target_id": 490,
+  "target_type": "vehicle.ford.mustang",
+  "click": [
+   329.9,
+   251.4
+  ],
+  "caption": "blue car in the center",
+  "hit_id": 490,
+  "hit_ok": true,
+  "target_box": [
+   319.1,
+   230.9,
+   340.8,
+   271.9
+  ],
+  "box": [
+   319.8,
+   230.5,
+   340.2,
+   271.5
+  ],
+  "ground_iou": 0.9218,
+  "ground_ms": 9066.8,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 18.84,
+  "reason": null
+ },
+ "OPT_clip01": {
+  "clip": "clip01",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 60.0,
+  "target_id": 596,
+  "target_type": "vehicle.mercedes.coupe",
+  "click": [
+   225.0,
+   75.8
+  ],
+  "caption": "silver car in the center",
+  "hit_id": 596,
+  "hit_ok": true,
+  "target_box": [
+   211.7,
+   58.9,
+   238.4,
+   92.7
+  ],
+  "box": [
+   217.3,
+   55.1,
+   232.7,
+   87.7
+  ],
+  "ground_iou": 0.4615,
+  "ground_ms": 942.7,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 17.76,
+  "reason": null
+ },
+ "FULL_clip01": {
+  "clip": "clip01",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 60.0,
+  "target_id": 596,
+  "target_type": "vehicle.mercedes.coupe",
+  "click": [
+   225.0,
+   75.8
+  ],
+  "caption": "silver car in the center",
+  "hit_id": 596,
+  "hit_ok": true,
+  "target_box": [
+   211.7,
+   58.9,
+   238.4,
+   92.7
+  ],
+  "box": [
+   214.8,
+   63.2,
+   235.2,
+   89.8
+  ],
+  "ground_iou": 0.6025,
+  "ground_ms": 6656.0,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 17.76,
+  "reason": null
+ },
+ "OPT_clip02": {
+  "clip": "clip02",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 80.0,
+  "target_id": 702,
+  "target_type": "vehicle.seat.leon",
+  "click": [
+   308.4,
+   284.5
+  ],
+  "caption": "blue car in the center",
+  "hit_id": 702,
+  "hit_ok": true,
+  "target_box": [
+   303.8,
+   275.3,
+   313.1,
+   293.7
+  ],
+  "box": [
+   302.9,
+   282.4,
+   310.6,
+   300.4
+  ],
+  "ground_iou": 0.3313,
+  "ground_ms": 1017.6,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 16.92,
+  "reason": null
+ },
+ "FULL_clip02": {
+  "clip": "clip02",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 80.0,
+  "target_id": 702,
+  "target_type": "vehicle.seat.leon",
+  "click": [
+   308.4,
+   284.5
+  ],
+  "caption": "blue car in the center",
+  "hit_id": 702,
+  "hit_ok": true,
+  "target_box": [
+   303.8,
+   275.3,
+   313.1,
+   293.7
+  ],
+  "box": [
+   302.9,
+   274.8,
+   313.1,
+   292.7
+  ],
+  "ground_iou": 0.8363,
+  "ground_ms": 9055.2,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 16.92,
+  "reason": null
+ },
+ "OPT_clip03": {
+  "clip": "clip03",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 100.0,
+  "target_id": 808,
+  "target_type": "vehicle.dodge.charger_police_2020",
+  "click": [
+   333.4,
+   237.7
+  ],
+  "caption": "silver police car in the center",
+  "hit_id": 808,
+  "hit_ok": true,
+  "target_box": [
+   329.7,
+   229.0,
+   337.2,
+   246.4
+  ],
+  "box": [
+   333.0,
+   222.6,
+   340.7,
+   238.0
+  ],
+  "ground_iou": 0.179,
+  "ground_ms": 1018.5,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 14.62,
+  "reason": null
+ },
+ "FULL_clip03": {
+  "clip": "clip03",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 100.0,
+  "target_id": 808,
+  "target_type": "vehicle.dodge.charger_police_2020",
+  "click": [
+   333.4,
+   237.7
+  ],
+  "caption": "silver police car in the center",
+  "hit_id": 808,
+  "hit_ok": true,
+  "target_box": [
+   329.7,
+   229.0,
+   337.2,
+   246.4
+  ],
+  "box": [
+   333.0,
+   161.2,
+   343.2,
+   179.1
+  ],
+  "ground_iou": 0.0,
+  "ground_ms": 9055.7,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 14.62,
+  "reason": null
+ },
+ "OPT_clip04": {
+  "clip": "clip04",
+  "arm": "OPT",
+  "cmd": 550,
+  "alt": 120.0,
+  "target_id": 914,
+  "target_type": "vehicle.audi.tt",
+  "click": [
+   344.8,
+   469.8
+  ],
+  "caption": "red car in the center",
+  "hit_id": 914,
+  "hit_ok": true,
+  "target_box": [
+   340.7,
+   462.4,
+   348.9,
+   477.2
+  ],
+  "box": [
+   362.9,
+   369.6,
+   373.2,
+   390.3
+  ],
+  "ground_iou": 0.0,
+  "ground_ms": 875.4,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 14.12,
+  "reason": null
+ },
+ "FULL_clip04": {
+  "clip": "clip04",
+  "arm": "FULL",
+  "cmd": 550,
+  "alt": 120.0,
+  "target_id": 914,
+  "target_type": "vehicle.audi.tt",
+  "click": [
+   344.8,
+   469.8
+  ],
+  "caption": "red car in the center",
+  "hit_id": 914,
+  "hit_ok": true,
+  "target_box": [
+   340.7,
+   462.4,
+   348.9,
+   477.2
+  ],
+  "box": [
+   347.6,
+   373.7,
+   360.4,
+   404.1
+  ],
+  "ground_iou": 0.0,
+  "ground_ms": 4212.2,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 14.12,
+  "reason": null
+ },
+ "OPT_clip05": {
+  "clip": "clip05",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 40.0,
+  "target_id": 1020,
+  "target_type": "vehicle.mercedes.sprinter",
+  "click": [
+   276.0,
+   207.9
+  ],
+  "caption": "silver van in the center",
+  "hit_id": 1020,
+  "hit_ok": true,
+  "target_box": [
+   253.3,
+   182.2,
+   298.6,
+   233.6
+  ],
+  "box": [
+   265.8,
+   185.0,
+   299.0,
+   220.8
+  ],
+  "ground_iou": 0.5027,
+  "ground_ms": 1017.9,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 18.06,
+  "reason": null
+ },
+ "FULL_clip05": {
+  "clip": "clip05",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 40.0,
+  "target_id": 1020,
+  "target_type": "vehicle.mercedes.sprinter",
+  "click": [
+   276.0,
+   207.9
+  ],
+  "caption": "silver van in the center",
+  "hit_id": 1020,
+  "hit_ok": true,
+  "target_box": [
+   253.3,
+   182.2,
+   298.6,
+   233.6
+  ],
+  "box": [
+   258.1,
+   187.5,
+   296.5,
+   233.6
+  ],
+  "ground_iou": 0.761,
+  "ground_ms": 9029.2,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 18.06,
+  "reason": null
+ },
+ "OPT_clip06": {
+  "clip": "clip06",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 60.0,
+  "target_id": 1126,
+  "target_type": "vehicle.dodge.charger_police_2020",
+  "click": [
+   341.6,
+   236.2
+  ],
+  "caption": "silver police car in the center",
+  "hit_id": 1126,
+  "hit_ok": true,
+  "target_box": [
+   335.7,
+   221.7,
+   347.5,
+   250.7
+  ],
+  "box": [
+   316.4,
+   195.0,
+   326.6,
+   220.6
+  ],
+  "ground_iou": 0.0,
+  "ground_ms": 1018.0,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 17.27,
+  "reason": null
+ },
+ "FULL_clip06": {
+  "clip": "clip06",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 60.0,
+  "target_id": 1126,
+  "target_type": "vehicle.dodge.charger_police_2020",
+  "click": [
+   341.6,
+   236.2
+  ],
+  "caption": "silver police car in the center",
+  "hit_id": 1126,
+  "hit_ok": true,
+  "target_box": [
+   335.7,
+   221.7,
+   347.5,
+   250.7
+  ],
+  "box": [
+   308.7,
+   195.0,
+   326.6,
+   225.8
+  ],
+  "ground_iou": 0.0,
+  "ground_ms": 9053.6,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 17.27,
+  "reason": null
+ },
+ "OPT_clip07": {
+  "clip": "clip07",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 80.0,
+  "target_id": 1232,
+  "target_type": "vehicle.mercedes.sprinter",
+  "click": [
+   280.9,
+   247.6
+  ],
+  "caption": "silver van in the center",
+  "hit_id": 1232,
+  "hit_ok": true,
+  "target_box": [
+   267.8,
+   238.2,
+   294.1,
+   257.0
+  ],
+  "box": [
+   281.0,
+   240.3,
+   301.5,
+   268.5
+  ],
+  "ground_iou": 0.2556,
+  "ground_ms": 1014.8,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 14.92,
+  "reason": null
+ },
+ "FULL_clip07": {
+  "clip": "clip07",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 80.0,
+  "target_id": 1232,
+  "target_type": "vehicle.mercedes.sprinter",
+  "click": [
+   280.9,
+   247.6
+  ],
+  "caption": "silver van in the center",
+  "hit_id": 1232,
+  "hit_ok": true,
+  "target_box": [
+   267.8,
+   238.2,
+   294.1,
+   257.0
+  ],
+  "box": [
+   268.2,
+   237.8,
+   293.8,
+   265.9
+  ],
+  "ground_iou": 0.6558,
+  "ground_ms": 9050.2,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 14.92,
+  "reason": null
+ },
+ "OPT_clip08": {
+  "clip": "clip08",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 100.0,
+  "target_id": 1338,
+  "target_type": "vehicle.toyota.prius",
+  "click": [
+   325.4,
+   267.9
+  ],
+  "caption": "red car in the center",
+  "hit_id": 1338,
+  "hit_ok": true,
+  "target_box": [
+   321.0,
+   260.0,
+   329.7,
+   275.8
+  ],
+  "box": [
+   325.0,
+   265.4,
+   330.1,
+   283.4
+  ],
+  "ground_iou": 0.2708,
+  "ground_ms": 1015.3,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 13.62,
+  "reason": null
+ },
+ "FULL_clip08": {
+  "clip": "clip08",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 100.0,
+  "target_id": 1338,
+  "target_type": "vehicle.toyota.prius",
+  "click": [
+   325.4,
+   267.9
+  ],
+  "caption": "red car in the center",
+  "hit_id": 1338,
+  "hit_ok": true,
+  "target_box": [
+   321.0,
+   260.0,
+   329.7,
+   275.8
+  ],
+  "box": [
+   319.9,
+   260.3,
+   330.1,
+   278.2
+  ],
+  "ground_iou": 0.7197,
+  "ground_ms": 9076.5,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 13.62,
+  "reason": null
+ },
+ "OPT_clip09": {
+  "clip": "clip09",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 120.0,
+  "target_id": 1444,
+  "target_type": "vehicle.tesla.cybertruck",
+  "click": [
+   320.6,
+   240.9
+  ],
+  "caption": "silver truck in the center",
+  "hit_id": 1444,
+  "hit_ok": true,
+  "target_box": [
+   313.2,
+   232.0,
+   327.9,
+   249.8
+  ],
+  "box": [
+   333.8,
+   205.2,
+   338.9,
+   215.4
+  ],
+  "ground_iou": 0.0,
+  "ground_ms": 1017.8,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 14.38,
+  "reason": null
+ },
+ "FULL_clip09": {
+  "clip": "clip09",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 120.0,
+  "target_id": 1444,
+  "target_type": "vehicle.tesla.cybertruck",
+  "click": [
+   320.6,
+   240.9
+  ],
+  "caption": "silver truck in the center",
+  "hit_id": 1444,
+  "hit_ok": true,
+  "target_box": [
+   313.2,
+   232.0,
+   327.9,
+   249.8
+  ],
+  "box": [
+   315.9,
+   228.2,
+   326.1,
+   246.1
+  ],
+  "ground_iou": 0.4818,
+  "ground_ms": 9075.9,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 14.38,
+  "reason": null
+ },
+ "OPT_clip10": {
+  "clip": "clip10",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 40.0,
+  "target_id": 1550,
+  "target_type": "vehicle.citroen.c3",
+  "click": [
+   283.1,
+   168.4
+  ],
+  "caption": "silver car in the center",
+  "hit_id": 1550,
+  "hit_ok": true,
+  "target_box": [
+   270.3,
+   149.1,
+   295.8,
+   187.6
+  ],
+  "box": [
+   275.3,
+   155.2,
+   288.1,
+   188.5
+  ],
+  "ground_iou": 0.418,
+  "ground_ms": 1019.3,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 17.98,
+  "reason": null
+ },
+ "FULL_clip10": {
+  "clip": "clip10",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 40.0,
+  "target_id": 1550,
+  "target_type": "vehicle.citroen.c3",
+  "click": [
+   283.1,
+   168.4
+  ],
+  "caption": "silver car in the center",
+  "hit_id": 1550,
+  "hit_ok": true,
+  "target_box": [
+   270.3,
+   149.1,
+   295.8,
+   187.6
+  ],
+  "box": [
+   280.4,
+   191.0,
+   306.0,
+   229.4
+  ],
+  "ground_iou": 0.0,
+  "ground_ms": 9047.6,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 17.98,
+  "reason": null
+ },
+ "OPT_clip11": {
+  "clip": "clip11",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 60.0,
+  "target_id": 1656,
+  "target_type": "vehicle.chevrolet.impala",
+  "click": [
+   297.5,
+   229.5
+  ],
+  "caption": "silver car in the center",
+  "hit_id": 1656,
+  "hit_ok": true,
+  "target_box": [
+   287.2,
+   213.9,
+   307.7,
+   245.1
+  ],
+  "box": [
+   294.4,
+   214.6,
+   307.2,
+   247.9
+  ],
+  "ground_iou": 0.5776,
+  "ground_ms": 1018.4,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 17.8,
+  "reason": null
+ },
+ "FULL_clip11": {
+  "clip": "clip11",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 60.0,
+  "target_id": 1656,
+  "target_type": "vehicle.chevrolet.impala",
+  "click": [
+   297.5,
+   229.5
+  ],
+  "caption": "silver car in the center",
+  "hit_id": 1656,
+  "hit_ok": true,
+  "target_box": [
+   287.2,
+   213.9,
+   307.7,
+   245.1
+  ],
+  "box": [
+   286.8,
+   214.6,
+   307.2,
+   245.4
+  ],
+  "ground_iou": 0.9241,
+  "ground_ms": 9059.3,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 17.8,
+  "reason": null
+ },
+ "OPT_clip12": {
+  "clip": "clip12",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 80.0,
+  "target_id": 1762,
+  "target_type": "vehicle.toyota.prius",
+  "click": [
+   319.7,
+   238.8
+  ],
+  "caption": "red car in the center",
+  "hit_id": 1762,
+  "hit_ok": true,
+  "target_box": [
+   313.4,
+   228.9,
+   326.0,
+   248.8
+  ],
+  "box": [
+   320.0,
+   231.3,
+   327.7,
+   249.2
+  ],
+  "ground_iou": 0.3693,
+  "ground_ms": 1017.0,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 15.15,
+  "reason": null
+ },
+ "FULL_clip12": {
+  "clip": "clip12",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 80.0,
+  "target_id": 1762,
+  "target_type": "vehicle.toyota.prius",
+  "click": [
+   319.7,
+   238.8
+  ],
+  "caption": "red car in the center",
+  "hit_id": 1762,
+  "hit_ok": true,
+  "target_box": [
+   313.4,
+   228.9,
+   326.0,
+   248.8
+  ],
+  "box": [
+   312.3,
+   228.8,
+   325.1,
+   249.2
+  ],
+  "ground_iou": 0.8363,
+  "ground_ms": 9060.6,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 15.15,
+  "reason": null
+ },
+ "OPT_clip13": {
+  "clip": "clip13",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 100.0,
+  "target_id": 1868,
+  "target_type": "vehicle.dodge.charger_2020",
+  "click": [
+   436.7,
+   209.6
+  ],
+  "caption": "red car in the center",
+  "hit_id": 1868,
+  "hit_ok": true,
+  "target_box": [
+   427.5,
+   205.7,
+   445.9,
+   213.5
+  ],
+  "box": [
+   437.0,
+   212.6,
+   442.1,
+   225.4
+  ],
+  "ground_iou": 0.0236,
+  "ground_ms": 1016.7,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 15.67,
+  "reason": null
+ },
+ "FULL_clip13": {
+  "clip": "clip13",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 100.0,
+  "target_id": 1868,
+  "target_type": "vehicle.dodge.charger_2020",
+  "click": [
+   436.7,
+   209.6
+  ],
+  "caption": "red car in the center",
+  "hit_id": 1868,
+  "hit_ok": true,
+  "target_box": [
+   427.5,
+   205.7,
+   445.9,
+   213.5
+  ],
+  "box": [
+   426.8,
+   204.9,
+   444.7,
+   215.1
+  ],
+  "ground_iou": 0.6916,
+  "ground_ms": 9063.1,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 15.67,
+  "reason": null
+ },
+ "OPT_clip14": {
+  "clip": "clip14",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 120.0,
+  "target_id": 1974,
+  "target_type": "vehicle.mini.cooper_s_2021",
+  "click": [
+   300.8,
+   254.4
+  ],
+  "caption": "blue car in the center",
+  "hit_id": 1974,
+  "hit_ok": true,
+  "target_box": [
+   294.0,
+   248.6,
+   307.6,
+   260.1
+  ],
+  "box": [
+   275.4,
+   256.6,
+   285.6,
+   269.4
+  ],
+  "ground_iou": 0.0,
+  "ground_ms": 1016.1,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 13.85,
+  "reason": null
+ },
+ "FULL_clip14": {
+  "clip": "clip14",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 120.0,
+  "target_id": 1974,
+  "target_type": "vehicle.mini.cooper_s_2021",
+  "click": [
+   300.8,
+   254.4
+  ],
+  "caption": "blue car in the center",
+  "hit_id": 1974,
+  "hit_ok": true,
+  "target_box": [
+   294.0,
+   248.6,
+   307.6,
+   260.1
+  ],
+  "box": [
+   272.8,
+   259.1,
+   285.6,
+   271.9
+  ],
+  "ground_iou": 0.0,
+  "ground_ms": 9081.1,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 13.85,
+  "reason": null
+ },
+ "OPT_clip15": {
+  "clip": "clip15",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 40.0,
+  "target_id": 2080,
+  "target_type": "vehicle.mercedes.coupe",
+  "click": [
+   294.2,
+   258.1
+  ],
+  "caption": "silver car in the center",
+  "hit_id": 2080,
+  "hit_ok": true,
+  "target_box": [
+   273.8,
+   236.2,
+   314.6,
+   280.0
+  ],
+  "box": [
+   281.2,
+   240.1,
+   306.8,
+   273.4
+  ],
+  "ground_iou": 0.4777,
+  "ground_ms": 1017.7,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 17.92,
+  "reason": null
+ },
+ "FULL_clip15": {
+  "clip": "clip15",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 40.0,
+  "target_id": 2080,
+  "target_type": "vehicle.mercedes.coupe",
+  "click": [
+   294.2,
+   258.1
+  ],
+  "caption": "silver car in the center",
+  "hit_id": 2080,
+  "hit_ok": true,
+  "target_box": [
+   273.8,
+   236.2,
+   314.6,
+   280.0
+  ],
+  "box": [
+   276.1,
+   237.5,
+   311.9,
+   275.9
+  ],
+  "ground_iou": 0.7716,
+  "ground_ms": 9038.4,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 17.92,
+  "reason": null
+ },
+ "OPT_clip16": {
+  "clip": "clip16",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 60.0,
+  "target_id": 2186,
+  "target_type": "vehicle.ford.mustang",
+  "click": [
+   163.3,
+   304.8
+  ],
+  "caption": "yellow car in the center",
+  "hit_id": 2186,
+  "hit_ok": true,
+  "target_box": [
+   148.0,
+   293.6,
+   178.6,
+   316.0
+  ],
+  "box": [
+   180.9,
+   333.2,
+   201.4,
+   353.6
+  ],
+  "ground_iou": 0.0,
+  "ground_ms": 1017.9,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 16.68,
+  "reason": null
+ },
+ "FULL_clip16": {
+  "clip": "clip16",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 60.0,
+  "target_id": 2186,
+  "target_type": "vehicle.ford.mustang",
+  "click": [
+   163.3,
+   304.8
+  ],
+  "caption": "yellow car in the center",
+  "hit_id": 2186,
+  "hit_ok": true,
+  "target_box": [
+   148.0,
+   293.6,
+   178.6,
+   316.0
+  ],
+  "box": [
+   142.5,
+   307.6,
+   155.3,
+   322.9
+  ],
+  "ground_iou": 0.0759,
+  "ground_ms": 9087.4,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 16.68,
+  "reason": null
+ },
+ "OPT_clip17": {
+  "clip": "clip17",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 80.0,
+  "target_id": 2292,
+  "target_type": "vehicle.nissan.patrol",
+  "click": [
+   330.6,
+   264.0
+  ],
+  "caption": "silver SUV in the center",
+  "hit_id": 2292,
+  "hit_ok": true,
+  "target_box": [
+   323.6,
+   253.6,
+   337.6,
+   274.4
+  ],
+  "box": [
+   325.9,
+   192.3,
+   338.7,
+   212.8
+  ],
+  "ground_iou": 0.0,
+  "ground_ms": 1017.4,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 16.2,
+  "reason": null
+ },
+ "FULL_clip17": {
+  "clip": "clip17",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 80.0,
+  "target_id": 2292,
+  "target_type": "vehicle.nissan.patrol",
+  "click": [
+   330.6,
+   264.0
+  ],
+  "caption": "silver SUV in the center",
+  "hit_id": 2292,
+  "hit_ok": true,
+  "target_box": [
+   323.6,
+   253.6,
+   337.6,
+   274.4
+  ],
+  "box": [
+   305.4,
+   200.0,
+   333.6,
+   225.6
+  ],
+  "ground_iou": 0.0,
+  "ground_ms": 9070.8,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 16.2,
+  "reason": null
+ },
+ "OPT_clip18": {
+  "clip": "clip18",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 100.0,
+  "target_id": 2398,
+  "target_type": "vehicle.nissan.micra",
+  "click": [
+   319.3,
+   241.1
+  ],
+  "caption": "silver car in the center",
+  "hit_id": 2398,
+  "hit_ok": true,
+  "target_box": [
+   313.6,
+   234.5,
+   325.0,
+   247.7
+  ],
+  "box": [
+   319.0,
+   238.4,
+   326.7,
+   251.2
+  ],
+  "ground_iou": 0.2879,
+  "ground_ms": 1016.5,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 14.66,
+  "reason": null
+ },
+ "FULL_clip18": {
+  "clip": "clip18",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 100.0,
+  "target_id": 2398,
+  "target_type": "vehicle.nissan.micra",
+  "click": [
+   319.3,
+   241.1
+  ],
+  "caption": "silver car in the center",
+  "hit_id": 2398,
+  "hit_ok": true,
+  "target_box": [
+   313.6,
+   234.5,
+   325.0,
+   247.7
+  ],
+  "box": [
+   313.9,
+   220.5,
+   329.2,
+   246.1
+  ],
+  "ground_iou": 0.3121,
+  "ground_ms": 9087.3,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 14.66,
+  "reason": null
+ },
+ "OPT_clip19": {
+  "clip": "clip19",
+  "arm": "OPT",
+  "cmd": 387,
+  "alt": 120.0,
+  "target_id": 2504,
+  "target_type": "vehicle.nissan.micra",
+  "click": [
+   394.8,
+   266.8
+  ],
+  "caption": "silver car in the center",
+  "hit_id": 2504,
+  "hit_ok": true,
+  "target_box": [
+   389.0,
+   261.6,
+   400.6,
+   272.0
+  ],
+  "box": [
+   348.9,
+   231.2,
+   354.0,
+   238.8
+  ],
+  "ground_iou": 0.0,
+  "ground_ms": 1017.3,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 14.49,
+  "reason": null
+ },
+ "FULL_clip19": {
+  "clip": "clip19",
+  "arm": "FULL",
+  "cmd": 387,
+  "alt": 120.0,
+  "target_id": 2504,
+  "target_type": "vehicle.nissan.micra",
+  "click": [
+   394.8,
+   266.8
+  ],
+  "caption": "silver car in the center",
+  "hit_id": 2504,
+  "hit_ok": true,
+  "target_box": [
+   389.0,
+   261.6,
+   400.6,
+   272.0
+  ],
+  "box": [
+   387.3,
+   261.9,
+   400.1,
+   272.1
+  ],
+  "ground_iou": 0.8135,
+  "ground_ms": 9074.6,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 14.49,
+  "reason": null
+ },
+ "OPT_clip20": {
+  "clip": "clip20",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 40.0,
+  "target_id": 2610,
+  "target_type": "vehicle.lincoln.mkz_2017",
+  "click": [
+   282.7,
+   175.8
+  ],
+  "caption": "black car in the center",
+  "hit_id": 2610,
+  "hit_ok": true,
+  "target_box": [
+   264.7,
+   152.9,
+   300.7,
+   198.7
+  ],
+  "box": [
+   272.8,
+   158.1,
+   293.2,
+   191.4
+  ],
+  "ground_iou": 0.4132,
+  "ground_ms": 1017.1,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 17.75,
+  "reason": null
+ },
+ "FULL_clip20": {
+  "clip": "clip20",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 40.0,
+  "target_id": 2610,
+  "target_type": "vehicle.lincoln.mkz_2017",
+  "click": [
+   282.7,
+   175.8
+  ],
+  "caption": "black car in the center",
+  "hit_id": 2610,
+  "hit_ok": true,
+  "target_box": [
+   264.7,
+   152.9,
+   300.7,
+   198.7
+  ],
+  "box": [
+   267.6,
+   158.1,
+   295.8,
+   196.5
+  ],
+  "ground_iou": 0.6556,
+  "ground_ms": 9020.3,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 17.75,
+  "reason": null
+ },
+ "OPT_clip21": {
+  "clip": "clip21",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 60.0,
+  "target_id": 2716,
+  "target_type": "vehicle.bmw.grandtourer",
+  "click": [
+   321.1,
+   240.3
+  ],
+  "caption": "silver car in the center",
+  "hit_id": 2716,
+  "hit_ok": true,
+  "target_box": [
+   307.3,
+   231.0,
+   334.9,
+   249.6
+  ],
+  "box": [
+   310.8,
+   222.1,
+   328.7,
+   247.7
+  ],
+  "ground_iou": 0.4431,
+  "ground_ms": 1018.6,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 16.68,
+  "reason": null
+ },
+ "FULL_clip21": {
+  "clip": "clip21",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 60.0,
+  "target_id": 2716,
+  "target_type": "vehicle.bmw.grandtourer",
+  "click": [
+   321.1,
+   240.3
+  ],
+  "caption": "silver car in the center",
+  "hit_id": 2716,
+  "hit_ok": true,
+  "target_box": [
+   307.3,
+   231.0,
+   334.9,
+   249.6
+  ],
+  "box": [
+   305.6,
+   232.3,
+   331.2,
+   252.8
+  ],
+  "ground_iou": 0.6627,
+  "ground_ms": 9070.9,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 16.68,
+  "reason": null
+ },
+ "OPT_clip22": {
+  "clip": "clip22",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 80.0,
+  "target_id": 2822,
+  "target_type": "vehicle.tesla.model3",
+  "click": [
+   444.5,
+   284.5
+  ],
+  "caption": "yellow car in the center",
+  "hit_id": 2822,
+  "hit_ok": true,
+  "target_box": [
+   432.7,
+   275.8,
+   456.2,
+   293.2
+  ],
+  "box": [
+   438.9,
+   263.5,
+   454.2,
+   281.4
+  ],
+  "ground_iou": 0.1451,
+  "ground_ms": 1016.8,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 15.31,
+  "reason": null
+ },
+ "FULL_clip22": {
+  "clip": "clip22",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 80.0,
+  "target_id": 2822,
+  "target_type": "vehicle.tesla.model3",
+  "click": [
+   444.5,
+   284.5
+  ],
+  "caption": "yellow car in the center",
+  "hit_id": 2822,
+  "hit_ok": true,
+  "target_box": [
+   432.7,
+   275.8,
+   456.2,
+   293.2
+  ],
+  "box": [
+   436.3,
+   258.4,
+   461.9,
+   286.6
+  ],
+  "ground_iou": 0.2339,
+  "ground_ms": 9063.5,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 15.31,
+  "reason": null
+ },
+ "OPT_clip23": {
+  "clip": "clip23",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 100.0,
+  "target_id": 2927,
+  "target_type": "vehicle.seat.leon",
+  "click": [
+   317.4,
+   226.1
+  ],
+  "caption": "blue car in the center",
+  "hit_id": 2927,
+  "hit_ok": true,
+  "target_box": [
+   310.8,
+   218.8,
+   323.9,
+   233.3
+  ],
+  "box": [
+   311.9,
+   226.0,
+   327.2,
+   243.9
+  ],
+  "ground_iou": 0.2326,
+  "ground_ms": 1016.8,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 13.74,
+  "reason": null
+ },
+ "FULL_clip23": {
+  "clip": "clip23",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 100.0,
+  "target_id": 2927,
+  "target_type": "vehicle.seat.leon",
+  "click": [
+   317.4,
+   226.1
+  ],
+  "caption": "blue car in the center",
+  "hit_id": 2927,
+  "hit_ok": true,
+  "target_box": [
+   310.8,
+   218.8,
+   323.9,
+   233.3
+  ],
+  "box": [
+   304.2,
+   226.0,
+   314.4,
+   241.4
+  ],
+  "ground_iou": 0.0819,
+  "ground_ms": 9082.0,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 13.74,
+  "reason": null
+ },
+ "OPT_clip24": {
+  "clip": "clip24",
+  "arm": "OPT",
+  "cmd": 100,
+  "alt": 120.0,
+  "target_id": 3033,
+  "target_type": "vehicle.ford.ambulance",
+  "click": [
+   317.2,
+   245.0
+  ],
+  "caption": "white ambulance in the center",
+  "hit_id": 3033,
+  "hit_ok": true,
+  "target_box": [
+   308.4,
+   237.1,
+   326.0,
+   252.9
+  ],
+  "box": [
+   306.8,
+   239.9,
+   317.0,
+   255.2
+  ],
+  "ground_iou": 0.3441,
+  "ground_ms": 1017.4,
+  "ground_res": 256,
+  "carry_size": 640,
+  "cap_hz": 12.52,
+  "reason": null
+ },
+ "FULL_clip24": {
+  "clip": "clip24",
+  "arm": "FULL",
+  "cmd": 100,
+  "alt": 120.0,
+  "target_id": 3033,
+  "target_type": "vehicle.ford.ambulance",
+  "click": [
+   317.2,
+   245.0
+  ],
+  "caption": "white ambulance in the center",
+  "hit_id": 3033,
+  "hit_ok": true,
+  "target_box": [
+   308.4,
+   237.1,
+   326.0,
+   252.9
+  ],
+  "box": [
+   309.3,
+   239.9,
+   324.7,
+   252.7
+  ],
+  "ground_iou": 0.7109,
+  "ground_ms": 9085.4,
+  "ground_res": 1024,
+  "carry_size": 1024,
+  "cap_hz": 12.52,
+  "reason": null
+ }
+}

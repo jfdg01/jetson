@@ -50,6 +50,15 @@ experiments/*/runs/**
 # manifest.json (tracked, small) and the proof/ figures derived from it.
 experiments/2026-07-21-carla-gt-bank/runs/bank/**/gt.jsonl
 
+# ...and one narrow re-include the other way. EXP-3 (click-to-ground-to-track) was
+# stopped after its acquire stage, so the `score` stage that would have written the
+# whitelisted results.json never ran. Its only surviving measurement — ~9 min of
+# on-Orin q8_0 grounding, 2 caption legs x 25 clips x 2 arms — sits in
+# runs/exp3/acquire.json + acquire_rich.json, 24+28 KB of text under names the
+# whitelist above does not cover. Without this line a clean checkout loses it.
+# See experiments/2026-07-24-point-crop-select/README-exp3.md.
+!experiments/2026-07-24-point-crop-select/runs/exp3/acquire*.json
+
 # Stray root runs/ — provenance belongs under runners/runs/ or experiments/*/runs/
 # (co-located with its artifact). A bare /runs/ at repo root is always a cwd-relative
 # manifest.write() leak from a driver launched here; never commit it. See manifest.write.

@@ -124,3 +124,16 @@ The programme is finished when: every claim in the registry carries a machine an
 resolves to evidence; every number in `README.md` and the ledgers is traceable;
 the thesis chapters are written from the corrected claim set; and
 `tests/test_thesis_integrity.py` has no ratchets left above zero.
+
+**The last of those four no longer discriminates** (R-48, 2026-07-25): the only ratchet
+ever written, `MAX_CLAIMS_WITHOUT_MACHINE`, was closed on 2026-07-21, so the condition is
+already satisfied and proves nothing. Do not quote it as evidence the programme is done
+until R-48 replaces it with a criterion that still has teeth.
+
+**Where the work is, as of 2026-07-25.** R-1..R-38 all read `DONE`; the open tasks are in
+`# Fourth wave` at the end of `thesis/REMEDIATION.md`. The third condition above —
+writing the chapters — is **deliberately not started**: it waits on the supervisor
+confirming the thesis scope. Experiments continue in the meantime, and note the standing
+cost that R-39 exists to catch: every new experiment registered inside a Part re-runs
+Holm over every claim already published in that Part, and one claim has already been
+lost that way.

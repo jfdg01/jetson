@@ -86,3 +86,10 @@
 2026-07-24T17:00:09+0200 INFO heartbeat: no banner after 7h of watching w6:p1
 2026-07-24T18:00:09+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
 2026-07-24T18:00:09+0200 INFO heartbeat: no banner after 8h of watching w6:p1
+2026-07-24T19:00:09+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"timeout","message":"timed out waiting for output match"},"id":"cli:wait:output"}
+2026-07-24T19:00:09+0200 INFO heartbeat: no banner after 9h of watching w6:p1
+2026-07-24T19:05:02+0200 ERROR herdr wait output w6:p1 --match hit your session limit --source recent --lines 400 --timeout 3600000 -> rc=1 stderr={"error":{"code":"pane_not_found","message":"pane w6:p1 not found"},"id":"cli:wait:output"}
+2026-07-24T19:05:02+0200 INFO heartbeat: no banner after 10h of watching w6:p1
+2026-07-24T19:05:02+0200 ERROR no match for 'term_65756bf6a9a3e1'. panes:
+
+2026-07-24T19:05:02+0200 ERROR terminal term_65756bf6a9a3e1 is gone, waiting 60s

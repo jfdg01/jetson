@@ -12,7 +12,7 @@
 | II | [`docs/decisions/part2-rebuild.md`](docs/decisions/part2-rebuild.md) | v2 principled rebuild, Phases 0–4 |
 | III | [`docs/decisions/part3-permanence.md`](docs/decisions/part3-permanence.md) | v3 persistent tracking / object permanence |
 | IV | [`docs/decisions/part4-end-to-end.md`](docs/decisions/part4-end-to-end.md) | end-to-end workflow refinement (E18–E23 acquire arc, closed) |
-| V | [`docs/decisions/part5-anticipatory.md`](docs/decisions/part5-anticipatory.md) | anticipatory grounding / warm-start acquire (paused at P5.20) |
-| VI | [`docs/decisions/part6-flight.md`](docs/decisions/part6-flight.md) | **in progress** — closed-loop flight; newest decisions here |
+| V | [`docs/decisions/part5-anticipatory.md`](docs/decisions/part5-anticipatory.md) | anticipatory grounding / warm-start acquire (paused at P5.20, reopened once for P5.21) |
+| VI | [`docs/decisions/part6-flight.md`](docs/decisions/part6-flight.md) | **in progress** — closed-loop flight (P6.2-DELIVERY is the powered flagship); newest decisions here |
 
 New work is on Part VI → append to the bottom of `docs/decisions/part6-flight.md`.

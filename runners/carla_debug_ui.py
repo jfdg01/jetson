@@ -264,7 +264,7 @@ def actor_box(bbox, cam_tf, actor_tf):
     return (min(xs), min(ys), max(xs), max(ys))
 
 
-def match_actor(world, cam_tf, box, vehicles, snap):
+def match_actor(cam_tf, box, vehicles, snap):
     """Which vehicle, if any, the tracker's box is on. None means drifted.
 
     The correctness check the throughput asserts could not give -- and it only
@@ -1024,7 +1024,7 @@ def main():
                         if now - veh_at > 2.0:          # cheap refresh for spawns
                             vehicles = veh_list(world)
                             veh_at = now
-                        cur_actor = match_actor(world, cam["sensor"].get_transform(),
+                        cur_actor = match_actor(cam["sensor"].get_transform(),
                                                 box, vehicles=vehicles,
                                                 snap=world.get_snapshot())
                         cur_aid = cur_actor.id if cur_actor is not None else None

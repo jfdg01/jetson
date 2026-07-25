@@ -3,8 +3,8 @@
 **Status:** pre-registered 2026-07-23T23:05Z (Madrid). Frozen. **All five inferential experiments
 COMPLETE 2026-07-24** (rollup in §5; `thesis/claims.json` authoritative). P6.2-DELIVERY is the powered
 survivor; the other four are the pre-registered honest outcomes, all supporting maintain-and-deliver.
-The qualitative on-Jetson showcase's carry seam is demonstrated; its closed-loop flight is the one
-open item, BLOCKED on a host-GPU driver reload (interactive sudo — human action).
+The qualitative on-Jetson showcase is **COMPLETE in both halves** — carry seam and closed-loop
+flight (commit `bbe146d`); nothing in this program is open.
 **Owner doc.** This is the authoritative cross-experiment spine for the six experiments
 below. Each experiment has its own self-contained `experiments/2026-07-23-*/README.md`
 (the source of truth for running it); this file holds only the shared rules, the frozen
@@ -270,13 +270,15 @@ The heavy WARM/COLD producers (SAM2 ring buffer, on-device VLM) land in the next
 
 Filled per experiment in each `experiments/2026-07-2*/README.md`; `thesis/claims.json` is the source
 of truth. p-values are the as-run exact test (deflated where deflation is operative, per HANDOFF I2).
+P6.2-DELIVERY is **not** deflated — 25 independent CARLA seeds, so `n_effective = n_rows = 25`; the
+1.9e-06 beside it is per-Part Holm, not a deflation. (Mislabelled "defl" here until 2026-07-25.)
 
 | ID | Verdict | b/c or W | p | n_eff | Holm | Date |
 |---|---|---|---|---|---|---|
 | R-36 | NO [sin potencia, escaso en escenas] — select falla pero NO es separable de maintain | b=5, c=0 | 0.0625 | 14 | no sig. | 2026-07-24 |
 | P5.21 | TIE [negativo medido] — ROI-crop NO mejora el carry, regresa (c>b); cierra la última palanca de carry no-de-capacidad | b=1, c=3 | 0.625 | 34 | no sig. | 2026-07-24 |
 | REG (R-38) | SIMÉTRICO [rama pre-registrada] — el fallo de select NO vive en el grounding, sino aguas abajo (carry/delivery) | b=2, c=1 | 1.0 | 14 | no sig. | 2026-07-24 |
-| P6.2-DELIVERY | **YES [oracle-designation scope]** — warm 23/25 vs cold 2/25; coste del frío = obsolescencia (~4.85 s), no salir de cuadro | b=21, c=0 | **1.9e-06** (defl; raw 9.5e-07) | 25 | **sobrevive** | 2026-07-24 |
+| P6.2-DELIVERY | **YES [oracle-designation scope]** — warm 23/25 vs cold 2/25; coste del frío = obsolescencia (~4.85 s), no salir de cuadro | b=21, c=0 | **9.5e-07** (Holm/Parte 1.9e-06) | 25 | **sobrevive** | 2026-07-24 |
 | P6.2-COUPLING | NULO ACOTADO [gate ii] — cerrar el lazo NO degrada la pista warm; penalización de acoplamiento bajo el suelo de ruido | W, mediana −0.42 px | 0.596 | 25 | no sig. | 2026-07-24 |
 
 **Reading.** The one properly-powered result is **P6.2-DELIVERY** (the flagship, survives Holm per
@@ -288,10 +290,15 @@ and P6.2-COUPLING confirms closing the loop does not degrade the warm track. Eve
 **maintain-and-deliver over select**. None is significant on its own — by construction (scene-scarce
 UAV123 SWAP population, R-36's disclosed reachability risk), not by a failed effect.
 
-**P6.2-SHOWCASE (qualitative, not in this inferential table):** the on-device carry seam is
-demonstrated standalone (`experiments/2026-07-24-p62-showcase/`, held 24/24 median IoU 0.92 at 2.35 Hz
-literally on the Orin); the closed-loop *flight* half is BLOCKED on a host-GPU driver reload
-(interactive sudo — human action). See that README.
+**P6.2-SHOWCASE (qualitative, not in this inferential table): DONE, both halves**
+(`experiments/2026-07-24-p62-showcase/`, commit `bbe146d`). (i) The on-device carry seam is
+demonstrated standalone — held 24/24 at IoU>=0.25, median IoU 0.92 vs GT at 2.35 Hz literally on the
+Orin. (ii) The closed-loop *flight* half then flew: SAM2 carry routed to the Orin over ssh-stdio
+while CARLA rendered on the host, the oracle-designated police charger held through a 28 s flight
+including a road curve with the copter flying its own PID output — post-prompt coverage 0.495
+(202/560 lock frames) and the parity gate PASSING at **median IoU 0.960** Jetson-carried vs the
+3090 twin (min 0.805, 90 % >= 0.9). The host-GPU driver mismatch that had blocked it was cleared by
+a **reboot** (the on-disk module was already 595.84), not by any change to the stack. See that README.
 
 ## 6. Provenance / do-not-re-derive
 

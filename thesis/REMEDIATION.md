@@ -63,6 +63,14 @@ written down — the reproduction command is in the task.
 | R-37 | P5.21 ROI-carry vs plain carry (paired, pilot-gated) | P2 | R-16 | **DONE** 2026-07-24 (TIE [measured negative]; pilot 5/8 headroom PASS; plain 28/34 vs ROI 26/34, b=1/c=3 p=0.625, direction AGAINST ROI; drift-reinforcement fired on car10; closes the last non-capacity carry lever) |
 | R-38 | REG grounding isolation (paired, on-device) | P2 | R-16 | **DONE** 2026-07-24 (SYMMETRIC [pre-registered branch]; isolated distractor grounding 12/14=0.857 >> P5.18's 0.65 end-to-end; matrix target 13/14 vs distractor 12/14, b=2/c=1 p=1.0; grounding is NOT the bottleneck — residual select failure redirects downstream to carry/delivery; dependent decomposition of R-36, same Holm family) |
 
+**Waves three and four are further down and are where the open work is.** R-1..R-38
+above all read `DONE`, so a session following the protocol above will find nothing here
+and must skip to `# Fourth wave` at the end of this file: the R series (R-39..R-50) can
+be worked at any time, the W series (the writing programme) is mostly blocked on the
+supervisor's confirmation of scope. **The thesis text has not been started and is not to
+be started until that confirmation arrives** (author steer, 2026-07-25); the evidence
+programme stays live in the meantime.
+
 `AUTHOR` means the task is a judgement call reserved for the human and **must not
 be resolved by an agent**. An agent may prepare the evidence; it may not pick.
 
@@ -2151,5 +2159,419 @@ plus person13 — the same mis-placed-GT cell R-36 withdrew (excluding it → b=
 symmetric). The residual select failure is therefore **not isolable to grounding** → attribution
 redirects downstream to carry/delivery, supporting maintain-and-deliver. Registered
 `R-38-REG-grounding-isolation` in `claims.json` as a dependent decomposition (76 claims;
-"Probadas, no significativas" 22→23; survivors unchanged 12/10). Proof: `proof/reg_landing.png`,
+"Probadas, no significativas" 22→23; survivors 12/10 as counted on the day — **corrected to 11/10
+on 2026-07-25 by R-39**: registering R-36, R-38 and P5.21 grew Part V's family to m = 21 and pushed
+`P5.15-plain-carry-survival` out, which nobody noticed at the time. That is the mechanism R-39
+exists to catch). Proof: `proof/reg_landing.png`,
 `proof/reg_per_clip_outcome.png`. Visual gate PASS.
+
+---
+
+# Fourth wave — R-39..R-50, and the writing programme W-1..W-9
+
+Opened 2026-07-25. Different in kind from waves one to three: those were opened by an
+audit that found the apparatus wrong. This one was opened by the apparatus running
+**out of work** — R-1..R-38 all read `DONE`, so a session following the entry protocol
+("pick the first task that is not `DONE`") finds nothing, while `HANDOFF.md`'s own
+finish criterion — "the thesis chapters are written from the corrected claim set" —
+has not been started.
+
+**Author steer, 2026-07-25: the thesis text is NOT started yet.** It waits on
+supervisor confirmation of scope. Until then the evidence programme stays live and
+experiments continue. Everything below is therefore split by whether it can be worked
+*while experimenting* (the R series, yes) or only *once writing begins* (the W series).
+
+## Status board — R series (integrity; work these any time)
+
+| ID | Task | Pri | Status |
+|---|---|---|---|
+| R-39 | Caveat prose must agree with the computed Holm verdict | **P0** | **DONE** 2026-07-25 |
+| R-40 | Stale first-read surfaces (`CLAUDE.md`, ledger roots, PART6-PROGRAM, EXP READMEs) | P1 | **DONE** 2026-07-25 |
+| R-41 | `README.md`: stale survivor count, and no Part VI number at all | P1 | **DONE** 2026-07-25 |
+| R-42 | Borrador citation hygiene (cap08 pseudo-cites, I8 line numbers, cap01 count) | P1 | **DONE** 2026-07-25 |
+| R-43 | EXP-3's only data was gitignored; its status header claimed "running" | P1 | **DONE** 2026-07-25 |
+| R-44 | EXP-1/EXP-2 publish p-values outside `claims.json` | P1 | **AUTHOR** |
+| R-45 | EXP-1/2/3 break the frozen experiment-ID scheme | P2 | **AUTHOR** |
+| R-46 | The "deployed" carry resolution is stated three different ways in code | P1 | OPEN |
+| R-47 | EXP-3's acquire data points the opposite way to EXP-2's crop elbow | **P1** | OPEN |
+| R-48 | The only ratchet is closed, so HANDOFF's finish criterion is vacuous | P2 | OPEN |
+| R-49 | Branch clutter: 28 merged `experiment/*`, 3 unmerged carrying unique content | P3 | **AUTHOR** |
+| R-50 | `tests/test_carla_lifecycle.py` never runs in `make test` | P3 | OPEN |
+
+## Status board — W series (the writing programme; BLOCKED on the supervisor)
+
+W-3, W-5, W-6, W-7, W-8 and W-9 are **not** blocked — they are preparation that makes
+the writing possible and can be done at any time. Only W-1, W-2 and W-4 need the
+go-ahead.
+
+| ID | Task | Blocked? | Status |
+|---|---|---|---|
+| W-1 | Write the 287 paragraphs (cap01–cap10) | yes | BLOCKED |
+| W-2 | cap04 is the weakest chapter and needs the most work | yes | BLOCKED |
+| W-3 | Reconstruct the Part I–III figures — those campaigns have no `proof/` | **no** | OPEN |
+| W-4 | cap08's scaffold is ~2x its page budget | yes | BLOCKED |
+| W-5 | `00-esquema.md` has no chapter plan for cap01 or cap02 | **no** | OPEN |
+| W-6 | The two finished method documents are not in the assembly | **no** | OPEN |
+| W-7 | cap01 carries a bracket that breaks pandoc's citation parser | **no** | OPEN |
+| W-8 | Two competing claim-reference forms across chapters | **no** | OPEN |
+| W-9 | cap03's mean-IoU figure has never been computed | **no** | OPEN |
+
+---
+
+## R-39 — Caveat prose must agree with the computed Holm verdict — DONE **P0** (2026-07-25)
+
+**The defect.** `P5.15-plain-carry-survival`'s caveat said per-Part Holm "eleva a
+0,04653: **sobrevive por poco**". The table two screens above it, in the *same
+generated* `stats-report.md`, printed `0.05525`, and the survivor list omitted the
+claim. One document asserted survival and non-survival on the same page.
+
+**Nobody broke it.** No edit introduced this. Registering R-36, R-38 and P5.21 on
+2026-07-24 grew Part V's Holm family from m = 18 to m = 21; the threshold tightened;
+a claim that had survived stopped surviving. The p-values are *computed* and the
+verdict prose is *stored*, so the arithmetic moved and the prose did not.
+
+**This is the standing hazard of the R-30 per-Part family, and it recurs.** Every
+future experiment added to a Part silently re-runs Holm over every claim already
+published in that Part. Continuing to experiment inside Part V makes Part V's existing
+claims more expensive. That is a real cost of the family convention, it was accepted
+knowingly, and it now has to be *checked* rather than remembered.
+
+**Resolution.** Rewrote both `caveats` and `caveats_en` on the claim to the current
+numbers (per-Part 0.05525, global 0.09887, neither surviving), keeping the R-33 history
+and adding the family-growth explanation — the mechanism is thesis content, not just a
+correction. `verdict` stays `YES`: per registry convention the verdict is the as-run
+label and statistical standing lives in the caveat (same shape as `P5.19-swap-late-entry-rescue`).
+Regenerated `stats-report.md`.
+
+Then made it mechanical: `tests/test_thesis_integrity.py::test_caveats_agree_with_the_computed_holm_verdict`.
+It parses present-tense survival verdicts within 130 characters of the word "Holm" and
+asserts the assertion set is a **subset** of `{per-Part reject, global reject}` — a
+subset, not equality, because one sentence legitimately reports both families ("survives
+per-Part; under the global family it does not").
+
+Both narrowings are load-bearing and were chosen empirically, not by taste. The registry
+uses "sobrevivir"/"survive" freely for masks, clips, mechanisms, tracks and files ("los
+números solo sobreviven en el README", "the warm track survives THIS rig's ego-motion");
+a looser pattern flags eleven claims, all eleven innocent. Past tenses are excluded
+because a corrected caveat legitimately narrates its own history. As written it finds
+**seven** real assertions across the registry, all consistent, zero false positives.
+
+**Done-criterion, met:** the test passes on the corrected registry, and re-inserting the
+old string makes it fail with
+`prose says 'sobrevive' (survives=True) but Holm computes per-Part=False (p=0.05525), global=False (p=0.09887)`.
+Verified by mutation, not by assertion.
+
+## R-40 — Stale first-read surfaces — DONE P1 (2026-07-25)
+
+`CLAUDE.md` still called Part V "paused at P5.20" (P5.21 ran 2026-07-24) and its Part VI
+paragraph stopped at "**P6.2 is not blocked.**", never mentioning P6.2-DELIVERY,
+-COUPLING, -SHOWCASE, EXP-1 or EXP-2. The three root ledger indexes agreed with it.
+`PART6-PROGRAM` §5 still called the SHOWCASE flight half "BLOCKED on a host-GPU driver
+reload" — it flew on 2026-07-24 (`bbe146d`). Both EXP READMEs opened with "**Status:**
+PRE-REGISTERED (not yet run)" above their own filled Results sections, which is the
+worst possible failure mode given `CLAUDE.md` tells a fresh session to "open this one
+file".
+
+All corrected, with the Part VI additions written to preserve the R-28 scope: every Part
+VI result supports **maintain-and-deliver**, not select.
+
+**One number was wrong in the source I briefed from, and is now fixed everywhere:**
+P6.2-DELIVERY's `1.9e-06` had been labelled "deflated" in `PART6-PROGRAM` §5. It is not
+deflated — the claim records `n_effective = n_rows = 25` ("25 semillas CARLA distintas
+... sin subsecuencias tipo UAV123 `_s`"), and `1.907e-06` is the **per-Part Holm** value,
+with `3.815e-05` global. The exact test is `9.537e-07`. Corrected in `PART6-PROGRAM` (both
+the table cell and the section caption) and in `CLAUDE.md`. `README.md` states it
+correctly.
+
+## R-41 — `README.md` — DONE P1 (2026-07-25)
+
+Two defects. The survivor count read "**Doce** sobreviven a la corrección de Holm por
+Parte" against the report's "Sobreviven 11" (the R-39 drift, propagated); corrected to
+**Once**. The other three numbers in that sentence (24, 10, and "diez en familia global")
+were checked against the report's "Qué sobrevive" buckets and do reconcile, so they were
+left alone.
+
+Worse, "## En números" ended at the Part IV tracking ceiling — **the project's only
+closed-loop result did not appear in the README at all.** Added P6.2-DELIVERY with its
+scope caveat (ORACLE designation; control-coupling conditional on correct designation,
+not grounding and delivery jointly) and its machine disclosure per I3, plus the
+P6.2-SHOWCASE on-device counterpart explicitly marked as qualitative and outside the
+Holm family.
+
+## R-42 — Borrador citation hygiene — DONE P1 (2026-07-25)
+
+Three defects in the chapter scaffolds, none of them prose:
+
+1. cap08 carried **22 pseudo-citations** of the form `[cita @P6.2-DELIVERY-warm-vs-cold-closedloop]`.
+   Those are registry claim ids, not bib keys — none is in `refs.bib`, so pandoc would
+   have emitted broken citations or dumped the literal text into the PDF. Converted to
+   the house form `` [claim `<id>`] ``. Every surviving `[cita @...]` in the borrador was
+   then verified against `refs.bib`: ten distinct keys, all real.
+2. cap01 said 12 survivors where cap03/08/09/10 said 11; corrected. cap07 repeated the
+   stale P5.15 reading; corrected with the same m = 18 → m = 21 explanation as R-39.
+   cap03's unresolved `[VERIFICAR ...]` note about which count is current is resolved.
+3. **I8 violations** — cap10 cited `stats-report.md` by line twice and `00-esquema.md`
+   by section-plus-lines; cap06 cited `00-esquema.md` "líneas 556-557". All four replaced
+   with quoted-string anchors. `grep -rnE "líneas? [0-9]"` over the borrador is now empty.
+
+`TFM-borrador.md` regenerated from the corrected scaffolds.
+
+## R-43 — EXP-3's orphaned data — DONE P1 (2026-07-25)
+
+EXP-3 ("click-to-ground-to-track") was pre-registered inside the EXP-2 campaign directory
+as `README-exp3.md`, ran its acquire stage twice, and stopped. Its only outputs were
+**gitignored**: `.gitignore`'s `experiments/*/runs/**` rule whitelists `results.json`,
+and EXP-3 stopped *before* the score stage that would have written that name. Roughly
+8.2 minutes of on-Orin q8_0 grounding existed nowhere in git.
+
+Rescued with one narrowly-scoped re-include (`!experiments/2026-07-24-point-crop-select/runs/exp3/acquire*.json`)
+— verified with `git add -A --dry-run` that exactly two files became trackable and the
+`runs/**` guard is otherwise intact. The logs and the uncurated overlay PNGs were
+deliberately **not** rescued: the logs are a strict subset of the JSON, and the PNGs are
+non-systematic (5 FULL vs 1 OPT) and therefore not proof-grade.
+
+`README-exp3.md` now says `STOPPED — PARTIALLY COMPLETE, NOT RUNNING`, records what ran
+and what did not, states plainly that no claim was registered, marks the partial numbers
+as **not a finding**, and annotates the two scripts its own command block references that
+were never written (`make_proof_exp3.py`, `click_demo.py` — verified absent repo-wide).
+
+## R-47 — EXP-3's acquire data contradicts EXP-2's crop elbow — OPEN **P1**
+
+**This is the one with research consequences, and it came out of the R-43 rescue.**
+
+EXP-2's headline is a grounding-resolution elbow: a point-crop at 256 px out-grounds the
+whole frame at 1024 (hit@0.5 0.769 vs 0.654). EXP-3 was pre-registered *on that
+expectation*. On the CARLA bank it goes the other way, and not marginally:
+
+| leg | 256 px crop (OPT) | 1024 crop (FULL) |
+|---|---|---|
+| rich caption, hit@0.5 | 2/25 | **14/25** |
+| rich caption, mean IoU | 0.229 | **0.470** |
+| generic caption, hit@0.5 | 3/25 | 5/25 |
+
+Paired discordants on the rich leg: **12 favour FULL, 0 favour OPT**, at every altitude
+from 40 to 120 m. The latency ordering is unchanged and large (OPT median ~1017 ms vs
+FULL ~9063 ms, 8.9x).
+
+**What to do.** Nothing is registered and nothing should be yet — this is half an
+experiment, unaudited, and the caption knob is an unregistered post-hoc addition. But
+before EXP-2's elbow is stated anywhere as generalising **beyond its own scene set**,
+this has to be reconciled. The two runs differ in imagery (UAV123 vs CARLA), in caption
+richness, and in altitude range, so the honest reading may simply be that the crop elbow
+is scene-set-bound — which is itself a finding worth having, and one the thesis would
+rather state than have an examiner discover.
+
+## R-44 — EXP-1/EXP-2 publish p-values outside the registry — **AUTHOR**
+
+Both campaigns have full ledger rows and committed proof, and both publish inferential
+numbers: EXP-1 "McNemar b=0 c=3 p=0.25", EXP-2 "b=1 c=3 p=0.625" and "b=0 c=2 p=0.5".
+Neither is in `thesis/claims.json`, which `HANDOFF.md` calls the source of truth — so
+they are invisible to `run_stats.py`, to the Holm family accounting, and to every
+integrity test. EXP-1 even pre-registered an id it never landed
+(`EXP1-track-res-noninferiority`).
+
+Two defensible options, and it is the author's pick:
+
+- **Register them.** Correct by I1, and it grows Part VI's family from m = 2 to m = 4,
+  which by the R-39 mechanism tightens Holm on P6.2-DELIVERY. Worth checking that the
+  flagship still survives before committing to this — it is not in danger at 9.5e-07,
+  but the number moves and the thesis quotes it.
+- **Demote them to engineering measurements** and strip the p-values from the ledger
+  rows, keeping the elbows as descriptive operating-point selections. Both were run to
+  *choose a resolution*, not to test a hypothesis, so this is not a dodge.
+
+The one thing that is not acceptable is leaving published p-values outside the registry.
+
+## R-45 — EXP-1/2/3 break the frozen experiment-ID scheme — **AUTHOR**
+
+`CLAUDE.md`: "**Part V onward uses `P<part>.<n>`**", and the flat `E1..E23` scheme is
+"frozen, do not renumber". These three landed in the Part VI ledgers as `EXP-1`, `EXP-2`,
+`EXP-3` — a revival of the retired flat scheme. Either rename to `P6.3`/`P6.4`/`P6.5`
+(and fix the ledger rows, READMEs and proof captions) or record an explicit amendment in
+`DECISIONS.md`. Renaming is cheap now and gets more expensive with every citation.
+
+## R-46 — The "deployed" carry resolution is stated three ways — OPEN P1
+
+EXP-1's decision reads "Adopt SAM2 track-res 640 as the default carry resolution — the
+measured elbow — keeping 1024 as a size-gated fallback". The code does not agree with
+itself:
+
+| file | says |
+|---|---|
+| `runners/carla_debug_ui.py` | 640 (the new decision) |
+| `experiments/2026-07-24-p62-showcase/carry_ssh_bridge.py` | `default=1024` — "deployed default; EXP-1 sweeps 768" |
+| `runners/p62_producers.py` | `CARRY_HZ = 2.69` — "R-16 on-device SAM2 solo rate @ image_size 1024" |
+| `experiments/2026-07-01-temporal-acquire-carry/jetson_carry_service.py` | `default=640` (since 2026-07-02, for unrelated reasons) |
+
+A future session reading any one of these gets a different answer to "what do we actually
+deploy". Note the coupling: `CARRY_HZ` is a *measured* constant at 1024, so moving the
+default to 640 without re-deriving it silently rate-caps the carry against the wrong
+number. `README.md`'s "a la resolución que corre de verdad (1024) son **372 ms** por
+paso" was left untouched pending this decision — it is still true of the 1024
+configuration.
+
+**Done-criterion:** one place defines the deployed resolution, every other site reads it
+or cites it, and `CARRY_HZ` is re-derived at whatever that resolution is.
+
+## R-48 — The finish criterion is vacuous — OPEN P2
+
+`HANDOFF.md`: "the programme is finished when `tests/test_thesis_integrity.py` has no
+ratchets left above zero". There is exactly one ratchet, `MAX_CLAIMS_WITHOUT_MACHINE = 0`,
+closed on 2026-07-21 and now a hard rule. So the criterion is **already satisfied and no
+longer discriminates** — it must not be quoted to an examiner as evidence the programme
+is finished.
+
+Either retire the sentence and replace it with a criterion that still has teeth, or
+promote a real ratchet. A candidate exists: `tests/test_harness_items.py` calls itself
+"the ratchet" in prose but declares no ceiling constant, and 5 of the 11 Holm survivors
+are still `data_status: counts_only` (`P1-S3.3-export-parity-catastrophe`, `P2-RQ2.1`,
+`P2-RQ3.1`, `P2-RQ4.1`, `P3-ROI-M2.0-512`) — meaning an examiner cannot re-derive their
+b/c from raw data. "Survivors without per-item evidence" is a number that should only
+go down.
+
+## R-49 — Branch clutter — **AUTHOR**
+
+28 merged `experiment/*` branches were never deleted (safe to delete; they are in `main`).
+Three are **unmerged and carry content that exists nowhere on main**, so deleting is a
+decision, not cleanup:
+
+- `experiment/direct-delivery-select` — 1 ahead, 169 behind. The P5.6 "direct-delivery
+  select" pre-registration, superseded by P5.14 onward.
+- `experiment/vlm-vision-unfreeze` — 1 ahead, 306 behind. A 47-line pre-draft.
+- `v2/1-synth` — 3 ahead, 323 behind. "Synth tried, learned approach, frozen for now."
+
+Each is a negative result or an abandoned direction, and CLAUDE.md says negative results
+are content. Merging the *documents* to main and deleting the branches keeps the content
+and drops the clutter.
+
+## R-50 — The CARLA lifecycle test never runs — OPEN P3
+
+`make test`'s single skip is `tests/test_carla_lifecycle.py` ("set `CARLA_LIFECYCLE_TEST=1`
+-- boots a real CARLA"). Defensible — it needs a desktop GPU and a server — but it means
+the renderer lifecycle, **the exact surface that produced the sky-camera scar and the
+"look at it" rule**, is never exercised on any machine, so a regression there lands
+green. At minimum, run it by hand before any Part VI result and record that you did.
+
+---
+
+## The writing programme, W-1..W-9
+
+### The one number that matters
+
+`thesis/borrador/` holds ten chapters, 33,005 words, 40 tables, 38 figures that all
+resolve on disk, 3 code listings, 27 bib keys all cited and all present — and **287
+paragraph specs with zero paragraphs of written body prose.** Every chapter carries
+`Guion de párrafos. Sustituir cada viñeta por prosa.` and consists of bullets of the form
+`- **P1 — El titular.**`. The outline's own status line, `Texto: no empezado.`, is
+literally accurate.
+
+The scaffold is unusually load-bearing, which is the good news: the remaining work is
+genuinely *writing*, not deciding. Estimate ~3–4 weeks at ~5 paragraphs/hour with
+number-checking against `claims.json` — mark that as an estimate.
+
+### W-1 — Write the 287 paragraphs — BLOCKED
+
+Blocked on supervisor confirmation of scope. Do not start chapters before that
+confirmation: the scope decision changes the page budgets, and W-4 shows the budgets are
+already wrong.
+
+### W-2 — cap04 is the weakest chapter — BLOCKED
+
+Thinnest scaffold against the largest budget: 2,930 words / 26 paragraph specs for an
+11-page target (2.4 specs per page, against 4.2 in cap07 and 7.0 in cap08). It also
+carries the most pending figures — three `[FIGURA POR GENERAR]`, including the Part I
+fidelity gap and the backbone bake-off. Its only three embedded images come from the R-13
+OWLv2 comparison, i.e. from Part III, not from Parts I–II which the chapter is about.
+Depends on W-3.
+
+### W-3 — Reconstruct the Part I–III figures — OPEN, **not blocked**
+
+**49 of 89 campaign directories have a `proof/`; the earliest is `2026-07-03-chase-acquire`.**
+Every campaign before that date — all of Parts I–III — has none. That is the blocker
+behind cap04's and cap05's pending figures: they must be reconstructed from raw logs.
+
+This is the single most valuable thing that can be done *before* the go-ahead, because it
+is data recovery, not prose, and it gets harder as memory of those runs fades. Per
+CLAUDE.md DoD-7 the figures come from a committed `make_proof.py`-style script
+reproducible from the run data, saved as PNG.
+
+### W-4 — cap08 overshoots its page budget — BLOCKED
+
+`00-esquema.md` budgets cap08 at **4** pages and says "P6.0 y P6.1 dejan de narrarse como
+resultados". cap08 is now the second-largest scaffold: 4,204 words, 28 specs, 9 figures,
+6 tables — about 8–9 pages. The outline was rebalanced *before* P6.2-DELIVERY landed and
+became a Holm survivor. Either the budget moves or the content is cut; that is a scope
+decision, hence blocked.
+
+### W-5 — cap01 and cap02 have no chapter plan — OPEN, not blocked
+
+`00-esquema.md` contains per-chapter design sections for **Capítulo 3 through Capítulo 10
+only**. cap01 and cap02 exist solely as rows in the structure table, so their scaffolds
+were generated without the outline's evidence-mapping discipline. cap02 is the thinnest
+literature scaffold (22 specs / 8 pages) and is the only chapter that states it defends
+nothing.
+
+### W-6 — The finished method documents are not in the assembly — OPEN, not blocked
+
+`thesis/01-metodo-estadistico.md` (3,676 words) and `thesis/02-metodo-multiagente.md`
+(2,090 words) are **the only written Spanish prose in `thesis/`** — real text, not
+scaffolds. Neither appears in `thesis/borrador/assemble.py`'s `CHAPTERS` list, so neither reaches
+`TFM-borrador.pdf`, despite both being planned as annexes. Add annex targets to the
+assembler and reconcile them against the two cap03 sections that summarise them.
+
+### W-7 — A bracket that breaks pandoc — OPEN, not blocked, cheap
+
+`cap01-introduccion.md` ends a bullet with `[@dosovitskiy2017carla no aplica aquí]`. The
+key is real, but the free text inside the bracket breaks pandoc's citation parser, and
+the citation is meaningless there — it sits on a paragraph about the Orin Nano's 15 W
+ceiling. It reads like a leftover editorial marker. Delete the bracket.
+
+### W-8 — Two competing claim-reference forms — OPEN, not blocked, cheap
+
+cap04 and cap08 use the backticked `` [claim `ID`] `` (12 + 22 occurrences); cap06 (11)
+and cap07 (14) use the bare `[claim ID]`. Pick one — the backticked form is now the
+majority — and normalise the other 25.
+
+### W-9 — cap03's mean-IoU figure was never computed — OPEN, not blocked
+
+`cap03-plataforma-metodo-metricas.md` retains a genuine evidence-debt note: "no hay un
+valor de IoU medio registrado todavía ... hay que calcularla antes de cerrar el
+capítulo". This is a real open measurement, not a stale-number defect.
+
+---
+
+## Candidate experiments, since the programme stays live
+
+Not tasks — a slate to pick from. Ranked by what the evidence actually still lacks.
+
+**1. P5.22 — abstention / confidence calibration.** The one residual in the whole arc
+that has never had an experiment aimed at it. P5.19's grace precision is **2/4**, and
+`docs/questions/part5-anticipatory.md` records the failure mode precisely: when wrong, it
+"delivers confidently rather than abstaining". Every other Part V residual has been
+attacked and closed — carry drift by capacity (P5.20, dead lever) and by ROI (P5.21,
+measured negative), grounding by R-38 (symmetric, not the bottleneck). A system that
+hands an operator a confident wrong box is worse than one that says nothing, so this is
+both the open question and the one with an obvious operational argument behind it.
+
+**2. Finish or kill EXP-3.** See R-47 — it is half-run, and its existing data *disagrees*
+with EXP-2. Finishing it is cheap (carry + score + overlays) and either outcome is
+content. Killing it is also legitimate and belongs in `DECISIONS.md`.
+
+**3. R-36 at real n — needs a data source that does not exist yet.** UAV123 is
+structurally scene-starved for SWAP-hard pairs: hand-curating 10 fresh candidates
+returned **8/10 single-target**, because the dataset follows one target and almost never
+frames two co-visible same-class candidates. Three sim banks already failed to
+discriminate (P5.10/P5.13/P5.17 — "sim-select discrimination CLOSED"). So this needs new
+real footage or a purpose-built bank, and it is the most expensive item on the slate.
+Related and equally data-bound: EXP-1 shelved its high-res-source variant because "a true
+high-res-source variant needs new >=1080p footage".
+
+Before opening any of these, re-read the dead-lever list in `PART6-PROGRAM` §6 — multi-candidate
+select, bigger SAM2, Swin2SR, the caption lever, CLIP crop-scoring and the speed-sweep
+motion-compensation reading are all closed, and re-proposing one costs a cycle.
+
+**And note the standing cost, per R-39:** every new experiment registered inside a Part
+tightens Holm for every claim already published in that Part. Part V is at m = 21 and has
+already lost P5.15 that way. Part VI is at m = 2 and its flagship sits at 9.5e-07, so it
+has room — but the check is now mechanical, and it will fail the suite rather than
+silently rot a chapter.

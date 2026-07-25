@@ -1,6 +1,12 @@
 # EXP-2 — Point-and-crop select (pointer vs NL referring expression)
 
-**Status:** PRE-REGISTERED (not yet run) — 2026-07-24T13:05Z
+**Status:** DONE — pre-registered 2026-07-24T13:05Z, completed 2026-07-24T15:10Z.
+**Verdict:** **MISS on both legs** at the deployed operating point — PT and NL are not separable at
+n=26 (WSEL b=1/c=3 p=0.625; SWAP b=0/c=2 p=0.5, both below the reachable floor b+c>=6), though every
+discordant leans PT. The real finding is the **grounding-res elbow**: a point-crop at 256 px
+(hit@0.5 = 0.769) out-grounds the whole frame at 1024 (0.654), so the pointer is a grounding-
+efficiency and localization-precision win, not a delivered-PASS win — the carry closes the gap at
+the lenient 0.25 threshold. Full numbers in **Results** below.
 **Part:** VI (select, on-device). **Machine:** `jetson` (SAM2 carry runs on the Orin; the
 3090 is NOT used). **Power mode:** 15 W + `jetson_clocks`.
 **Owner claim id (planned):** `EXP2-point-crop-select`.

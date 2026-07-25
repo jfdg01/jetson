@@ -1,6 +1,10 @@
 # EXP-1 — Resolution-decoupled carry (track-res sweep, on Jetson)
 
-**Status:** PRE-REGISTERED (not yet run) — 2026-07-24T13:05Z
+**Status:** DONE — pre-registered 2026-07-24T13:05Z, completed 2026-07-24T16:30Z.
+**Verdict:** the carry-res **elbow is 512–640** — 640 keeps 99.4% of 1024's median IoU (0.811 vs
+0.816) at 2.5× the on-device throughput (5.76 vs 2.34 Hz); below 512 the rate saturates so it is
+pure loss. Deploy at 640, keep 1024 as a size-gated fallback for the small/distant tail. Full
+numbers in **Results** below.
 **Part:** VI (perception-stack, on-device). **Machine:** `jetson` (SAM2 runs on the Orin; the 3090 is NOT used).
 **Power mode:** 15 W + `jetson_clocks` (the only real mode on this board — no MAXN_SUPER).
 **Owner claim id (planned):** `EXP1-track-res-noninferiority`.

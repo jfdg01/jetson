@@ -210,6 +210,72 @@ def test_paired_caveats_do_not_contradict_their_own_discordant_counts(claims):
                        + "\n  ".join(lying))
 
 
+# R-39. Only the present-tense third person, and only within 130 characters of the
+# word "Holm". Both narrowings are load-bearing: the registry uses "sobrevivir" /
+# "survive" freely for masks, clips, mechanisms, tracks and files ("los números solo
+# sobreviven en el README", "the warm track survives THIS rig's ego-motion"), and a
+# looser pattern flags eleven claims, all eleven innocent. Past tenses are excluded
+# because a corrected caveat legitimately narrates its own history -- P5.15 now says
+# "sí sobrevivía, por poco (0,04653), mientras la Parte V tenía m = 18".
+_HOLM_VERDICT = re.compile(
+    r"(no\s+|tampoco\s+|NOT\s+|not\s+)?\b(sobrevive|survives|survive)\b", re.IGNORECASE)
+
+
+def test_caveats_agree_with_the_computed_holm_verdict(claims):
+    """R-39. A caveat may not claim Holm survival the correction does not grant.
+
+    The incident: `P5.15-plain-carry-survival` said per-Part Holm "eleva a 0,04653:
+    **sobrevive por poco**" while the table two screens above it in the SAME
+    generated `stats-report.md` printed 0.05525 and the survivor list omitted the
+    claim. Nothing was edited to break it. Registering R-36, R-38 and P5.21 on
+    2026-07-24 grew Part V's family from m = 18 to m = 21, Holm's threshold
+    tightened, and a claim that had survived stopped surviving -- silently, because
+    the p-values are computed and the verdict prose is stored.
+
+    That is the standing hazard of the R-30 per-Part family, and it is not a
+    one-off: every future experiment added to a Part re-runs this correction over
+    every claim already published in that Part. The prose cannot be trusted to
+    follow the arithmetic on its own, so it is checked.
+
+    A caveat may assert BOTH verdicts, because it usually reports both families in
+    one sentence ("survives per-Part; under the global family it does not"). So the
+    assertion set must be a SUBSET of what was actually computed, not equal to it.
+    """
+    import sys
+    sys.path.insert(0, str(REPO / "thesis"))
+    from run_stats import holm_by_family, load_claims
+    from grounding.stats import evaluate, holm_bonferroni
+
+    parsed, _ = load_claims()
+    outcomes = {c.id: evaluate(c) for c in parsed}
+    per_part = holm_by_family(parsed, outcomes)
+    global_ = holm_bonferroni({cid: o.p_value for cid, o in outcomes.items()})
+    by_id = {c["id"]: c for c in claims}
+
+    lying = []
+    for c in parsed:
+        computed = {per_part[c.id]["reject"], global_[c.id]["reject"]}
+        for field in ("caveats", "caveats_en"):
+            text = (by_id[c.id].get(field) or "")
+            for m in _HOLM_VERDICT.finditer(text):
+                window = text[max(0, m.start() - 130):m.end() + 130]
+                if "holm" not in window.lower():
+                    continue
+                asserts = not m.group(1)          # a leading "no"/"not" negates it
+                if asserts not in computed:
+                    lying.append(
+                        f"{c.id}.{field}: prose says {m.group(0)!r} "
+                        f"(survives={asserts}) but Holm computes "
+                        f"per-Part={per_part[c.id]['reject']} "
+                        f"(p={per_part[c.id]['p_holm']:.4g}), "
+                        f"global={global_[c.id]['reject']} "
+                        f"(p={global_[c.id]['p_holm']:.4g})")
+    assert not lying, (
+        "caveat prose contradicts the Holm correction it describes -- the family "
+        "probably grew since the caveat was written; fix thesis/claims.json and "
+        "regenerate with thesis/run_stats.py:\n  " + "\n  ".join(lying))
+
+
 # --- ratchets ---------------------------------------------------------------
 # Lower these as the remediation tasks in thesis/REMEDIATION.md land. Never raise
 # one: a rising ceiling is the regression this file exists to prevent.
