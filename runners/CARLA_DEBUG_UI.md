@@ -19,7 +19,7 @@ combination.
 | switch | values | what it changes |
 |---|---|---|
 | **PILOT** | `spectator` \| `copter` | `spectator` flies a camera on a stick — perception in isolation, any view you like, no flight dynamics. `copter` arms an ArduCopter SITL and slaves the camera to the pose the autopilot reports (P6.1), so the pixels are a **consequence** of the control output. |
-| **ACQUIRE** | `warm` \| **`cold`** (default) | `warm` maintains a track from the moment you designate and **delivers** it on command (P5.1 / P6.2-DELIVERY: maintain-and-deliver). `cold` does nothing until the command, then grounds under time pressure (E18 / R-34). The on-screen `deliver` timing is that comparison, measured live. |
+| **ACQUIRE** | `warm` \| `cold` | `warm` maintains a track from the moment you designate and **delivers** it on command (P5.1 / P6.2-DELIVERY: maintain-and-deliver). `cold` does nothing until the command, then grounds under time pressure (E18 / R-34). The on-screen `deliver` timing is that comparison, measured live. |
 | **DESIGNATE** | `vlm` \| `oracle` | `vlm` runs the deployed grounder on a point crop around the click. `oracle` seeds the carry from the CARLA projected box and skips the VLM — which is the scope P6.2-DELIVERY's claim was measured in (G6: q8_0 is non-discriminative on a car at 45 m nadir). Switching between them separates "grounding failed" from "carry/control failed". |
 | **FOLLOW** | `manual` \| `assist` \| `auto` | `manual` = operator has sole authority. `assist` = the model aims (gimbal/look only, never position). `auto` = **closed loop**: the delivered box drives the copter through `CascadePID` → `SET_POSITION_TARGET_LOCAL_NED`, the same path `run_p62_flight.py` measured. `auto` needs `PILOT=copter` and says so if it does not have one. |
 
@@ -29,7 +29,7 @@ combination.
 .venv-ft/bin/python runners/carla_debug_ui.py                       # spectator, starts CARLA if needed
 .venv-ft/bin/python runners/carla_debug_ui.py --pilot copter        # + SITL, arm, take off to --alt
 .venv-ft/bin/python runners/carla_debug_ui.py --clean-world         # destroy every leftover actor first
-.venv-ft/bin/python runners/carla_debug_ui.py --designate oracle --acquire warm
+.venv-ft/bin/python runners/carla_debug_ui.py --designate oracle --acquire cold
 .venv-ft/bin/python runners/carla_debug_ui.py --pilot copter --smoke 45 \
     --out runs/carla-ui-spd --clean-world --auto-spawn 40           # unattended, writes smoke.png
 ```
@@ -205,12 +205,11 @@ deep tree shadow. Carry then held that patch of asphalt perfectly: `0/417` on ta
 downstream failed.** This is why `designate oracle` exists and why P6.2-DELIVERY held
 designation constant in both arms.
 
-**The panel defaults to 768 on both stages** (`ORIN_GROUND_RES`, `ORIN_CARRY_SIZE`),
-operator-set on 2026-07-25: one resolution for the whole ring is easier to reason about on
-screen than two, and it sits between the measured elbows — EXP-2 wants the big crop for
-colour, EXP-1's carry sweep is 5.76 Hz at 640 vs 2.34 at 1024. Neither is a result; both
-comboboxes move at runtime, and earlier frames in this doc were captured at carry 512
-(8.71 Hz, median IoU 0.780 vs 0.811 at 640).
+**The panel carries at `image_size` 512, not EXP-1's adopted 640.** A live tool needs the
+tracker to outrun the 5 Hz feed so the catch-up converges: EXP-1's sweep is 8.71 Hz at 512
+vs 5.76 at 640, and the panel measures 9.3 Hz. The cost is EXP-1's 512-vs-640 accuracy gap
+(median IoU 0.780 vs 0.811) and the small/distant-target tail that 1024 protects. Another
+reason no number here is a result.
 
 **WARM vs COLD is 0.00 s vs 10.23 s** on this pipeline. Note the honest gap: 10.23 s is
 **twice** the ~4.85 s the thesis cites for a cold acquire (E18/R-34). That figure was the
@@ -295,15 +294,15 @@ Motion is along the **boresight**: `boresight(pitch, yaw)` is the direction the 
 actually looking. The earlier ground frame dropped the pitch to hold altitude, but that
 closed *ground* distance rather than *slant range*, so a target below the copter need not
 grow at all. Since ASSIST already parks the target at frame centre, the boresight is the
-line to the target — flying down it is what makes the box bigger. ASSIST then **zeroes
-the z of that step**: the model changes only where the camera sits over the ground, and
-the operator keeps sole authority over height (`q`/`e`). That is altitude hold, and it is
-also the whole min-AGL guard — a chase that cannot descend cannot sink into the road, so
-there is nothing to escape from and the panel never flies up on its own. The earlier
-`floor_climb()` latched escape is gone with it. The cost is that what actually flies is
-the **ground projection** of the boresight, `cos(pitch)` long: at hard nadir there is
-none and chase is inert until the camera is pitched off vertical
-(`test_altitude_hold_makes_chase_inert_at_nadir`).
+line to the target — flying down it is what makes the box bigger. The cost is that
+altitude is no longer held by construction: a nose-down chase descends. `floor_climb()`
+is the guard. Dipping below `CHASE_FLOOR` **latches** a climb to
+`CHASE_FLOOR + CHASE_CLIMB` and holds it until reached; a bare clamp would release at the
+floor and, since the chase is still commanding descent, sink straight back and buzz along
+it. A held `wasd` outranks the escape and clears the latch — flying the camera low by
+hand is deliberate, sinking into the road is not. `z` is CARLA world z and Town10's ground
+is ~0, so it doubles as AGL; a map with real relief needs a terrain raycast
+(`ponytail:` in the constants).
 
 Unlike aim, CHASE is *not* charged once per box; it stays latched between measurements.
 That is correct, because moving genuinely does change the pixels — the box grows toward
@@ -321,7 +320,9 @@ a single blown-up mask, which is exactly what a median rejects and a mean does n
 |---|---|---|
 | `CHASE_TARGET_FRAC` | 0.012 | wanted box area as a fraction of frame — a car at ~125x50 px, ~17 m |
 | `CHASE_GAIN` | 5.0 | m/s per log unit of area error, before range scaling |
-| `CHASE_SPEED` | 30.0 | speed cap |
+| `CHASE_SPEED` | 30.0 | speed cap; also the floor-escape climb rate |
+| `CHASE_FLOOR` | 5.0 | min altitude (world z ≈ AGL) before the escape latches |
+| `CHASE_CLIMB` | 15.0 | how far above the floor the escape climbs to |
 | `CHASE_DEADBAND` | 0.15 | log-area hold band — ±16% of area, ±7.8% of range |
 | `CHASE_HIST` | 5 | measurements median-filtered into one reading |
 
@@ -392,13 +393,15 @@ a car at 17 m, a motorcycle at 11 m, a pedestrian at 6.3 m. The person-following
 literature servos on bbox *height* for exactly this reason. The value here is calibrated
 for cars; treat it as such until something needs otherwise.
 
-**The setpoint may be unreachable at a steep look — untested.** Altitude hold retired the
-floor-vs-setpoint limit cycle (the escape climb is gone; see above), but it replaced it
-with a reachability limit. 0.012 holds a car at 17.3 m *slant* range; with height frozen
-at whatever the operator set, chase can only close the **ground** leg, so the range floor
-is the standing altitude. At 60 m AGL the setpoint is unreachable and chase saturates
-inward until the target sits under the nose — at which point `cos(pitch)` kills the step
-and it parks there. Fly lower, or accept the standoff. Untested in flight.
+**The floor can fight the setpoint on a shallow approach — untested.** 0.012 holds a car at
+17.3 m *slant* range, and altitude at that range is `17.3·sin(pitch)`: fine at a 45° look
+down (12.2 m), but it falls below the floor as the look flattens out. The escape then
+latches a climb, which shrinks the box, which re-commands a close — a limit cycle. Whether
+it happens depends on where ASSIST parks the pitch, which nothing here measures yet. The
+fix is a floor below the setpoint geometry, not a bigger climb, and lowering `CHASE_FLOOR`
+10.0 → 5.0 (2026-07-20T22:55Z, on request) moves the breach from anything shallower than
+35.3° to anything shallower than 16.8°. Untested in flight; it buys headroom, it does not
+prove the cycle gone.
 
 ### One correction per measurement, not per tick
 

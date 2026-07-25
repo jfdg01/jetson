@@ -116,6 +116,11 @@ CHASE_TARGET_FRAC = 0.012
 CHASE_SPEED = 15.0          # m/s cap along the boresight, either direction. Matches
                             # MANUAL_V_MAX / WPNAV_SPEED -- the old 30 was above the
                             # airframe's cruise limit, so the extra was never flown.
+# Min altitude the chase is allowed to reach, and how far above it the escape
+# climbs once breached. CARLA world z, and Town10's ground is ~0, so it doubles
+# as AGL. ponytail: flat-ground assumption. Raycast the terrain if a map with
+# real relief shows up.
+CHASE_FLOOR = 5.0
 # One palette for the whole panel. DARK matches the video panes, which were dark
 # from the start; ACCENT is the focus ring and doubles as the "box is on target"
 # green so the two read as the same signal.
@@ -147,6 +152,7 @@ NEXT_TIP = {
     5: "step 5 -- pick assist or auto to close the loop",
     6: "loop closed -- read the instruments column",
 }
+CHASE_CLIMB = 15.0
 CHASE_HIST = 5              # measurements median-filtered into one area reading
 # Error is in LOG area because area falls as 1/d^2: one log unit is a fixed ratio
 # of range whether the target is near or far, so a single gain behaves the same
@@ -166,14 +172,17 @@ REMOTE_MMPROJ = f"{REMOTE_DIR}/mmproj-phase3-terse100eos-1024-f16.gguf"
 # grounder + the SAM2 carry both run on the Jetson: grounding over JetsonBackend
 # (already ssh), carry over the ssh-stdio bridge that lives on the Orin at
 # ~/sam2-bench/carry_ssh_bridge.py. No SAM2 on the 3090 (constraint: the 3090 runs
-# only the CARLA simulator). 768 on both, operator-set: one resolution for the whole
-# ring is easier to reason about on screen than two, and it sits between the measured
-# elbows -- EXP-2 wants the big crop for colour, EXP-1's carry sweep is 5.76 Hz at 640
-# vs 2.34 at 1024. Neither number here is a result; the combobox moves both.
+# only the CARLA simulator). Defaults are the resolutions EXP-1/EXP-2/EXP-3 found:
+# rich-caption grounding wants the 1024 crop (256 starves colour on a nadir car),
+# SAM2 carry is 99.4% of full IoU at image_size 640 for 2.5x the throughput.
 EXP3_DIR = Path(__file__).resolve().parent.parent / "experiments" / "2026-07-24-point-crop-select"
 CARRY_BRIDGE = "cd ~/sam2-bench && ./.venv/bin/python -u carry_ssh_bridge.py --image-size {size}"
-ORIN_GROUND_RES = 768
-ORIN_CARRY_SIZE = 768
+ORIN_GROUND_RES = 1024
+# 512, not EXP-1's adopted 640: the catch-up only converges if the tracker outruns the
+# 5 Hz feed. EXP-1's sweep is 8.71 Hz at 512 vs 5.76 at 640 vs 2.34 at 1024, and this
+# panel measures 9.3 Hz / 107 ms at 512 live. Costs 512-vs-640 accuracy (median IoU
+# 0.780 vs 0.811) -- fine for a demo, which is why no number from here is a result.
+ORIN_CARRY_SIZE = 512
 _EXP3 = {}
 
 # --- copter pilot mode: the P6.1/P6.2 rig, live -----------------------------
@@ -274,6 +283,21 @@ def chase_speed(areas, frame_area=CAM_W * CAM_H):
                                  CHASE_GAIN * err * math.exp(err / 2)))
 
 
+def floor_climb(z, dt, goal):
+    """Vertical metres to add this tick, and the latched goal -> (dz, goal).
+
+    Dipping under CHASE_FLOOR latches a climb to CHASE_FLOOR + CHASE_CLIMB and
+    holds it until reached. Latched, not a bare clamp: a nose-down chase is still
+    commanding descent, so an escape that stopped the instant it cleared the floor
+    would sink straight back and buzz along it.
+    """
+    if z < CHASE_FLOOR:
+        goal = CHASE_FLOOR + CHASE_CLIMB
+    if goal is None or z >= goal:
+        return 0.0, None
+    return min(goal - z, CHASE_SPEED * dt), goal
+
+
 def manual_velocity(held, v, yaw_deg=0.0):
     """Held keys -> a LOCAL_NED velocity setpoint (vn, ve, vd) in m/s.
 
@@ -329,9 +353,7 @@ def boresight(pitch_deg, yaw_deg):
     below you closes the ground distance without closing the slant range, so the
     box need not grow. Since ASSIST already parks the target at frame centre,
     the boresight IS the line to the target -- move along it and it gets bigger.
-    ASSIST flattens the z out of this step (altitude hold), so what actually flies
-    is the GROUND projection of the boresight: at hard nadir there is none, and
-    chase does nothing until the camera is pitched off vertical.
+    A nose-down chase therefore descends -- floor_climb() is the min-AGL guard.
     """
     p, y = math.radians(pitch_deg), math.radians(yaw_deg)
     return carla.Location(math.cos(p) * math.cos(y),
@@ -874,7 +896,7 @@ def main():
                     help="destroy every vehicle/walker/camera in the world at startup, "
                          "including actors this process did not spawn (recovers a world "
                          "polluted by a crashed or leaky earlier run)")
-    ap.add_argument("--acquire", choices=("warm", "cold"), default="cold",
+    ap.add_argument("--acquire", choices=("warm", "cold"), default="warm",
                     help="warm = maintain from designation and deliver on command; "
                          "cold = the designation is the command (the stale-box arm)")
     ap.add_argument("--designate", choices=("vlm", "oracle"), default="vlm",
@@ -1303,14 +1325,6 @@ def main():
             pgid = carla_proc if isinstance(carla_proc, int) else (
                 os.getpgid(carla_proc.pid) if carla_proc else 0)
             print("reloading UI, leaving CARLA up", flush=True)
-            # The traffic manager's RPC listener on port 8000 is a boost::asio socket
-            # opened by the C++ client, so it is NOT close-on-exec: execv keeps the fd,
-            # the port stays bound with nobody accepting, and the re-execed process dies
-            # on "bind error -- another carla_debug_ui.py is already running". Nothing
-            # above fd 2 is meant to survive the exec, so drop the lot.
-            sys.stdout.flush()
-            sys.stderr.flush()
-            os.closerange(3, os.sysconf("SC_OPEN_MAX"))
             os.execv(sys.executable,          # never returns
                      [sys.executable, *reload_argv(sys.argv, pgid)])
         root.destroy()
@@ -2381,6 +2395,7 @@ def main():
     fly_t = {"last": None}
     # outstanding ASSIST correction in degrees, and the box stamp it came from
     aim = {"yaw": 0.0, "pitch": 0.0, "stamp": -1, "chase": False, "seen": 0.0,
+           "floor": None,
            "areas": collections.deque(maxlen=CHASE_HIST + 1)}
     MOVE = {"w": (1, 0, 0), "s": (-1, 0, 0), "a": (0, -1, 0), "d": (0, 1, 0),
             "e": (0, 0, 1), "q": (0, 0, -1)}
@@ -2476,12 +2491,6 @@ def main():
         """
         if paused["on"] or not track["delivered"]:
             return None
-        # ...and not before the carry has drained its backlog. Mid-catch-up the box is
-        # a real box from an OLD frame, so steering on it flies at where the target was
-        # seconds ago -- the copter moves before it knows where to go. catchup_s latches
-        # the first time lag<=1, which is exactly "locked in".
-        if track["catchup_s"] is None:
-            return None
         fm = pilot_follow_mode()
         return track["box"] if fm in ("assist", "auto") else None
 
@@ -2524,7 +2533,8 @@ def main():
             aim["chase"] = 0.0
 
     def fly_spectator(now):
-        if not held and not (aim["yaw"] or aim["pitch"] or aim["chase"]):
+        if not held and not (aim["yaw"] or aim["pitch"] or aim["chase"]
+                             or aim["floor"]):
             cam["t"] = None  # resync next time, the view may have moved elsewhere
             fly_t["last"] = None
             return
@@ -2564,14 +2574,15 @@ def main():
         # shrinks, and it settles on its own. A real closed loop where aim on a
         # frozen box is an open one.
         # The operator wins the same tie as with look: a held wasd outranks it.
-        # ALTITUDE HOLD: z is zeroed out of the step, so the model only ever changes
-        # where the camera is over the ground and the operator keeps sole authority
-        # over height (q/e). That also retires the min-AGL escape climb -- a chase
-        # that cannot descend cannot sink into the road, so there is nothing to
-        # escape from, and the panel no longer flies up on its own.
         if aim["chase"] and not (held & MOVE.keys()):
-            step = boresight(t.rotation.pitch, t.rotation.yaw) * (aim["chase"] * dt)
-            t.location += carla.Location(step.x, step.y, 0.0)
+            t.location += boresight(t.rotation.pitch, t.rotation.yaw) * (aim["chase"] * dt)
+        # Min-AGL escape, same operator-wins tie: flying the camera low by hand is
+        # a deliberate act, sinking into the road on a nose-down chase is not.
+        if not (held & MOVE.keys()):
+            dz, aim["floor"] = floor_climb(t.location.z, dt, aim["floor"])
+            t.location.z += dz
+        else:
+            aim["floor"] = None
         cam["spec"].set_transform(t)
 
     def fly_copter(now, dt, box):

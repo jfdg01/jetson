@@ -168,27 +168,35 @@ def test_speed_tracks_range_not_just_the_area_error():
         assert abs(ui.chase_speed(_hist(area)) - ui.CHASE_GAIN * err * ratio) < 1e-9
 
 
+def test_floor_climb_is_inert_above_the_floor():
+    for z in (ui.CHASE_FLOOR, ui.CHASE_FLOOR + 1, 100.0):
+        assert ui.floor_climb(z, DT, None) == (0.0, None)
+
+
+def test_floor_breach_latches_a_climb_to_floor_plus_climb():
+    """Below the floor it climbs, and keeps climbing past the floor to the goal --
+    a bare clamp would release at 10 m and the nose-down chase would sink back."""
+    z, goal, want = 4.0, None, ui.CHASE_FLOOR + ui.CHASE_CLIMB
+    for _ in range(int(30 / DT)):
+        dz, goal = ui.floor_climb(z, DT, goal)
+        z += dz
+        assert z <= want + 1e-9, "climbed past the goal"
+    assert abs(z - want) < 1e-6 and goal is None
+
+
+def test_floor_climb_never_overshoots_however_long_the_tick():
+    dz, _ = ui.floor_climb(4.0, 1e9, None)
+    assert abs(4.0 + dz - (ui.CHASE_FLOOR + ui.CHASE_CLIMB)) < 1e-9
+
+
 def test_boresight_is_a_unit_vector_that_descends_when_aimed_down():
-    """The line to the target, not the ground frame: a nose-down aim has -z, which
-    is what closes SLANT range. ASSIST then drops that z (altitude hold), so what
-    flies is the ground projection -- see the test below for the cost."""
+    """Chase now flies where it looks, so a nose-down aim MUST have -z -- that
+    is what closes slant range on a target below. The old ground frame did not."""
     for pitch, yaw in ((0.0, 0.0), (-30.0, 37.0), (-89.0, -90.0), (15.0, 180.0)):
         v = ui.boresight(pitch, yaw)
         assert abs(math.sqrt(v.x ** 2 + v.y ** 2 + v.z ** 2) - 1.0) < 1e-6
     assert ui.boresight(-45.0, 0.0).z < -0.7        # aimed down, flies down
     assert ui.boresight(0.0, 0.0).z == 0.0          # level aim, level flight
-
-
-def test_altitude_hold_makes_chase_inert_at_nadir():
-    """The accepted ceiling of zeroing z in the ASSIST step: the flown vector is
-    cos(pitch) long, so a camera looking straight down commands nothing however
-    big the chase speed. Chase only bites once the camera is pitched off vertical."""
-    def ground(pitch):
-        v = ui.boresight(pitch, 37.0)
-        return math.sqrt(v.x ** 2 + v.y ** 2)
-    assert ground(-89.0) < 0.02                     # nadir: no chase
-    assert ground(-45.0) > 0.7 > ground(-60.0)      # pitch up, chase returns
-    assert ground(0.0) > 0.99
 
 
 def test_boresight_heading_follows_yaw():
