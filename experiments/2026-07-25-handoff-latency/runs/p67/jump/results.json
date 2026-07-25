@@ -1,0 +1,2789 @@
+{
+ "cells": [
+  {
+   "clip": "clip00",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 490,
+   "seed_i": 40,
+   "seed_box": [
+    311.3,
+    222.91,
+    337.41,
+    264.76
+   ],
+   "n_steps": 149,
+   "n_post": 100,
+   "t_handoff": 5.357,
+   "steps_to_live": 50,
+   "median_iou": 0.8695,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip00-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1161,
+    "drain": 5.2409
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip00",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 490,
+   "seed_i": 40,
+   "seed_box": [
+    311.3,
+    222.91,
+    337.41,
+    264.76
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5578,
+   "steps_to_live": 4,
+   "median_iou": 0.8811,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip00-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1605,
+    "drain": 0.3973
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip00",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 490,
+   "seed_i": 40,
+   "seed_box": [
+    311.3,
+    222.91,
+    337.41,
+    264.76
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.308,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 0.0,
+   "on_target_frac": 0.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip00-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1153,
+    "drain": 0.1927
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip01",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 60.0,
+   "target_id": 596,
+   "seed_i": 40,
+   "seed_box": [
+    274.82,
+    168.55,
+    299.8,
+    199.37
+   ],
+   "n_steps": 149,
+   "n_post": 0,
+   "t_handoff": 5.328,
+   "steps_to_live": 50,
+   "median_iou": null,
+   "box_frac": null,
+   "on_target_frac": null,
+   "swaps": 4,
+   "rc": null,
+   "trace": "runs/p67/jump/clip01-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1196,
+    "drain": 5.2083
+   },
+   "target_run": [
+    0,
+    153
+   ]
+  },
+  {
+   "clip": "clip01",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 60.0,
+   "target_id": 596,
+   "seed_i": 40,
+   "seed_box": [
+    274.82,
+    168.55,
+    299.8,
+    199.37
+   ],
+   "n_steps": 103,
+   "n_post": 3,
+   "t_handoff": 0.5094,
+   "steps_to_live": 4,
+   "median_iou": 0.247,
+   "box_frac": 1.0,
+   "on_target_frac": 0.3333,
+   "swaps": 4,
+   "rc": null,
+   "trace": "runs/p67/jump/clip01-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1182,
+    "drain": 0.3912
+   },
+   "target_run": [
+    0,
+    153
+   ]
+  },
+  {
+   "clip": "clip01",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 60.0,
+   "target_id": 596,
+   "seed_i": 40,
+   "seed_box": [
+    274.82,
+    168.55,
+    299.8,
+    199.37
+   ],
+   "n_steps": 101,
+   "n_post": 4,
+   "t_handoff": 0.3095,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 0.0,
+   "on_target_frac": 0.0,
+   "swaps": 2,
+   "rc": null,
+   "trace": "runs/p67/jump/clip01-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.118,
+    "drain": 0.1915
+   },
+   "target_run": [
+    0,
+    153
+   ]
+  },
+  {
+   "clip": "clip02",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 80.0,
+   "target_id": 702,
+   "seed_i": 40,
+   "seed_box": [
+    307.85,
+    240.71,
+    323.67,
+    258.97
+   ],
+   "n_steps": 149,
+   "n_post": 100,
+   "t_handoff": 5.3098,
+   "steps_to_live": 50,
+   "median_iou": 0.7587,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip02-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1198,
+    "drain": 5.1899
+   },
+   "target_run": [
+    0,
+    1028
+   ]
+  },
+  {
+   "clip": "clip02",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 80.0,
+   "target_id": 702,
+   "seed_i": 40,
+   "seed_box": [
+    307.85,
+    240.71,
+    323.67,
+    258.97
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5267,
+   "steps_to_live": 4,
+   "median_iou": 0.0,
+   "box_frac": 1.0,
+   "on_target_frac": 0.0,
+   "swaps": 4,
+   "rc": null,
+   "trace": "runs/p67/jump/clip02-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1157,
+    "drain": 0.411
+   },
+   "target_run": [
+    0,
+    1028
+   ]
+  },
+  {
+   "clip": "clip02",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 80.0,
+   "target_id": 702,
+   "seed_i": 40,
+   "seed_box": [
+    307.85,
+    240.71,
+    323.67,
+    258.97
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3064,
+   "steps_to_live": 2,
+   "median_iou": 0.7803,
+   "box_frac": 1.0,
+   "on_target_frac": 0.99,
+   "swaps": 2,
+   "rc": null,
+   "trace": "runs/p67/jump/clip02-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1149,
+    "drain": 0.1915
+   },
+   "target_run": [
+    0,
+    1028
+   ]
+  },
+  {
+   "clip": "clip03",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 100.0,
+   "target_id": 808,
+   "seed_i": 40,
+   "seed_box": [
+    321.78,
+    228.97,
+    329.19,
+    246.39
+   ],
+   "n_steps": 148,
+   "n_post": 100,
+   "t_handoff": 5.1787,
+   "steps_to_live": 49,
+   "median_iou": 0.0,
+   "box_frac": 0.0,
+   "on_target_frac": 0.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip03-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1199,
+    "drain": 5.0588
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip03",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 100.0,
+   "target_id": 808,
+   "seed_i": 40,
+   "seed_box": [
+    321.78,
+    228.97,
+    329.19,
+    246.39
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5182,
+   "steps_to_live": 4,
+   "median_iou": 0.0,
+   "box_frac": 0.39,
+   "on_target_frac": 0.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip03-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1214,
+    "drain": 0.3968
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip03",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 100.0,
+   "target_id": 808,
+   "seed_i": 40,
+   "seed_box": [
+    321.78,
+    228.97,
+    329.19,
+    246.39
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.31,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 0.4,
+   "on_target_frac": 0.0,
+   "swaps": 2,
+   "rc": null,
+   "trace": "runs/p67/jump/clip03-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1169,
+    "drain": 0.1931
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip04",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 120.0,
+   "target_id": 914,
+   "seed_i": 40,
+   "seed_box": [
+    317.73,
+    246.21,
+    324.6,
+    258.19
+   ],
+   "n_steps": 148,
+   "n_post": 84,
+   "t_handoff": 5.1884,
+   "steps_to_live": 49,
+   "median_iou": 0.0,
+   "box_frac": 0.7381,
+   "on_target_frac": 0.381,
+   "swaps": 4,
+   "rc": null,
+   "trace": "runs/p67/jump/clip04-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1198,
+    "drain": 5.0686
+   },
+   "target_run": [
+    0,
+    569
+   ]
+  },
+  {
+   "clip": "clip04",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 120.0,
+   "target_id": 914,
+   "seed_i": 40,
+   "seed_box": [
+    317.73,
+    246.21,
+    324.6,
+    258.19
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5129,
+   "steps_to_live": 4,
+   "median_iou": 0.3803,
+   "box_frac": 0.78,
+   "on_target_frac": 0.56,
+   "swaps": 4,
+   "rc": null,
+   "trace": "runs/p67/jump/clip04-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1178,
+    "drain": 0.395
+   },
+   "target_run": [
+    0,
+    569
+   ]
+  },
+  {
+   "clip": "clip04",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 120.0,
+   "target_id": 914,
+   "seed_i": 40,
+   "seed_box": [
+    317.73,
+    246.21,
+    324.6,
+    258.19
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3085,
+   "steps_to_live": 2,
+   "median_iou": 0.3803,
+   "box_frac": 0.78,
+   "on_target_frac": 0.56,
+   "swaps": 4,
+   "rc": null,
+   "trace": "runs/p67/jump/clip04-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1166,
+    "drain": 0.192
+   },
+   "target_run": [
+    0,
+    569
+   ]
+  },
+  {
+   "clip": "clip05",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 1020,
+   "seed_i": 40,
+   "seed_box": [
+    278.47,
+    199.12,
+    322.09,
+    249.91
+   ],
+   "n_steps": 148,
+   "n_post": 100,
+   "t_handoff": 5.1831,
+   "steps_to_live": 49,
+   "median_iou": 0.1416,
+   "box_frac": 0.64,
+   "on_target_frac": 0.46,
+   "swaps": 36,
+   "rc": null,
+   "trace": "runs/p67/jump/clip05-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1152,
+    "drain": 5.0679
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip05",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 1020,
+   "seed_i": 40,
+   "seed_box": [
+    278.47,
+    199.12,
+    322.09,
+    249.91
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5028,
+   "steps_to_live": 4,
+   "median_iou": 0.6682,
+   "box_frac": 0.87,
+   "on_target_frac": 0.66,
+   "swaps": 26,
+   "rc": null,
+   "trace": "runs/p67/jump/clip05-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1148,
+    "drain": 0.388
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip05",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 1020,
+   "seed_i": 40,
+   "seed_box": [
+    278.47,
+    199.12,
+    322.09,
+    249.91
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3072,
+   "steps_to_live": 2,
+   "median_iou": 0.6876,
+   "box_frac": 0.88,
+   "on_target_frac": 0.7,
+   "swaps": 24,
+   "rc": null,
+   "trace": "runs/p67/jump/clip05-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1154,
+    "drain": 0.1918
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip06",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 60.0,
+   "target_id": 1126,
+   "seed_i": 40,
+   "seed_box": [
+    315.87,
+    225.15,
+    344.45,
+    252.04
+   ],
+   "n_steps": 149,
+   "n_post": 100,
+   "t_handoff": 5.352,
+   "steps_to_live": 50,
+   "median_iou": 0.7936,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip06-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1251,
+    "drain": 5.2269
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip06",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 60.0,
+   "target_id": 1126,
+   "seed_i": 40,
+   "seed_box": [
+    315.87,
+    225.15,
+    344.45,
+    252.04
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5476,
+   "steps_to_live": 4,
+   "median_iou": 0.0,
+   "box_frac": 1.0,
+   "on_target_frac": 0.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip06-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.157,
+    "drain": 0.3906
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip06",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 60.0,
+   "target_id": 1126,
+   "seed_i": 40,
+   "seed_box": [
+    315.87,
+    225.15,
+    344.45,
+    252.04
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3108,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 0.44,
+   "on_target_frac": 0.0,
+   "swaps": 5,
+   "rc": null,
+   "trace": "runs/p67/jump/clip06-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1172,
+    "drain": 0.1936
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip07",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 80.0,
+   "target_id": 1232,
+   "seed_i": 40,
+   "seed_box": [
+    281.38,
+    239.37,
+    307.09,
+    258.67
+   ],
+   "n_steps": 149,
+   "n_post": 100,
+   "t_handoff": 5.3049,
+   "steps_to_live": 50,
+   "median_iou": 0.5501,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip07-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1339,
+    "drain": 5.171
+   },
+   "target_run": [
+    0,
+    683
+   ]
+  },
+  {
+   "clip": "clip07",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 80.0,
+   "target_id": 1232,
+   "seed_i": 40,
+   "seed_box": [
+    281.38,
+    239.37,
+    307.09,
+    258.67
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5125,
+   "steps_to_live": 4,
+   "median_iou": 0.5712,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip07-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1185,
+    "drain": 0.394
+   },
+   "target_run": [
+    0,
+    683
+   ]
+  },
+  {
+   "clip": "clip07",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 80.0,
+   "target_id": 1232,
+   "seed_i": 40,
+   "seed_box": [
+    281.38,
+    239.37,
+    307.09,
+    258.67
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3221,
+   "steps_to_live": 2,
+   "median_iou": 0.5625,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip07-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1306,
+    "drain": 0.1916
+   },
+   "target_run": [
+    0,
+    683
+   ]
+  },
+  {
+   "clip": "clip08",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 100.0,
+   "target_id": 1338,
+   "seed_i": 40,
+   "seed_box": [
+    317.21,
+    239.47,
+    325.78,
+    254.93
+   ],
+   "n_steps": 149,
+   "n_post": 100,
+   "t_handoff": 5.3141,
+   "steps_to_live": 50,
+   "median_iou": 0.6545,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip08-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1178,
+    "drain": 5.1962
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip08",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 100.0,
+   "target_id": 1338,
+   "seed_i": 40,
+   "seed_box": [
+    317.21,
+    239.47,
+    325.78,
+    254.93
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5193,
+   "steps_to_live": 4,
+   "median_iou": 0.0,
+   "box_frac": 0.12,
+   "on_target_frac": 0.0,
+   "swaps": 1,
+   "rc": null,
+   "trace": "runs/p67/jump/clip08-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1166,
+    "drain": 0.4027
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip08",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 100.0,
+   "target_id": 1338,
+   "seed_i": 40,
+   "seed_box": [
+    317.21,
+    239.47,
+    325.78,
+    254.93
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3192,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 0.11,
+   "on_target_frac": 0.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip08-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1186,
+    "drain": 0.2006
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip09",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 120.0,
+   "target_id": 1444,
+   "seed_i": 40,
+   "seed_box": [
+    311.92,
+    234.36,
+    330.14,
+    246.42
+   ],
+   "n_steps": 149,
+   "n_post": 100,
+   "t_handoff": 5.3387,
+   "steps_to_live": 50,
+   "median_iou": 0.0,
+   "box_frac": 0.77,
+   "on_target_frac": 0.2,
+   "swaps": 6,
+   "rc": null,
+   "trace": "runs/p67/jump/clip09-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1349,
+    "drain": 5.2038
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip09",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 120.0,
+   "target_id": 1444,
+   "seed_i": 40,
+   "seed_box": [
+    311.92,
+    234.36,
+    330.14,
+    246.42
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5071,
+   "steps_to_live": 4,
+   "median_iou": 0.0,
+   "box_frac": 1.0,
+   "on_target_frac": 0.0,
+   "swaps": 4,
+   "rc": null,
+   "trace": "runs/p67/jump/clip09-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1169,
+    "drain": 0.3902
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip09",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 120.0,
+   "target_id": 1444,
+   "seed_i": 40,
+   "seed_box": [
+    311.92,
+    234.36,
+    330.14,
+    246.42
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3147,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 0.56,
+   "on_target_frac": 0.0,
+   "swaps": 7,
+   "rc": null,
+   "trace": "runs/p67/jump/clip09-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.122,
+    "drain": 0.1927
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip10",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 1550,
+   "seed_i": 40,
+   "seed_box": [
+    285.05,
+    167.43,
+    309.97,
+    205.19
+   ],
+   "n_steps": 149,
+   "n_post": 38,
+   "t_handoff": 5.3113,
+   "steps_to_live": 50,
+   "median_iou": 0.6256,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 1,
+   "rc": null,
+   "trace": "runs/p67/jump/clip10-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1171,
+    "drain": 5.1941
+   },
+   "target_run": [
+    0,
+    389
+   ]
+  },
+  {
+   "clip": "clip10",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 1550,
+   "seed_i": 40,
+   "seed_box": [
+    285.05,
+    167.43,
+    309.97,
+    205.19
+   ],
+   "n_steps": 103,
+   "n_post": 62,
+   "t_handoff": 0.5078,
+   "steps_to_live": 4,
+   "median_iou": 0.0,
+   "box_frac": 1.0,
+   "on_target_frac": 0.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip10-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1184,
+    "drain": 0.3894
+   },
+   "target_run": [
+    0,
+    389
+   ]
+  },
+  {
+   "clip": "clip10",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 1550,
+   "seed_i": 40,
+   "seed_box": [
+    285.05,
+    167.43,
+    309.97,
+    205.19
+   ],
+   "n_steps": 101,
+   "n_post": 63,
+   "t_handoff": 0.3156,
+   "steps_to_live": 2,
+   "median_iou": 0.2943,
+   "box_frac": 1.0,
+   "on_target_frac": 0.1746,
+   "swaps": 10,
+   "rc": null,
+   "trace": "runs/p67/jump/clip10-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1241,
+    "drain": 0.1915
+   },
+   "target_run": [
+    0,
+    389
+   ]
+  },
+  {
+   "clip": "clip11",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 60.0,
+   "target_id": 1656,
+   "seed_i": 40,
+   "seed_box": [
+    302.72,
+    221.41,
+    319.35,
+    252.28
+   ],
+   "n_steps": 148,
+   "n_post": 70,
+   "t_handoff": 5.1837,
+   "steps_to_live": 49,
+   "median_iou": 0.7565,
+   "box_frac": 0.9714,
+   "on_target_frac": 0.9714,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip11-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1137,
+    "drain": 5.07
+   },
+   "target_run": [
+    0,
+    514
+   ]
+  },
+  {
+   "clip": "clip11",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 60.0,
+   "target_id": 1656,
+   "seed_i": 40,
+   "seed_box": [
+    302.72,
+    221.41,
+    319.35,
+    252.28
+   ],
+   "n_steps": 103,
+   "n_post": 93,
+   "t_handoff": 0.5165,
+   "steps_to_live": 4,
+   "median_iou": 0.7657,
+   "box_frac": 0.9785,
+   "on_target_frac": 0.9785,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip11-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1281,
+    "drain": 0.3884
+   },
+   "target_run": [
+    0,
+    514
+   ]
+  },
+  {
+   "clip": "clip11",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 60.0,
+   "target_id": 1656,
+   "seed_i": 40,
+   "seed_box": [
+    302.72,
+    221.41,
+    319.35,
+    252.28
+   ],
+   "n_steps": 101,
+   "n_post": 94,
+   "t_handoff": 0.3089,
+   "steps_to_live": 2,
+   "median_iou": 0.7664,
+   "box_frac": 0.9787,
+   "on_target_frac": 0.9787,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip11-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.119,
+    "drain": 0.1899
+   },
+   "target_run": [
+    0,
+    514
+   ]
+  },
+  {
+   "clip": "clip12",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 80.0,
+   "target_id": 1762,
+   "seed_i": 40,
+   "seed_box": [
+    313.38,
+    228.77,
+    325.94,
+    248.65
+   ],
+   "n_steps": 148,
+   "n_post": 100,
+   "t_handoff": 5.1614,
+   "steps_to_live": 49,
+   "median_iou": 0.7657,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip12-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1236,
+    "drain": 5.0378
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip12",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 80.0,
+   "target_id": 1762,
+   "seed_i": 40,
+   "seed_box": [
+    313.38,
+    228.77,
+    325.94,
+    248.65
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5065,
+   "steps_to_live": 4,
+   "median_iou": 0.0,
+   "box_frac": 1.0,
+   "on_target_frac": 0.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip12-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1207,
+    "drain": 0.3857
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip12",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 80.0,
+   "target_id": 1762,
+   "seed_i": 40,
+   "seed_box": [
+    313.38,
+    228.77,
+    325.94,
+    248.65
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3186,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 1.0,
+   "on_target_frac": 0.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip12-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1283,
+    "drain": 0.1903
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip13",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 100.0,
+   "target_id": 1868,
+   "seed_i": 40,
+   "seed_box": [
+    352.2,
+    218.16,
+    370.08,
+    229.81
+   ],
+   "n_steps": 149,
+   "n_post": 100,
+   "t_handoff": 5.3106,
+   "steps_to_live": 50,
+   "median_iou": 0.3234,
+   "box_frac": 1.0,
+   "on_target_frac": 0.5,
+   "swaps": 9,
+   "rc": null,
+   "trace": "runs/p67/jump/clip13-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1221,
+    "drain": 5.1885
+   },
+   "target_run": [
+    0,
+    1054
+   ]
+  },
+  {
+   "clip": "clip13",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 100.0,
+   "target_id": 1868,
+   "seed_i": 40,
+   "seed_box": [
+    352.2,
+    218.16,
+    370.08,
+    229.81
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5056,
+   "steps_to_live": 4,
+   "median_iou": 0.5688,
+   "box_frac": 1.0,
+   "on_target_frac": 0.74,
+   "swaps": 6,
+   "rc": null,
+   "trace": "runs/p67/jump/clip13-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1155,
+    "drain": 0.3901
+   },
+   "target_run": [
+    0,
+    1054
+   ]
+  },
+  {
+   "clip": "clip13",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 100.0,
+   "target_id": 1868,
+   "seed_i": 40,
+   "seed_box": [
+    352.2,
+    218.16,
+    370.08,
+    229.81
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3107,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 1.0,
+   "on_target_frac": 0.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip13-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1159,
+    "drain": 0.1948
+   },
+   "target_run": [
+    0,
+    1054
+   ]
+  },
+  {
+   "clip": "clip14",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 120.0,
+   "target_id": 1974,
+   "seed_i": 40,
+   "seed_box": [
+    303.08,
+    242.0,
+    316.34,
+    254.09
+   ],
+   "n_steps": 149,
+   "n_post": 100,
+   "t_handoff": 5.3629,
+   "steps_to_live": 50,
+   "median_iou": 0.3335,
+   "box_frac": 0.97,
+   "on_target_frac": 0.55,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip14-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1326,
+    "drain": 5.2303
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip14",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 120.0,
+   "target_id": 1974,
+   "seed_i": 40,
+   "seed_box": [
+    303.08,
+    242.0,
+    316.34,
+    254.09
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5451,
+   "steps_to_live": 4,
+   "median_iou": 0.0,
+   "box_frac": 0.91,
+   "on_target_frac": 0.0,
+   "swaps": 11,
+   "rc": null,
+   "trace": "runs/p67/jump/clip14-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1159,
+    "drain": 0.4292
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip14",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 120.0,
+   "target_id": 1974,
+   "seed_i": 40,
+   "seed_box": [
+    303.08,
+    242.0,
+    316.34,
+    254.09
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3116,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 0.93,
+   "on_target_frac": 0.0,
+   "swaps": 10,
+   "rc": null,
+   "trace": "runs/p67/jump/clip14-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1165,
+    "drain": 0.1951
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip15",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 2080,
+   "seed_i": 40,
+   "seed_box": [
+    289.84,
+    224.78,
+    330.48,
+    268.47
+   ],
+   "n_steps": 149,
+   "n_post": 100,
+   "t_handoff": 5.3447,
+   "steps_to_live": 50,
+   "median_iou": 0.6639,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip15-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.119,
+    "drain": 5.2257
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip15",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 2080,
+   "seed_i": 40,
+   "seed_box": [
+    289.84,
+    224.78,
+    330.48,
+    268.47
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.51,
+   "steps_to_live": 4,
+   "median_iou": 0.7036,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip15-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1204,
+    "drain": 0.3895
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip15",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 2080,
+   "seed_i": 40,
+   "seed_box": [
+    289.84,
+    224.78,
+    330.48,
+    268.47
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3197,
+   "steps_to_live": 2,
+   "median_iou": 0.7265,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip15-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1237,
+    "drain": 0.1961
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip16",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 60.0,
+   "target_id": 2186,
+   "seed_i": 40,
+   "seed_box": [
+    274.54,
+    284.53,
+    298.0,
+    312.6
+   ],
+   "n_steps": 149,
+   "n_post": 16,
+   "t_handoff": 5.3468,
+   "steps_to_live": 50,
+   "median_iou": 0.0,
+   "box_frac": 0.0,
+   "on_target_frac": 0.0,
+   "swaps": 2,
+   "rc": null,
+   "trace": "runs/p67/jump/clip16-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1219,
+    "drain": 5.2248
+   },
+   "target_run": [
+    0,
+    304
+   ]
+  },
+  {
+   "clip": "clip16",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 60.0,
+   "target_id": 2186,
+   "seed_i": 40,
+   "seed_box": [
+    274.54,
+    284.53,
+    298.0,
+    312.6
+   ],
+   "n_steps": 103,
+   "n_post": 40,
+   "t_handoff": 0.5469,
+   "steps_to_live": 4,
+   "median_iou": 0.0,
+   "box_frac": 0.0,
+   "on_target_frac": 0.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip16-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.116,
+    "drain": 0.4308
+   },
+   "target_run": [
+    0,
+    304
+   ]
+  },
+  {
+   "clip": "clip16",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 60.0,
+   "target_id": 2186,
+   "seed_i": 40,
+   "seed_box": [
+    274.54,
+    284.53,
+    298.0,
+    312.6
+   ],
+   "n_steps": 101,
+   "n_post": 41,
+   "t_handoff": 0.3243,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 0.0,
+   "on_target_frac": 0.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip16-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1247,
+    "drain": 0.1996
+   },
+   "target_run": [
+    0,
+    304
+   ]
+  },
+  {
+   "clip": "clip17",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 80.0,
+   "target_id": 2292,
+   "seed_i": 40,
+   "seed_box": [
+    315.92,
+    235.96,
+    329.81,
+    256.38
+   ],
+   "n_steps": 149,
+   "n_post": 100,
+   "t_handoff": 5.3413,
+   "steps_to_live": 50,
+   "median_iou": 0.5963,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip17-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1185,
+    "drain": 5.2228
+   },
+   "target_run": [
+    0,
+    1003
+   ]
+  },
+  {
+   "clip": "clip17",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 80.0,
+   "target_id": 2292,
+   "seed_i": 40,
+   "seed_box": [
+    315.92,
+    235.96,
+    329.81,
+    256.38
+   ],
+   "n_steps": 102,
+   "n_post": 100,
+   "t_handoff": 0.5279,
+   "steps_to_live": 3,
+   "median_iou": 0.0,
+   "box_frac": 1.0,
+   "on_target_frac": 0.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip17-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1216,
+    "drain": 0.4063
+   },
+   "target_run": [
+    0,
+    1003
+   ]
+  },
+  {
+   "clip": "clip17",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 80.0,
+   "target_id": 2292,
+   "seed_i": 40,
+   "seed_box": [
+    315.92,
+    235.96,
+    329.81,
+    256.38
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3337,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 1.0,
+   "on_target_frac": 0.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip17-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1391,
+    "drain": 0.1945
+   },
+   "target_run": [
+    0,
+    1003
+   ]
+  },
+  {
+   "clip": "clip18",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 100.0,
+   "target_id": 2398,
+   "seed_i": 40,
+   "seed_box": [
+    316.75,
+    234.76,
+    323.31,
+    246.84
+   ],
+   "n_steps": 148,
+   "n_post": 100,
+   "t_handoff": 5.1962,
+   "steps_to_live": 49,
+   "median_iou": 0.4315,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip18-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1173,
+    "drain": 5.0789
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip18",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 100.0,
+   "target_id": 2398,
+   "seed_i": 40,
+   "seed_box": [
+    316.75,
+    234.76,
+    323.31,
+    246.84
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5081,
+   "steps_to_live": 4,
+   "median_iou": 0.0,
+   "box_frac": 1.0,
+   "on_target_frac": 0.0,
+   "swaps": 2,
+   "rc": null,
+   "trace": "runs/p67/jump/clip18-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1186,
+    "drain": 0.3895
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip18",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 100.0,
+   "target_id": 2398,
+   "seed_i": 40,
+   "seed_box": [
+    316.75,
+    234.76,
+    323.31,
+    246.84
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3058,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 1.0,
+   "on_target_frac": 0.0,
+   "swaps": 2,
+   "rc": null,
+   "trace": "runs/p67/jump/clip18-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1149,
+    "drain": 0.1909
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip19",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 120.0,
+   "target_id": 2504,
+   "seed_i": 40,
+   "seed_box": [
+    327.28,
+    239.16,
+    337.43,
+    244.67
+   ],
+   "n_steps": 148,
+   "n_post": 100,
+   "t_handoff": 5.1852,
+   "steps_to_live": 49,
+   "median_iou": 0.0,
+   "box_frac": 1.0,
+   "on_target_frac": 0.0,
+   "swaps": 3,
+   "rc": null,
+   "trace": "runs/p67/jump/clip19-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1159,
+    "drain": 5.0693
+   },
+   "target_run": [
+    0,
+    874
+   ]
+  },
+  {
+   "clip": "clip19",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 120.0,
+   "target_id": 2504,
+   "seed_i": 40,
+   "seed_box": [
+    327.28,
+    239.16,
+    337.43,
+    244.67
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5124,
+   "steps_to_live": 4,
+   "median_iou": 0.0,
+   "box_frac": 1.0,
+   "on_target_frac": 0.0,
+   "swaps": 2,
+   "rc": null,
+   "trace": "runs/p67/jump/clip19-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1149,
+    "drain": 0.3975
+   },
+   "target_run": [
+    0,
+    874
+   ]
+  },
+  {
+   "clip": "clip19",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 120.0,
+   "target_id": 2504,
+   "seed_i": 40,
+   "seed_box": [
+    327.28,
+    239.16,
+    337.43,
+    244.67
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3138,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 0.99,
+   "on_target_frac": 0.0,
+   "swaps": 1,
+   "rc": null,
+   "trace": "runs/p67/jump/clip19-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1166,
+    "drain": 0.1971
+   },
+   "target_run": [
+    0,
+    874
+   ]
+  },
+  {
+   "clip": "clip20",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 2610,
+   "seed_i": 40,
+   "seed_box": [
+    283.26,
+    185.56,
+    319.08,
+    230.08
+   ],
+   "n_steps": 148,
+   "n_post": 100,
+   "t_handoff": 5.1942,
+   "steps_to_live": 49,
+   "median_iou": 0.673,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip20-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1214,
+    "drain": 5.0728
+   },
+   "target_run": [
+    0,
+    866
+   ]
+  },
+  {
+   "clip": "clip20",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 2610,
+   "seed_i": 40,
+   "seed_box": [
+    283.26,
+    185.56,
+    319.08,
+    230.08
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5197,
+   "steps_to_live": 4,
+   "median_iou": 0.633,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip20-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1191,
+    "drain": 0.4006
+   },
+   "target_run": [
+    0,
+    866
+   ]
+  },
+  {
+   "clip": "clip20",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 2610,
+   "seed_i": 40,
+   "seed_box": [
+    283.26,
+    185.56,
+    319.08,
+    230.08
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3214,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 0.01,
+   "on_target_frac": 0.01,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip20-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1305,
+    "drain": 0.191
+   },
+   "target_run": [
+    0,
+    866
+   ]
+  },
+  {
+   "clip": "clip21",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 60.0,
+   "target_id": 2716,
+   "seed_i": 40,
+   "seed_box": [
+    307.91,
+    231.21,
+    335.55,
+    249.73
+   ],
+   "n_steps": 149,
+   "n_post": 100,
+   "t_handoff": 5.346,
+   "steps_to_live": 50,
+   "median_iou": 0.7829,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip21-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1306,
+    "drain": 5.2154
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip21",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 60.0,
+   "target_id": 2716,
+   "seed_i": 40,
+   "seed_box": [
+    307.91,
+    231.21,
+    335.55,
+    249.73
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5413,
+   "steps_to_live": 4,
+   "median_iou": 0.7883,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip21-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1518,
+    "drain": 0.3895
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip21",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 60.0,
+   "target_id": 2716,
+   "seed_i": 40,
+   "seed_box": [
+    307.91,
+    231.21,
+    335.55,
+    249.73
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3172,
+   "steps_to_live": 2,
+   "median_iou": 0.7794,
+   "box_frac": 1.0,
+   "on_target_frac": 0.96,
+   "swaps": 5,
+   "rc": null,
+   "trace": "runs/p67/jump/clip21-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1192,
+    "drain": 0.198
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip22",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 80.0,
+   "target_id": 2822,
+   "seed_i": 40,
+   "seed_box": [
+    363.78,
+    251.62,
+    386.01,
+    267.22
+   ],
+   "n_steps": 149,
+   "n_post": 100,
+   "t_handoff": 5.3166,
+   "steps_to_live": 50,
+   "median_iou": 0.0,
+   "box_frac": 0.79,
+   "on_target_frac": 0.0,
+   "swaps": 14,
+   "rc": null,
+   "trace": "runs/p67/jump/clip22-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1251,
+    "drain": 5.1916
+   },
+   "target_run": [
+    0,
+    733
+   ]
+  },
+  {
+   "clip": "clip22",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 80.0,
+   "target_id": 2822,
+   "seed_i": 40,
+   "seed_box": [
+    363.78,
+    251.62,
+    386.01,
+    267.22
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5193,
+   "steps_to_live": 4,
+   "median_iou": 0.0,
+   "box_frac": 0.79,
+   "on_target_frac": 0.0,
+   "swaps": 9,
+   "rc": null,
+   "trace": "runs/p67/jump/clip22-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1214,
+    "drain": 0.3979
+   },
+   "target_run": [
+    0,
+    733
+   ]
+  },
+  {
+   "clip": "clip22",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 80.0,
+   "target_id": 2822,
+   "seed_i": 40,
+   "seed_box": [
+    363.78,
+    251.62,
+    386.01,
+    267.22
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3077,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 1.0,
+   "on_target_frac": 0.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip22-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.116,
+    "drain": 0.1917
+   },
+   "target_run": [
+    0,
+    733
+   ]
+  },
+  {
+   "clip": "clip23",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 100.0,
+   "target_id": 2927,
+   "seed_i": 40,
+   "seed_box": [
+    309.12,
+    223.14,
+    322.23,
+    237.5
+   ],
+   "n_steps": 149,
+   "n_post": 100,
+   "t_handoff": 5.3116,
+   "steps_to_live": 50,
+   "median_iou": 0.7317,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip23-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.123,
+    "drain": 5.1886
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip23",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 100.0,
+   "target_id": 2927,
+   "seed_i": 40,
+   "seed_box": [
+    309.12,
+    223.14,
+    322.23,
+    237.5
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5124,
+   "steps_to_live": 4,
+   "median_iou": 0.1411,
+   "box_frac": 1.0,
+   "on_target_frac": 0.42,
+   "swaps": 2,
+   "rc": null,
+   "trace": "runs/p67/jump/clip23-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.12,
+    "drain": 0.3924
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip23",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 100.0,
+   "target_id": 2927,
+   "seed_i": 40,
+   "seed_box": [
+    309.12,
+    223.14,
+    322.23,
+    237.5
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3165,
+   "steps_to_live": 2,
+   "median_iou": 0.1366,
+   "box_frac": 1.0,
+   "on_target_frac": 0.41,
+   "swaps": 1,
+   "rc": null,
+   "trace": "runs/p67/jump/clip23-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1162,
+    "drain": 0.2003
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip24",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 1,
+   "ok": true,
+   "alt": 120.0,
+   "target_id": 3033,
+   "seed_i": 40,
+   "seed_box": [
+    310.24,
+    234.22,
+    327.8,
+    249.98
+   ],
+   "n_steps": 149,
+   "n_post": 100,
+   "t_handoff": 5.3215,
+   "steps_to_live": 50,
+   "median_iou": 0.7561,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip24-WARM-lag4.85-j1/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1183,
+    "drain": 5.2032
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip24",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 120.0,
+   "target_id": 3033,
+   "seed_i": 40,
+   "seed_box": [
+    310.24,
+    234.22,
+    327.8,
+    249.98
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5292,
+   "steps_to_live": 4,
+   "median_iou": 0.7755,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip24-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1381,
+    "drain": 0.3911
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip24",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 999,
+   "ok": true,
+   "alt": 120.0,
+   "target_id": 3033,
+   "seed_i": 40,
+   "seed_box": [
+    310.24,
+    234.22,
+    327.8,
+    249.98
+   ],
+   "n_steps": 101,
+   "n_post": 100,
+   "t_handoff": 0.3144,
+   "steps_to_live": 2,
+   "median_iou": 0.0,
+   "box_frac": 0.0,
+   "on_target_frac": 0.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/jump/clip24-WARM-lag4.85-j999/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1224,
+    "drain": 0.192
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  }
+ ],
+ "config": {
+  "cam_hz": 5.0,
+  "carry_size": 512,
+  "seed_at": 40,
+  "steps": 100,
+  "slack": 75,
+  "feed_stride": 4,
+  "catchup_jump_default": 12,
+  "bank": "/home/gara/jetson/experiments/2026-07-21-carla-gt-bank/runs/bank"
+ }
+}

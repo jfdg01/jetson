@@ -212,6 +212,23 @@ number inherits from its measurement.** Configuration is the other one, and this
 column for it. The 2.30x correction is what that gap cost. Any future audit of this kind should
 ask not only "which machine" but "which configuration, and is it the deployed one".
 
+**Seventh on-device claim (2026-07-25T19:55Z, P6.7).** `P6.7-HANDOFF-warm-vs-cold-bridge` is
+assigned `machine: jetson-orin-nano-8gb` and added to the ratchet. Like R-16 there is no other
+machine in the number to disclose: every timed term is the Orin's own — `ssh` spawn of the
+bridge, `import torch` + `sam2`, `from_pretrained`, the first CUDA forward, and each carry step
+— and the G3 grounding probe runs **on the board**, hitting the deployed `llama-server` over
+`127.0.0.1:18080` precisely so that no ssh tunnel enters the measurement. The host's role is
+strictly to replay JPEGs from disk and hold the wall clock; no arm of the experiment computes
+anything on the 3090.
+
+It answers the configuration question R-16 raised, and not entirely in its own favour. The
+deployed carry configuration this campaign ran at is `image_size=512`, while EXP-1 adopted
+**640** as the measured default (R-46, open: the "deployed" resolution is written three
+different ways in the code). The seam's start-up terms — 4.95 s of the 6.15 s — are
+resolution-independent, so the conclusion is unaffected, but the sub-second WARM figure is
+quoted at 512 and would rise slightly at 640. That is stated in the claim's caveats rather
+than left for a reader to discover, which is the standard this section exists to hold.
+
 ### M4 — P5.2, the flagship Part V generalization number, is an undisclosed composite
 
 `2026-07-04-warm-start-generalization` (W 21/25 vs COLD 5/25). **The string «3090» does

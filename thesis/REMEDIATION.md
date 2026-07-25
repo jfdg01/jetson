@@ -2197,6 +2197,7 @@ experiments continue. Everything below is therefore split by whether it can be w
 | R-48 | The only ratchet is closed, so HANDOFF's finish criterion is vacuous | P2 | OPEN |
 | R-49 | Branch clutter: 28 merged `experiment/*`, 3 unmerged carrying unique content | P3 | **AUTHOR** |
 | R-50 | `tests/test_carla_lifecycle.py` never runs in `make test` | P3 | OPEN |
+| R-53 | The live panel still cold-starts a SAM2 bridge per designation (P6.7 measured the fix) | **P1** | OPEN |
 
 ## Status board — W series (the writing programme; BLOCKED on the supervisor)
 
@@ -2523,7 +2524,7 @@ a curve with a crossover point, it is a *deployment* number rather than another 
 number, and it is the kind of measurement an edge-hardware thesis is expected to have and
 this one currently does not.
 
-**Landed 2026-07-25T21:40Z (`0a806bb`), execution deferred by the author:** the full
+**Landed 2026-07-25T18:06Z (`0a806bb`), execution deferred by the author:** the full
 pre-registration is `experiments/2026-07-25-maintain-cost/README.md` — five arms
 (`A0` idle-bare, `A1` idle-deployed with `llama-server` resident, `B` carry-640,
 `C` carry-512, `D` ground), 300 s each, 3 repeats, order shuffled inside a repeat,
@@ -2534,6 +2535,34 @@ device**; their pure parts are covered offline by `tests/test_p66.py`.
 The ID is **P6.6**, left clear of R-45's proposed EXP-1/2/3 → P6.3/P6.4/P6.5 rename.
 Estimates are recorded up front (maintain **+5 to +8 W** over idle, ~2-5% of a
 150-400 W hover, G1 holds) so estimate-vs-actual is content either way.
+
+## R-53 — The live panel still cold-starts a SAM2 bridge per designation
+
+P6.7 (2026-07-25) measured what that costs and what removing it buys, on the Orin, paired
+over 25 CARLA clips: median `t_handoff` 6.311 s -> **0.515 s** at the deployed 4.85 s
+grounding lag (12.3x; 6.148 s -> 0.299 s on an oracle click), 25/25 pairs concordant,
+Wilcoxon p=1.228e-05. **80% of the 6.15 s is process start-up** (`import torch` + `sam2`
+2.846 s, `from_pretrained` 1.800 s, first CUDA forward 0.670 s, `ssh` 0.301 s); only
+0.361 s is catch-up. The residency risk was measured and is not real: a resident SAM2
+costs the VLM **x1.000** (`ground_ms` 3791.1 -> 3791.2 ms, 25 paired requests), 0/50
+`rc=-9`, `MemAvailable` floor 1315 MB.
+
+The campaign is landed (`experiments/2026-07-25-handoff-latency/`,
+`P6.7-HANDOFF-warm-vs-cold-bridge` in `claims.json`). **What is still open is the code
+change**: `runners/carla_debug_ui.py::orin_carry` still does one `Popen` per follow, so an
+operator watching the panel still waits ~6.5 s. The fix is to hoist the spawn into the
+start-up prewarm thread beside `get_backend()`, warm CUDA once, and `init_state` per
+designation. It lands on `main` as a separate commit from the campaign branch, per the
+pre-registration and the infra/experiment separation rule.
+
+*R-46 datapoint (the "deployed" carry resolution is stated three different ways):* P6.7 is
+a fourth statement — its matrix ran at `image_size=512`, while EXP-1 adopted **640** as the
+measured default with 1024 as a size-gated fallback. P6.7 deliberately did not sweep
+resolution (EXP-1 owns that knob), but that means the seam's per-step terms (`warmup_init`,
+`drain`) are quoted at 512, not at the adopted 640. The start-up terms — 4.95 s of the
+6.15 s — are resolution-independent, so the conclusion does not move; the sub-second WARM
+figure would rise slightly at 640. Whoever closes R-46 should fix one number in one place
+and make P6.7's harness read it.
 
 ---
 

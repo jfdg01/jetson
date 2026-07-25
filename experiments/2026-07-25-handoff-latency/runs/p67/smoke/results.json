@@ -1,0 +1,162 @@
+{
+ "cells": [
+  {
+   "clip": "clip00",
+   "arm": "COLD",
+   "lag_s": 0.0,
+   "jump": 12,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 490,
+   "seed_i": 40,
+   "seed_box": [
+    311.3,
+    222.91,
+    337.41,
+    264.76
+   ],
+   "n_steps": 102,
+   "n_post": 100,
+   "t_handoff": 7.3887,
+   "steps_to_live": 3,
+   "median_iou": 0.8705,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/smoke/clip00-COLD-lag0-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.4116,
+    "import": 3.7116,
+    "weights": 2.0,
+    "warmup_init": 0.8996,
+    "drain": 0.3657
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip00",
+   "arm": "COLD",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 490,
+   "seed_i": 40,
+   "seed_box": [
+    311.3,
+    222.91,
+    337.41,
+    264.76
+   ],
+   "n_steps": 104,
+   "n_post": 100,
+   "t_handoff": 6.1137,
+   "steps_to_live": 5,
+   "median_iou": 0.8665,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/smoke/clip00-COLD-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.2895,
+    "import": 2.7992,
+    "weights": 1.8,
+    "warmup_init": 0.6665,
+    "drain": 0.5584
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip00",
+   "arm": "WARM",
+   "lag_s": 0.0,
+   "jump": 12,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 490,
+   "seed_i": 40,
+   "seed_box": [
+    311.3,
+    222.91,
+    337.41,
+    264.76
+   ],
+   "n_steps": 100,
+   "n_post": 100,
+   "t_handoff": 0.2999,
+   "steps_to_live": 1,
+   "median_iou": 0.8921,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/smoke/clip00-WARM-lag0-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1173,
+    "drain": 0.1826
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  },
+  {
+   "clip": "clip00",
+   "arm": "WARM",
+   "lag_s": 4.85,
+   "jump": 12,
+   "ok": true,
+   "alt": 40.0,
+   "target_id": 490,
+   "seed_i": 40,
+   "seed_box": [
+    311.3,
+    222.91,
+    337.41,
+    264.76
+   ],
+   "n_steps": 103,
+   "n_post": 100,
+   "t_handoff": 0.5832,
+   "steps_to_live": 4,
+   "median_iou": 0.8811,
+   "box_frac": 1.0,
+   "on_target_frac": 1.0,
+   "swaps": 0,
+   "rc": null,
+   "trace": "runs/p67/smoke/clip00-WARM-lag4.85-j12/trace.jsonl",
+   "stages": {
+    "ssh_spawn": 0.0,
+    "import": 0.0,
+    "weights": 0.0,
+    "warmup_init": 0.1875,
+    "drain": 0.3957
+   },
+   "target_run": [
+    0,
+    1200
+   ]
+  }
+ ],
+ "config": {
+  "cam_hz": 5.0,
+  "carry_size": 512,
+  "seed_at": 40,
+  "steps": 100,
+  "slack": 75,
+  "feed_stride": 4,
+  "catchup_jump_default": 12,
+  "bank": "/home/gara/jetson/experiments/2026-07-21-carla-gt-bank/runs/bank"
+ }
+}

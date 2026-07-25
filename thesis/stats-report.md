@@ -2,7 +2,7 @@
 title: Resultados estadísticos retroactivos
 subtitle: Cada afirmación con puerta de las Partes I-VI, re-analizada
 author: Javier Francisco Dibo Gómez
-comment: Generado por thesis/run_stats.py, 2026-07-25T17:51Z
+comment: Generado por thesis/run_stats.py, 2026-07-25T19:50Z
 locale: es
 ---
 
@@ -19,9 +19,9 @@ diseño no podía llegar a alpha = 0,05 con ningún resultado posible.
 La columna **Máquina** dice qué hardware produjo el número. `ambas` es la
 respuesta honesta y mayoritaria en las Partes IV-V: el anclaje del VLM corrió
 en la Jetson mientras el arrastre de SAM2 corría en la RTX 3090 con un tope
-de tasa. Seis afirmaciones se midieron íntegramente en la placa,
-y dos de ellas son
-inferenciales: P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm. La derivación por afirmación está en
+de tasa. Siete afirmaciones se midieron íntegramente en la placa,
+y tres de ellas son
+inferenciales: P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm, P6.7-HANDOFF-warm-vs-cold-bridge. La derivación por afirmación está en
 `experiments/2026-07-21-machine-disclosure/README.md`.
 
 <!-- caption: Re-análisis exacto de las afirmaciones con puerta, con corrección de Holm-Bonferroni por Parte -->
@@ -38,13 +38,13 @@ inferenciales: P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm. La derivación por
 | P1-S1.4-phaseC-vlm-closed-loop | I | binario pareado | **ambas** | 0 | ninguna | indefinido | — | — | **no** | SIN DATOS - no se defiende; en cola de re-ejecución |
 | P2-RQ0.3-spine-selection | II | binario de un brazo | 3090 | 100 | IC de Wilson | indefinido | — | — | **no** | sin puerta pre-registrada; solo intervalo |
 | P2-RQ1.1-dataset-well-posedness | II | descriptivo | 3090 | 1421 | descriptiva | indefinido | — | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
-| P2-RQ2.1-resolution-ladder-1024 | II | binario de un brazo | 3090 | 316 | binomial exacta | 7.771e-06 | 1.554e-05 | 0.0003031 | sí | 133/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 133/439: ver independence_note] |
-| P2-RQ3.1-lora-aerial-gate | II | binario de un brazo | 3090 | 316 | binomial exacta | 3.679e-53 | 1.104e-52 | 1.619e-51 | sí | 261/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 261/439: ver independence_note] |
+| P2-RQ2.1-resolution-ladder-1024 | II | binario de un brazo | 3090 | 316 | binomial exacta | 7.771e-06 | 1.554e-05 | 0.0003108 | sí | 133/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 133/439: ver independence_note] |
+| P2-RQ3.1-lora-aerial-gate | II | binario de un brazo | 3090 | 316 | binomial exacta | 3.679e-53 | 1.104e-52 | 1.656e-51 | sí | 261/439 contra puerta 0.20; hacían falta >=76/316 para alpha=0,05 [deflactado desde 261/439: ver independence_note] |
 | P2-RQ4.1-deploy-fidelity | II | binario de un brazo | **ambas** | 316 | binomial exacta | 0.0355 | 0.0355 | 1 | sí | 275/439 contra puerta 0.57; hacían falta >=197/316 para alpha=0,05 [deflactado desde 275/439: ver independence_note] |
 | P3-wholeframe-resolution-knee | III | descriptivo | Jetson | 316 | descriptiva | indefinido | — | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis [deflactado desde 277/439] |
-| P3-ROI-M2.0-512 | III | binario de un brazo | **ambas** | 316 | binomial exacta | 7.235e-19 | 3.618e-18 | 3.111e-17 | sí | 374/439 contra puerta 0.63; hacían falta >=213/316 para alpha=0,05 [deflactado desde 374/439: ver independence_note] |
-| P3-ROI-M2.0-512-ondevice | III | binario pareado | Jetson | 404 | McNemar exacta | 6.384e-18 | 2.554e-17 | 2.681e-16 | sí | significativa (b=103, c=14) [deflactado desde b=112, c=15] |
-| P3-R13-owlv2-vs-vlm | III | binario pareado | Jetson | 417 | McNemar exacta | 2.205e-09 | 6.614e-09 | 9.039e-08 | sí | significativa (b=95, c=29) [deflactado desde b=100, c=31] |
+| P3-ROI-M2.0-512 | III | binario de un brazo | **ambas** | 316 | binomial exacta | 7.235e-19 | 3.618e-18 | 3.184e-17 | sí | 374/439 contra puerta 0.63; hacían falta >=213/316 para alpha=0,05 [deflactado desde 374/439: ver independence_note] |
+| P3-ROI-M2.0-512-ondevice | III | binario pareado | Jetson | 404 | McNemar exacta | 6.384e-18 | 2.554e-17 | 2.745e-16 | sí | significativa (b=103, c=14) [deflactado desde b=112, c=15] |
+| P3-R13-owlv2-vs-vlm | III | binario pareado | Jetson | 417 | McNemar exacta | 2.205e-09 | 6.614e-09 | 9.26e-08 | sí | significativa (b=95, c=29) [deflactado desde b=100, c=31] |
 | P3-ROI-drift-robustness | III | descriptivo | **ambas** | 316 | descriptiva | indefinido | — | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis [deflactado desde 326/439] |
 | P3-SR-swin2sr-accuracy | III | binario pareado | 3090 | 412 | McNemar exacta | 0.2962 | 0.2962 | 1 | sí | no significativa (b=20, c=13); hacían falta >=6 discordantes en una dirección, hubo 20 [deflactado desde b=21, c=14] |
 | P3-carry-OP768-accuracy | III | binario pareado | **ambas** | 135 | McNemar exacta | 0.03002 | 0.06003 | 0.9905 | sí | significativa (b=40, c=22) [deflactado desde b=55, c=31] |
@@ -99,11 +99,12 @@ inferenciales: P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm. La derivación por
 | P5.17-dd-vs-rg-tie-n56 | V | binario pareado | **ambas** | 41 | McNemar exacta | 1 | 1 | 1 | sí | no significativa (b=1, c=0); hacían falta >=6 discordantes en una dirección, hubo 1 |
 | P6.0-flight-rig-gate | VI | descriptivo | 3090 | 1 | descriptiva | indefinido | — | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
 | P6.1-carla-renderer | VI | descriptivo | 3090 | 1 | descriptiva | indefinido | — | — | **no** | solo descriptiva - no se pre-registró ninguna hipótesis |
-| P6.2-DELIVERY-warm-vs-cold-closedloop | VI | binario pareado | 3090 | 25 | McNemar exacta | 9.537e-07 | 1.907e-06 | 3.815e-05 | sí | significativa (b=21, c=0) |
+| P6.2-DELIVERY-warm-vs-cold-closedloop | VI | binario pareado | 3090 | 25 | McNemar exacta | 9.537e-07 | 2.861e-06 | 3.91e-05 | sí | significativa (b=21, c=0) |
 | P6.2-COUPLING-warm-carry-coupled-vs-decoupled | VI | continuo pareado | 3090 | 25 | Wilcoxon rangos con signo | 0.5965 | 0.5965 | 1 | sí | diferencia pareada mediana -0.42 |
 | R-36-maintain-vs-select | V | binario pareado | **ambas** | 14 | McNemar exacta | 0.0625 | 1 | 1 | sí | no significativa (b=5, c=0); hacían falta >=6 discordantes en una dirección, hubo 5 |
 | R-38-REG-grounding-isolation | V | binario pareado | **ambas** | 14 | McNemar exacta | 1 | 1 | 1 | sí | no significativa (b=2, c=1); hacían falta >=6 discordantes en una dirección, hubo 2 |
 | P5.21-roi-carry | V | binario pareado | **ambas** | 34 | McNemar exacta | 0.625 | 1 | 1 | sí | no significativa (b=1, c=3); hacían falta >=6 discordantes en una dirección, hubo 3 |
+| P6.7-HANDOFF-warm-vs-cold-bridge | VI | continuo pareado | Jetson | 25 | Wilcoxon rangos con signo | 1.228e-05 | 2.456e-05 | 0.0004789 | sí | diferencia pareada mediana 5.795 |
 
 ## La familia de corrección, y por qué esta y no la otra
 
@@ -112,9 +113,9 @@ dentro de cada capítulo empírico, no sobre el registro entero. La justificaci�
 que cada Parte es una pregunta de investigación distinta, pre-registrada con meses
 de diferencia, y ninguna afirmación se eligió comparando Partes entre sí.
 
-Tamaños de familia (sólo p definidos): Parte I m = 4, Parte II m = 3, Parte III m = 5, Parte IV m = 9, Parte V m = 21, Parte VI m = 2.
+Tamaños de familia (sólo p definidos): Parte I m = 4, Parte II m = 3, Parte III m = 5, Parte IV m = 9, Parte V m = 21, Parte VI m = 3.
 
-**Sobreviven 11 por Parte frente a 10 en familia global.**
+**Sobreviven 12 por Parte frente a 11 en familia global.**
 Las que sólo sobreviven por Parte: `P2-RQ4.1-deploy-fidelity`.
 
 **El contraargumento, que se registra porque es fuerte.** Con m entre 2 y 15 en
@@ -140,14 +141,14 @@ la corrección. Se declara igualmente, porque el lector no puede deducirlo de la
 
 ## Qué sobrevive
 
-Las 76 afirmaciones, repartidas en ocho categorías **disjuntas**:
+Las 77 afirmaciones, repartidas en ocho categorías **disjuntas**:
 cada afirmación aparece exactamente una vez, y los recuentos suman
-76. Cuando dos categorías podrían aplicar, gana la más
+77. Cuando dos categorías podrían aplicar, gana la más
 específica — «la puerta era inalcanzable» dice algo del diseño y prevalece
 sobre «la prueba no rechazó», que sólo dice algo del resultado.
 
 - **Sin datos crudos, en cola de re-ejecución (3).** No hay fichero por elemento. No se defienden. P1-S1.4-phaseC-vlm-closed-loop, P3-T2-permanence-reid, P3-T3-closedloop-coverage
-- **Significativas tras corrección de Holm (11).** Se pueden defender como efectos. P1-S3.3-export-parity-catastrophe, P2-RQ2.1-resolution-ladder-1024, P2-RQ3.1-lora-aerial-gate, P2-RQ4.1-deploy-fidelity, P3-ROI-M2.0-512, P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm, E18-cold-acquire-vs-warm-oracle-n25, P5.2a-warm-generalization, P5.12-bankv21-recal, P6.2-DELIVERY-warm-vs-cold-closedloop
+- **Significativas tras corrección de Holm (12).** Se pueden defender como efectos. P1-S3.3-export-parity-catastrophe, P2-RQ2.1-resolution-ladder-1024, P2-RQ3.1-lora-aerial-gate, P2-RQ4.1-deploy-fidelity, P3-ROI-M2.0-512, P3-ROI-M2.0-512-ondevice, P3-R13-owlv2-vs-vlm, E18-cold-acquire-vs-warm-oracle-n25, P5.2a-warm-generalization, P5.12-bankv21-recal, P6.2-DELIVERY-warm-vs-cold-closedloop, P6.7-HANDOFF-warm-vs-cold-bridge
 - **Puerta pre-registrada inalcanzable por diseño (10).** Corrió una prueba contra una puerta que NINGÚN resultado posible habría superado a esa n. El fallo es del diseño, no del sistema. E18-A-vs-gate, E22-cv-prior-phase0, E16-relock-replication, P5.3-multi-candidate-select, P5.4-crop-select, P5.5-select-generalization, P5.14-wsel, P5.14-swap, P5.14-shadow-rg-disagreement, P5.16-autodisc-wsel
 - **Probadas, no significativas (23).** La prueba corrió y no rechazó. Es el resultado honesto de un contraste real. P1-S2.1-stage2-mode-collapse, P1-S3.3-quantisation-is-not-the-cost, P1-S4.1-stage4-narrow-miss, P3-SR-swin2sr-accuracy, P3-carry-OP768-accuracy, E18-cold-acquire-vs-warm-oracle, E20-operator-crop-hint, E19-motion-compensated-acquire, E21-coarse-to-fine, E23-tolerant-cells, P5.1-warm-vs-cold, P5.13-dd-vs-rg-tie, P5.15-plain-carry-survival, P5.15-maint-vs-plain, P5.18-n25-wsel, P5.18-n25-swap, P5.19-swap-late-entry-rescue, P5.20-carry-capacity, P5.17-dd-vs-rg-tie-n56, P6.2-COUPLING-warm-carry-coupled-vs-decoupled, R-36-maintain-vs-select, R-38-REG-grounding-isolation, P5.21-roi-carry
 - **Pareadas sin un solo par discordante (3).** Los brazos no se separaron en ninguna celda, luego no hubo contraste. No es equivalencia demostrada: es ausencia de prueba. P5.10-simbank-select, P5.19-wsel-no-regression, P5.20-replication-of-P5.19
@@ -157,7 +158,7 @@ sobre «la prueba no rechazó», que sólo dice algo del resultado.
 
 ## Salvedades por afirmación
 
-Las 76 afirmaciones con salvedad registrada, **literales**
+Las 77 afirmaciones con salvedad registrada, **literales**
 desde `thesis/claims.json`. Una salvedad limita lo que su fila de la tabla
 puede sostener: léase junto al valor p, nunca en su lugar. Varias retiran
 por completo la lectura ingenua del número.
@@ -313,6 +314,8 @@ por completo la lectura ingenua del número.
 **R-38-REG-grounding-isolation** — RQ-REG aisla la ETAPA DE GROUNDING del resto del pipeline de select (carry/delivery). En el UNICO fotograma de la orden de cada escena, el VLM q8_0 desplegado se fundamenta dos veces -- una con la frase-objetivo, otra con la frase-distractor -- y cada caja se puntua por IoU>=0.25 contra su PROPIO GT a mano (nunca cruzados). Resultado: RAMA SIMETRICA pre-registrada. Objetivo 13/14, distractor 12/14; emparejado b=2 (objetivo-ok, distractor-falla) c=1 (objetivo-falla, distractor-ok), n=14, p=1.0. b+c=3 < el suelo de 6 discordantes ⇒ ninguna prueba alcanza alpha, Holm irrelevante. PILOTO (solo brazo distractor, chequeo de alcanzabilidad previo): grounding aislado del distractor 12/14 = 0.857, MUY por encima del 0.65 extremo-a-extremo de P5.18 ⇒ ese 0.65 NO era grounding, confundia carry+delivery. La lectura OOD "colapsa-al-saliente" queda REFUTADA al mirarlo: la caja-distractor cae sobre el OBJETO distractor (car9 = el portico de senales, car10 = un coche lejano distinto, wakeboard8 = la lancha), no sobre el objetivo saliente. Los 3 discordantes en auditoria visual: car10 (distractor = cuasi-fallo en el suelo de IoU sobre un coche diminuto y lejano), wakeboard8 (objetivo = cuasi-fallo sobre el wakeboarder diminuto), person13 (el "fallo" del distractor es la MISMA distractor_gt_prompt mal colocada sobre suelo vacio ya marcada y EXCLUIDA en R-36; la caja fundamento una persona real). Excluyendo person13 ⇒ b=1 c=1, aun mas simetrico. CONCLUSION: el fallo residual de select NO es aislable al grounding ⇒ la atribucion se redirige aguas abajo a carry/delivery; apoya la postura maintain-and-deliver (el grounding resuelve ambos referentes con competencia; la dificultad es MANTENER la pista). Gate visual: PASS (reg_landing.png con las 4 celdas + reg_per_clip_outcome.png abiertos con la herramienta Read). Maquina: cajas de grounding en Jetson Orin Nano 8 GB q8_0 (phase3-terse100eos-1024, 15W + jetson_clocks, max_side 1024, via JetsonBackend por SSH); McNemar/deflacion en CPU del host; sin SAM2/carry/CARLA/3090 en este experimento. Registrado machine='both' (S6).
 
 **P5.21-roi-carry** — La palanca ROI-crop + lanczos re-anchor (MARGIN 2.0 / RES 512 / LANCZOS4) se adoptó (293c83b) por un argumento de coste-de-prefill / IoU-de-un-solo-fotograma para el ACQUIRE en frío, y nunca se probó como un contraste de RESULTADO de carry. Aquí se prueba emparejado contra el carry plano de SAM2 en secuencias difíciles, con la tasa de carry limitada a la desplegada 2.69 Hz (R-16; stride 11) para no ceilingar ambos brazos (el régimen P5.15 24/25). Resultado: TIE con dirección CONTRA ROI (c=3 > b=1); b+c=4 < el suelo de 6 discordantes ⇒ ninguna prueba alcanza alpha, Holm irrelevante. Puerta S2 (piloto retenido n=8) = 5/8 = 0.62, estrictamente en (0,1): hay margen real, el empate no es artefacto de un banco fácil/difícil. El fallo pre-registrado de refuerzo-de-deriva SE MATERIALIZÓ: en car10 el re-anchor recortó alrededor de una caja ya derivada, el VLM on-device fundamentó fuera de objetivo, y la pista se perdió mientras el plano aguantaba (IoU 0.86); 1/3 de los fallos c-side lo marca el guard. Una única victoria b-side (car14: el re-anchor ROI recupera un coche pequeño que el plano perdió) queda superada 3-a-1. Concordante con P5.15 (el carry no es la parte frágil) y P5.20 (un SAM2 más grande no recupera nada): cierra la última palanca de carry no-de-capacidad. Mantener ROI SOLO para el prefill de acquire; no re-proponerla como mejora de carry. Gate visual: PASS (las 4 celdas discordantes + overlays piloto abiertos con la herramienta Read).
+
+**P6.7-HANDOFF-warm-vs-cold-bridge** — P6.7 mide la costura que el operador percibe: desde que el objetivo queda designado (clic del oráculo o caja del VLM) hasta que hay una pista SAM2 viva sobre el fotograma actual. El panel la llamaba catchup_s, y el nombre estaba mal: catchup_s sólo difiere 0,06 s entre un clic del oráculo (0 fotogramas de retraso) y un seguimiento por frase (~21 fotogramas), así que no mide ponerse al día sino el arranque en frío del tracker. Brazos pareados sobre 25 clips CARLA (banco Town10HD_Opt, reproducido a 5 Hz desde disco a través del puente ssh-stdio desplegado, SAM2 en la Orin): COLD = un Popen del puente por designación, que es lo que hace runners/carla_debug_ui.py hoy; WARM = puente ya residente y CUDA ya caliente, de modo que sólo quedan init_state y el drenaje. Dos retardos de designación: 0,0 s (clic del oráculo) y 4,85 s (el retardo de grounding en frío medido en E18/R-34). RESULTADO (G1 = PASS en ambos retardos): a 4,85 s la mediana de t_handoff cae de 6,311 s a 0,515 s (12,3x); a 0,0 s de 6,148 s a 0,299 s (20,6x). Los 25 pares son concordantes en los dos retardos. A lag 0 el Wilcoxon bilateral da p=5,96e-08 = 2/2^25, el suelo exacto alcanzable con n=25; a lag 4,85 dos clips comparten una diferencia pareada idéntica (5,7946 s) y ese empate en |d| hace que el método por defecto de scipy caiga a la aproximación normal, p=1,228e-05 (forzando method="exact" sobre los mismos números vuelve a salir 5,96e-08). El registro usa el método por defecto, así que la cifra registrada es la conservadora 1,228e-05. El brazo registrado aquí es el de 4,85 s: la ruta desplegada por frase y la mediana WARM más conservadora frente a la puerta de 1,0 s. DESCOMPOSICIÓN (RQ-a, medianas COLD a lag 0): ssh_spawn 0,301 s, import 2,846 s, weights 1,800 s, warmup_init 0,670 s, drain 0,361 s. 4,95 s de los 6,15 s — el 80% — son arranque de proceso, e import torch + sam2 por sí solo supera a todo lo demás junto; sólo 0,36 s eran de verdad ponerse al día. Validación del sustrato: COLD con steps_to_live=3 a lag 0 reproduce 11 de las 13 trazas de oráculo del panel, y los 6,148 s caen sobre el p25 de las 64 trazas en vivo (mediana en vivo 6,52 s), así que el banco reproducido no está midiendo un sistema más fácil que el que se vuela. CALIDAD (G2 = PASS): no-inferioridad pareada con IC bootstrap percentil de 20.000 remuestreos. A lag 0 WARM no sólo empata sino que gana — IoU mediana 0,000 -> 0,674, delta pareada +0,049 IC [+0,006, +0,502] p=0,00021; fracción de caja presente delta 0,000 [0,000, +0,010]; intercambios de identidad 79 vs 68, delta 0 [-1, 0] p=0,11 (sin aumento). A lag 4,85 s las tres deltas son 0,000 con medianas 0,000 en AMBOS brazos: esa fila pasa por encima de un suelo y es no informativa, no es tranquilizadora. HALLAZGO NO PREVISTO EN EL PRE-REGISTRO: COLD no sólo retrasa la pista, la PIERDE, y la pérdida está gobernada por el tamaño del objetivo (altitud). Recuento de clips en objetivo, pareado: a lag 0 COLD 11/24 vs WARM 20/25, McNemar exacto b=8 c=0 p=0,0078; a lag 4,85 COLD 7/24 vs WARM 10/25, b=4 c=1 p=0,375 (n=24 porque en clip01 el objetivo sale de cuadro antes de que exista el tracker COLD). Mecanismo: con CATCHUP_JUMP=12 a CAM_HZ=5, un solo paso de SAM2 cruza 2,4 s de mundo; un tracker que tardó 6,15 s en arrancar despierta con ~31 fotogramas de cola cuyo primer salto son esos 2,4 s. En clip03 (100 m, semilla de 7x17 px) el PRIMER paso ya lee IoU 0,000 y la máscara salta a un paso elevado a 60 px del objetivo. Cadena causal: arranque en frío -> cola larga -> saltos temporales grandes -> pista perdida. El retardo de 4,85 s degrada los DOS brazos porque construye 24 fotogramas de cola con independencia de si el puente estaba caliente: ciclo de vida del puente y política de puesta al día son dos modos de fallo INDEPENDIENTES sobre la misma costura. RESIDENCIA (G3 = PASS, y no por poco): mantener SAM2 residente le cuesta al VLM x1,000 — ground_ms mediana 3791,1 -> 3791,2 ms sobre 25 peticiones pareadas con dispersión real por petición (3738,4-3876,5 vs 3738,6-3842,3; prompt_ms de servidor 3163,0 vs 3163,3), muy por debajo del límite de +15%. Cero rc=-9 en 50 designaciones consecutivas sobre un único puente con llama-server arriba (el doble de las 25 exigidas) y 1315 MB de MemAvailable de margen. El brazo de reserva PIPELINE no se ejecutó: existía sólo para el caso de que G3 fallara. ALCANCE: esto es una afirmación sobre el COSTE DE LA COSTURA en la Orin (15 W + jetson_clocks, image_size 512, puente ssh-stdio desplegado), medida sobre un banco CARLA reproducido desde disco, no sobre un vuelo en vivo; el enlace con el vuelo es que las trazas COLD reproducen las del panel en vivo. La resolución NO se barre a propósito (EXP-1 es su dueña, R-46 sigue abierta) y el barrido corrió a image_size 512, no al 640 que EXP-1 adoptó: los términos de arranque — 4,95 de los 6,15 s — son independientes de la resolución, así que la conclusión no se mueve, pero la cifra WARM subiría algo a 640. Puerta visual (I5): PASS — seam-COLD.png y seam-WARM.png de la misma designación, y el fotograma de clip03 que documenta la pérdida de pista, abiertos con la herramienta Read.
 
 ## Cola de re-ejecución
 

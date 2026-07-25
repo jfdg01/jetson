@@ -16,7 +16,7 @@ Los drones se pilotan con mando o con waypoints GPS. Nadie le dice a un dron *"s
 
 Este TFM demuestra que un dron puede aceptar órdenes en lenguaje natural y seguir el objetivo **sobre hardware embarcado**, en una Jetson Orin Nano de 8 GB a **15 W**, sin conexión a internet.
 
-El sistema *desplegado* sí corre entero en la placa, pero **más despacio de lo que este README dijo hasta el 2026-07-22**. E1 midió el VLM y el arrastre SAM2 co-residentes en la Orin a 6.15 FPS con SAM2 a `image_size` **768**; el despliegue real corre a **1024**, y esa tasa nunca se había medido allí. R-16 la midió: **2.69 Hz en solitario**, una corrección de **2.30×** (`P4-R16-carry-rate-1024`, medida íntegramente en la placa). La misma campaña falsifica el corolario más citado de E1 — «la co-residencia no cuesta FPS» se midió contra un `llama-server` **ocioso**; bajo un cliente de grounding real el arrastre paga ~2.3× y el VLM ~2×. `P3-E1-TRT-fps` queda marcada como superada. La estimación previa de «~2× optimista» estaba en la dirección correcta y se quedaba corta. Lo que no corrió entero en la placa son muchos de los *experimentos*: 51 de las 76 afirmaciones del registro se midieron a caballo entre la Orin y una RTX 3090. Eso está desglosado abajo, en «Sobre las cifras», y auditado afirmación por afirmación en [`experiments/2026-07-21-machine-disclosure/`](experiments/2026-07-21-machine-disclosure/README.md).
+El sistema *desplegado* sí corre entero en la placa, pero **más despacio de lo que este README dijo hasta el 2026-07-22**. E1 midió el VLM y el arrastre SAM2 co-residentes en la Orin a 6.15 FPS con SAM2 a `image_size` **768**; el despliegue real corre a **1024**, y esa tasa nunca se había medido allí. R-16 la midió: **2.69 Hz en solitario**, una corrección de **2.30×** (`P4-R16-carry-rate-1024`, medida íntegramente en la placa). La misma campaña falsifica el corolario más citado de E1 — «la co-residencia no cuesta FPS» se midió contra un `llama-server` **ocioso**; bajo un cliente de grounding real el arrastre paga ~2.3× y el VLM ~2×. `P3-E1-TRT-fps` queda marcada como superada. La estimación previa de «~2× optimista» estaba en la dirección correcta y se quedaba corta. Lo que no corrió entero en la placa son muchos de los *experimentos*: 51 de las 77 afirmaciones del registro se midieron a caballo entre la Orin y una RTX 3090. Eso está desglosado abajo, en «Sobre las cifras», y auditado afirmación por afirmación en [`experiments/2026-07-21-machine-disclosure/`](experiments/2026-07-21-machine-disclosure/README.md).
 
 ---
 
@@ -68,11 +68,11 @@ toda la primera oleada de remediación.
 
 <!-- BEGIN generated: machine-table -->
 
-| Máquina que produjo la cifra | Afirmaciones (de 76) |
+| Máquina que produjo la cifra | Afirmaciones (de 77) |
 |---|---|
 | **ambas** (anclaje VLM en la Orin, arrastre SAM2 en la 3090 con tope de tasa) | 51 |
 | RTX 3090 (ablaciones, referencia de fidelidad HF bf16, simulador, generación de escenas) | 17 |
-| Jetson Orin Nano, íntegramente | 6 |
+| Jetson Orin Nano, íntegramente | 7 |
 | sin máquina (sin datos) | 2 |
 
 <!-- END generated: machine-table -->
@@ -99,7 +99,7 @@ El trabajo posterior extiende esta base: seguimiento persistente y permanencia d
 - **[`RESULTS.md`](RESULTS.md)** — índice de resultados por parte (`docs/results/`).
 - **[`QUESTIONS.md`](QUESTIONS.md)** — pregunta de investigación y veredicto por ejecución (`docs/questions/`).
 - **[`DECISIONS.md`](DECISIONS.md)** — registro de decisiones por parte (`docs/decisions/`).
-- **[`thesis/stats-report.md`](thesis/stats-report.md)** — las 76 afirmaciones del registro, con su prueba exacta, su máquina y sus salvedades. **Once** sobreviven a la corrección de Holm por Parte —la familia adoptada en R-30— y **diez** en familia global; 24 nunca tuvieron nada que contrastar y 10 llevaban una puerta que ningún resultado posible habría superado. El reparto completo, en ocho categorías disjuntas, está en la sección «Qué sobrevive» del informe.
+- **[`thesis/stats-report.md`](thesis/stats-report.md)** — las 77 afirmaciones del registro, con su prueba exacta, su máquina y sus salvedades. **Doce** sobreviven a la corrección de Holm por Parte —la familia adoptada en R-30— y **once** en familia global; 24 nunca tuvieron nada que contrastar y 10 llevaban una puerta que ningún resultado posible habría superado. El reparto completo, en ocho categorías disjuntas, está en la sección «Qué sobrevive» del informe.
 
 ---
 

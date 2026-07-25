@@ -1,0 +1,540 @@
+{
+ "baseline": {
+  "tag": "baseline",
+  "n": 25,
+  "max_side": 1024,
+  "caption": "the white car",
+  "median_wall_ms": 3791.1,
+  "min_wall_ms": 3738.4,
+  "max_wall_ms": 3876.5,
+  "mem_available_mb_min": 2258,
+  "mem_available_mb_start": 2294,
+  "rows": [
+   {
+    "wall_ms": 3876.5,
+    "prompt_ms": 3194.8,
+    "predicted_ms": 541.1,
+    "text": "13 41 23 53",
+    "i": 0,
+    "frame": "0000395.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3866.8,
+    "prompt_ms": 3176.1,
+    "predicted_ms": 541.0,
+    "text": "12 39 22 52",
+    "i": 1,
+    "frame": "0000399.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3855.1,
+    "prompt_ms": 3162.6,
+    "predicted_ms": 540.8,
+    "text": "11 38 20 50",
+    "i": 2,
+    "frame": "0000403.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3850.7,
+    "prompt_ms": 3163.0,
+    "predicted_ms": 540.9,
+    "text": "10 37 19 49",
+    "i": 3,
+    "frame": "0000407.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3750.6,
+    "prompt_ms": 3160.5,
+    "predicted_ms": 490.3,
+    "text": "9 36 18 47",
+    "i": 4,
+    "frame": "0000411.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3745.6,
+    "prompt_ms": 3162.8,
+    "predicted_ms": 490.1,
+    "text": "8 35 16 46",
+    "i": 5,
+    "frame": "0000416.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3745.4,
+    "prompt_ms": 3163.4,
+    "predicted_ms": 489.8,
+    "text": "7 34 15 44",
+    "i": 6,
+    "frame": "0000420.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3754.8,
+    "prompt_ms": 3162.4,
+    "predicted_ms": 489.8,
+    "text": "6 32 14 43",
+    "i": 7,
+    "frame": "0000424.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3746.2,
+    "prompt_ms": 3164.3,
+    "predicted_ms": 490.2,
+    "text": "6 31 14 42",
+    "i": 8,
+    "frame": "0000428.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3745.6,
+    "prompt_ms": 3163.8,
+    "predicted_ms": 490.3,
+    "text": "5 30 12 40",
+    "i": 9,
+    "frame": "0000432.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3842.7,
+    "prompt_ms": 3162.8,
+    "predicted_ms": 588.8,
+    "text": "50 77 66 100",
+    "i": 10,
+    "frame": "0000436.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3742.7,
+    "prompt_ms": 3162.8,
+    "predicted_ms": 490.2,
+    "text": "5 27 12 36",
+    "i": 11,
+    "frame": "0000440.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3794.1,
+    "prompt_ms": 3163.1,
+    "predicted_ms": 540.8,
+    "text": "46 70 60 91",
+    "i": 12,
+    "frame": "0000445.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3792.6,
+    "prompt_ms": 3162.6,
+    "predicted_ms": 540.5,
+    "text": "44 67 57 87",
+    "i": 13,
+    "frame": "0000449.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3792.6,
+    "prompt_ms": 3162.8,
+    "predicted_ms": 540.4,
+    "text": "42 65 55 84",
+    "i": 14,
+    "frame": "0000453.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3804.1,
+    "prompt_ms": 3163.4,
+    "predicted_ms": 540.6,
+    "text": "41 62 53 81",
+    "i": 15,
+    "frame": "0000457.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3791.2,
+    "prompt_ms": 3162.7,
+    "predicted_ms": 540.6,
+    "text": "39 59 51 77",
+    "i": 16,
+    "frame": "0000461.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3792.6,
+    "prompt_ms": 3164.0,
+    "predicted_ms": 540.5,
+    "text": "38 57 50 74",
+    "i": 17,
+    "frame": "0000465.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3793.6,
+    "prompt_ms": 3165.3,
+    "predicted_ms": 540.9,
+    "text": "38 54 48 71",
+    "i": 18,
+    "frame": "0000469.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3788.9,
+    "prompt_ms": 3161.9,
+    "predicted_ms": 540.2,
+    "text": "37 52 47 68",
+    "i": 19,
+    "frame": "0000473.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3789.4,
+    "prompt_ms": 3162.4,
+    "predicted_ms": 540.9,
+    "text": "37 49 47 64",
+    "i": 20,
+    "frame": "0000477.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3791.0,
+    "prompt_ms": 3164.4,
+    "predicted_ms": 540.3,
+    "text": "36 46 46 61",
+    "i": 21,
+    "frame": "0000482.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3791.1,
+    "prompt_ms": 3164.1,
+    "predicted_ms": 540.9,
+    "text": "36 44 45 58",
+    "i": 22,
+    "frame": "0000486.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3738.4,
+    "prompt_ms": 3161.6,
+    "predicted_ms": 490.1,
+    "text": "13 8 18 14",
+    "i": 23,
+    "frame": "0000490.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3790.2,
+    "prompt_ms": 3163.7,
+    "predicted_ms": 540.4,
+    "text": "36 40 45 53",
+    "i": 24,
+    "frame": "0000494.jpg",
+    "w": 1024,
+    "h": 540
+   }
+  ]
+ },
+ "resident": {
+  "tag": "resident",
+  "n": 25,
+  "max_side": 1024,
+  "caption": "the white car",
+  "median_wall_ms": 3791.2,
+  "min_wall_ms": 3738.6,
+  "max_wall_ms": 3842.3,
+  "mem_available_mb_min": 1315,
+  "mem_available_mb_start": 1324,
+  "rows": [
+   {
+    "wall_ms": 3811.2,
+    "prompt_ms": 3173.1,
+    "predicted_ms": 540.7,
+    "text": "13 41 23 53",
+    "i": 0,
+    "frame": "0000395.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3798.6,
+    "prompt_ms": 3162.6,
+    "predicted_ms": 540.5,
+    "text": "12 39 22 52",
+    "i": 1,
+    "frame": "0000399.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3799.3,
+    "prompt_ms": 3164.5,
+    "predicted_ms": 540.6,
+    "text": "11 38 20 50",
+    "i": 2,
+    "frame": "0000403.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3798.9,
+    "prompt_ms": 3163.6,
+    "predicted_ms": 540.6,
+    "text": "10 37 19 49",
+    "i": 3,
+    "frame": "0000407.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3747.2,
+    "prompt_ms": 3163.0,
+    "predicted_ms": 490.1,
+    "text": "9 36 18 47",
+    "i": 4,
+    "frame": "0000411.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3747.3,
+    "prompt_ms": 3164.7,
+    "predicted_ms": 489.7,
+    "text": "8 35 16 46",
+    "i": 5,
+    "frame": "0000416.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3744.6,
+    "prompt_ms": 3162.0,
+    "predicted_ms": 490.2,
+    "text": "7 34 15 44",
+    "i": 6,
+    "frame": "0000420.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3745.6,
+    "prompt_ms": 3163.6,
+    "predicted_ms": 490.0,
+    "text": "6 32 14 43",
+    "i": 7,
+    "frame": "0000424.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3744.0,
+    "prompt_ms": 3163.0,
+    "predicted_ms": 489.6,
+    "text": "6 31 14 42",
+    "i": 8,
+    "frame": "0000428.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3744.4,
+    "prompt_ms": 3163.8,
+    "predicted_ms": 489.8,
+    "text": "5 30 12 40",
+    "i": 9,
+    "frame": "0000432.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3842.3,
+    "prompt_ms": 3162.9,
+    "predicted_ms": 588.6,
+    "text": "50 77 66 100",
+    "i": 10,
+    "frame": "0000436.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3743.2,
+    "prompt_ms": 3163.4,
+    "predicted_ms": 489.9,
+    "text": "5 27 12 36",
+    "i": 11,
+    "frame": "0000440.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3793.6,
+    "prompt_ms": 3163.0,
+    "predicted_ms": 540.3,
+    "text": "46 70 60 91",
+    "i": 12,
+    "frame": "0000445.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3792.6,
+    "prompt_ms": 3162.8,
+    "predicted_ms": 540.8,
+    "text": "44 67 57 87",
+    "i": 13,
+    "frame": "0000449.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3793.7,
+    "prompt_ms": 3164.1,
+    "predicted_ms": 540.5,
+    "text": "42 65 55 84",
+    "i": 14,
+    "frame": "0000453.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3791.2,
+    "prompt_ms": 3162.1,
+    "predicted_ms": 540.6,
+    "text": "41 62 53 81",
+    "i": 15,
+    "frame": "0000457.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3791.1,
+    "prompt_ms": 3162.9,
+    "predicted_ms": 540.2,
+    "text": "39 59 51 77",
+    "i": 16,
+    "frame": "0000461.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3793.3,
+    "prompt_ms": 3164.6,
+    "predicted_ms": 540.5,
+    "text": "38 57 50 74",
+    "i": 17,
+    "frame": "0000465.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3791.2,
+    "prompt_ms": 3163.3,
+    "predicted_ms": 540.1,
+    "text": "38 54 48 71",
+    "i": 18,
+    "frame": "0000469.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3792.4,
+    "prompt_ms": 3165.4,
+    "predicted_ms": 540.8,
+    "text": "37 52 47 68",
+    "i": 19,
+    "frame": "0000473.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3791.6,
+    "prompt_ms": 3164.2,
+    "predicted_ms": 540.4,
+    "text": "37 49 47 64",
+    "i": 20,
+    "frame": "0000477.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3789.4,
+    "prompt_ms": 3162.8,
+    "predicted_ms": 540.5,
+    "text": "36 46 46 61",
+    "i": 21,
+    "frame": "0000482.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3788.2,
+    "prompt_ms": 3161.9,
+    "predicted_ms": 540.2,
+    "text": "36 44 45 58",
+    "i": 22,
+    "frame": "0000486.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3738.6,
+    "prompt_ms": 3162.1,
+    "predicted_ms": 490.0,
+    "text": "13 8 18 14",
+    "i": 23,
+    "frame": "0000490.jpg",
+    "w": 1024,
+    "h": 540
+   },
+   {
+    "wall_ms": 3791.5,
+    "prompt_ms": 3164.7,
+    "predicted_ms": 540.9,
+    "text": "36 40 45 53",
+    "i": 24,
+    "frame": "0000494.jpg",
+    "w": 1024,
+    "h": 540
+   }
+  ]
+ },
+ "median_baseline_ms": 3791.1,
+ "median_resident_ms": 3791.2,
+ "ratio": 1.0,
+ "regress_limit": 0.15,
+ "latency_pass": true,
+ "memory": {
+  "warm_designations": 50,
+  "rc_minus9": 0,
+  "nonzero_rc": [],
+  "pass": true
+ },
+ "G3_pass": true
+}

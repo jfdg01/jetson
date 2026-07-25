@@ -649,3 +649,68 @@ survives a long window.
 Landed as caveat S6 on `P6.2-DELIVERY-warm-vs-cold-closedloop` with pointer caveats on
 `P5.1-warm-vs-cold` and `P5.2a-warm-generalization`, regenerated into `stats-report.md`;
 R-51/R-52 in `thesis/REMEDIATION.md`; finding 21 and the DESIGNATE card text in the panel.
+
+### P6.7 — the SAM2 carry bridge is RESIDENT, not per-designation (2026-07-25T19:50Z)
+
+**Adopt a pre-warmed, process-resident SAM2 carry bridge: spawn it once at panel start-up,
+`init_state` per designation, never `Popen` per follow.** Why: the decomposition says
+**80% of the 6.15 s designation-to-live-track seam is process start-up** — `ssh` spawn
+0.301 s + `import torch`/`sam2` 2.846 s + `from_pretrained` 1.800 s = 4.95 s — and only
+0.361 s is the tracker actually catching up to the present. (`warmup_init` 0.670 s is a
+fourth start-up term but residency only shrinks it to 0.120 s, because `init_state` still
+runs per designation.) None of those terms can be optimised on an Orin; they can only be
+*already paid*. Residency
+pays them once, at start-up, in the same window where the panel already prewarms
+`llama-server` for exactly this reason. Measured effect: median `t_handoff` 6.311 s ->
+0.515 s at the deployed 4.85 s grounding lag (12.3x), 6.148 s -> 0.299 s on the oracle
+click (20.6x), all 25 pairs concordant, Wilcoxon p=1.228e-05 on the registered lag-4.85 arm
+(5.96e-08 at lag 0).
+
+*What was given up:* a resident SAM2 process holds GPU memory for the whole session on an
+8 GB board that also holds `llama-server`. That was the pre-registered honest risk (G3) and
+it was measured, not argued: a resident tracker costs the VLM **x1.000** (`ground_ms`
+3791.1 -> 3791.2 ms over 25 paired requests) and leaves **1315 MB** of `MemAvailable`, with
+zero `rc=-9` over 50 consecutive designations on one bridge. The second thing given up is
+crash isolation: a per-designation process dies with its follow, a resident one carries a
+bad CUDA state into the next designation. Mitigation is the existing one — the bridge is a
+subprocess behind a length-framed pipe, so a non-zero `rc` is detectable and a respawn is a
+cold start, i.e. exactly today's behaviour as the failure mode rather than the normal mode.
+
+*Why this was never recorded before:* it never was a decision. Per-follow `Popen` is what
+`orin_carry` happened to do, while `run_p62_flight.py`, `select_exp2.py`, `select_exp3.py`
+and `carry_res_sweep.py` all already reuse one live bridge across cells. The offline
+harnesses had the fast path and the live panel — the one an operator watches — had the slow
+one, because nobody wrote down which was intended. This entry is that missing record.
+
+*Scope:* measured on the Orin at 15 W + `jetson_clocks`, `image_size=512`, over the CARLA
+GT bank replayed from disk through the deployed ssh-stdio bridge. The link to live flight is
+that the COLD arm reproduces the panel's own traces (`steps_to_live=3` matches 11 of 13
+oracle traces; 6.148 s sits on the live 64-trace p25, live median 6.52 s). Carry resolution
+is deliberately not swept here — EXP-1 owns that knob (R-46 open).
+
+### P6.7 — `CATCHUP_JUMP` stays at 12; the backlog is not the knob to turn (2026-07-25T20:10Z)
+
+*Decision:* leave `CATCHUP_JUMP = 12` alone. RQ-e swept it over {1, 12, 999} on 25 clips at
+the 4.85 s grounding lag and no value gets both the sub-second handoff and the track.
+
+*Why:* replaying every frame (`jump=1`) is the only setting that keeps a usable median IoU
+(0.596, 17/25 clips on target) and it costs **5.312 s** — longer than the 4.85 s of world it
+is crossing, which hands back the entire residency win and lands 5x over the G1 bar. In the
+other direction, 12 and 999 are statistically the same policy (paired exact McNemar b=4,
+c=2, p=0.6875; identical swap counts; median IoU 0.000 in both), so the deployed value is
+already past the cliff — skipping 12 frames loses the identity as thoroughly as skipping the
+whole backlog. There is no interior optimum to tune toward, only a monotone trade.
+
+*What was given up:* the 17-of-25 track survival that `jump=1` demonstrably reaches. That is
+a real number and it is being declined on latency grounds, because a 5.3 s handoff is the
+problem this campaign exists to remove.
+
+*What it redirects:* the residual failure is now located upstream of the bridge. The gap
+exists because the seed box was drawn on a frame 4.85 s old; `jump=999` is the direct test of
+"apply the stale box to the live frame" and it fails 17/25. So the next lever is grounding
+latency itself, or a re-ground at the live frame once the tracker is already warm — not a
+smarter way to cross a gap that should not be there.
+
+*Scope:* WARM arm only, lag 4.85 s, `image_size=512`, Orin at 15 W + `jetson_clocks`, CARLA
+GT bank replayed from disk. RQ-e was pre-registered without a gate; the McNemar values above
+are descriptive, are not in `thesis/claims.json`, and are not Holm-corrected.

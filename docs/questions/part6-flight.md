@@ -249,3 +249,55 @@ threshold.** Supports maintain-and-deliver: NL grounding is not the select bottl
 is an ergonomics/compute lever, not an accuracy fix. Visual audit: 8/8 pass cells confirmed
 genuine, 0 downgrades. Machine `jetson`. Detail:
 `experiments/2026-07-24-point-crop-select/README.md`.
+
+### P6.7 — what does it cost to go from "locked in" to a live track, and can it be cut? (2026-07-25)
+
+**RQ-P6.7a (decomposition):** where do the ~6.5 s between designation and a live SAM2 track
+actually go? **Verdict: 80% is process start-up, not catch-up.** COLD medians at lag 0:
+`ssh_spawn` 0.301 s, `import` (torch + sam2) **2.846 s**, `weights` 1.800 s, `warmup_init`
+0.670 s, `drain` 0.361 s, `t_handoff` **6.148 s**. `import torch` alone exceeds everything
+else combined; only 0.36 s is the tracker catching up to the present. This retires the
+panel's `catchup_s` as a name: it differs by 0.06 s between a 0-frame oracle click and a
+~21-frame caption follow, so it was measuring cold start, not backlog. Substrate check: COLD
+`steps_to_live=3` reproduces 11 of the panel's 13 live oracle traces and 6.148 s sits on the
+live 64-trace p25 (live median 6.52 s).
+
+**RQ-P6.7b (the lever, G1):** does a pre-warmed resident bridge cut median `t_handoff` below
+1.0 s? **Verdict: YES, PASS at both lags.** 6.148 s -> **0.299 s** at lag 0 (20.6x) and
+6.311 s -> **0.515 s** at the deployed 4.85 s grounding lag (12.3x); 25/25 pairs concordant
+in both, Wilcoxon two-sided p=5.96e-08 at lag 0 (= 2/2^25, the exact floor at n=25) and
+p=1.228e-05 at lag 4.85, where two clips share an identical paired difference and the tie in
+`|d|` sends scipy's default method to the normal approximation (`method="exact"` on the same
+numbers returns the same 5.96e-08 floor). Registered as
+`P6.7-HANDOFF-warm-vs-cold-bridge` on the lag-4.85 arm (deployed path, conservative median).
+
+**RQ-P6.7c (quality, G2):** does the fast path deliver a worse track? **Verdict: NO — PASS,
+and at lag 0 WARM is strictly better.** Median IoU 0.000 -> 0.674 (paired delta +0.049,
+CI95 [+0.006, +0.502], p=0.00021), box-present fraction delta 0.000 [0.000, +0.010], identity
+swaps 79 vs 68 (delta 0 [−1, 0], no increase). At lag 4.85 all three deltas are 0.000 with
+medians of 0.000 in **both** arms — that row passes over a floor and is uninformative, not
+reassuring. **Not pre-registered, and the sharper finding:** COLD does not merely delay the
+track, it **loses** it — on-target clips 11/24 vs 20/25 at lag 0, exact McNemar b=8 c=0,
+**p=0.0078**, altitude-gated (4/5 at 40 m down to 1/5 at 100 m). Mechanism: `CATCHUP_JUMP=12`
+at `CAM_HZ=5` makes one SAM2 step cross 2.4 s of world, so a 6.15 s boot hands the tracker a
+~31-frame backlog whose first hop is that 2.4 s.
+
+**RQ-P6.7d (residency, G3, the kill condition):** does keeping SAM2 resident starve the VLM
+on an 8 GB board? **Verdict: NO — PASS, and not narrowly.** `ground_ms` median 3791.1 ->
+3791.2 ms over 25 paired requests (**x1.000**, limit +15%), 0/50 `rc=-9` over consecutive
+designations on one bridge, `MemAvailable` floor 1315 MB. The pre-registered fallback arm
+`PIPELINE` was not run. This was called the honest risk up front and it was wrong in the
+direction that makes the lever deployable.
+
+**RQ-P6.7e (catch-up policy, no gate):** can `CATCHUP_JUMP` be tuned to get both the latency
+and the track? **Verdict: NO — the two axes trade monotonically and 12 is already past the
+cliff.** 25 clips x {1, 12, 999} at lag 4.85 s: replay-every-frame 5.312 s / IoU 0.596 /
+17-of-25 on target, deployed 12 at 0.517 s / 0.000 / 10-of-25, jump-to-live 0.314 s / 0.000 /
+8-of-25. Paired exact McNemar `j1` vs `j999` b=11, c=2, p=0.0225; `j12` vs `j999` b=4, c=2,
+p=0.6875 — descriptive, unregistered, not Holm-corrected. The deployed 12 is indistinguishable
+from skipping the backlog entirely, so the identity is already gone by 12 frames, and the only
+setting that keeps the track spends longer crossing the gap than the gap itself. Redirects the
+residual upstream: the fix is to not have a 4.85 s stale seed, not a smarter way to cross one.
+
+Machine `jetson-orin-nano-8gb` (SAM2 on the Orin, 15 W + `jetson_clocks`, `image_size=512`);
+the 3090 was not used. Detail: `experiments/2026-07-25-handoff-latency/README.md`.

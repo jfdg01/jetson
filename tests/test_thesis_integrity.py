@@ -322,6 +322,11 @@ def test_on_device_claims_really_are_on_device(claims):
         "P3-ROI-M2.0-512-ondevice",  # R-14: both arms one Orin Q8_0 session, control reproduced 63.1%
         "P3-R13-owlv2-vs-vlm",  # R-13: OWLv2 fp16 + the VLM comparator both measured on the Orin
         "P4-R16-carry-rate-1024",  # R-16: SAM2 carry + deployed VLM server, both on the Orin
+        # P6.7: every timed term is the Orin's -- bridge spawn, torch/sam2 import,
+        # weight load, CUDA warm-up, carry steps -- and the G3 grounding probe hits
+        # the deployed llama-server over 127.0.0.1 on the board. The host only
+        # replays JPEGs from disk and holds the clock; no 3090 arm exists.
+        "P6.7-HANDOFF-warm-vs-cold-bridge",
     }, (
         "the set of wholly-on-device claims changed. If that is deliberate, update "
         "this test AND experiments/2026-07-21-machine-disclosure/README.md, which is "
