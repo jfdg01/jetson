@@ -485,3 +485,58 @@ instead of 99.4% — plus the small/distant-target tail that the size-gated 1024
 Acceptable in a demo, not acceptable in a harness.
 No measured number should be taken from this panel at 512; `runners/run_p62_matrix.py` remains the
 place where a rate becomes a result.
+
+### Live demo panel — the layout *is* the pipeline; guidance by badge, not by wizard (unnumbered infrastructure, 2026-07-25T15:35Z)
+
+**The panel's chrome was rebuilt so its geometry encodes the operator's order of
+operations: a header of five status lamps, a 340 px rail of five numbered stage cards
+(WORLD, PILOT, DESIGNATE, DELIVER, FOLLOW) each carrying its own live number, one amber
+`NEXT` line naming a single action, the flown view taking every remaining pixel, and the
+verdict bar promoted to the largest text on screen.** Why: the previous build was six
+full-width control rows of identical visual weight above the video, with the two lines
+that carry the thesis — the per-stage timings and the mode echo — in the smallest,
+lowest-contrast text on the panel. Nothing said what to press first, so the tool was
+usable only by whoever had just written it, which fails its actual purpose (a supervisor
+or an examiner driving the deployed stack unaided). Per-stage numbers moved *next to the
+control that causes them* for the same reason: `ground 8500 ms` sitting inside the
+DESIGNATE card is an argument; the same number in a strip at the bottom is telemetry.
+*What was given up:* horizontal room for the video (a fixed 340 px column, permanently),
+and the tidy two-tab Notebook that used to separate the click-designate and
+caption-designate paths — deleted, because it read as two ways to do the same thing and
+hid whichever one you were not on. Both are one card now, ordered by which one to reach
+for at 45 m nadir (Shift-click point crop first, typed caption second).
+
+**Guidance is one computed hint plus a per-stage badge colour, not a wizard and not
+hiding.** Why: three cheap properties at once. Progressive disclosure by *disabling and
+ordering* rather than by hiding costs no geometry pass — and the tick that would pay for
+one is the same Tk thread that flies the camera (finding 8), so a layout that reflows on
+state change buys confusion in the flight path. A wizard would also be wrong on the
+merits: the four switches are *orthogonal by design* (the previous decision entry), and a
+linear wizard implies an order they do not have. The `NEXT` hint is therefore computed
+from the **last satisfied** stage, not the first unsatisfied one, so `spectator` — a legal
+way to run the entire demo — does not pin the panel on "arm the copter" forever while it
+is carrying a target. Mode switches became radiobuttons (state visible without opening
+anything); comboboxes stay only where the widget picks a *value* (map name, the two
+resolutions). *What was given up:* enforcement. Nothing stops an operator pressing stage 4
+before stage 3; the badge just stays grey. Deliberate — this is a tool for provoking
+failures, and a wizard that refuses out-of-order input would block exactly the
+combinations worth trying.
+
+**Every per-tick widget update goes through `setw()`, which memoises the last kwargs and
+skips Tk when nothing changed.** Why: the redesign added ~15 widgets that are rewritten
+every tick (5 lamps, 5 badges, 5 card values, the hint), and one Tk thread both paints the
+frame and integrates the fly step, so display cost is fly cost — measured previously at
+13.3 m/s against a 45 m/s slider before the display path was fixed. A no-op `.config()`
+still schedules a redraw. *What was given up:* a global `_shown` dict keyed by `id(widget)`
+— fine here because widgets live for the process, wrong in any code that destroys them.
+
+**Layout is verified by screenshot, and the screenshot tool reads the window's own pixels
+(`xwd -id`), never a screen region.** Why: `pack()` has no error path for "does not fit" —
+the first build of the rail silently dropped an entire card and clipped another, exiting 0
+with no warning, which is the same failure class as a black render and is why the repo has
+a look-at-it rule. Two mechanical guards came out of it: `ui_shot.py` filters
+`xdotool search` results to the real client window (`WM_STATE`, because the WM's frame
+matches the same name and is the *larger* window — picking "largest" produced a black grab
+with a title bar) and fails the run if >99% of the image is one colour. *What was given
+up:* nothing. The earlier region-grab implementation was strictly worse: it captured
+whatever was on top, and once captured the user's browser.

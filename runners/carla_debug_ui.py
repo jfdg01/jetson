@@ -120,6 +120,24 @@ CHASE_FLOOR = 5.0
 # from the start; ACCENT is the focus ring and doubles as the "box is on target"
 # green so the two read as the same signal.
 DARK, DARK_HI, TEXT, ACCENT, ALERT = "#1e1e1e", "#2d2d2d", "#e0e0e0", "#3fbf5f", "#ff6b6b"
+# MUTED = secondary text (a unit, a hint), LINE = card borders and unlit pills,
+# WARN = "this is the next thing to do" and "this number is not healthy but not dead".
+MUTED, LINE, WARN = "#8a8a8a", "#3a3a3a", "#e0a03f"
+# The stage rail is a FIXED width, not a fraction: it holds the Jetson thumbnail, and
+# everything in it is one column of controls, so it has nothing to do with how big the
+# window is. All the slack goes to the picture.
+RAIL_W = 340
+# The operator's next action, one line each, keyed by the first unsatisfied stage.
+# A panel with 20 live controls and no opinion about which one to press is why this
+# exists -- see the NEXT/badge block in show_preview for who is satisfied when.
+NEXT_TIP = {
+    1: "step 1 -- spawn cars, or the nadir view has nothing to follow",
+    2: "step 2 -- arm the copter (or stay spectator and fly the camera by hand)",
+    3: "step 3 -- Shift-click a car in the view, or type a caption and press follow",
+    4: "step 4 -- press deliver (g). That press IS the operator's command",
+    5: "step 5 -- pick assist or auto to close the loop",
+    6: "loop closed -- read the verdict bar",
+}
 CHASE_CLIMB = 15.0
 CHASE_HIST = 5              # measurements median-filtered into one area reading
 # Error is in LOG area because area falls as 1/d^2: one log unit is a fixed ratio
@@ -546,12 +564,6 @@ def apply_dark(root):
     style.map("TCombobox", fieldbackground=[("readonly", DARK_HI)],
               selectbackground=[("readonly", DARK_HI)],
               selectforeground=[("readonly", TEXT)])
-    # the two-tab strip is ttk too, so the clam theme paints it -- match the chrome
-    style.configure("TNotebook", background=DARK, borderwidth=0)
-    style.configure("TNotebook.Tab", background=DARK, foreground=TEXT,
-                    padding=(10, 4), borderwidth=0)
-    style.map("TNotebook.Tab", background=[("selected", DARK_HI)],
-              foreground=[("selected", TEXT)])
     style.configure("TFrame", background=DARK)
     for k, v in (("background", DARK_HI), ("foreground", TEXT),
                  ("selectBackground", ACCENT), ("selectForeground", DARK)):
@@ -564,6 +576,84 @@ def apply_dark(root):
         root.option_add(f"*{cls}.background", DARK_HI)
         root.option_add(f"*{cls}.highlightBackground", DARK_HI)
     root.option_add("*Checkbutton.selectColor", DARK_HI)
+
+
+# --- the four widgets the rail is built out of ------------------------------------
+# Deliberately hand-rolled out of tk.Frame/tk.Label instead of ttk.LabelFrame: the
+# clam theme draws a LabelFrame border in its own grey and ignores the palette, and a
+# 1 px highlightbackground frame with a DARK_HI header strip is both darker and fewer
+# lines than restyling it. Verified in pixels, not in the docs -- see CARLA_DEBUG_UI.md.
+_shown = {}
+
+
+def setw(w, **kw):
+    """w.config(**kw), skipped when nothing changed.
+
+    The rail is repainted from the 60 Hz render tick, and that tick is also what flies
+    the camera (see fly()). Most of what it would write is identical to what is already
+    there -- a lamp that says COPTER 45 m says it for minutes -- and Tk does real work
+    per config, including a geometry pass when a string's width changes.
+    """
+    if _shown.get(id(w)) == kw:
+        return
+    _shown[id(w)] = kw
+    w.config(**kw)
+
+
+def card(parent, num, title):
+    """One pipeline stage in the rail: numbered badge, name, its own live number.
+
+    Returns {"body", "badge", "val"}: the caller packs controls into body, and the tick
+    recolours badge (grey/amber/green = not yet / do this next / done) and rewrites val.
+    Keeping each stage's cost in its own header is the point -- the old panel had all
+    seven timings in one 9 pt strip at the bottom, so no number was next to the control
+    that produced it. num=None for the two cards that are not stages (KEYS, the feed).
+    """
+    outer = tk.Frame(parent, bg=DARK, highlightthickness=1, highlightbackground=LINE)
+    outer.pack(side=tk.TOP, fill=tk.X, pady=(0, 6))
+    head = tk.Frame(outer, bg=DARK_HI)
+    head.pack(side=tk.TOP, fill=tk.X)
+    badge = None
+    if num is not None:
+        badge = tk.Label(head, text=f" {num} ", bg=LINE, fg=MUTED,
+                         font=("TkDefaultFont", 8, "bold"))
+        badge.pack(side=tk.LEFT, padx=(4, 6), pady=2)
+    tk.Label(head, text=title, bg=DARK_HI, fg=TEXT, anchor=tk.W,
+             font=("TkDefaultFont", 9, "bold")).pack(side=tk.LEFT, padx=(6 if num is None
+                                                                        else 0, 0))
+    val = tk.Label(head, text="", bg=DARK_HI, fg=MUTED, anchor=tk.E,
+                   font=("TkFixedFont", 9))
+    val.pack(side=tk.RIGHT, padx=6)
+    body = tk.Frame(outer, bg=DARK)
+    body.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=6, pady=(3, 5))
+    return {"body": body, "badge": badge, "val": val}
+
+
+def rrow(parent, pady=(0, 3)):
+    """A horizontal row inside a card. The rail is 340 px, so rows do the wrapping."""
+    f = tk.Frame(parent, bg=DARK)
+    f.pack(side=tk.TOP, fill=tk.X, pady=pady)
+    return f
+
+
+def lamp(parent, text):
+    """A named pill in the header strip: is this box alive, and what is it doing.
+
+    The panel had no state display at all -- whether the copter was armed, whether
+    anything was being tracked, whether the loop was closed could only be read off a
+    9 pt grey mode echo below six identical control rows.
+    """
+    w = tk.Label(parent, text=f" {text} ", bg=LINE, fg=MUTED,
+                 font=("TkDefaultFont", 8, "bold"))
+    w.pack(side=tk.LEFT, padx=(0, 6), pady=4)
+    return w
+
+
+def pill(w, text, state):
+    """Recolour a lamp or a stage badge. state: on | warn | bad | off."""
+    bg, fg = {"on": (ACCENT, DARK), "warn": (WARN, DARK),
+              "bad": (ALERT, DARK), "off": (LINE, MUTED)}[state]
+    setw(w, text=f" {text} ", bg=bg, fg=fg)
 
 
 def reload_argv(argv, pgid):
@@ -735,18 +825,60 @@ def main():
             root.after(0, lambda: target.config(text=msg))
 
         threading.Thread(target=work, daemon=True).start()
-    # One control strip along the top; everything below it is picture. The map
-    # list was a 22-row Listbox that pushed the feeds off the bottom of a 1440p
-    # screen -- a Combobox is the same choice in one line.
-    bar = tk.Frame(root)
-    bar.pack(side=tk.TOP, fill=tk.X, padx=8, pady=6)
+    # ---- chrome: the layout IS the pipeline ------------------------------------
+    # Three regions. A header of lamps (which box is alive, and what is it doing), a
+    # numbered stage rail down the left in the order the operator has to act, and the
+    # verdict bar across the bottom. Everything else is picture.
+    #
+    # What this replaced, and why: six full-width control rows of identical visual
+    # weight stacked above the video, with the two lines that actually matter -- the
+    # per-stage timings and the mode echo -- in the smallest, lowest-contrast text on
+    # the screen. Nothing said what to press first, radio buttons sat inline with
+    # comboboxes, the keyboard help was a sentence of prose, the fly-speed slider was
+    # unlabelled (it read as a bare "45"), a two-tab Notebook offered two ways to start
+    # the same follow, and the right-hand column was a mostly-empty void holding a
+    # thumbnail ~800 px away from its own caption. Progressive disclosure here is by
+    # DISABLING and by ordering, never by hiding: hiding costs a geometry pass per
+    # state change, and the tick that would pay for it is the one flying the camera.
+    head = tk.Frame(root, bg=DARK_HI)
+    head.pack(side=tk.TOP, fill=tk.X)
+    # foot BEFORE body: pack order decides who gets squeezed when the window is short,
+    # and the verdict must never be the thing that falls off the bottom of the screen.
+    foot = tk.Frame(root, bg=DARK_HI)
+    foot.pack(side=tk.BOTTOM, fill=tk.X)
+    body = tk.Frame(root, bg=DARK)
+    body.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-    label = tk.Label(bar, text="map")
-    label.pack(side=tk.LEFT)
+    tk.Label(head, text="CARLA live stack", bg=DARK_HI, fg=TEXT,
+             font=("TkDefaultFont", 10, "bold")).pack(side=tk.LEFT, padx=(8, 14))
+    lamps = {k: lamp(head, k) for k in ("CARLA", "ORIN", "COPTER", "TRACK", "LOOP")}
+    # the world-operation result line (spawn counts, render size, "busy, wait"): a
+    # transient, so it lives with the lamps rather than in the verdict bar
+    status = tk.Label(head, text="", anchor=tk.E, bg=DARK_HI, fg=MUTED,
+                      font=("TkFixedFont", 9))
+    status.pack(side=tk.RIGHT, padx=8)
+
+    rail = tk.Frame(body, bg=DARK, width=RAIL_W)
+    rail.pack(side=tk.LEFT, fill=tk.Y, padx=8, pady=6)
+    rail.pack_propagate(False)   # or the cards shrink the rail to their own width
+    hint = tk.Label(rail, text="", bg=DARK, fg=WARN, anchor=tk.W, justify=tk.LEFT,
+                    wraplength=RAIL_W - 20, font=("TkDefaultFont", 9, "bold"))
+    hint.pack(side=tk.TOP, fill=tk.X, pady=(0, 8))
+    # All five cards up front, in the operator's order, so the rail reads 1-2-3-4-5
+    # top to bottom no matter where in this file each stage's widgets get built. Same
+    # for the rows inside them: a row created here is a row positioned here.
+    stg = {n: card(rail, n, t) for n, t in ((1, "WORLD"), (2, "PILOT"),
+                                            (3, "DESIGNATE"), (4, "DELIVER"),
+                                            (5, "FOLLOW"))}
+    w1, w2, w3, w4, w5 = (stg[n]["body"] for n in range(1, 6))
+    w1_map, w1_spawn, w1_wipe = rrow(w1), rrow(w1), rrow(w1)
+    w2_pilot, w2_move, w2_speed = rrow(w2), rrow(w2), rrow(w2)
+    w3_src, w3_click, w3_res, w3_cap, w3_drop = (rrow(w3) for _ in range(5))
+    w4_src, w4_go = rrow(w4), rrow(w4)
+    w5_auth = rrow(w5)
     picked = tk.StringVar(value=client.get_world().get_map().name.split("/")[-1])
-    listbox = ttk.Combobox(bar, textvariable=picked, values=maps,
-                           state="readonly", width=22)
-    listbox.pack(side=tk.LEFT, padx=(4, 4))
+    ttk.Combobox(w1_map, textvariable=picked, values=maps,
+                 state="readonly", width=20).pack(side=tk.LEFT)
 
     def load_world(nxt):
         # a non-drivable entry (e.g. AnnotationColorLandscape) raises here
@@ -765,7 +897,7 @@ def main():
     def load_selected(_event=None):
         bg(status, load_world, picked.get())
 
-    tk.Button(bar, text="load", command=load_selected).pack(side=tk.LEFT)
+    tk.Button(w1_map, text="load", command=load_selected).pack(side=tk.LEFT, padx=(4, 0))
 
     spawned = []  # everything we made, so "clear" only kills our own actors
 
@@ -798,14 +930,11 @@ def main():
         left = sum(1 for a in client.get_world().get_actors()
                    if a.type_id.startswith(("vehicle", "walker")))
         return f"clean world: destroyed {len(doomed)}, {left} traffic actors left"
-    row = tk.Frame(bar)
-    row.pack(side=tk.LEFT, padx=(16, 0))
-    tk.Label(row, text="count").pack(side=tk.LEFT)
-    count = tk.Spinbox(row, from_=1, to=300, width=4)
+    tk.Label(w1_spawn, text="count", bg=DARK, fg=MUTED).pack(side=tk.LEFT)
+    count = tk.Spinbox(w1_spawn, from_=1, to=300, width=4)
     count.delete(0, tk.END)
     count.insert(0, "30")
     count.pack(side=tk.LEFT, padx=(4, 6))
-    status = tk.Label(bar, text="", anchor=tk.W)
 
     def spawn_vehicles(n):
         world = client.get_world()
@@ -900,15 +1029,17 @@ def main():
         spawned.clear()
         return msg
 
-    tk.Button(row, text="cars",
+    tk.Button(w1_spawn, text="cars",
               command=lambda: bg(status, spawn_vehicles, int(count.get()))
               ).pack(side=tk.LEFT)
-    tk.Button(row, text="walkers",
+    tk.Button(w1_spawn, text="walkers",
               command=lambda: bg(status, spawn_walkers, int(count.get()))
               ).pack(side=tk.LEFT, padx=4)
-    tk.Button(row, text="clear",
+    # spawning above, wiping below: two different kinds of button, and "clear all"
+    # kills actors that may not be ours
+    tk.Button(w1_wipe, text="clear",
               command=lambda: bg(status, clear)).pack(side=tk.LEFT)
-    tk.Button(row, text="clear all",     # ours AND anyone else's -- see clean_world
+    tk.Button(w1_wipe, text="clear all",   # ours AND anyone else's -- see clean_world
               command=lambda: bg(status, clean_world)).pack(side=tk.LEFT, padx=4)
 
     # Pause = flip the server into synchronous mode and never tick it. Nothing
@@ -934,7 +1065,7 @@ def main():
         pause_btn.config(text="resume" if want else "pause")
         status.config(text="PAUSED" if want else "running")
 
-    pause_btn = tk.Button(row, text="pause", command=toggle_pause)
+    pause_btn = tk.Button(w1_wipe, text="pause", command=toggle_pause)
     pause_btn.pack(side=tk.LEFT, padx=(6, 0))
 
     # Teardown has exactly one caller: the tick. Everything that wants to quit --
@@ -1047,14 +1178,13 @@ def main():
     # The keys go to whichever widget has focus, and the thing you want to fly is
     # the picture -- so the image labels ARE the focus target (wired below, once
     # they exist). Focusing there also keeps wasd out of the Spinbox and Combobox.
-    tk.Label(bar, text="click the view to fly:  wasd/qe move, arrows look, space "
-                       "pause, t follow-mode, g deliver, Shift-click designate"
-             ).pack(side=tk.LEFT, padx=(16, 0))
-    speed = tk.Scale(bar, from_=1, to=300, orient=tk.HORIZONTAL, length=140,
-                     showvalue=True, label=None, sliderlength=16)
+    # (the key list is the KEYS card in the rail; the slider is labelled because
+    # unlabelled it read as a bare "45" next to a sentence of prose)
+    speed = tk.Scale(w2_speed, from_=1, to=300, orient=tk.HORIZONTAL, length=RAIL_W - 40,
+                     showvalue=True, sliderlength=16, width=11, bg=DARK, fg=MUTED,
+                     highlightthickness=0, label="fly speed  m/s")
     speed.set(45)
-    speed.pack(side=tk.LEFT, padx=(8, 0))
-    status.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(16, 0))
+    speed.pack(side=tk.LEFT)
 
     # --- "follow that car": ground the frame the operator is looking at ---
     out_dir = Path(args.out)
@@ -1544,26 +1674,21 @@ def main():
         pilot["mode"] = "spectator"       # stop slaving to a descending copter
         return "LAND commanded (pilot back to spectator)"
 
-    pbar = tk.Frame(root)
-    pbar.pack(side=tk.TOP, fill=tk.X, padx=8, pady=(0, 4))
-    tk.Label(pbar, text="pilot").pack(side=tk.LEFT)
-    tk.Button(pbar, text="copter (arm + takeoff)",
-              command=lambda: bg(status, connect_copter)).pack(side=tk.LEFT, padx=(4, 0))
-    tk.Button(pbar, text="spectator",
+    tk.Button(w2_pilot, text="arm + takeoff",
+              command=lambda: bg(status, connect_copter)).pack(side=tk.LEFT)
+    tk.Button(w2_pilot, text="spectator",
               command=lambda: bg(status, go_spectator)).pack(side=tk.LEFT, padx=(4, 0))
-    tk.Button(pbar, text="to origin",
+    tk.Button(w2_move, text="to origin",
               command=lambda: bg(status, lambda: (
                   f"origin: {pilot['fly'].reset_to_origin(pilot['m'], args.alt):.1f} m"
-                  if pilot["m"] else "no copter"))).pack(side=tk.LEFT, padx=(4, 0))
-    tk.Button(pbar, text="land", command=lambda: bg(status, do_land)).pack(
+                  if pilot["m"] else "no copter"))).pack(side=tk.LEFT)
+    tk.Button(w2_move, text="land", command=lambda: bg(status, do_land)).pack(
         side=tk.LEFT, padx=(4, 0))
-    ptel = tk.Label(pbar, text="", anchor=tk.W, font=("TkFixedFont", 9))
-    ptel.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(16, 0))
-
-    grow = tk.Frame(root)
-    grow.pack(side=tk.TOP, fill=tk.X, padx=8, pady=(0, 6))
-    nb = ttk.Notebook(grow)
-    nb.pack(side=tk.TOP, fill=tk.X)
+    # telemetry last in the card, and wrapped to the rail: four short fixed-font lines
+    # instead of one 120-character row nobody reads to the end of
+    ptel = tk.Label(w2, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=MUTED,
+                    font=("TkFixedFont", 8))
+    ptel.pack(side=tk.TOP, fill=tk.X)
 
     def _arm_track():
         """Clear the old track, reap its Orin bridge, and set the WARM/COLD stance.
@@ -1627,74 +1752,91 @@ def main():
             track["lost_s"] = None
             track["delivered"], track["cmd_t"] = True, None
 
-    # -- tab 1: caption follow -- whole-frame VLM ground (Orin) -> SAM2 carry (Orin) --
-    tab_follow = ttk.Frame(nb)
-    nb.add(tab_follow, text="Follow (caption)")
-    tk.Label(tab_follow, text="follow").pack(side=tk.LEFT)
-    caption_entry = tk.Entry(tab_follow, width=28)
-    caption_entry.insert(0, "the red car")
-    caption_entry.pack(side=tk.LEFT, padx=(4, 0))
-    caption_entry.bind("<Return>", do_follow)
-    tk.Button(tab_follow, text="follow", command=do_follow).pack(side=tk.LEFT, padx=(4, 0))
-    tk.Button(tab_follow, text="drop", command=do_drop).pack(side=tk.LEFT, padx=(4, 0))
-
-    # -- tab 2: click follow (EXP-3) -- Shift-click a car -> point-crop rich-caption
-    # ground (Orin) -> SAM2 carry (Orin); the two combos are the EXP-1/EXP-2/EXP-3 knobs
-    tab_click = ttk.Frame(nb)
-    nb.add(tab_click, text="Click to follow (EXP-3)")
-    tk.Label(tab_click, text="Shift-click a car in the flown view").pack(side=tk.LEFT)
-    tk.Label(tab_click, text="ground").pack(side=tk.LEFT, padx=(12, 2))
+    # -- stage 3, DESIGNATE: pick the target and say who grounds it -----------------
+    # The two designation paths were a two-tab Notebook, which read as two ways to do
+    # the same thing and hid whichever one you were not on. They are one card now,
+    # ordered by which one you should reach for: Shift-click (the EXP-3 point crop,
+    # what works at 45 m nadir) first, caption (whole-frame ground) second.
+    #
+    # DESIGNATE source, orthogonal to acquire. vlm = the deployed Qwen2-VL-2B Q8_0
+    # point-crop grounds the clicked car on the Orin. oracle = the seed box comes from
+    # CARLA's projected bounding box. Not a cheat switch: P6.2-DELIVERY held designation
+    # constant with ORACLE in BOTH arms because q8_0 is non-discriminative at 45 m nadir
+    # (G6), so oracle is what reproduces the flagship's scope, and it is the only way to
+    # watch the carry + control half at that altitude. Applies to Shift-click only.
+    # Radiobuttons, not a Combobox: both options visible at once is the difference
+    # between a switch an operator can see the state of and one they have to open.
+    tk.Label(w3_src, text="source", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(0, 6))
+    designate = tk.StringVar(value=args.designate)
+    for m in ("vlm", "oracle"):
+        tk.Radiobutton(w3_src, text=m, value=m, variable=designate,
+                       bg=DARK, activebackground=DARK).pack(side=tk.LEFT)
+    tk.Label(w3_click, text="Shift-click a car in the flown view", bg=DARK, fg=TEXT
+             ).pack(side=tk.LEFT)
+    tk.Label(w3_res, text="ground", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(0, 2))
     ground_res = tk.IntVar(value=ORIN_GROUND_RES)
-    ttk.Combobox(tab_click, textvariable=ground_res, width=5, state="readonly",
+    ttk.Combobox(w3_res, textvariable=ground_res, width=5, state="readonly",
                  values=(256, 512, 768, 1024)).pack(side=tk.LEFT)
-    tk.Label(tab_click, text="carry").pack(side=tk.LEFT, padx=(12, 2))
+    tk.Label(w3_res, text="carry", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(10, 2))
     carry_size = tk.IntVar(value=ORIN_CARRY_SIZE)
-    ttk.Combobox(tab_click, textvariable=carry_size, width=5, state="readonly",
+    ttk.Combobox(w3_res, textvariable=carry_size, width=5, state="readonly",
                  values=(256, 384, 512, 640, 768, 1024)).pack(side=tk.LEFT)
-    tk.Button(tab_click, text="drop", command=do_drop).pack(side=tk.LEFT, padx=(12, 0))
+    tk.Label(w3_res, text="Orin", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(6, 0))
+    caption_entry = tk.Entry(w3_cap, width=20)
+    caption_entry.insert(0, "the red car")
+    caption_entry.pack(side=tk.LEFT)
+    caption_entry.bind("<Return>", do_follow)
+    tk.Button(w3_cap, text="follow", command=do_follow).pack(side=tk.LEFT, padx=(4, 0))
+    tk.Button(w3_drop, text="drop", command=do_drop).pack(side=tk.LEFT)
+    tk.Label(w3_drop, text="clears the track and the Orin bridge", bg=DARK, fg=MUTED,
+             font=("TkDefaultFont", 8)).pack(side=tk.LEFT, padx=(6, 0))
 
-    # -- shared strips below the tabs: the two mode switches, then the live timings --
-    strip = tk.Frame(grow)
-    strip.pack(side=tk.TOP, fill=tk.X, pady=(4, 0))
+    # -- stage 4, DELIVER: who owns the box, and the press that hands it over -------
     # ACQUIRE. warm = maintain from designation, deliver on command (the thesis
     # position: maintain-and-deliver). cold = the designation IS the command, so the
     # ~4.8 s ground happens under time pressure and the box lands stale. Same code
     # path either way -- the only difference is who owns the box while it is produced,
     # which is exactly the comparison and the reason both live in one binary.
-    tk.Label(strip, text="acquire").pack(side=tk.LEFT)
+    tk.Label(w4_src, text="acquire", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(0, 6))
     acquire = tk.StringVar(value=args.acquire)
-    ttk.Combobox(strip, textvariable=acquire, width=6, state="readonly",
-                 values=("warm", "cold")).pack(side=tk.LEFT, padx=(4, 0))
-    tk.Button(strip, text="deliver (g)", command=do_deliver).pack(side=tk.LEFT, padx=(4, 0))
-    # DESIGNATE, orthogonal to acquire. vlm = the deployed Qwen2-VL-2B Q8_0 point-crop
-    # grounds the clicked car on the Orin. oracle = the seed box comes from CARLA's
-    # projected bounding box. Not a cheat switch: P6.2-DELIVERY held designation
-    # constant with ORACLE in BOTH arms because q8_0 is non-discriminative at 45 m nadir
-    # (G6), so oracle is what reproduces the flagship's scope, and it is the only way to
-    # watch the carry + control half at that altitude. Applies to Shift-click only.
-    tk.Label(strip, text="   designate").pack(side=tk.LEFT)
-    designate = tk.StringVar(value=args.designate)
-    ttk.Combobox(strip, textvariable=designate, width=7, state="readonly",
-                 values=("vlm", "oracle")).pack(side=tk.LEFT, padx=(4, 0))
-    # FOLLOW authority. manual = operator alone. assist = the model AIMS (gimbal or
-    # spectator rotation; never position). auto = the closed loop -- the delivered box
-    # drives the copter through CascadePID -> LOCAL_NED velocity, which is P6.2's own
-    # control path, so it needs a copter to fly. Operator input stays live in all
-    # three: a held key outranks the model for as long as it is held.
-    tk.Label(strip, text="   follow").pack(side=tk.LEFT)
+    for m in ("warm", "cold"):
+        tk.Radiobutton(w4_src, text=m, value=m, variable=acquire,
+                       bg=DARK, activebackground=DARK).pack(side=tk.LEFT)
+    tk.Button(w4_go, text="deliver  (g)", command=do_deliver).pack(side=tk.LEFT)
+    tk.Label(w4_go, text="warm: already maintained,\nso this lands in one carry step",
+             bg=DARK, fg=MUTED, justify=tk.LEFT, font=("TkDefaultFont", 8)
+             ).pack(side=tk.LEFT, padx=(6, 0))
+
+    # -- stage 5, FOLLOW authority --------------------------------------------------
+    # manual = operator alone. assist = the model AIMS (gimbal or spectator rotation;
+    # never position). auto = the closed loop -- the delivered box drives the copter
+    # through CascadePID -> LOCAL_NED velocity, which is P6.2's own control path, so it
+    # needs a copter to fly. Operator input stays live in all three: a held key
+    # outranks the model for as long as it is held.
     follow_mode = tk.StringVar(value="manual")
     for m in FOLLOW_MODES:
-        tk.Radiobutton(strip, text=m, value=m, variable=follow_mode).pack(side=tk.LEFT)
-    gstatus = tk.Label(strip, text="", anchor=tk.W)
-    gstatus.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(16, 0))
-    gtimes = tk.Label(grow, text="", anchor=tk.W, fg=ACCENT, font=("TkFixedFont", 10))
-    gtimes.pack(side=tk.TOP, fill=tk.X, pady=(2, 0))
+        tk.Radiobutton(w5_auth, text=m, value=m, variable=follow_mode,
+                       bg=DARK, activebackground=DARK).pack(side=tk.LEFT)
+    tk.Label(w5, text="assist aims the camera. auto flies the copter.",
+             bg=DARK, fg=MUTED, anchor=tk.W, font=("TkDefaultFont", 8)
+             ).pack(side=tk.TOP, fill=tk.X)
+
+    # -- the verdict bar: the three lines the demo is actually judged on ------------
+    # Promoted out of 9 pt grey at the bottom of the control stack into the widest,
+    # highest-contrast text on the screen. Line 1 is the verdict, line 2 is where the
+    # number came from, line 3 is which box ran which stage.
+    gstatus = tk.Label(foot, text="", anchor=tk.W, bg=DARK_HI,
+                       font=("TkDefaultFont", 11, "bold"))
+    gstatus.pack(side=tk.TOP, fill=tk.X, padx=8, pady=(4, 0))
+    gtimes = tk.Label(foot, text="", anchor=tk.W, bg=DARK_HI, fg=ACCENT,
+                      font=("TkFixedFont", 11))
+    gtimes.pack(side=tk.TOP, fill=tk.X, padx=8)
     # Which box runs which stage, spelled out. The constraint is that SAM2 and the VLM
     # run ONLY on the Orin and the 3090 runs ONLY the simulator; a demo that cannot be
     # asked where the models are is a demo that can quietly answer "on the 3090".
-    gmodes = tk.Label(grow, text="", anchor=tk.W, fg="#8a8a8a",
+    gmodes = tk.Label(foot, text="", anchor=tk.W, bg=DARK_HI, fg=MUTED,
                       font=("TkFixedFont", 9))
-    gmodes.pack(side=tk.TOP, fill=tk.X)
+    gmodes.pack(side=tk.TOP, fill=tk.X, padx=8, pady=(0, 4))
 
     # Live feed with the track drawn on it. In-memory PPM into PhotoImage runs at
     # ~115 FPS (no PIL, no disk); a PNG-per-frame round-trip does not. The image
@@ -1703,23 +1845,41 @@ def main():
     preview = {"live": None, "feed": None, "ln": -1, "fn": -1,
                "t": time.time(), "n0": 0, "fps": 0.0,
                "disp": 0.0, "dt": time.time()}   # real render-tick rate (see tick)
-    # grid, not pack: the weights are what make a resize redistribute the space.
-    # 3:1 keeps the flown view dominant and the Jetson feed a thumbnail at any size.
-    views = tk.Frame(root, bg=DARK)
-    views.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-    # the thumbnail is a FIXED width, not a fraction: a 3:1 weight handed it 500 px
-    # on a 2000 px window, which is not a thumbnail. Big view takes all the slack.
-    views.columnconfigure(0, weight=1)
-    views.columnconfigure(1, weight=0, minsize=THUMB_W + 12)
-    views.rowconfigure(0, weight=1)
-    big = tk.Label(views, bg=DARK)
-    big.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
-    col = tk.Frame(views, bg=DARK)
-    col.grid(row=0, column=1, sticky="nsew", padx=(0, 8), pady=8)
-    tk.Label(col, text=f"what the Jetson sees -- {CAM_HZ:.0f} Hz, VLM + tracker",
-             bg=DARK, fg=TEXT).pack(anchor=tk.W)
-    small_lbl = tk.Label(col, bg=DARK)
-    small_lbl.pack(fill=tk.BOTH, expand=True, anchor=tk.N)
+    # The flown view gets every pixel the rail does not: one Label, no grid, no second
+    # column. The Jetson feed already lives in the rail under its own caption, so the
+    # old 3:1 grid (and the empty right-hand column it created) is gone.
+    vid = tk.Frame(body, bg=DARK)
+    vid.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 8), pady=6)
+    vhead = tk.Frame(vid, bg=DARK)
+    vhead.pack(side=tk.TOP, fill=tk.X)
+    tk.Label(vhead, text="FLOWN VIEW", bg=DARK, fg=TEXT,
+             font=("TkDefaultFont", 9, "bold")).pack(side=tk.LEFT)
+    # "am I flying?" was a 3 px focus ring and nothing else. The ring stays (it is the
+    # real signal, straight from Tk focus) and this says the same thing in words.
+    stick = tk.Label(vhead, text="click the view to take the stick", bg=DARK, fg=MUTED,
+                     font=("TkDefaultFont", 9))
+    stick.pack(side=tk.LEFT, padx=(10, 0))
+    # The keys live on the header of the thing they steer, not in a rail card (which
+    # got clipped off the bottom of a 1043 px window -- screenshot again) and not as a
+    # sentence of prose in a control row, which is where they were.
+    tk.Label(vhead, text="wasd/qe move   arrows look   space pause   t follow mode   "
+                         "g deliver   Shift-click designate",
+             bg=DARK, fg=MUTED, font=("TkFixedFont", 8)).pack(side=tk.RIGHT, padx=(0, 4))
+    big = tk.Label(vid, bg=DARK)
+    big.pack(side=tk.TOP, fill=tk.BOTH, expand=True, pady=(4, 0))
+    # The Jetson feed is a picture-in-picture over the bottom-right of the flown view.
+    # It was a rail card first, and at 300 px it cost the rail ~200 px of height: the
+    # KEYS card and the feed itself were both clipped off the bottom of the window
+    # (found by screenshot, not by reading the code). place() over the video is free,
+    # and next to the flown view is where it belongs anyway -- the point of showing it
+    # is comparing the two. Its own caption sits on it, not 800 px away.
+    pip = tk.Frame(vid, bg=DARK_HI)
+    pip.place(relx=1.0, rely=1.0, anchor=tk.SE, x=-10, y=-10)
+    tk.Label(pip, text=f"WHAT THE JETSON SEES -- {CAM_HZ:.0f} Hz, VLM + tracker",
+             bg=DARK_HI, fg=MUTED, font=("TkDefaultFont", 8, "bold")
+             ).pack(side=tk.TOP, anchor=tk.W, padx=5, pady=(2, 0))
+    small_lbl = tk.Label(pip, bg=DARK)
+    small_lbl.pack(side=tk.TOP, padx=5, pady=(0, 5))
 
     def _photo(bgr, widget, drop=0, fixed_w=None):
         """Fit the frame to the widget's current size, keep aspect. Grows AND shrinks.
@@ -1764,7 +1924,7 @@ def main():
             big.config(image=preview["live"])
         if ff is not None:
             draw_overlay(ff, box, "", locked, delivered=deliv)
-            preview["feed"] = _photo(ff, col, fixed_w=THUMB_W)
+            preview["feed"] = _photo(ff, pip, fixed_w=THUMB_W)
             small_lbl.config(image=preview["feed"])
         # measured delivery rate, not the requested one -- headless or not, a
         # GPU-contended sensor quietly ships fewer frames than sensor_tick asks for
@@ -1774,8 +1934,67 @@ def main():
                 n = live["n"]
             preview["fps"] = (n - preview["n0"]) / dt
             preview["t"], preview["n0"] = time.time(), n
+        # --- state + guidance: what is alive, what is done, what to press next ------
+        # ONE place decides the operator's next action, and the same number drives the
+        # badge colours -- so the rail cannot say "stage 3 done" while the hint says
+        # "do stage 3". Recomputed every tick because every input is already in hand,
+        # and setw() skips the Tk call whenever the string has not changed.
+        fps = preview["fps"]
+        armed = pilot["mode"] == "copter" and pilot["m"] is not None
+        carrying = track["stop"] is not None and not track["stop"].is_set()
+        boxed = carrying and track["box"] is not None
+        fm = pilot_follow_mode()
+        closed = boxed and track["delivered"] and fm in ("assist", "auto")
+        done = {1: bool(spawned), 2: armed, 3: boxed,
+                4: boxed and track["delivered"], 5: fm in ("assist", "auto")}
+        # from after the LAST satisfied stage, not from stage 1: spectator is a legal
+        # way to run the whole demo, so stage 2 is never "done" in it, and a hint that
+        # counted from the first gap would still be asking for a copter while the
+        # operator was already carrying a target
+        last = max((n for n in range(1, 6) if done[n]), default=0)
+        nxt = next((n for n in range(last + 1, 6) if not done[n]), 6)
+        for n in range(1, 6):
+            pill(stg[n]["badge"], n,
+                 "on" if done[n] else "warn" if n == nxt else "off")
+        setw(hint, text="NEXT   " + ("working -- one world operation at a time"
+                                     if busy["on"] else
+                                     "waiting for the first camera frame" if fps < 1
+                                     else NEXT_TIP[nxt]))
+        pill(lamps["CARLA"], f"CARLA {fps:.0f} Hz" if fps >= 1 else "CARLA no frame",
+             "on" if fps >= 1 else "bad")
+        hz_now, warm_be = track["carry_hz"], backend["be"] is not None
+        pill(lamps["ORIN"],
+             f"ORIN carry {hz_now:.1f} Hz" if hz_now else
+             "ORIN ready" if warm_be else "ORIN cold",
+             "on" if hz_now or warm_be else "off")
+        pill(lamps["COPTER"], f"COPTER {-pilot['ned'][2]:.0f} m" if armed
+             else "COPTER spectator", "on" if armed else "off")
+        if track["drift"]:
+            pill(lamps["TRACK"], f"TRACK drift {track['drift']:.0f} s", "bad")
+        elif track["lost_s"]:
+            pill(lamps["TRACK"], f"TRACK lost {track['lost_s']:.0f} s", "bad")
+        elif boxed:
+            pill(lamps["TRACK"], "TRACK live" if track["delivered"]
+                 else "TRACK maintaining", "on" if track["delivered"] else "warn")
+        else:
+            pill(lamps["TRACK"], "TRACK none", "off")
+        pill(lamps["LOOP"], f"LOOP closed {fm}" if closed else "LOOP open",
+             "on" if closed else "off")
+        # each stage's own cost, in its own header, next to the control that made it
+        setw(stg[1]["val"], text=f"{len(spawned)} spawned")
+        setw(stg[2]["val"], text=f"copter {-pilot['ned'][2]:.0f} m" if armed
+                                 else "spectator")
+        # oracle costs no grounding, so "ground 0 ms" would read as an instant VLM.
+        # Say which one produced the box instead -- the ORACLE-designation caveat is
+        # the whole reason P6.2-DELIVERY's claim is scoped, and it has to be visible.
+        setw(stg[3]["val"], text="oracle GT box" if designate.get() == "oracle"
+                                 else _f("ground {:.0f} ms", track["ground_ms"]))
+        setw(stg[4]["val"], text=_f("deliver {:.2f} s", track["deliver_s"]))
+        cn, ce, _cd = pilot["vel"]
+        setw(stg[5]["val"],
+             text=f"{fm}  {(cn ** 2 + ce ** 2) ** 0.5:.1f} m/s" if armed else fm)
         gstatus.config(text=f"{preview['fps']:.0f} Hz live  {track['msg']}",
-                       fg=ALERT if track["drift"] else TEXT)
+                       fg=ALERT if track["drift"] or track["lost_s"] else TEXT)
         # live per-stage timings, refreshed every tick straight off the track dict.
         # deliver comes FIRST because it is the number the whole warm-start argument
         # is about (command -> box in hand); the rest is where that number came from.
@@ -1791,7 +2010,6 @@ def main():
             f"disp {preview['disp']:.0f} Hz",
         )))
         # Who is flying, what has been asked for, and which box runs which stage.
-        fm = pilot_follow_mode()
         gmodes.config(text="   ".join((
             f"pilot {pilot['mode']}",
             f"acquire {acquire.get()}" + ("" if track["delivered"] else " (maintaining)"),
@@ -1801,18 +2019,20 @@ def main():
             f"carry {carry_size.get()} Orin",
             "CARLA + SITL 3090",
         )))
+        # four short lines in the rail, not one 120-char row: same fields, and the
+        # commanded-vs-achieved pair sits on one line where it can be compared
         if pilot["mode"] == "copter":
             n, e, d = pilot["ned"]
             vn, ve, vd = pilot["vel"]
             mn, me, _md = pilot["ned_v"]
-            ptel.config(text=f"{pilot['hb']}   alt {-d:5.1f} m   N {n:7.1f}  E {e:7.1f}"
-                             f"   cmd vn {vn:5.1f}  ve {ve:5.1f}  vd {vd:5.1f} m/s"
-                             f"   got {(mn**2 + me**2) ** 0.5:4.1f} m/s"
-                             f"   gimbal {pilot['gim']['pitch']:.0f}/"
-                             f"{pilot['gim']['yaw']:.0f} deg")
+            ptel.config(text=f"{pilot['hb']}   alt {-d:5.1f} m   gimbal "
+                             f"{pilot['gim']['pitch']:.0f}/{pilot['gim']['yaw']:.0f}\n"
+                             f"N {n:7.1f}  E {e:7.1f}  D {d:7.1f}\n"
+                             f"cmd {vn:5.1f} {ve:5.1f} {vd:5.1f}"
+                             f"   got {(mn**2 + me**2) ** 0.5:4.1f} m/s")
         else:
-            ptel.config(text="spectator -- no copter in the loop "
-                             "(click 'copter' to arm SITL and slave the camera)")
+            ptel.config(text="spectator: no copter in the loop.\n"
+                             "'arm + takeoff' arms SITL and\nslaves the camera to it.")
 
     def do_click_follow(feed_x, feed_y, actor=None):
         v = actor or hit_test_live(feed_x, feed_y)   # actor: --smoke already projected it
@@ -1880,14 +2100,24 @@ def main():
         k = e.keysym.lower()
         pending[k] = root.after(50, lambda: (held.discard(k), pending.pop(k, None)))
 
-    # click either view to take the stick; the green border is the only "am I
-    # flying?" signal, so losing focus must also drop every held key or the
-    # spectator keeps drifting after you click away.
+    # click either view to take the stick; the green border used to be the ONLY "am I
+    # flying?" signal (now it is the ring plus the words above the view), so losing
+    # focus must also drop every held key or the spectator keeps drifting after you
+    # click away. Driven by Tk focus events rather than by the tick: it changes on a
+    # click, not at 60 Hz.
+    def stick_yours(_e=None):
+        stick.config(text="THE STICK IS YOURS -- wasd/qe fly, arrows look", fg=ACCENT)
+
+    def stick_lost(_e=None):
+        held.clear()
+        stick.config(text="click the view to take the stick", fg=MUTED)
+
     for w in (big, small_lbl):
         w.config(takefocus=True, highlightthickness=3,
                  highlightbackground=DARK, highlightcolor=ACCENT)
         w.bind("<Button-1>", lambda e, w=w: w.focus_set())
-        w.bind("<FocusOut>", lambda e: held.clear())
+        w.bind("<FocusIn>", stick_yours)
+        w.bind("<FocusOut>", stick_lost)
         w.bind("<KeyPress>", on_press)
         w.bind("<KeyRelease>", on_release)
 
@@ -2095,19 +2325,27 @@ def main():
         a consequence of the control output rather than an input to it.
         """
         m, mavfly = pilot["m"], pilot["fly"]
+        # BOTH types in the one drain. recv_match consumes every message in the buffer
+        # looking for its type and throws the rest away, so a NED-only drain ate every
+        # heartbeat and the panel showed "no link" for the whole flight while the copter
+        # was armed, airborne and flying our setpoints -- a lie on screen, caught by
+        # reading the rail on a screenshot.
         while True:                    # drain to newest: a stale NED is a lagging camera
-            msg = m.recv_match(type="LOCAL_POSITION_NED", blocking=False)
+            # a LIST, not a tuple: recv_match only wraps a bare string, so a tuple goes
+            # through as type=[("A","B")], nothing ever matches it, and the drain
+            # silently returns None forever -- which froze the NED pose at (0,0,-alt)
+            msg = m.recv_match(type=["LOCAL_POSITION_NED", "HEARTBEAT"], blocking=False)
             if msg is None:
                 break
+            if msg.get_type() == "HEARTBEAT":
+                pilot["hb"] = ("armed" if msg.base_mode & 128 else "disarmed") + \
+                              f" mode {msg.custom_mode}"
+                continue
             pilot["ned"] = (msg.x, msg.y, msg.z)
             # ACHIEVED velocity, next to the commanded one. A follow that loses the
             # target because the copter is speed-limited looks identical to one that
             # loses it because the gain is too low, until you can see both numbers.
             pilot["ned_v"] = (msg.vx, msg.vy, msg.vz)
-        hb = m.recv_match(type="HEARTBEAT", blocking=False)
-        if hb is not None:
-            pilot["hb"] = ("armed" if hb.base_mode & 128 else "disarmed") + \
-                          f" mode {hb.custom_mode}"
         auto = pilot_follow_mode() == "auto"
         # Gimbal. AUTO forces nadir and leaves framing entirely to the PID: that is
         # P6.2's geometry (hard nadir, north-up), and a gimbal that also chases would

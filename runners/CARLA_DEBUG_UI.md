@@ -1,6 +1,7 @@
 # CARLA live demo panel — tool + findings
 
-**Status: WORKING, all stages live (2026-07-25T14:24Z).** Infrastructure for Part VI,
+**Status: WORKING, all stages live; guided-layout rewrite 2026-07-25T15:35Z.**
+Infrastructure for Part VI,
 not an experiment. No RQ, no gated result — but every number it prints is measured on
 the deployed stack at run time, not replayed (see "What this cannot tell you").
 
@@ -39,23 +40,84 @@ combination.
 | `carla_render.py` | the non-interactive pose-slaved renderer (P6.1). Shares the axis convention, not the code. |
 | `boot_sim.py` | `launch_sitl()` lives here; the panel calls it rather than re-spelling the P6.1 command |
 | `carla_trace.py` | reads a follow trace back (`trace.jsonl` → ground / identity / switches / drift / bloat) |
-| `carla_ui_proof/` | two committed frames, so an audit can look without a rerun |
+| `ui_shot.py` | grabs the panel's own window to a PNG, so a layout claim can be looked at |
+| `carla_ui_proof/` | four committed frames, so an audit can look without a rerun |
 
 Controls: click the view to take the stick — the green border is the only "am I flying?"
 signal. `wasd` move, `qe` up/down, arrows look (gimbal in copter mode), `space` pause,
-`t` cycles FOLLOW, `g` delivers, **Shift-click a car designates it**, `drop` stops.
+`t` cycles FOLLOW, `g` delivers, **Shift-click a car designates it**, `drop` stops. The
+key list is printed on the video header, where the keys are used.
 
 `--smoke N` is the unattended path: it finds the car nearest frame centre, designates it,
 delivers, engages AUTO, flies for N seconds, then writes `smoke.png` and prints the
-timings strip. Synthetic key injection is banned in this repo (`xdotool keydown` is a
+verdict bar. Synthetic key injection is banned in this repo (`xdotool keydown` is a
 global XTEST event and has typed into the user's terminal), so `--smoke` calls the same
 functions the widgets call instead of faking input.
 
-## The timings strip
+## The layout is the pipeline (redesign, 2026-07-25T15:35Z)
 
-The line that makes this a demo rather than a viewer. Every field is read straight off
-the live `track` dict each tick, and a stage that has not run prints `--`, never `0.00`
-(`_f`, guarded by `tests/test_pilot_modes.py`).
+The panel had grown into six full-width control rows of identical visual weight stacked
+above the video, with the two lines that actually matter — the per-stage timings and the
+mode echo — in the smallest, lowest-contrast text on the screen. Nothing said what to
+press first, a two-tab Notebook offered two ways to start the same follow, the fly-speed
+slider read as a bare `45`, and the right-hand column was a mostly-empty void holding a
+thumbnail ~800 px away from its own caption. `carla_ui_proof/ui-idle-step2.jpg` is the
+result of the rewrite, `ui-lost-step3.jpg` is the same panel with a failing track.
+
+Four regions, and the geometry encodes the order the operator has to act in:
+
+- **Header lamps** — `CARLA` (measured frame rate), `ORIN` (carry Hz, or `ready`/`cold`
+  for a prewarmed-but-unused backend), `COPTER` (altitude, or `spectator`), `TRACK`
+  (`none` / `maintaining` / `live` / `drift Ns` / `lost Ns`), `LOOP` (`open`, or
+  `closed <mode>`). Green = healthy, amber = next thing to do or a number that is not
+  dead but not right, grey = not yet, red = failing. One glance answers "which box is
+  alive and what is it doing". Transient world-operation results (spawn counts, render
+  size, "busy, wait") go right-aligned in the same bar, not in the verdict bar.
+- **A 340 px stage rail**, five numbered cards in operator order: **1 WORLD**,
+  **2 PILOT**, **3 DESIGNATE**, **4 DELIVER**, **5 FOLLOW**. Each card carries its own
+  live number in its header (`30 spawned`, `copter 45 m`, `ground 8500 ms` or
+  `oracle GT box`, `deliver 0.00 s`, `auto 5.7 m/s`), so a stage's cost sits next to the
+  control that caused it. The numbered badge is green when the stage is satisfied, amber
+  when it is the next one to do, grey otherwise.
+- **One amber `NEXT` line** above the cards — the only prose on the panel, and it names a
+  single action ("step 3 -- Shift-click a car in the view, or type a caption and press
+  follow"). It is computed from the **last satisfied** stage, not the first unsatisfied
+  one: `spectator` is a legal way to run the whole demo, so a session that never arms a
+  copter must not be pinned on "step 2" forever while it is carrying a target. It also
+  pre-empts itself with "working -- one world operation at a time" while `bg()` is busy
+  and "waiting for the first camera frame" before the first frame lands.
+- **The flown view takes every remaining pixel**, with the key list and the
+  "click the view to take the stick" indicator on its header, and the Jetson's own
+  960x540 feed as a captioned picture-in-picture bottom-right
+  (`WHAT THE JETSON SEES -- 5 Hz, VLM + tracker`). A `place()`d PIP rather than a rail
+  card: the rail is the scarce dimension and the feed's caption has to touch the feed.
+- **The verdict bar** across the bottom, in the largest, highest-contrast text on the
+  panel (see the next section). `foot` is packed **before** `body`, because pack order
+  decides who gets squeezed when the window is short and the verdict must never be the
+  thing that falls off the bottom.
+
+Three rules the redesign follows, all of them costed rather than tasteful:
+
+- **Progressive disclosure by disabling and by ordering, never by hiding.** Hiding a
+  widget costs a geometry pass per state change, and the tick that would pay for it is
+  the one flying the camera.
+- **Radiobuttons for modes, comboboxes only for values.** `acquire`, `designate` and
+  `follow` are switches whose state an operator has to be able to *see*, not open; the
+  map name and the two resolutions are value pickers and stay closed comboboxes. The
+  Notebook is gone: both designation paths are one card, ordered by which one to reach
+  for (Shift-click first — the EXP-3 point crop is what works at 45 m nadir — typed
+  caption second).
+- **Per-tick work stays a `.config(text=...)`.** The same ~60 Hz tick paints the frame
+  and flies the camera (finding 8), so every state update goes through `setw()`, which
+  memoises the last kwargs per widget and skips Tk entirely when nothing changed. The
+  cards, badges and lamps are hand-rolled from `tk.Frame`/`tk.Label` because clam's
+  `LabelFrame` ignores the palette.
+
+## The verdict bar (was: the timings strip)
+
+The three lines that make this a demo rather than a viewer. Every field is read straight
+off the live `track` dict each tick, and a stage that has not run prints `--`, never
+`0.00` (`_f`, guarded by `tests/test_pilot_modes.py`).
 
 ```
 deliver 0.00 s  |  ground 0 ms  |  carry 107 ms (9.3 Hz) Orin  |  catch-up 8.2 s  |  lag 0 f  |  feed 5 Hz  |  disp 36 Hz
@@ -151,7 +213,7 @@ asserts that refusal.
 
 ## Authority: MANUAL / ASSIST / AUTO
 
-`t` cycles, or use the combobox.
+`t` cycles, or use the stage-5 radiobuttons.
 
 - **MANUAL (default).** Operator has sole authority. The model grounds and tracks; it
   draws a box and moves nothing.
@@ -408,7 +470,7 @@ other end.
    display size on a debounced `<Configure>` (400 ms, snapped to 32 px steps — each
    respawn is a destroy + spawn round-trip). Capped at 1080p30.
 3. **`sensor_tick` is a request, not a promise.** A GPU-contended sensor quietly ships
-   fewer frames. The status line shows *measured* delivery rate, which is the only way
+   fewer frames. The `CARLA` lamp shows *measured* delivery rate, which is the only way
    to notice.
 4. **Pause = synchronous mode with no ticker.** Traffic, physics and the camera freeze
    together. Two traps: keys must be gated while paused (the spectator still accepts
@@ -423,7 +485,7 @@ other end.
    the operator was looking at the viewport. Headless removed that constraint. 90 deg is
    inherited, not chosen, and is an untested lever on lock rate.
 7. **`t.MaxFPS` via `-ExecCmds` does nothing.** Measured: the server free-runs at **190 Hz**
-   (step 5.3 ms) with the flag set to 30. The rate in the status line is `sensor_tick`
+   (step 5.3 ms) with the flag set to 30. The rate in the `CARLA` lamp is `sensor_tick`
    frame *delivery*, a different knob. If a real cap on GPU draw is wanted, this flag is
    not it — and nothing currently caps the world clock.
 8. **The tick both paints and flies, so display cost became fly cost.** `fly()` used a
@@ -485,6 +547,44 @@ other end.
     *Not a bug:* `UserWarning: cannot import name '_C' from 'sam2'` on the first
     follow. Upstream SAM2 without its compiled extension; it disables one mask
     post-processing step and is explicitly documented as safe to ignore.
+13. **A Tk rail that overflows drops widgets silently, and only a screenshot says so.**
+    The first build of the stage rail packed ~935 px of cards into a ~915 px column: the
+    KEYS card was clipped mid-row and the Jetson thumbnail card **was not rendered at
+    all** — no error, no warning, exit 0, and the code that creates it runs fine. Found by
+    grabbing the window and looking, then fixed by moving pixels out of the rail rather
+    than by scrolling it: the thumbnail became a `place()`d PIP over the video, the KEYS
+    card was deleted and its content moved to the video header, and `ptel` was cut to
+    three wrapped 8 pt lines. The rail now ends with ~60 px of air, which is the margin a
+    longer status string is allowed to eat. Same class of failure as a black render:
+    `pack()` has no error path for "does not fit".
+14. **`xdotool search --name` returns the WM's frame as well as the app's window, and the
+    frame is the bigger one.** `ui_shot.py` picked "the largest match", which grabbed the
+    reparenting frame — a screenshot that is pure black with a title bar on it, and which
+    passes any "did the file get written" check. Fixed with an `is_client()` filter: only
+    the real client window carries `WM_STATE`. The `>99% one colour` assert in the same
+    script is what caught it. (The first implementation of this script used
+    `ffmpeg -f x11grab` on the window's geometry, which returns whatever is *on top* — it
+    screenshotted the user's browser. `xwd -id` reads the window's own pixels, needs no
+    raise, and cannot capture anything else.)
+15. **`recv_match(type=...)` starves every message you did not ask for first.** Reading
+    the rail on a screenshot showed `hb no link` on a copter that was armed and flying:
+    `recv_match(type="LOCAL_POSITION_NED")` consumes and discards everything else in the
+    buffer, so the `HEARTBEAT` call after it always saw an empty buffer. Both are drained
+    from one loop now. The fix's own first version was worse than the bug — a **tuple**
+    passed as `type=`, which pymavlink only wraps when it is a bare string
+    (`not isinstance(type, list) and not isinstance(type, set)`), so the filter became
+    `[("A","B")]`, nothing ever matched, and `pilot["ned"]` froze at `(0, 0, -alt)`: a
+    camera that stops following the copter while every widget still reads healthy. It
+    must be a **list**.
+16. **`--smoke` picks the nearest car, which is not the trackable one.** Four consecutive
+    smoke runs at 45 m nadir with carry 512 lost or drifted the mask: `DRIFT 53s` on a
+    `vehicle.nissan.micra`, then three `SMOKE FAIL: no carried box after 60s` on a
+    `vehicle.micro.microlino` and a `vehicle.dodge.charger_police_2020`. Recorded as
+    behaviour, not patched: at that altitude and tracker resolution a small hatchback is
+    a handful of pixels, which is exactly the small/distant-target tail EXP-1 keeps 1024
+    as a fallback for. The showcase runs pick the target deliberately for the same reason
+    (`run_p62_matrix.py --showcase`). Nearest-to-centre is a convenience for the
+    unattended path, not a claim that any car is followable.
 
 ## Actors leak, and a leaked world lies (2026-07-25T13:50Z)
 
@@ -523,7 +623,7 @@ near where the camera actually ended up rather than near the origin.
 The rolling lock counter and `hits`/`steps` were only updated in the branch where the
 carry returned a box. So a run printed **`lock 60/60` after 87 consecutive lost steps** —
 the deque simply stopped moving and froze at its last good value. Fixed: the `b is None`
-branch appends `False`, bumps `steps`, and stamps `lost_s`. The status line now names the
+branch appends `False`, bumps `steps`, and stamps `lost_s`. The verdict bar now names the
 two failures apart, because they need different operator actions:
 
 ```
@@ -562,7 +662,11 @@ because that is the one that catches a frozen world.
 start; a white control strip around them is what the eye adapts to, and then the
 render you are judging looks underexposed. Palette: `DARK #1e1e1e`, `DARK_HI #2d2d2d`,
 `TEXT #e0e0e0`, `ACCENT #3fbf5f` (focus ring, same green as an on-target box),
-`ALERT #ff6b6b` (the drift banner).
+`ALERT #ff6b6b` (the drift banner). Three added by the redesign: `MUTED #8a8a8a`
+(secondary text — a unit, a hint), `LINE #3a3a3a` (card borders and unlit pills) and
+`WARN #e0a03f` ("this is the next thing to do", and "this number is not healthy but not
+dead"). Four colours is the whole vocabulary: green / amber / grey / red, used for lamps
+and stage badges alike, so the two mean the same thing in both places.
 
 Three separate mechanisms, because Tk has three:
 
@@ -579,10 +683,22 @@ Verified by screenshot, not by reading the code: the control strip was rendered 
 the real `apply_dark` under a throwaway harness and grabbed with `ffmpeg -f x11grab`.
 The first grab is what showed the invisible entries and the white checkbox.
 
+## Committed frames
+
+Two of the four are the redesign, and both were opened with the Read tool before anything
+in this file was written about them (`runners/ui_shot.py`, `--name "CARLA debug"`).
+
+| frame | run / config | what it shows |
+|---|---|---|
+| `ui-idle-step2.jpg` | spectator / warm / vlm / manual, 50 cars, no track | The guided idle state. `CARLA 20 Hz` and `ORIN ready` green; `COPTER spectator`, `TRACK none`, `LOOP open` grey; `+50/50 vehicles (50 total)` in the transient slot. Amber `NEXT step 2 -- arm the copter (or stay spectator and fly the camera by hand)`, badge 1 green, badge 2 amber, 3-5 grey. Card values read `50 spawned` / `spectator` / `ground --` / `deliver --` / `manual`. Verdict bar `20 Hz live` over `deliver -- \| ground -- \| carry -- \| catch-up -- \| lag 0 f \| feed 5 Hz \| disp 44 Hz` — every unrun stage `--`, not `0.00`. |
+| `ui-lost-step3.jpg` | copter / warm / oracle / manual, carry 512, 44.7 m nadir | A failing track read off the panel. `CARLA 29 Hz`, `ORIN carry 9.0 Hz`, `COPTER 45 m` green, **`TRACK lost 14 s` red**, `LOOP open` grey; verdict bar red with `LOST 14s -- no mask, drop and re-follow.  carry 9.0 Hz Orin, lag 0, lock 0/60 (0/73 all)` over `carry 111 ms (9.0 Hz) Orin \| catch-up 6.1 s`. DESIGNATE's own number reads `oracle GT box` (no VLM call to time); telemetry `armed mode 4  alt 44.7 m  gimbal -90/0` / `N 21.3 E 159.0 D -44.7`; the `NEXT` line is back to amber step 3 because the track is gone. Note *why* it is gone, visible in the view: the copter was reused from a previous run and is parked over rooftops with no car under the footprint — the `--alt` gotcha and finding 16's failure mode in one frame. |
+| `oracle-lock-45m.jpg` | copter / warm / oracle / auto, 40 cars | The flown view only (`smoke.png`, no panel chrome). The system working: green box tight on a white SUV, captioned `white SUV in the center`, `lock 60/60` (231/234 all). |
+| `vlm-g6-miss-45m.jpg` | copter / warm / **vlm** / auto | Flown view only. G6 in pixels: the grounder boxes a painted road marking beside the car, carry then holds that asphalt perfectly — `0/417`, `DRIFT 82 s`. |
+
 ## Follow trace
 
 Added after a manual session where the box drifted off a blue car onto scenery, then
-onto a white van, while the status bar read `lock 584/633` — 92%. Two separate lies:
+onto a white van, while the verdict bar read `lock 584/633` — 92%. Two separate lies:
 `match_actor` returns *any* vehicle whose projected centre lands in the box (so a van
 inside the box read as locked), and the counter was cumulative over the whole follow (so
 a few hundred bad frames hid behind the good ones that preceded them).
@@ -590,7 +706,7 @@ a few hundred bad frames hid behind the good ones that preceded them).
 - **Identity lock.** The target's actor id is adopted at catch-up (`lag<=1`), not at the
   seed — the seed box describes a frame seconds old, so asking at seed time names
   whatever has since driven into that rectangle. Green means *that* actor.
-- **Drift flag.** `DRIFT_S = 5.0` s continuously off-target turns the status bar red and
+- **Drift flag.** `DRIFT_S = 5.0` s continuously off-target turns the verdict bar red and
   writes `drift-<n>.png`.
 - **Rolling lock.** `lock <hits>/60` over the last 60 steps, cumulative in parens.
 - **Trace.** Every follow writes `<out>/trace-<seed_n>/trace.jsonl`: per step
@@ -668,4 +784,8 @@ standard. Specific traps:
   designate → deliver → AUTO path by calling the same functions the widgets call.
 - **Resize by dragging the frame.** The WM ignores `xdotool windowsize`, so the debounced
   respawn is confirmed only via maximise/restore.
+- **Layout fit at any other window size.** No assert catches a rail that overflows
+  (finding 13) — `pack()` has no error path for "does not fit", so the only check is
+  `ui_shot.py` plus looking. The two panel frames are a maximised 2560x1043 window scaled
+  0.55 to 1408x574; the rail column is ~915 px tall there and has ~60 px of slack.
 - **The carry bridge death** (`rc` now logged, seen once, not reproduced since).
