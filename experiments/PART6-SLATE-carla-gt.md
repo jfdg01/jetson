@@ -166,7 +166,7 @@ as un-attacked, and under closed-loop control a confidently-wrong box is what st
 
 **Blocked on ~6-10 h of extraction:** `follow()` (~160 lines) and `fly()` (~60) live inside Tk
 closures in `carla_debug_ui.py` and are driven by `root.after`. The control math
-(`center_delta`, `ease`, `chase_speed`, `floor_climb`, `boresight`) is already module-level and
+(`center_delta`, `ease`, `chase_speed`, `boresight`) is already module-level and
 importable headless — only the integration is trapped. **Do not build any unattended step on a
 code path that constructs a Tk root** (`--selftest` calls `tk.Tk()`; a detached job has no
 display). This is a dedicated session, not a nightly job.
