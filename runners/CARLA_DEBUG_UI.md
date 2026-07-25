@@ -1,54 +1,170 @@
-# CARLA manual-flight UI — tool + findings
+# CARLA live demo panel — tool + findings
 
-**Status: WORKING (2026-07-20T23:30Z).** Infrastructure for Part VI, not an experiment.
-No RQ, no gated result, no `experiments/` campaign — the numbers it can produce are
-manual-testing impressions, not measurements (see "What this cannot tell you").
+**Status: WORKING, all stages live (2026-07-25T14:24Z).** Infrastructure for Part VI,
+not an experiment. No RQ, no gated result — but every number it prints is measured on
+the deployed stack at run time, not replayed (see "What this cannot tell you").
 
-Goal: fly a camera through CARLA like a videogame, then hand the frame to the deployed
-grounding stack and watch it follow. Three things in one window:
+One window that runs the whole thesis stack with nothing faked: **CARLA 0.9.16 renders
+on the 3090, ArduCopter SITL is the physics, and BOTH models run on the Orin** —
+Qwen2-VL-2B Q8_0 grounding over `JetsonBackend` (ssh), SAM2 carry over the ssh-stdio
+bridge at `~/sam2-bench/carry_ssh_bridge.py`. No SAM2 on the 3090, ever: the 3090 runs
+only the simulator.
 
-1. **Fly** — `wasd`/`qe` to move, arrows to look. You are the drone.
-2. **Follow** — type a referring expression ("the red car"), hit `follow`. The frame
-   goes to the Jetson VLM, the box goes to the SAM2 carry, and the overlay shows what
-   the tracker believes. This is the Part V warm-start select driven by a human-flown
-   camera instead of replayed video.
-3. **Assist** — `t` or the checkbox. The model gets aim authority and pans the tracked
-   object to centre; the operator keeps position and can override the aim at any time.
+## The four switches
 
-## What exists
+Each one is a different demo, and they compose. Everything is live in every
+combination.
 
-| File | Role |
-|---|---|
-| `carla_debug_ui.py` | the UI. Auto-starts a headless CARLA if nothing answers on the RPC port. |
-| `carla_render.py` | the non-interactive pose-slaved renderer (P6.1). Shares the axis convention, not the code. |
+| switch | values | what it changes |
+|---|---|---|
+| **PILOT** | `spectator` \| `copter` | `spectator` flies a camera on a stick — perception in isolation, any view you like, no flight dynamics. `copter` arms an ArduCopter SITL and slaves the camera to the pose the autopilot reports (P6.1), so the pixels are a **consequence** of the control output. |
+| **ACQUIRE** | `warm` \| `cold` | `warm` maintains a track from the moment you designate and **delivers** it on command (P5.1 / P6.2-DELIVERY: maintain-and-deliver). `cold` does nothing until the command, then grounds under time pressure (E18 / R-34). The on-screen `deliver` timing is that comparison, measured live. |
+| **DESIGNATE** | `vlm` \| `oracle` | `vlm` runs the deployed grounder on a point crop around the click. `oracle` seeds the carry from the CARLA projected box and skips the VLM — which is the scope P6.2-DELIVERY's claim was measured in (G6: q8_0 is non-discriminative on a car at 45 m nadir). Switching between them separates "grounding failed" from "carry/control failed". |
+| **FOLLOW** | `manual` \| `assist` \| `auto` | `manual` = operator has sole authority. `assist` = the model aims (gimbal/look only, never position). `auto` = **closed loop**: the delivered box drives the copter through `CascadePID` → `SET_POSITION_TARGET_LOCAL_NED`, the same path `run_p62_flight.py` measured. `auto` needs `PILOT=copter` and says so if it does not have one. |
 
-Run it:
+## Run it
 
 ```bash
-.venv-ft/bin/python runners/carla_debug_ui.py          # starts CARLA if needed
-.venv-ft/bin/python runners/carla_debug_ui.py --carla /path/to/CarlaUE4.sh
+.venv-ft/bin/python runners/carla_debug_ui.py                       # spectator, starts CARLA if needed
+.venv-ft/bin/python runners/carla_debug_ui.py --pilot copter        # + SITL, arm, take off to --alt
+.venv-ft/bin/python runners/carla_debug_ui.py --clean-world         # destroy every leftover actor first
+.venv-ft/bin/python runners/carla_debug_ui.py --designate oracle --acquire cold
+.venv-ft/bin/python runners/carla_debug_ui.py --pilot copter --smoke 45 \
+    --out runs/carla-ui-spd --clean-world --auto-spawn 40           # unattended, writes smoke.png
 ```
 
-Controls: click either image to take the stick — the green border is the only "am I
-flying?" signal. `wasd` ground-plane move along heading, `qe` up/down, arrows tilt/pan,
-`pause` freezes the world, `follow`/`drop` start and stop tracking.
+| file | role |
+|---|---|
+| `carla_debug_ui.py` | the panel |
+| `carla_render.py` | the non-interactive pose-slaved renderer (P6.1). Shares the axis convention, not the code. |
+| `boot_sim.py` | `launch_sitl()` lives here; the panel calls it rather than re-spelling the P6.1 command |
+| `carla_trace.py` | reads a follow trace back (`trace.jsonl` → ground / identity / switches / drift / bloat) |
+| `carla_ui_proof/` | two committed frames, so an audit can look without a rerun |
 
-## Authority: MANUAL vs ASSIST
+Controls: click the view to take the stick — the green border is the only "am I flying?"
+signal. `wasd` move, `qe` up/down, arrows look (gimbal in copter mode), `space` pause,
+`t` cycles FOLLOW, `g` delivers, **Shift-click a car designates it**, `drop` stops.
 
-Who flies the camera is one flag — the `assist: centre on target` checkbox, or `t`.
+`--smoke N` is the unattended path: it finds the car nearest frame centre, designates it,
+delivers, engages AUTO, flies for N seconds, then writes `smoke.png` and prints the
+timings strip. Synthetic key injection is banned in this repo (`xdotool keydown` is a
+global XTEST event and has typed into the user's terminal), so `--smoke` calls the same
+functions the widgets call instead of faking input.
 
-- **MANUAL (default).** The operator has sole authority. The model grounds and tracks;
-  it draws a box and moves nothing.
-- **ASSIST.** The model steers too: it *aims* (`center_delta` pans the tracked box to
-  the middle of the frame) and it *closes* (CHASE, below). It flies the boresight, so it
-  does change altitude — bounded below by the floor escape.
+## The timings strip
 
-Operator input is live in both modes; in ASSIST an arrow key **outranks** aim, and a
-held `wasd` outranks CHASE, for as long as it is held (otherwise the two sum and the
-view crawls against the input). Assist is inert while paused and whenever there is no
-track.
+The line that makes this a demo rather than a viewer. Every field is read straight off
+the live `track` dict each tick, and a stage that has not run prints `--`, never `0.00`
+(`_f`, guarded by `tests/test_pilot_modes.py`).
 
-### CHASE: hold the target at a set on-screen size
+```
+deliver 0.00 s  |  ground 0 ms  |  carry 107 ms (9.3 Hz) Orin  |  catch-up 8.2 s  |  lag 0 f  |  feed 5 Hz  |  disp 36 Hz
+pilot copter   acquire warm   designate oracle   follow auto   |  ground 1024 Orin   carry 512 Orin   CARLA + SITL 3090
+hb 1234   alt  44.7 m   N    90.5  E    66.7   cmd vn   4.0  ve   0.3  vd   0.0 m/s   got  5.7 m/s   gimbal -90/0 deg
+lock 60/60 (231/234 all)
+```
+
+- **`deliver`** — command to box in hand. First, because it is the number the whole
+  warm-start argument is about. WARM is ~0.00 s by construction; COLD is the grounding.
+- **`ground`** — the on-device VLM point-crop call only. `0 ms` under `designate oracle`
+  because there is no call.
+- **`carry`** — ms per SAM2 step on the Orin, and the rate it implies.
+- **`catch-up`** — how long the tracker spent draining the backlog the grounding built.
+- **`lag`** — frames the tracker is behind live, now.
+- **`cmd` vs `got`** — commanded NED velocity against the copter's own reported ground
+  speed. Two different numbers is the point: `cmd 4.0 got 5.7` means the airframe is
+  doing what it can, not what it was told.
+- **`lock a/b (c/d all)`** — rolling on-target count over the last 60 steps, cumulative
+  in parens. **GT-derived** (`match_actor`), so it is a debug read, not a result.
+
+## Measured live (2026-07-25, all on one Town10HD_Opt, copter at 45 m nadir)
+
+Three runs, same tool, one switch changed at a time. Both frames were opened and looked
+at, per the repo's visual-verification rule; they are in `carla_ui_proof/`.
+
+| run | switches | `deliver` | `ground` | `carry` | on target | frame |
+|---|---|---|---|---|---|---|
+| `runs/carla-ui-spd` | copter / warm / **oracle** / auto | 0.00 s | 0 ms | 107 ms (9.3 Hz) | **231/234**, `lock 60/60` | `oracle-lock-45m.jpg` |
+| `runs/carla-ui-vlm` | copter / warm / **vlm** / auto | 0.00 s | **8500 ms** | 108 ms (9.3 Hz) | **0/417**, `DRIFT 82 s` | `vlm-g6-miss-45m.jpg` |
+| `runs/carla-ui-cold` | copter / **cold** / vlm / auto | **10.23 s** | ~8.5 s | — | — | — |
+
+**The ORACLE run is the system working.** 40 cars, clean world, 45 s of AUTO flight:
+green box tight on a white SUV labelled `white SUV in the center`, held 231 of 234 carry
+steps, copter flown from the origin out to N90.5 at 4.0 m/s commanded / 5.7 m/s achieved.
+
+**The VLM run is G6, reproduced live and in pixels.** Same altitude, same target
+(`vehicle.nissan.patrol_2021`, hit-tested, designation confirmed). The grounder returned
+a box sitting on the road's painted `BUS` marking a few pixels off the car, captioned
+`yellow SUV in the center` — the caption colour was sampled off a white/silver SUV in
+deep tree shadow. Carry then held that patch of asphalt perfectly: `0/417` on target,
+`DRIFT 82 s`, AUTO commanding 0.1 m/s because its target is not moving. **Nothing
+downstream failed.** This is why `designate oracle` exists and why P6.2-DELIVERY held
+designation constant in both arms.
+
+**The panel carries at `image_size` 512, not EXP-1's adopted 640.** A live tool needs the
+tracker to outrun the 5 Hz feed so the catch-up converges: EXP-1's sweep is 8.71 Hz at 512
+vs 5.76 at 640, and the panel measures 9.3 Hz. The cost is EXP-1's 512-vs-640 accuracy gap
+(median IoU 0.780 vs 0.811) and the small/distant-target tail that 1024 protects. Another
+reason no number here is a result.
+
+**WARM vs COLD is 0.00 s vs 10.23 s** on this pipeline. Note the honest gap: 10.23 s is
+**twice** the ~4.85 s the thesis cites for a cold acquire (E18/R-34). That figure was the
+terse whole-frame call; this is a point crop upscaled to 1024 plus PNG-over-ssh, and the
+difference is unmeasured here. Cite E18 for the acquire cost; cite this only as "cold is
+still an order of magnitude worse than warm on the live rig".
+
+## Copter pilot mode
+
+`--pilot copter` calls `boot_sim.launch_sitl()` if 5760 is dead, waits, connects
+pymavlink, arms, takes off, then slaves the camera to the NED the autopilot reports.
+
+- **The camera is hard nadir, north-up.** R-10: yaw never arrives from the autopilot, so
+  the renderer is position-slaved, not pose-slaved. Body-forward is therefore north and
+  body-right is east, which is what makes `pid_to_ned` in `run_p62_flight.py` the
+  identity `(vx, vy)` and what `tests/test_pilot_modes.py` asserts the key mapping
+  against. Flipping a sign here does not crash, it flies away from the target.
+- **A GUIDED velocity setpoint expires after ~3 s of silence.** Resent at `CMD_HZ`
+  (10 Hz) — twice the feed rate, a fiftieth of the render tick.
+- **AUTO gains are raised.** `CascadePID`'s default `kp_lat=0.02` holds a target only
+  under dense (20 Hz oracle) delivery; at the on-device carry rate the steady-state
+  offset `v/kp` walks a moving target off frame. `AUTO_KP_LAT=0.06`, `AUTO_MAX_V=8.0` are
+  what the P6.2 warm arm flew. P only — add D when it rings, not before. Untuned against
+  the ~5.7 m/s the airframe actually achieves; `cmd` vs `got` is the instrument for that.
+- **Gotcha: `--alt` does not re-trim an airborne copter.** `arm_and_takeoff` returns the
+  current altitude if the vehicle is already above 5 m, so a copter left flying by a
+  previous run keeps its old altitude and `--alt 25` silently does nothing. Restart SITL
+  or land it. Documented, not patched — reusing the aircraft is what makes a reload cheap.
+
+## Designation: VLM vs ORACLE
+
+`designate vlm` is the deployed path: the click gives a point, `rich_caption` builds a
+RefDrone-style expression from the clicked car's own pixels (colour) and CARLA type
+(object word) with position pinned to the constant `in the center`, and `roi_reanchor`
+grounds a point crop at `ground_res` on the Orin.
+
+`designate oracle` skips the VLM and seeds the carry from the CARLA projected box.
+**That is not cheating, and it is not a shortcut** — it is exactly the scope in which
+P6.2-DELIVERY's flagship number was measured, because at 45 m nadir the deployed q8_0
+cannot discriminate a car (G6). It isolates carry + control. `follow` by typed caption
+refuses under `oracle` (there is no box to seed from) and says so; the UI selftest
+asserts that refusal.
+
+## Authority: MANUAL / ASSIST / AUTO
+
+`t` cycles, or use the combobox.
+
+- **MANUAL (default).** Operator has sole authority. The model grounds and tracks; it
+  draws a box and moves nothing.
+- **ASSIST.** The model *aims* — `center_delta` pans the tracked box to frame centre —
+  and in spectator mode it also *closes* (CHASE, below). It never commands position on
+  the copter. Operator input is live in both modes; in ASSIST an arrow key **outranks**
+  aim and a held `wasd` outranks CHASE for as long as it is held, otherwise the two sum
+  and the view crawls against the input. Assist is inert while paused and with no track.
+- **AUTO.** Position control, copter only: box → `CascadePID` → NED velocity → MAVLink.
+  This is the P6.2 loop, and it is the reason the "deliberately not built" note that used
+  to live in this file is gone.
+
+### CHASE: hold the target at a set on-screen size (spectator)
 
 The only range signal available is the box itself — no depth sensor, no target pose. So
 CHASE regulates **apparent size**: `chase_speed(areas)` drives the box area to
@@ -162,10 +278,11 @@ scoring re-ground IoU and track-loss rate.
 
 ### Three consequences worth flagging
 
-**P6.1's 60 m working altitude is incompatible with grounding at this size.** At 60 m
-slant range a car is 36 px long edge / frac 0.0010 — below every knee measured, in
-OpenRef's Tiny bucket. Either CHASE descends to ~15–20 m, or grounding goes through an
-ROI crop. This bears on P6.2 directly.
+**A 45–60 m working altitude is incompatible with whole-target grounding at this size,
+and the panel now shows it.** At 60 m slant range a car is 36 px long edge / frac 0.0010 —
+below every knee measured, in OpenRef's Tiny bucket. The `runs/carla-ui-vlm` row above is
+that prediction landing at 45 m: `0/417`. The two live answers are a point crop
+(`designate vlm`, which still missed here) or holding designation constant (`oracle`).
 
 **An area setpoint couples standoff to target class.** Same 0.012 holds a truck at 33 m,
 a car at 17 m, a motorcycle at 11 m, a pedestrian at 6.3 m. The person-following
@@ -209,8 +326,7 @@ overshoot-proof in the same expression — a stalled tick spends the remainder e
 stops.
 
 Note the ceiling this leaves: aim is charged from a box measured on an already-delivered
-frame, so it always trails a moving target by roughly the carry's own latency. It is a
-debug aid, not the P6.2 controller.
+frame, so it always trails a moving target by roughly the carry's own latency.
 
 **Tried and reverted: snap-to-centre with a deadzone rectangle.** Closing 100% of the
 error per tick, with a centred quarter-frame box inside which the camera held still,
@@ -225,15 +341,11 @@ to <0.1 deg on a re-measured target — and `test_a_frozen_box_is_worth_one_corr
 holds the total rotation to the one measured angle across a simulated 60 s occlusion,
 which is the assert that fails if anyone reintroduces a per-tick law.
 
-Deliberately not built: position control (a follow-distance/standoff loop), which is
-the P6.2 closed-loop question and belongs in the flight rig, not in a debug panel. This
-is the aim half only.
-
 ## Design constraints (the non-obvious ones)
 
 **The sim free-runs at its own pace.** This is the whole point: a real camera does not
-wait for the model. The renderer is async and paced by wall time, so a 4.5 s VLM acquire
-costs 4.5 real seconds of vehicle motion and the delivery lag Parts IV and V exist to
+wait for the model. The renderer is async and paced by wall time, so an 8.5 s VLM acquire
+costs 8.5 real seconds of vehicle motion and the delivery lag Parts IV and V exist to
 measure still exists. Synchronous mode would make the client the clock master and quietly
 delete that lag. See `docs/decisions/part6-flight.md`.
 
@@ -247,17 +359,24 @@ from the sensor*. `world.debug.*` would put the box in the world the model is lo
 which corrupts the view under test. An earlier revision had `unproject()`/`draw_box_2d()`
 for exactly that; both are deleted, deliberately.
 
-**No ground truth in the box chain.** `track["box"]` has exactly two writers: the VLM
-(`generate` + `parse_bbox`) and `carry.step()`. There is no GT seed oracle. `match_actor()`
-reads `world.get_actors()`, but only to colour the box and count locks.
+**Ground truth enters in exactly two places, both labelled.** `track["box"]` is written
+by the VLM (`roi_reanchor` + `parse_bbox`), by `carry.step()`, and — only under
+`designate oracle`, which is a switch the operator sets and the strip prints — by the
+CARLA projected box. `match_actor()` reads `world.get_actors()`, but only to colour the
+box and count locks.
 
-> If a Part VI controller is added, it must key off `track["box"]` and never
-> `track["actor"]` — the moment control reads the actor, the loop is GT-driven and every
-> number from it is worthless.
+> A Part VI controller must key off `track["box"]` and never `track["actor"]` — the
+> moment control reads the actor, the loop is GT-driven and every number from it is
+> worthless. AUTO obeys this: `oracle` seeds the *first* box and nothing after it.
+
+**Tk owns the main thread; CARLA RPCs go through `bg()`.** One whole-world operation at a
+time, and `bg()` **refuses** rather than queues — a second spawn request while the first
+is mid-batch is a mistake, not something to serialise. `queue()` is the one exception, for
+startup ordering (see the actor findings below).
 
 **The starting grid is deterministic, the traffic is not.** `spawn_vehicles()` draws from a
 private `random.Random(SPAWN_SEED)` over blueprints sorted by id, so the same seed puts the
-same 50 models on the same 50 spawn points on every run — verified 3/3 identical plans
+same models on the same spawn points on every run — verified 3/3 identical plans
 (model + point + server-accepted flag) at n=50 on 0.9.16, 2026-07-20T21:05Z. What it does
 *not* buy is repeatable driving: the traffic manager's `set_random_device_seed()` cannot be
 used here. Calling it while vehicles are batch-registered times out `register_vehicle` after
@@ -266,16 +385,17 @@ set_actor_simulate_physics: Actor could not be found in the registry` — a core
 exception. Reproduced at both 20 and 50 cars; removing the seed call fixes it. Repeatable
 traffic needs synchronous mode, which this rig deliberately does not use (see above).
 
-Two conditions on the determinism: the world must be otherwise empty (an occupied spawn
+Three conditions on the determinism: the world must be otherwise empty (an occupied spawn
 point is rejected server-side, so re-spawning on top of an old fleet is a different fleet),
-and the count must be the same — the draw is sequential, so 30 cars is a prefix of 50, not a
-subset chosen the same way. Startup auto-spawns `--auto-spawn` (default 50) on a fresh
-server, which is the case that holds.
+the count must be the same (the draw is sequential, so 30 cars is a prefix of 50, not a
+subset chosen the same way), **and the camera must be in the same place** — the points are
+now sorted by distance to the camera before the draw is consumed.
 
-**Hand cars back to nobody before destroying them.** `clear()` calls `set_autopilot(False)`
-on every vehicle and lets a tick land before `DestroyActor`. Without it the traffic manager
-keeps stepping an actor that is already gone and the resulting server-side error aborts the
-UI process. Same crash as above, reached from the other end.
+**Hand cars back to nobody before destroying them.** `clear()` and `clean_world()` call
+`set_autopilot(False)` on every vehicle and let a tick land before `DestroyActor`. Without
+it the traffic manager keeps stepping an actor that is already gone and the resulting
+server-side error aborts the UI process. Same crash as the seed call, reached from the
+other end.
 
 ## Findings (what we learned)
 
@@ -286,8 +406,7 @@ UI process. Same crash as above, reached from the other end.
 2. **Render at display size or it looks broken.** Upscaling a 960x540 sensor into a
    maximised window reads as a "stuck resolution". The camera is respawned at the
    display size on a debounced `<Configure>` (400 ms, snapped to 32 px steps — each
-   respawn is a destroy + spawn round-trip). Capped at 1080p30: a 3090 does not have
-   more than that spare with SAM2 co-resident.
+   respawn is a destroy + spawn round-trip). Capped at 1080p30.
 3. **`sensor_tick` is a request, not a promise.** A GPU-contended sensor quietly ships
    fewer frames. The status line shows *measured* delivery rate, which is the only way
    to notice.
@@ -346,8 +465,8 @@ UI process. Same crash as above, reached from the other end.
     helper in its own session can outlive the group by tens of seconds. It holds no port
     and blocks nothing, so the test asserts on the **port**, not on `pgrep` being empty.
 11. **`drop` cleared the box, then the box came back and stayed.** Setting the stop
-    event does not stop the follow thread where it is: it is typically inside a ~200 ms
-    `carry.step()` (or a ~4.5 s VLM grounding), and it published its result *after*
+    event does not stop the follow thread where it is: it is typically inside a ~100 ms
+    `carry.step()` (or an ~8.5 s VLM grounding), and it published its result *after*
     `do_drop` had cleared `track["box"]` — leaving a frozen square on screen with no
     thread left to move it. Fixed with one `track_lock`: the thread re-checks its own
     stop event under the lock immediately before publishing, and `do_drop`/`do_follow`
@@ -367,42 +486,77 @@ UI process. Same crash as above, reached from the other end.
     follow. Upstream SAM2 without its compiled extension; it disables one mask
     post-processing step and is explicitly documented as safe to ignore.
 
-## Follow trace (2026-07-20T22:15Z)
+## Actors leak, and a leaked world lies (2026-07-25T13:50Z)
 
-Added after a manual session where the box drifted off a blue car onto scenery, then
-onto a white van, while the status bar read `lock 584/633` — 92%. Two separate lies:
+Caught by the user looking at a frame and asking why there were so many mangled cars.
+There were: **190 vehicles, 20 walkers and 3 orphaned cameras** in Town10 after four
+`--smoke` runs at 30 cars each. `clear()` only ran on the hot-reload path, so a normal
+exit left the whole fleet behind, and the next run re-spawned onto the same seeded spawn
+points — which the server accepts as *overlapping* actors, so cars ended up interpenetrated
+and physics-locked in piles.
 
-1. `match_actor` returns *any* vehicle whose projected centre lands in the box, so a
-   van inside the box read as locked. The identity of the followed car was never
-   checked.
-2. The lock counter was cumulative over the whole follow, so a few hundred bad frames
-   hid behind the good ones that preceded them.
+This is not cosmetic. **Every scene characterisation taken before the fix is void**: the
+"traffic" was stacked duplicates, and a `lock 54/60` measured against it came from a
+degenerate near-static pileup, not from a tracked moving car.
 
-Both are fixed and instrumented:
+Three fixes:
 
-- **Identity lock.** The target's actor id is adopted at catch-up (`lag<=1`), not at
-  the seed — the seed box describes a frame ~4.5 s old, so asking at seed time names
-  whatever has since driven into that rectangle. Green now means *that* actor.
-- **Drift flag.** `DRIFT_S = 5.0` s continuously off-target (wrong actor or no actor)
-  turns the status bar red, prints `DRIFT Ns off target`, and writes `drift-<n>.png`.
-- **Rolling lock.** Status shows `lock <hits>/60` over the last 60 steps, cumulative
-  in parens.
-- **Trace.** Every follow writes `<out>/trace-<seed_n>/trace.jsonl`: per step
-  `n, box, area_ratio, aspect, actor, actor_type, on_target, lag, lock60`, plus
-  `ground / identity / switch / drift / lost / live / end` events. PNGs are written at
-  the seed, at every actor-identity change, and at each drift flag.
-- **Reader.** `.venv-ft/bin/python runners/carla_trace.py <trace.jsonl>` prints the
-  ground, identity, switches, drift episodes and box bloat with the PNG paths. No
-  argument runs its self-check.
+- `unpause_on_exit` now stops and destroys the camera sensor **unconditionally** (not
+  only on reload) and calls `clear()` on a real exit. The sensor part also fixed
+  `Fatal Python error: PyGILState_Release ... runtime state: finalizing` — the sensor
+  callback was firing into an interpreter that was already tearing down.
+- `clean_world()` + `--clean-world` + a "clear all" button destroy **every** vehicle,
+  walker, controller and camera in the world, not just the ones this process spawned.
+  Nothing else legitimately holds actors on this rig, so scorched earth is the right
+  default for a demo tool.
+- The selftest exits through `unpause_on_exit` instead of `root.destroy()`, which is what
+  made it stop leaking a sensor per run.
 
-`area_ratio` is the one for the first failure mode (mask bloat off the car onto a
-billboard); `drift` + `switch` are for the second (track ends up on another vehicle).
+**Then the opposite failure.** A cleaned world put 30 cars over all of Town10HD and left
+**none** under a ~50 m nadir footprint: `lock 4/7`, 150 consecutive `lost` steps. Two
+fixes: spawn points are sorted by distance to the camera before the draw, and in copter
+mode the spawn is deferred until after take-off (`queue()`), so "near the camera" means
+near where the camera actually ended up rather than near the origin.
 
-Not done: nothing re-grounds. A drifted track stays drifted until the operator hits
-drop and follow — the flag says so rather than fixing it. ASSIST also keeps steering
-on a flagged box.
+## A lost mask is a MISS, not a pause (2026-07-25T14:05Z)
 
-## Dark theme (2026-07-20T23:10Z)
+The rolling lock counter and `hits`/`steps` were only updated in the branch where the
+carry returned a box. So a run printed **`lock 60/60` after 87 consecutive lost steps** —
+the deque simply stopped moving and froze at its last good value. Fixed: the `b is None`
+branch appends `False`, bumps `steps`, and stamps `lost_s`. The status line now names the
+two failures apart, because they need different operator actions:
+
+```
+LOST 12s -- no mask, drop and re-follow.
+DRIFT 82s off target -- drop and re-follow.
+```
+
+`LOST` is the tracker returning nothing; `DRIFT` is the tracker confidently returning the
+wrong thing. A frozen counter made both invisible.
+
+## Delivery latency must not include a server boot (2026-07-25T13:20Z)
+
+The first COLD delivery read **18.84 s** because it paid for the on-Orin `llama-server`
+starting up. That is a lie in the wrong direction — it flatters the warm arm by inflating
+cold. The backend is now a single locked, lazily-built `JetsonBackend` (`get_backend()`)
+prewarmed by a startup thread, and the same COLD delivery re-measured **10.23 s**.
+
+Also instrumented: when the carry bridge dies, the exit status is now captured and
+printed (`carry bridge died (rc=-9)`). `-9` is the Orin OOM killer, which leaves no
+traceback and is exactly why `ui_bridge.err` looked clean. Seen once before the
+instrumentation existed; not reproduced since, so it stays open.
+
+## Walker AI is dead on Town10HD_Opt — and it is the simulator, not the tool
+
+The selftest's "walkers move" assert failed with `only 0 walkers moved`. Reproduced
+**outside** the UI with CARLA's own canonical sequence (spawn walker, spawn
+`controller.ai.walker`, `start()`, `go_to_location(get_random_location_from_navigation())`):
+5/5 walkers moved 0.00 m in 5 s, while `get_random_location_from_navigation()` returned
+valid points and `Carla/Maps/Town10HD_Opt.bin` exists on disk. Converted to a printed
+NOTE with the reproduction in the comment; the **car** motion assert stays a hard gate,
+because that is the one that catches a frozen world.
+
+## Dark theme
 
 `apply_dark(root)`, one call after `tk.Tk()`. The video panes were `#1e1e1e` from the
 start; a white control strip around them is what the eye adapts to, and then the
@@ -425,22 +579,52 @@ Verified by screenshot, not by reading the code: the control strip was rendered 
 the real `apply_dark` under a throwaway harness and grabbed with `ffmpeg -f x11grab`.
 The first grab is what showed the invisible entries and the white checkbox.
 
-## Hot reload (2026-07-20T22:40Z)
+## Follow trace
+
+Added after a manual session where the box drifted off a blue car onto scenery, then
+onto a white van, while the status bar read `lock 584/633` — 92%. Two separate lies:
+`match_actor` returns *any* vehicle whose projected centre lands in the box (so a van
+inside the box read as locked), and the counter was cumulative over the whole follow (so
+a few hundred bad frames hid behind the good ones that preceded them).
+
+- **Identity lock.** The target's actor id is adopted at catch-up (`lag<=1`), not at the
+  seed — the seed box describes a frame seconds old, so asking at seed time names
+  whatever has since driven into that rectangle. Green means *that* actor.
+- **Drift flag.** `DRIFT_S = 5.0` s continuously off-target turns the status bar red and
+  writes `drift-<n>.png`.
+- **Rolling lock.** `lock <hits>/60` over the last 60 steps, cumulative in parens.
+- **Trace.** Every follow writes `<out>/trace-<seed_n>/trace.jsonl`: per step
+  `n, box, area_ratio, aspect, actor, actor_type, on_target, lag, lock60`, plus
+  `ground / identity / switch / drift / lost / live / bridge_died / end` events. PNGs at
+  the seed, at every identity change, and at each drift flag.
+- **Reader.** `.venv-ft/bin/python runners/carla_trace.py <trace.jsonl>`. No argument
+  runs its self-check.
+
+`area_ratio` is for mask bloat (off the car onto a billboard); `drift` + `switch` are for
+the track ending up on another vehicle.
+
+Not done: nothing re-grounds. A drifted track stays drifted until the operator drops and
+re-follows — the flag says so rather than fixing it, and AUTO keeps steering on a flagged
+box. That is deliberate: an automatic re-ground would hide the failure the panel exists
+to show.
+
+## Hot reload
 
 `r` + Enter in the launching terminal re-execs the script and leaves CARLA running.
 `q` + Enter quits normally (kills the server if this process started it). Booting
 CARLA costs 10-30 s plus one round-trip per spawned car, and none of that is what
 you are editing.
 
-Four things it has to get right, all of them in `reload_argv` / `unpause_on_exit`:
+Five things it has to get right, all in `reload_argv` / `unpause_on_exit`:
 
 - **`--auto-spawn 0` is forced.** The old cars live in the server, not in the UI, so
   respawning would stack another batch on every reload.
-- **The camera sensor is destroyed first.** It is an actor, and the server survives —
-  without this each reload leaks a sensor that keeps rendering.
+- **The camera sensor is destroyed first.** It is an actor, and the server survives.
+- **`clear()` is skipped** on this path only — keeping the fleet is the whole point of a
+  reload. Every other exit clears (see the leak finding).
 - **The server's pgid rides along** in `--adopt-pgid`. `execv` keeps our PID so the
   process group is still ours to signal, but the `Popen` object is gone; without the
-  handoff the last exit orphans the server. `stop_carla` takes a bare pgid for this.
+  handoff the last exit orphans the server.
 - **A paused world is unpaused before the exec**, same as handing it to any other
   client: sync mode with nothing ticking hangs the next connection.
 
@@ -448,22 +632,40 @@ Line-buffered, not raw single-key — cbreak would mean restoring termios on eve
 path including the crashes, to save one keystroke. `tests/test_reload_argv.py` covers
 the argv rewrite headless.
 
+## Tests
+
+| what | where | needs |
+|---|---|---|
+| key→NED signs, `_f` missing-vs-zero, delivered-vs-maintained overlay colours | `tests/test_pilot_modes.py` | nothing (carla egg importable) |
+| aim law: pan-not-snap, no overshoot, one correction per frozen box | `tests/test_center_delta.py` | nothing |
+| reload argv rewrite | `tests/test_reload_argv.py` | nothing |
+| mode switching, AUTO refusing without a copter, `oracle`+caption refusing, spawn determinism, cars actually driving | `carla_debug_ui.py --selftest` | a live CARLA |
+| launch/close/relaunch, Ctrl+C exit | `tests/test_carla_lifecycle.py` | `CARLA_LIFECYCLE_TEST=1` + CARLA |
+
 ## What this cannot tell you
 
-Manual flying produces impressions, not results. Two specific traps:
+Manual flying produces impressions, not results. The numbers in "Measured live" are
+single runs of a live pipeline — they demonstrate that the stack works end to end at the
+altitude and resolution stated, and they are **not** measurements at the repo's n≥25
+standard. Specific traps:
 
 - **The green/red box colour is GT-derived** (`match_actor`). "The box was green" and
   "the box sat on the car" are the same statement, not independent confirmation.
-- **The only measured number on this rig is a lock rate of 5/23 (22%)**, taken at
-  960x540 on a ~20x22 px distant car. Better-looking manual results at 1080p on near
-  targets are plausible on the merits and are *not* in tension with that figure — they
-  are simply unmeasured. Turning them into a result means logging
-  `(frame_n, box, actor_id, lock)` over a scripted flight at n>=25.
+- **`designate oracle` puts GT in the seed.** Everything downstream of it is honest, and
+  nothing upstream of it is being tested. Read an `oracle` run as a carry+control claim
+  only — which is exactly the scope caveat on P6.2-DELIVERY.
+- **n=1 per cell.** 231/234 and 0/417 are one run each. The direction is stark enough to
+  demonstrate; the rate is not a result. Turning any of this into one means the harness in
+  `runners/run_p62_matrix.py`, not this panel.
+- **The live COLD number is not E18's.** 10.23 s here vs ~4.85 s there, different
+  grounding path, unexplained gap. Do not cite the panel's cold latency.
 
 ## Unverified
 
 - **Key handling.** Synthetic key injection is banned in this repo: `xdotool keydown` is
   a global XTEST event and goes to whatever window has focus — it once typed into the
-  user's terminal. Verification needs a human at the keyboard.
+  user's terminal. Verification needs a human at the keyboard. `--smoke` covers the
+  designate → deliver → AUTO path by calling the same functions the widgets call.
 - **Resize by dragging the frame.** The WM ignores `xdotool windowsize`, so the debounced
   respawn is confirmed only via maximise/restore.
+- **The carry bridge death** (`rc` now logged, seen once, not reproduced since).

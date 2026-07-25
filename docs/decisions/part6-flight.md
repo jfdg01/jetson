@@ -438,3 +438,50 @@ carry/delivery, and the NL framing stands on its own. *Consistency:* every disco
 PT never lost a SWAP cell, so a larger-n follow-up could still surface a small PT edge — noted, not
 claimed. All carry on the Orin (`machine=jetson`); the 3090 ran only the source frames' storage, no
 tracker.
+
+### Live demo panel — four orthogonal switches, and ORACLE designation as one of them (unnumbered infrastructure, 2026-07-25T14:24Z)
+
+**`runners/carla_debug_ui.py` becomes the live demo of the whole deployed stack, structured as four
+independent switches — PILOT `spectator|copter`, ACQUIRE `warm|cold`, DESIGNATE `vlm|oracle`, FOLLOW
+`manual|assist|auto` — instead of a single scripted showcase.** Why: the thesis has four separate
+claims (P6.1 pose-slaving, P5.1/P6.2-DELIVERY maintain-and-deliver, G6 grounding discrimination,
+P6.2 control coupling) and a demo that fixes all four at once can only show the happy path. One
+switch per claim means a viewer can *turn off* the thing being defended and watch it fail, which is
+the only demonstration that carries information. Everything stays live in every combination — CARLA
+on the 3090, SITL physics, both models on the Orin — so there is no replay path to drift from the
+deployed system. *What was given up:* a shorter, always-impressive canned demo, and the option of a
+recorded-run mode (rejected: a recorded number in a demo is indistinguishable from a live one on
+screen, and this repo has already been burned by exactly that class of confusion).
+
+**`DESIGNATE=oracle` deliberately puts the CARLA projected box into the seed, and the panel prints
+that it did.** Why: at 45 m nadir the deployed q8_0 cannot discriminate a car (G6), so with `vlm`
+designation *every* run fails at stage one and the carry+control half — the part P6.2-DELIVERY
+actually measured — is unobservable. `oracle` reproduces the flagship's scope exactly. Measured the
+same afternoon on one Town10HD_Opt at 45 m: `oracle` holds 231/234 carry steps with the copter under
+its own AUTO control, `vlm` lands the box on a painted road marking and holds 0/417 (`DRIFT 82 s`)
+with nothing downstream failing. *What was given up:* the appearance of an end-to-end autonomous
+demo. Mitigations, because a GT seed in a demo is a real integrity hazard: the switch is named in the
+on-screen mode strip every tick, `oracle` seeds only the *first* box (AUTO reads `track["box"]`,
+never `track["actor"]`), and `runners/CARLA_DEBUG_UI.md` states in two places that an `oracle` run is
+a carry+control claim only.
+
+**Actor lifecycle: clear on every exit except hot reload, and offer scorched earth.** Why: leaked
+actors do not merely accumulate, they *fabricate a scene*. Four unattended runs left 190 vehicles /
+20 walkers / 3 orphaned cameras in Town10, re-spawned onto the same seeded points, interpenetrated
+and physics-locked — and a lock rate measured against that pileup reads as a tracking result while
+actually being a measurement of stationary duplicate cars. Every scene characterisation taken before
+the fix is void. Reload keeps the fleet (that is the point of a reload); every other exit clears, and
+`--clean-world` / "clear all" destroy every traffic actor and camera in the world, not just this
+process's. *Also decided:* spawn points are sorted by distance to the camera and, in copter mode, the
+spawn waits until after take-off — a correctly-cleaned world with cars spread over all of Town10 put
+zero targets under the nadir footprint, which is the opposite failure and just as misleading.
+
+**The panel's carry runs at `image_size` 512, not EXP-1's adopted 640.** Why: EXP-1 chose 640 as the
+accuracy/throughput elbow for *measurement*; a live tool additionally needs the tracker to outrun the
+5 Hz feed so the catch-up after a grounding call converges, and EXP-1's own sweep puts 512 at 8.71 Hz
+against 640's 5.76 Hz (the panel measured 9.3 Hz / 107 ms at 512 on the Orin, in-tool). *What was
+given up:* EXP-1's 512-vs-640 accuracy gap — median IoU 0.780 vs 0.811, i.e. 96% of 1024's accuracy
+instead of 99.4% — plus the small/distant-target tail that the size-gated 1024 fallback protects.
+Acceptable in a demo, not acceptable in a harness.
+No measured number should be taken from this panel at 512; `runners/run_p62_matrix.py` remains the
+place where a rate becomes a result.

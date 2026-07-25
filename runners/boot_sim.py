@@ -43,6 +43,19 @@ def launch(cmd, log, cwd, env=None):
                      stdin=subprocess.DEVNULL, start_new_session=True, env=env)
 
 
+def launch_sitl():
+    """Detached ArduCopter SITL on 5760 -- the exact P6.1 as-run command.
+
+    Factored out of main() so a live tool (carla_debug_ui's copter pilot mode) can
+    bring the physics up itself instead of re-spelling the command and drifting
+    from it.
+    """
+    env = dict(os.environ, PATH=f"{HOME}/.venv-mavproxy/bin:{os.environ['PATH']}")
+    launch([str(ARDU_DIR / "Tools/autotest/sim_vehicle.py"), "-v", "ArduCopter",
+            "--no-rebuild", "--no-mavproxy", "-l", "40.4168,-3.7038,0,0"],
+           "sitl.log", ARDU_DIR, env)
+
+
 def wait(port, name, timeout):
     t0 = time.time()
     while time.time() - t0 < timeout:
@@ -78,10 +91,7 @@ def main():
 
     if want_sitl and not up(5760):
         print("launching SITL (ArduCopter, --no-mavproxy)...")
-        env = dict(os.environ, PATH=f"{HOME}/.venv-mavproxy/bin:{os.environ['PATH']}")
-        launch([str(ARDU_DIR / "Tools/autotest/sim_vehicle.py"), "-v", "ArduCopter",
-                "--no-rebuild", "--no-mavproxy", "-l", "40.4168,-3.7038,0,0"],
-               "sitl.log", ARDU_DIR, env)
+        launch_sitl()
     elif want_sitl:
         print("SITL already up on 5760")
 
