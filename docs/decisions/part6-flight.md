@@ -831,7 +831,8 @@ the reasoning, rather than quietly proceeding or quietly dropping it.
 *Why:* the gate and the substance agree, which is the part that makes this easy. EXP-4
 retired lever (a'), so MODE 2's crop-ground half is a crop of the 960 display frame — that is
 `roi_reanchor`, already live at `carla_debug_ui.py:1901`. EXP-6 made the crop-carry half a
-bounded null against the deployed carry (deflated p=0.0918 on 26 held-out clips) everywhere
+bounded null against the deployed carry (+0.0085 median IoU and zero PASS discordants on 26
+held-out clips) everywhere
 except the size-gated path. A composed TREATMENT built from "EXP-4's and EXP-6's winners" is
 therefore the deployed CONTROL plus a null, and 25 live CARLA seeds would be spent measuring
 the system against itself. The pre-registered estimate priced P(reaching EXP-7) at ~0.25 for
@@ -852,9 +853,10 @@ stays plain@640, unchanged. **Implemented 2026-07-26T18:40Z** on its own branch 
 not on the experiment branch — see the shipped-shape entry below.
 
 *Why:* this is what EXP-6 actually licenses. Against plain@1024 the crop is statistically
-indistinguishable (d_IoU -0.002, d_PASS -1 of 38, deflated p=0.566) at **2.7x** the on-device
+indistinguishable on its pre-registered bounds (d_IoU -0.002 against 0.03, d_PASS -1 of 38
+against 1 clip) at **2.7x** the on-device
 rate — so on the escalation path it is strictly cheaper for the same accuracy. Against
-plain@640 it is a null on the held-out 26 (p=0.0918), so promoting it to the default would be
+plain@640 it is a null on the held-out 26 (zero PASS discordants), so promoting it to the default would be
 shipping on a non-significant result and on 12 clips that chose the arm. Splitting the
 decision along the stratum where the evidence differs keeps the deployed default resting on
 its own measurement.
@@ -952,3 +954,28 @@ re-centre is only evaluated on frames where the carry returned a box, so a long 
 masks leaves the window where it was; that is deliberate (a window re-centred on nothing is
 worse than a stale one) but it means a target that leaves the window during an occlusion is not
 recovered by the crop path.
+
+### EXP-1/EXP-2/EXP-6 are demoted to engineering measurements, not registered as claims (R-44, 2026-07-26T18:55Z)
+
+*Chosen:* the three resolution/carry-mode campaigns stop publishing inferential numbers in the
+ledgers and gain an explicit "engineering measurement, not a registered claim" label. The
+p-values are **moved, not deleted** — they stay in the campaign READMEs, which are already the
+source of truth while the ledgers are rollups. `thesis/claims.json` gains no entries, so Part
+VI's Holm family stays at m=2. The alternative on the table was registering all three.
+
+*Why:* each campaign was run to *choose an operating point* — a carry resolution, a grounding
+feed resolution, a carry mode — and each stopped once the elbow was located; none was
+pre-registered against a hypothesis. Two of them could not have supported a claim at their n
+whichever way the numbers fell: EXP-2's design needs b+c>=6 discordant pairs deflated to 13
+clips and produced 4 and 2, and EXP-6's primary stratum is at PASS ceiling in both arms with
+zero discordant pairs. Registering them would have grown the family from m=2 to m=4 and
+tightened Holm on P6.2-DELIVERY — a real cost on the flagship, paid to admit numbers that
+decide nothing. Leaving them as published p-values outside the registry was the one option
+ruled out: invisible to `run_stats.py`, to the family accounting and to every integrity test,
+which is the R-39 recurrence hazard.
+
+*What was given up:* the rhetorical convenience of "p<0.05" on the crop-mode parity gate, and
+strict I1 provenance in the rollups — a reader now has to open the campaign README to see the
+test that was run. Also given up, deliberately: consistency inside the crop-mode campaign.
+EXP-4 has the same defect and is left as-is (R-54) because the scope asked for was these three,
+so until R-54 lands `experiments/2026-07-26-crop-mode/` has one experiment labelled and one not.

@@ -224,7 +224,9 @@ the throughput it costs? **Verdict: the elbow is 512–640.** IoU plateaus above
 256→512, then only +0.036 to 1024); on-device Hz is flat-high (~9–10 Hz, overhead-bound) below 640
 then halves per step. **640 delivers 99.4% of 1024's IoU (0.811 vs 0.816) at 2.5× throughput (5.76 vs
 2.34 Hz)**; 512 = 96% at 3.7×; below 512 speed saturates so it is pure IoU loss. Paired 768-vs-1024
-holds (delta −0.0086, CI95 [−0.0135,−0.0017], McNemar b=0 c=3 p=0.25, n.s.). **Tail caveat:** 9/38
+holds (delta −0.0086, CI95 [−0.0135,−0.0017]; 3 of 38 clips lose PASS at 768, none gain).
+**Engineering measurement, not a registered claim (R-44)** — an operating-point choice, not in
+`thesis/claims.json`, no Holm entry; the paired test is in the README, not here. **Tail caveat:** 9/38
 small/distant clips collapse at low res and recover only by 896–1024, so `held_frac` keeps climbing
 to 1024 even after median IoU plateaus. Deploy: 640 default, 1024 size-gated fallback for small
 targets. The "ground high / track low" framing collapses on 720p UAV123 (VLM trained ≤1024, seed
@@ -235,9 +237,10 @@ res-independent inside SAM2) — this maps the track-res knob only. Machine `jet
 
 **RQ-EXP2a (delivered PASS):** on the 26 P5.18 cells (13 clips), does PT (operator point → crop
 → VLM grounds crop → SAM2 carry) deliver more PASSes than NL (whole-frame referring expression)?
-**Verdict: MISS — not separable at n=26.** WSEL NL 22/26 vs PT 24/26 (McNemar b=1 c=3, p=0.625);
-SWAP NL 24/26 vs PT 26/26 (b=0 c=2, p=0.5); both deflate to 13 clips, `min_discordant`=6 so
-b+c=4 and 2 are below the reachable floor. Every discordant leans PT (7 PT-only vs 1 NL-only) and
+**Verdict: MISS — not separable at n=26.** WSEL NL 22/26 vs PT 24/26 (b=1 c=3); SWAP NL 24/26 vs
+PT 26/26 (b=0 c=2); both deflate to 13 clips, `min_discordant`=6 so b+c=4 and 2 are below the
+reachable floor — the MISS is the design's, and no p-value is quoted because none could have been
+informative (**engineering measurement, not a registered claim, R-44**). Every discordant leans PT (7 PT-only vs 1 NL-only) and
 PT never loses a SWAP cell, but underpowered. This is the R-38 prediction: at the lenient 0.25-IoU
 delivery threshold the SAM2 carry rescues NL's rougher boxes, so the pointer buys no extra PASS.
 **RQ-EXP2b (grounding elbow):** sweeping the VLM feed resolution under a strict IoU≥0.5 grounding
@@ -360,12 +363,14 @@ fallback) within 0.03 IoU and 1 PASS clip at >= 2x its on-device rate?
 **Verdict: PARTIAL — NO on the accuracy half, YES on the throughput-matched parity half.**
 38 UAV123 clips x 3 arms, SAM2 on the Orin, Wilcoxon on the held-out 26 with the 12 EXP-5
 pilot clips excluded from the primary. Against plain@640 the crop is directionally right but
-not significant: +0.0085 median difference, deflated **p=0.0918**, 16 wins / 7 losses / 3 ties,
-delivered-PASS 24/24 in both arms so McNemar has no discordant pair to test. That stratum is
+does not clear its gate: +0.0085 median difference, 16 wins / 7 losses / 3 ties, delivered-PASS
+24/24 in both arms so there is not one discordant pair. That stratum is
 at ceiling — both arms sit at ~0.83 — which is precisely what the pre-registration predicted
 and why it warned the primary would likely come back a tie. Against plain@1024 the crop is
-**statistically indistinguishable** (d_IoU -0.002, d_PASS -1 clip, deflated p=0.566) at
-**2.7x** the rate (6.31 vs 2.34 Hz), so the parity gate passes on all three bounds.
+**indistinguishable on the pre-registered bounds** (d_IoU -0.002 against a 0.03 bound, d_PASS -1
+clip against a 1-clip bound) at **2.7x** the rate (6.31 vs 2.34 Hz), so the parity gate passes on
+all three. **Engineering measurement, not a registered claim (R-44)** — the signed-rank p-values
+for both contrasts are in the campaign README, deliberately not in this ledger.
 
 The crop's value is therefore real but *scoped*: it is a cheaper way to buy the 1024
 fallback's accuracy, not a replacement for the default carry. Its whole effect lives in the

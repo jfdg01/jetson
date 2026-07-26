@@ -42,7 +42,7 @@ CARRY_IMAGE_SIZE = 640    # EXP-1's measured elbow: 99.4% of 1024's median IoU a
 CARRY_FALLBACK_IMAGE_SIZE = 1024   # operator escalation for small/distant targets (EXP-1, EXP-6)
 # EXP-6's adopted escalation: a fixed native window around the box, still carried at
 # CARRY_IMAGE_SIZE. Indistinguishable from CARRY_FALLBACK_IMAGE_SIZE on accuracy
-# (d_IoU -0.002, deflated p=0.566) at 2.7x the on-device rate, so it is the cheaper way
+# (d_IoU -0.002, d_PASS -1 of 38) at 2.7x the on-device rate, so it is the cheaper way
 # to buy the same thing. Fallback only -- against the plain 640 default it is a null.
 CARRY_CROP_SIDE = 512
 CARRY_CROP_DEAD_BAND = 0.5   # re-centre only when the box centre leaves the central 50%

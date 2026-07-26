@@ -2136,7 +2136,7 @@ def main():
     tk.Label(w3_res, text="Orin", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(6, 0))
     # EXP-6's escalation for a small/distant target, and the reason the carry dropdown
     # should stay at 640: a fixed CARRY_CROP_SIDE native window carried at 640 buys the
-    # same accuracy as raising the dropdown to 1024 (d_IoU -0.002, deflated p=0.566) at
+    # same accuracy as raising the dropdown to 1024 (d_IoU -0.002, d_PASS -1 of 38) at
     # 2.7x the on-device rate. A checkbox, not a third resolution value, because it is a
     # different lever -- magnification, not pixels fed.
     carry_crop_on = tk.BooleanVar(value=False)

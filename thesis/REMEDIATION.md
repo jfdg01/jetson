@@ -2190,13 +2190,14 @@ experiments continue. Everything below is therefore split by whether it can be w
 | R-41 | `README.md`: stale survivor count, and no Part VI number at all | P1 | **DONE** 2026-07-25 |
 | R-42 | Borrador citation hygiene (cap08 pseudo-cites, I8 line numbers, cap01 count) | P1 | **DONE** 2026-07-25 |
 | R-43 | EXP-3's only data was gitignored; its status header claimed "running" | P1 | **DONE** 2026-07-25 |
-| R-44 | EXP-1/EXP-2 publish p-values outside `claims.json` | P1 | **AUTHOR** |
+| R-44 | EXP-1/EXP-2 publish p-values outside `claims.json` | P1 | **DONE** 2026-07-26 — author picked *demote*: EXP-1/EXP-2/EXP-6 are labelled engineering measurements and the p-values moved to their campaign READMEs. **EXP-4 carries the same defect and was left as-is** (see R-54) |
 | R-45 | EXP-1/2/3 break the frozen experiment-ID scheme | P2 | **AUTHOR** |
 | R-46 | The "deployed" carry resolution is stated three different ways in code | P1 | **DONE** — `grounding.contract` owns `CARRY_IMAGE_SIZE`/`CARRY_FALLBACK_IMAGE_SIZE`/`CARRY_HZ`; `CARRY_HZ` re-derived at 640 (5.76) |
 | R-47 | EXP-3's acquire data points the opposite way to EXP-2's crop elbow | **P1** | **RESOLVED** — no contradiction; `OPT`/`FULL` are one crop at 1x vs 4x upscale, and EXP-3 never ran EXP-2's `ROI_RES=512` |
 | R-48 | The only ratchet is closed, so HANDOFF's finish criterion is vacuous | P2 | OPEN |
 | R-49 | Branch clutter: 28 merged `experiment/*`, 3 unmerged carrying unique content | P3 | **AUTHOR** |
 | R-50 | `tests/test_carla_lifecycle.py` never runs in `make test` | P3 | OPEN |
+| R-54 | EXP-4 publishes p-values outside `claims.json`, exactly as R-44's EXP-1/EXP-2 did | P1 | OPEN — R-44's *demote* pick applies verbatim, but the scope asked for was EXP-1/EXP-2/EXP-6 |
 | R-53 | The live panel cold-started a SAM2 bridge per designation (P6.7 measured the fix; panel now resident) | **P1** | DONE |
 
 ## Status board — W series (the writing programme; BLOCKED on the supervisor)
@@ -2438,7 +2439,7 @@ reason is wrong, and it has been corrected in place.
   slate below ("finish or kill EXP-3") loses its stated motivation, since the disagreement
   it was meant to resolve does not exist. Kill is the cheaper honest answer.
 
-## R-44 — EXP-1/EXP-2 publish p-values outside the registry — **AUTHOR**
+## R-44 — EXP-1/EXP-2 publish p-values outside the registry — **DONE** (demoted) P1
 
 Both campaigns have full ledger rows and committed proof, and both publish inferential
 numbers: EXP-1 "McNemar b=0 c=3 p=0.25", EXP-2 "b=1 c=3 p=0.625" and "b=0 c=2 p=0.5".
@@ -2458,6 +2459,45 @@ Two defensible options, and it is the author's pick:
   *choose a resolution*, not to test a hypothesis, so this is not a dodge.
 
 The one thing that is not acceptable is leaving published p-values outside the registry.
+
+### DONE 2026-07-26T18:55Z — author picked *demote*
+
+The second option, applied to **EXP-1, EXP-2 and EXP-6**. Each ledger row now carries an
+explicit "engineering measurement, not a registered claim (R-44)" label naming what it is
+*not* — not in `claims.json`, no Holm entry, no inferential result — and the inferential
+numbers are **moved, not deleted**: they stay in the campaign READMEs, which `CLAUDE.md`
+already makes the source of truth while the ledgers are rollups. Nothing measured was lost;
+what was removed is a p-value appearing in a rollup where it read as a thesis-level test.
+
+| ledger | what changed |
+|---|---|
+| `docs/results/part6-flight.md` | EXP-1: banner + `McNemar b=0 c=3 p=0.25 (n.s.)` becomes "3 of 38 clips lose PASS at 768 and none gain". EXP-2: banner + the `p (deflated 13 clips)` column dropped, `MISS` restated as a *design* verdict (b+c below the reachable floor 6). EXP-6: banner + the `p raw`/`p deflated` columns dropped, the CONTROL-2 row restated on effect size and PASS |
+| `docs/questions/part6-flight.md` | the same three verdicts, same substitutions; EXP-6's "statistically indistinguishable" becomes "indistinguishable on its pre-registered bounds" (0.03 IoU, 1 PASS clip), which is what the gate actually said |
+| `docs/decisions/part6-flight.md` | the two EXP-6 entries and the EXP-7 non-run entry stop quoting `deflated p=0.0918` / `p=0.566` and cite the effect size and discordant counts instead |
+| `grounding/contract.py`, `runners/carla_debug_ui.py` | the `CARRY_CROP_SIDE` comments cited `deflated p=0.566`; now `d_IoU -0.002, d_PASS -1 of 38` |
+
+*Why demote rather than register.* All three were run to pick an operating point — a carry
+resolution, a grounding feed resolution, a carry mode — and each stopped as soon as the elbow
+was located. None was pre-registered against a hypothesis in `claims.json`; EXP-2's design
+could not reach alpha=0.05 at its n by construction (`min_discordant`=6 against b+c of 4 and
+2), and EXP-6's primary stratum is at PASS ceiling in both arms with zero discordant pairs.
+Registering results that were never powered would have grown Part VI's Holm family from m=2 to
+m=4 and tightened the correction on P6.2-DELIVERY — paying a real cost on the flagship to
+admit three numbers that cannot support a claim either way. That is the R-39 recurrence hazard
+pointing the wrong way.
+
+*Not done, deliberately.* **EXP-4 has the identical defect** — `p=0.0078` and `p=0.039` in
+`docs/results/part6-flight.md`, plus `p=0.039`/`p=0.0029`/`p=0.0078` in its `docs/decisions`
+entry, none of it in `claims.json` — and the same pick applies verbatim. The scope asked for was
+EXP-1/EXP-2/EXP-6, so widening it silently would have been the wrong call; filed as **R-54**.
+EXP-4 is the *same campaign* as EXP-6 (`experiments/2026-07-26-crop-mode/`), so until R-54 lands
+that campaign's experiments are labelled inconsistently in the ledgers. EXP-5 needs nothing: it
+publishes no p-value in any ledger and already says "not in `thesis/claims.json` and no Holm
+correction — exploratory by pre-registration".
+
+*No mechanical guard added.* The natural test — "a `p=` in a Part ledger must sit near a
+registered claim id or an engineering label" — would fire on every Part I-V row too, so it
+cannot be added without first classifying all of them. R-54 is the cheaper next step.
 
 ## R-45 — EXP-1/2/3 break the frozen experiment-ID scheme — **AUTHOR**
 

@@ -471,6 +471,11 @@ Proof: `proof/flight_follow_overlay.png` (GT + Jetson-carried box on the charger
 
 ### EXP-1 — carry-res ELBOW (SAM2 track image_size 256→1024, on the Orin) (2026-07-24)
 
+**Engineering measurement, not a registered claim (R-44).** This campaign was run to *choose an
+operating point*, not to test a thesis hypothesis: it is not in `thesis/claims.json`, carries no
+Holm entry, and nothing below is an inferential result. The paired tests it ran are descriptive
+companions to the effect sizes and live in the campaign README, not in this row.
+
 Seed box held fixed (GT), only SAM2 internal `image_size` swept across 7 points. 38 UAV123 clips,
 contiguous-GT window (24 steps @ stride 11). Carry runs ON the Orin via the ssh-stdio bridge; 3090
 NOT used. Machine `jetson`, 15 W + `jetson_clocks`. `run_exp1.py`.
@@ -489,7 +494,8 @@ NOT used. Machine `jetson`, 15 W + `jetson_clocks`. `run_exp1.py`.
 up); Hz is flat-high (~9–10 Hz, overhead-bound) below 640 then falls off a cliff (each step ~halves
 the rate). **640 = 99.4% of 1024's IoU at 2.5× throughput** (5.76 vs 2.34 Hz); 512 = 96% at 3.7×.
 Below 512 the speed saturates so it is pure IoU loss. Paired 768-vs-1024 (original contrast) holds:
-delta −0.0086, CI95 [−0.0135,−0.0017], McNemar b=0 c=3 p=0.25 (n.s.). **Tail is resolution-gated:**
+delta −0.0086, CI95 [−0.0135,−0.0017]; on PASS, 3 of 38 clips lose at 768 and none gain. **Tail is
+resolution-gated:**
 the bulk of clips is flat across all sizes but 9 small/distant clips (truck2/3, uav3, bike3, person21,
 car11/13…) collapse at low res and recover only by 896–1024 — so `held_frac` keeps rising to 1024
 even as median IoU plateaus. Deploy: carry at **640** default, **1024 size-gated fallback** for small
@@ -498,15 +504,23 @@ targets. Proof: `proof/elbow_iou_hz.png`, `proof/per_clip_iou.png`, `proof/hz_on
 
 ### EXP-2 — point-crop vs NL referring-expression select (26 P5.18 cells / 13 clips, on the Orin) (2026-07-24)
 
+**Engineering measurement, not a registered claim (R-44).** Same standing as EXP-1: run to choose a
+grounding operating point, not in `thesis/claims.json`, no Holm entry, no inferential number quoted
+here. Its paired tests are in the campaign README.
+
 Operator point → crop → VLM grounds crop → SAM2 carry (PT) vs whole-frame NL referring expression
 (NL). SAM2 carry on the Jetson; 3090 not used (`machine=jetson`).
 
 **Primary — delivered PASS at deployed res** (NL max_side=1024, PT crop=512, carry 1024):
 
-| Leg | NL | PT | McNemar (NL-only b / PT-only c) | p (deflated 13 clips) | verdict |
-|---|--:|--:|:--|--:|:--|
-| WSEL | 22/26 | 24/26 | b=1 c=3 | 0.625 | MISS (b+c=4 < floor 6) |
-| SWAP | 24/26 | 26/26 | b=0 c=2 | 0.5 | MISS (b+c=2 < floor 6) |
+| Leg | NL | PT | discordant cells (NL-only b / PT-only c) | verdict |
+|---|--:|--:|:--|:--|
+| WSEL | 22/26 | 24/26 | b=1 c=3 | MISS (b+c=4 < the reachable floor 6) |
+| SWAP | 24/26 | 26/26 | b=0 c=2 | MISS (b+c=2 < the reachable floor 6) |
+
+The MISS is a *design* verdict, not a test outcome: deflated to 13 clips the design needs b+c>=6
+discordant pairs before any two-sided exact test can reach alpha=0.05, and neither leg produced
+them. No p-value is quoted because none of them could have been informative.
 
 Not separable at n=26, but every discordant leans PT (7 PT-only vs 1 NL-only; PT never loses a SWAP
 cell). Consistent with R-38: at the lenient 0.25-IoU delivery threshold the SAM2 carry rescues NL's
@@ -729,6 +743,10 @@ Detail: `experiments/2026-07-26-crop-mode/README.md` §7.
 
 ### EXP-6 — carry-crop at gate scale (MODE 2, lever b confirmed)
 
+**Engineering measurement, not a registered claim (R-44).** Same standing as EXP-1/EXP-2: a
+shipping gate on a carry mode, not in `thesis/claims.json`, no Holm entry. The signed-rank
+p-values behind every row below are in the campaign README.
+
 Run 2026-07-26T23:40Z. 38 UAV123 clips x 3 arms = 114 carry runs, SAM2 on the Orin over
 `carry_ssh_bridge.py` (15 W + `jetson_clocks`), CARLA not involved. Same frozen EXP-1 staging
 as EXP-5 (stride 11, 24 steps, ~8.8 s per clip). Metric = per-clip median IoU vs GT; primary
@@ -741,24 +759,27 @@ UAV123 base sequence; delivered-PASS (median IoU >= 0.25) + exact McNemar second
 | **TREATMENT** | fixed 512 window | 640 | **0.815** | **35/38** | **7/8** | **6.31** |
 | CONTROL-2 (fallback) | plain frame | 1024 | 0.817 | 36/38 | 8/8 | 2.34 |
 
-TREATMENT vs CONTROL by stratum (median paired difference, deflated p):
+TREATMENT vs CONTROL by stratum (median paired difference; PASS discordants as b / c):
 
-| stratum | n / n_eff | TRT | CTL | PASS | diff | p raw | **p deflated** | McNemar |
-|---|---|---|---|---|---|---|---|---|
-| **held-out 26 (PRIMARY)** | 26 / 24 | 0.831 | 0.833 | 24 / 24 | +0.0085 | 0.1208 | **0.0918** | b=0 c=0 |
-| pilot 12 (contaminated) | 12 / 12 | 0.774 | 0.681 | 11 / 8 | +0.0735 | 0.01367 | 0.01367 | b=3 c=0 |
-| all 38 (descriptive) | 38 / 36 | 0.815 | 0.811 | 35 / 32 | +0.0190 | 0.003965 | 0.002947 | b=3 c=0 |
-| tail 8 | 8 / 8 | 0.703 | 0.223 | 7 / 4 | +0.0940 | 0.01562 | 0.01562 | b=3 c=0 |
-| non-tail 30 | 30 / 28 | 0.853 | 0.834 | 28 / 28 | +0.0060 | 0.1128 | 0.0875 | b=0 c=0 |
+| stratum | n / n_eff | TRT | CTL | PASS | diff | PASS discordants |
+|---|---|---|---|---|---|---|
+| **held-out 26 (PRIMARY)** | 26 / 24 | 0.831 | 0.833 | 24 / 24 | +0.0085 | b=0 c=0 |
+| pilot 12 (contaminated) | 12 / 12 | 0.774 | 0.681 | 11 / 8 | +0.0735 | b=3 c=0 |
+| all 38 (descriptive) | 38 / 36 | 0.815 | 0.811 | 35 / 32 | +0.0190 | b=3 c=0 |
+| tail 8 | 8 / 8 | 0.703 | 0.223 | 7 / 4 | +0.0940 | b=3 c=0 |
+| non-tail 30 | 30 / 28 | 0.853 | 0.834 | 28 / 28 | +0.0060 | b=0 c=0 |
 
-TREATMENT vs CONTROL-2: held-out 26 diff +0.0050 deflated p=0.566; all 38 +0.0015 p=0.6745;
-tail-8 +0.0080 p=0.945 — indistinguishable everywhere, at 2.7x the rate.
+TREATMENT vs CONTROL-2: held-out 26 diff +0.0050; all 38 +0.0015; tail-8 +0.0080 — under 0.01
+median IoU in every stratum, and one clip apart on PASS (35/38 vs 36/38), at 2.7x the rate. The
+signed-rank
+p-values for each row are in the campaign README (R-44: they stay out of the ledger because this
+campaign is an engineering gate, not a registered claim).
 
 **Verdict: PARTIAL PASS — throughput-matched parity with the 1024 fallback, tail-scoped win,
 not a blanket carry replacement.** Exactly the pre-registered most-likely outcome. The
 shipping gate passes (d_IoU -0.002, d_PASS -1 clip, rate 2.7x, all inside the pre-registered
-bounds). The accuracy gate **fails**: +0.0085 at deflated p=0.0918 on the held-out 26 is a
-bounded null, and the stratum is at ceiling under both arms (PASS 24/24 each, both ~0.83), so
+bounds). The accuracy gate **fails**: +0.0085 median IoU on the held-out 26 with zero PASS
+discordants is a bounded null, and the stratum is at ceiling under both arms (PASS 24/24 each, both ~0.83), so
 there was nothing there for a crop to add. The effect lives in the resolution-gated tail
 (0.703 vs 0.223, PASS 7/4) — descriptive, n=8, not a powered claim.
 
