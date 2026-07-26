@@ -67,7 +67,11 @@ def _decode(jpg):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--image-size", type=int, default=1024)   # deployed default; EXP-1 sweeps 768
+    # Cites grounding.contract.CARRY_IMAGE_SIZE; cannot import it -- this file is copied
+    # to ~/sam2-bench on the Orin, outside the repo. Was 1024 until R-46 (2026-07-26);
+    # EXP-1 moved the deployed carry to the 640 elbow. The panel passes --image-size
+    # explicitly, so this default only bites a manual invocation.
+    ap.add_argument("--image-size", type=int, default=640)
     args = ap.parse_args()
     inp, out = sys.stdin.buffer, sys.stdout.buffer
     t0 = time.time()

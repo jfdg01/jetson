@@ -893,3 +893,32 @@ EXP-3 at n>=25. The question EXP-3 was actually asking — how far the upscale o
 pays before latency eats it — is answered well enough for deployment by the latency alone
 (median 9063 ms at 1024 vs 1017 ms at 256, 8.9x), and 1024 stays one dropdown away for an
 operator who wants to pay it. Also given up: any right to cite EXP-3 as "crop hurts on CARLA".
+
+### `grounding.contract` owns the deployed carry resolution and its rate (R-46, 2026-07-26T17:05Z)
+
+*Chosen:* `CARRY_IMAGE_SIZE = 640`, `CARRY_FALLBACK_IMAGE_SIZE = 1024` and
+`CARRY_HZ = 5.76` live in `grounding/contract.py`. `runners/carla_debug_ui.py` and
+`runners/p62_producers.py` import them; the two files that run on the Orin outside the
+repo (`carry_ssh_bridge.py`, `jetson_carry_service.py`) cite them in a comment and match
+the value, and the bridge's default moves 1024 to 640. `CARRY_HZ` is re-derived at 640
+from EXP-1 (5.76 Hz, Orin 15 W + jetson_clocks); the retired 2.69 is preserved as
+`p62_producers.P62_ASRUN_CARRY_HZ`.
+
+*Why:* four files each claimed to state the deployed carry resolution and gave three
+answers, so any one of them read alone was misleading. The coupling was the live hazard,
+not the untidiness: `CARRY_HZ = 2.69` is a *measured* constant at 1024, so moving the
+default to 640 without re-deriving it rate-capped the replay carry against a resolution
+nobody deploys — the producer would have modelled an on-board cadence 2.5x slower than the
+real one. `contract.py` is the host because it already exists for exactly this failure
+(Part I's prompt drifted across five copies), it is stdlib-only so the device service can
+read it without torch, and every consumer already imports it. Note the 1024 rate itself is
+double-measured — R-16 says 2.69 Hz, EXP-1 says 2.34 Hz on the same box — which is why the
+two numbers now cited together (5.76 and 2.34) come from one campaign; mixing them would
+make the 2.5x ratio meaningless.
+
+*What was given up:* reproducing the published P6.2 matrix now needs `carry_hz=` passed
+explicitly instead of inheriting the module default. That is the honest trade — the default
+should describe the deployment, and the as-run cap is a property of that run, so it is
+recorded next to it rather than left as the global. Also given up: keeping frozen
+experiment scripts literal-free. They keep their own numbers on purpose — they record what
+was measured, not what is deployed.

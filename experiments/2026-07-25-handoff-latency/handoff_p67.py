@@ -42,12 +42,19 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 BANK = REPO / "experiments" / "2026-07-21-carla-gt-bank" / "runs" / "bank"
+sys.path.insert(0, str(REPO))
+from grounding.contract import CARRY_IMAGE_SIZE  # noqa: E402
 
 # The panel's constants, verbatim -- this harness is only honest if it reproduces them.
 # runners/carla_debug_ui.py: CAM_HZ, CATCHUP_JUMP, ORIN_CARRY_SIZE.
 CAM_HZ = 5.0
 CATCHUP_JUMP = 12
-CARRY_SIZE = 512
+# Reads the owner (R-46) instead of copying a literal, since "verbatim" above is the whole
+# point of this block. **The published P6.7 numbers were measured at 512**, which is what
+# the panel said at the time; a re-run today measures 640. The start-up terms (4.95 s of
+# the 6.15 s) are resolution-independent, so the seam conclusion does not move -- but the
+# per-step terms (`warmup_init`, `drain`) will not reproduce the published values.
+CARRY_SIZE = CARRY_IMAGE_SIZE
 BRIDGE_CMD = "cd ~/sam2-bench && ./.venv/bin/python -u carry_ssh_bridge.py --image-size {size}"
 # Bank clips are dt=0.05 (20 Hz); the 5 Hz feed takes every 4th frame.
 CLIP_HZ = 20.0

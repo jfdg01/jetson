@@ -2192,7 +2192,7 @@ experiments continue. Everything below is therefore split by whether it can be w
 | R-43 | EXP-3's only data was gitignored; its status header claimed "running" | P1 | **DONE** 2026-07-25 |
 | R-44 | EXP-1/EXP-2 publish p-values outside `claims.json` | P1 | **AUTHOR** |
 | R-45 | EXP-1/2/3 break the frozen experiment-ID scheme | P2 | **AUTHOR** |
-| R-46 | The "deployed" carry resolution is stated three different ways in code | P1 | OPEN |
+| R-46 | The "deployed" carry resolution is stated three different ways in code | P1 | **DONE** — `grounding.contract` owns `CARRY_IMAGE_SIZE`/`CARRY_FALLBACK_IMAGE_SIZE`/`CARRY_HZ`; `CARRY_HZ` re-derived at 640 (5.76) |
 | R-47 | EXP-3's acquire data points the opposite way to EXP-2's crop elbow | **P1** | **RESOLVED** — no contradiction; `OPT`/`FULL` are one crop at 1x vs 4x upscale, and EXP-3 never ran EXP-2's `ROI_RES=512` |
 | R-48 | The only ratchet is closed, so HANDOFF's finish criterion is vacuous | P2 | OPEN |
 | R-49 | Branch clutter: 28 merged `experiment/*`, 3 unmerged carrying unique content | P3 | **AUTHOR** |
@@ -2467,7 +2467,7 @@ The one thing that is not acceptable is leaving published p-values outside the r
 (and fix the ledger rows, READMEs and proof captions) or record an explicit amendment in
 `DECISIONS.md`. Renaming is cheap now and gets more expensive with every citation.
 
-## R-46 — The "deployed" carry resolution is stated three ways — OPEN P1
+## R-46 — The "deployed" carry resolution is stated three ways — DONE P1
 
 EXP-1's decision reads "Adopt SAM2 track-res 640 as the default carry resolution — the
 measured elbow — keeping 1024 as a size-gated fallback". The code does not agree with
@@ -2489,6 +2489,37 @@ configuration.
 
 **Done-criterion:** one place defines the deployed resolution, every other site reads it
 or cites it, and `CARRY_HZ` is re-derived at whatever that resolution is.
+
+### DONE 2026-07-26T17:20Z
+
+`grounding/contract.py` owns `CARRY_IMAGE_SIZE = 640`, `CARRY_FALLBACK_IMAGE_SIZE = 1024`
+and `CARRY_HZ = 5.76` (EXP-1, Orin 15 W + jetson_clocks). It is the host because it exists
+for exactly this failure mode and is stdlib-only, so the on-device service can read it
+without torch.
+
+| site | now |
+|---|---|
+| `runners/carla_debug_ui.py` | imports — `ORIN_CARRY_SIZE = CARRY_IMAGE_SIZE` |
+| `runners/p62_producers.py` | imports `CARRY_HZ`; the retired 2.69 kept as `P62_ASRUN_CARRY_HZ` |
+| `experiments/2026-07-25-handoff-latency/handoff_p67.py` | imports — `CARRY_SIZE = CARRY_IMAGE_SIZE` (was a 512 literal) |
+| `experiments/2026-07-24-p62-showcase/carry_ssh_bridge.py` | cites; default 1024 to 640 (runs on the Orin, cannot import) |
+| `experiments/2026-07-01-temporal-acquire-carry/jetson_carry_service.py` | cites; already 640 |
+| `README.md` (es) | rewritten: 174 ms/paso at the deployed 640, 1024 named as the manual fallback |
+| `experiments/2026-07-25-maintain-cost/README.md` | arm-C row no longer claims 512 is "what the panel actually runs" |
+
+Two provenance notes that came out of this and matter more than the tidiness:
+
+- **The coupling was live.** `CARRY_HZ` is a *measured* constant, so pairing R-16's 2.69
+  (at 1024) with a 640 default rate-capped the replay carry at 2.5x slower than the
+  hardware it was modelling. Re-derived at 640, from the same campaign as the 1024 figure
+  it is compared against.
+- **1024 is double-measured** — R-16 2.69 Hz, EXP-1 2.34 Hz, same box. Not reconciled here;
+  both are cited where they appear, and the pair quoted together (5.76 / 2.34) is EXP-1's.
+
+Two reproduction hazards, recorded rather than papered over: P6.2's published matrix ran
+at 2.69, so reproducing it needs `carry_hz=P62_ASRUN_CARRY_HZ` passed explicitly; and
+P6.7's published per-step terms were measured at 512, so a re-run today measures 640 (its
+start-up terms, 4.95 s of the 6.15 s, are resolution-independent and do not move).
 
 ## R-48 — The finish criterion is vacuous — OPEN P2
 
@@ -2644,7 +2675,8 @@ resolution (EXP-1 owns that knob), but that means the seam's per-step terms (`wa
 `drain`) are quoted at 512, not at the adopted 640. The start-up terms — 4.95 s of the
 6.15 s — are resolution-independent, so the conclusion does not move; the sub-second WARM
 figure would rise slightly at 640. Whoever closes R-46 should fix one number in one place
-and make P6.7's harness read it.
+and make P6.7's harness read it. **Done 2026-07-26:** `handoff_p67.CARRY_SIZE` now reads
+`grounding.contract.CARRY_IMAGE_SIZE`; the published numbers stay 512 and the file says so.
 
 ---
 

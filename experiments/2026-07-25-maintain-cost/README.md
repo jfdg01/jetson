@@ -57,7 +57,7 @@ is pre-registered (G1) so the run can come back negative.
 | `A0` idle-bare | nothing; `llama-server` **stopped** | the floor |
 | `A1` idle-deployed | `llama-server` resident and idle, no requests | the *real* deployed floor — grounding has to be loaded to be ready. Found resident at 4.0 GB RSS while writing this |
 | `B` carry-640 | SAM2 carry stepping frames, `image_size=640` | the EXP-1 adopted default (5.76 Hz) |
-| `C` carry-512 | same, `image_size=512` | what `runners/carla_debug_ui.py` actually runs (8.71 Hz) |
+| `C` carry-512 | same, `image_size=512` | one rung *below* the deployed elbow (8.71 Hz), so the table can price what dropping under 640 buys in watts — EXP-1 already priced what it costs in IoU (96% of 1024's). **Corrected 2026-07-26 (R-46):** this row used to read "what `carla_debug_ui.py` actually runs", which stopped being true when the panel's carry dropdown was clamped to a 640 default; the panel runs arm B |
 | `D` ground | repeated deployed q8_0 grounds via `JetsonBackend` | energy per cold acquire, for the per-box comparison |
 
 Order is randomised inside each repeat so a monotone thermal soak cannot be read as an

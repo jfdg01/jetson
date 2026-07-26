@@ -25,22 +25,34 @@ Swappable backends (D-part6 SAM2-device decision)
   q8_0 via `JetsonBackend`+`vlm_acquire` (ALWAYS on-device: quantization moves the box).
 `carry_factory(frame_rgb, box) -> Carry` with `Carry.step(frame_rgb) -> box|None`
   -- real matrix = `StreamCarry` on the 3090 rate-capped to the Jetson's measured
-  2.69 Hz (E1 parity 1.000 makes the boxes device-identical; capping to CARRY_HZ
-  models the on-board cadence with zero SSH-transport artifact). Showcase swaps in a
-  Jetson-service carry. The producer never assumes which; that is the point.
+  rate (E1 parity 1.000 makes the boxes device-identical; capping to CARRY_HZ models
+  the on-board cadence with zero SSH-transport artifact). The published P6.2 matrix
+  ran at `P62_ASRUN_CARRY_HZ` (2.69, image_size 1024); the default is now the
+  deployed 640 rate. Showcase swaps in a Jetson-service carry. The producer never
+  assumes which; that is the point.
 
-ponytail: the carry is rate-capped, not run every tick -- a real 2.69 Hz device can't
-do more, and running it at 20 Hz would fake a cadence the deployment can't deliver.
+ponytail: the carry is rate-capped, not run every tick -- a real device can't do more,
+and running it at 20 Hz would fake a cadence the deployment can't deliver.
 """
 from __future__ import annotations
 
+import sys
 import threading
 import time
+from pathlib import Path
 from typing import Callable, Optional
 
 import cv2
 
-CARRY_HZ = 2.69          # R-16 on-device SAM2 solo rate @ image_size 1024 (6.15 RETIRED)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from grounding.contract import CARRY_HZ  # noqa: E402  -- 5.76 Hz @ the deployed 640 (R-46)
+
+# What the published P6.2 matrix actually ran at. The rate cap is a *parameter*
+# (`carry_hz=`), and the default now follows the deployed resolution, so reproducing
+# P6.2's numbers means passing this explicitly rather than inheriting the default.
+# It is R-16's 1024 rate; EXP-1 later measured 2.34 Hz at the same resolution on the
+# same box, so treat 2.69 as the as-run cap, not as today's best estimate of 1024.
+P62_ASRUN_CARRY_HZ = 2.69
 
 
 def _rgb(bgr):

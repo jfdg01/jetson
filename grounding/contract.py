@@ -31,6 +31,21 @@ COORD_SCALE    = 100      # normalized coordinate range [0, COORD_SCALE]
 SEED           = 42
 MAX_NEW_TOKENS = 64       # response cap for grounding eval calls
 
+# ── deployed carry (SAM2) ───────────────────────────────────────────────────────
+# The carry is a different model from the one this module contracts, but it drifted for
+# the same reason the prompt did in Part I: four files each stated "the deployed carry
+# resolution" and gave three different answers (R-46). It lives here because this module
+# is the one place every consumer already imports and is stdlib-only, so the on-device
+# service can read it without pulling torch. Frozen as-run experiment scripts keep their
+# own literals -- they record what was measured, not what is deployed.
+CARRY_IMAGE_SIZE = 640    # EXP-1's measured elbow: 99.4% of 1024's median IoU at 2.5x the rate
+CARRY_FALLBACK_IMAGE_SIZE = 1024   # operator escalation for small/distant targets (EXP-1, EXP-6)
+# Re-derived at CARRY_IMAGE_SIZE for R-46. The retired 2.69 was R-16's rate at 1024, so
+# pairing it with a 640 default rate-capped the carry against a resolution nobody runs.
+# Both numbers below are the same campaign (EXP-1, Orin 15W + jetson_clocks), so the 2.5x
+# ratio between them is meaningful; mixing campaigns would not be.
+CARRY_HZ = 5.76           # EXP-1 on-device SAM2 solo rate @ CARRY_IMAGE_SIZE (2.34 @ 1024)
+
 # The v2 spine, selected by the numbers in Phase 0c (RefCOCO base-vs-base parity:
 # Qwen2-VL-2B 15% IoU@0.25 / center_std 162 healthy vs SmolVLM-500M 0% / 61 collapsed,
 # and an ~8× smaller HF→GGUF deployment-fidelity gap). Qwen2-VL's native dynamic

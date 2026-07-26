@@ -26,6 +26,8 @@ from stream_carry import MODEL, StreamCarry
 
 def main() -> None:
     ap = argparse.ArgumentParser()
+    # 640 = grounding.contract.CARRY_IMAGE_SIZE (cited, not imported: this file runs on
+    # the Orin outside the repo). Predates R-46 by accident, agrees with it since.
     ap.add_argument("--image-size", type=int, default=640)
     ap.add_argument("--port", type=int, default=18081)
     ap.add_argument("--trt-encoder", default=None,

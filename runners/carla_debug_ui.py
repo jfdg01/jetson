@@ -61,7 +61,7 @@ import cv2
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from grounding.contract import COORD_SCALE, parse_bbox
+from grounding.contract import CARRY_IMAGE_SIZE, COORD_SCALE, parse_bbox
 
 # What the operator flies IS the drone camera: the frame on screen and the frame
 # the VLM grounds come from this one sensor, so they cannot disagree. FOV used to
@@ -203,8 +203,9 @@ ORIN_GROUND_RES = 512
 # the on-device throughput (5.76 vs 2.34 Hz). Below 640 the Hz curve saturates (~9-10 Hz
 # at 256/384/512) so the accuracy it costs buys no speed -- the sub-640 arms are dropped
 # from the dropdown. 640-1024 only; raise it for the small/distant tail, where held_frac
-# keeps climbing all the way to 1024 (0.859 -> 0.921).
-ORIN_CARRY_SIZE = 640
+# keeps climbing all the way to 1024 (0.859 -> 0.921). The value itself is owned by
+# `grounding.contract` (R-46) -- this panel is a consumer, not a second source of truth.
+ORIN_CARRY_SIZE = CARRY_IMAGE_SIZE
 _EXP3 = {}
 
 # --- copter pilot mode: the P6.1/P6.2 rig, live -----------------------------
