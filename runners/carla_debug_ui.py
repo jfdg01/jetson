@@ -64,7 +64,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from grounding.contract import (CARRY_CROP_DEAD_BAND, CARRY_CROP_SIDE,
                                 CARRY_IMAGE_SIZE, COORD_SCALE, P66_CARRY_W,
                                 P66_IDLE_W, parse_bbox)
-from grounding.roi import fixed_window, outside_dead_band
+from grounding.roi import fixed_window, outside_dead_band, point_window
 from runners.orin_telemetry import OrinTelemetry
 
 # What the operator flies IS the drone camera: the frame on screen and the frame
@@ -1472,6 +1472,10 @@ def main():
              # a box on the wrong object). Both have to be visible or the panel reports
              # a healthy lock rate while nothing is being tracked.
              "lost_s": None,
+             # gt_box = the CARLA projected box of the SEED target, in feed px,
+             # drawn soft-blue purely as a visual reference: it is what the VLM
+             # box and the carried box should be sitting on. Never fed to anything.
+             "gt_box": None,
              # label = the caption the overlay draws (rich caption in click mode); the
              # *_ms/hz fields are the live per-stage timings the status strip reads at
              # 60 Hz. The carry bridge is NOT here: it outlives any single track, see
@@ -1754,10 +1758,17 @@ def main():
                         if now - veh_at > 2.0:          # cheap refresh for spawns
                             vehicles = veh_list(world)
                             veh_at = now
-                        cur_actor = match_actor(cam["sensor"].get_transform(),
-                                                box, vehicles=vehicles,
-                                                snap=world.get_snapshot())
+                        cam_tf, snap = cam["sensor"].get_transform(), world.get_snapshot()
+                        cur_actor = match_actor(cam_tf, box, vehicles=vehicles,
+                                                snap=snap)
                         cur_aid = cur_actor.id if cur_actor is not None else None
+                        # refresh the soft-blue GT of the seed target -- free, the
+                        # transform, the snapshot and the vehicle list are in hand
+                        want = seed_id if seed_id is not None else seed_actor_id
+                        gv = next((vb for vb in vehicles if vb[0].id == want), None)
+                        gs = snap.find(want) if gv else None
+                        track["gt_box"] = (actor_box(gv[1], cam_tf, gs.get_transform())
+                                           if gs is not None else None)
                         if need_id and cur_aid is not None:
                             seed_id = cur_aid
                             emit(ev="identity", n=n, actor=cur_aid,
@@ -1905,6 +1916,7 @@ def main():
                 track["msg"] = "no frame yet -- is the camera attached?"
                 return
             seed_n, seed = latest["n"], latest["bgr"].copy()
+            full = latest["full"]        # same instant, native sensor pixels
         v = client.get_world().get_actor(actor_id)
         if v is None:
             track["msg"] = "the clicked car is gone"
@@ -1917,6 +1929,7 @@ def main():
         caption = X.rich_caption(seed, a, v.type_id)
         with track_lock:
             track["label"] = caption
+            track["gt_box"] = [int(x) for x in a]   # soft-blue reference overlay
         if designate.get() == "oracle":
             # ORACLE designation: seed the carry from the CARLA projected box and skip
             # the VLM entirely. This is not a shortcut, it is the scope P6.2-DELIVERY's
@@ -1953,13 +1966,28 @@ def main():
             finally:
                 Path(p).unlink(missing_ok=True)
 
-        X.select_p55.ROI_RES = int(ground_res)
+        # NATIVE point-crop: cut a ground_res-sided square out of the full-resolution
+        # sensor frame, centred on the click, and feed it 1:1 -- no upscale, so the
+        # VLM sees real pixels rather than a 960-frame crop stretched back up. At the
+        # frame edge point_window shrinks symmetrically instead of sliding: the click
+        # stays dead centre, which the caption ("... in the center") asserts and G6 /
+        # probe8 showed is load-bearing for this grounder.
         cx, cy = click_xy
-        track["msg"] = f"grounding {caption!r} @{int(ground_res)} on Orin..."
+        s = full.shape[1] / seed.shape[1]          # 960 feed px -> native px (2.0)
+        win = point_window(cx * s, cy * s, full.shape[1], full.shape[0],
+                           int(ground_res))
+        crop = np.ascontiguousarray(full[win[1]:win[3], win[0]:win[2]])
+        track["msg"] = (f"grounding {caption!r} @{crop.shape[1]}px native crop "
+                        f"({win[0]},{win[1]})-({win[2]},{win[3]}) on Orin...")
         t0 = time.time()
-        box, _dbg = X.roi_reanchor(seed, X._center_box((cx, cy, cx, cy)),
-                                   caption, submit_img)
+        vbox = submit_img(crop, caption)
         vlm_s = time.time() - t0
+        out_dir.mkdir(parents=True, exist_ok=True)
+        cv2.imwrite(str(out_dir / f"click-{seed_n}.png"),      # look at what was fed
+                    draw_overlay(crop.copy(), vbox, caption, True) if vbox else crop)
+        box = None if vbox is None else [
+            (win[0] + vbox[0]) / s, (win[1] + vbox[1]) / s,
+            (win[0] + vbox[2]) / s, (win[1] + vbox[3]) / s]
         track["ground_ms"] = gms["ms"]           # on-device VLM point-crop time
         if not X._valid(box, seed.shape):
             track["msg"] = f"NO_MATCH {caption!r} in {gms['ms']:.0f} ms"
@@ -2078,6 +2106,7 @@ def main():
             track["stop"] = threading.Event()
             track["box"], track["actor"] = None, None
             track["on_target"], track["drift"], track["lost_s"] = False, None, None
+            track["gt_box"] = None
             track["label"] = None        # caption mode: overlay uses the entry text
             track["ground_ms"] = track["carry_ms"] = track["carry_hz"] = None
             track["catchup_s"] = track["deliver_s"] = None
@@ -2123,7 +2152,7 @@ def main():
             _stop_current()
             track["box"], track["actor"], track["msg"] = None, None, "dropped"
             track["on_target"], track["drift"], track["label"] = False, None, None
-            track["lost_s"] = None
+            track["lost_s"], track["gt_box"] = None, None
             track["delivered"], track["cmd_t"] = True, None
 
     # -- stage 3, DESIGNATE: pick the target and say who grounds it -----------------
@@ -2292,8 +2321,12 @@ def main():
         if lf is not None:
             # the box is up to one feed period stale here -- it was measured on
             # the 5 Hz frame, drawn on the 60 Hz one. Same camera, so it lines up.
-            draw_overlay(lf, box, label, locked,
-                         scale=lf.shape[1] / CAM_W, delivered=deliv)
+            sc = lf.shape[1] / CAM_W
+            gt = track["gt_box"]
+            if gt is not None:      # soft blue: the CARLA truth, for the eye only
+                cv2.rectangle(lf, (int(gt[0] * sc), int(gt[1] * sc)),
+                              (int(gt[2] * sc), int(gt[3] * sc)), (235, 180, 120), 1)
+            draw_overlay(lf, box, label, locked, scale=sc, delivered=deliv)
             preview["live"] = _photo(lf, big)
             big.config(image=preview["live"])
         # measured delivery rate, not the requested one -- headless or not, a
@@ -2536,7 +2569,11 @@ def main():
     # an RGB camera to it makes the flown view readable, and attach_to means the
     # pose follows for free, including when CarlaUE4's own viewport WASD moves it.
     live = {"bgr": None, "n": 0}       # 60 Hz, what the operator flies
-    latest = {"bgr": None, "n": 0}     # 5 Hz, what the Jetson is handed
+    # "bgr" = the CAM_W feed the carry eats; "full" = the SAME instant at native
+    # sensor resolution, kept so a click can crop from the real pixels instead of
+    # the downscaled copy. It is a reference to the frame already in live["bgr"],
+    # not a copy -- no extra per-frame cost.
+    latest = {"bgr": None, "full": None, "n": 0}     # 5 Hz, what the Jetson is handed
     frame_lock = threading.Lock()
     # Backlog for the catch-up: the VLM grounds frame N but the world is at N+20 by
     # the time the box lands, so the tracker replays N..now instead of starting
@@ -2553,6 +2590,7 @@ def main():
             # rates -- and always at CAM_W x CAM_H, so VLM/tracker cost and the
             # pixel coords of every box stay put when the window is resized
             if live["n"] % FEED_EVERY == 0:
+                latest["full"] = bgr
                 latest["bgr"] = (bgr if bgr.shape[1] == CAM_W else
                                  cv2.resize(bgr, (CAM_W, CAM_H),
                                             interpolation=cv2.INTER_AREA))

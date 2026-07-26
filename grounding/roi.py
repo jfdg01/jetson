@@ -108,6 +108,37 @@ def fixed_window(box_px: Sequence[float], img_w: int, img_h: int,
     return (x0, y0, x0 + int(2 * half), y0 + int(2 * half))
 
 
+def point_window(px: float, py: float, img_w: int, img_h: int,
+                 side: float) -> Window:
+    """Square window of `side` centred on a POINT, shrunk symmetrically at the frame
+    edge so the point stays exactly in the middle.
+
+    The third edge policy, next to `roi_window` (clamp: the window truncates on one
+    side, so the point drifts off-centre) and `fixed_window` (slide: constant size, but
+    the point drifts off-centre). Both of those move the target away from the crop
+    centre, and the deployed grounder does not survive that:
+
+    * G6 (`experiments/2026-07-23-p62-delivery/README.md:81`) varied the caption with a
+      centred target — `the car` / `the black car` / `the small dark car` all scored
+      IoU 0.00 and grabbed the *wrong* car; only `the car in the center` locked it
+      (0.329).
+    * `runs/g6_gate/probe8.py` held the caption fixed (`the red car`) and moved the
+      target instead, 0 / +90 / +170 px: off-centre locked **0/8** against probe7's
+      **5/8** centred.
+
+    So "the target is in the middle of the crop" is load-bearing, not incidental, and
+    it is what the operator-phrase `... in the center` asserts. Until a position-word
+    sweep says a correct non-centre word works, the edge case gives up *context*, not
+    centring: a click 100 px from the border gets a 200 px window rather than a 512 px
+    one slid off the click. Returns a window always inside the frame.
+    """
+    px = min(max(float(px), 1.0), img_w - 1.0)
+    py = min(max(float(py), 1.0), img_h - 1.0)
+    half = min(side / 2.0, px, py, img_w - px, img_h - py)
+    return (int(round(px - half)), int(round(py - half)),
+            int(round(px + half)), int(round(py + half)))
+
+
 def outside_dead_band(box_px: Sequence[float], win: Window,
                       dead_band: float) -> bool:
     """True when the box centre has left the central `dead_band` fraction of `win`.
@@ -400,6 +431,18 @@ def _selfcheck() -> None:
     # A frame smaller than `side` in one axis: the window shrinks to the short side and
     # still slides along the long one (EXP-6's 720x480 case -- barely a crop).
     assert fixed_window([300, 200, 340, 240], 720, 480, S512) == (80, 0, 560, 480)
+    # point_window: the point stays dead centre everywhere, including the corners.
+    for px, py in ((960, 960), (100, 900), (W - 40, 30), (1, 1), (W - 1, H - 1)):
+        w2 = point_window(px, py, W, H, S512)
+        assert 0 <= w2[0] < w2[2] <= W and 0 <= w2[1] < w2[3] <= H, (px, py, w2)
+        assert abs((w2[0] + w2[2]) / 2 - px) <= 1, (px, py, w2)   # centred in x
+        assert abs((w2[1] + w2[3]) / 2 - py) <= 1, (px, py, w2)   # centred in y
+        assert (w2[2] - w2[0]) == (w2[3] - w2[1]), (px, py, w2)   # square
+    # away from the edge it is exactly `side`; near one it shrinks rather than sliding
+    assert point_window(960, 960, W, H, S512) == (960 - S512 // 2, 960 - S512 // 2,
+                                                  960 + S512 // 2, 960 + S512 // 2)
+    assert point_window(100, 900, W, H, S512)[2] - point_window(100, 900, W, H,
+                                                               S512)[0] == 200
     # dead band: centred box holds the window, a box near the edge releases it.
     assert not outside_dead_band([900, 900, 1020, 1020], mid, 0.5)
     assert outside_dead_band([mid[0] + 10, mid[1] + 10, mid[0] + 30, mid[1] + 30],

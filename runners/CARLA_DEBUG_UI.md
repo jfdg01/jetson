@@ -275,8 +275,17 @@ pymavlink, arms, takes off, then slaves the camera to the NED the autopilot repo
 
 `designate vlm` is the deployed path: the click gives a point, `rich_caption` builds a
 RefDrone-style expression from the clicked car's own pixels (colour) and CARLA type
-(object word) with position pinned to the constant `in the center`, and `roi_reanchor`
-grounds a point crop at `ground_res` on the Orin.
+(object word) with position pinned to the constant `in the center`, and a `ground_res`-sided
+square is cut out of the **native** sensor frame around the click and fed 1:1 to the Orin.
+
+Native, not from the 960 feed: the sensor is 1920² (a real drone camera is 4K-class), so a
+512 px crop out of it is 512 px of real detail instead of a 256 px feed patch stretched back
+up. The window comes from `point_window` (`grounding/roi.py`), which **shrinks symmetrically**
+at the frame edge rather than sliding — a click 100 px from the border gets a 200 px crop, not
+a 512 px one slid off the click. Giving up context, not centring, is deliberate: G6 and
+`runs/g6_gate/probe8.py` both show this grounder collapses when the target is off-centre
+(5/8 centred vs 0/8 off-centre at a fixed caption), and `in the center` is what the caption
+asserts. Every click writes the exact image that was fed to `<out>/click-<n>.png`.
 
 `designate oracle` skips the VLM and seeds the carry from the CARLA projected box.
 **That is not cheating, and it is not a shortcut** — it is exactly the scope in which
@@ -486,7 +495,8 @@ measure still exists. Synchronous mode would make the client the clock master an
 delete that lag. See `docs/decisions/part6-flight.md`.
 
 **One camera, two rates.** The operator sees every frame (up to 30 Hz); the Jetson gets
-every 6th (5 Hz), always resampled to a fixed 960x540. Two sensors would double the
+every 6th (5 Hz), always resampled to a fixed 960x960 — plus a reference to that same
+frame at native resolution, which is what a click crops from. Two sensors would double the
 render cost to show the same pixels, and pinning the Jetson feed means VLM cost and box
 pixel coordinates do not move when the window is resized.
 
@@ -845,6 +855,12 @@ render you are judging looks underexposed. Palette: `DARK #1e1e1e`, `DARK_HI #2d
 `WARN #e0a03f` ("this is the next thing to do", and "this number is not healthy but not
 dead"). Four colours is the whole vocabulary: green / amber / grey / red, used for lamps
 and stage badges alike, so the two mean the same thing in both places.
+
+One colour lives outside that vocabulary, on the render only: a **thin soft-blue** (BGR
+`235,180,120`) rectangle is the CARLA projected box of the seed target — ground truth, drawn
+for the eye so a click's VLM box and the carried box can be judged against it at a glance. It
+is a reference overlay, never an input: nothing reads it, and under `designate oracle` the
+seed comes from the same projection, so there the green box starts on top of it.
 
 Three separate mechanisms, because Tk has three:
 
