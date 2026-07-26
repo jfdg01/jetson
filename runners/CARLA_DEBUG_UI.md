@@ -287,6 +287,17 @@ a 512 px one slid off the click. Giving up context, not centring, is deliberate:
 (5/8 centred vs 0/8 off-centre at a fixed caption), and `in the center` is what the caption
 asserts. Every click writes the exact image that was fed to `<out>/click-<n>.png`.
 
+**`follow` (typed caption) is the other half of the same knob.** Same native frame, no
+crop: the whole 1920 square is downscaled to `ground_res` and fed — pure lossy. So the
+dropdown means two different things per path, and that is the point of having both. The
+click keeps native detail and gives up context (`ground_res` = how much scene surrounds
+the target, since the crop is fed 1:1 and never resized); `follow` keeps the whole scene
+and gives up detail (`ground_res` = how much of the frame survives). Neither ever
+upscales — the backend's resize is downscale-only and `max_side` is 1024, which is the
+top of the dropdown. The resize needs no box remapping: the contract stores coordinates
+normalized to the image, so a whole-image resize is metric-safe (`grounding/resolution.py`).
+The fed frame lands at `<out>/frame.png`.
+
 `designate oracle` skips the VLM and seeds the carry from the CARLA projected box.
 **That is not cheating, and it is not a shortcut** — it is exactly the scope in which
 P6.2-DELIVERY's flagship number was measured, because at 45 m nadir the deployed q8_0

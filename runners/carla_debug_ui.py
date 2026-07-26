@@ -1845,20 +1845,31 @@ def main():
             # own ack. If the process died, get_bridge() respawns on the next follow.
             bridge_io.release()
 
-    def follow(caption, stop, carry_crop=0):
-        """Whole-frame caption grounding on the Jetson -> carry on the Jetson."""
+    def follow(caption, stop, ground_res, carry_crop=0):
+        """Whole-frame caption grounding on the Jetson -> carry on the Jetson.
+
+        The other half of the click path: same native frame, no crop. The full 1920
+        sensor square is downscaled to `ground_res` and fed whole -- pure lossy, the
+        target keeps its context and loses detail, where the click keeps detail and
+        loses context. Metric-safe: the contract stores boxes normalized to the image,
+        so a whole-image resize needs no remapping (grounding/resolution.py) and the
+        parsed box is in feed coords whatever resolution went in."""
         with frame_lock:
             if latest["bgr"] is None:
                 track["msg"] = "no frame yet -- is the camera attached?"
                 return
             seed_n, seed = latest["n"], latest["bgr"].copy()
+            full = latest["full"]
         if backend["be"] is None:
             track["msg"] = "booting Jetson llama-server..."
         be = get_backend()
         out_dir.mkdir(parents=True, exist_ok=True)
         shot = out_dir / "frame.png"
-        cv2.imwrite(str(shot), seed)
-        track["msg"] = f"grounding {caption!r}..."
+        g = int(ground_res)
+        cv2.imwrite(str(shot), cv2.resize(full, (g, g),      # look at what was fed
+                                          interpolation=cv2.INTER_AREA)
+                    if full.shape[1] != g else full)
+        track["msg"] = f"grounding {caption!r} @{g} whole frame..."
         t0 = time.time()
         raw = be.generate(str(shot), caption)
         vlm_s = time.time() - t0
@@ -2140,7 +2151,7 @@ def main():
             track["msg"] = "designate=oracle needs a Shift-click on a car, not a caption"
             return
         threading.Thread(target=follow, daemon=True,
-                         args=(caption_entry.get(), _arm_track(),
+                         args=(caption_entry.get(), _arm_track(), ground_res.get(),
                                CARRY_CROP_SIDE if carry_crop_on.get() else 0)).start()
 
     def do_drop():
