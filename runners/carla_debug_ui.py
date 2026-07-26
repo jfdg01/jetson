@@ -61,7 +61,9 @@ import cv2
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from grounding.contract import CARRY_IMAGE_SIZE, COORD_SCALE, parse_bbox
+from grounding.contract import (CARRY_CROP_DEAD_BAND, CARRY_CROP_SIDE,
+                                CARRY_IMAGE_SIZE, COORD_SCALE, parse_bbox)
+from grounding.roi import fixed_window, outside_dead_band
 
 # What the operator flies IS the drone camera: the frame on screen and the frame
 # the VLM grounds come from this one sensor, so they cannot disagree. FOV used to
@@ -1595,7 +1597,7 @@ def main():
             track["deliver_s"] = time.time() - track["cmd_t"]
 
     def orin_carry(seed_n, seed, seed_box, caption, vlm_s, raw, carry_size,
-                   seed_actor_id, stop):
+                   seed_actor_id, stop, carry_crop=0):
         """SAM2 carry on the JETSON over the ssh-stdio bridge (never local).
 
         Grounding produced seed_box on frame seed_n; the world is already ~vlm_s*CAM_HZ
@@ -1604,6 +1606,13 @@ def main():
         a click passes the actor it hit (seed_actor_id) so lock is against THAT car from
         frame one; a caption follow passes None and adopts identity at catch-up (lag<=1),
         because the seed box and the world are only the same instant once caught up.
+
+        `carry_crop` (0 = off) is EXP-6's escalation for small/distant targets: feed SAM2
+        a fixed CARRY_CROP_SIDE native window around the box instead of the whole frame,
+        still at carry_size. The window is NOT re-seeded when it moves -- SAM2 keeps one
+        state and simply sees a shifted view, which is what EXP-6 measured. Everything
+        downstream of `box` stays in full-frame coords; the offset is applied the moment
+        the bridge answers, so match_actor and the overlay never learn about the crop.
         """
         X = load_exp3()
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -1629,8 +1638,16 @@ def main():
         try:
             proc = get_bridge(carry_size)   # inside the try: a failed spawn must still release
             t0 = time.time()
-            X._send(proc.stdin, ("init", X._rgb_jpg_arr(seed),
-                                 [int(v) for v in seed_box]))
+            fh, fw = seed.shape[:2]
+            win = (fixed_window(seed_box, fw, fh, carry_crop) if carry_crop
+                   else (0, 0, fw, fh))
+
+            def _cut(img):
+                return img if not carry_crop else img[win[1]:win[3], win[0]:win[2]]
+
+            X._send(proc.stdin, ("init", X._rgb_jpg_arr(_cut(seed)),
+                                 [int(seed_box[0]) - win[0], int(seed_box[1]) - win[1],
+                                  int(seed_box[2]) - win[0], int(seed_box[3]) - win[1]]))
             ack = X._recv(proc.stdout)
             if not (ack and ack.get("ok")):
                 track["msg"] = f"carry bridge init failed: {ack}"
@@ -1664,7 +1681,7 @@ def main():
                 # (<=1 pending): take it. See CATCHUP_JUMP -- this is what keeps the
                 # on-Orin carry feeling live instead of replaying stale history.
                 n, frame = pending[min(len(pending), CATCHUP_JUMP) - 1]
-                X._send(proc.stdin, ("step", X._rgb_jpg_arr(frame)))
+                X._send(proc.stdin, ("step", X._rgb_jpg_arr(_cut(frame))))
                 r = X._recv(proc.stdout)
                 if r is None:
                     # The exit status is the whole diagnosis and costs one wait(): -9 is
@@ -1678,6 +1695,13 @@ def main():
                     emit(ev="bridge_died", n=n, rc=rc)
                     break
                 b, ms = r.get("box"), r.get("ms")
+                if b is not None and carry_crop:
+                    b = [b[0] + win[0], b[1] + win[1], b[2] + win[0], b[3] + win[1]]
+                    # Re-centre only on the way out (dead band), and only on a box the
+                    # carry actually produced -- a window re-centred on a bad box is the
+                    # drift reinforcement P5.21 measured on car10.
+                    if outside_dead_band(b, win, CARRY_CROP_DEAD_BAND):
+                        win = fixed_window(b, fw, fh, carry_crop)
                 cursor = n
                 track["lag"] = live_n - cursor
                 if b is None:
@@ -1790,7 +1814,7 @@ def main():
             # own ack. If the process died, get_bridge() respawns on the next follow.
             bridge_io.release()
 
-    def follow(caption, stop):
+    def follow(caption, stop, carry_crop=0):
         """Whole-frame caption grounding on the Jetson -> carry on the Jetson."""
         with frame_lock:
             if latest["bgr"] is None:
@@ -1822,7 +1846,7 @@ def main():
             _mark_delivered()   # COLD: the box the command gets, and it is already stale
         track["msg"] = f"grounded in {vlm_s:.1f}s, carrying on Orin..."
         orin_carry(seed_n, seed, seed_box, caption, vlm_s, raw,
-                   ORIN_CARRY_SIZE, None, stop)
+                   ORIN_CARRY_SIZE, None, stop, carry_crop)
 
     def hit_test_live(feed_x, feed_y):
         """Clicked feed pixel -> the CARLA vehicle under it (smallest projected box).
@@ -1848,7 +1872,7 @@ def main():
                 best_area, best = area, v
         return best
 
-    def follow_click(actor_id, click_xy, carry_size, ground_res, stop):
+    def follow_click(actor_id, click_xy, carry_size, ground_res, stop, carry_crop=0):
         """EXP-3, both on the Orin: rich caption -> point-crop VLM ground -> SAM2 carry.
 
         The crop centres on the click, so position is the constant "in the center"; the
@@ -1890,7 +1914,7 @@ def main():
             track["ground_ms"] = 0.0
             track["msg"] = f"ORACLE designation {caption!r}, carrying on Orin..."
             orin_carry(seed_n, seed, seed_box, caption, 0.0, None,
-                       int(carry_size), actor_id, stop)
+                       int(carry_size), actor_id, stop, carry_crop)
             return
         if backend["be"] is None:
             track["msg"] = "booting Jetson llama-server..."
@@ -1929,7 +1953,7 @@ def main():
             _mark_delivered()   # COLD: same, one point-crop instead of a whole frame
         track["msg"] = f"grounded {caption!r} {gms['ms']:.0f} ms, carrying on Orin..."
         orin_carry(seed_n, seed, seed_box, caption, vlm_s, None,
-                   int(carry_size), actor_id, stop)
+                   int(carry_size), actor_id, stop, carry_crop)
 
     # --- PILOT: a camera on a stick, or the real copter with the camera slaved ---
     # In copter mode nothing about the camera changes except who decides where it is:
@@ -2067,7 +2091,8 @@ def main():
             track["msg"] = "designate=oracle needs a Shift-click on a car, not a caption"
             return
         threading.Thread(target=follow, daemon=True,
-                         args=(caption_entry.get(), _arm_track())).start()
+                         args=(caption_entry.get(), _arm_track(),
+                               CARRY_CROP_SIDE if carry_crop_on.get() else 0)).start()
 
     def do_drop():
         # set the event INSIDE the lock, so a follow thread holding it is either
@@ -2109,6 +2134,15 @@ def main():
     ttk.Combobox(w3_res, textvariable=carry_size, width=5, state="readonly",
                  values=(640, 768, 896, 1024)).pack(side=tk.LEFT)
     tk.Label(w3_res, text="Orin", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(6, 0))
+    # EXP-6's escalation for a small/distant target, and the reason the carry dropdown
+    # should stay at 640: a fixed CARRY_CROP_SIDE native window carried at 640 buys the
+    # same accuracy as raising the dropdown to 1024 (d_IoU -0.002, deflated p=0.566) at
+    # 2.7x the on-device rate. A checkbox, not a third resolution value, because it is a
+    # different lever -- magnification, not pixels fed.
+    carry_crop_on = tk.BooleanVar(value=False)
+    tk.Checkbutton(w3_res, text=f"crop {CARRY_CROP_SIDE}", variable=carry_crop_on,
+                   bg=DARK, fg=MUTED, selectcolor=DARK, activebackground=DARK,
+                   activeforeground=TEXT).pack(side=tk.LEFT, padx=(10, 0))
     caption_entry = tk.Entry(w3_cap, width=20)
     caption_entry.insert(0, "the red car")
     caption_entry.pack(side=tk.LEFT)
@@ -2334,7 +2368,8 @@ def main():
             f"designate {designate.get()}",
             f"follow {fm}" + ("" if fm == follow_mode.get() else " [auto needs copter]"),
             f"|  ground {ground_res.get()} Orin",
-            f"carry {carry_size.get()} Orin",
+            f"carry {carry_size.get()}" + (f"/crop {CARRY_CROP_SIDE}"
+                                           if carry_crop_on.get() else "") + " Orin",
             "CARLA + SITL 3090",
         )))
         # four short lines in the rail, not one 120-char row: same fields, and the
@@ -2359,7 +2394,8 @@ def main():
             return
         threading.Thread(target=follow_click, daemon=True,
                          args=(v.id, (feed_x, feed_y), carry_size.get(),
-                               ground_res.get(), _arm_track())).start()
+                               ground_res.get(), _arm_track(),
+                               CARRY_CROP_SIDE if carry_crop_on.get() else 0)).start()
 
     def on_select_click(e):
         # Shift-click on the flown view -> feed px. The photo is centred in the label

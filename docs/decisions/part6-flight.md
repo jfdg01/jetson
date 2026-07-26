@@ -848,8 +848,8 @@ and that needs a different experiment.
 *Chosen:* the carry crop ships as the **fallback path only** — the operator's escalation for
 small or distant targets becomes a fixed 512 native window carried at 640, instead of raising
 `ORIN_CARRY_SIZE` to 1024 on the dropdown (`carla_debug_ui.py:2099-2101`). The default carry
-stays plain@640, unchanged. **Not yet implemented** — this is the decision the measurement
-supports; the UI edit is separate work and does not belong on the experiment branch.
+stays plain@640, unchanged. **Implemented 2026-07-26T18:40Z** on its own branch off `main`,
+not on the experiment branch — see the shipped-shape entry below.
 
 *Why:* this is what EXP-6 actually licenses. Against plain@1024 the crop is statistically
 indistinguishable (d_IoU -0.002, d_PASS -1 of 38, deflated p=0.566) at **2.7x** the on-device
@@ -922,3 +922,33 @@ should describe the deployment, and the as-run cap is a property of that run, so
 recorded next to it rather than left as the global. Also given up: keeping frozen
 experiment scripts literal-free. They keep their own numbers on purpose — they record what
 was measured, not what is deployed.
+
+### The shipped carry crop is a checkbox, and its geometry moves into `grounding/roi.py` (2026-07-26T18:40Z)
+
+*Chosen:* the escalation ships as a `crop 512` **checkbox** beside the carry dropdown, not as a
+third value in it, and it applies to both follow paths (typed caption and Shift-click). The
+window geometry — fixed side, slid inside the frame rather than clipped, re-centred only when
+the box centre leaves the central 50% — is lifted out of EXP-5's as-run script into
+`grounding.roi.fixed_window` / `outside_dead_band`, with `CARRY_CROP_SIDE = 512` and
+`CARRY_CROP_DEAD_BAND = 0.5` owned by `grounding.contract` alongside `CARRY_IMAGE_SIZE`
+(R-46). SAM2 is **not** re-seeded when the window moves: it keeps one state and simply sees a
+shifted view, which is what EXP-6 measured. The crop is invisible downstream — the offset is
+applied the moment the bridge answers, so `match_actor`, the overlay and the PID never learn
+about it.
+
+*Why:* a checkbox because it is a different lever from the dropdown. The dropdown sets
+*pixels fed*; the crop sets *magnification at a fixed pixel budget*, and EXP-6's whole point is
+that the second is the cheaper way to buy the first. Folding it in as a "512" entry would have
+read as "carry at a lower resolution", which is the opposite of what it does. Re-seeding on a
+window move was rejected without a measurement because P5.21 already priced it: a re-anchor
+taken around an already-drifted box reinforces the drift (`car10`), and the dead band exists
+precisely so the window follows the box lazily instead of chasing it. Sharing the geometry
+through `roi.py` rather than copying `run_exp5.py:window` keeps one implementation on the
+deployed path; the experiment scripts keep their own copies as the as-run record.
+
+*What was given up:* the crop cannot fire automatically on a small/distant target — an operator
+has to tick it, which is the tail the EXP-6 entry above already flags. And the dead-band
+re-centre is only evaluated on frames where the carry returned a box, so a long run of lost
+masks leaves the window where it was; that is deliberate (a window re-centred on nothing is
+worse than a stale one) but it means a target that leaves the window during an occlusion is not
+recovered by the crop path.

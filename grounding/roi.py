@@ -87,6 +87,42 @@ def roi_window(bbox_norm: Sequence[int], img_w: int, img_h: int, margin: float,
     return (x0, y0, x3, y3)
 
 
+def fixed_window(box_px: Sequence[float], img_w: int, img_h: int,
+                 side: float) -> Window:
+    """Fixed-side square window (pixel XYXY) centred on a **pixel** box, slid inside
+    the frame rather than clipped, so the fed crop keeps a constant size everywhere
+    except on a frame smaller than `side`.
+
+    The other half of the carry-crop lever (`roi_window` is the box-scaled half). This
+    one does not track the box size at all, which is the point: EXP-5's A6 scaled arm
+    inherits `roi_window`'s shrink dynamics, while a fixed window feeds SAM2 the same
+    number of native pixels every step. Geometry lifted from
+    `experiments/2026-07-26-crop-mode/run_exp5.py:window`, which is where it was
+    measured; that file keeps its own copy as the as-run record.
+    """
+    cx = (box_px[0] + box_px[2]) / 2.0
+    cy = (box_px[1] + box_px[3]) / 2.0
+    half = min(side, img_w, img_h) / 2.0
+    x0 = int(round(min(max(cx - half, 0), img_w - 2 * half)))
+    y0 = int(round(min(max(cy - half, 0), img_h - 2 * half)))
+    return (x0, y0, x0 + int(2 * half), y0 + int(2 * half))
+
+
+def outside_dead_band(box_px: Sequence[float], win: Window,
+                      dead_band: float) -> bool:
+    """True when the box centre has left the central `dead_band` fraction of `win`.
+
+    Re-centring every step would hand SAM2 a window that jitters with its own output;
+    the dead band means the crop only moves when the target is actually heading out.
+    """
+    cx = (box_px[0] + box_px[2]) / 2.0
+    cy = (box_px[1] + box_px[3]) / 2.0
+    x0, y0, x1, y1 = win
+    mx = (x1 - x0) * (1 - dead_band) / 2.0
+    my = (y1 - y0) * (1 - dead_band) / 2.0
+    return not (x0 + mx <= cx <= x1 - mx and y0 + my <= cy <= y1 - my)
+
+
 def map_to_full(pred_norm: Sequence[int], win: Window,
                 img_w: int, img_h: int) -> List[int]:
     """Map a pred box (0–COORD_SCALE within the crop) → 0–COORD_SCALE in full image."""
@@ -351,6 +387,23 @@ def _selfcheck() -> None:
     assert max(uf[2] - uf[0], uf[3] - uf[1]) < 256  # unfloored: collapses small
     fl = roi_window(tiny, 640, 480, 4.0, min_side=256)
     assert max(fl[2] - fl[0], fl[3] - fl[1]) >= 256, fl  # floored crop is ≥ min_side
+
+    # fixed_window: constant side, slid inside the frame, never clipped.
+    W, H, S512 = 1920, 1920, 512
+    mid = fixed_window([900, 900, 1020, 1020], W, H, S512)
+    assert mid[2] - mid[0] == S512 and mid[3] - mid[1] == S512, mid
+    assert mid[0] == 960 - S512 // 2 and mid[1] == 960 - S512 // 2, mid  # box centre
+    corner = fixed_window([0, 0, 20, 20], W, H, S512)     # slid, not clipped
+    assert corner == (0, 0, S512, S512), corner
+    far = fixed_window([W - 10, H - 10, W, H], W, H, S512)
+    assert far == (W - S512, H - S512, W, H), far
+    # A frame smaller than `side` in one axis: the window shrinks to the short side and
+    # still slides along the long one (EXP-6's 720x480 case -- barely a crop).
+    assert fixed_window([300, 200, 340, 240], 720, 480, S512) == (80, 0, 560, 480)
+    # dead band: centred box holds the window, a box near the edge releases it.
+    assert not outside_dead_band([900, 900, 1020, 1020], mid, 0.5)
+    assert outside_dead_band([mid[0] + 10, mid[1] + 10, mid[0] + 30, mid[1] + 30],
+                             mid, 0.5)
     print("roi self-check passed")
 
 

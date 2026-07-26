@@ -40,6 +40,12 @@ MAX_NEW_TOKENS = 64       # response cap for grounding eval calls
 # own literals -- they record what was measured, not what is deployed.
 CARRY_IMAGE_SIZE = 640    # EXP-1's measured elbow: 99.4% of 1024's median IoU at 2.5x the rate
 CARRY_FALLBACK_IMAGE_SIZE = 1024   # operator escalation for small/distant targets (EXP-1, EXP-6)
+# EXP-6's adopted escalation: a fixed native window around the box, still carried at
+# CARRY_IMAGE_SIZE. Indistinguishable from CARRY_FALLBACK_IMAGE_SIZE on accuracy
+# (d_IoU -0.002, deflated p=0.566) at 2.7x the on-device rate, so it is the cheaper way
+# to buy the same thing. Fallback only -- against the plain 640 default it is a null.
+CARRY_CROP_SIDE = 512
+CARRY_CROP_DEAD_BAND = 0.5   # re-centre only when the box centre leaves the central 50%
 # Re-derived at CARRY_IMAGE_SIZE for R-46. The retired 2.69 was R-16's rate at 1024, so
 # pairing it with a 640 default rate-capped the carry against a resolution nobody runs.
 # Both numbers below are the same campaign (EXP-1, Orin 15W + jetson_clocks), so the 2.5x
