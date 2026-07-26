@@ -50,6 +50,10 @@ CARRY_CROP_DEAD_BAND = 0.5   # re-centre only when the box centre leaves the cen
 # pairing it with a 640 default rate-capped the carry against a resolution nobody runs.
 # Both numbers below are the same campaign (EXP-1, Orin 15W + jetson_clocks), so the 2.5x
 # ratio between them is meaningful; mixing campaigns would not be.
+# P6.6 measured 6.273 Hz at the same resolution on the same board (300 s arms, median of
+# 3 repeats), so 5.76 is now the more pessimistic of two independent measurements. Kept,
+# because a budget constant should under-promise and because the 2.5x ratio to 1024 above
+# only holds within EXP-1; P6.6 never ran 1024.
 CARRY_HZ = 5.76           # EXP-1 on-device SAM2 solo rate @ CARRY_IMAGE_SIZE (2.34 @ 1024)
 
 # The v2 spine, selected by the numbers in Phase 0c (RefCOCO base-vs-base parity:
