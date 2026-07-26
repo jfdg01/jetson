@@ -146,6 +146,8 @@ carry 9.4 Hz Orin, lag 0, lock 60/60 (207/210 all)          <- verdict, largest 
 4 DELIVER    0.00 s command to box
 5 FOLLOW     auto  0.0 m/s
 deliver 0.00 s | ground 0 ms | carry 106 ms (9.4 Hz) Orin | catch-up 6.5 s | lag 0 f | feed 5 Hz | disp 25 Hz
+orin  9.31 W  tj 59 C  gpu 100%  ram 7.0/7.8 GB              <- what the Orin COSTS (P6.6)
++4.12 W over idle  2.11 J/frame  (P6.6: idle 5.19, carry 10.84 W)
 armed mode 4  alt 44.6 m  gimbal -90/0
 N  101.9  E  -25.7  D  -44.6
 cmd -0.0  0.0  0.0   got 0.1 m/s
@@ -177,6 +179,35 @@ ever wanted back on screen.
   doing what it can, not what it was told.
 - **`lock a/b (c/d all)`** — rolling on-target count over the last 60 steps, cumulative
   in parens. **GT-derived** (`match_actor`), so it is a debug read, not a result.
+
+### The Orin cost dashboard (added 2026-07-26T18:40Z)
+
+Everything above says what the Orin *delivers*. These two lines say what it *costs*, and
+they are the P6.6 axis on screen: `runners/orin_telemetry.py` reads the board's INA3221
+rails and thermal zones over one persistent `ssh`, one `cat` per second, and the panel
+prints the live watts beside the **measured reference figures** from
+`experiments/2026-07-25-maintain-cost/` (`P66_IDLE_W` / `P66_CARRY_W` in
+`grounding/contract.py`). A reading you cannot compare is a reading you cannot judge:
+`9.31 W` alone means nothing, `+4.12 W over idle, carry measures 10.84` does.
+
+- **`sysfs, not tegrastats`** — tegrastats is effectively a singleton (starting one wants
+  `tegrastats --stop` first) and a power campaign owns that process for its whole run, so
+  a panel that started its own would either fail or stomp the measurement. P6.6's numbers
+  come off these same rails, so the two are comparable by construction. Cross-checked:
+  the panel reads **5.19 W** with the board idle and the models resident, against arm A0's
+  **5.195 W** median through tegrastats.
+- **`J/frame`** = live watts / achieved carry Hz — the metric that made 512 win P6.6 on
+  energy per carried frame. Prints `--` with no carry running.
+- **`gpu`** comes from `/sys/devices/platform/gpu.0/load`, which is **per-mille** (999 =
+  99.9%). Treating it as a percent reads a saturated GPU as 10% busy and looks entirely
+  plausible on screen; `tests/test_orin_telemetry.py` pins it.
+- **Colour** is WARN on `tj >= 85 C` (the board throttles at 97, so 85 is the watch line,
+  not the limit) or under 1 GB of RAM headroom — the ring OOM-killed the N=2 selector on
+  this board (R-16), so that is the failure about to happen, not a curiosity.
+- **A dead or stale link prints a dash**, never the last good number. `read()` gates on
+  the reading's *age*, not on the ssh being alive: a wedged `cat` loop keeps the pipe open.
+- **`--no-orin-telemetry`** turns it off. Passive is not free: a second consumer on the
+  device is exactly what cost P6.6 a repeat, so a power campaign gets an off switch.
 
 ## Measured live (2026-07-25, all on one Town10HD_Opt, copter at 45 m nadir)
 
@@ -832,7 +863,7 @@ The first grab is what showed the invisible entries and the white checkbox.
 
 ## Committed frames
 
-Four of the six are the redesign, and every one was opened with the Read tool before
+Four of the seven are the redesign, and every one was opened with the Read tool before
 anything in this file was written about it (`runners/ui_shot.py`, `--name "CARLA debug"`).
 
 | frame | run / config | what it shows |
@@ -842,6 +873,7 @@ anything in this file was written about it (`runners/ui_shot.py`, `--name "CARLA
 | `ui-loop-closed.jpg` | copter / warm / oracle / **auto**, 30 cars, carry 512, 44.6 m nadir | The whole stack working, read off the panel: all five lamps green, `NEXT loop closed -- read the instruments column`, `oracle` / `warm` / `auto` lit in the three segmented switches, green box tight on a `vehicle.nissan.patrol_2021`. Instruments: verdict `carry 9.4 Hz Orin, lag 0, lock 60/60 (207/210 all)`, per-stage `30 cars spawned / 30 Hz render`, `copter 44.6 m AGL`, `oracle GT box`, `0.00 s command to box`, `auto 0.0 m/s`, and the graph with a fully green ribbon, `carry Hz 9 / max 10`, `lag frames 0 / max 18` (the one spike is the seed) and `on target % 100 / max 100`. This is also the frame that fixed the graph: at 0.55 scale the first version drew a full-scale sample straight through its own lane label. |
 | `ui-maintained-vs-delivered.jpg` | one 45 m nadir CARLA frame, both overlay states | Left: **maintained** — amber corner brackets, `maintaining: <caption>`, the box the system carries before anyone asked for it. Right: the same target **delivered** — closed green rectangle. The warm-start claim is that the system tracks things it has not been asked about, so this distinction has to survive a glance; it was grey-on-asphalt before. |
 | `oracle-lock-45m.jpg` | copter / warm / oracle / auto, 40 cars | The flown view only (`smoke.png`, no panel chrome). The system working: green box tight on a white SUV, captioned `white SUV in the center`, `lock 60/60` (231/234 all). |
+| `ui-orin-cost-loaded.jpg` | spectator / cold / vlm / manual, 6 cars, a live on-device carry, with a 45 s CUDA matmul deliberately run alongside it on the Orin | The cost dashboard under real device load, and the P6.6 contamination fingerprint live. `orin 9.31 W  tj 59 C  gpu 100%  ram 7.0/7.8 GB` over `+4.12 W over idle  2.11 J/frame  (P6.6: idle 5.19, carry 10.84 W)` — the second consumer shows up exactly as P6.6 said it would: watts and GPU up, and the carry rate collapsed to `carry 227 ms (4.4 Hz)` against the 6.27 Hz the same configuration measures alone, which then costs `LOST 16s`. Idle, the same two lines read `orin 5.19 W ... +0.00 W over idle  -- J/frame`, matching arm A0's 5.195 W tegrastats median. |
 | `vlm-g6-miss-45m.jpg` | copter / warm / **vlm** / auto | Flown view only. G6 in pixels: the grounder boxes a painted road marking beside the car, carry then holds that asphalt perfectly — `0/417`, `DRIFT 82 s`. |
 
 ## Follow trace

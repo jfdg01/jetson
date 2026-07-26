@@ -62,8 +62,10 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from grounding.contract import (CARRY_CROP_DEAD_BAND, CARRY_CROP_SIDE,
-                                CARRY_IMAGE_SIZE, COORD_SCALE, parse_bbox)
+                                CARRY_IMAGE_SIZE, COORD_SCALE, P66_CARRY_W,
+                                P66_IDLE_W, parse_bbox)
 from grounding.roi import fixed_window, outside_dead_band
+from runners.orin_telemetry import OrinTelemetry
 
 # What the operator flies IS the drone camera: the frame on screen and the frame
 # the VLM grounds come from this one sensor, so they cannot disagree. FOV used to
@@ -921,6 +923,9 @@ def main():
                          "deliver, AUTO-follow for SECONDS, dump an overlay PNG, exit")
     ap.add_argument("--selftest", action="store_true",
                     help="spawn, check they move, clear, exit")
+    ap.add_argument("--no-orin-telemetry", action="store_true",
+                    help="do not poll the Orin's power rails. Passive (one cat/s over "
+                         "one ssh), but a power campaign wants the device untouched")
     args = ap.parse_args()
 
     client, carla_proc = ensure_carla(args.host, args.port, args.carla)
@@ -1064,6 +1069,13 @@ def main():
     gtimes = tk.Label(instr, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=ACCENT,
                       wraplength=INSTR_W - 12, font=("TkFixedFont", 11))
     gtimes.pack(side=tk.TOP, fill=tk.X, pady=(6, 4))
+    # What the Orin COSTS, next to what it delivers. P6.6 measured the deployed carry
+    # at 10.84 W over a 5.19 W idle floor, and the reference figures are printed beside
+    # the live rail read so a number can be judged instead of merely displayed -- the
+    # contamination that cost P6.6 a repeat showed up as watts and Hz, not as an error.
+    otel = tk.Label(instr, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=MUTED,
+                    font=("TkFixedFont", 10))
+    otel.pack(side=tk.TOP, fill=tk.X, pady=(6, 0))
     ptel = tk.Label(instr, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=MUTED,
                     font=("TkFixedFont", 10))
     ptel.pack(side=tk.TOP, fill=tk.X, pady=(6, 0))
@@ -1309,6 +1321,10 @@ def main():
         if closing["done"]:
             return
         closing["done"] = True
+        # Telemetry first and unconditionally: the hot-reload path below re-execs, so a
+        # poller left running would leave an ssh + a `cat` loop on the device per reload.
+        if orin_tel is not None:
+            orin_tel.stop()
         # kill the on-Orin carry bridge first: it holds the Jetson GPU, and a window
         # close that skips it leaves carry_ssh_bridge.py running on the device. Since
         # P6.7 the bridge is session-scoped, so this is the ONLY place it is reaped --
@@ -1482,6 +1498,10 @@ def main():
     # `init` per designation rebuilds StreamCarry on the already-loaded predictor, so
     # nothing leaks between targets except the loaded weights, which is the point.
     bridge = {"proc": None, "size": None, "log": None}
+    # Device cost, off the same INA3221 rails P6.6 measured. Started here rather than
+    # with the prewarms because it must be reapable by the window-close path below, and
+    # it is cheap enough to run for the whole session: one `cat` per second.
+    orin_tel = None if args.no_orin_telemetry else OrinTelemetry().start()
     # RLock, and it guards the PIPE, not just the dict: the framing is one framed
     # send followed by one framed recv, so two threads in the pipe at once would read
     # each other's replies. A follow holds it for its whole life; the next follow has
@@ -2372,6 +2392,31 @@ def main():
                                            if carry_crop_on.get() else "") + " Orin",
             "CARLA + SITL 3090",
         )))
+        # Two lines of device cost: the live rail read, then the same watts as a delta
+        # over P6.6's measured idle floor plus the joules each carried frame costs
+        # (watts / achieved Hz -- the metric that made 512 win on energy in P6.6).
+        if orin_tel is None:
+            setw(otel, text="orin telemetry off (--no-orin-telemetry)", fg=MUTED)
+        else:
+            o = orin_tel.read()
+            if o is None or o.get("stale"):
+                setw(otel, text=f"orin --  no rail read ({(o or {}).get('err') or 'connecting'})",
+                     fg=ALERT if o is not None else MUTED)
+            else:
+                w = o["vdd_in_w"]
+                dw = w - P66_IDLE_W
+                dw = 0.0 if abs(dw) < 0.005 else dw    # "+0.00", never "-0.00"
+                jf = f"{w / chz:.2f} J/frame" if chz else "-- J/frame"
+                # tj: the Orin throttles at 97 C, so 85 is the "watch it" line, not the
+                # limit. RAM: the ring OOM-killed the N=2 selector on this board (R-16),
+                # so headroom under 1 GB is the failure that is about to happen.
+                hot = o["tj_c"] >= 85 or o["ram_total_gb"] - o["ram_used_gb"] < 1.0
+                setw(otel, fg=WARN if hot else MUTED,
+                     text=(f"orin {w:5.2f} W   tj {o['tj_c']:.0f} C   "
+                           f"gpu {o['gpu_pct']:.0f}%   "
+                           f"ram {o['ram_used_gb']:.1f}/{o['ram_total_gb']:.1f} GB\n"
+                           f"{dw:+.2f} W over idle   {jf}   "
+                           f"(P6.6: idle {P66_IDLE_W:.2f}, carry {P66_CARRY_W:.2f} W)"))
         # four short lines in the rail, not one 120-char row: same fields, and the
         # commanded-vs-achieved pair sits on one line where it can be compared
         if pilot["mode"] == "copter":

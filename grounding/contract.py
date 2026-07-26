@@ -56,6 +56,16 @@ CARRY_CROP_DEAD_BAND = 0.5   # re-centre only when the box centre leaves the cen
 # only holds within EXP-1; P6.6 never ran 1024.
 CARRY_HZ = 5.76           # EXP-1 on-device SAM2 solo rate @ CARRY_IMAGE_SIZE (2.34 @ 1024)
 
+# ── measured device cost (P6.6, Orin Nano 15 W + jetson_clocks) ─────────────────────
+# Reference watts, so a live reading can be read as good or bad instead of just present.
+# All three are medians of 3 x 300 s arms off the INA3221 VDD_IN rail
+# (`experiments/2026-07-25-maintain-cost/`). The idle floor is with `llama-server`
+# RESIDENT: it costs -0.002 W against a bare board, so residency is free and the whole
+# maintain price is the SAM2 carry loop.
+P66_IDLE_W = 5.19         # A1 idle-deployed: model loaded, nothing asked of it
+P66_CARRY_W = 10.84       # B carry-640 at CARRY_IMAGE_SIZE, i.e. +5.65 W to maintain
+P66_GROUND_W = 11.50      # D, back-to-back q8_0 acquires
+
 # The v2 spine, selected by the numbers in Phase 0c (RefCOCO base-vs-base parity:
 # Qwen2-VL-2B 15% IoU@0.25 / center_std 162 healthy vs SmolVLM-500M 0% / 61 collapsed,
 # and an ~8× smaller HF→GGUF deployment-fidelity gap). Qwen2-VL's native dynamic
