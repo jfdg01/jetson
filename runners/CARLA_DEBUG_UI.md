@@ -146,7 +146,6 @@ carry 9.4 Hz Orin, lag 0, lock 60/60 (207/210 all)          <- verdict, largest 
 4 DELIVER    0.00 s command to box
 5 FOLLOW     auto  0.0 m/s
 deliver 0.00 s | ground 0 ms | carry 106 ms (9.4 Hz) Orin | catch-up 6.5 s | lag 0 f | feed 5 Hz | disp 25 Hz
-[graph: state ribbon over carry Hz / lag frames / on target %]
 armed mode 4  alt 44.6 m  gimbal -90/0
 N  101.9  E  -25.7  D  -44.6
 cmd -0.0  0.0  0.0   got 0.1 m/s
@@ -156,17 +155,15 @@ The five per-stage lines carry the **same numbers 1-5 as the rail cards** on the
 side of the picture, so "what did stage 3 cost" is one horizontal glance from the control
 that runs stage 3. That is why `card()` no longer has a `val` label.
 
-**The graph** (`draw_graph`, cv2 into a numpy array — not matplotlib, because it is
-redrawn from the tick that also flies the camera): the last ~48 s at 5 Hz x 240 samples.
-A 6 px **state ribbon**, one column per sample in the lamps' own colours (green
-delivered, amber maintaining, red drift/lost, grey nothing), over three autoscaled lanes
-— **carry Hz** (the on-device throughput the thesis is about), **lag frames** (the
-delivery staleness Parts IV/V exist to measure: it spikes on a cold ground and drains
-through the catch-up, and that shape *is* the warm-start argument) and **on target %** (an
-EMA of `match_actor`, so a mask breathing off-centre for one step does not read as a
-total loss). Each lane prints `cur / max top` because the axis is autoscaled — a curve
-with no units is exactly the complaint the graph is answering. The ribbon says *when* it
-went wrong, the lanes say *what*.
+**The graph is gone** (removed 2026-07-26T14:20Z). `draw_graph` drew the last ~48 s as a
+state ribbon over three autoscaled lanes (carry Hz / lag frames / on target %). In use it
+added nothing the two live number lines above it do not already say: the operator reads
+the current value off `gtimes`, and the *history* only mattered for the one shape (the lag
+spike draining through the catch-up) that no one watches live — it is measured offline in
+`runs/*/results.json`, which is where every thesis number comes from anyway. Removed
+with it: the `PLOT_HZ/PLOT_N/PLOT_H` constants, the `plot` label, the `hist`/`lock` EMA
+in `preview`, and `test_graph_draws_and_survives_holes`. Restore from git if the shape is
+ever wanted back on screen.
 
 - **`deliver`** — command to box in hand. First, because it is the number the whole
   warm-start argument is about. WARM is ~0.00 s by construction; COLD is the grounding.
@@ -205,17 +202,21 @@ deep tree shadow. Carry then held that patch of asphalt perfectly: `0/417` on ta
 downstream failed.** This is why `designate oracle` exists and why P6.2-DELIVERY held
 designation constant in both arms.
 
-**The panel carries at `image_size` 512, not EXP-1's adopted 640.** A live tool needs the
-tracker to outrun the 5 Hz feed so the catch-up converges: EXP-1's sweep is 8.71 Hz at 512
-vs 5.76 at 640, and the panel measures 9.3 Hz. The cost is EXP-1's 512-vs-640 accuracy gap
-(median IoU 0.780 vs 0.811) and the small/distant-target tail that 1024 protects. Another
-reason no number here is a result.
+**The panel carries at `image_size` 640 — EXP-1's adopted default (changed
+2026-07-26T15:05Z, was 512).** 640 is 99.4% of 1024's median IoU (0.811 vs 0.816) at 2.5x
+the throughput (5.76 vs 2.34 Hz). The old 512 was justified by "the tracker must outrun the
+5 Hz feed or the catch-up never converges" — **that reading came from bad data**: the live
+stack carries at 5-9 Hz, so 640 costs the catch-up nothing. The dropdown is now **640-1024
+only**; below 640 EXP-1's Hz curve saturates (~9-10 Hz at 256/384/512), so the accuracy
+those sizes cost buys no speed. Raise it for the small/distant tail, where `held_frac`
+climbs all the way to 1024 (0.859 -> 0.921).
 
 **WARM vs COLD is 0.00 s vs 10.23 s** on this pipeline. Note the honest gap: 10.23 s is
 **twice** the ~4.85 s the thesis cites for a cold acquire (E18/R-34). That figure was the
 terse whole-frame call; this is a point crop upscaled to 1024 plus PNG-over-ssh, and the
 difference is unmeasured here. Cite E18 for the acquire cost; cite this only as "cold is
-still an order of magnitude worse than warm on the live rig".
+still an order of magnitude worse than warm on the live rig". **That 10.23 s was measured
+at `ground` 1024; the default is now 512** — the same run has not been repeated there.
 
 ## Copter pilot mode
 
@@ -499,7 +500,10 @@ now sorted by distance to the camera before the draw is consumed.
 `set_autopilot(False)` on every vehicle and let a tick land before `DestroyActor`. Without
 it the traffic manager keeps stepping an actor that is already gone and the resulting
 server-side error aborts the UI process. Same crash as the seed call, reached from the
-other end.
+other end. **`load_world` is the third way in:** it destroys every actor server-side
+without asking, so clicking "load" with an autopilot fleet up killed the UI the same way
+(CARLA itself survived). `load_world()` now does the same handback-then-tick before the
+swap.
 
 ## Findings (what we learned)
 
@@ -897,7 +901,7 @@ the argv rewrite headless.
 
 | what | where | needs |
 |---|---|---|
-| key→NED signs, **view-relative `wasd` through the real projection**, `_f` missing-vs-zero, maintained-vs-delivered overlay (amber, thick enough, brackets not a closed box), `draw_graph` shape + holes | `tests/test_pilot_modes.py` | nothing (carla egg importable) |
+| key→NED signs, **view-relative `wasd` through the real projection**, `_f` missing-vs-zero, maintained-vs-delivered overlay (amber, thick enough, brackets not a closed box) | `tests/test_pilot_modes.py` | nothing (carla egg importable) |
 | aim law: pan-not-snap, no overshoot, one correction per frozen box | `tests/test_center_delta.py` | nothing |
 | reload argv rewrite | `tests/test_reload_argv.py` | nothing |
 | mode switching, AUTO refusing without a copter, `oracle`+caption refusing, spawn determinism, cars actually driving | `carla_debug_ui.py --selftest` | a live CARLA |
@@ -932,6 +936,7 @@ standard. Specific traps:
 - **Layout fit at any other window size.** No assert catches a rail that overflows
   (finding 13) — `pack()` has no error path for "does not fit", so the only check is
   `ui_shot.py` plus looking. The panel frames are a maximised 2560x1011 window scaled 0.55
-  to 1408x556; the rail column is ~915 px tall there and has ~60 px of slack, and the
-  instruments column ends ~250 px above the bottom with the graph at its measured height.
+  to 1408x556; the rail column is ~915 px tall there and has ~60 px of slack. Those frames
+  predate BOTH the graph removal and the +2 font bump (2026-07-26), which move the slack in
+  opposite directions — re-shoot `ui_shot.py` and look before trusting the numbers.
 - **The carry bridge death** (`rc` now logged, seen once, not reproduced since).

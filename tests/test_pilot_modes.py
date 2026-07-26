@@ -107,20 +107,6 @@ def test_maintained_box_is_drawn_differently_from_a_delivered_one():
     assert (0, 0, 255) in _colours(adrift)
 
 
-def test_graph_draws_and_survives_holes():
-    """The sparkline: right shape, no data is a message, and a None lane is skipped."""
-    empty = ui.draw_graph([], 300)
-    assert empty.shape == (ui.PLOT_H, 300, 3)
-    assert _colours(empty), "empty must still SAY it is empty"
-    hist = [(5.0 + i % 3, i, None if i < 5 else (i % 10) / 10.0,
-             "maintaining" if i < 5 else "live") for i in range(40)]
-    img = ui.draw_graph(hist, 300)
-    assert img.shape == (ui.PLOT_H, 300, 3)
-    # the three lane colours plus both ribbon states have to be on the canvas
-    for c in ((95, 191, 63), (63, 160, 224), (224, 160, 63)):
-        assert c in _colours(img), c
-
-
 def test_no_box_draws_nothing():
     blank = np.zeros((10, 10, 3), np.uint8)
     assert not _colours(ui.draw_overlay(blank, None, "x", True))

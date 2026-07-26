@@ -114,12 +114,18 @@ def wait_alt(m, target, timeout=90, note=None):
     """
     t0 = time.time()
     alt = 0.0
+    said = None
     while time.time() - t0 < timeout:
         msg = m.recv_match(type="LOCAL_POSITION_NED", blocking=True, timeout=5)
         if msg is None:
             continue
         alt = -msg.z
-        if note is not None:
+        # Only on a whole-metre change. The message interval is set in SIM time, so
+        # under SIM_SPEEDUP (see arm_and_takeoff) this loop runs at speedup x 20 Hz
+        # of wall clock, and an unthrottled sink is a Tk after() queue flooded with
+        # ~200 identical strings a second.
+        if note is not None and round(alt) != said:
+            said = round(alt)
             note(f"climbing {alt:.0f}/{target:.0f} m")
         if abs(alt - target) < 1.0:
             return alt
@@ -160,7 +166,7 @@ def arm(m, tries=60):
     return False
 
 
-def arm_and_takeoff(m, alt, note=None):
+def arm_and_takeoff(m, alt, note=None, speedup=1.0):
     """GUIDED -> armed -> at `alt`. Raises if any step does not actually happen.
 
     `note` is an optional progress sink, passed through to wait_alt (see there).
@@ -169,6 +175,14 @@ def arm_and_takeoff(m, alt, note=None):
     BEFORE arming and never re-asserted after: setting the mode on an armed,
     still-landed copter disarms it. And the whole sequence has to finish inside
     DISARM_DELAY (10 s) or the copter disarms itself while you are still retrying.
+
+    `speedup` runs the CLIMB at SIM_SPEEDUP x wall clock and restores it after.
+    SITL has no teleport -- an airborne copter is airborne because the physics flew
+    it there -- so this is how "just put it at altitude" is bought: 45 m at
+    WPNAV_SPEED_UP 5 m/s is ~9 s of physics, which at 10x is ~1 s of waiting.
+    It is deliberately NOT applied to the arm/mode/retry block above: DISARM_DELAY
+    is 10 s of SIM time, the retry sleeps are wall clock, and a sped-up clock eats
+    that budget -- at 10x a single sleep(1) retry spends the whole of it.
     """
     # A copter left flying by a previous run rejects NAV_TAKEOFF (it is not
     # land_complete), which reads as a mysterious MAV_RESULT_FAILED. Reuse it.
@@ -199,7 +213,16 @@ def arm_and_takeoff(m, alt, note=None):
               f"mode={hb.custom_mode if hb else None}")
     else:
         raise SystemExit("takeoff rejected -- see state above")
-    reached = wait_alt(m, alt, note=note)
+    if speedup > 1.0:
+        set_params(m, {"SIM_SPEEDUP": float(speedup)})
+    try:
+        reached = wait_alt(m, alt, note=note)
+    finally:
+        if speedup > 1.0:
+            # finally, not just the happy path: a SITL left at 10x makes every later
+            # GUIDED setpoint (which are sent at a wall-clock 5 Hz) look like a 0.5 Hz
+            # trickle to the autopilot, and the 3 s setpoint timeout starts firing.
+            set_params(m, {"SIM_SPEEDUP": 1.0})
     if reached < alt - 2.0:
         raise SystemExit(f"never reached {alt} m (got {reached:.1f})")
     return reached

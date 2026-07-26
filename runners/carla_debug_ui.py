@@ -50,6 +50,7 @@ import sys
 import threading
 import time
 import tkinter as tk
+from tkinter import font as tkfont
 from tkinter import ttk
 import traceback
 from pathlib import Path
@@ -67,7 +68,11 @@ from grounding.contract import COORD_SCALE, parse_bbox
 # have to match CarlaUE4's viewport default, back when the operator watched the
 # viewport; headless removed that constraint, so 90 is inherited rather than
 # chosen and is an untested lever on lock rate.
-CAM_W, CAM_H, CAM_FOV = 960, 540, 90
+# SQUARE viewport: what the operator clicks, what the VLM grounds and what SAM2
+# carries are all one square frame, so no stage has to letterbox or crop to a
+# different aspect. fov is HORIZONTAL in CARLA, so square keeps the 90 deg across
+# and widens the vertical from ~59 to 90 -- more ground under a nadir camera.
+CAM_W, CAM_H, CAM_FOV = 960, 960, 90
 # 5 Hz feed. The catch-up only converges if the tracker outruns the camera:
 # SAM2.1-hiera-tiny is 14.4 FPS @1024 on the 3090, so at 5 Hz a ~20-frame backlog
 # (one ~3.9 s VLM call) drains in ~2.1 s at stride 1. At 20 Hz it never converges.
@@ -92,9 +97,12 @@ AUTO_SPAWN = 50   # vehicles spawned once on startup; --auto-spawn 0 to skip
 # self-regulates: when carry outpaces the feed there is <=1 pending and it takes it
 # (smooth); when it falls behind it jumps back to live. P5.1's idle_catchup, sharpened.
 CATCHUP_JUMP = 12
-# 1080p30 cap: a 2144x1206 sensor rendered every frame is more than the 3090 has
-# spare while it also drives CARLA. (Grounding + carry are on the Orin now, not here.)
-MAX_CAM_W = 1920
+# What the OPERATOR is rendered, fixed: 1920x1920 (3.7 Mpx) every live frame. It no
+# longer tracks the window -- the display just downscales, which supersamples rather
+# than blurs, and no window drag respawns the sensor. The model's feed is unaffected:
+# on_image still hands the Jetson CAM_W x CAM_H. Costs ~1.8x the old 1080p budget on
+# the 3090 while it also drives CARLA; drop this if the live FPS readout sags.
+LIVE_CAM_SIDE = 1920
 CARLA_SH = "/home/gara/carla/CARLA_0.9.16/CarlaUE4.sh"
 # ASSIST mode: yaw/pitch to keep the tracked box centred. The knob is the fraction
 # of the OUTSTANDING correction spent per second, so the view eases in and never
@@ -137,10 +145,13 @@ MUTED, LINE, WARN = "#8a8a8a", "#3a3a3a", "#e0a03f"
 # read one machine is three too many: the operator asked where to look, which is the same
 # complaint as not knowing what to press. Left = what you do, right = what happened, top
 # = is it alive (colour only), and nothing at the bottom at all.
-RAIL_W, INSTR_W = 340, 380
-# ~5 Hz x 240 samples = the last ~48 s, which comfortably covers a cold acquire plus its
-# catch-up drain -- the shape the graph exists to show.
-PLOT_HZ, PLOT_N, PLOT_H = 5.0, 240, 190
+# Widened for the square viewport: the picture is height-bound in a wider-than-tall
+# window, so what used to be picture on the sides is now dead letterbox and the columns
+# can take it for free -- the video pane still gets more width than the frame is tall.
+# Every wraplength and the fly-speed slider derive from these two, so this is
+# the only place to change it. On a window narrower than ~2400 px the picture starts
+# paying for it instead; shrink them back if you ever fly this on a laptop.
+RAIL_W, INSTR_W = 470, 580
 # The operator's next action, one line each, keyed by the first unsatisfied stage.
 # A panel with 20 live controls and no opinion about which one to press is why this
 # exists -- see the NEXT/badge block in show_preview for who is satisfied when.
@@ -177,12 +188,15 @@ REMOTE_MMPROJ = f"{REMOTE_DIR}/mmproj-phase3-terse100eos-1024-f16.gguf"
 # SAM2 carry is 99.4% of full IoU at image_size 640 for 2.5x the throughput.
 EXP3_DIR = Path(__file__).resolve().parent.parent / "experiments" / "2026-07-24-point-crop-select"
 CARRY_BRIDGE = "cd ~/sam2-bench && ./.venv/bin/python -u carry_ssh_bridge.py --image-size {size}"
-ORIN_GROUND_RES = 1024
-# 512, not EXP-1's adopted 640: the catch-up only converges if the tracker outruns the
-# 5 Hz feed. EXP-1's sweep is 8.71 Hz at 512 vs 5.76 at 640 vs 2.34 at 1024, and this
-# panel measures 9.3 Hz / 107 ms at 512 live. Costs 512-vs-640 accuracy (median IoU
-# 0.780 vs 0.811) -- fine for a demo, which is why no number from here is a result.
-ORIN_CARRY_SIZE = 512
+# 512, not EXP-2's 1024: the panel is a live demo and the 1024 crop costs seconds of
+# Orin grounding per click. The 1024 arm is still one dropdown away.
+ORIN_GROUND_RES = 512
+# EXP-1's adopted default: 640 is 99.4% of 1024's median IoU (0.811 vs 0.816) at 2.5x
+# the on-device throughput (5.76 vs 2.34 Hz). Below 640 the Hz curve saturates (~9-10 Hz
+# at 256/384/512) so the accuracy it costs buys no speed -- the sub-640 arms are dropped
+# from the dropdown. 640-1024 only; raise it for the small/distant tail, where held_frac
+# keeps climbing all the way to 1024 (0.859 -> 0.921).
+ORIN_CARRY_SIZE = 640
 _EXP3 = {}
 
 # --- copter pilot mode: the P6.1/P6.2 rig, live -----------------------------
@@ -195,6 +209,13 @@ MAVLINK_URL = "tcp:127.0.0.1:5760"
 COPTER_ALT = 45.0        # m AGL. P6.2-DELIVERY flew 45 m nadir. Note G6: q8_0 is
                          # non-discriminative on a car at that range, which is why
                          # the click designator (EXP-3 point crop) exists.
+# SIM_SPEEDUP for the takeoff climb ONLY, so "arm + takeoff" reads as spawning the
+# copter rather than watching it climb. 10x turns 45 m at 5 m/s into ~1 s of wall
+# clock; measured 10.04x against SITL's own clock, and it restores to 1.0 after.
+# Do not raise it much further: SITL's physics is a fixed 1200 Hz of SIM_RATE_HZ, so
+# past the point where one box can produce that many steps per wall second the
+# speedup silently stops being real.
+ARM_SPEEDUP = 10.0
 MANUAL_V_MAX = 15.0      # m/s cap on operator velocity commands (the fly slider
                          # goes to 300, which is a spectator speed, not a copter one).
                          # Matches SPORT_PARAMS["WPNAV_SPEED"] = 1500 cm/s: asking for
@@ -213,6 +234,14 @@ CMD_HZ = 10.0
 # P6.2 warm arm flew. ponytail: P only -- add D when it rings, not before.
 AUTO_KP_LAT = 0.06
 AUTO_MAX_V = 8.0
+# ...and it rings. A P-only pixel servo closed through ~0.3-1 s of carry+delivery
+# dead time is a limit cycle: the copter arrives, the box it is still reacting to is
+# a second old, so it overshoots and comes back -- visible as the view hunting around
+# a centred target. The deadband is the cheap half of the fix: inside it the loop
+# commands nothing, so hunting decays instead of sustaining. 24 px of 960x960 is
+# ~2.5% of frame width, ~3 m of ground at 45 m AGL and ~5 m at 75 m.
+# ponytail: deadband before D. Add the D term if a MOVING target still rings.
+AUTO_DEADBAND_PX = 24.0
 FOLLOW_MODES = ("manual", "assist", "auto")
 # "to origin" is flown by the command loop, not by a blocking helper -- these are its
 # arrival test and its give-up. 3 m is reset_to_origin's own tolerance; 60 s covers the
@@ -323,6 +352,28 @@ def manual_velocity(held, v, yaw_deg=0.0):
     ve = (f * s + r * c) * v
     vd = (("q" in held) - ("e" in held)) * v
     return vn, ve, vd
+
+
+def primary_monitor(root):
+    """(w, h, x, y) of the PRIMARY monitor, in desktop coordinates.
+
+    Tk only knows the COMBINED desktop: winfo_screenwidth() is the whole Xinerama
+    span across every head, so a screen-sized geometry at +0+0 straddles both and
+    the WM then maximises onto whichever monitor holds the window's centre -- which
+    is how this kept opening on the second monitor. xrandr is the only thing here
+    that knows which head is primary. Falls back to the old whole-desktop guess.
+    """
+    try:
+        out = subprocess.run(["xrandr", "--query"], capture_output=True,
+                             text=True, timeout=5).stdout
+        for line in out.splitlines():
+            if " connected primary " in line:
+                m = re.search(r"(\d+)x(\d+)\+(\d+)\+(\d+)", line)
+                if m:
+                    return tuple(int(g) for g in m.groups())
+    except (OSError, subprocess.SubprocessError):
+        pass                                   # no xrandr (wayland, headless): guess
+    return root.winfo_screenwidth(), root.winfo_screenheight(), 0, 0
 
 
 def ensure_sitl(url, wait_s=180):
@@ -598,6 +649,14 @@ def apply_dark(root):
     outright, so the Combobox needs "clam" plus its dropdown styled through the
     option database -- that list is a plain Tk Listbox the theme never reaches.
     """
+    # +2 on the named fonts catches every widget that does NOT pass an explicit font
+    # tuple (Combobox, Entry, Scale, the dropdown Listbox); the explicit tuples were
+    # bumped by the same 2 at their call sites. A tuple spec wins over the named font,
+    # so nothing gets bumped twice.
+    for named in ("TkDefaultFont", "TkFixedFont", "TkTextFont", "TkMenuFont"):
+        f = tkfont.nametofont(named, root=root)
+        sz = f.cget("size")          # negative = pixels, positive = points; keep the sign
+        f.configure(size=sz - 2 if sz < 0 else sz + 2)
     root.tk_setPalette(background=DARK, foreground=TEXT,
                        activeBackground=DARK_HI, activeForeground=TEXT,
                        highlightBackground=DARK, highlightColor=ACCENT,
@@ -663,10 +722,10 @@ def card(parent, num, title):
     badge = None
     if num is not None:
         badge = tk.Label(head, text=f" {num} ", bg=LINE, fg=MUTED,
-                         font=("TkDefaultFont", 8, "bold"))
+                         font=("TkDefaultFont", 10, "bold"))
         badge.pack(side=tk.LEFT, padx=(4, 6), pady=2)
     tk.Label(head, text=title, bg=DARK_HI, fg=TEXT, anchor=tk.W,
-             font=("TkDefaultFont", 9, "bold")).pack(side=tk.LEFT, padx=(6 if num is None
+             font=("TkDefaultFont", 11, "bold")).pack(side=tk.LEFT, padx=(6 if num is None
                                                                         else 0, 0))
     body = tk.Frame(outer, bg=DARK)
     body.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=6, pady=(3, 5))
@@ -688,7 +747,7 @@ def lamp(parent, text):
     9 pt grey mode echo below six identical control rows.
     """
     w = tk.Label(parent, text=f" {text} ", bg=LINE, fg=MUTED,
-                 font=("TkDefaultFont", 8, "bold"))
+                 font=("TkDefaultFont", 10, "bold"))
     w.pack(side=tk.LEFT, padx=(0, 6), pady=4)
     return w
 
@@ -713,7 +772,7 @@ def seg(parent, var, values, lit=ACCENT):
     btns = []
     for v in values:
         b = tk.Radiobutton(parent, text=v, value=v, variable=var, indicatoron=0,
-                           bd=0, padx=10, pady=3, font=("TkDefaultFont", 9, "bold"),
+                           bd=0, padx=10, pady=3, font=("TkDefaultFont", 11, "bold"),
                            highlightthickness=0, takefocus=0,
                            selectcolor=lit, bg=LINE, fg=MUTED,
                            activebackground=DARK_HI, activeforeground=TEXT)
@@ -728,62 +787,6 @@ def seg(parent, var, values, lit=ACCENT):
     var.trace_add("write", paint)
     paint()
     return btns
-
-
-def draw_graph(hist, w, h=PLOT_H):
-    """The last ~48 s of the pipeline as three stacked lanes + a state ribbon.
-
-    hist is a list of (carry_hz, lag_frames, lock_frac, state) samples, oldest first,
-    where state is one of none|maintaining|live|bad. cv2 into a numpy array rather than
-    matplotlib: this is redrawn from the render tick, and the tick also flies the camera.
-
-    Why these three: carry Hz is the on-device throughput the whole thesis is about, lag
-    is the delivery staleness Parts IV/V exist to measure (it spikes on a cold ground and
-    drains through the catch-up -- that shape IS the warm-start argument), and the lock
-    fraction says whether any of it landed on the target. The ribbon is the same
-    green/amber/red the lamps use (green delivered, amber maintaining, red drift/lost --
-    the same three colours as the TRACK lamp and the overlay box), so a glance says "when
-    did it go wrong" and the lanes say "what went wrong".
-    """
-    img = np.full((h, w, 3), 30, np.uint8)          # #1e1e1e
-    if not hist:
-        cv2.putText(img, "no data yet", (8, h // 2), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.4, (138, 138, 138), 1)
-        return img
-    rib = 6
-    lanes = (("carry Hz", 0, lambda s: s[0], (95, 191, 63)),        # green, BGR
-             ("lag frames", 1, lambda s: s[1], (63, 160, 224)),      # amber: staleness
-             ("on target %", 2, lambda s: None if s[2] is None else s[2] * 100,
-              (224, 160, 63)))                                      # blue
-    lane_h = (h - rib) // len(lanes)
-    STATE_BGR = {"none": (58, 58, 58), "maintaining": (63, 160, 224),
-                 "live": (95, 191, 63), "bad": (107, 107, 255)}
-    for i, s in enumerate(hist):                    # ribbon: one column per sample
-        x = int(i * (w - 1) / max(PLOT_N - 1, 1))
-        cv2.line(img, (x, 0), (x, rib - 2), STATE_BGR.get(s[3], (58, 58, 58)), 1)
-    for name, idx, get, colour in lanes:
-        y0 = rib + idx * lane_h
-        cv2.line(img, (0, y0), (w, y0), (58, 58, 58), 1)
-        vals = [get(s) for s in hist]
-        top = max([v for v in vals if v is not None], default=0.0)
-        top = max(top, 1.0)
-        # -22, not -12: the lane's own label and its current value are printed on the
-        # y0+11 baseline, and a full-scale sample plotted into that row put the trace
-        # through the text -- verified by screenshot, which is the only way this shows up
-        pts = [(int(i * (w - 1) / max(PLOT_N - 1, 1)),
-                int(y0 + lane_h - 4 - (v / top) * (lane_h - 22)))
-               for i, v in enumerate(vals) if v is not None]
-        if len(pts) > 1:
-            cv2.polylines(img, [np.array(pts, np.int32)], False, colour, 1)
-        cur = next((v for v in reversed(vals) if v is not None), None)
-        cv2.putText(img, name, (4, y0 + 11), cv2.FONT_HERSHEY_SIMPLEX, 0.33,
-                    (138, 138, 138), 1)
-        # the axis is autoscaled per lane, so the peak has to be printed or the
-        # curve is a shape with no units -- and "which number is this" is the whole
-        # complaint the graph is answering
-        cv2.putText(img, f"{'--' if cur is None else f'{cur:.0f}'} / max {top:.0f}",
-                    (w - 96, y0 + 11), cv2.FONT_HERSHEY_SIMPLEX, 0.33, colour, 1)
-    return img
 
 
 def reload_argv(argv, pgid):
@@ -896,7 +899,7 @@ def main():
                     help="destroy every vehicle/walker/camera in the world at startup, "
                          "including actors this process did not spawn (recovers a world "
                          "polluted by a crashed or leaky earlier run)")
-    ap.add_argument("--acquire", choices=("warm", "cold"), default="warm",
+    ap.add_argument("--acquire", choices=("warm", "cold"), default="cold",
                     help="warm = maintain from designation and deliver on command; "
                          "cold = the designation is the command (the stale-box arm)")
     ap.add_argument("--designate", choices=("vlm", "oracle"), default="vlm",
@@ -926,7 +929,8 @@ def main():
     # Start maximised so the sensor picks the full-screen resolution on the first
     # attach. mutter ignores -zoomed when it is set before the window is mapped,
     # so an explicit screen-sized geometry is the one that actually takes.
-    root.geometry(f"{root.winfo_screenwidth()}x{root.winfo_screenheight() - 60}+0+0")
+    mw, mh, mx, my = primary_monitor(root)
+    root.geometry(f"{mw}x{mh - 60}+{mx}+{my}")
     try:
         root.attributes("-zoomed", True)
     except tk.TclError:
@@ -989,7 +993,7 @@ def main():
     body.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
     tk.Label(head, text="CARLA live stack", bg=DARK_HI, fg=TEXT,
-             font=("TkDefaultFont", 10, "bold")).pack(side=tk.LEFT, padx=(8, 14))
+             font=("TkDefaultFont", 12, "bold")).pack(side=tk.LEFT, padx=(8, 14))
     # Health lights, and ONLY lights: colour plus one word each, no numbers. The
     # numbers they used to carry (rates, altitude, drift seconds) are all in the
     # instruments column now -- a lamp answers "is it alive", the column answers
@@ -1000,7 +1004,7 @@ def main():
     rail.pack(side=tk.LEFT, fill=tk.Y, padx=8, pady=6)
     rail.pack_propagate(False)   # or the cards shrink the rail to their own width
     hint = tk.Label(rail, text="", bg=DARK, fg=WARN, anchor=tk.W, justify=tk.LEFT,
-                    wraplength=RAIL_W - 20, font=("TkDefaultFont", 9, "bold"))
+                    wraplength=RAIL_W - 20, font=("TkDefaultFont", 11, "bold"))
     hint.pack(side=tk.TOP, fill=tk.X, pady=(0, 8))
     # All five cards up front, in the operator's order, so the rail reads 1-2-3-4-5
     # top to bottom no matter where in this file each stage's widgets get built. Same
@@ -1020,23 +1024,23 @@ def main():
     # a telemetry block in the rail) and the operator's complaint was the obvious
     # consequence: no idea where to look. Reading order top to bottom is the order you
     # care in a failure -- verdict, what the machine is doing, per-stage numbers, the
-    # timings behind them, the last 48 s as a picture, then the flight state.
+    # timings behind them, then the flight state.
     instr = tk.Frame(body, bg=DARK, width=INSTR_W)
     instr.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 8), pady=6)
     instr.pack_propagate(False)
     ihead = tk.Frame(instr, bg=DARK_HI)
     ihead.pack(side=tk.TOP, fill=tk.X)
     tk.Label(ihead, text="INSTRUMENTS", bg=DARK_HI, fg=TEXT, anchor=tk.W,
-             font=("TkDefaultFont", 9, "bold")).pack(side=tk.LEFT, padx=6, pady=2)
+             font=("TkDefaultFont", 11, "bold")).pack(side=tk.LEFT, padx=6, pady=2)
     # The verdict, in the largest text on the panel: it is the one line that says
     # whether what you are looking at worked. Wrapped, because LOST/DRIFT print an
     # instruction with them and a truncated instruction is worse than none.
     gstatus = tk.Label(instr, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=TEXT,
-                       wraplength=INSTR_W - 12, font=("TkDefaultFont", 11, "bold"))
+                       wraplength=INSTR_W - 12, font=("TkDefaultFont", 13, "bold"))
     gstatus.pack(side=tk.TOP, fill=tk.X, pady=(6, 2))
     # transient: what a world/link operation just did, or is doing right now
     status = tk.Label(instr, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=MUTED,
-                      wraplength=INSTR_W - 12, font=("TkFixedFont", 8))
+                      wraplength=INSTR_W - 12, font=("TkFixedFont", 10))
     status.pack(side=tk.TOP, fill=tk.X, pady=(0, 6))
     # per-stage numbers, numbered to match the rail on the left: same 1-5, so "what
     # did stage 3 cost" is one horizontal glance from the control that runs stage 3
@@ -1044,21 +1048,19 @@ def main():
     for n, t in ((1, "WORLD"), (2, "PILOT"), (3, "DESIGNATE"), (4, "DELIVER"),
                  (5, "FOLLOW")):
         inum[n] = tk.Label(instr, text=f"{n} {t}", anchor=tk.W, bg=DARK, fg=TEXT,
-                           font=("TkFixedFont", 9))
+                           font=("TkFixedFont", 11))
         inum[n].pack(side=tk.TOP, fill=tk.X)
     gtimes = tk.Label(instr, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=ACCENT,
-                      wraplength=INSTR_W - 12, font=("TkFixedFont", 9))
+                      wraplength=INSTR_W - 12, font=("TkFixedFont", 11))
     gtimes.pack(side=tk.TOP, fill=tk.X, pady=(6, 4))
-    plot = tk.Label(instr, bg=DARK)
-    plot.pack(side=tk.TOP, anchor=tk.W)
     ptel = tk.Label(instr, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=MUTED,
-                    font=("TkFixedFont", 8))
+                    font=("TkFixedFont", 10))
     ptel.pack(side=tk.TOP, fill=tk.X, pady=(6, 0))
     # Which box runs which stage, spelled out. The constraint is that SAM2 and the VLM
     # run ONLY on the Orin and the 3090 runs ONLY the simulator; a demo that cannot be
     # asked where the models are is a demo that can quietly answer "on the 3090".
     gmodes = tk.Label(instr, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=MUTED,
-                      wraplength=INSTR_W - 12, font=("TkFixedFont", 8))
+                      wraplength=INSTR_W - 12, font=("TkFixedFont", 10))
     gmodes.pack(side=tk.BOTTOM, fill=tk.X, pady=(4, 0))
 
     picked = tk.StringVar(value=client.get_world().get_map().name.split("/")[-1])
@@ -1066,6 +1068,38 @@ def main():
                  state="readonly", width=20).pack(side=tk.LEFT)
 
     def load_world(nxt):
+        # Kill the camera FIRST. load_world tears down every actor server-side, and
+        # a sensor whose stream is still live when its actor vanishes crashes the
+        # client inside libcarla -- a SEGFAULT, not an exception, so there is no
+        # catching it after the fact. This used to just drop the handle below and
+        # let the callback race the teardown.
+        if cam["sensor"] is not None:
+            try:
+                cam["sensor"].stop()
+                cam["sensor"].destroy()
+            except RuntimeError:
+                pass                    # already gone with the old world: fine
+            cam["sensor"] = None
+        # Hand our cars back BEFORE the swap, same reason as clear(): load_world
+        # destroys every actor server-side, and the traffic manager stepping a
+        # car that is already gone aborts *this* process -- a core dump, not an
+        # exception, so bg()'s try/except never sees it. CARLA survives, the UI
+        # dies. Autopilot off, let the tick land, then swap.
+        world = client.get_world()
+        port = traffic_manager(client).get_port()
+        for a in world.get_actors(spawned):
+            try:
+                if a.type_id.startswith("controller"):
+                    a.stop()  # same for walker controllers: no command on a ghost
+                elif a.type_id.startswith("vehicle"):
+                    a.set_autopilot(False, port)
+            except RuntimeError:
+                pass
+        if spawned:
+            try:
+                world.wait_for_tick(seconds=2.0)
+            except RuntimeError:
+                pass  # paused (sync mode, no ticker): don't hang the load forever
         # a non-drivable entry (e.g. AnnotationColorLandscape) raises here
         try:
             client.load_world(nxt)
@@ -1325,6 +1359,14 @@ def main():
             pgid = carla_proc if isinstance(carla_proc, int) else (
                 os.getpgid(carla_proc.pid) if carla_proc else 0)
             print("reloading UI, leaving CARLA up", flush=True)
+            # The traffic manager's RPC listener on port 8000 is a boost::asio socket
+            # opened by the C++ client, so it is NOT close-on-exec: execv keeps the fd,
+            # the port stays bound with nobody accepting, and the re-execed process dies
+            # on "bind error -- another carla_debug_ui.py is already running". Nothing
+            # above fd 2 is meant to survive the exec, so drop the lot.
+            sys.stdout.flush()
+            sys.stderr.flush()
+            os.closerange(3, os.sysconf("SC_OPEN_MAX"))
             os.execv(sys.executable,          # never returns
                      [sys.executable, *reload_argv(sys.argv, pgid)])
         root.destroy()
@@ -1417,7 +1459,6 @@ def main():
              # here, live, not read from a table.
              "delivered": True, "cmd_t": None, "deliver_s": None}
     track_lock = threading.Lock()
-    resize = {"job": None}
 
     # --- the resident on-Orin carry bridge (P6.7) -------------------------------
     # One SAM2 process for the whole session, NOT one per designation. P6.7 measured
@@ -1913,8 +1954,20 @@ def main():
         note("SITL: sport params")
         missed = [k for k, v in mavfly.set_params(m, mavfly.SPORT_PARAMS).items()
                   if v is None]
+        # Put the copter where the operator is already looking, instead of at the
+        # CARLA origin. Two halves, done two different ways because SITL has no
+        # teleport: the x/y is free (BASE_N/BASE_E is a RENDER offset -- it decides
+        # where the copter's NED frame gets painted in the city, and the autopilot
+        # never hears about it), the altitude is not (the climb is real physics, so
+        # it is bought with SIM_SPEEDUP inside arm_and_takeoff). Sampled BEFORE the
+        # takeoff so the launch point lands under the camera, and offset by the
+        # copter's current NED so an already-airborne one does not jump.
+        here = cam["spec"].get_transform().location
+        pos = m.recv_match(type="LOCAL_POSITION_NED", blocking=True, timeout=5)
+        n0, e0 = (pos.x, pos.y) if pos is not None else (0.0, 0.0)
+        cr.BASE_N, cr.BASE_E = here.x - n0, here.y - e0
         # reuses one already airborne
-        reached = mavfly.arm_and_takeoff(m, args.alt, note=note)
+        reached = mavfly.arm_and_takeoff(m, args.alt, note=note, speedup=ARM_SPEEDUP)
         pilot["mode"] = "copter"
         cam["t"] = None
         note_missed = f", params not applied: {','.join(missed)}" if missed else ""
@@ -2045,7 +2098,7 @@ def main():
     tk.Label(w3_res, text="carry", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(10, 2))
     carry_size = tk.IntVar(value=ORIN_CARRY_SIZE)
     ttk.Combobox(w3_res, textvariable=carry_size, width=5, state="readonly",
-                 values=(256, 384, 512, 640, 768, 1024)).pack(side=tk.LEFT)
+                 values=(640, 768, 896, 1024)).pack(side=tk.LEFT)
     tk.Label(w3_res, text="Orin", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(6, 0))
     caption_entry = tk.Entry(w3_cap, width=20)
     caption_entry.insert(0, "the red car")
@@ -2054,7 +2107,7 @@ def main():
     tk.Button(w3_cap, text="follow", command=do_follow).pack(side=tk.LEFT, padx=(4, 0))
     tk.Button(w3_drop, text="drop", command=do_drop).pack(side=tk.LEFT)
     tk.Label(w3_drop, text="clears the track and the Orin bridge", bg=DARK, fg=MUTED,
-             font=("TkDefaultFont", 8)).pack(side=tk.LEFT, padx=(6, 0))
+             font=("TkDefaultFont", 10)).pack(side=tk.LEFT, padx=(6, 0))
     # "the current system is only a prechoice of one" -- correct, and asked because the
     # panel never said it. Your click stands in for the idle-window discovery (P5.16:
     # 24/24 GT-free discoveries accepted), and with ONE candidate maintain and select
@@ -2066,7 +2119,7 @@ def main():
                       "the same act -- select is a measured dead end (R-16/R-28), so "
                       "what stage 4 times is delivery, not choosing.",
              bg=DARK, fg=MUTED, anchor=tk.W, justify=tk.LEFT,
-             wraplength=RAIL_W - 28, font=("TkDefaultFont", 8)).pack(side=tk.TOP,
+             wraplength=RAIL_W - 28, font=("TkDefaultFont", 10)).pack(side=tk.TOP,
                                                                     fill=tk.X)
 
     # -- stage 4, DELIVER: who owns the box, and the press that hands it over -------
@@ -2086,7 +2139,7 @@ def main():
     # acquire modes differ ONLY in what the system was allowed to do before it. Say
     # that here, in the mode's own words, and re-say it when the mode changes.
     why = tk.Label(w4, text="", bg=DARK, fg=MUTED, anchor=tk.W, justify=tk.LEFT,
-                   wraplength=RAIL_W - 28, font=("TkDefaultFont", 8))
+                   wraplength=RAIL_W - 28, font=("TkDefaultFont", 10))
     why.pack(side=tk.TOP, fill=tk.X)
     WHY = {"warm": "g = the operator's command. The box already exists (stage 3 has "
                    "been carrying it unasked), so g just hands it over: one carry "
@@ -2106,14 +2159,14 @@ def main():
     follow_mode = tk.StringVar(value="manual")
     seg(w5_auth, follow_mode, FOLLOW_MODES)
     tk.Label(w5, text="assist aims the camera. auto flies the copter.",
-             bg=DARK, fg=MUTED, anchor=tk.W, font=("TkDefaultFont", 8)
+             bg=DARK, fg=MUTED, anchor=tk.W, font=("TkDefaultFont", 10)
              ).pack(side=tk.TOP, fill=tk.X)
 
     # Live feed with the track drawn on it. In-memory PPM into PhotoImage runs at
     # ~115 FPS (no PIL, no disk); a PNG-per-frame round-trip does not. The image
     # MUST stay referenced in `preview` -- a local gets collected and the label
     # renders blank with no error, the silent failure this repo keeps hitting.
-    preview = {"live": None, "ln": -1, "plot": None, "hist": [], "ht": 0.0, "lock": None,
+    preview = {"live": None, "ln": -1,
                "t": time.time(), "n0": 0, "fps": 0.0,
                "disp": 0.0, "dt": time.time()}   # real render-tick rate (see tick)
     # The flown view gets every pixel the two columns do not: one Label, no grid.
@@ -2128,18 +2181,18 @@ def main():
     vhead = tk.Frame(vid, bg=DARK)
     vhead.pack(side=tk.TOP, fill=tk.X)
     tk.Label(vhead, text="FLOWN VIEW", bg=DARK, fg=TEXT,
-             font=("TkDefaultFont", 9, "bold")).pack(side=tk.LEFT)
+             font=("TkDefaultFont", 11, "bold")).pack(side=tk.LEFT)
     # "am I flying?" was a 3 px focus ring and nothing else. The ring stays (it is the
     # real signal, straight from Tk focus) and this says the same thing in words.
     stick = tk.Label(vhead, text="click the view to take the stick", bg=DARK, fg=MUTED,
-                     font=("TkDefaultFont", 9))
+                     font=("TkDefaultFont", 11))
     stick.pack(side=tk.LEFT, padx=(10, 0))
     # The keys live on the header of the thing they steer, not in a rail card (which
     # got clipped off the bottom of a 1043 px window -- screenshot again) and not as a
     # sentence of prose in a control row, which is where they were.
     tk.Label(vhead, text="wasd/qe move   arrows look   space pause   t follow mode   "
                          "g deliver   Shift-click designate",
-             bg=DARK, fg=MUTED, font=("TkFixedFont", 8)).pack(side=tk.RIGHT, padx=(0, 4))
+             bg=DARK, fg=MUTED, font=("TkFixedFont", 10)).pack(side=tk.RIGHT, padx=(0, 4))
     big = tk.Label(vid, bg=DARK)
     big.pack(side=tk.TOP, fill=tk.BOTH, expand=True, pady=(4, 0))
     def _photo(bgr, widget, drop=0, fixed_w=None):
@@ -2265,20 +2318,6 @@ def main():
             f"feed {CAM_HZ:.0f} Hz",
             f"disp {preview['disp']:.0f} Hz",
         )))
-        # --- the last ~48 s as a picture -------------------------------------------
-        # An EMA, not a hit count: the lane is a percentage and a 0/1 square wave would
-        # read as "nothing is on target" for every frame the mask breathes off-centre.
-        preview["lock"] = (None if not (boxed and track["delivered"]) else
-                           0.9 * (preview["lock"] or 0.0)
-                           + 0.1 * (1.0 if track["on_target"] else 0.0))
-        now = time.time()
-        if now - preview["ht"] >= 1.0 / PLOT_HZ:
-            preview["ht"] = now
-            preview["hist"].append((chz or 0.0, track["lag"], preview["lock"], state))
-            del preview["hist"][:-PLOT_N]
-            preview["plot"] = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(
-                draw_graph(preview["hist"], INSTR_W - 12), cv2.COLOR_BGR2RGB)))
-            plot.config(image=preview["plot"])
         # Who is flying, what has been asked for, and which box runs which stage.
         gmodes.config(text="   ".join((
             f"pilot {pilot['mode']}",
@@ -2401,7 +2440,7 @@ def main():
             "e": (0, 0, 1), "q": (0, 0, -1)}
     LOOK = {"left": (-1, 0), "right": (1, 0), "up": (0, 1), "down": (0, -1)}
     cam = {"spec": client.get_world().get_spectator(), "t": None, "sensor": None,
-           "res": (CAM_W, CAM_H)}
+           "res": (LIVE_CAM_SIDE, LIVE_CAM_SIDE)}
 
     # The spectator is a pose, not a sensor -- it has no pixels to grab. Attaching
     # an RGB camera to it makes the flown view readable, and attach_to means the
@@ -2452,34 +2491,11 @@ def main():
         print(clean_world(), flush=True)
     attach_camera()
 
-    def retarget_res():
-        """Render at the size we display at. Upscaling a 960x540 sensor into a
-        maximised window is what looked like a stuck resolution -- it was just
-        blur. Snapped to 16:9 and to 32 px steps so a slow drag is not 40 respawns.
-        """
-        resize["job"] = None
-        if big.winfo_width() < 100:
-            return                       # not laid out yet, winfo_width is 1
-        want_w = max(int(big.winfo_width() / 32) * 32, 640)
-        want_w = min(want_w, MAX_CAM_W)
-        want = (want_w, int(want_w * 9 / 16) // 2 * 2)
-        if want == cam["res"] or busy["on"]:
-            return
-        cam["res"] = want
-        try:
-            attach_camera()
-            status.config(text=f"render {want[0]}x{want[1]}")
-        except RuntimeError as e:
-            status.config(text=f"resize failed: {e}")
-
-    def on_resize(_e=None):
-        # debounce: <Configure> fires per pixel of a drag, and each respawn is an
-        # actor destroy + spawn round-trip
-        if resize["job"] is not None:
-            root.after_cancel(resize["job"])
-        resize["job"] = root.after(400, retarget_res)
-
-    root.bind("<Configure>", on_resize)
+    # The sensor used to be respawned to match the window (upscaling a 960x540 sensor
+    # into a maximised window read as a stuck resolution -- it was just blur). It is
+    # a fixed LIVE_CAM_SIDE square now, which is >= any pane on this desk, so the
+    # display only ever downscales and no drag costs an actor destroy + spawn.
+    status.config(text=f"render {LIVE_CAM_SIDE}x{LIVE_CAM_SIDE}")
 
     def model_box():
         """The box the MODEL is allowed to steer on, or None.
@@ -2490,6 +2506,12 @@ def main():
         "we were already tracking it" and "we flew at something nobody asked for".
         """
         if paused["on"] or not track["delivered"]:
+            return None
+        # ...and not before the carry has drained its backlog. Mid-catch-up the box is
+        # a real box from an OLD frame, so steering on it flies at where the target was
+        # seconds ago -- the copter moves before it knows where to go. catchup_s latches
+        # the first time lag<=1, which is exactly "locked in".
+        if track["catchup_s"] is None:
             return None
         fm = pilot_follow_mode()
         return track["box"] if fm in ("assist", "auto") else None
@@ -2548,6 +2570,13 @@ def main():
         # and doing them per frame is what made this choppy. Only push.
         if cam["t"] is None:
             cam["t"] = cam["spec"].get_transform()
+            # This rig has no roll anywhere -- ned_to_carla hardcodes 0 and nothing
+            # here ever writes one -- but the spectator is a SERVER-side actor, so a
+            # roll set by anyone else (a drag in the CARLA window, a leftover pose)
+            # is inherited and then carried forever, since the loop below only ever
+            # edits yaw and pitch. A tilted horizon is not a view this camera can be
+            # in; pin it at resync, where it also cleans up the basis vectors.
+            cam["t"].rotation.roll = 0.0
         t = cam["t"]
         fwd, right, up = (t.get_forward_vector(), t.get_right_vector(),
                           t.get_up_vector())
@@ -2617,25 +2646,37 @@ def main():
             # loses it because the gain is too low, until you can see both numbers.
             pilot["ned_v"] = (msg.vx, msg.vy, msg.vz)
         auto = pilot_follow_mode() == "auto"
-        # Gimbal. AUTO forces nadir and leaves framing entirely to the PID: that is
-        # P6.2's geometry (hard nadir, north-up), and a gimbal that also chases would
-        # make the position loop's error unobservable -- two controllers, one error.
+        # Gimbal. AUTO still looks straight DOWN -- that is P6.2's geometry and what
+        # the PID's screen axes assume -- and it eases there rather than snapping.
+        # What the operator gets in AUTO is the HEADING only: left/right spins the
+        # nadir view and the spin sticks (the PID is rotated by it below, so any
+        # heading flies the same as north-up). Up/down is refused, because a pitched
+        # camera at an arbitrary heading is not a view this rig can be in.
         gim = pilot["gim"]
-        if auto:
-            gim["pitch"], gim["yaw"] = -90.0, 0.0
-        else:
-            looking = held & LOOK.keys()
-            for k in looking:
-                dyaw, dpitch = LOOK[k]
-                gim["yaw"] += dyaw * GIMBAL_RATE * dt
+        looking = held & LOOK.keys()
+        for k in looking:
+            dyaw, dpitch = LOOK[k]
+            gim["yaw"] += dyaw * GIMBAL_RATE * dt
+            if not auto:
                 gim["pitch"] = max(-89.0, min(0.0,
                                               gim["pitch"] + dpitch * GIMBAL_RATE * dt))
-            if not looking and box is not None:   # ASSIST aims the gimbal, not the copter
-                dyaw, dpitch = ease((aim["yaw"], aim["pitch"]), dt)
+        if not looking or auto:
+            if auto:
+                owed = (0.0, -90.0 - gim["pitch"])   # pitch home, heading untouched
+            elif box is not None:            # ASSIST aims the gimbal, not the copter
+                owed = (aim["yaw"], aim["pitch"])
+            else:
+                owed = None
+            if owed is not None:
+                dyaw, dpitch = ease(owed, dt)
                 gim["yaw"] += dyaw
-                gim["pitch"] = max(-89.0, min(0.0, gim["pitch"] + dpitch))
-                aim["yaw"] -= dyaw
-                aim["pitch"] -= dpitch
+                # -90 is reachable in AUTO (that is the setpoint); manual keeps the
+                # -89 stop so yaw still means something under the operator's hand
+                gim["pitch"] = max(-90.0 if auto else -89.0,
+                                   min(0.0, gim["pitch"] + dpitch))
+                if not auto:
+                    aim["yaw"] -= dyaw
+                    aim["pitch"] -= dpitch
         n, e, d = pilot["ned"]
         # ned_to_carla is P6.1's gated mapping, gimbal angles passed through it rather
         # than re-derived -- the -90 nadir sign in there is the Phase C sky-camera scar.
@@ -2646,8 +2687,7 @@ def main():
         v = min(float(speed.get()), MANUAL_V_MAX)
         if held & MOVE.keys():
             # view-relative: the gimbal yaw the operator is looking along, so `w` is
-            # up the screen at any heading. AUTO pins the gimbal to 0, so the closed
-            # loop keeps flying in the world frame it was measured in.
+            # up the screen at any heading.
             vn, ve, vd = manual_velocity(held & MOVE.keys(), v, gim["yaw"])
             pilot["goto"] = None            # operator outranks a goto, same as ASSIST
         elif auto and box is not None:
@@ -2658,10 +2698,24 @@ def main():
                                           max_vx=AUTO_MAX_V, max_vy=AUTO_MAX_V)
             # Same CascadePID -> LOCAL_NED path run_p62_flight flew, on the SAME box
             # the Orin carry published. cy above centre is north; cx right is east.
-            vel = pilot["pid"].compute({"cx": (box[0] + box[2]) / 2,
-                                        "cy": (box[1] + box[3]) / 2,
-                                        "w": box[2] - box[0], "h": box[3] - box[1]})
-            vn, ve, vd = vel["vx"], vel["vy"], 0.0
+            cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
+            if math.hypot(cx - CAM_W / 2, cy - CAM_H / 2) < AUTO_DEADBAND_PX:
+                vn, ve, vd = 0.0, 0.0, 0.0   # centred enough: stop fighting
+            else:
+                vel = pilot["pid"].compute({"cx": cx, "cy": cy,
+                                            "w": box[2] - box[0],
+                                            "h": box[3] - box[1]})
+                # The PID's vx/vy are SCREEN axes (up, right); they only equal
+                # (north, east) while the gimbal sits at yaw 0. It no longer always
+                # does -- the operator can spin the nadir view -- so rotate by the
+                # gimbal yaw. Same rotation manual_velocity applies, and the same one
+                # CARLA's own up/right vectors give for a pitch=-90 transform. At
+                # yaw 0 it is the identity, i.e. exactly the P6.2 mapping.
+                c = math.cos(math.radians(gim["yaw"]))
+                s = math.sin(math.radians(gim["yaw"]))
+                vn = vel["vx"] * c - vel["vy"] * s
+                ve = vel["vx"] * s + vel["vy"] * c
+                vd = 0.0
         else:
             vn, ve, vd = 0.0, 0.0, 0.0
         pilot["vel"] = (vn, ve, vd)
