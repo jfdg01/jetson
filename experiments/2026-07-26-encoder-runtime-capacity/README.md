@@ -575,12 +575,20 @@ Figures are rebuilt from `runs/exp9/*.json` by the committed `make_proof.py`
 **COMPLETE.** Verdicts: **H1 YES but bounded (+19.5 %, not +52 %)**, **H2 NO**, **H3 YES**,
 **H4 NO (descriptive)**. Adopted: **TensorRT fp16 encoder at 640 for the deployed carry** (G2). Not
 adopted: `hiera-small` (G3), `base_plus` (rate). Stage 2 / INT8: **planned skip** via G4, now with a
-measured ceiling of ~+11 % rather than an assumption.
+measured ceiling of **+5 % over the adopted `trt` arm** (see the H1 back-solve above) rather than an
+assumption.
 
-Deployment note: adoption means the live carry must pass `--trt-encoder ~/sam2-bench/enc640.plan`,
-and the engine is **shape-baked at 640** — the size-gated 1024 fallback EXP-1 kept for small/distant
-targets has **no engine** and stays on the eager path until one is built. Both paths are already
-selectable per-invocation, so no code change is required to keep that fallback working.
+Deployment note: adoption means the live carry must pass `--trt-encoder enc640.plan`, and the engine
+is **shape-baked at 640** — the size-gated 1024 fallback EXP-1 kept for small/distant targets has
+**no engine** and stays on the eager path until one is built.
+
+**Deployed 2026-07-26T23:40Z** in `runners/carla_debug_ui.py`: the panel's bridge command is now
+built by `_bridge_cmd(size)`, which appends `--trt-encoder` from `CARRY_TRT_PLANS = {640:
+"enc640.plan"}` and appends nothing at any other size, so the 1024 fallback keeps working on the
+eager path. Verified live — the spawned bridge reports `image_size=640, K=7 M=16 P=stock
+enc=enc640.plan, ready`. **`runners/run_p62_flight.py` is deliberately left on the eager encoder**:
+it is the frozen P6.2 showcase runner and its published median-IoU-0.960 parity number was measured
+with that encoder; changing its config would invalidate a recorded result.
 
 Registers as an **engineering measurement, not a thesis claim** (R-44), same as EXP-1/2/6/8: the
 p-values above live in this README and in `runs/exp9/results.json`, and **not** in

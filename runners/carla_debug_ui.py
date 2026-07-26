@@ -191,7 +191,19 @@ REMOTE_MMPROJ = f"{REMOTE_DIR}/mmproj-phase3-terse100eos-1024-f16.gguf"
 # grounding wants more pixels on target (see ORIN_GROUND_RES), SAM2 carry is 99.4% of
 # full IoU at image_size 640 for 2.5x the throughput.
 EXP3_DIR = Path(__file__).resolve().parent.parent / "experiments" / "2026-07-24-point-crop-select"
-CARRY_BRIDGE = "cd ~/sam2-bench && ./.venv/bin/python -u carry_ssh_bridge.py --image-size {size}"
+CARRY_BRIDGE = "cd ~/sam2-bench && ./.venv/bin/python -u carry_ssh_bridge.py --image-size {size}{trt}"
+# EXP-9's adopted lever: the fp16 TensorRT image encoder, +19.5% carry rate (173.7 -> 145.4 ms,
+# 5.76 -> 6.88 Hz) for a paired median IoU delta of exactly 0.0000 [CI95 0.0000, +0.0007] over 38
+# clips, PASS unchanged. Keyed by size because a TRT engine's input shape is BAKED IN at build
+# time -- a mismatch is a hard fail, not a silent resize. Only 640 has an engine, so the dropdown's
+# 1024 fallback for the small/distant tail stays on the eager path and simply gets no speedup.
+# Paths are relative: the bridge command cd's into ~/sam2-bench first.
+CARRY_TRT_PLANS = {640: "enc640.plan"}
+
+
+def _bridge_cmd(size: int) -> str:
+    plan = CARRY_TRT_PLANS.get(int(size))
+    return CARRY_BRIDGE.format(size=int(size), trt=f" --trt-encoder {plan}" if plan else "")
 # 512 IS EXP-2's operating point, not a compromise below it: EXP-2's winning PT arm never
 # overrides select_p55's `ROI_RES = 512`, so its "256 px crop" is a 256 px native window
 # upscaled 2x to 512. The 1024 in EXP-2 is its whole-frame NL baseline (`MAX_SIDE`), which
@@ -1551,7 +1563,7 @@ def main():
                 out_dir.mkdir(parents=True, exist_ok=True)
                 bridge["log"] = open(out_dir / "ui_bridge.err", "wb")
                 bridge["proc"] = p = subprocess.Popen(
-                    ["ssh", "-T", "-q", "jetson", CARRY_BRIDGE.format(size=size)],
+                    ["ssh", "-T", "-q", "jetson", _bridge_cmd(size)],
                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=bridge["log"])
                 bridge["size"] = size
             return p
