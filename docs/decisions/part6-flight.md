@@ -719,3 +719,148 @@ smarter way to cross a gap that should not be there.
 *Scope:* WARM arm only, lag 4.85 s, `image_size=512`, Orin at 15 W + `jetson_clocks`, CARLA
 GT bank replayed from disk. RQ-e was pre-registered without a gate; the McNemar values above
 are descriptive, are not in `thesis/claims.json`, and are not Holm-corrected.
+
+### Crop from the 960 display frame, not the native 1920 sensor frame (EXP-4, 2026-07-26)
+
+*Chosen:* MODE 2's click-crop is cut from the same 960 frame `carla_debug_ui.py:on_image()`
+already produces. `on_image` keeps its `INTER_AREA` downscale and the raw 1920 sensor buffer is
+never plumbed through to the crop path.
+
+*Why:* the pre-registered primary contrast measured it directly. C (native 1920, 512 window)
+vs D (960 downscale, 256 window LANCZOS-upscaled to the same 512 feed at the same FOV) is
+b=1, c=0 on hit@0.5 — one discordant pair against a 6-pair floor. S0 had shown the detail is
+genuinely there (Laplacian-variance ratio 4.8-7.5x, visible by eye), so this is not "no
+difference in the pixels"; it is that q8_0 at a 512 feed cannot convert that difference into a
+grounding win. What it *can* convert is magnification: A vs D is b=1, c=8, p=0.039 with zoom as
+the only change and no new detail at all.
+
+*What was given up:* the +0.13 mean-IoU margin C holds over D (0.7651 vs 0.6350, Wilcoxon
+p=0.0029). That is a real quality gap and it is being declined on plumbing grounds — carrying
+the 1920 buffer to the crop site costs a second full-resolution copy per frame in the live UI
+for a gain the binary metric cannot see.
+
+*What it preserves:* the MODE 2 proposal itself. C vs A — the composed change against today's
+deployed crop — is b=8, c=0, p=0.0078, hit@0.5 0.60 to 0.92. Cropping around the operator's
+click is the lever; where the crop is cut from is not.
+
+*Scope:* single-frame grounding only, no carry, q8_0 on the Orin at a 512 feed, 25 CARLA
+`Town10HD_Opt` nadir targets at 61-221 px footprint. A larger feed or a stronger model could
+reopen it; nothing here tests that.
+
+### The bank caption is read off the rendered pixels, not the blueprint attribute (EXP-4)
+
+*Chosen:* the operator phrase's colour word comes from the target's own vehicle-tagged pixels
+inside the GT box — median hue when the body's median saturation clears 60, median lightness
+otherwise.
+
+*Why:* CARLA vans and trucks carry a fixed livery and ignore the blueprint `color` attribute.
+The first bank captioned a van the renderer drew **white** as "the dark red van", and the model
+correctly grounded a genuinely red van elsewhere in the crop. Every log in that run was clean;
+the defect was found only by opening the C-loss overlay, which is the "look at it" rule paying
+for itself. Medians rather than percentiles because a 90th-percentile rule then called a black
+car white off its UBER lettering and a white car blue off a racing stripe.
+
+*What was given up:* discriminative captions. Town10's fleet is 9 grey / 9 white / 6 red /
+1 yellow across the bank, so many targets share a phrase and the absolute hit rates are capped
+by ambiguity rather than by perception. The caption is identical in all four arms, so paired
+contrasts are unaffected — but no absolute rate from this bank should be read as a grounding
+ceiling.
+
+---
+
+### The degenerate-box guard is dropped, not retuned (EXP-5, 2026-07-26T22:55Z)
+
+*Chosen:* ship the crop with **no** guard. The proposal's "ignore a box that grows 2.5x in one
+frame" veto, plus the displacement veto added to catch P5.21's `car10` mechanism, are recorded
+as a measured negative and removed from every downstream arm.
+
+*Why:* the guard does not merely fail to help — it self-latches. On veto the pre-registered
+policy holds the previous box, which freezes the reference the *next* step's ratio and
+displacement are measured against, so the first veto makes the second more likely and the
+sequence never recovers. Measured: `car13` under plain+guard fired 24 vetoes and 20 lost steps
+for a median IoU of 0.000, on a clip the unguarded control held at 0.639; `bike3` under
+crop+guard vetoed one genuine motion burst at area ratio 3.67 and then watched the ratio climb
+3.10 -> 5.95 monotonically against the frozen box, ending at 0.000 where the unguarded crop
+absorbed the same burst and finished at 0.92. Small boxes make it structural rather than
+tunable — `disp_norm` divides by the previous box's long side, and `car13`'s box is 15x9 px, so
+ordinary sub-pixel jitter clears any threshold. Retuning `D_MAX` moves the failure in the wrong
+direction: a *tighter* threshold fires more often and latches sooner.
+
+The threshold itself was also contaminated by its own pre-registered rule — it is the 99th
+percentile of the CONTROL arm's displacement, and CONTROL's distribution contains the drift
+events the veto exists to catch (ALL p99 4.206, TAIL 4.559, EASY 1.734). The run went out at
+the pre-registered 4.2 rather than swapping in the EASY-only 1.7 post hoc, because honouring a
+bad rule and recording why it was bad is worth more than a number that was chosen after seeing
+the data. The verdict does not turn on it either way.
+
+*What was given up:* the only protection against a genuinely degenerate box in the deployed
+UI. Nothing replaces it — `carla_debug_ui.py`'s existing lost branch is now the sole recovery
+path, and a box that blows up mid-flight will be carried until SAM2 itself returns `None`. That
+is the status quo, not a regression; if a guard is wanted later it needs a reference that keeps
+updating on veto (e.g. a decayed or motion-extrapolated `prev`), which is a different design,
+not a different constant.
+
+---
+
+### EXP-6's treatment is a declared post-hoc promotion, with a held-out primary stratum (EXP-5, 2026-07-26T23:05Z)
+
+*Chosen:* re-pre-register EXP-6 with **A4 (fixed 512 crop, dead-band re-centre, no guard)** as
+TREATMENT, and make the **26 clips EXP-5 never touched** the primary stratum for the Wilcoxon,
+with the 12 pilot clips reported separately and explicitly not load-bearing.
+
+*Why:* EXP-5's pre-registered treatment was A5 (crop **+** guard) and it lost its kill gate.
+A4 was a diagnostic arm that exists to attribute the effect, and it won. Carrying it forward is
+selection on the pilot's own data, so the choice is either to bury it or to label it — and
+burying a lever that recovered the tail at 2.7x the throughput of the deployed fallback would
+be worse science than declaring the promotion. The held-out split is what keeps the declaration
+from being cosmetic: the 12 pilot clips are the 8 hardest plus 4 near-ceiling controls, biased
+in both directions, and 26 still clears the n>=25 floor on its own.
+
+*What was given up:* statistical power on the stratum that matters, and probably the headline.
+The held-out 26 are mostly at ceiling under plain carry@640, where a crop has little room to
+add anything, so the pre-registered estimate is an honest p ~ 0.05-0.30 with a real chance the
+primary comes back a TIE while the tail cut is a clear win. That is the correct trade — the
+alternative is a p-value on 38 clips, 12 of which chose the arm.
+
+### EXP-7 is not run, and the campaign closes at EXP-6 (2026-07-26T23:55Z)
+
+*Chosen:* honour §9's entry gate literally — EXP-4 missed its primary, EXP-6 is a partial pass,
+so the closed-loop composed run does not happen. Record it as a pre-registered non-run with
+the reasoning, rather than quietly proceeding or quietly dropping it.
+
+*Why:* the gate and the substance agree, which is the part that makes this easy. EXP-4
+retired lever (a'), so MODE 2's crop-ground half is a crop of the 960 display frame — that is
+`roi_reanchor`, already live at `carla_debug_ui.py:1901`. EXP-6 made the crop-carry half a
+bounded null against the deployed carry (deflated p=0.0918 on 26 held-out clips) everywhere
+except the size-gated path. A composed TREATMENT built from "EXP-4's and EXP-6's winners" is
+therefore the deployed CONTROL plus a null, and 25 live CARLA seeds would be spent measuring
+the system against itself. The pre-registered estimate priced P(reaching EXP-7) at ~0.25 for
+exactly this reason, so this is the planned branch, not a surprise.
+
+*What was given up:* the one closed-loop number this campaign could have produced, and with
+it any in-flight evidence for MODE 2 as a whole. The residual question — whether native
+magnification pays somewhere the 960 path cannot reach — stays open and is *not* answered by
+declining to run this design; S0's 40-px case is the regime where it would have to be asked,
+and that needs a different experiment.
+
+### crop512@640 replaces the size-gated 1024 carry fallback (EXP-6, 2026-07-26T23:55Z)
+
+*Chosen:* the carry crop ships as the **fallback path only** — the operator's escalation for
+small or distant targets becomes a fixed 512 native window carried at 640, instead of raising
+`ORIN_CARRY_SIZE` to 1024 on the dropdown (`carla_debug_ui.py:2099-2101`). The default carry
+stays plain@640, unchanged. **Not yet implemented** — this is the decision the measurement
+supports; the UI edit is separate work and does not belong on the experiment branch.
+
+*Why:* this is what EXP-6 actually licenses. Against plain@1024 the crop is statistically
+indistinguishable (d_IoU -0.002, d_PASS -1 of 38, deflated p=0.566) at **2.7x** the on-device
+rate — so on the escalation path it is strictly cheaper for the same accuracy. Against
+plain@640 it is a null on the held-out 26 (p=0.0918), so promoting it to the default would be
+shipping on a non-significant result and on 12 clips that chose the arm. Splitting the
+decision along the stratum where the evidence differs keeps the deployed default resting on
+its own measurement.
+
+*What was given up:* the simpler story of one carry mode for everything, and the tail win on
+targets the operator never escalates — the fallback is a manual dropdown, so a
+resolution-gated target nobody flags stays on plain@640 and the crop never fires. Also: the
+crop's failure mode (a slightly looser box, `exp6-loss.png`) now sits on the escalation path,
+which is exactly where boxes are already hardest.

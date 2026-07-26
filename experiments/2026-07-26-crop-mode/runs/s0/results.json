@@ -1,0 +1,136 @@
+{
+  "probe": "S0",
+  "gate_ratio": 1.3,
+  "sensor": [
+    1920,
+    1920,
+    90
+  ],
+  "display": 960,
+  "ref": "SM_Mustang_prop4_SM_0",
+  "ref_extent": [
+    2.359,
+    0.947,
+    0.65
+  ],
+  "records": [
+    {
+      "nominal_px": 40,
+      "alt_m": 113.22,
+      "measured_px": 40.5,
+      "analytic_px_area": 642.7,
+      "box_area_px": 657.7,
+      "veh_fill": 0.9353,
+      "crop_side": 96,
+      "win": [
+        912,
+        912
+      ],
+      "lapvar_native": 992.73,
+      "lapvar_down": 131.8,
+      "ratio": 7.532,
+      "mean_absdiff": 5.182,
+      "dominant_frac": 0.0043,
+      "png": "experiments/2026-07-26-crop-mode/runs/s0/pair_040px.png"
+    },
+    {
+      "nominal_px": 60,
+      "alt_m": 75.48,
+      "measured_px": 61.1,
+      "analytic_px_area": 1446.0,
+      "box_area_px": 1497.1,
+      "veh_fill": 0.9364,
+      "crop_side": 96,
+      "win": [
+        912,
+        912
+      ],
+      "lapvar_native": 651.19,
+      "lapvar_down": 126.3,
+      "ratio": 5.156,
+      "mean_absdiff": 4.111,
+      "dominant_frac": 0.0067,
+      "png": "experiments/2026-07-26-crop-mode/runs/s0/pair_061px.png"
+    },
+    {
+      "nominal_px": 100,
+      "alt_m": 45.29,
+      "measured_px": 103.0,
+      "analytic_px_area": 4016.6,
+      "box_area_px": 4257.7,
+      "veh_fill": 0.9413,
+      "crop_side": 154,
+      "win": [
+        882,
+        884
+      ],
+      "lapvar_native": 416.59,
+      "lapvar_down": 86.34,
+      "ratio": 4.825,
+      "mean_absdiff": 3.155,
+      "dominant_frac": 0.014,
+      "png": "experiments/2026-07-26-crop-mode/runs/s0/pair_103px.png"
+    },
+    {
+      "nominal_px": 140,
+      "alt_m": 32.35,
+      "measured_px": 145.9,
+      "analytic_px_area": 7872.5,
+      "box_area_px": 8546.1,
+      "veh_fill": 0.9223,
+      "crop_side": 218,
+      "win": [
+        850,
+        852
+      ],
+      "lapvar_native": 365.07,
+      "lapvar_down": 76.73,
+      "ratio": 4.758,
+      "mean_absdiff": 2.556,
+      "dominant_frac": 0.0178,
+      "png": "experiments/2026-07-26-crop-mode/runs/s0/pair_146px.png"
+    },
+    {
+      "nominal_px": 200,
+      "alt_m": 22.64,
+      "measured_px": 212.2,
+      "analytic_px_area": 16066.3,
+      "box_area_px": 18084.6,
+      "veh_fill": 0.9057,
+      "crop_side": 318,
+      "win": [
+        800,
+        802
+      ],
+      "lapvar_native": 279.7,
+      "lapvar_down": 50.84,
+      "ratio": 5.501,
+      "mean_absdiff": 2.23,
+      "dominant_frac": 0.0263,
+      "png": "experiments/2026-07-26-crop-mode/runs/s0/pair_212px.png"
+    },
+    {
+      "nominal_px": 230,
+      "alt_m": 20.0,
+      "measured_px": 242.2,
+      "analytic_px_area": 20595.2,
+      "box_area_px": 23560.7,
+      "veh_fill": 0.8944,
+      "crop_side": 362,
+      "win": [
+        778,
+        780
+      ],
+      "lapvar_native": 251.25,
+      "lapvar_down": 47.48,
+      "ratio": 5.292,
+      "mean_absdiff": 2.163,
+      "dominant_frac": 0.0247,
+      "png": "experiments/2026-07-26-crop-mode/runs/s0/pair_242px.png"
+    }
+  ],
+  "n_pass": 6,
+  "smallest_two_pass": true,
+  "verdict": "PASS",
+  "note": "NOT satisfied until every pair_*.png is opened and viewed"
+}

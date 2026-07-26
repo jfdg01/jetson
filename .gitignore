@@ -59,6 +59,22 @@ experiments/2026-07-21-carla-gt-bank/runs/bank/**/gt.jsonl
 # See experiments/2026-07-24-point-crop-select/README-exp3.md.
 !experiments/2026-07-24-point-crop-select/runs/exp3/acquire*.json
 
+# ...and the same the other way for EXP-5. results.json alone rebuilds the figure but
+# not the two overlay montages, which are the proof that the guard latches and the
+# scaled window strands -- those need the frozen plan (seed frame + seed box + per-step
+# GT), the per-step boxes/windows/veto traces, and the frozen D_MAX. 276 KB of text
+# total, so make_proof5.py stays runnable from a clean checkout.
+!experiments/2026-07-26-crop-mode/runs/exp5/plan.json
+!experiments/2026-07-26-crop-mode/runs/exp5/dmax.json
+!experiments/2026-07-26-crop-mode/runs/exp5/carry_A*.json
+
+# ...and EXP-6, same reason at gate scale. results.json rebuilds exp6-arms.png but not the
+# win/loss montages, which need the frozen plan (seed frame + seed box + per-step GT) and the
+# per-step boxes/windows of each arm. 3 arms x 38 clips, ~1.2 MB of text, so make_proof6.py
+# stays runnable from a clean checkout.
+!experiments/2026-07-26-crop-mode/runs/exp6/plan.json
+!experiments/2026-07-26-crop-mode/runs/exp6/carry_*.json
+
 # Stray root runs/ — provenance belongs under runners/runs/ or experiments/*/runs/
 # (co-located with its artifact). A bare /runs/ at repo root is always a cwd-relative
 # manifest.write() leak from a driver launched here; never commit it. See manifest.write.

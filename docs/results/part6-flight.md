@@ -637,3 +637,157 @@ already lost. The residual therefore sits upstream in grounding latency, not in 
 Proof: `proof/stage-budget.png`, `proof/paired-handoff.png`, `proof/quality-paired.png`,
 `proof/jump-tradeoff.png`, `proof/seam-{COLD,WARM}.png`, `proof/loss-{COLD,WARM}.png`. Detail:
 `experiments/2026-07-25-handoff-latency/README.md`.
+
+### EXP-4 — native source vs zoom, disentangled (MODE 2 click-crop, lever a')
+
+Run 2026-07-26T20:05Z. Bank-1920-single: 25 CARLA `Town10HD_Opt` nadir captures at 1920²/FOV90,
+one designated vehicle each, footprint 61-221 px, altitude solved per target from
+`alt = f*L/target_px` (20-120 m). Grounding is `phase3-terse100eos-1024-q8_0.gguf` on the Orin
+(15 W + `jetson_clocks`) over `JetsonBackend`; CARLA on the 3090 at 200 W. Four arms, **all fed
+at 512** so feed size is not a confound; window centred on the GT centre (the perfect operator
+click) in every arm. No carry.
+
+| arm | source | window | FOV | feed | hit@0.5 | mean IoU | median IoU | median wall_s |
+|---|---|---|---|--:|--:|--:|--:|--:|
+| **A (CONTROL, deployed)** | 960 | 512 | 53.3% | 512 1:1 | 0.60 | 0.4629 | 0.5455 | 2.04 |
+| B | 1920 | 1024 | 53.3% | 512 2:1 down | 0.52 | 0.4249 | 0.5000 | 2.04 |
+| **C (MODE 2)** | 1920 | 512 | 26.7% | 512 1:1 native | **0.92** | **0.7651** | **0.8571** | 2.03 |
+| D (FOV-matched zoom control) | 960 | 256 | 26.7% | 512 2x LANCZOS up | 0.88 | 0.6350 | 0.6667 | 2.04 |
+
+| contrast | b | c | p (McNemar, exact) | p (Wilcoxon, IoU) | median IoU diff |
+|---|--:|--:|--:|--:|--:|
+| **C vs D** (primary) | 1 | 0 | 1.0 | 0.00285 | 0.0000 |
+| A vs D (zoom alone) | 1 | 8 | 0.0391 | 0.0400 | 0.0000 |
+| A vs B (downscale-chain null) | 4 | 2 | 0.6875 | 0.6832 | 0.0000 |
+| C vs A (MODE 2 vs deployed) | 8 | 0 | 0.0078 | 0.00059 | +0.3308 |
+
+n = 25, **deflated n = 25**: the 30 m separation rule was enforced at selection time (minimum
+realized pairwise camera separation 31.1 m), so there is no post-hoc collapse. The model is
+greedy, so the run is deterministic — a repeat invocation reproduced the table byte-for-byte.
+
+**Primary MISSES its pre-registered gate** (b+c = 1, floor 6), which retires lever (a'): native
+1920 pixels buy nothing at hit@0.5 over a 2x LANCZOS upscale of the 960 display frame. The
+secondaries carry the result — magnification alone wins (A vs D, p=0.039) and MODE 2 beats the
+deployed control decisively (C vs A, p=0.0078, +0.33 median IoU). C's residual 8% is
+referring-expression ambiguity, not detail: the C-loss proof frame grounds a different grey car
+under the caption "the grey car". Descriptive-plus-tested but **not yet in
+`thesis/claims.json`**; not Holm-corrected here.
+
+Proof: `proof/exp4-arms.png`, `proof/exp4-C-win-t06-yellow-taxi.png`,
+`proof/exp4-C-loss-t03-grey-ambiguity.png`. Detail:
+`experiments/2026-07-26-crop-mode/README.md` §6.
+
+---
+
+### EXP-5 — carry-crop mechanism pilot (MODE 2, levers b / c / e)
+
+Run 2026-07-26T22:40Z. 12 UAV123 clips x 6 arms = 72 carry runs, SAM2 on the Orin over
+`carry_ssh_bridge.py` (15 W + `jetson_clocks`), CARLA not involved. Stride 11, 24 steps
+(~8.8 s per clip), frozen EXP-1 seed boxes. Metric = per-clip median IoU vs GT.
+**Exploratory pilot: no test, no p-value, gates nothing** — the n>=25 rule binds gating arms
+and this is not one.
+
+| arm | carry | `image_size` | tail >= 0.25 | tail median IoU | easy median IoU | vetoes | spirals | on-device Hz |
+|---|---|---|---|---|---|---|---|---|
+| A1 CONTROL (deployed) | plain frame | 640 | 4/8 | 0.223 | 0.905 | 0 | 0 | 5.75 |
+| A2 CONTROL-2 (fallback) | plain frame | **1024** | **8/8** | 0.683 | 0.913 | 0 | 0 | **2.34** |
+| A3 GUARD-ONLY | plain + guard | 640 | 3/8 | 0.000 | 0.905 | 44 | 0 | 5.73 |
+| **A4 CROP-FIXED-NOGUARD** | fixed 512 window | 640 | **7/8** | **0.703** | 0.907 | 0 | 0 | **6.30** |
+| A5 CROP-FIXED-GUARD (pre-reg treatment) | fixed 512 + guard | 640 | 5/8 | 0.560 | 0.907 | 24 | 0 | 6.29 |
+| A6 CROP-SCALED-GUARD | `roi_window` + guard | 640 | 6/8 | 0.707 | **0.882** | 5 | 1 (`uav3`) | 6.50 |
+
+`D_MAX` = 4.2 (pre-registered rule: 99th pct of A1's per-step displacement, raw 4.2055 over
+n=278 steps; p50 0.531, p95 2.087). The rule is contaminated by construction — the CONTROL
+distribution contains the drift events the veto exists to catch. Diagnostic split: TAIL p99
+4.559, EASY p99 **1.734**. The rule was honoured as written and 4.2 was used; a tighter
+threshold makes the failure below worse, not better.
+
+**Verdict as pre-registered: KILL.** Kill gate 3 fires (A5 5/8 < A2 8/8 — the config flag
+wins). The proceed gate fails and was **unreachable by construction**: only 4 tail clips sit
+below 0.25 in A1, so ">= 4/8 recovered" demanded a perfect 4/4, and `uav3` (720x480, so its
+window is 480 — barely a crop) is recovered by nothing below 1024. Kill gates 1 and 2 did not
+fire.
+
+The arm decomposition localizes the kill. **Lever e (the guard) is dead as specified**: it
+self-latches, because holding the previous box on veto freezes the reference the next veto is
+measured against. `car13`/A3 = 23 displacement + 1 area vetoes, 20 lost steps, 0.000, where A1
+held 0.639; `bike3`/A5 = one real burst vetoed at ratio 3.67, then the frozen reference drives
+the ratio 3.10 -> 5.95 monotonically, 13 area vetoes, 0.000, where A4 absorbed the same burst
+and finished at 0.92. **Lever c is answered: FIXED beats SCALED** — A6 reaches 6/8 but
+regresses an easy control (`car18` 0.921 -> 0.000, box collapses to 0.37 area ratio and the
+window strands) and owns the only monotone spiral. **Lever b (the fixed crop) survives and is
+free**: A4 beats A1 on the tail 7/8 vs 4/8 (+0.48 tail median), does not regress the easy
+clips, and is *faster* — 6.30 vs 5.75 Hz, transport not compute (median step 159 vs 174 ms; a
+512 crop is a smaller JPEG than a 1280x720 frame at the same `image_size`).
+
+Not in `thesis/claims.json` and no Holm correction — exploratory by pre-registration. A4 is
+carried into EXP-6 as a **declared post-hoc arm promotion**, with a held-out-26 primary
+stratum so the promotion is not graded on the 12 clips that produced it.
+
+Proof: `proof/exp5-arms.png`, `proof/exp5-guard-latches.png`, `proof/exp5-scaled-strands.png`.
+Detail: `experiments/2026-07-26-crop-mode/README.md` §7.
+
+### EXP-6 — carry-crop at gate scale (MODE 2, lever b confirmed)
+
+Run 2026-07-26T23:40Z. 38 UAV123 clips x 3 arms = 114 carry runs, SAM2 on the Orin over
+`carry_ssh_bridge.py` (15 W + `jetson_clocks`), CARLA not involved. Same frozen EXP-1 staging
+as EXP-5 (stride 11, 24 steps, ~8.8 s per clip). Metric = per-clip median IoU vs GT; primary
+test Wilcoxon signed-rank on the **held-out 26** (the clips EXP-5 never touched), deflated by
+UAV123 base sequence; delivered-PASS (median IoU >= 0.25) + exact McNemar secondary.
+
+| arm | carry | `image_size` | median-of-median IoU | PASS | tail-8 PASS | on-device Hz |
+|---|---|---|---|---|---|---|
+| CONTROL (deployed) | plain frame | 640 | 0.811 | 32/38 | 4/8 | 5.76 |
+| **TREATMENT** | fixed 512 window | 640 | **0.815** | **35/38** | **7/8** | **6.31** |
+| CONTROL-2 (fallback) | plain frame | 1024 | 0.817 | 36/38 | 8/8 | 2.34 |
+
+TREATMENT vs CONTROL by stratum (median paired difference, deflated p):
+
+| stratum | n / n_eff | TRT | CTL | PASS | diff | p raw | **p deflated** | McNemar |
+|---|---|---|---|---|---|---|---|---|
+| **held-out 26 (PRIMARY)** | 26 / 24 | 0.831 | 0.833 | 24 / 24 | +0.0085 | 0.1208 | **0.0918** | b=0 c=0 |
+| pilot 12 (contaminated) | 12 / 12 | 0.774 | 0.681 | 11 / 8 | +0.0735 | 0.01367 | 0.01367 | b=3 c=0 |
+| all 38 (descriptive) | 38 / 36 | 0.815 | 0.811 | 35 / 32 | +0.0190 | 0.003965 | 0.002947 | b=3 c=0 |
+| tail 8 | 8 / 8 | 0.703 | 0.223 | 7 / 4 | +0.0940 | 0.01562 | 0.01562 | b=3 c=0 |
+| non-tail 30 | 30 / 28 | 0.853 | 0.834 | 28 / 28 | +0.0060 | 0.1128 | 0.0875 | b=0 c=0 |
+
+TREATMENT vs CONTROL-2: held-out 26 diff +0.0050 deflated p=0.566; all 38 +0.0015 p=0.6745;
+tail-8 +0.0080 p=0.945 — indistinguishable everywhere, at 2.7x the rate.
+
+**Verdict: PARTIAL PASS — throughput-matched parity with the 1024 fallback, tail-scoped win,
+not a blanket carry replacement.** Exactly the pre-registered most-likely outcome. The
+shipping gate passes (d_IoU -0.002, d_PASS -1 clip, rate 2.7x, all inside the pre-registered
+bounds). The accuracy gate **fails**: +0.0085 at deflated p=0.0918 on the held-out 26 is a
+bounded null, and the stratum is at ceiling under both arms (PASS 24/24 each, both ~0.83), so
+there was nothing there for a crop to add. The effect lives in the resolution-gated tail
+(0.703 vs 0.223, PASS 7/4) — descriptive, n=8, not a powered claim.
+
+Two artefacts checked rather than assumed. **`n_lost` (38 vs CONTROL's 24) is not a crop
+cost**: every extra lost step falls in `car11`/`uav3`/`uav8`, the three clips that read 0.000
+in *all three* arms — the crop never loses a target the plain arm holds. **The 720x480
+subgroup** (`uav3`, `uav8`; the only two non-1280x720 clips) is uninformative, not negative:
+the window is `min(512, 480) = 480`, barely a crop, and both are 0.000 in both arms. `uav3`
+reaches 0.436 under CONTROL-2, i.e. it is resolution-gated and only the 1024 fallback delivers
+it — the size-gated-fallback argument, measured.
+
+Estimate vs actual: PASS predicted 32/35/36, measured 32/35/36; CONTROL 0.811 predicted and
+measured. TREATMENT's median-of-median came in 0.815 against a predicted 0.845 (the pilot's
+margin did not survive 26 ceiling clips). On-device cost ~12 min against a ~3-4 hr estimate
+(that estimate priced all three arms at 1024 timings; two run at 640).
+
+Not in `thesis/claims.json` — the primary is a null and the parity result is an engineering
+gate, not a thesis claim; no Holm entry. Machine: SAM2 on `jetson-orin-nano-8gb`, no 3090.
+
+Proof: `proof/exp6-arms.png`, `proof/exp6-win.png`, `proof/exp6-loss.png`.
+Detail: `experiments/2026-07-26-crop-mode/README.md` §8.
+
+### EXP-7 — composed MODE 2, closed loop: NOT RUN (gate not met)
+
+Recorded 2026-07-26T23:55Z. §9's entry condition was "runs only if EXP-4 and EXP-6 both
+pass". EXP-4 missed its primary (lever a' retired) and EXP-6 is a partial pass, so the gate
+did not fire — and the composition makes that substantive rather than procedural: EXP-4
+retired the native-1920 source, so MODE 2's ground half collapses onto the already-deployed
+`roi_reanchor` on the 960 frame, and EXP-6's carry half is a measured null against the
+deployed carry except on the size-gated path. TREATMENT would have been the deployed system
+plus a null. 25 live CARLA seeds and ~1-2 days not spent. Detail:
+`experiments/2026-07-26-crop-mode/README.md` §9.

@@ -1,0 +1,2086 @@
+{
+ "exp": "EXP-4",
+ "bank": "Bank-1920-single",
+ "n": 25,
+ "n_deflated": 25,
+ "deflation": "min pairwise camera sep enforced at 30.0 m",
+ "feed": 512,
+ "hit_gate": 0.5,
+ "arms": {
+  "A": [
+   960,
+   512
+  ],
+  "B": [
+   1920,
+   1024
+  ],
+  "C": [
+   1920,
+   512
+  ],
+  "D": [
+   960,
+   256
+  ]
+ },
+ "summary": {
+  "A": {
+   "hit_rate": 0.6,
+   "mean_iou": 0.4629,
+   "median_iou": 0.5455,
+   "median_wall_s": 2.04
+  },
+  "B": {
+   "hit_rate": 0.52,
+   "mean_iou": 0.4249,
+   "median_iou": 0.5,
+   "median_wall_s": 2.04
+  },
+  "C": {
+   "hit_rate": 0.92,
+   "mean_iou": 0.7651,
+   "median_iou": 0.8571,
+   "median_wall_s": 2.03
+  },
+  "D": {
+   "hit_rate": 0.88,
+   "mean_iou": 0.635,
+   "median_iou": 0.6667,
+   "median_wall_s": 2.04
+  }
+ },
+ "tests": {
+  "C_vs_D": {
+   "b": 1,
+   "c": 0,
+   "p_mcnemar": 1.0,
+   "p_wilcoxon": 0.00285,
+   "median_iou_diff": 0.0
+  },
+  "A_vs_D": {
+   "b": 1,
+   "c": 8,
+   "p_mcnemar": 0.03906,
+   "p_wilcoxon": 0.04001,
+   "median_iou_diff": 0.0
+  },
+  "A_vs_B": {
+   "b": 4,
+   "c": 2,
+   "p_mcnemar": 0.6875,
+   "p_wilcoxon": 0.68324,
+   "median_iou_diff": 0.0
+  },
+  "C_vs_A": {
+   "b": 8,
+   "c": 0,
+   "p_mcnemar": 0.00781,
+   "p_wilcoxon": 0.00059,
+   "median_iou_diff": 0.3308
+  }
+ },
+ "verdict": "MISS",
+ "per": [
+  {
+   "name": "t00_small",
+   "caption": "the red car",
+   "footprint_px": 61.5,
+   "alt_m": 66.9,
+   "arms": {
+    "A": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.37,
+     "win": [
+      224,
+      224,
+      736,
+      736
+     ],
+     "pred_crop": [
+      16,
+      84,
+      20,
+      93
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.06,
+     "win": [
+      448,
+      448,
+      1472,
+      1472
+     ],
+     "pred_crop": [
+      17,
+      83,
+      20,
+      93
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 0.5,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      704,
+      704,
+      1216,
+      1216
+     ],
+     "pred_crop": [
+      45,
+      48,
+      55,
+      53
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.5,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      352,
+      352,
+      608,
+      608
+     ],
+     "pred_crop": [
+      45,
+      47,
+      55,
+      53
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t01_small",
+   "caption": "the white van",
+   "footprint_px": 63.9,
+   "alt_m": 71.69,
+   "arms": {
+    "A": {
+     "iou": 0.5455,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      224,
+      224,
+      736,
+      736
+     ],
+     "pred_crop": [
+      47,
+      49,
+      52,
+      53
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.3077,
+     "hit": false,
+     "wall_s": 2.03,
+     "win": [
+      448,
+      448,
+      1472,
+      1472
+     ],
+     "pred_crop": [
+      50,
+      46,
+      56,
+      51
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.02,
+     "win": [
+      704,
+      704,
+      1216,
+      1216
+     ],
+     "pred_crop": [
+      43,
+      48,
+      56,
+      54
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.5,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      352,
+      352,
+      608,
+      608
+     ],
+     "pred_crop": [
+      41,
+      48,
+      50,
+      55
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t02_small",
+   "caption": "the white van",
+   "footprint_px": 61.9,
+   "alt_m": 71.07,
+   "arms": {
+    "A": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.04,
+     "win": [
+      224,
+      210,
+      736,
+      722
+     ],
+     "pred_crop": [
+      40,
+      25,
+      43,
+      31
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.75,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      448,
+      419,
+      1472,
+      1443
+     ],
+     "pred_crop": [
+      49,
+      48,
+      52,
+      55
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      704,
+      675,
+      1216,
+      1187
+     ],
+     "pred_crop": [
+      47,
+      44,
+      52,
+      56
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      352,
+      338,
+      608,
+      594
+     ],
+     "pred_crop": [
+      46,
+      44,
+      52,
+      57
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t03_small",
+   "caption": "the grey car",
+   "footprint_px": 68.1,
+   "alt_m": 60.89,
+   "arms": {
+    "A": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.04,
+     "win": [
+      229,
+      205,
+      741,
+      717
+     ],
+     "pred_crop": [
+      30,
+      56,
+      33,
+      63
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.04,
+     "win": [
+      458,
+      410,
+      1482,
+      1434
+     ],
+     "pred_crop": [
+      31,
+      51,
+      33,
+      59
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.03,
+     "win": [
+      714,
+      666,
+      1226,
+      1178
+     ],
+     "pred_crop": [
+      10,
+      61,
+      16,
+      77
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.04,
+     "win": [
+      357,
+      333,
+      613,
+      589
+     ],
+     "pred_crop": [
+      11,
+      61,
+      16,
+      76
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t04_small",
+   "caption": "the red fire truck",
+   "footprint_px": 70.0,
+   "alt_m": 120.0,
+   "arms": {
+    "A": {
+     "iou": 0.6,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      224,
+      224,
+      736,
+      736
+     ],
+     "pred_crop": [
+      48,
+      48,
+      51,
+      56
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.6,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      448,
+      448,
+      1472,
+      1472
+     ],
+     "pred_crop": [
+      48,
+      48,
+      51,
+      56
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.02,
+     "win": [
+      704,
+      704,
+      1216,
+      1216
+     ],
+     "pred_crop": [
+      48,
+      44,
+      53,
+      58
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      352,
+      352,
+      608,
+      608
+     ],
+     "pred_crop": [
+      48,
+      44,
+      52,
+      57
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t05_small",
+   "caption": "the white car",
+   "footprint_px": 61.9,
+   "alt_m": 60.89,
+   "arms": {
+    "A": {
+     "iou": 0.6667,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      224,
+      224,
+      736,
+      736
+     ],
+     "pred_crop": [
+      47,
+      47,
+      51,
+      53
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.03,
+     "win": [
+      448,
+      448,
+      1472,
+      1472
+     ],
+     "pred_crop": [
+      46,
+      48,
+      49,
+      55
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 0.5,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      704,
+      704,
+      1216,
+      1216
+     ],
+     "pred_crop": [
+      47,
+      45,
+      53,
+      55
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.5,
+     "hit": true,
+     "wall_s": 2.05,
+     "win": [
+      352,
+      352,
+      608,
+      608
+     ],
+     "pred_crop": [
+      45,
+      45,
+      52,
+      55
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t06_small",
+   "caption": "the yellow car",
+   "footprint_px": 62.5,
+   "alt_m": 85.85,
+   "arms": {
+    "A": {
+     "iou": 0.6,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      214,
+      210,
+      726,
+      722
+     ],
+     "pred_crop": [
+      48,
+      46,
+      52,
+      54
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.5,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      429,
+      419,
+      1453,
+      1443
+     ],
+     "pred_crop": [
+      47,
+      47,
+      51,
+      55
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      685,
+      675,
+      1197,
+      1187
+     ],
+     "pred_crop": [
+      46,
+      45,
+      55,
+      57
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.3333,
+     "hit": false,
+     "wall_s": 2.04,
+     "win": [
+      342,
+      338,
+      598,
+      594
+     ],
+     "pred_crop": [
+      49,
+      44,
+      56,
+      57
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t07_small",
+   "caption": "the white car",
+   "footprint_px": 61.7,
+   "alt_m": 60.89,
+   "arms": {
+    "A": {
+     "iou": 0.5455,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      224,
+      224,
+      736,
+      736
+     ],
+     "pred_crop": [
+      47,
+      49,
+      52,
+      53
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.75,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      448,
+      448,
+      1472,
+      1472
+     ],
+     "pred_crop": [
+      47,
+      49,
+      52,
+      52
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 0.75,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      704,
+      704,
+      1216,
+      1216
+     ],
+     "pred_crop": [
+      44,
+      47,
+      54,
+      54
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.5,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      352,
+      352,
+      608,
+      608
+     ],
+     "pred_crop": [
+      45,
+      47,
+      53,
+      55
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t08_small",
+   "caption": "the grey car",
+   "footprint_px": 63.1,
+   "alt_m": 78.43,
+   "arms": {
+    "A": {
+     "iou": 0.4,
+     "hit": false,
+     "wall_s": 2.03,
+     "win": [
+      238,
+      234,
+      750,
+      746
+     ],
+     "pred_crop": [
+      46,
+      48,
+      51,
+      54
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.2,
+     "hit": false,
+     "wall_s": 2.03,
+     "win": [
+      477,
+      467,
+      1501,
+      1491
+     ],
+     "pred_crop": [
+      46,
+      48,
+      49,
+      54
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 0.5,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      733,
+      723,
+      1245,
+      1235
+     ],
+     "pred_crop": [
+      45,
+      46,
+      54,
+      55
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.5,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      366,
+      362,
+      622,
+      618
+     ],
+     "pred_crop": [
+      45,
+      46,
+      53,
+      57
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t09_small",
+   "caption": "the grey car",
+   "footprint_px": 61.2,
+   "alt_m": 80.43,
+   "arms": {
+    "A": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.03,
+     "win": [
+      224,
+      224,
+      736,
+      736
+     ],
+     "pred_crop": [
+      32,
+      17,
+      38,
+      21
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.03,
+     "win": [
+      448,
+      448,
+      1472,
+      1472
+     ],
+     "pred_crop": [
+      32,
+      17,
+      38,
+      21
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      704,
+      704,
+      1216,
+      1216
+     ],
+     "pred_crop": [
+      47,
+      44,
+      53,
+      56
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.75,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      352,
+      352,
+      608,
+      608
+     ],
+     "pred_crop": [
+      48,
+      44,
+      52,
+      55
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t10_mid",
+   "caption": "the grey car",
+   "footprint_px": 125.2,
+   "alt_m": 39.79,
+   "arms": {
+    "A": {
+     "iou": 0.6667,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      224,
+      253,
+      736,
+      765
+     ],
+     "pred_crop": [
+      46,
+      44,
+      52,
+      55
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.5714,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      448,
+      506,
+      1472,
+      1530
+     ],
+     "pred_crop": [
+      46,
+      43,
+      52,
+      56
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.02,
+     "win": [
+      704,
+      762,
+      1216,
+      1274
+     ],
+     "pred_crop": [
+      45,
+      38,
+      55,
+      62
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      352,
+      381,
+      608,
+      637
+     ],
+     "pred_crop": [
+      45,
+      37,
+      54,
+      63
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t11_mid",
+   "caption": "the red car",
+   "footprint_px": 126.7,
+   "alt_m": 29.64,
+   "arms": {
+    "A": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.04,
+     "win": [
+      224,
+      224,
+      736,
+      736
+     ],
+     "pred_crop": [
+      22,
+      37,
+      28,
+      52
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.04,
+     "win": [
+      448,
+      448,
+      1472,
+      1472
+     ],
+     "pred_crop": [
+      22,
+      37,
+      29,
+      52
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      704,
+      704,
+      1216,
+      1216
+     ],
+     "pred_crop": [
+      44,
+      38,
+      57,
+      63
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.6667,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      352,
+      352,
+      608,
+      608
+     ],
+     "pred_crop": [
+      46,
+      39,
+      57,
+      64
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t12_mid",
+   "caption": "the grey car",
+   "footprint_px": 125.0,
+   "alt_m": 39.14,
+   "arms": {
+    "A": {
+     "iou": 0.8571,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      224,
+      195,
+      736,
+      707
+     ],
+     "pred_crop": [
+      48,
+      45,
+      52,
+      58
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.8571,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      448,
+      390,
+      1472,
+      1414
+     ],
+     "pred_crop": [
+      48,
+      45,
+      52,
+      58
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 0.6667,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      704,
+      646,
+      1216,
+      1158
+     ],
+     "pred_crop": [
+      46,
+      39,
+      56,
+      63
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.5,
+     "hit": true,
+     "wall_s": 2.05,
+     "win": [
+      352,
+      323,
+      608,
+      579
+     ],
+     "pred_crop": [
+      48,
+      41,
+      56,
+      66
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t13_mid",
+   "caption": "the red fire truck",
+   "footprint_px": 134.4,
+   "alt_m": 67.74,
+   "arms": {
+    "A": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.04,
+     "win": [
+      224,
+      210,
+      736,
+      722
+     ],
+     "pred_crop": [
+      35,
+      40,
+      39,
+      46
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.04,
+     "win": [
+      448,
+      419,
+      1472,
+      1443
+     ],
+     "pred_crop": [
+      36,
+      40,
+      39,
+      46
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 0.5806,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      704,
+      675,
+      1216,
+      1187
+     ],
+     "pred_crop": [
+      48,
+      39,
+      59,
+      66
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.6774,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      352,
+      338,
+      608,
+      594
+     ],
+     "pred_crop": [
+      47,
+      38,
+      58,
+      65
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t14_mid",
+   "caption": "the red car",
+   "footprint_px": 125.4,
+   "alt_m": 38.85,
+   "arms": {
+    "A": {
+     "iou": 0.5263,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      248,
+      224,
+      760,
+      736
+     ],
+     "pred_crop": [
+      44,
+      49,
+      53,
+      53
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.3529,
+     "hit": false,
+     "wall_s": 2.04,
+     "win": [
+      496,
+      448,
+      1520,
+      1472
+     ],
+     "pred_crop": [
+      43,
+      49,
+      50,
+      54
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 0.8571,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      752,
+      704,
+      1264,
+      1216
+     ],
+     "pred_crop": [
+      38,
+      45,
+      61,
+      55
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.5263,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      376,
+      352,
+      632,
+      608
+     ],
+     "pred_crop": [
+      42,
+      46,
+      60,
+      57
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t15_mid",
+   "caption": "the grey car",
+   "footprint_px": 131.1,
+   "alt_m": 39.79,
+   "arms": {
+    "A": {
+     "iou": 0.3846,
+     "hit": false,
+     "wall_s": 2.03,
+     "win": [
+      190,
+      229,
+      702,
+      741
+     ],
+     "pred_crop": [
+      48,
+      46,
+      57,
+      51
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.5714,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      381,
+      458,
+      1405,
+      1482
+     ],
+     "pred_crop": [
+      49,
+      47,
+      57,
+      53
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 0.8571,
+     "hit": true,
+     "wall_s": 2.02,
+     "win": [
+      637,
+      714,
+      1149,
+      1226
+     ],
+     "pred_crop": [
+      40,
+      44,
+      64,
+      55
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.5714,
+     "hit": true,
+     "wall_s": 2.05,
+     "win": [
+      318,
+      357,
+      574,
+      613
+     ],
+     "pred_crop": [
+      45,
+      44,
+      61,
+      54
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t16_mid",
+   "caption": "the white car",
+   "footprint_px": 127.0,
+   "alt_m": 29.07,
+   "arms": {
+    "A": {
+     "iou": 0.8333,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      224,
+      224,
+      736,
+      736
+     ],
+     "pred_crop": [
+      44,
+      47,
+      54,
+      53
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      448,
+      448,
+      1472,
+      1472
+     ],
+     "pred_crop": [
+      44,
+      47,
+      55,
+      53
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 0.75,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      704,
+      704,
+      1216,
+      1216
+     ],
+     "pred_crop": [
+      39,
+      45,
+      62,
+      57
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.75,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      352,
+      352,
+      608,
+      608
+     ],
+     "pred_crop": [
+      40,
+      46,
+      62,
+      58
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t17_mid",
+   "caption": "the white car",
+   "footprint_px": 126.2,
+   "alt_m": 30.45,
+   "arms": {
+    "A": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      238,
+      224,
+      750,
+      736
+     ],
+     "pred_crop": [
+      44,
+      47,
+      56,
+      54
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.04,
+     "win": [
+      477,
+      448,
+      1501,
+      1472
+     ],
+     "pred_crop": [
+      17,
+      58,
+      28,
+      65
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 0.8571,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      733,
+      704,
+      1245,
+      1216
+     ],
+     "pred_crop": [
+      39,
+      44,
+      62,
+      57
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.8571,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      366,
+      352,
+      622,
+      608
+     ],
+     "pred_crop": [
+      38,
+      44,
+      60,
+      58
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t18_large",
+   "caption": "the grey car",
+   "footprint_px": 213.3,
+   "alt_m": 24.13,
+   "arms": {
+    "A": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.02,
+     "win": [
+      224,
+      224,
+      736,
+      736
+     ],
+     "pred_crop": [
+      46,
+      65,
+      54,
+      84
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.02,
+     "win": [
+      448,
+      448,
+      1472,
+      1472
+     ],
+     "pred_crop": [
+      46,
+      65,
+      54,
+      84
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.06,
+     "win": [
+      704,
+      704,
+      1216,
+      1216
+     ],
+     "pred_crop": [
+      41,
+      81,
+      58,
+      100
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.09,
+     "win": [
+      352,
+      352,
+      608,
+      608
+     ],
+     "pred_crop": [
+      41,
+      81,
+      58,
+      100
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t19_large",
+   "caption": "the grey car",
+   "footprint_px": 214.2,
+   "alt_m": 23.0,
+   "arms": {
+    "A": {
+     "iou": 0.6667,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      224,
+      277,
+      736,
+      789
+     ],
+     "pred_crop": [
+      46,
+      40,
+      54,
+      61
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.8333,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      448,
+      554,
+      1472,
+      1578
+     ],
+     "pred_crop": [
+      46,
+      40,
+      55,
+      61
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 0.6667,
+     "hit": true,
+     "wall_s": 2.02,
+     "win": [
+      704,
+      810,
+      1216,
+      1322
+     ],
+     "pred_crop": [
+      41,
+      30,
+      59,
+      69
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.6667,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      352,
+      405,
+      608,
+      661
+     ],
+     "pred_crop": [
+      41,
+      30,
+      59,
+      69
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t20_large",
+   "caption": "the white car",
+   "footprint_px": 220.2,
+   "alt_m": 22.1,
+   "arms": {
+    "A": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.04,
+     "win": [
+      166,
+      219,
+      678,
+      731
+     ],
+     "pred_crop": [
+      79,
+      32,
+      90,
+      40
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.0,
+     "hit": false,
+     "wall_s": 2.04,
+     "win": [
+      333,
+      438,
+      1357,
+      1462
+     ],
+     "pred_crop": [
+      80,
+      33,
+      90,
+      39
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 0.7333,
+     "hit": true,
+     "wall_s": 2.02,
+     "win": [
+      589,
+      694,
+      1101,
+      1206
+     ],
+     "pred_crop": [
+      31,
+      43,
+      72,
+      61
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.6,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      294,
+      347,
+      550,
+      603
+     ],
+     "pred_crop": [
+      35,
+      43,
+      70,
+      61
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t21_large",
+   "caption": "the grey car",
+   "footprint_px": 214.5,
+   "alt_m": 25.14,
+   "arms": {
+    "A": {
+     "iou": 0.9091,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      219,
+      224,
+      731,
+      736
+     ],
+     "pred_crop": [
+      42,
+      46,
+      60,
+      54
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.9091,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      438,
+      448,
+      1462,
+      1472
+     ],
+     "pred_crop": [
+      41,
+      46,
+      60,
+      54
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 0.9091,
+     "hit": true,
+     "wall_s": 2.02,
+     "win": [
+      694,
+      704,
+      1206,
+      1216
+     ],
+     "pred_crop": [
+      32,
+      42,
+      71,
+      58
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.9091,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      347,
+      352,
+      603,
+      608
+     ],
+     "pred_crop": [
+      33,
+      42,
+      69,
+      56
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t22_large",
+   "caption": "the red car",
+   "footprint_px": 214.1,
+   "alt_m": 24.04,
+   "arms": {
+    "A": {
+     "iou": 0.5714,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      224,
+      248,
+      736,
+      760
+     ],
+     "pred_crop": [
+      45,
+      41,
+      55,
+      62
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.678,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      448,
+      496,
+      1472,
+      1520
+     ],
+     "pred_crop": [
+      46,
+      41,
+      55,
+      62
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      704,
+      752,
+      1216,
+      1264
+     ],
+     "pred_crop": [
+      41,
+      30,
+      59,
+      72
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.7333,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      352,
+      376,
+      608,
+      632
+     ],
+     "pred_crop": [
+      42,
+      30,
+      60,
+      74
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t23_large",
+   "caption": "the white van",
+   "footprint_px": 220.9,
+   "alt_m": 21.32,
+   "arms": {
+    "A": {
+     "iou": 0.8,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      224,
+      229,
+      736,
+      741
+     ],
+     "pred_crop": [
+      45,
+      40,
+      54,
+      61
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 0.7407,
+     "hit": true,
+     "wall_s": 2.03,
+     "win": [
+      448,
+      458,
+      1472,
+      1482
+     ],
+     "pred_crop": [
+      45,
+      41,
+      53,
+      61
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.02,
+     "win": [
+      704,
+      714,
+      1216,
+      1226
+     ],
+     "pred_crop": [
+      42,
+      29,
+      58,
+      69
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      352,
+      357,
+      608,
+      613
+     ],
+     "pred_crop": [
+      42,
+      28,
+      58,
+      69
+     ],
+     "raw": null
+    }
+   }
+  },
+  {
+   "name": "t24_large",
+   "caption": "the white car",
+   "footprint_px": 115.6,
+   "alt_m": 20.0,
+   "arms": {
+    "A": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      186,
+      224,
+      698,
+      736
+     ],
+     "pred_crop": [
+      45,
+      47,
+      55,
+      54
+     ],
+     "raw": null
+    },
+    "B": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      371,
+      448,
+      1395,
+      1472
+     ],
+     "pred_crop": [
+      44,
+      47,
+      56,
+      54
+     ],
+     "raw": null
+    },
+    "C": {
+     "iou": 1.0,
+     "hit": true,
+     "wall_s": 2.02,
+     "win": [
+      627,
+      704,
+      1139,
+      1216
+     ],
+     "pred_crop": [
+      38,
+      43,
+      60,
+      57
+     ],
+     "raw": null
+    },
+    "D": {
+     "iou": 0.8333,
+     "hit": true,
+     "wall_s": 2.04,
+     "win": [
+      314,
+      352,
+      570,
+      608
+     ],
+     "pred_crop": [
+      40,
+      44,
+      59,
+      57
+     ],
+     "raw": null
+    }
+   }
+  }
+ ]
+}

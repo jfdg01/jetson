@@ -1,0 +1,9 @@
+{
+ "d_max": 4.2,
+ "p99_raw": 4.2055,
+ "n_steps": 278,
+ "p50": 0.5306,
+ "p95": 2.0866,
+ "source": "A1 CONTROL plain@640",
+ "rule": "99th pct, rounded to 1 decimal"
+}

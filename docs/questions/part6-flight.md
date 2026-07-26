@@ -301,3 +301,93 @@ residual upstream: the fix is to not have a 4.85 s stale seed, not a smarter way
 
 Machine `jetson-orin-nano-8gb` (SAM2 on the Orin, 15 W + `jetson_clocks`, `image_size=512`);
 the 3090 was not used. Detail: `experiments/2026-07-25-handoff-latency/README.md`.
+
+**RQ-EXP-4 (MODE 2 click-crop, lever a'):** at matched magnification, does a crop cut from the
+native 1920 sensor frame ground better than the same-FOV crop cut from the 960 display
+downscale — and how much of any crop gain is magnification alone? **Verdict: NO on native
+source (lever a' retired) / YES on magnification.** 25 CARLA nadir targets, four arms all fed
+at 512. Primary C (1920/512) vs D (960/256 upscaled): b=1, c=0 — b+c=1 against a pre-registered
+6-pair floor, so the binary gate cannot fire and the native-1920 plumbing is dead. The
+secondaries are where the effect lives: A vs D b=1, c=8, p=0.039 isolates zoom with no new
+detail and it wins on its own; C vs A (MODE 2 against today's deployed crop) is b=8, c=0,
+p=0.0078 with +0.3308 median IoU, and hit@0.5 goes 0.60 to 0.92. A vs B is the sanity null and
+holds (b=4, c=2, p=0.6875) — the 1920-to-960 `INTER_AREA` chain is not lossy. MODE 2's premise
+survives; its "cut from the native frame" sub-claim does not, so `on_image` is never touched
+and the crop keeps coming off the 960 frame. C's remaining 8% is referring-expression
+ambiguity, arm-invariant, and lands on the same downstream residual R-38 already located.
+
+Machine: grounding on `jetson-orin-nano-8gb` (15 W + `jetson_clocks`, q8_0, feed 512), CARLA on
+the 3090 at 200 W. Not registered in `thesis/claims.json`; the p-values above are not
+Holm-corrected. Detail: `experiments/2026-07-26-crop-mode/README.md` §6.
+
+---
+
+### EXP-5 — is a native-resolution crop around the carried box a real carry lever, and does a degenerate-box guard make it safe? (2026-07-26)
+
+**RQ-EXP-5:** on the resolution-gated clips where SAM2 carry fails at `image_size=640`, does
+cropping a fixed native-resolution window around the current box recover them — and does the
+proposal's degenerate-box guard (area ratio outside [0.4, 2.5], or centre travel beyond
+`D_MAX` box-lengths) protect the crop from drift reinforcement?
+
+**Verdict: NO as pre-registered (KILL) / the crop alone is YES, the guard is a measured
+negative.** 12 UAV123 clips x 6 arms on the Orin, exploratory, no test. Kill gate 3 fires: the
+pre-registered treatment A5 (crop + guard @640) recovers 5/8 tail clips while A2 — plain
+carry at `image_size=1024`, a config flag already deployed as the size-gated fallback —
+recovers 8/8. The proceed gate also fails, and was unreachable by construction (only 4 tail
+clips could move, so it demanded 4/4; `uav3` moves for no crop arm).
+
+The six arms separate the levers. **The crop works and is free** — A4 (fixed 512 window, no
+guard) takes the tail from 4/8 to 7/8 and the tail median from 0.223 to 0.703 with no easy-clip
+regression, at 6.30 Hz against A1's 5.75 and A2's 2.34. **The guard is harmful, structurally**
+— "hold the previous box on veto" freezes the reference the next veto is measured against, so
+the first veto latches all the rest: it turned `car13` (0.639 under A1) and `bike3` (0.92 under
+A4) into 0.000, and cost A4 two tail clips while buying none. **FIXED beats SCALED** — a
+box-scaled window re-enters the `roi.py:60-65` shrink spiral and killed an *easy* control
+(`car18`, 0.921 -> 0.000). So the answer to the proposal's guard sub-question is no, and it is
+no for a reason no threshold fixes.
+
+Machine: SAM2 on `jetson-orin-nano-8gb` (15 W + `jetson_clocks`) via `carry_ssh_bridge.py`; no
+CARLA, no 3090. Not in `thesis/claims.json`; exploratory, no p-values to correct. EXP-6 is
+re-pre-registered around A4 as a declared post-hoc promotion. Detail:
+`experiments/2026-07-26-crop-mode/README.md` §7.
+
+### EXP-6 — at gate scale, does the carry crop beat plain carry@640, and does it reach plain@1024's accuracy at >= 2x the rate? (2026-07-26)
+
+**RQ-EXP-6:** does a fixed native-resolution crop around the carried box beat plain carry at
+`image_size=640` on per-clip median IoU, and does it match plain@1024 (the deployed size-gated
+fallback) within 0.03 IoU and 1 PASS clip at >= 2x its on-device rate?
+
+**Verdict: PARTIAL — NO on the accuracy half, YES on the throughput-matched parity half.**
+38 UAV123 clips x 3 arms, SAM2 on the Orin, Wilcoxon on the held-out 26 with the 12 EXP-5
+pilot clips excluded from the primary. Against plain@640 the crop is directionally right but
+not significant: +0.0085 median difference, deflated **p=0.0918**, 16 wins / 7 losses / 3 ties,
+delivered-PASS 24/24 in both arms so McNemar has no discordant pair to test. That stratum is
+at ceiling — both arms sit at ~0.83 — which is precisely what the pre-registration predicted
+and why it warned the primary would likely come back a tie. Against plain@1024 the crop is
+**statistically indistinguishable** (d_IoU -0.002, d_PASS -1 clip, deflated p=0.566) at
+**2.7x** the rate (6.31 vs 2.34 Hz), so the parity gate passes on all three bounds.
+
+The crop's value is therefore real but *scoped*: it is a cheaper way to buy the 1024
+fallback's accuracy, not a replacement for the default carry. Its whole effect lives in the
+resolution-gated tail (median IoU 0.703 vs 0.223, PASS 7/4 of 8) — a descriptive n=8 cut, not
+a claim. Two nulls were checked rather than assumed: the crop's higher lost-step count is
+confined to the three clips that read 0.000 in every arm, and the 720x480 subgroup is
+uninformative because at that frame size a 512 window is barely a crop.
+
+Machine: SAM2 on `jetson-orin-nano-8gb` (15 W + `jetson_clocks`) via `carry_ssh_bridge.py`; no
+CARLA, no 3090. Not in `thesis/claims.json` — a null primary plus an engineering parity gate,
+so no Holm entry. Detail: `experiments/2026-07-26-crop-mode/README.md` §8.
+
+### EXP-7 — does composed MODE 2 beat MODE 1 in closed loop? (NOT RUN, 2026-07-26)
+
+**RQ-EXP-7:** does MODE 2 (crop-ground + crop-carry) beat MODE 1 on delivered-PASS with the
+copter flying its own control output?
+
+**Verdict: NOT RUN — unanswered by design, gate not met.** §9 pre-registered "runs only if
+EXP-4 and EXP-6 both pass"; EXP-4 missed its primary and EXP-6 is partial. Beyond the letter
+of the gate, the two upstream results emptied the contrast: EXP-4 retired the native-1920
+source so the ground half of MODE 2 is the already-deployed `roi_reanchor`, and EXP-6 made the
+carry half a bounded null except on the size-gated path. The experiment would have measured
+the deployed system against itself. It is recorded as a pre-registered non-run rather than
+dropped; reopening it requires re-pre-registration against a contrast that is not already
+deployed. Detail: `experiments/2026-07-26-crop-mode/README.md` §9.
