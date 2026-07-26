@@ -2193,7 +2193,7 @@ experiments continue. Everything below is therefore split by whether it can be w
 | R-44 | EXP-1/EXP-2 publish p-values outside `claims.json` | P1 | **AUTHOR** |
 | R-45 | EXP-1/2/3 break the frozen experiment-ID scheme | P2 | **AUTHOR** |
 | R-46 | The "deployed" carry resolution is stated three different ways in code | P1 | OPEN |
-| R-47 | EXP-3's acquire data points the opposite way to EXP-2's crop elbow | **P1** | OPEN |
+| R-47 | EXP-3's acquire data points the opposite way to EXP-2's crop elbow | **P1** | **RESOLVED** — no contradiction; `OPT`/`FULL` are one crop at 1x vs 4x upscale, and EXP-3 never ran EXP-2's `ROI_RES=512` |
 | R-48 | The only ratchet is closed, so HANDOFF's finish criterion is vacuous | P2 | OPEN |
 | R-49 | Branch clutter: 28 merged `experiment/*`, 3 unmerged carrying unique content | P3 | **AUTHOR** |
 | R-50 | `tests/test_carla_lifecycle.py` never runs in `make test` | P3 | OPEN |
@@ -2361,6 +2361,82 @@ this has to be reconciled. The two runs differ in imagery (UAV123 vs CARLA), in 
 richness, and in altitude range, so the honest reading may simply be that the crop elbow
 is scene-set-bound — which is itself a finding worth having, and one the thesis would
 rather state than have an examiner discover.
+
+### RESOLVED 2026-07-26T16:05Z — there is no contradiction; the arm names mislead
+
+Reconciled from data already on disk (`runs/exp3/acquire.json`, `acquire_rich.json`), no
+new runs. **The premise above is wrong, and it is wrong in the way `HANDOFF.md` I7 warns
+about — "do not trust your first read of someone else's schema."** Three findings, in
+order of how much they matter.
+
+**1. EXP-3's `OPT`/`FULL` are not crop-vs-whole-frame. They are the same crop at two
+upscale factors.** `select_exp3.py` varies exactly one thing per arm —
+`select_p55.ROI_RES = cfg["ground_res"]` — and `ROI_RES` is documented in `roi_reanchor`
+as "crop the deployed ROI window around the carry's current box, **resize long edge to
+ROI_RES** (LANCZOS)". `ROI_MARGIN = 2.0` and `ROI_MIN_SIDE = 256` are untouched, and the
+prior handed in is the degenerate click box `_center_box((cx, cy, cx, cy))`, so **both
+arms crop the identical 256 px native window** around the click. The only difference:
+
+| EXP-3 arm | native crop | `ROI_RES` | upscale |
+|---|---|---|---|
+| `OPT` | 256 px | 256 | **1.0x** (none) |
+| `FULL` | 256 px | 1024 | **4.0x** LANCZOS |
+
+"FULL" means full *resolution*, not full *frame*. Read that way, EXP-3 says: a 4x upscale
+of a crop that carries no extra information still grounds better, because the upscale buys
+visual tokens on target. That is not the elbow EXP-2 measured.
+
+**2. EXP-3 never re-ran EXP-2's configuration, so the two cannot disagree.** EXP-2's `PT`
+arm calls the same `roi_reanchor` but **never overrides `ROI_RES`**, so it inherits the
+module default `ROI_RES = 512` — a 256 px crop upscaled **2x**. Its `NL` baseline is the
+whole frame at `MAX_SIDE = 1024`. Lining all of it up on one axis, pixels-on-target fed to
+the encoder, every result points the same way and none of them conflict:
+
+| run | comparison | winner |
+|---|---|---|
+| EXP-2 | 256 px crop @512 (2x) vs whole frame @1024 | **the crop** (hit@0.5 0.769 vs 0.654) |
+| EXP-3 | 256 px crop @1024 (4x) vs same crop @256 (1x) | **the upscale** |
+| EXP-4 | native-1920 crop vs the 960 feed crop, both @512 | **the native crop** (b=8, c=0) |
+
+EXP-3's `OPT` sits *below* EXP-2's operating point, not at it. EXP-3 tested a setting
+EXP-2 never used, found it worse, and that was read as a contradiction. The deployed
+`ORIN_GROUND_RES = 512` is EXP-2's measured point and is unaffected.
+
+**3. The "12 discordants to 0" is a hit@0.5 artefact and does not survive the threshold
+this repository actually operates at.** Part V/VI score delivered-PASS at IoU 0.25
+everywhere else. Re-scored at 0.25 (same data, same pairing, `grounding.stats.mcnemar`):
+
+| leg | thr | `OPT` | `FULL` | b (`OPT`-only) / c (`FULL`-only) | p |
+|---|---|---|---|---|---|
+| generic | 0.50 | 3/25 | 5/25 | 2 / 4 | 0.6875 |
+| generic | 0.25 | 5/25 | 5/25 | 3 / 3 | 1.0 |
+| rich | 0.50 | 2/25 | 14/25 | 0 / 12 | 4.883e-04 |
+| rich | **0.25** | 13/25 | 16/25 | **1 / 4** | **0.375** |
+
+Only the rich-caption/hit@0.5 cell is significant. At 0.25 it is a null, and with a generic
+caption it is a null at both thresholds. So the effect is conditional on a strict box
+threshold *and* a colour caption simultaneously; neither alone produces it.
+
+**Mechanism correction, which changes a deployed comment.** `carla_debug_ui.py` justifies
+its 512 with "rich-caption grounding wants the 1024 crop (256 starves colour on a nadir
+car)". The data says otherwise: going generic to rich *more than doubles* what the 256
+crop finds (5/25 to 13/25 at IoU 0.25). Colour is not starved — the rich caption is
+working at 256. What 256 cannot do is draw a box tight enough to clear 0.5 (mean IoU 0.229
+vs 0.470). The conclusion "prefer more resolution for rich captions" is right; the stated
+reason is wrong, and it has been corrected in place.
+
+**Consequences.**
+
+- **EXP-2's elbow is not contradicted and does not need a scene-set caveat on this
+  ground.** It remains bounded by its own scope for the ordinary reason (one scene set),
+  but EXP-3 is not evidence against it.
+- **Do not cite EXP-3 as "crop hurts on CARLA".** It measures the upscale knob. The
+  correct one-liner is "at a fixed 256 px crop window, feeding it at 1024 beats feeding it
+  at 256, at 8.9x the latency (median 9063 ms vs 1017 ms)".
+- The latency ordering is unchanged and is the reason 1024 is not the default.
+- R-47 no longer blocks anything. **Finishing EXP-3 is now optional** — candidate #2 in the
+  slate below ("finish or kill EXP-3") loses its stated motivation, since the disagreement
+  it was meant to resolve does not exist. Kill is the cheaper honest answer.
 
 ## R-44 — EXP-1/EXP-2 publish p-values outside the registry — **AUTHOR**
 
@@ -2671,9 +2747,12 @@ measured negative), grounding by R-38 (symmetric, not the bottleneck). A system 
 hands an operator a confident wrong box is worse than one that says nothing, so this is
 both the open question and the one with an obvious operational argument behind it.
 
-**2. Finish or kill EXP-3.** See R-47 — it is half-run, and its existing data *disagrees*
-with EXP-2. Finishing it is cheap (carry + score + overlays) and either outcome is
-content. Killing it is also legitimate and belongs in `DECISIONS.md`.
+**2. Finish or kill EXP-3.** ~~See R-47 — it is half-run, and its existing data
+*disagrees* with EXP-2.~~ **Motivation withdrawn 2026-07-26T16:05Z:** R-47 resolved, and
+the disagreement this rested on does not exist — EXP-3 varies the crop *upscale* knob,
+which EXP-2 never varied. Finishing it is still cheap (carry + score + overlays), but it
+would now answer a question nothing depends on. **Kill is the recommended answer**, and
+it belongs in `DECISIONS.md`.
 
 **3. R-36 at real n — needs a data source that does not exist yet.** UAV123 is
 structurally scene-starved for SWAP-hard pairs: hand-curating 10 fresh candidates

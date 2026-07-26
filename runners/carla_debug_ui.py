@@ -184,12 +184,20 @@ REMOTE_MMPROJ = f"{REMOTE_DIR}/mmproj-phase3-terse100eos-1024-f16.gguf"
 # (already ssh), carry over the ssh-stdio bridge that lives on the Orin at
 # ~/sam2-bench/carry_ssh_bridge.py. No SAM2 on the 3090 (constraint: the 3090 runs
 # only the CARLA simulator). Defaults are the resolutions EXP-1/EXP-2/EXP-3 found:
-# rich-caption grounding wants the 1024 crop (256 starves colour on a nadir car),
-# SAM2 carry is 99.4% of full IoU at image_size 640 for 2.5x the throughput.
+# grounding wants more pixels on target (see ORIN_GROUND_RES), SAM2 carry is 99.4% of
+# full IoU at image_size 640 for 2.5x the throughput.
 EXP3_DIR = Path(__file__).resolve().parent.parent / "experiments" / "2026-07-24-point-crop-select"
 CARRY_BRIDGE = "cd ~/sam2-bench && ./.venv/bin/python -u carry_ssh_bridge.py --image-size {size}"
-# 512, not EXP-2's 1024: the panel is a live demo and the 1024 crop costs seconds of
-# Orin grounding per click. The 1024 arm is still one dropdown away.
+# 512 IS EXP-2's operating point, not a compromise below it: EXP-2's winning PT arm never
+# overrides select_p55's `ROI_RES = 512`, so its "256 px crop" is a 256 px native window
+# upscaled 2x to 512. The 1024 in EXP-2 is its whole-frame NL baseline (`MAX_SIDE`), which
+# the crop beat. Corrected here 2026-07-26 -- the earlier comment ("512, not EXP-2's 1024",
+# and "256 starves colour on a nadir car") had the mechanism wrong; see R-47 RESOLVED in
+# thesis/REMEDIATION.md. The real knob is pixels on target fed to the encoder, and every
+# run agrees on its direction: EXP-3 shows the SAME 256 px window at 1024 (4x) beats it at
+# 256 (1x), and EXP-4 shows a native-1920 crop beats the 960 feed crop. 1024 stays off by
+# default because it costs 8.9x the latency (median 9063 ms vs 1017 ms) and the panel is a
+# live demo; it is one dropdown away.
 ORIN_GROUND_RES = 512
 # EXP-1's adopted default: 640 is 99.4% of 1024's median IoU (0.811 vs 0.816) at 2.5x
 # the on-device throughput (5.76 vs 2.34 Hz). Below 640 the Hz curve saturates (~9-10 Hz

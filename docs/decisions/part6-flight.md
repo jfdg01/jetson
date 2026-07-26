@@ -864,3 +864,32 @@ targets the operator never escalates — the fallback is a manual dropdown, so a
 resolution-gated target nobody flags stays on plain@640 and the crop never fires. Also: the
 crop's failure mode (a slightly looser box, `exp6-loss.png`) now sits on the escalation path,
 which is exactly where boxes are already hardest.
+
+### EXP-3 is not a contradiction of EXP-2, and is killed rather than finished (R-47, 2026-07-26T16:20Z)
+
+*Chosen:* close R-47 as **no contradiction**, and drop "finish EXP-3" from the candidate
+slate instead of spending seeds on it. `ORIN_GROUND_RES` stays 512, but the comment
+defending it is rewritten — the old rationale ("512, not EXP-2's 1024"; "256 starves colour
+on a nadir car") had the mechanism wrong even though the value was right.
+
+*Why:* EXP-3's `OPT`/`FULL` arms are not crop-vs-whole-frame. `select_exp3.py` varies exactly
+one thing, `select_p55.ROI_RES = cfg["ground_res"]`; both arms crop the *same* 256 px native
+window around the click. OPT feeds it at 256 (1.0x), FULL upscales it to 1024 (4x LANCZOS).
+"FULL" means full *resolution*, not full *frame*. EXP-2's winning PT arm never overrides
+`ROI_RES`, so it inherited 512 — a 2x upscale of that same window — and its NL baseline is
+the whole frame at `MAX_SIDE = 1024`. EXP-3 therefore never re-ran EXP-2's configuration;
+OPT sits one notch *below* EXP-2's operating point. Two runs measuring different knobs cannot
+disagree. On the one axis they share — pixels on target fed to the encoder — all three
+campaigns point the same way: EXP-2 crop > whole frame (hit@0.5 0.769 vs 0.654), EXP-3 4x >
+1x on a fixed window, EXP-4 native-1920 crop > 960 feed crop (b=8, c=0). The colour claim is
+also backwards: the rich caption more than doubles what the 256 crop finds (5/25 to 13/25 at
+IoU 0.25), so colour is not starved — box precision is (mean IoU 0.229 vs 0.470). And the
+headline "12 discordants to 0" is threshold-fragile: re-scored at IoU 0.25, the threshold
+Parts V-VI use for delivered-PASS everywhere else, the rich leg is 13/25 vs 16/25, b=1/c=4,
+**p=0.375** — a null. The effect needs a strict box threshold *and* a colour caption at once.
+
+*What was given up:* the ~25 seeds and the tidy "we finished what we started" of completing
+EXP-3 at n>=25. The question EXP-3 was actually asking — how far the upscale of a fixed crop
+pays before latency eats it — is answered well enough for deployment by the latency alone
+(median 9063 ms at 1024 vs 1017 ms at 256, 8.9x), and 1024 stays one dropdown away for an
+operator who wants to pay it. Also given up: any right to cite EXP-3 as "crop hurts on CARLA".
