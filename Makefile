@@ -9,14 +9,20 @@
 UV := $(HOME)/.local/bin/uv
 PY := .venv-ft/bin/python
 
-.PHONY: help test lock sync dev env-ft
+.PHONY: help test lock sync dev env-ft borrador borrador-check
 
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS=":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
+		awk 'BEGIN {FS=":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
 
 test:  ## Run the contract + manifest test suite
 	$(PY) -m pytest
+
+borrador:  ## Regenerate thesis/TFM-borrador.md from thesis/borrador/cap*.md
+	$(PY) thesis/borrador/assemble.py
+
+borrador-check:  ## Fail if the committed TFM-borrador.md is stale
+	$(PY) thesis/borrador/assemble.py --check
 
 env-ft:  ## Create .venv-ft if missing (does not install)
 	test -d .venv-ft || python -m venv .venv-ft

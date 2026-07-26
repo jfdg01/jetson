@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render thesis/provenance-sweep.md from the frozen R-7 sweep rows.
+"""Render thesis/remediation-archive/provenance-sweep.md from the frozen R-7 sweep rows.
 
     .venv-ft/bin/python thesis/make_provenance_sweep.py
 
@@ -29,7 +29,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 SWEEP = HERE / "provenance-sweep.json"
 RESOLUTIONS = HERE / "provenance-resolutions.json"
-OUT = HERE / "provenance-sweep.md"
+OUT = HERE / "remediation-archive" / "provenance-sweep.md"
 
 TAG_ORDER = ["CONTRADICTED", "UNVERIFIED", "MISLEADING", "VERIFIED"]
 FILE_ORDER = [

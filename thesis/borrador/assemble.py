@@ -3,8 +3,10 @@
 
 Front matter + chapters in order -> thesis/TFM-borrador.md (lives in thesis/,
 so image paths of the form ../experiments/... and proof/... resolve correctly).
-Run: python3 thesis/borrador/assemble.py  (from repo root)
+Run: make borrador          (regenerate the committed artifact)
+     make borrador-check    (fail if it is stale; also run by `make test`)
 """
+import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent          # thesis/borrador
@@ -20,6 +22,10 @@ locale: es
 bibliography: refs.bib
 toc_depth: 4
 ---
+
+<!-- GENERATED FILE — do not edit. Source: thesis/borrador/cap*.md + assemble.py.
+     Edit the chapter scaffold, then run `make borrador`. Hand edits here are
+     silently destroyed on the next regeneration. -->
 """
 
 CHAPTERS = [
@@ -35,17 +41,27 @@ CHAPTERS = [
     "cap10-conclusiones",
 ]
 
-parts = [FRONT]
-missing = []
-for slug in CHAPTERS:
-    f = HERE / f"{slug}.md"
-    if not f.exists():
-        missing.append(slug)
-        parts.append(f"\n## [PENDIENTE] {slug}\n\n> Capítulo no generado.\n")
-        continue
-    parts.append("\n" + f.read_text(encoding="utf-8").rstrip() + "\n")
+def build():
+    parts, missing = [FRONT], []
+    for slug in CHAPTERS:
+        f = HERE / f"{slug}.md"
+        if not f.exists():
+            missing.append(slug)
+            parts.append(f"\n## [PENDIENTE] {slug}\n\n> Capítulo no generado.\n")
+            continue
+        parts.append("\n" + f.read_text(encoding="utf-8").rstrip() + "\n")
+    return "\n".join(parts), missing
 
-OUT.write_text("\n".join(parts), encoding="utf-8")
-print(f"wrote {OUT}  ({sum(1 for c in CHAPTERS if not (HERE/f'{c}.md').exists() )} missing)")
-if missing:
-    print("MISSING:", ", ".join(missing))
+
+if __name__ == "__main__":
+    text, missing = build()
+    if "--check" in sys.argv:
+        current = OUT.read_text(encoding="utf-8") if OUT.exists() else ""
+        if current != text:
+            sys.exit(f"STALE: {OUT} does not match thesis/borrador/*.md. Run `make borrador`.")
+        print(f"{OUT.name} is up to date")
+    else:
+        OUT.write_text(text, encoding="utf-8")
+        print(f"wrote {OUT}  ({len(missing)} missing)")
+    if missing:
+        print("MISSING:", ", ".join(missing))

@@ -271,7 +271,7 @@ def send_position(m, n, e, d):
     The non-blocking half of reset_to_origin, for a caller that already runs its own
     control tick and already reads the pose -- the interactive panel, where a helper
     that blocks on recv_match would compete with the panel's own drain for the same
-    socket and stall the camera it is slaving (see CARLA_DEBUG_UI.md finding 15).
+    socket and stall the camera it is slaving (see CARLA_DEBUG_UI_FINDINGS.md finding 15).
     Same resend rule as send_velocity: a GUIDED setpoint expires after ~3 s of silence.
     """
     m.mav.set_position_target_local_ned_send(

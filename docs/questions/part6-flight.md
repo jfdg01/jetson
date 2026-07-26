@@ -321,7 +321,7 @@ ambiguity, arm-invariant, and lands on the same downstream residual R-38 already
 
 Machine: grounding on `jetson-orin-nano-8gb` (15 W + `jetson_clocks`, q8_0, feed 512), CARLA on
 the 3090 at 200 W. Not registered in `thesis/claims.json`; the p-values above are not
-Holm-corrected. Detail: `experiments/2026-07-26-crop-mode/README.md` §6.
+Holm-corrected. Detail: `experiments/2026-07-26-crop-mode/EXP-4.md` §6.
 
 ---
 
@@ -352,7 +352,7 @@ no for a reason no threshold fixes.
 Machine: SAM2 on `jetson-orin-nano-8gb` (15 W + `jetson_clocks`) via `carry_ssh_bridge.py`; no
 CARLA, no 3090. Not in `thesis/claims.json`; exploratory, no p-values to correct. EXP-6 is
 re-pre-registered around A4 as a declared post-hoc promotion. Detail:
-`experiments/2026-07-26-crop-mode/README.md` §7.
+`experiments/2026-07-26-crop-mode/EXP-5.md` §7.
 
 ### EXP-6 — at gate scale, does the carry crop beat plain carry@640, and does it reach plain@1024's accuracy at >= 2x the rate? (2026-07-26)
 
@@ -381,7 +381,7 @@ uninformative because at that frame size a 512 window is barely a crop.
 
 Machine: SAM2 on `jetson-orin-nano-8gb` (15 W + `jetson_clocks`) via `carry_ssh_bridge.py`; no
 CARLA, no 3090. Not in `thesis/claims.json` — a null primary plus an engineering parity gate,
-so no Holm entry. Detail: `experiments/2026-07-26-crop-mode/README.md` §8.
+so no Holm entry. Detail: `experiments/2026-07-26-crop-mode/EXP-6.md` §8.
 
 ### EXP-7 — does composed MODE 2 beat MODE 1 in closed loop? (NOT RUN, 2026-07-26)
 
@@ -395,7 +395,7 @@ source so the ground half of MODE 2 is the already-deployed `roi_reanchor`, and 
 carry half a bounded null except on the size-gated path. The experiment would have measured
 the deployed system against itself. It is recorded as a pre-registered non-run rather than
 dropped; reopening it requires re-pre-registration against a contrast that is not already
-deployed. Detail: `experiments/2026-07-26-crop-mode/README.md` §9.
+deployed. Detail: `experiments/2026-07-26-crop-mode/EXP-7.md` §9.
 
 ### P6.6 — what does maintaining cost in watts, and does the carry hold its rate over a multi-minute idle window? (2026-07-26)
 

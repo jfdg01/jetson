@@ -689,7 +689,7 @@ under the caption "the grey car". Descriptive-plus-tested but **not yet in
 
 Proof: `proof/exp4-arms.png`, `proof/exp4-C-win-t06-yellow-taxi.png`,
 `proof/exp4-C-loss-t03-grey-ambiguity.png`. Detail:
-`experiments/2026-07-26-crop-mode/README.md` §6.
+`experiments/2026-07-26-crop-mode/EXP-4.md` §6.
 
 ---
 
@@ -739,7 +739,7 @@ carried into EXP-6 as a **declared post-hoc arm promotion**, with a held-out-26 
 stratum so the promotion is not graded on the 12 clips that produced it.
 
 Proof: `proof/exp5-arms.png`, `proof/exp5-guard-latches.png`, `proof/exp5-scaled-strands.png`.
-Detail: `experiments/2026-07-26-crop-mode/README.md` §7.
+Detail: `experiments/2026-07-26-crop-mode/EXP-5.md` §7.
 
 ### EXP-6 — carry-crop at gate scale (MODE 2, lever b confirmed)
 
@@ -800,7 +800,7 @@ Not in `thesis/claims.json` — the primary is a null and the parity result is a
 gate, not a thesis claim; no Holm entry. Machine: SAM2 on `jetson-orin-nano-8gb`, no 3090.
 
 Proof: `proof/exp6-arms.png`, `proof/exp6-win.png`, `proof/exp6-loss.png`.
-Detail: `experiments/2026-07-26-crop-mode/README.md` §8.
+Detail: `experiments/2026-07-26-crop-mode/EXP-6.md` §8.
 
 ### EXP-7 — composed MODE 2, closed loop: NOT RUN (gate not met)
 
@@ -811,7 +811,7 @@ retired the native-1920 source, so MODE 2's ground half collapses onto the alrea
 `roi_reanchor` on the 960 frame, and EXP-6's carry half is a measured null against the
 deployed carry except on the size-gated path. TREATMENT would have been the deployed system
 plus a null. 25 live CARLA seeds and ~1-2 days not spent. Detail:
-`experiments/2026-07-26-crop-mode/README.md` §9.
+`experiments/2026-07-26-crop-mode/EXP-7.md` §9.
 
 ### P6.6 — what maintaining costs: watts and rate-sustain of the warm carry (5 arms x 300 s x 3 repeats, on the Orin) (2026-07-26)
 

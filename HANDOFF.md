@@ -3,6 +3,11 @@
 Read this before doing anything else. Then read `thesis/REMEDIATION.md` and work
 the first task that is not `DONE`.
 
+`thesis/REMEDIATION.md` carries only the open work. The closed waves (R-1..R-44,
+R-46, R-47, R-52..R-54) moved to `thesis/remediation-archive/wave*.md` on
+2026-07-26 — open those only to audit history or to cite a closed task's original
+write-up, never as part of the entry protocol.
+
 This file exists because the remaining work is a **months-long programme across
 many conversations**, and a conversation is not a durable medium. Context gets
 compacted, sessions end mid-task, and a fresh session confidently re-litigates a
@@ -130,8 +135,9 @@ ever written, `MAX_CLAIMS_WITHOUT_MACHINE`, was closed on 2026-07-21, so the con
 already satisfied and proves nothing. Do not quote it as evidence the programme is done
 until R-48 replaces it with a criterion that still has teeth.
 
-**Where the work is, as of 2026-07-25.** R-1..R-38 all read `DONE`; the open tasks are in
-`# Fourth wave` at the end of `thesis/REMEDIATION.md`. The third condition above —
+**Where the work is, as of 2026-07-26.** R-1..R-44, R-46, R-47 and R-52..R-54 all read
+`DONE`; the open tasks are R-45, R-48, R-49, R-50, R-51, R-55 and the W series, and they
+are the whole of `thesis/REMEDIATION.md` now that the closed waves are archived. The third condition above —
 writing the chapters — is **deliberately not started**: it waits on the supervisor
 confirming the thesis scope. Experiments continue in the meantime, and note the standing
 cost that R-39 exists to catch: every new experiment registered inside a Part re-runs

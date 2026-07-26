@@ -547,7 +547,7 @@ Second round on the same panel, all of it driven by an operator using it live. T
 were: the mode switches are unreadable, `g` is unexplained, the maintained box is invisible,
 the Jetson view is useless, the numbers are in four places, `to origin` and `arm + takeoff`
 freeze the view, and `wasd` fights the rotated view. Detail and pixels in
-`runners/CARLA_DEBUG_UI.md` (findings 17-20, `carla_ui_proof/ui-loop-closed.jpg`,
+`runners/CARLA_DEBUG_UI_FINDINGS.md` (findings 17-20, `carla_ui_proof/ui-loop-closed.jpg`,
 `ui-maintained-vs-delivered.jpg`).
 
 **Every number in the panel lives in one 380 px instruments column; the rail carries
@@ -977,8 +977,8 @@ which is the R-39 recurrence hazard.
 *What was given up:* the rhetorical convenience of "p<0.05" on the crop-mode parity gate, and
 strict I1 provenance in the rollups — a reader now has to open the campaign README to see the
 test that was run. Also given up, deliberately: consistency inside the crop-mode campaign.
-EXP-4 has the same defect and is left as-is (R-54) because the scope asked for was these three,
-so until R-54 lands `experiments/2026-07-26-crop-mode/` has one experiment labelled and one not.
+EXP-4 has the same defect and is left as-is (R-55) because the scope asked for was these three,
+so until R-55 lands `experiments/2026-07-26-crop-mode/` has one experiment labelled and one not.
 ### A contaminated repeat is excluded by name and re-run, not silently averaged in (P6.6, 2026-07-26T16:20Z)
 
 *Chosen:* arm B repeat 2 is dropped from every reported P6.6 number and arm B re-run alone into a
