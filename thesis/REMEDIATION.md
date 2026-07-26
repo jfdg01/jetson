@@ -2650,7 +2650,7 @@ ASCII-folded Spanish (`fisica`, `designacion`) — they were written after the 6
 diacritics pass, so they drifted back. The S6 text added to them is properly accented; the
 older prose around it is not, and one of them should be brought into line.
 
-## R-52 — What does maintaining cost? — **PRE-REGISTERED as P6.6**, not run
+## R-52 — What does maintaining cost? — **DONE**, P6.6 run 2026-07-26
 
 The author's own framing of warm-start is compute/timing efficiency, and the repository
 has **no watt figure for it**. WARM burns SAM2 at 2.69 Hz on the Orin for the whole idle
@@ -2682,6 +2682,30 @@ device**; their pure parts are covered offline by `tests/test_p66.py`.
 The ID is **P6.6**, left clear of R-45's proposed EXP-1/2/3 → P6.3/P6.4/P6.5 rename.
 Estimates are recorded up front (maintain **+5 to +8 W** over idle, ~2-5% of a
 150-400 W hover, G1 holds) so estimate-vs-actual is content either way.
+
+**CLOSED 2026-07-26T16:20Z — the criticism is answered, and the answer is favourable.** Run
+14:06Z-15:51Z, `machine=jetson-orin-nano`, 15 W + `jetson_clocks`, median of 3 repeats per arm.
+**Maintaining costs +5.65 W** over an idle board (carry-640 10.842 W vs idle-deployed 5.193 W) =
+**1.4-3.8% of a 150-400 W hover** (literature band, this project has no airframe). The crossover
+the remediation asked for exists and is short: **break-even against one 4.85 s cold acquire is a
+9.9 s idle window**, and past it warm is more energy for less staleness, bounded — 1.54x at 30 s,
+1.92x at 120 s, asymptote 2.09x. So "over a 60 s window the trade may be negative" resolves to
+1.77x the joules for 4.85 s of freshness on a ~5 W baseline, i.e. a rounding error against hover,
+not a negative trade. **G1 passed 6/6 and the sign is up** (+0.17% to +0.53% over 300 s) while
+`tj` soaks 57 to 65 C and flattens — the throttling half of the concern is measured and absent at
+this window length; 300 s is the measured window, longer is extrapolation. Two extras: a resident
+`llama-server` is **free** when idle (`A1 - A0 = -0.002 W`), so the maintain price is entirely
+SAM2's; and carry power is **rail-bound, not work-bound** (512 runs 1.60x the rate at 0.15 W
+*less*, both at `GR3D_FREQ` 99%, so J per carried frame falls 38%). Also corrected here: this
+entry's own premise said "SAM2 at 2.69 Hz" — the deployed carry measures **6.27 Hz at 640** on
+this board.
+
+Not added to `thesis/claims.json`: a characterisation curve whose one pre-registered falsifiable
+prediction passed is not a gated claim, and registering it would inflate the Holm family with a
+non-claim. Ledgered under Part VI in all three docs; three figures under
+`experiments/2026-07-25-maintain-cost/proof/`, reproducible by running `make_proof.py` with no
+arguments. One repeat (`B_r2`) was contaminated by a host-side CARLA panel prewarming the Orin
+and is excluded by name and re-run — see the DECISIONS entry.
 
 ## R-53 — The live panel cold-started a SAM2 bridge per designation (DONE)
 

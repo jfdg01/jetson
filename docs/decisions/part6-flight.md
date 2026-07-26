@@ -979,3 +979,63 @@ strict I1 provenance in the rollups — a reader now has to open the campaign RE
 test that was run. Also given up, deliberately: consistency inside the crop-mode campaign.
 EXP-4 has the same defect and is left as-is (R-54) because the scope asked for was these three,
 so until R-54 lands `experiments/2026-07-26-crop-mode/` has one experiment labelled and one not.
+### A contaminated repeat is excluded by name and re-run, not silently averaged in (P6.6, 2026-07-26T16:20Z)
+
+*Chosen:* arm B repeat 2 is dropped from every reported P6.6 number and arm B re-run alone into a
+second run dir (`runs/p66_b_clean`), so B is reported on three clean repeats. The exclusion is by
+record name and lives in code, not prose: `make_proof.py --exclude p66_maintain_cost:B_r2`, which
+is also the script's default, so a bare invocation reproduces the report. The contaminated record
+stays in `results.json` and is tabulated in the README rather than deleted.
+
+*Why:* the CARLA debug panel was started on the host mid-arm, and
+`runners/carla_debug_ui.py:2827` prewarms the Orin at panel start-up — it boots `llama-server`
+and spawns a SAM2 carry bridge on the device. That is a second GPU consumer inside a measurement
+window, and it shows on three independent axes (`ram_max` 7460 vs 3243-3497 MB, achieved rate
+5.987 vs 6.273-6.280 Hz, mean power up 0.09 W). Averaging it in would have pushed the headline
+maintain figure the wrong way for a reason that has nothing to do with the carry. Re-running is
+cheap — 6 minutes of device time — and the rerun landing within 0.03 W and 0.000 Hz of the two
+clean repeats is itself the evidence that the exclusion was correct rather than convenient.
+
+*What was given up:* strict "report the matrix as scheduled" purity — arm B's three repeats no
+longer share one randomised order with the other arms, so its thermal position in the sequence
+differs from the design. That is acceptable here because the cooldown gate (idle until `tj` is
+within 2 C of the A0 median) removes the soak the randomisation was protecting against, and G1
+shows no thermal trend to protect against anyway. Also kept, deliberately: the messier record.
+-4.7% of the carry rate for one competing process is the only measurement in the repo of what
+contention costs the maintain, and it would have been lost by deleting the row.
+
+### The as-run driver is not patched after the run, even for an obvious fix (P6.6, 2026-07-26T16:20Z)
+
+*Chosen:* `run_p66.py` writes `results.json` once, at the very end of the whole matrix. That is a
+1.5 h single point of failure and the fix is one line (write after each arm). It is **not**
+applied. The hazard is recorded in the README's *What did not work* and the fix is assigned to
+whatever driver runs next.
+
+*Why:* the committed script has to be the script that produced the numbers. Editing it after the
+run — however harmlessly — breaks that correspondence, and the whole point of committing the
+driver beside the record is that a reader can tell which code emitted which figure (HANDOFF I1).
+An improvement that costs provenance is not free.
+
+*What was given up:* the next run of this driver still risks the same loss. Partly mitigated
+already: the per-arm `/tmp/p66_*.json` files on the device are the real recovery path and are now
+archived into `runs/p66_maintain_cost/device_json/` — a fixture rebuilt from exactly those files
+is how `make_proof.py` was developed before the matrix finished, so the recovery path is tested,
+not hypothetical.
+
+### 640 stays the deployed carry default, despite 512 winning on energy per frame (P6.6, 2026-07-26T16:20Z)
+
+*Chosen:* no change to the deployed carry resolution. EXP-1's adopted 640 stands, and P6.6's
+512-is-cheaper finding is recorded as a characterisation result plus a non-blocking follow-up, not
+a deployment change.
+
+*Why:* the energy axis is unambiguous — 512 runs 1.60x the rate at 0.15 W *less* draw, so joules
+per carried frame falls 38% — but energy was never the reason 640 was chosen. EXP-1 picked it on
+the accuracy elbow (99.4% of 1024's median IoU), and P6.6 measured no accuracy at all: it carried
+frames to load the GPU, not to score IoU. Changing the default on an axis the accuracy campaign
+did not evaluate would be trading a measured property for an unmeasured one. The two results
+agree in direction, which is worth stating; that is not the same as a shipping gate.
+
+*What was given up:* a 38%-cheaper carry that is sitting there, and the tidiness of the UI and the
+adopted default agreeing (`carla_debug_ui.py` already runs 512, so the deployed panel and the
+adopted default still differ). Re-checking 512 against EXP-1's accuracy staging is the follow-up
+that would close it; it is cheap and nobody is blocked on it.

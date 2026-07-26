@@ -396,3 +396,41 @@ carry half a bounded null except on the size-gated path. The experiment would ha
 the deployed system against itself. It is recorded as a pre-registered non-run rather than
 dropped; reopening it requires re-pre-registration against a contrast that is not already
 deployed. Detail: `experiments/2026-07-26-crop-mode/README.md` §9.
+
+### P6.6 — what does maintaining cost in watts, and does the carry hold its rate over a multi-minute idle window? (2026-07-26)
+
+**RQ-P6.6a (energy):** what does maintaining N=1 cost in watts on the deployed board, over
+idle, and what is that as a fraction of the flight power it rides on?
+
+**Verdict: +5.65 W over an idle board = 1.4-3.8% of hover; break-even against one cold
+acquire at a 9.9 s idle window.** Carry-640 draws 10.842 W against an idle-deployed 5.193 W
+(median of 3 repeats, 300 s arms, `machine=jetson-orin-nano`, 15 W + `jetson_clocks`). The
+hover denominator is a **literature range for a small copter (150-400 W), not measured here** —
+this project has no airframe. Two secondary answers fall out. **Residency is free:**
+`A1 - A0 = -0.002 W`, so a resident `llama-server` holding the deployed q8_0 costs nothing
+measurable while idle and the entire maintain price is SAM2's carry. **Warm is more energy for
+less staleness, and the ratio is bounded:** 1.01x at a 10 s idle window, 1.54x at 30 s, 1.92x
+at 120 s, asymptoting to 2.09x — so the honest framing is not "warm is expensive" but "warm
+buys 4.85 s of freshness for at most a doubling of a ~5 W baseline".
+
+**RQ-P6.6b (thermal/sustain):** does the deployed carry hold its rate over a multi-minute idle
+window at 15 W?
+
+**Verdict: YES — G1 passes 6/6, and the rate goes *up*, not down.** The pre-registered gate was
+"last-60 s rate within 10% of first-60 s"; measured drift is +0.17% to +0.53% across three
+repeats of carry-640 and three of carry-512, while `tj` soaks ~57 to ~65 C and flattens. No
+clock cut, and the worst clean sample in the matrix is 11.885 W against a 15 W cap. This was
+the question that could hurt — a decaying carry would have been an unmeasured warm-start failure
+mode, with the maintained track degrading the longer the operator waits. It does not decay at
+300 s. What it does **not** license: 300 s is the measured window; a 20-minute loiter is
+extrapolation.
+
+Third, unasked-for: **carry power is rail-bound, not work-bound** — 512 runs 1.60x the rate at
+0.15 W *less* than 640, both at `GR3D_FREQ` 99%, so J per carried frame falls 38%. The
+resolution knob buys throughput at constant draw.
+
+Machine: everything on `jetson-orin-nano` (15 W + `jetson_clocks`); no CARLA, no 3090. Arm B
+repeat 2 excluded and re-run (host-side CARLA panel prewarmed the Orin inside the window; the
+rerun reproduces the clean repeats to 0.03 W). Not in `thesis/claims.json` — a characterisation
+curve with a passed falsifiable prediction is not a gated claim, so no Holm entry. Detail:
+`experiments/2026-07-25-maintain-cost/README.md`.

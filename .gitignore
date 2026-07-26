@@ -119,3 +119,8 @@ showcase/**/*.mp4
 /mav.tlog*
 /logs/
 /terrain/
+
+# P6.6: the raw tegrastats trace is 3.3 MB of text and compresses 12x; the committed
+# provenance is tegrastats.log.gz (make_proof.py reads either).
+!experiments/2026-07-25-maintain-cost/runs/**/tegrastats.log.gz
+!experiments/2026-07-25-maintain-cost/runs/**/device_json/*.json

@@ -133,6 +133,22 @@ def ssh(cmd, check=True, timeout=None):
     return p.stdout
 
 
+def backend():
+    """The deployed grounding runtime: q8_0 + mmproj on the Orin, served by llama-server.
+
+    max_side is left at the backend default (`contract.IMAGE_SIZE` = 512), which is also
+    what the panel runs (`carla_debug_ui.py:ORIN_GROUND_RES = 512`) -- arm D must cost the
+    deployed acquire, not a hypothetical one. Same construction the rest of the repo uses
+    (`run_exp4.py`, `discover_p516.py`); the no-arg call this replaced never ran.
+    """
+    sys.path.insert(0, str(REPO))
+    from grounding.deploy.serve import _DEFAULT_REMOTE_DIR
+    from grounding.deploy.video import _REMOTE_MMPROJ, _REMOTE_MODELS
+    from grounding.eval.backends import JetsonBackend
+    return JetsonBackend(f"{_DEFAULT_REMOTE_DIR}/{_REMOTE_MODELS['q8_0']}",
+                         f"{_DEFAULT_REMOTE_DIR}/{_REMOTE_MMPROJ}", ssh_host="jetson")
+
+
 def dev_now():
     return float(ssh("date +%s.%N").strip())
 
@@ -185,10 +201,7 @@ def run_ground_arm(seconds, image, tag):
     """Arm D: repeated deployed q8_0 grounds. Host-driven via JetsonBackend (which
     boots llama-server over ssh); the compute is on the device, the image ships over
     the tunnel -- that transport is part of the cost and is noted as such in the README."""
-    sys.path.insert(0, str(REPO))
-    from grounding.eval.backends import JetsonBackend
-
-    be = JetsonBackend()
+    be = backend()
     t_start = dev_now()
     n, lat = 0, []
     try:
@@ -258,9 +271,7 @@ def main():
                 rec = run_ground_arm(args.seconds, image, tag)
             else:
                 if needs_llama:      # A1: server resident and idle, no requests
-                    sys.path.insert(0, str(REPO))
-                    from grounding.eval.backends import JetsonBackend
-                    be = JetsonBackend()
+                    be = backend()
                     try:
                         rec = run_dev_arm(dev_args, args.seconds, tag)
                     finally:
@@ -285,7 +296,10 @@ def main():
     print(f"[host] {len(samples)} tegrastats samples")
 
     for rec in records:
-        w = window(samples, rec["t_start_unix"], rec["t_end_unix"])
+        # steady window: skips the carry arms' SAM2 load transient (see maintain_cost_dev
+        # `t_steady_unix`). Idle arms and the ground arm set it equal to t_start_unix.
+        w = window(samples, rec.get("t_steady_unix", rec["t_start_unix"]),
+                   rec["t_end_unix"])
         mean_w, joules, span = integrate(w)
         rec["power"] = {
             "n_samples": len(w), "span_s": round(span, 1),
@@ -309,8 +323,8 @@ def main():
 
     for arm in arms:
         ws = [r["power"]["vdd_in_mean_w"] for r in records if r["arm_id"] == arm]
-        hz = [r["n_steps"] / r["wall_s"] for r in records
-              if r["arm_id"] == arm and r.get("n_steps")]
+        hz = [r["n_steps"] / (r["t_end_unix"] - r.get("t_steady_unix", r["t_start_unix"]))
+              for r in records if r["arm_id"] == arm and r.get("n_steps")]
         print(f"  {arm}: VDD_IN {median(ws):.2f} W (n={len(ws)})"
               + (f"  {median(hz):.2f} Hz" if hz else ""))
     print(f"[host] wrote {out / 'results.json'}")

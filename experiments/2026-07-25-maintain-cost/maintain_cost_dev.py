@@ -57,7 +57,12 @@ def run_carry(clip_dir, image_size, seconds, prune_after):
             steps.append((round(t - start, 3), round((time.time() - t) * 1000, 1)))
     return {"load_s": round(load_s, 2), "n_steps": len(steps), "steps": steps,
             "n_frames_in_clip": len(frames), "image_size": image_size,
-            "prune_after": prune_after}
+            "prune_after": prune_after,
+            # The host integrates power from HERE, not from process start: SAM2's
+            # from_pretrained plus the 100-frame decode is a GPU/CPU transient the idle
+            # arms have no counterpart for, so leaving it in would bias exactly the arms
+            # under test upward. The maintain is the steady loop.
+            "t_steady_unix": round(start, 3)}
 
 
 def main():
@@ -81,8 +86,10 @@ def main():
     rec.update(arm=args.arm, seconds=args.seconds,
                wall_s=round(time.time() - t_start, 2),
                t_start_unix=round(t_start, 3), t_end_unix=round(time.time(), 3))
+    rec.setdefault("t_steady_unix", round(t_start, 3))   # idle: no load phase to skip
     Path(args.out).write_text(json.dumps(rec))
-    hz = rec["n_steps"] / max(rec["wall_s"], 1e-9)
+    # rate over the STEADY window, not wall_s -- wall_s carries the model load
+    hz = rec["n_steps"] / max(rec["t_end_unix"] - rec["t_steady_unix"], 1e-9)
     print(f"[dev] arm={args.arm} steps={rec['n_steps']} wall={rec['wall_s']}s "
           f"rate={hz:.2f} Hz", flush=True)
 

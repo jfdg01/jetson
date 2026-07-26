@@ -812,3 +812,67 @@ retired the native-1920 source, so MODE 2's ground half collapses onto the alrea
 deployed carry except on the size-gated path. TREATMENT would have been the deployed system
 plus a null. 25 live CARLA seeds and ~1-2 days not spent. Detail:
 `experiments/2026-07-26-crop-mode/README.md` §9.
+
+### P6.6 — what maintaining costs: watts and rate-sustain of the warm carry (5 arms x 300 s x 3 repeats, on the Orin) (2026-07-26)
+
+Run 2026-07-26T14:06Z-15:51Z, `machine=jetson-orin-nano`, 15 W + `jetson_clocks`, no CARLA and
+no 3090 in the loop. `tegrastats --interval 500` on the device; the parser takes the **instant**
+mW figure and trapezoid-integrates over the steady window (from the SAM2 step-loop start, not
+process start), so an irregular sample cadence does not bias the mean. Arm order randomised
+inside each repeat (`seed=666`), cooldown between arms until `tj` returns within 2 C of the A0
+median. Every number is the median of 3 repeats; repeat-to-repeat spread of the mean is
+0.010-0.036 W, two orders of magnitude below the deltas.
+
+| arm | `VDD_IN` mean W | over `A0` | `CPU_GPU_CV` W | `SOC` W | achieved Hz | J per carried frame |
+|---|---|---|---|---|---|---|
+| A0 idle-bare (`llama-server` stopped) | 5.195 | — | 0.989 | 1.386 | — | — |
+| A1 idle-deployed (resident, idle) | 5.193 | -0.002 | 0.989 | 1.385 | — | — |
+| **B carry-640 (deployed default)** | **10.842** | **+5.647** | 4.128 | 2.263 | 6.273 | 1.728 |
+| C carry-512 | 10.689 | +5.494 | 4.135 | 2.211 | 10.043 | 1.064 |
+| D ground (repeated q8_0 acquires) | 11.504 | +6.309 | 4.292 | 2.457 | — | — |
+
+**RQ-P6.6a: the maintain price is +5.65 W over an idle board = 1.4-3.8% of hover.** The hover
+figure is a **literature range for a small copter (150-400 W), not measured here** — this
+project has no airframe, and `proof/maintain-price.png` draws it as a band for that reason. All
+of the +5.65 W is SAM2's: `A1 - A0 = -0.002 W`, so a resident `llama-server` holding the
+deployed q8_0 (`ram_max` 4169 MB vs 1524 MB bare) draws nothing measurable while idle. Warm
+start's memory residency is free; only the carry costs.
+
+Joules to deliver one box, warm (maintain the whole window, 0 s stale) vs cold (idle, then a
+4.85 s blocking acquire at arm D's power, 4.85 s stale): 10 s 108.4/107.7 = 1.01x; 30 s
+325.3/211.6 = 1.54x; 60 s 650.5/367.4 = 1.77x; 120 s 1301.0/679.0 = 1.92x. **Break-even is a
+9.9 s idle window**; past that warm is strictly more energy for strictly less staleness, capping
+at ~1.9x by 2 min (asymptote `P_carry / P_idle` = 2.09x).
+
+| arm | repeat | Hz first 60 s | Hz last 60 s | delta % | `tj` start-end C | G1 |
+|---|---|---|---|---|---|---|
+| B carry-640 | r0 / r1 / rerun | 6.267 / 6.233 / 6.250 | 6.283 / 6.267 / 6.267 | +0.27 / +0.53 / +0.27 | 56.3-65.1 / 56.9-65.3 / 57.8-65.5 | PASS |
+| C carry-512 | r0 / r1 / r2 | 10.033 / 10.000 / 10.000 | 10.050 / 10.050 / 10.050 | +0.17 / +0.50 / +0.50 | 58.4-65.2 / 58.7-65.3 / 57.4-65.6 | PASS |
+
+**RQ-P6.6b: G1 PASSES 6/6, and the sign is up, not down.** Every carry arm ends the 300 s window
+faster than it started, by +0.17% to +0.53% — one bin of jitter, not a trend, against a
+pre-registered fail threshold of 10% decay. `tj` soaks ~57 to ~65 C and flattens; no clock cut
+anywhere. The worst *clean* single sample in the whole matrix is 11.885 W (`D_r2`) against a
+15 W cap, so the rail is not the binding constraint. 300 s is the measured window — a 20-minute
+loiter is extrapolation, not a result.
+
+Third finding, unasked for: **carry power is rail-bound, not work-bound.** 512 runs 1.60x the
+rate of 640 (10.043 vs 6.273 Hz) at 0.15 W *less*, so J per carried frame falls 38% (1.728 to
+1.064). Both arms sit at `GR3D_FREQ` 99% and both land ~10.7-10.8 W: at 15 W the GPU saturates
+either way and the resolution knob buys throughput at constant draw. EXP-1 chose 640 on the
+accuracy elbow alone; the energy axis points at 512 harder than EXP-1 did.
+
+Arm B repeat 2 is **excluded and was re-run** into `runs/p66_b_clean` — the CARLA debug panel
+was started on the host mid-arm and `runners/carla_debug_ui.py:2827` prewarms the Orin, putting
+a second GPU consumer inside the window (`ram_max` 7460 vs 3243-3497 MB, rate 5.987 vs
+6.273-6.280 Hz, power up). The rerun reproduces the clean repeats to 0.03 W and 0.000 Hz. The
+contaminated record is kept, not deleted: -4.7% of the carry rate for one competing process is
+the only measurement here of that effect.
+
+Not in `thesis/claims.json` — this is a characterisation curve with one pre-registered
+falsifiable prediction (G1) that passed, not a gated claim, so no Holm entry. Estimate vs
+actual: every power estimate was **high** except the idle floor (B predicted 11-13 W, measured
+10.84; D predicted 14-15 W peaks, measured 11.50 mean / 11.89 max).
+
+Proof: `proof/power-by-arm.png`, `proof/carry-rate-decay.png`, `proof/maintain-price.png`.
+Detail: `experiments/2026-07-25-maintain-cost/README.md`.

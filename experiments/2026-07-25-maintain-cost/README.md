@@ -1,7 +1,9 @@
 # P6.6 — What does maintaining cost? (energy + thermal price of warm-start)
 
-**Status: PRE-REGISTERED, NOT RUN.** Written 2026-07-25T19:40Z. Everything below the
-`## Results (TBD)` line is a placeholder. A fresh session can start from this file alone.
+**Status: RUN AND CLOSED.** Pre-registered 2026-07-25T19:40Z, run 2026-07-26T14:06Z-15:51Z
+on the Orin at 15 W + `jetson_clocks`. Headline: **maintaining costs +5.65 W over an idle
+board — 1.4-3.8% of a small copter's hover — and it does not decay over 300 s (G1 PASS,
+6/6).** Full numbers under *Results*.
 
 **Origin:** R-52 in `thesis/REMEDIATION.md`, itself opened by R-51/S6 — the author's
 objection to the warm-start framing while driving the live demo panel. The scope half of
@@ -159,19 +161,24 @@ scp experiments/2026-07-25-maintain-cost/maintain_cost_dev.py jetson:~/sam2-benc
 .venv-ft/bin/python experiments/2026-07-25-maintain-cost/run_p66.py \
     --arms A0,A1,B,C,D --seconds 300 --repeats 3 --out runs/p66_maintain_cost
 
-# 4. figures + tables from the run dir only (DoD-7: reproducible from results.json)
-.venv-ft/bin/python experiments/2026-07-25-maintain-cost/make_proof.py \
-    --run runs/p66_maintain_cost
+# 4. figures + tables from the run dirs only (DoD-7: reproducible from results.json).
+#    No args = both run dirs with B_r2 excluded, i.e. exactly the reported numbers.
+.venv-ft/bin/python experiments/2026-07-25-maintain-cost/make_proof.py
+
+# 4b. the arm-B rerun, as run (see "What did not work")
+.venv-ft/bin/python experiments/2026-07-25-maintain-cost/run_p66.py \
+    --arms B --repeats 1 --seconds 300 \
+    --out experiments/2026-07-25-maintain-cost/runs/p66_b_clean
 ```
 
 ## Software versions (fill in at run time)
 
 | component | version | where |
 |---|---|---|
-| JetPack / L4T | TBD | `ssh jetson 'cat /etc/nv_tegra_release'` |
-| Python (device) | TBD | `~/sam2-bench/.venv` |
+| JetPack / L4T | R36 (release) rev 5.0, GCID 43688277, 2026-01-16 | `ssh jetson 'cat /etc/nv_tegra_release'` |
+| Python (device) | 3.10.12 | `~/sam2-bench/.venv` |
 | SAM2 weights | `facebook/sam2.1-hiera-tiny` | `~/sam2-bench/stream_carry.py:35` |
-| llama.cpp build | TBD | pinned commit, see `SOURCES.md` |
+| llama.cpp build | `57fe1f0`, GNU 11.4.0 aarch64 | pinned commit, see `SOURCES.md` |
 | grounding GGUF | `phase3-terse100eos-1024-q8_0` + mmproj | `~/grounding/` |
 | host venv | `.venv-ft` | `requirements-ft.lock.txt` |
 
@@ -180,12 +187,22 @@ scp experiments/2026-07-25-maintain-cost/maintain_cost_dev.py jetson:~/sam2-benc
 Numbers are the point here, so all three are figures/tables, produced by a committed
 `make_proof.py` reproducible from `runs/p66_maintain_cost/results.json`:
 
-1. `proof/power-by-arm.png` — `VDD_IN` over time, all arms overlaid, with the idle floor
-   drawn as a line and the delta annotated.
-2. `proof/carry-rate-decay.png` — achieved Hz in 30 s bins vs `tj` on a twin axis, 640 and
-   512. This is the G1 verdict, and it is a picture because a decay is a shape.
-3. `proof/maintain-price.png` — joules per delivered box for warm vs cold as a function of
-   idle-window length, with the % -of-hover band shaded and labelled as a literature range.
+1. `proof/power-by-arm.png` — `VDD_IN` over time, all five arms overlaid (3 repeats each,
+   the extra repeats drawn faint), the idle floor as a dotted line, each arm's delta over
+   it in the legend. **What it shows:** two flat bands and nothing in between — idle at
+   5.20 W with `A0` and `A1` indistinguishable, and every working arm at 10.7-11.5 W. The
+   sawtooth in the carry arms is the per-step SAM2 loop. Run: `p66_maintain_cost` +
+   `p66_b_clean`, B_r2 excluded.
+2. `proof/carry-rate-decay.png` — achieved Hz in 30 s bins (solid, left axis) vs `tj`
+   (dashed, right axis), for 640 and 512, all repeats. **What it shows:** the G1 verdict as
+   a shape — both rate lines are flat for the full 300 s while `tj` climbs ~8 C and
+   saturates at ~65 C. This is the figure that says the maintain window is not thermally
+   limited at 300 s.
+3. `proof/maintain-price.png` — left: joules to deliver one box, warm vs cold, against
+   idle-window length, with the 9.9 s break-even marked; right: the maintain delta as a
+   percentage of hover across a 150-400 W hover band, labelled on the axis as a literature
+   range, not measured here. **What it shows:** the price of warm-start is ~1.9x the energy
+   of cold by a 2-minute idle window, and 1.4-3.8% of flight power either way.
 
 ## Ledger updates owed on completion
 
@@ -200,51 +217,150 @@ Numbers are the point here, so all three are figures/tables, produced by a commi
 
 ---
 
-## Results (TBD)
+## Results — RUN 2026-07-26T14:06Z to 15:51Z, `machine=jetson-orin-nano`, 15 W + `jetson_clocks`
+
+Every number below is the **median of 3 repeats**, from `runs/p66_maintain_cost/results.json`
+plus `runs/p66_b_clean/results.json` (see *What did not work* for why arm B has a second run
+dir). Repeat-to-repeat spread of `VDD_IN` mean is 0.010-0.036 W in every arm, so the medians
+are quoted to 0.01 W and the deltas below are two orders of magnitude larger than the noise.
 
 ### RQ-P6.6a — energy
 
-| arm | `VDD_IN` mean W | over `A0` | over `A1` | `CPU_GPU_CV` W | `SOC` W | achieved Hz |
-|---|---|---|---|---|---|---|
-| A0 idle-bare | | — | | | | — |
-| A1 idle-deployed | | | — | | | — |
-| B carry-640 | | | | | | |
-| C carry-512 | | | | | | |
-| D ground | | | | | | |
+| arm | `VDD_IN` mean W | over `A0` | over `A1` | `CPU_GPU_CV` W | `SOC` W | achieved Hz | J per carried frame |
+|---|---|---|---|---|---|---|---|
+| A0 idle-bare | 5.195 | — | +0.002 | 0.989 | 1.386 | — | — |
+| A1 idle-deployed | 5.193 | -0.002 | — | 0.989 | 1.385 | — | — |
+| B carry-640 | 10.842 | +5.647 | +5.649 | 4.128 | 2.263 | 6.273 | 1.728 |
+| C carry-512 | 10.689 | +5.494 | +5.496 | 4.135 | 2.211 | 10.043 | 1.064 |
+| D ground (repeated q8_0 acquires) | 11.504 | +6.309 | +6.311 | 4.292 | 2.457 | — | — |
 
-Joules per delivered box, warm vs cold, at idle-window lengths 10 / 30 / 60 / 120 s: TBD.
-Maintain as % of hover power (literature range, not measured here): TBD.
+**The maintain price is +5.65 W** over an idle board, and the whole of it is SAM2's:
+`A1 - A0 = -0.002 W`, i.e. a *resident* `llama-server` holding the deployed q8_0 model
+(4.2 GB RSS, `ram_max` 4169 MB vs 1524 MB bare) draws nothing measurable while it is not
+being asked anything. Warm-start's memory residency is free; only the carry costs.
+
+Joules to deliver one box, warm (maintain the whole idle window, 0 s stale) vs cold (idle,
+then a 4.85 s blocking acquire at arm D's power, 4.85 s stale):
+
+| idle window before the prompt | warm J | cold J | warm / cold |
+|---|---|---|---|
+| 10 s | 108.4 | 107.7 | 1.01x |
+| 30 s | 325.3 | 211.6 | 1.54x |
+| 60 s | 650.5 | 367.4 | 1.77x |
+| 120 s | 1301.0 | 679.0 | 1.92x |
+
+**Break-even is a 9.9 s idle window** — maintaining for ~10 s costs what one cold acquire
+costs. Past that, warm is strictly more energy for strictly less staleness, capping at
+~1.9x by 2 minutes (the ratio asymptotes to `P_carry / P_idle = 2.09x`).
+
+As a fraction of flight power: +5.65 W is **1.4% of a 400 W hover and 3.8% of a 150 W
+hover**. The hover figure is a **literature range for a small copter, not measured here** —
+this project has no airframe, and the band is drawn on `proof/maintain-price.png` as a range
+for exactly that reason.
+
+Third result, unasked for and the most useful of the three: **carry power is rail-bound, not
+work-bound.** 512 runs 1.60x the rate of 640 (10.043 vs 6.273 Hz) at 0.15 W *less* power, so
+joules per carried frame falls 38% (1.728 to 1.064 J). Both arms sit at `GR3D_FREQ` 99% and
+both land ~10.7-10.8 W: at 15 W the GPU is saturated either way and the resolution knob buys
+throughput at constant draw. EXP-1 picked 640 on the accuracy elbow alone; the energy axis
+points the same way as its 512 result, harder.
 
 ### RQ-P6.6b — sustain (G1)
 
-| arm | Hz first 60 s | Hz last 60 s | delta % | `tj` start C | `tj` end C | G1 |
-|---|---|---|---|---|---|---|
-| B carry-640 | | | | | | |
-| C carry-512 | | | | | | |
+| arm | repeat | Hz first 60 s | Hz last 60 s | delta % | `tj` start C | `tj` end C | G1 |
+|---|---|---|---|---|---|---|---|
+| B carry-640 | r0 | 6.267 | 6.283 | +0.27% | 56.3 | 65.1 | PASS |
+| B carry-640 | r1 | 6.233 | 6.267 | +0.53% | 56.9 | 65.3 | PASS |
+| B carry-640 | rerun | 6.250 | 6.267 | +0.27% | 57.8 | 65.5 | PASS |
+| C carry-512 | r0 | 10.033 | 10.050 | +0.17% | 58.4 | 65.2 | PASS |
+| C carry-512 | r1 | 10.000 | 10.050 | +0.50% | 58.7 | 65.3 | PASS |
+| C carry-512 | r2 | 10.000 | 10.050 | +0.50% | 57.4 | 65.6 | PASS |
 
-**Verdict:** TBD.
+**Verdict: G1 PASSES, 6/6 carry arms, and the sign is up, not down.** Every arm ends the
+300 s window *faster* than it started it, by +0.17% to +0.53% — one bin of jitter, not a
+trend. `tj` soaks from ~57 C to ~65 C and flattens there (visible in
+`proof/carry-rate-decay.png`), which is well inside the 15 W envelope and never triggers a
+clock cut. The warm-start position therefore acquires **no stated window-length limit** from
+thermals at 300 s. What this does not license: 300 s is the measured window, and a 20-minute
+loiter is an extrapolation, not a result.
 
 ### Estimate vs actual
 
 | quantity | estimate | actual | note |
 |---|---|---|---|
-| | | | |
+| wall clock | ~1.5 h | 1 h 39 min (14:06-15:45) + 6 min for the B rerun | cooldowns ran 0.3-164.5 s, none timed out |
+| `A0` idle `VDD_IN` | ~4.5 W | 5.195 W | estimate was low; it was extrapolated down from a 5.35 W reading that had `llama-server` resident, and residency turns out to cost nothing, so the 5.35 W *was* the floor |
+| `A1` idle-deployed | ~5.3 W | 5.193 W | good |
+| `B` carry-640 | 11-13 W | 10.842 W | below the band — the 15 W cap is not reached even at 99% `GR3D` |
+| `C` carry-512 | 10-12 W | 10.689 W | in band; the "may wash out" hedge was right on power and wrong on rate, which went up 1.6x |
+| `D` ground | ~14-15 W peaks | 11.504 W mean, 11.85 W max sample | clearly low; prefill saturates the GPU but not the 15 W rail |
+| maintain over idle | +5 to +8 W | **+5.65 W** | in band, at the low end |
+| as % of hover | ~2-5% | **1.4-3.8%** | slightly cheaper than estimated |
+| G1 | holds | **holds, 6/6, +0.5% worst** | no throttle at all |
+
+The systematic error is one-directional: **every power estimate was high except the idle
+floor.** The board does not approach its 15 W cap under any arm measured here — the worst
+single sample in the whole matrix is 12.28 W (and that one is contaminated; the worst clean
+sample is 11.85 W, in arm D). A 15 W-capped Orin Nano running SAM2 flat out at 99% GPU sits
+at ~11 W, so the cap is not the binding constraint on the carry — the GPU's own throughput
+is. (Worst clean sample: 11.885 W in `D_r2`.)
 
 ### What did not work
 
-TBD — negative results are content; record them here plainly.
+**Arm B repeat 2 is excluded and was re-run.** At 15:12-15:17, mid-arm, the CARLA debug
+panel was started on the host; `runners/carla_debug_ui.py:2827` prewarms the Orin at
+start-up, so it booted `llama-server` and spawned a SAM2 carry bridge on the device inside a
+measurement window. The contamination is visible on both axes and in memory:
+
+| B arm | `VDD_IN` mean W | achieved Hz | `ram_max` MB |
+|---|---|---|---|
+| B_r0 | 10.837 | 6.280 | 3497 |
+| B_r1 | 10.842 | 6.273 | 3243 |
+| **B_r2 (excluded)** | **10.929** | **5.987** | **7460** |
+| B rerun (`runs/p66_b_clean`) | 10.867 | 6.273 | 3453 |
+
+`ram_max` more than doubles, the rate drops 4.7% below both clean repeats, and the mean
+power rises — a second GPU consumer, not a property of the carry. The rerun reproduces the
+clean repeats to 0.03 W and 0.000 Hz, so arm B is reported on three clean repeats and B_r2
+is dropped by name (`make_proof.py --exclude p66_maintain_cost:B_r2`, which is also its
+default). The record is kept rather than deleted: it is the only measurement here of what a
+second consumer does to the carry, and 4.7% of the rate for one competing process is a
+number worth having.
+
+**`results.json` is written once, at the very end.** If the driver had died at 15:40 the
+whole 1.5 h would have been lost from the host side — only the per-arm `/tmp/p66_*.json`
+files on the device would have survived (they are now archived into
+`runs/p66_maintain_cost/device_json/`, and a fixture rebuilt from them is how `make_proof.py`
+was developed before the matrix finished). An incremental write after each arm is the
+obvious fix and is *not* applied to `run_p66.py`, because editing the as-run driver after the
+run would break the correspondence between the committed script and the numbers. It belongs
+in whatever runs next.
+
+**Nothing else failed.** No arm timed out its cooldown, no smoke fix was needed on the
+device driver, and the parser saw the power delta on the first attempt.
 
 ---
 
 ## Status / next step
 
-**PRE-REGISTERED, NOT RUN.** Next step is step 0 of *Exact commands* above, in a fresh
-session. `run_p66.py` and `maintain_cost_dev.py` are committed alongside this file and
-have **never been executed against the device** — their pure parts (tegrastats parsing,
-energy integration, the arm scheduler, the G1 rate split) are covered by `tests/test_p66.py` — in `tests/`
-rather than beside the scripts, because that is where `pytest.ini`'s `testpaths` looks,
-so it actually runs in `make test`.
-Expect the first on-device smoke to need a fix; that is what `--smoke` is for.
-`make_proof.py` is **not** written yet — it is written against the real
-`results.json` at analysis time rather than guessed at now, which is also what DoD-7
-means by "reproducible from `runs/*/results.json`".
+**DONE.** The matrix ran clean on the first attempt — no on-device smoke fix was needed, and
+the pure parts (tegrastats parsing, energy integration, the arm scheduler, the G1 rate split)
+were already covered by `tests/test_p66.py`. Both drivers and `make_proof.py` are committed
+beside this file, and running `make_proof.py` with no arguments reproduces every figure and
+every number in *Results* from the two run dirs.
+
+Ledger state: RESULTS, QUESTIONS and DECISIONS entries appended under Part VI; R-52 closed in
+`thesis/REMEDIATION.md`; `cap09` and `cap10` updated. **Nothing added to
+`thesis/claims.json`** — G1 passed, so there is no gated claim here, and a characterisation
+curve must not be registered as one (pre-registered rule, held).
+
+Follow-ups this run opened, none of them blocking:
+
+- **512 is cheaper per carried frame than 640 by 38%** at identical draw. EXP-1 chose 640 on
+  accuracy; the energy axis argues for 512 and nobody has checked whether that changes the
+  deployed default. `grounding/contract.py:CARRY_IMAGE_SIZE` stays 640 until it does.
+- **`CARRY_HZ = 5.76`** in `grounding/contract.py` comes from EXP-1's mixed-clip measurement;
+  this campaign's clean 300 s carry at the same 640 gives 6.273 Hz on a single 100-frame
+  clip. Different conditions, not a contradiction — but the constant is now the more
+  pessimistic of two measurements and should say which it is.
+- **An incremental `results.json`** write, per arm, in whatever driver comes next.
