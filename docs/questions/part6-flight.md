@@ -434,3 +434,45 @@ repeat 2 excluded and re-run (host-side CARLA panel prewarmed the Orin inside th
 rerun reproduces the clean repeats to 0.03 W). Not in `thesis/claims.json` — a characterisation
 curve with a passed falsifiable prediction is not a gated claim, so no Holm entry. Detail:
 `experiments/2026-07-25-maintain-cost/README.md`.
+
+### RQ-EXP-8 — where are the elbows of SAM2's memory horizon (recent frames K, object pointers M, and the carry ring P), and what do they cost? (2026-07-26)
+
+The question that opened this: three levers had been carried since Part III without ever being
+measured — `num_maskmem` (K, dense recent frames), `max_obj_ptrs_in_encoder` (M, sparse pointers)
+and `StreamCarry`'s `PRUNE_AFTER` (P, the host-side ring). D-R16.2 had assumed the ring *was* the
+memory horizon and declined to touch it on a throughput argument. Three sub-questions, three
+verdicts.
+
+**RQ-EXP-8a (ring): YES, at exactly the predicted frame.** Pre-registered arithmetic said
+bit-identity requires `P >= max((K-1)*stride, M-1)` = 15; the measured lowest identical P is **15**,
+360/360 steps sha1-equal, collapsing to 21.9% at P=14. `PRUNE_AFTER=100` was holding **85 frames the
+model provably never reads** at 8.1 MB each — **~670 MB of host RAM** on a board with 8 GB shared.
+Adopted as a derived `read_window()` (16, one frame of margin), superseding D-R16.2's *rationale*
+with measurement: SAM2's horizon is `max_obj_ptrs_in_encoder`, and the ring cannot extend it.
+
+**RQ-EXP-8b (K): NO — real, but not worth pulling.** K is not flat, which is where the
+pre-registration guessed wrong: it is a detectable monotone effect (K2 and K1 survive Holm). But
+`b=0` in **all five** arms — a shorter dense memory never once wins a clip — and the price curve is a
+cliff, not a slope. K=1 buys 11.2% of the step for -7.3% median IoU and **four lost clips**, three of
+them total losses. EXP-1's resolution lever buys 2.46x the rate for -0.6% IoU. Same knob-turning
+budget, an order of magnitude better exchange rate. Keep K=7.
+
+**RQ-EXP-8c (M): NO — inert.** From M=2 to M=32, every arm is null (p >= 0.259) with **zero
+discordant pairs**: not one clip changes PASS status anywhere across the range, so McNemar is
+undefined, not just non-significant. The sparse object-pointer horizon is not doing work at this
+timescale. M=32 does not win, so G3 does not fire; keep M=16. Caveat: M > 16 is off-distribution for
+the trained pointer embedding, so this measures it harmless, not tested at its design point.
+
+**What this closes.** The memory horizon is not the drift axis. EXP-8 joins P5.15 (the carry is not
+the fragile part), P5.20 (capacity is dead) and P5.21 (ROI re-anchor does not beat plain carry) in
+bounding what carry tuning can do — the remaining levers are resolution (EXP-1, measured, adopted)
+and crop geometry (EXP-6, shipped), not memory depth. **What it does not license:** K was swept only
+at 640, so the K/resolution interaction is unmeasured; and the freed RAM is measured as bench-harness
+RSS, not as a workload that previously OOMed and now fits.
+
+Honest note on the gate: **G2 fired on the letter for K=1 and was rejected anyway.** The -0.05
+margin was written against median-of-median IoU, a statistic blind to a minority of clips going to
+zero, and PASS was not in the gate. Recorded as a mis-specified gate rather than silently retuned
+after seeing the data. Machine: everything on the Orin (15 W + `jetson_clocks`); no 3090, no CARLA.
+Not in `thesis/claims.json` (engineering measurement, R-44 standing). Detail:
+`experiments/2026-07-26-carry-memory-horizon/README.md`.

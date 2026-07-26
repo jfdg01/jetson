@@ -21,7 +21,9 @@ import sys
 print("[bridge] up", file=sys.stderr, flush=True)
 
 import argparse  # noqa: E402
+import hashlib  # noqa: E402
 import pickle  # noqa: E402
+import resource  # noqa: E402
 import struct  # noqa: E402
 import time  # noqa: E402
 
@@ -72,13 +74,33 @@ def main():
     # EXP-1 moved the deployed carry to the 640 elbow. The panel passes --image-size
     # explicitly, so this default only bites a manual invocation.
     ap.add_argument("--image-size", type=int, default=640)
+    # EXP-8 memory-horizon levers. 0 = leave the model's own value (7 / 16 / StreamCarry's
+    # PRUNE_AFTER), so every pre-EXP-8 caller is bit-identical.
+    ap.add_argument("--num-maskmem", type=int, default=0,
+                    help="K: mask-memory slots. Post-load ONLY and downward only -- "
+                         "maskmem_tpos_enc is a trained Parameter sized 7, so a hydra "
+                         "override fails the strict load_state_dict. Index-correct because "
+                         "the tpos index is num_maskmem-t_pos-1 == t_rel-1, keyed to recency.")
+    ap.add_argument("--max-obj-ptrs", type=int, default=0,
+                    help="M: object pointers. >=2 -- t_diff_max = M-1 divides by zero at 1.")
+    ap.add_argument("--prune-after", type=int, default=0, help="P: StreamCarry ring depth")
+    ap.add_argument("--mask-hash", action="store_true",
+                    help="sha1 the video-res mask per step (EXP-8 ring bit-identity)")
     args = ap.parse_args()
     inp, out = sys.stdin.buffer, sys.stdout.buffer
     t0 = time.time()
     over = [f"++model.image_size={args.image_size}"] if args.image_size != 1024 else []
     predictor = SAM2VideoPredictor.from_pretrained(MODEL, hydra_overrides_extra=over)
-    print(f"[bridge] model loaded in {time.time()-t0:.1f}s, image_size={args.image_size}, ready",
-          file=sys.stderr, flush=True)
+    if args.num_maskmem:
+        assert 1 <= args.num_maskmem <= predictor.num_maskmem, "K is downward-only from 7"
+        predictor.num_maskmem = args.num_maskmem
+    if args.max_obj_ptrs:
+        assert args.max_obj_ptrs >= 2, "M=1 divides by zero in the pointer sine embedding"
+        predictor.max_obj_ptrs_in_encoder = args.max_obj_ptrs
+    kw = {"prune_after": args.prune_after} if args.prune_after else {}
+    print(f"[bridge] model loaded in {time.time()-t0:.1f}s, image_size={args.image_size}, "
+          f"K={predictor.num_maskmem} M={predictor.max_obj_ptrs_in_encoder} "
+          f"P={args.prune_after or 'stock'}, ready", file=sys.stderr, flush=True)
     carry = None
     with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
         while True:
@@ -87,13 +109,19 @@ def main():
                 break
             if msg[0] == "init":
                 _, jpg, box = msg
-                carry = StreamCarry(predictor, _decode(jpg), box)
+                torch.cuda.reset_peak_memory_stats()
+                carry = StreamCarry(predictor, _decode(jpg), box, **kw)
                 _send(out, {"ok": True})
             elif msg[0] == "step":
                 ts = time.perf_counter()
-                _, box = carry.step(_decode(msg[1]))
-                _send(out, {"box": list(box) if box is not None else None,
-                            "ms": round(1000 * (time.perf_counter() - ts), 1)})
+                mask, box = carry.step(_decode(msg[1]))
+                rep = {"box": list(box) if box is not None else None,
+                       "ms": round(1000 * (time.perf_counter() - ts), 1),
+                       "cuda_mb": round(torch.cuda.max_memory_allocated() / 2**20, 1),
+                       "rss_mb": round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024, 1)}
+                if args.mask_hash:
+                    rep["mh"] = hashlib.sha1(np.ascontiguousarray(mask)).hexdigest()
+                _send(out, rep)
     print("[bridge] stdin closed, exiting", file=sys.stderr, flush=True)
 
 

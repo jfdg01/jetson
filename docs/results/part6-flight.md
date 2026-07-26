@@ -876,3 +876,105 @@ actual: every power estimate was **high** except the idle floor (B predicted 11-
 
 Proof: `proof/power-by-arm.png`, `proof/carry-rate-decay.png`, `proof/maintain-price.png`.
 Detail: `experiments/2026-07-25-maintain-cost/README.md`.
+
+### EXP-8 Stage 0 — the carry ring's identity boundary (2026-07-26T19:06Z, `jetson`, 15 W + `jetson_clocks`)
+
+`sam2.1-hiera-tiny`, `image_size=640`, K=`num_maskmem`=7, M=`max_obj_ptrs_in_encoder`=16,
+3 UAV123 clips (`bike1`, `bike3`, `boat2`) × 120 steps @ stride 2, sha1 of the video-resolution
+mask per step, 360 comparisons per row against `PRUNE_AFTER=100`.
+
+| P | mask-identical vs P=100 | median IoU | RSS growth / run | peak RSS | peak CUDA | ms/step |
+|---|---|---|---|---|---|---|
+| 8 | 12.50% | 0.910 | 31.2 MB | 1274.5 MB† | 505.3 MB | 175.2 |
+| 14 | 21.94% | 0.908 | 194.8 MB | 2013.5 MB | 505.3 MB | 172.8 |
+| **15** | **100%** | 0.909 | 164.3 MB | 2016.8 MB | 505.3 MB | 173.0 |
+| 16 | 100% | 0.909 | 182.3 MB | 2045.7 MB | 505.3 MB | 172.8 |
+| 32 | 100% | 0.909 | 341.8 MB | 2172.9 MB | 509.6 MB | 172.9 |
+| 100 (deployed) | 100% | 0.909 | 853.3 MB | 2844.7 MB | 529.6 MB | 173.8 |
+
+† `ringP8` ran first, with a process baseline 580 MB below every other arm (a stale bridge from an
+earlier session was resident and was killed ~1 min in), so its *peak* is not comparable across arms
+and its first clip's 298 ms is excluded from rate reads. Its *growth* is comparable. Growth, not
+peak, is the ring's own cost — peak carries a per-process baseline.
+
+**H1 was a pre-registered point prediction and it landed on the exact frame.** From the arithmetic
+alone — at step *n* SAM2 reads back to *n*−max(( `num_maskmem`−1)·stride, `max_obj_ptrs`−1) while
+`StreamCarry` has popped {*j* ≤ *n*−1−P} — identity requires **P ≥ 15**. Measured lowest identical
+P = **15**, with 360/360 steps byte-identical, collapsing to 21.9% at P = 14. `PRUNE_AFTER = 100`
+therefore retains **85 frames the model provably never reads**, at a measured **8.1 MB per retained
+frame** (growth 853.3 MB at P=100 vs 164.3 MB at P=15, over 85 frames) — **~670 MB of host RAM**
+held for nothing, steady-state, on a board with 8 GB shared between CPU and GPU. Estimate vs
+actual: I pre-registered ~4.9 MB/frame from the retained float32 3×640×640 input tensor alone and
+~410 MB freed; the true cost is **1.65×** that, the balance being the retained
+`non_cond_frame_outputs` entry and allocator slack.
+
+Accuracy and rate are **flat across every P tested** (median IoU 0.908–0.910, ~173 ms/step),
+including P = 8 where only 12.5% of steps are bit-identical. The ring is not a speed or accuracy
+knob in either direction — it is pure RAM. This refutes the *rationale* of `D-R16.2`
+(`docs/decisions/part4-end-to-end.md:682`, "the ring is a memory *horizon*") above 15 frames:
+SAM2's horizon is `max_obj_ptrs_in_encoder` and the ring cannot extend it. Adopted as
+`read_window()` in `stream_carry.py` (derived from the model's config, not hard-coded).
+
+Not in `thesis/claims.json` — an engineering measurement with a passed falsifiable prediction, same
+standing as EXP-1/EXP-2/EXP-6 after R-44, so no Holm entry. Benign, arm-invariant warning: SAM2
+skips `fill_holes_in_mask_scores` because the `_C` extension is not compiled in the Orin venv.
+
+Proof: `proof/ring_identity.png`. Detail: `experiments/2026-07-26-carry-memory-horizon/README.md`.
+
+### EXP-8 Stage 1 — the memory-horizon sweep: K and M (2026-07-26T21:58Z, `jetson`, 15 W + `jetson_clocks`)
+
+10 arms x 38 UAV123 clips x 24 steps @ stride 11, `image_size=640`, `PRUNE_AFTER=32`,
+`sam2.1-hiera-tiny`, one service restart per arm. Baseline is stock K=`num_maskmem`=7,
+M=`max_obj_ptrs_in_encoder`=16. Deltas are arm-minus-base on per-clip `median_iou` (Wilcoxon +
+bootstrap CI95, Holm over the 9-comparison EXP-8 family); PASS is `median_iou >= 0.25`, exact
+two-sided McNemar, b = clips flipping PASS->FAIL.
+
+| Arm | K | M | med-of-med IoU | delta [CI95], p (Holm) | held_frac | PASS/38 | b/c, p | re-find | ms/step | peak CUDA MB |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `base` | 7 | 16 | 0.811 | — | 0.859 | 32/38 | — | 3/129 (2.3%) | 173.4 | 506.7 |
+| `K5` | 5 | 16 | 0.779 | -0.0035 [-0.0087, 0.0000], p=0.0087 (Holm 0.059) | 0.842 | 31/38 | b=1/c=0, p=1 | 5/144 (3.5%) | 166.5 | 506.7 |
+| `K4` | 4 | 16 | 0.777 | -0.0029 [-0.0119, 0.0000], p=0.0084 (Holm 0.059) | 0.838 | 31/38 | b=1/c=0, p=1 | 12/148 (8.1%) | 163.8 | 506.7 |
+| `K3` | 3 | 16 | 0.773 | -0.0021 [-0.0174, 0.0000], p=0.0116 (Holm 0.059) | 0.833 | 31/38 | b=1/c=0, p=1 | 9/152 (5.9%) | 161.2 | 506.7 |
+| `K2` | 2 | 16 | 0.767 | -0.0076 [-0.0250, 0.0000], p=0.0025 (Holm 0.020, reject) | 0.820 | 31/38 | b=1/c=0, p=1 | 5/164 (3.0%) | 156.4 | 506.7 |
+| `K1` | 1 | 16 | 0.752 | -0.0175 [-0.0321, -0.0049], p=2.0e-05 (Holm 1.8e-04, reject) | 0.728 | 28/38 | b=4/c=0, p=0.125 | 27/248 (10.9%) | 153.9 | 506.7 |
+| `M8` | 7 | 8 | 0.802 | 0.0000 [-0.0006, 0.0000], p=0.259 (Holm 1) | 0.856 | 32/38 | b=0/c=0, undef | 6/131 (4.6%) | 174.0 | 506.7 |
+| `M4` | 7 | 4 | 0.824 | 0.0000 [-0.0008, +0.0006], p=0.86 (Holm 1) | 0.855 | 32/38 | b=0/c=0, undef | 7/132 (5.3%) | 173.8 | 506.7 |
+| `M2` | 7 | 2 | 0.807 | +0.0001 [-0.0004, +0.0023], p=0.896 (Holm 1) | 0.849 | 32/38 | b=0/c=0, undef | 3/138 (2.2%) | 173.6 | 506.7 |
+| `M32` | 7 | 32 | 0.810 | 0.0000 [0.0000, 0.0000], p=0.748 (Holm 1) | 0.859 | 32/38 | b=0/c=0, undef | 3/129 (2.3%) | 174.0 | 506.7 |
+
+**M is inert (H3 NO).** Every M arm is null on the continuous metric (p >= 0.259) with **zero
+discordant pairs** — not one clip changes PASS status anywhere from M=2 to M=32, so McNemar is
+undefined rather than merely non-significant. The one clip that moves, `car13` (0.639 to 0.475 at
+M=2), is a ~10 px high-nadir target where the overlay shows carry and GT coincident: mask-boundary
+jitter on a handful of pixels, not a lost track. M=32 does not win, so **G3 does not fire**. The
+pre-registered caveat holds: M > 16 is off-distribution for the trained pointer embedding, and this
+measures it as harmless, not as tested at its design point.
+
+**K is real, monotone, and a bad trade (H2 NO).** K is the one lever that moves the continuous
+metric, and it moves one way only: **b=0 in all five K arms** — a shortened dense memory never once
+wins a clip. K5..K2 each cost exactly one clip (`building3`) and buy 4-10% of the step; K=1 costs
+**four** clips, 13 points of held_frac, and buys 11.2%. Against EXP-1's resolution lever (2.46x rate
+for -0.6% IoU) the exchange rate is not close. Per-clip it is a cliff, not a slope: `car7` is
+perfect through K=2 (0.894..0.903) then exactly 0.000 at K=1. **Peak CUDA is 506.7 MB in all ten
+arms, to the decimal** — neither lever buys one byte of device memory (as estimated; a 640 mask slot
+is ~205 KB, and the megabytes were always host-side, which is Stage 0's finding).
+
+Three failure mechanisms, each verified by opening the overlay rather than inferred from the number:
+mask **leak onto a neighbour** (`building3` @ K5, box bleeds onto the adjacent mosque); **identity
+swap onto a same-class distractor** (`car7` @ K1, box jumps to a different silver car, disjoint from
+GT, hence exactly 0.000); **mask collapse to empty** (`car13`, `truck3` @ K1, no carried box at all).
+None is drift — the pre-registration expected a horizon lever to fail by drifting; it fails by
+losing the object's identity outright. Re-find is non-inferior in every arm, the specific loss
+D-R16.2 feared; K1's higher rate (10.9%, CI [7.6, 15.4] vs base 2.3% [0.8, 6.6]) sits on a nearly
+double-sized denominator, so it enters the lost state more often and recovers from shallow losses.
+
+**Verdict: keep K=7 and M=16.** G2 fired on the letter for K=1 (CI excludes -0.05, re-find
+non-inferior, >=5% ms) but was **not adopted** — the -0.05 margin was written against
+median-of-median IoU, which is by construction blind to a minority of clips going to zero, and PASS
+was not in the gate. Recorded as a mis-specified gate rather than retuned after the fact. Stage 2
+not run (vacuous: with nothing adopted, its interaction cell *is* `base`).
+
+Not in `thesis/claims.json` — an engineering measurement, same standing as EXP-1/EXP-2/EXP-6 after
+R-44, so no Holm entry in the thesis family. Proof: `proof/horizon_elbow.png`,
+`proof/refind_by_arm.png`, `proof/drift_building3.mp4`. Detail:
+`experiments/2026-07-26-carry-memory-horizon/README.md`.

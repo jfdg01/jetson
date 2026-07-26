@@ -4,9 +4,12 @@ sam2==1.1.0 only propagates over a pre-loaded frame directory; a control loop
 gets frames one at a time. StreamCarry reuses the batch path's own inner step
 (`_run_single_frame_inference`) on a frame list that grows per step, so the
 streaming output is the same computation as `propagate_in_video`, minus the
-preloading. Memory older than PRUNE_AFTER frames is dropped (the model attends
+preloading. Memory older than `prune_after` frames is dropped (the model attends
 to num_maskmem=7 recents + <=16 obj-ptr frames, so far-past entries are dead
-weight that would otherwise grow unbounded in a long flight).
+weight that would otherwise grow unbounded in a long flight). EXP-8 measured that
+"dead weight" rather than assuming it: the ring is bit-identical to an unbounded
+one at prune_after >= 15, so the default is now derived (see `read_window`), and
+the old PRUNE_AFTER=100 was holding 85 frames the model provably never read.
 
 Parity gate (RQ pre-reg 3.0): per-frame mask-box IoU stream-vs-batch >= 0.99.
 
@@ -43,7 +46,22 @@ except ImportError:  # ponytail: Jetson copy is repo-less; only step() needs the
 
 IMG_MEAN = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
 IMG_STD = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
-PRUNE_AFTER = 100
+PRUNE_AFTER = 100   # legacy explicit value; prune_after=None derives the bound instead
+
+
+def read_window(predictor) -> int:
+    """Smallest ring that is bit-identical to an unbounded one, from the model's own config.
+
+    EXP-8 (2026-07-26) measured this instead of guessing it: at step n SAM2 reads mask memory
+    back to n-(num_maskmem-1)*stride and object pointers back to n-(max_obj_ptrs-1), while the
+    prune below has dropped {j <= n-1-prune_after}. Those stop overlapping at
+    prune_after >= max((num_maskmem-1)*stride, max_obj_ptrs-1) == 15 stock, and 360/360 steps
+    came back sha1-identical to prune_after=100 at 15 and above (21.9% at 14). The +1 over the
+    bound is margin against an off-by-one in a future change, for 8 MB. Derived, not
+    hard-coded, so raising any of the three cannot silently truncate memory still being read.
+    """
+    stride = getattr(predictor, "memory_temporal_stride_for_eval", 1)
+    return max((predictor.num_maskmem - 1) * stride, predictor.max_obj_ptrs_in_encoder - 1) + 1
 
 
 class _FrameList:
@@ -66,9 +84,11 @@ class StreamCarry:
     """init from frame 0 + box, then step(frame) -> (mask, box) per live frame."""
 
     def __init__(self, predictor, first_frame: np.ndarray | str | Path, box,
-                 prune_after: int = PRUNE_AFTER):
+                 prune_after: int | None = None):
         self.p = predictor
-        self.prune_after = prune_after
+        # None = the derived bound (EXP-8). An explicit int still wins, so every campaign that
+        # pinned its own ring keeps its number.
+        self.prune_after = read_window(predictor) if prune_after is None else prune_after
         self.last_score: float | None = None  # SAM2.1 object-score logit of the last step (E4 loss gate)
         # init_state via a one-frame temp dir: reuses the stock loader (jpg-only)
         # for frame 0. A path is symlinked (byte-identical to the batch reference);

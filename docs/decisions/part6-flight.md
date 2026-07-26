@@ -1039,3 +1039,84 @@ agree in direction, which is worth stating; that is not the same as a shipping g
 adopted default agreeing (`carla_debug_ui.py` already runs 512, so the deployed panel and the
 adopted default still differ). Re-checking 512 against EXP-1's accuracy staging is the follow-up
 that would close it; it is cheap and nobody is blocked on it.
+
+### `PRUNE_AFTER` 100 to 16, and D-R16.2's rationale is superseded by measurement (EXP-8 Stage 0, 2026-07-26T19:20Z)
+
+*Chosen:* adopt `PRUNE_AFTER = 16` for the deployed carry. **D-R16.2's *decision* (don't change the
+constant on a throughput bench) was right and is honoured — this is the gated change it asked for.
+D-R16.2's *rationale* is superseded and should not be cited again.**
+
+*Why:* D-R16.2 deferred the change because "the ring is a memory *horizon*, not just a buffer —
+shortening it is a behavioural change to how long SAM2 can re-find an occluded target." EXP-8
+measured that claim instead of reasoning about it, and it is false above 15 frames. At step *n*
+SAM2 attends to mask memory from {*n*−`num_maskmem`+1 … *n*−1} and object pointers from
+{*n*−(`max_obj_ptrs_in_encoder`−1) … *n*−1} ∪ {0}; `StreamCarry` has popped {*j* ≤ *n*−1−P}. Those
+sets stop overlapping at **P ≥ 15**, and the run confirms it to the frame: all 360 steps
+(3 clips × 120) are **sha1-identical to P=100** at P=15 and above, collapsing to 21.9% at P=14.
+Not "equivalent within noise" — the same bytes. So above 15 the ring is not a horizon at all; it
+cannot extend SAM2's, which is set by `max_obj_ptrs_in_encoder`. The behavioural risk D-R16.2
+protected against does not exist in that range, and there is nothing left to gate.
+
+16 rather than 15: one frame of margin against an off-by-one in a future stride or catch-up change,
+for 18 MB. Below 15 the output does change, so 15 is a real cliff and sitting on it is not worth
+saving one frame.
+
+*What it buys:* ~670 MB of host RAM back, steady-state, on a board with 8 GB shared between CPU and
+GPU (measured 8.1 MB per retained frame at `image_size=640`; growth over a 120-step run falls from
+853.3 MB at P=100 to 182.3 MB at P=16). This is the memory D-R16.2 identified as the OOM cause at
+n=2 candidates, now recovered with a measured guarantee of no behavioural change rather than a
+throughput argument.
+
+*What was given up:* nothing measurable — that is the unusual part. Accuracy is flat (median IoU
+0.908–0.910 across every P tested, *including* P=8 where only 12.5% of steps are bit-identical) and
+rate is flat (~173 ms/step across all P). The ring is not a speed/accuracy knob in either
+direction; it is pure RAM. What is genuinely given up is head-room for a *future* change: any edit
+that widens SAM2's read window — raising `max_obj_ptrs_in_encoder` above 16, or
+`memory_temporal_stride_for_eval` above 1 — silently invalidates P=16 and must move the ring with
+it. The bound is `P ≥ max_obj_ptrs_in_encoder − 1` (and `≥ num_maskmem − 1`), not the literal 15.
+
+*Scope:* measured at `image_size=640`, K=7, M=16, stride 2, `sam2.1-hiera-tiny`. The identity
+boundary is arithmetic and so resolution-independent; the 8.1 MB/frame is not (it scales with S²).
+Detail and the pre-registered prediction: `experiments/2026-07-26-carry-memory-horizon/README.md`.
+
+### K=7 and M=16 stay stock: a fired gate is rejected on the record, not retuned (EXP-8 Stage 1, 2026-07-26T22:20Z)
+
+*Decision:* keep SAM2's `num_maskmem=7` and `max_obj_ptrs_in_encoder=16` at their stock values.
+Neither memory-horizon lever is adopted. Separately and explicitly: **G2 as pre-registered fires for
+K=1, and K=1 is rejected anyway** — the gate is recorded as mis-specified rather than rewritten to
+match the outcome.
+
+*Why (M):* it is inert. Across M=2..32 every arm is null on per-clip median IoU (p >= 0.259) with
+**zero discordant pairs** — no clip anywhere in that range changes PASS status, so McNemar is
+undefined rather than non-significant. There is nothing to adopt in either direction.
+
+*Why (K):* the exchange rate. K is a genuine monotone effect (K2 and K1 survive Holm over the
+9-comparison family), but `b=0` in all five arms — a shortened memory never once wins a clip — and
+the aggressive end is a cliff: K=1 buys 11.2% of the step for -7.3% median-of-median IoU and **four
+PASS clips**, three of them going to exactly 0.000. The comparison that settles it is EXP-1's
+resolution lever: **2.46x the rate for -0.6% IoU** (1024 to 640) against K7-to-K1's **1.13x for
+-7.3% plus four clips**. If the deployment needs latency, the knob to turn is resolution, and it has
+already been turned.
+
+*Why the gate is reported as fired-and-rejected:* G2 required the IoU delta CI to exclude -0.05,
+re-find to be non-inferior, and a >=5% saving in ms or MB. K=1 satisfies all three
+(CI [-0.0321, -0.0049]; re-find 10.9% vs base 2.3%; 11.2% of the step). The flaw is that the -0.05
+margin was written against *median-of-median IoU*, which is by construction insensitive to a
+minority of clips collapsing — the median clip barely moves while the tail dies — and PASS, the
+metric the deployment actually cares about, was never in the gate. The alternative was to quietly
+restate the threshold after seeing the data, which would have made the pre-registration decorative.
+The lesson generalises: **a gate on a central-tendency statistic needs a tail condition beside it.**
+
+*What was given up:* a real 11.2% of on-device step time that is genuinely available. Also the
+Stage 2 interaction cell — pre-registration gates Stage 2 on "G2 or G3 fires", and with nothing
+adopted its best-K x best-M cell *is* `base`, so it was not run (vacuous, and stated as a deviation
+rather than skipped). That leaves the K/resolution interaction unmeasured: K was swept only at
+`image_size=640`, so whether a shorter memory is cheaper or more forgiving at 1024 is open.
+
+*Third mechanism note, because it changes how the failure should be described:* the pre-registration
+expected a horizon lever to "fail by drifting". Verified on the overlays, it does not. It fails by
+**mask leak onto a neighbour** (`building3` @ K5), **identity swap onto a same-class distractor**
+(`car7` @ K1 — the box jumps to a different silver car, disjoint from GT, hence exactly 0.000), and
+**mask collapse to empty** (`car13`, `truck3` @ K1). Dense recent memory is buying object *identity*,
+not positional smoothness. Detail:
+`experiments/2026-07-26-carry-memory-horizon/README.md`.
