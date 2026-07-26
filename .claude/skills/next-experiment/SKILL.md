@@ -1,219 +1,156 @@
 ---
 name: next-experiment
-description: Drive the experiment loop on Opus, calling Fable once per cycle to audit recent results, pick the next research question, and design the pre-registered experiment. Opus does the mechanical rest — run the matrix, fill Results, append ledgers, commit, merge, loop.
+description: Run one experiment cycle end-to-end — audit the last result, pick the next RQ, pre-register it, spawn one executor subagent for the matrix, audit the handoff, merge to main. One experiment per invocation; invoke under /loop with no interval for an autonomous cadence.
 ---
 
 # next-experiment
 
-You are **Opus, the loop driver.** You do the mechanical work of the loop yourself — read
-status, run the matrix, fill Results, append ledger rows, commit, merge, loop. Once per
-cycle you call **Fable, the smart model, as a subagent** for the one part that needs its
-intelligence: audit the recent results, pick the next research question, and design the
-pre-registered experiment. Fable is called surgically with a tight brief and fresh context,
-so its tokens go to judgment, not plumbing.
+One experiment per invocation. **You (Opus) do the judgment; subagents do the reading and the
+running.** Fable is no longer used anywhere in this loop: Opus 5 designs and audits at least as
+well and costs ~2.5x less per agent (global CLAUDE.md rule 6 — `fable-5 $10.28` vs `opus-5
+$4.10`). If a cycle ever wants Fable, the human asks for it explicitly.
 
-North star: a Jetson Orin Nano system where a user says "follow that white car" / "switch to
-that blue truck" over a drone video feed and the drone does it, end-to-end.
+North star: a Jetson Orin Nano system where a user says "follow that white car" / "switch to that
+blue truck" over a drone video feed and the drone does it, end-to-end.
 
-## Division of labor (the closed loop)
+## Model tiering (global CLAUDE.md rule 6)
 
-One long-lived Opus session (you) drives the whole loop. Each cycle you spawn **one Fable
-design subagent** (the Agent tool with `model: "fable"`) for audit + pick-RQ + design; it
-writes and commits the pre-registered README and any design-code patch on
-`experiment/<slug>`, then returns a summary. You take the branch from there: run the matrix,
-document, merge.
-
-| Who | Does | Never does |
+| Stage | Who | Model |
 |---|---|---|
-| **Opus (this skill, the loop driver)** | stamp the log, read status, spawn the Fable design subagent, verify its handoff is complete, run the matrix, fill Results, append RESULTS/QUESTIONS/DECISIONS rows, commit on the branch, **merge to `main`**, decrement the budget, loop | audit / pick RQ / design the experiment (that's Fable's call), edit the design code Fable wrote, re-interpret thresholds |
-| **Fable (design subagent, one call per cycle)** | audit recent results for validity/gaps/bias, pick the single highest-leverage RQ, draft the pre-registered README (RQ, thresholds, run matrix, mechanical verdict rules), write + commit the design-code patch on `experiment/<slug>`, return a short summary | run the matrix, fill Results, merge, loop, or draft more than one experiment |
+| status digest, ledger scan, results spot-check | subagent, read-only | `sonnet`, effort `high` |
+| audit, pick the RQ, pre-register, verdict, merge | **you, never delegated** | inherited Opus |
+| run the matrix | one subagent | inherited Opus (it must re-plan around a crashing rig) |
 
-The cycle: Opus reads status → spawns Fable → Fable audits + picks + designs + commits the
-README/patch on the branch + returns → Opus verifies the handoff, runs the matrix, fills
-Results + ledgers, commits, merges to `main` → Opus decrements the budget and loops. A
-**FAIL verdict still loops** (negative results are thesis content). The smart *review* of a
-result happens on the **next** cycle: Fable's audit (below) re-examines the prior result
-before building on it, so a bad merge is caught one cycle later, not pre-merge.
+The rule is *what the stage's output authorizes*, not its position: anything that gates a
+multi-hour GPU run stays on Opus and stays with you.
 
-The loop breaks only on **process failure**: Fable returns an error or an incomplete handoff
-(README/patch missing or uncommitted), the matrix crashes/hangs past the README's abort
-criteria, or a merge conflict. Then Opus does NOT loop, leaves the branch unmerged, and
-writes what happened in the README Status line for a human.
+**Ultracode.** When the human says "ultracode", author the cycle as ONE `Workflow` script —
+phases `Audit` (sonnet/low), `Design` (inherit), `Execute` (inherit), `Verify` (sonnet/low) —
+instead of hand-spawned agents. Same division of labor, same files on disk, deterministic
+control flow. Max 6 agents in the whole run. Without the keyword, plain `Agent` calls.
 
-**Runaway protection:** a plain counter in `.claude/loop-budget` (the human authorizes N
-cycles with `echo N > .claude/loop-budget`). At the top of each cycle Opus reads it; if
-missing or <= 0, Opus stops and says so. After a successful merge Opus decrements it
-(`echo $((budget-1)) > .claude/loop-budget`). Report the remaining budget at the start of
-each cycle. Every cycle boundary is stamped in `.claude/loop.log` (see Step 1).
+## 1 — Status (delegate the reading, don't dump it here)
 
-<!-- ponytail: Opus runs the matrix inline, so its context grows per cycle with matrix logs
-     (bounded by autocompact ~130k). Fable's context is isolated in a per-cycle subagent by
-     construction — the expensive model never carries loop state. Only if the driver context
-     measurably bloats across many cycles, spawn a throwaway Opus executor subagent for the
-     matrix to keep its logs out; don't add that machinery pre-emptively. -->
+Spawn ONE read-only `sonnet` agent (`Explore` or `caveman:cavecrew-investigator`). Ask for a
+digest, not files: the last 2-3 `experiments/*/README.md` (Status, verdict, what broke, residuals
+carried forward), the current Part's `docs/{questions,results,decisions}/part<N>-*.md` rows, and
+the dead levers not to re-propose. Resolve the Part number from CLAUDE.md, never hardcode it.
 
-## Step 1 — Review status (read, don't guess)
+You then `Read` only the specific files it points at. Raw logs and full ledgers never enter this
+context (global CLAUDE.md rules 1-2).
 
-- First action of every cycle: stamp the timeline —
-  `echo "$(date -Is) CYCLE-START opus on $(git branch --show-current)" >> .claude/loop.log`
-  (one line per cycle; paired with the FABLE-DESIGN/MERGED stamps it's how a human
-  reconstructs the loop — a FABLE-DESIGN with no following MERGED means Fable's design failed
-  or Opus aborted before merge).
-- `git log --oneline -15` and current branch. You loop from clean `main`.
-- **Optional theme:** if `.claude/loop-focus` exists and is non-empty, read it — its one line
-  is the research theme the human wants steered toward this run (e.g. "improve language
-  handling"). Missing or empty = no theme, pick purely by leverage. You pass it verbatim into
-  the Fable brief; you never enforce it yourself.
-- The 2–3 most recent `experiments/*/README.md` (Status, Results, verdict sections).
-- The current Part's ledger docs. Resolve the Part number from `CLAUDE.md` ("Project parts")
-  rather than hardcoding it, then read `docs/{questions,results,decisions}/part<N>-*.md`.
+If the human gave a theme this session, it *steers*; it does not override the data. Say so
+plainly when the audit shows the binding constraint is elsewhere, then pick that instead.
 
-You read status yourself so you can (a) hand Fable exact file pointers and (b) later run the
-matrix from the README. You do NOT audit or pick the RQ — that is Fable's call in Step 2.
+## 2 — Audit, then pick ONE (you — never delegated)
 
-## Step 2 — Spawn the Fable design subagent (the judgment)
+Interrogate the last result before building on it:
 
-Spawn the design work with the **Agent tool**, `subagent_type: "general-purpose"`,
-`model: "fable"` — never omit the model, and never do this design work yourself. The
-subagent is fresh (no memory, no prior context), so the prompt must be self-contained: give
-it the file pointers from Step 1, the north star, the budget, and the full design brief
-below. Stamp the handoff:
-`echo "$(date -Is) FABLE-DESIGN -> fable" >> .claude/loop.log`.
+- **Validity** — does the raw data support the stated verdict? Spot-check a `runs/*/results.json`
+  when the claim is load-bearing. Marginal pass near a threshold? Under-powered n?
+- **Gaps** — what config/speed/scenario was NOT tested that the conclusion silently assumes?
+- **Bias** — rigged toward the fix? Same scene it was tuned on, oracle inputs, flattering sim?
+- **Stale** — does an inherited number (ceiling, latency, accuracy) still hold after later changes?
+- **Look at it** — where the prior claim is visual, open its committed `proof/` frames with the
+  **Read** tool. Reading a README that says PASS is not auditing the pixels (CLAUDE.md "Look at it").
 
-The Fable design brief (put this in the subagent prompt, filled with the concrete paths):
+If the audit finds the result invalid or under-supported, the next experiment is the
+**validation re-run**, not a new lever. Then pick the single highest-leverage falsifiable RQ:
 
-> You are the smart model in a two-tier loop: **you design, Opus executes.** Read these
-> files first — [recent READMEs + Part-4 ledger docs from Step 1] — then design the single
-> next experiment toward the north star: [north star]. Your output is a pre-registered
-> experiment README so complete that Opus makes zero judgment calls when it runs the matrix.
->
-> **1. Audit before proposing.** Interrogate the most recent results before building on them.
-> For each recent verdict ask: *Validity* — does the raw data actually support the stated
-> verdict? Spot-check a run CSV/log if the claim is load-bearing; n=1 or n=3? marginal pass
-> near a threshold? *Gaps* — what config/speed/scenario was NOT tested that the conclusion
-> silently assumes? *Bias* — was the test rigged toward the fix (same scenario it was tuned
-> on, oracle inputs, flattering SITL conditions)? *Stale assumptions* — does an inherited
-> number (ceiling, latency, accuracy) still hold after later changes? If the audit finds a
-> result that is invalid or under-supported, the next experiment may be a **re-run/validation**,
-> not a new lever — say so plainly; negative results are thesis content. **Where the prior
-> result is visual (a render, sim, feed, overlay, clip), open its committed `proof/` frames with
-> the Read tool as part of the audit** — a README that says PASS over a black frame reads exactly
-> like one that says PASS over a working one, and reading the claim is not auditing the pixels.
->
-> **2. Pick ONE next experiment** — the highest-leverage single question toward the north
-> star. One RQ, falsifiable, with a pre-stated numeric pass/fail threshold. If two candidates
-> compete, pick one and record the loser and why (that seeds the DECISIONS entry). Do not
-> propose a matrix of maybes. **If a theme was given** — [focus line from Step 1, or "none"] —
-> prefer RQs that touch it, *unless* your audit shows the binding constraint is clearly
-> elsewhere; then say so plainly and pick that instead. The theme steers, it does not
-> override the data.
->
-> **3. Write `experiments/YYYY-MM-DD-<slug>/README.md`** on a new `experiment/<slug>` branch,
-> following the repo's per-experiment workflow (CLAUDE.md "definition of done"):
-> - **Header:** `**Pre-registered:** <Madrid wall-clock timestamp>`; "design + patches by
->   Fable; Opus runs the matrix and fills Results only — do NOT re-patch code."
->   `**Status:** PRE-REGISTERED, not yet run.`
-> - **Research question** `RQ-<id>`: one falsifiable question, thresholds as numbers.
-> - **Context & rationale:** why this experiment now, what the audit found, what alternative
->   was rejected and why.
-> - **Code changes:** if the experiment needs code, YOU write and commit the patches now on
->   the branch. Mark the section "already committed — Opus: do NOT edit these files."
-> - **Run matrix:** exact copy-pasteable commands (full flags), power mode, versions, rig
->   (which machine, whether the Jetson is needed), per-run snapshot dirs under `runs/`, and
->   known gotchas (e.g. outputs clobbered between runs — snapshot immediately). Ensure the
->   matrix captures whatever the 2–3 deliverables need (CLAUDE.md DoD-7) — **clip when the
->   behaviour is the point, figure when the numbers are the point**, and a purely quantitative
->   result may be all figures. If clips are the right form, the matrix must record video,
->   because Opus can only clip footage it actually captured; if figures are, the matrix must
->   write the per-run `results.json` a `make_proof.py` can plot from. Say which runs produce
->   which, and where the raw video or JSON lands.
-> - **Visual verification (mandatory for any render/sim/camera/overlay work; CLAUDE.md "Look at
->   it"):** the matrix must dump inspectable PNG frames (mid-run, not frame 0) into each
->   `runs/<id>/`, and the README must name the exact files Opus is to open with the Read tool
->   and state what a PASS frame looks like versus a failure ("track visible, two cars, GT boxes
->   on the cars" vs "black / uniform / boxes off the vehicles"). Sim work fails silently with
->   exit 0 — a design that lets Opus verdict from logs alone is not done. Put the cheap asserts
->   (frame >99% one colour = failed render; byte-identical frames = dead feed) in your patch.
-> - **Verdict rules (mechanical — Opus does not deliberate):** for every decision Opus could
->   face, a rule like "PASS iff metric X >= N over all runs; if A and B both qualify, prefer
->   A; if neither, record FAIL and stop." Include abort criteria (run hangs > T min, crash,
->   missing file → snapshot what exists, mark the run INVALID, continue). Where the claim is
->   visual, the rule cites the frame to open, not just the metric.
-> - **Estimates:** expected runtime and expected numbers, marked as estimates.
-> - **Results (TBD):** empty table with the exact columns Opus fills.
->
-> **4. Commit** the README and any patch on `experiment/<slug>` (`git status` clean after).
-> Do NOT run the matrix, fill Results, or merge — that is Opus's job. **Return** a short
-> summary: the RQ, the chosen design in one paragraph, the branch name, what you committed,
-> and any risk Opus should watch for. This survives one test: could Opus, with only the
-> README, run the matrix without asking you anything? If not, the design is not done.
+- numeric pass/fail thresholds, stated before the run;
+- **n >= 25 per arm** on every gating condition, thresholds as counts out of the real n
+  ("`>= 19 of 25`"), plus the pre-registered minimum arm-to-arm separation. Cut conditions or
+  clip length to fit, never n;
+- target <= 1 h wall-clock, **hard cap 10 h**;
+- record the losing candidate and why — that seeds the DECISIONS entry.
 
-## Step 3 — Verify Fable's handoff
+## 3 — Pre-register (you), before anything runs
 
-When the subagent returns, confirm the branch is in a "only mechanical work remains" state
-before you run anything — this is the handoff gate (not a judgment review; you trust Fable's
-science):
+`git checkout main && git pull`, then `experiments/YYYY-MM-DD-<slug>/README.md` on a fresh
+`experiment/<slug>` branch. Follow CLAUDE.md's definition of done:
 
-- `git log experiment/<slug> --oneline` and `git status` — README committed, any patch
-  committed, working tree clean.
-- The README has a runnable **Run matrix** and **mechanical Verdict rules**, and a **Results
-  (TBD)** table.
+- Header: `**Pre-registered:** <Madrid wall-clock YYYY-MM-DDThh:mmZ>`, `**Status:** PRE-REGISTERED, not yet run.`
+- `RQ-<id>`: one falsifiable question, thresholds as numbers.
+- Context/rationale: why now, what the audit found, what alternative was rejected and why.
+- Any load-bearing core module (the E20 `scope.py` pattern): write it WITH a runnable selfcheck,
+  commit it now, mark the section "already committed — executor: do NOT edit."
+- **Run matrix:** copy-pasteable commands with full flags, power mode, versions, which machine
+  (SAM2/tracker work is Jetson-only; CARLA is the 3090), per-run `runs/<id>/` snapshot dirs,
+  gotchas (outputs clobbered between runs → snapshot immediately). The commands must RECORD what
+  the deliverables need — video where a clip is the point, `runs/*/results.json` where a figure is.
+- **Visual verification** (any render/sim/camera/overlay work): the matrix dumps inspectable PNGs
+  mid-run (never frame 0), the README names the exact files to open and what PASS looks like vs
+  failure. Cheap asserts in the script: >99% one colour = failed render; byte-identical frames =
+  dead feed.
+- **Verdict rules** — mechanical, one per decision the executor could face, plus abort criteria
+  (hang > T min / crash / missing file → snapshot, mark INVALID, continue).
+- Estimates (runtime + expected numbers, labelled as estimates); empty `Results (TBD)` table with
+  the exact columns.
 
-If anything is missing or uncommitted (**incomplete handoff**), or Fable returned an error,
-STOP — do not run the matrix. Leave the branch as-is, write what happened in the README
-Status line, log it, and do not loop. A human picks it up.
+Commit on the branch. `git status` clean before you spawn anything.
 
-## Step 4 — Run the matrix and document
+## 4 — Execute (ONE Opus subagent)
 
-Work from `experiments/<dir>/README.md` alone. Stamp the start:
-`echo "$(date -Is) EXEC-START <slug>" >> .claude/loop.log`.
+`subagent_type: "general-purpose"`, inherited Opus, fresh self-contained prompt: the README path,
+"run its Run matrix step by step and fill Results only — do NOT re-design or edit committed core
+code", report back verdict + Results table + `git log --oneline main..HEAD`. Include the git
+trailer block with YOUR session URL.
 
-- Run the matrix exactly as written, snapshot each run to its `runs/` dir immediately, and
-  fill the Results table. Do NOT edit any design code Fable committed.
-- **Look at the frames before you verdict** (CLAUDE.md "Look at it"). For any run that renders,
-  simulates, films or overlays anything, open the README's named PNG(s) with the **Read tool**
-  and say in the Results what you saw. A green log over a black frame is the default failure
-  mode of sim work, and it costs one Read to catch. No frame → the run is INVALID ("cannot
-  verify, no frame"), never a PASS inferred from logs.
-- Apply the README's mechanical verdict rules to get the verdict — you do not deliberate; if
-  a rule is ambiguous, that is a process failure (record it, stop, do not merge).
-- Append the RESULTS row(s), the QUESTIONS verdict (per-Part doc, not root), and the
-  DECISIONS entry if one was drafted. Every number carries its config (power mode, flags, ctx).
-- Produce the **2–3 thesis deliverables** (definition-of-done item 7) into
-  `experiments/<dir>/proof/` — curated evidence only, never a copy of `raw/` — and link +
-  caption each in the README (what it shows, which run/config). Clips when the behaviour is
-  the point (locks, drifts, switches), cut from the recorded footage: before/after if
-  positive, proof-of-failure if negative. Figures when the numbers are the point (per-clip
-  IoU, latency, PASS rate, a sweep curve), as PNGs from a committed `make_proof.py` that
-  replots from `runs/*/results.json` — the script is committed too, or the figure is not
-  reproducible.
-- Commit everything on `experiment/<slug>` — Results, ledger rows, **and the deliverables**
-  (plus `make_proof.py` if there are figures) — with a one-line `E<n> <slug>: <verdict>`
-  message. `git status` clean after (deliverables are checked in, not left untracked). A FAIL
-  verdict is a normal result and still gets committed.
+**Paste this anti-stall rule VERBATIM** (five prior executors ended their turn to "wait" and
+stalled — E19 x2, E20, E21, E22):
 
-If the matrix crashes, a rig is missing, or a run hangs past the README's abort criteria,
-stop and record it plainly in the README Status line — do not paper over it, do not merge.
+> The matrix takes hours. Do NOT end your turn to wait for it. Launch each run, then poll
+> `runs/*/results.json` (or the run's log) in a FOREGROUND loop — `sleep` and re-check — until it
+> completes, then continue straight through to filling Results, producing the proof deliverables
+> (clips and/or `make_proof.py` figures), appending ledgers, and the final commit. Only end your
+> turn when the branch is committed and clean or a run hit its README abort criteria. If you find
+> yourself about to say "I'll wait for this to finish", you are stalling — poll instead.
 
-## Step 5 — Merge, decrement, loop
+If it stalls anyway, resume it with `SendMessage` repeating that rule — don't respawn.
 
-- Merge: `git checkout main && git merge --no-ff experiment/<slug>`. Then
-  `echo "$(date -Is) MERGED <slug> verdict=<v>" >> .claude/loop.log`.
-- Read `.claude/loop-budget`, decrement after the successful merge:
-  `echo $((budget-1)) > .claude/loop-budget`.
-- Budget still > 0 and on clean `main` → go back to **Step 1** and start the next cycle.
-  FAIL verdicts still loop; the next cycle's Fable audit re-reviews this result.
-- Budget <= 0, missing, or any process/handoff failure above → stop and report: the last
-  README path, branch, one-line RQ + verdict, remaining budget, and how to reseed
-  (`echo N > .claude/loop-budget`). The session stays reachable via Remote Control
-  (claude.ai/code / mobile).
+## 5 — Audit the handoff (you)
+
+A handoff gate, not a re-litigation of science you pre-registered:
+
+- `git log --oneline main..HEAD`: pre-reg commit precedes harness/results commits; tree clean.
+- Spot-check 3-4 `runs/*/results.json` against the Results table; reps are independent runs, not
+  copies (near-deterministic under greedy decode — `t_lock` differs at ms level).
+- Verdict = mechanical application of the FROZEN rules. No post-hoc bending. An ambiguous rule is
+  a process failure: record it, stop, do not merge.
+- **Open the proof frames yourself with the Read tool** before accepting any render/sim/overlay
+  verdict. "PASS" over a black frame reads identically to a real one in text. No frame → INVALID.
+- Ledgers appended under the CURRENT Part doc, never the root redirects. Madrid wall-clock. No emojis.
+- 2-3 deliverables under `proof/`, COMMITTED and captioned — clip when the behaviour is the point,
+  figure from a committed `make_proof.py` when the numbers are. `.gitignore` covers `data/` and
+  `runs/*/overlay.mp4`; `results.json` is committed.
+- Estimate-vs-actual filled; "what broke / what surprised" honest.
+
+Missing anything, or the executor errored → STOP, do not merge, leave the branch, write what
+happened in the README Status line, tell the human.
+
+## 6 — Merge and report
+
+- `git checkout main && git merge --no-ff experiment/<slug>` with a one-paragraph message stating
+  verdict + mechanism (see the E17/E18 merge commits). Delete the branch. **NEVER push.**
+- Update auto-memory only if the cycle changed something the repo does not record (a steer, a
+  standing decision) — per-run numbers live in the ledgers, not in memory.
+- Report verdict first, then mechanism, then the next lever. Send a proof clip with the file tool.
+
+## Looping
+
+Autonomous cadence = `/loop` with **no interval** (dynamic mode): one full cycle per wake, and
+you schedule the next wake yourself when the cycle closes. That replaces the whole old
+apparatus — `.claude/loop-budget`, `.claude/loop.log`, the A/B/C/D resume state machine, the cron
+`flock` single-driver rules — which existed only to survive cron restarts and mid-cycle
+rate-limit kills. `/loop` is the loop; stopping it stops the run.
+
+A FAIL verdict still loops: negative results are thesis content, and the next cycle's Step 2
+audit is what re-reviews the merged result.
 
 ## Rules
 
-- Do the design work by spawning Fable — never audit, pick the RQ, or write design code
-  yourself. Do the mechanical work (matrix, Results, ledgers, merge) yourself — never hand it
-  back to Fable.
-- No unverified claims anywhere; estimates labelled as estimates.
-- Timestamps: `YYYY-MM-DDThh:mmZ` Madrid wall-clock (real hour, never a dummy).
-- One experiment per cycle. If the audit kills the premise, the "experiment" is the
-  validation re-run.
+- One experiment per invocation. Judgment (audit, RQ, verdict, merge) is never delegated; reading
+  and running always are.
+- No unverified claims; estimates labelled as estimates. Timestamps `YYYY-MM-DDThh:mmZ` Madrid
+  wall-clock, real hour.
+- If the audit kills the premise, the "experiment" is the validation re-run.
