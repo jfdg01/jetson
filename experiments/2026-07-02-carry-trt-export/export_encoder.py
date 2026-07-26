@@ -53,11 +53,11 @@ class EncoderWrapper(nn.Module):
         return f[0], f[1], f[2], p[0], p[1], p[2]
 
 
-def load_predictor(image_size: int):
+def load_predictor(image_size: int, model: str = MODEL):
     from sam2.sam2_video_predictor import SAM2VideoPredictor
 
     over = [f"++model.image_size={image_size}"]
-    return SAM2VideoPredictor.from_pretrained(MODEL, hydra_overrides_extra=over).eval()
+    return SAM2VideoPredictor.from_pretrained(model, hydra_overrides_extra=over).eval()
 
 
 def export(predictor, image_size: int, out_path: Path) -> Path:
@@ -115,6 +115,18 @@ def main() -> None:
     ap.add_argument("--box", required=True, help="x1,y1,x2,y2 prompt on frame 0")
     ap.add_argument("--cap", type=int, default=100)
     ap.add_argument("--out", default=None)
+    # EXP-9: the same export at 640 for sam2.1-hiera-small. Default keeps E1 reproducible.
+    ap.add_argument("--model", default=MODEL)
+    # EXP-9 (2026-07-26): ORT's graph optimizer MISCOMPILES the deeper hiera-small graph.
+    # Measured on enc640_small.onnx, max-abs-diff vs eager on the three feature outputs:
+    #   DISABLE_ALL 2.3e-04 | BASIC 8.3e-01 | ENABLE_ALL (the ORT default) 1.3e-02,
+    # and the first export attempt read 1.6e+33. `onnx.checker` passes and ORT logs
+    # "Error merging shape info for output '/enc/trunk/Concat_3_output_0' source:{4}
+    # target:{5}. Falling back to lenient merge." -- i.e. the graph is sound and the
+    # optimizer is not. tiny is unaffected either way (2.30e-04 vs 2.32e-04). So this
+    # gate runs unoptimised where asked; the authoritative check is the ON-DEVICE
+    # TensorRT-vs-eager mask parity (EXP-9 G1), which does not go through ORT at all.
+    ap.add_argument("--ort-graph-opt", choices=["all", "disable"], default="all")
     a = ap.parse_args()
 
     S = a.image_size
@@ -123,12 +135,16 @@ def main() -> None:
     paths = sorted(Path(a.clip).glob("*.[jp][pn]g"))[: a.cap]
     assert paths, f"no frames in {a.clip}"
 
-    predictor = load_predictor(S)
+    predictor = load_predictor(S, a.model)
     dev = next(predictor.parameters()).device
 
-    print(f"[1] exporting encoder @ {S} -> {out_path.name}")
+    print(f"[1] exporting {a.model} encoder @ {S} -> {out_path.name}")
     export(predictor, S, out_path)
-    sess = ort.InferenceSession(str(out_path), providers=["CPUExecutionProvider"])
+    so = ort.SessionOptions()
+    if a.ort_graph_opt == "disable":
+        so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_DISABLE_ALL
+        print("    (ORT graph optimizer DISABLED -- see --ort-graph-opt)")
+    sess = ort.InferenceSession(str(out_path), so, providers=["CPUExecutionProvider"])
 
     # 2a: raw-output max-abs-diff on a real frame
     print("[2a] output parity (ORT vs eager, fp32)")

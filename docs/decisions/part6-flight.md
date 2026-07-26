@@ -1120,3 +1120,94 @@ expected a horizon lever to "fail by drifting". Verified on the overlays, it doe
 **mask collapse to empty** (`car13`, `truck3` @ K1). Dense recent memory is buying object *identity*,
 not positional smoothness. Detail:
 `experiments/2026-07-26-carry-memory-horizon/README.md`.
+
+### The TensorRT fp16 encoder is adopted at 640; `hiera-small` and `base_plus` are not (EXP-9, 2026-07-26T22:30Z)
+
+*What:* the deployed carry moves to the **TensorRT fp16 image encoder** at `image_size=640`
+(`enc640.plan`, passed as `--trt-encoder`). The model stays **`sam2.1-hiera-tiny`**. `hiera-small`
+and `hiera-base-plus` are measured and rejected. Stage 2 (INT8) is not run.
+
+*Why TRT is in:* +19.5 % rate (173.7 -> 145.4 ms, 5.757 -> 6.879 Hz) for a paired median IoU delta of
+**exactly 0.0000** [CI95 0.0000, +0.0007], PASS unchanged 32/38, and a flat per-clip delta on all 38
+clips. G2 was written to require >= 1.15x *and* non-inferiority *and* PASS not down more than one
+clip — the tail condition EXP-8's mis-specified G2 lacked — and all three hold. This is the second
+lever after EXP-1's resolution elbow to buy rate without paying accuracy.
+
+*Why small is out:* G3 required all four of a Wilcoxon surviving Holm, `c > b` on McNemar, fitting
+co-resident, and >= 5 Hz. It gets the last two (547 MB, 5.38 Hz) and neither of the first: delta
++0.0003 [-0.0046, +0.0036] p=0.987, b=2/c=0. A tie is a keep-tiny by the pre-registered rule.
+Stated precisely, because the honest form matters for whether anyone revisits it: at n=38 a
+significant McNemar needs **6** discordant pairs and small produced **2**, so this is
+**underpowered by construction, not a demonstrated equivalence** (I4).
+
+*Why base_plus is out, and why the reason is not the expected one:* it **loads** co-resident with the
+VLM and leaves 1059 MB of board headroom. P5.20 wrote it off on memory without measuring it. The
+disqualifier is **rate — 241.8 ms = 4.14 Hz, under E1's >= 5 Hz co-resident gate**. Recording this
+because "it does not fit" was an inherited assumption and is now known to be false.
+
+*What was given up:* small's re-find advantage, which is real and the largest behavioural difference
+in the campaign — 16/110 recoveries vs tiny's 3/129, ~6x, CI95 non-overlapping. Both PASS flips
+(`person21`, `uav3`) come from it, and both land in the pre-specified same-class-distractor stratum.
+The gate is on steady-state accuracy, so a recovery-from-loss win does not pay for +12 ms/step. If
+recovery ever becomes the metric — a longer carry, an occlusion-heavy bank — this is the first thing
+to re-open, and it needs a bank sized for it, not a re-read of these 38 clips.
+
+*Deployment consequence, so it is not discovered later:* the engine is **shape-baked at 640**. The
+size-gated **1024 fallback EXP-1 kept for small/distant targets has no engine** and stays on the
+eager path until one is built. Both paths are selectable per-invocation, so the fallback keeps
+working unchanged; it just does not get the 1.195x.
+
+### A gate that compares two recursive carries measures chaos, not fidelity (EXP-9 G1, 2026-07-26T22:30Z)
+
+*What:* G1 — TRT-vs-eager end-to-end mask parity, mean IoU >= 0.99, blocking for both TRT arms —
+**FAILED** as written (tiny 0.8427, small 0.9866) and the TRT arms were run anyway, under an explicit
+`--g1-override` whose reason is stored in `runs/exp9/carry_override.json`.
+
+*Why that is not gate-shopping:* the missing control was written and run **before** any verdict.
+`diag_g1.py` adds eager-vs-eager on the same clips and reports step-1 IoU alongside the 24-step mean.
+Result: **eager-vs-eager is exactly 1.0000** on both models — the carry is deterministic, so the
+instrument is sound and every bit of divergence is attributable to the runtime swap, not noise — and
+**eager-vs-TRT is 1.0000 (tiny) / 0.9949 (small) at step 1**, before any state exists. A carry is
+recursive: step `t`'s mask conditions step `t+1`'s memory, so one differing pixel compounds. The
+engines are faithful and the recursion amplifies. Per-clip, the entire tiny failure is **one clip**
+(`bike3`), which bifurcates at step 1 and ends at 0.0 — and *which runtime is right there* is a
+ground-truth question G1 never asks, since it only asks whether two runs agree.
+
+*What was explicitly not done:* **G2 was not relaxed.** Adoption still had to clear non-inferiority
+against ground truth (CI95 lower bound > -0.05, PASS not down more than one clip) plus the >= 15 %
+rate win. If fp16 genuinely degraded the carry, G2 is where it would show, measured against GT
+instead of against another approximation — and `trt`'s per-clip delta is flat on all 38.
+
+*The lesson, for any future runtime-swap experiment:* the blocking fidelity gate must be
+**state-free** — step-1 mask parity — with recursive-trajectory agreement reported as a descriptive
+diagnostic beside it. EXP-8's lesson was that a central-tendency gate needs a tail condition; this is
+its sibling: **a gate on a recursive system needs a state-free reference.**
+
+*Second mis-aimed gate in the same campaign, recorded for the same reason:* G3 demanded a Wilcoxon
+**IoU** win from `hiera-small`, whose actual signal turned out to be **PASS and re-find**. It fails on
+either reading at n=38 (b=2 against the 6 discordant pairs needed), so nothing changes — but the
+gate was pointed at the wrong statistic and saying so is cheaper than a later reader inferring the
+arm secretly won.
+
+### The encoder is no longer where the carry's time is (EXP-9 H1, 2026-07-26T22:30Z)
+
+*What:* Stage 2 / INT8 is a **planned skip** — G4 gates it on a capacity arm winning G3, which none
+did — and it is now additionally skipped on **value**, with a measured ceiling rather than a guess.
+
+*Why:* H1 pre-registered +52 % from a 2.31x fp16 encoder holding 60 % of the step (extrapolated from
+E1's 768 measurements by pixel count). Measured: **+19.5 %**, which fires the pre-registered
+"under +25 % -> the encoder-share model is wrong" branch. Back-solving the same arithmetic, a 2.31x
+encoder saving 28.3 ms means the encoder is `28.3 / (1 - 1/2.31) = 49.9 ms`, i.e. **28.7 % of the 640
+step**. Encoder cost does not scale with pixel count the way the estimate assumed; at 640 the step is
+overhead-bound — memory attention, decoder, JPEG decode, protocol.
+
+*What that buys without running anything:* a **free** encoder would cap the step at 123.8 ms
+(+18 % over the adopted `trt` arm), and INT8 over fp16 — optimistically another 1.5x on an already
+21.6 ms TRT encoder — buys 7.2 ms, **+5 % over `trt`**. A pre-registered arithmetic miss priced the
+next lever for the cost of reading a number.
+
+*What was given up:* the possibility that INT8 is worth more than this bound suggests, e.g. if it
+changed memory pressure rather than compute. Nothing here measures that. Anything wanting a
+materially faster carry at 640 has to attack memory attention or per-step overhead, and EXP-8 already
+priced the memory ring at ~19.5 ms and rejected the trade. Detail:
+`experiments/2026-07-26-encoder-runtime-capacity/README.md`.

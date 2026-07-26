@@ -1,0 +1,11 @@
+[diag] eagerA
+[diag] eagerB
+[diag] trt
+[diag] small_eagerA
+[diag] small_eagerB
+[diag] small_trt
+  tiny  eager-vs-eager (CONTROL)     mean=1.0000 min=1.0000 step1=1.0000
+  tiny  eager-vs-TRT                 mean=0.8427 min=0.0000 step1=1.0000
+  small eager-vs-eager (CONTROL)     mean=1.0000 min=1.0000 step1=1.0000
+  small eager-vs-TRT                 mean=0.9866 min=0.7500 step1=0.9949
+[diag] wrote runs/exp9/diag_g1.json

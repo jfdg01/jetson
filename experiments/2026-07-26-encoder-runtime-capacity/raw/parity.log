@@ -1,0 +1,3 @@
+[parity] tiny: {'tag': 'tiny', 'plan': 'enc640.plan', 'status': 'ok', 'n_steps': 72, 'mean_iou': 0.8427, 'min_iou': 0.0, 'gate': False}
+[parity] small: {'tag': 'small', 'plan': 'enc640_small.plan', 'status': 'ok', 'n_steps': 72, 'mean_iou': 0.9866, 'min_iou': 0.75, 'gate': False}
+[parity] G1 FAIL for ['tiny', 'small'] -- a failing engine's arms are INVALID, not a rate win

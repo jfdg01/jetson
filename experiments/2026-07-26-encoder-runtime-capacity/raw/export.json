@@ -1,0 +1,27 @@
+{
+ "clip": "bike1",
+ "box": [
+  703,
+  361,
+  760,
+  475
+ ],
+ "rows": [
+  {
+   "tag": "tiny",
+   "model": "facebook/sam2.1-hiera-tiny",
+   "onnx": "enc640.onnx",
+   "status": "ok",
+   "secs": 66.4,
+   "mb": 104.2
+  },
+  {
+   "tag": "small",
+   "model": "facebook/sam2.1-hiera-small",
+   "onnx": "enc640_small.onnx",
+   "status": "ok",
+   "secs": 73.8,
+   "mb": 131.4
+  }
+ ]
+}

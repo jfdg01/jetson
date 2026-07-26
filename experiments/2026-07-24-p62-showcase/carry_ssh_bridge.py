@@ -20,10 +20,25 @@ import sys
 # live panel's first _recv would read this instead of the init ack.
 print("[bridge] up", file=sys.stderr, flush=True)
 
+import os  # noqa: E402
+
+# stdout carries ONLY framed replies, so ANY library that writes to fd 1 desyncs the
+# protocol: the host reads log text as a 4-byte frame length and then blocks forever on
+# a read that can never be satisfied -- both ends idle at 0% CPU, no error anywhere.
+# TensorRT does exactly this at the FIRST enqueueV3 ("[TRT] [W] Using default stream in
+# enqueueV3() may lead to performance issues"), not at deserialize, so it only bites once
+# real inference starts. It deadlocked EXP-9's G1 parity run (2026-07-26). Move the real
+# stdout to a private fd and point fd 1 at stderr: the protocol writes to the saved fd and
+# every stray print, from any library, lands in the log the host already captures.
+_PROTO_OUT = os.fdopen(os.dup(1), "wb")
+os.dup2(2, 1)
+
 import argparse  # noqa: E402
+import faulthandler  # noqa: E402
 import hashlib  # noqa: E402
 import pickle  # noqa: E402
 import resource  # noqa: E402
+import signal  # noqa: E402
 import struct  # noqa: E402
 import time  # noqa: E402
 
@@ -68,6 +83,12 @@ def _decode(jpg):
 
 
 def main():
+    # Both ends of this protocol block on a read, so a hang here is invisible: the host
+    # waits on a reply that is never coming and the bridge sits at 0% CPU. `kill -USR1
+    # <pid>` dumps every thread's Python stack to stderr, which is the log file the host
+    # already keeps. Costs nothing when nothing hangs. (EXP-9, and py-spy is not an
+    # option -- attaching to a non-child needs root and only nvpmodel is NOPASSWD.)
+    faulthandler.register(signal.SIGUSR1)
     ap = argparse.ArgumentParser()
     # Cites grounding.contract.CARRY_IMAGE_SIZE; cannot import it -- this file is copied
     # to ~/sam2-bench on the Orin, outside the repo. Was 1024 until R-46 (2026-07-26);
@@ -86,11 +107,25 @@ def main():
     ap.add_argument("--prune-after", type=int, default=0, help="P: StreamCarry ring depth")
     ap.add_argument("--mask-hash", action="store_true",
                     help="sha1 the video-res mask per step (EXP-8 ring bit-identity)")
+    # EXP-9 levers. Both default to the pre-EXP-9 behaviour (stream_carry.MODEL, eager
+    # bf16 encoder), so every earlier caller -- the live CARLA panel, the EXP-1/2/6/8
+    # replays -- is bit-identical. Same discipline EXP-8 used for its four flags.
+    ap.add_argument("--model", default="",
+                    help="HF model id; empty = stream_carry.MODEL (sam2.1-hiera-tiny)")
+    ap.add_argument("--trt-encoder", default="",
+                    help="path to an E1-style fp16 TensorRT image-encoder .plan; empty = "
+                         "eager torch. Must have been built at THIS --image-size: the "
+                         "engine's input shape is baked in and a mismatch is a hard fail, "
+                         "not a silent resize.")
     args = ap.parse_args()
-    inp, out = sys.stdin.buffer, sys.stdout.buffer
+    inp, out = sys.stdin.buffer, _PROTO_OUT
     t0 = time.time()
     over = [f"++model.image_size={args.image_size}"] if args.image_size != 1024 else []
-    predictor = SAM2VideoPredictor.from_pretrained(MODEL, hydra_overrides_extra=over)
+    predictor = SAM2VideoPredictor.from_pretrained(args.model or MODEL,
+                                                   hydra_overrides_extra=over)
+    if args.trt_encoder:
+        from jetson_carry_bench import make_trt_forward_image
+        predictor.forward_image = make_trt_forward_image(predictor, args.trt_encoder)
     if args.num_maskmem:
         assert 1 <= args.num_maskmem <= predictor.num_maskmem, "K is downward-only from 7"
         predictor.num_maskmem = args.num_maskmem
@@ -98,9 +133,10 @@ def main():
         assert args.max_obj_ptrs >= 2, "M=1 divides by zero in the pointer sine embedding"
         predictor.max_obj_ptrs_in_encoder = args.max_obj_ptrs
     kw = {"prune_after": args.prune_after} if args.prune_after else {}
-    print(f"[bridge] model loaded in {time.time()-t0:.1f}s, image_size={args.image_size}, "
-          f"K={predictor.num_maskmem} M={predictor.max_obj_ptrs_in_encoder} "
-          f"P={args.prune_after or 'stock'}, ready", file=sys.stderr, flush=True)
+    print(f"[bridge] model loaded in {time.time()-t0:.1f}s, id={args.model or MODEL}, "
+          f"image_size={args.image_size}, K={predictor.num_maskmem} "
+          f"M={predictor.max_obj_ptrs_in_encoder} P={args.prune_after or 'stock'} "
+          f"enc={args.trt_encoder or 'eager'}, ready", file=sys.stderr, flush=True)
     carry = None
     with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
         while True:

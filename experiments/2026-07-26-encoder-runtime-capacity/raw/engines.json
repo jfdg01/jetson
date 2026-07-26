@@ -1,0 +1,12 @@
+[
+ {
+  "plan": "enc640.plan",
+  "status": "ok",
+  "build_secs": 169.9
+ },
+ {
+  "plan": "enc640_small.plan",
+  "status": "ok",
+  "build_secs": 176.3
+ }
+]

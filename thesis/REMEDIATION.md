@@ -2744,6 +2744,32 @@ and make P6.7's harness read it. **Done 2026-07-26:** `handoff_p67.CARRY_SIZE` n
 
 ---
 
+## R-54 — P5.20's owed on-device capacity gate — **DONE** (EXP-9, 2026-07-26T22:30Z)
+
+P5.20 rejected `hiera-small` on 3090 replay and rejected `base_plus` **at design time, without
+measuring it** ("undeployable on 8 GB"). Two things were owed: an on-device gate for small, and an
+actual measurement for base_plus. EXP-9
+([`experiments/2026-07-26-encoder-runtime-capacity/`](../experiments/2026-07-26-encoder-runtime-capacity/README.md))
+paid both, co-resident with the deployed `llama-server` at 15 W + `jetson_clocks`.
+
+- **small:** fits (547 MB peak CUDA), clears 5 Hz (5.383), TensorRT-exported — and still does not
+  win. Delta +0.0003 [−0.0046, +0.0036], p=0.987, b=2/c=0 against the **6** discordant pairs n=38
+  needs. G3 is a keep-tiny. Recorded as **underpowered by construction, not equivalence** (I4).
+- **base_plus:** the design-time rejection was **wrong on its stated reason**. It loads and steps
+  with **1059 MB of board headroom**. It fails on **rate** — 4.14 Hz, under the ≥ 5 Hz gate.
+- **Byproduct, and the more useful half:** the TensorRT fp16 encoder is adopted at 640 (+19.5 %,
+  paired median IoU delta exactly 0.0000), and the pre-registered H1 arithmetic missing by 2.7x
+  back-solves the encoder to **28.7 % of the 640 step**, which bounds INT8 to ~+5 % without running
+  it. See the two EXP-9 entries in `docs/decisions/part6-flight.md`.
+
+No claim registered — engineering measurement, R-44 standing, so `thesis/claims.json` and the Part VI
+Holm family (m = 2) are **unchanged**.
+
+Consequence for the slate below: "bigger SAM2" is now dead **on-device** as well as on replay, so
+item 3's dead-lever warning applies with one fewer escape hatch. Nothing else on the slate moves.
+
+---
+
 ## The writing programme, W-1..W-9
 
 ### The one number that matters

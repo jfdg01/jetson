@@ -476,3 +476,53 @@ zero, and PASS was not in the gate. Recorded as a mis-specified gate rather than
 after seeing the data. Machine: everything on the Orin (15 W + `jetson_clocks`); no 3090, no CARLA.
 Not in `thesis/claims.json` (engineering measurement, R-44 standing). Detail:
 `experiments/2026-07-26-carry-memory-horizon/README.md`.
+
+### RQ-EXP-9 — does a TensorRT fp16 encoder buy carry rate at 640, and does more encoder capacity (`hiera-small`) buy carry accuracy, on the Orin next to the deployed VLM? (2026-07-26)
+
+**RQ-EXP-9a (TRT rate): YES, but at a third of the predicted size — and that is the finding.**
+TensorRT fp16 at `image_size=640` takes the step from 173.7 ms to **145.4 ms (5.757 -> 6.879 Hz,
++19.5 %)** with a paired median IoU delta of **exactly 0.0000** [CI95 0.0000, +0.0007], PASS
+unchanged at 32/38, and flat per-clip deltas on all 38 clips. G2 fires (>= 1.15x, non-inferior, PASS
+not down) and **TRT fp16 is adopted as the deployed carry encoder at 640**. The pre-registered
+prediction was +52 %, and the miss fires the pre-registered "under +25 % -> the encoder-share model
+is wrong" branch: back-solving, the encoder is **49.9 ms, 28.7 % of the 640 step**, not the 60 %
+extrapolated from E1's 768 numbers. At 640 the step is overhead-bound, not encoder-bound.
+
+**RQ-EXP-9b (capacity accuracy): NO — for the third time, and this one was on-device.**
+`hiera-small` is non-inferior but does not win: median delta +0.0003 [-0.0046, +0.0036], p=0.987,
+b=2/c=0 on PASS. It gains two clips (`person21`, `uav3`) and loses none, but `min_discordant` for
+significance at n=38 is **6**, so this is **underpowered by construction, not a measured tie** (I4).
+G3 requires all four of Wilcoxon-Holm reject, `c > b`, fits co-resident, and >= 5 Hz; it gets the
+last two only. **Keep tiny.** This pays P5.20's owed on-device gate and joins P5.15, P5.20, P5.21 and
+EXP-8 in bounding what carry tuning can do.
+
+**RQ-EXP-9c (does a bigger SAM2 fit next to the VLM): YES, and wider than predicted.** All three of
+tiny / small / **base_plus** load and step co-resident with `llama-server` on 8 GB — base_plus, which
+P5.20 wrote off before EXP-8's ring returned 670 MB, leaves **1059 MB** of board headroom. What rules
+it out is **rate: 241.8 ms = 4.14 Hz**, under E1's >= 5 Hz co-resident gate. Memory was never the
+binding constraint; nobody had measured it.
+
+**RQ-EXP-9d (H4, same-class distractors): NO as a verdict, declared descriptive before the run.**
+Dense stratum n=26: base 21, small 23 PASS (median IoU 0.830 vs 0.818); free stratum n=12: 11
+everywhere. Both PASS flips land in the dense stratum, exactly where H4 said to look — directionally
+consistent with the capacity mechanism, and +2 on n=26 is not evidence.
+
+**The one real behavioural difference the numbers do support: re-find.** small recovers a lost
+target on **16/110** lost steps against tiny's **3/129** — ~6x, CI95 non-overlapping (0.092-0.223 vs
+0.008-0.066). More encoder capacity buys *recovery from loss*, not steady-state accuracy. That is a
+different lever from the one H2 tested, and it is the mechanism behind both PASS flips.
+
+**Honest note on two gates, neither retuned after the fact.** G1 (TRT-vs-eager mask parity >= 0.99)
+**failed both engines** (0.8427 / 0.9866) because it compares two 24-step *recursive* carries and so
+scores trajectory agreement, not engine fidelity. The missing control, written and run before any
+verdict: eager-vs-eager is **exactly 1.0000**, and eager-vs-TRT is **1.0000 / 0.9949 at step 1**,
+before state exists. The engines are faithful; the recursion amplifies, and the entire tiny failure
+is one clip (`bike3`). TRT arms ran under a recorded override with **G2 unrelaxed**. Separately, G3
+demanded a Wilcoxon **IoU** win while small's actual signal is **PASS/re-find** — it fails on either
+reading at this n, but the gate was aimed at the wrong statistic. Stage 2 (INT8) **not run**: a
+planned G4 skip, now also bounded to **~+5 % over `trt`** by the encoder-share arithmetic above.
+
+Machine: everything on the Orin (15 W + `jetson_clocks`), co-resident with `llama-server`; host does
+staging, ONNX export and scoring only. No CARLA. Not in `thesis/claims.json` (engineering
+measurement, R-44 standing). Detail:
+`experiments/2026-07-26-encoder-runtime-capacity/README.md`.

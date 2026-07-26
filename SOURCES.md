@@ -81,11 +81,20 @@ the per-experiment README is the source of truth. Append; newest at the bottom.
   acquire-carry campaign (video predictor: box prompt → per-frame mask propagation).
 - **SAM2.1 (hiera-small)** — `facebook/sam2.1-hiera-small` · `sam2==1.1.0` ·
   https://huggingface.co/facebook/sam2.1-hiera-small — larger (46M vs 38.9M params) carry
-  checkpoint used **only** as the capacity arm of the P5.20 A/B
-  ([`experiments/2026-07-20-carry-capacity/`](experiments/2026-07-20-carry-capacity/README.md)).
-  Not deployed: it recovered zero failures (paired delta −1) and was never TensorRT-exported or
-  FPS-gated for Jetson co-residency. Largest checkpoint that could plausibly co-reside with the
-  q8_0 VLM on 8 GB — base-plus/large were rejected at design time as undeployable.
+  checkpoint, the capacity arm of the P5.20 A/B
+  ([`experiments/2026-07-20-carry-capacity/`](experiments/2026-07-20-carry-capacity/README.md)) and
+  of EXP-9's 2x2
+  ([`experiments/2026-07-26-encoder-runtime-capacity/`](experiments/2026-07-26-encoder-runtime-capacity/README.md)).
+  **Not deployed.** EXP-9 closed the gate P5.20 left owed — it is TensorRT-exported (`enc640_small.plan`)
+  and FPS-gated on-device: it fits (547 MB peak CUDA) and clears 5 Hz (5.38), but does not win
+  accuracy (delta +0.0003 [−0.0046, +0.0036], b=2/c=0 at the 6 discordant pairs n=38 needs), so G3
+  is a keep-tiny. Its one real advantage is re-find, 16/110 vs tiny's 3/129.
+- **SAM2.1 (hiera-base-plus)** — `facebook/sam2.1-hiera-base-plus` · `sam2==1.1.0` ·
+  https://huggingface.co/facebook/sam2.1-hiera-base-plus — 80.8M-param carry checkpoint, measured
+  once in EXP-9's Stage 0 census. Pulled in specifically to replace an inherited assumption with a
+  measurement: P5.20 rejected it at design time as undeployable, and it in fact **loads and steps
+  co-resident with the q8_0 VLM on 8 GB with 1059 MB to spare**. Rejected on **rate** instead —
+  241.8 ms/step = 4.14 Hz, under E1's ≥ 5 Hz co-resident gate.
 
 - **UAV123** — aerial single-object-tracking benchmark (Mueller et al., ECCV 2016) ·
   https://cemse.kaust.edu.sa/ivul/uav123 · mirror

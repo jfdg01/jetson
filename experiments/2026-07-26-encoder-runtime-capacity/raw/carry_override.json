@@ -1,0 +1,8 @@
+{
+ "arm": "small_trt",
+ "reason": "G1 measures 24-step recursive-trajectory agreement, not engine fidelity; diag_g1.py control: eager-vs-eager exactly 1.0000 (deterministic carry, sound instrument), eager-vs-TRT 1.0000/0.9949 at step 1 before any state exists. Engines faithful, carry amplifies. Adoption still gated on G2 vs GROUND TRUTH.",
+ "g1": {
+  "tiny": false,
+  "small": false
+ }
+}

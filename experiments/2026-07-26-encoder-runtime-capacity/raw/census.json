@@ -1,0 +1,62 @@
+[
+ {
+  "tag": "tiny",
+  "model": "facebook/sam2.1-hiera-tiny",
+  "co_resident": true,
+  "before": {
+   "used_mb": 4913,
+   "free_mb": 1805,
+   "available_mb": 2463
+  },
+  "status": "ok",
+  "peak_cuda_mb": 505.3,
+  "peak_rss_mb": 1899.2,
+  "median_ms": 163.3,
+  "load_and_run_secs": 10.2,
+  "during": {
+   "used_mb": 5969,
+   "free_mb": 482,
+   "available_mb": 1407
+  }
+ },
+ {
+  "tag": "small",
+  "model": "facebook/sam2.1-hiera-small",
+  "co_resident": true,
+  "before": {
+   "used_mb": 5005,
+   "free_mb": 1419,
+   "available_mb": 2371
+  },
+  "status": "ok",
+  "peak_cuda_mb": 545.4,
+  "peak_rss_mb": 1944.5,
+  "median_ms": 176.2,
+  "load_and_run_secs": 9.6,
+  "during": {
+   "used_mb": 6022,
+   "free_mb": 226,
+   "available_mb": 1353
+  }
+ },
+ {
+  "tag": "base_plus",
+  "model": "facebook/sam2.1-hiera-base-plus",
+  "co_resident": true,
+  "before": {
+   "used_mb": 5052,
+   "free_mb": 1196,
+   "available_mb": 2324
+  },
+  "status": "ok",
+  "peak_cuda_mb": 758.7,
+  "peak_rss_mb": 2180.4,
+  "median_ms": 241.8,
+  "load_and_run_secs": 11.7,
+  "during": {
+   "used_mb": 6262,
+   "free_mb": 145,
+   "available_mb": 1059
+  }
+ }
+]

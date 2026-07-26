@@ -978,3 +978,75 @@ Not in `thesis/claims.json` — an engineering measurement, same standing as EXP
 R-44, so no Holm entry in the thesis family. Proof: `proof/horizon_elbow.png`,
 `proof/refind_by_arm.png`, `proof/drift_building3.mp4`. Detail:
 `experiments/2026-07-26-carry-memory-horizon/README.md`.
+
+### EXP-9 — encoder runtime x capacity: TensorRT fp16 and `hiera-small` (2026-07-26T22:02Z, `jetson`, 15 W + `jetson_clocks`)
+
+Full 2x2, 38 UAV123 clips x 24 steps @ stride 11, `image_size=640`, K=7 M=16 P=32, one bridge per
+arm, co-resident with the deployed `llama-server` throughout. Baseline = the deployed config
+(`sam2.1-hiera-tiny`, eager bf16), which is EXP-8's `base`. Deltas are arm-minus-base on per-clip
+`median_iou` (Wilcoxon + bootstrap CI95, Holm over EXP-9's local 3-comparison family); PASS is
+`median_iou >= 0.25`, exact two-sided McNemar, b = clips flipping PASS->FAIL.
+
+**Stage 0 census (co-resident, `llama-server` up).** All three models load and step on 8 GB:
+
+| Model | Params | peak CUDA MB | peak RSS MB | ms/step | Hz | host available MB during |
+|---|---|---|---|---|---|---|
+| tiny | 38.9 M | 505.3 | 1899.2 | 163.3 | 6.12 | 1407 |
+| small | 46 M | 545.4 | 1944.5 | 176.2 | 5.68 | 1353 |
+| base_plus | 80.8 M | 758.7 | 2180.4 | 241.8 | **4.14** | 1059 |
+
+**Stage 1, the 2x2:**
+
+| Arm | Model | Encoder | med-of-med IoU | delta [CI95], p (Holm) | held_frac | PASS/38 | b/c, p | re-find | ms/step | Hz | speedup | peak CUDA MB | peak RSS MB |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `base` | tiny | eager bf16 | 0.811 | — | 0.859 | 32/38 | — | 3/129 (2.3%) | 173.7 | 5.757 | 1.00x | 506.7 | 2056.2 |
+| `trt` | tiny | TRT fp16 | 0.815 | 0.0000 [0.0000, +0.0007], p=0.098 (Holm 0.294) | 0.860 | 32/38 | b=0/c=0, undef | 2/128 (1.6%) | **145.4** | **6.879** | **1.195x** | 439.5 | 2331.6 |
+| `small` | small | eager bf16 | 0.798 | +0.0003 [-0.0046, +0.0036], p=0.987 (Holm 1) | 0.879 | 34/38 | b=2/c=0, p=0.50 | 16/110 (14.5%) | 185.8 | 5.383 | 0.935x | 547.0 | 2125.0 |
+| `small_trt` | small | TRT fp16 | 0.800 | +0.0002 [-0.0040, +0.0036], p=0.961 (Holm 1) | 0.878 | 34/38 | b=2/c=0, p=0.50 | 17/111 (15.3%) | 152.4 | 6.561 | 1.14x | 465.8 | 2315.6 |
+
+`base` reproduces EXP-8 to the third decimal (0.811 / 32 PASS / 506.7 MB / 173.7 vs 173.4 ms), so
+the harness is the same instrument and the deltas are the swaps.
+
+**TRT fp16 is adopted (G2 fired: 1.195x >= 1.15, non-inferior, PASS 32=32).** It is the first carry
+lever since EXP-1 to buy rate at literally zero measured accuracy cost — the paired median delta is
+**0.0000** with a CI95 of [0.0000, +0.0007], and per-clip it is flat on all 38.
+
+**`hiera-small` is not adopted (G3 fails), and `base_plus` is ruled out on rate, not memory.**
+All three arms are non-inferior; none wins. `min_discordant` for a significant McNemar at n=38 is
+**6** against an observed max of **2**, so the small arms' 2-clip PASS gain (`person21`, `uav3`) is
+**underpowered by construction, not a measured tie** (I4). The one real behavioural separation is
+re-find: small recovers on 16/110 lost steps vs tiny's 3/129, ~6x, CI95 non-overlapping
+(0.092-0.223 vs 0.008-0.066) — that is the mechanism behind both flips. H3 is a YES and wider than
+predicted: `base_plus`, which P5.20 wrote off, loads with 1059 MB of board headroom; what excludes
+it is 4.14 Hz against E1's >= 5 Hz co-resident gate.
+
+**The H1 magnitude is the finding.** Predicted +52 % (114 ms) from E1's 768-resolution encoder
+share; measured **+19.5 %** (145.4 ms), which fires the pre-registered "under +25 % -> the
+encoder-share model is wrong" branch. Solving backwards, a 2.31x encoder that saves 28.3 ms means
+the encoder is `28.3 / (1 - 1/2.31) = 49.9 ms` = **28.7 % of the 640 step, not 60 %**. That bounds
+every future encoder-side lever without running it: a *free* encoder caps the step at 123.8 ms
+(+18 % over `trt`), and INT8 over fp16 buys ~7 ms (**+5 % over `trt`**). The carry's time is no
+longer in the encoder.
+
+**Two mis-specified gates, both recorded rather than retuned.** G1 (TRT-vs-eager mask parity,
+>= 0.99) **FAILED** both engines — 0.8427 tiny, 0.9866 small — because it compares two 24-step
+*recursive* carries, which scores trajectory agreement, not engine fidelity. The control the
+pre-registration lacked (`diag_g1.py`): eager-vs-eager is **exactly 1.0000** on both models, and
+eager-vs-TRT is **1.0000 / 0.9949 at step 1**, before any state exists. Engines faithful, carry
+amplifies; the whole tiny failure is one clip (`bike3`). TRT arms ran under a recorded
+`--g1-override` with **G2 unrelaxed** — adoption still had to clear non-inferiority against ground
+truth, which is what G1 never asked. G3 separately demanded a Wilcoxon **IoU** win while small's
+actual signal is **PASS/re-find**; it fails either way at this n, but the aim was wrong.
+
+H4 (descriptive, `inferential: false`): distractor-dense n=26 -> base 21 / trt 21 / small 23 /
+small_trt 23 PASS; distractor-free n=12 -> 11 everywhere. Both PASS flips land in the dense stratum,
+which is where H4 pre-specified a capacity win would appear — directionally consistent, +2 on n=26
+is not evidence, not claimed as any. Stage 2 (INT8) **not run**: G4 gates it on a capacity arm
+winning G3, a planned skip rather than dropped scope, and the encoder-share bound above now makes
+it a skip on value too.
+
+Not in `thesis/claims.json` — an engineering measurement, same standing as EXP-1/EXP-2/EXP-6/EXP-8
+after R-44, so no Holm entry in the thesis family. Proof: `proof/rate-vs-iou.png`,
+`proof/per-clip-delta.png`, `proof/memory-census.png`, plus the two PASS-flip overlay pairs
+(`uav3`, `person21`). Detail:
+`experiments/2026-07-26-encoder-runtime-capacity/README.md`.
