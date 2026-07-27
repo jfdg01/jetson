@@ -4,7 +4,93 @@
   howpublished = {\url{https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF}},
   year         = {2024},
   urldate      = {27 de julio de 2026},
-  note         = {Modelo de referencia del E1: 3B, k-quant medio de 4 bits}
+  note         = {Modelo de referencia del E1: 3B, k-quant medio de 4 bits. Reutilizado como unidad 06 del E2 (ancla entre campañas)}
+}
+
+% Los nueve repositorios GGUF descargados para el E2 (la unidad 06 reutiliza el fichero
+% de E1, bartowski2024llama32gguf). Repositorio exacto por unidad en las tarjetas de
+% ejecución, runners/campaigns/2026-06-13-model-capability-sweep/; SHA256 por unidad en
+% experiments/2026-06-13-model-capability-sweep.
+
+@misc{bartowski2024qwen05b,
+  title        = {Qwen2.5-0.5B-Instruct-GGUF},
+  author       = {{bartowski}},
+  howpublished = {\url{https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF}},
+  year         = {2024},
+  urldate      = {27 de julio de 2026},
+  note         = {E2, unidad 01}
+}
+
+@misc{bartowski2024llama32-1b,
+  title        = {Llama-3.2-1B-Instruct-GGUF},
+  author       = {{bartowski}},
+  howpublished = {\url{https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF}},
+  year         = {2024},
+  urldate      = {27 de julio de 2026},
+  note         = {E2, unidad 02}
+}
+
+@misc{bartowski2024qwen15b,
+  title        = {Qwen2.5-1.5B-Instruct-GGUF},
+  author       = {{bartowski}},
+  howpublished = {\url{https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF}},
+  year         = {2024},
+  urldate      = {27 de julio de 2026},
+  note         = {E2, unidad 03}
+}
+
+@misc{bartowski2024gemma2-2b,
+  title        = {gemma-2-2b-it-GGUF},
+  author       = {{bartowski}},
+  howpublished = {\url{https://huggingface.co/bartowski/gemma-2-2b-it-GGUF}},
+  year         = {2024},
+  urldate      = {27 de julio de 2026},
+  note         = {E2, unidad 04; la anomalía de memoria del barrido}
+}
+
+@misc{bartowski2024qwen3b,
+  title        = {Qwen2.5-3B-Instruct-GGUF},
+  author       = {{bartowski}},
+  howpublished = {\url{https://huggingface.co/bartowski/Qwen2.5-3B-Instruct-GGUF}},
+  year         = {2024},
+  urldate      = {27 de julio de 2026},
+  note         = {E2, unidad 05}
+}
+
+@misc{bartowski2024phi35mini,
+  title        = {Phi-3.5-mini-instruct-GGUF},
+  author       = {{bartowski}},
+  howpublished = {\url{https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF}},
+  year         = {2024},
+  urldate      = {27 de julio de 2026},
+  note         = {E2, unidad 07}
+}
+
+@misc{bartowski2024mistral7b,
+  title        = {Mistral-7B-Instruct-v0.3-GGUF},
+  author       = {{bartowski}},
+  howpublished = {\url{https://huggingface.co/bartowski/Mistral-7B-Instruct-v0.3-GGUF}},
+  year         = {2024},
+  urldate      = {27 de julio de 2026},
+  note         = {E2, unidad 08}
+}
+
+@misc{bartowski2024qwen7b,
+  title        = {Qwen2.5-7B-Instruct-GGUF},
+  author       = {{bartowski}},
+  howpublished = {\url{https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF}},
+  year         = {2024},
+  urldate      = {27 de julio de 2026},
+  note         = {E2, unidad 09}
+}
+
+@misc{bartowski2024llama31-8b,
+  title        = {Meta-Llama-3.1-8B-Instruct-GGUF},
+  author       = {{bartowski}},
+  howpublished = {\url{https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF}},
+  year         = {2024},
+  urldate      = {27 de julio de 2026},
+  note         = {E2, unidad 10; sonda del muro de memoria}
 }
 
 @misc{nvidia2024orinpower,

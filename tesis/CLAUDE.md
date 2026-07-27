@@ -4,7 +4,7 @@ Aplican a `tesis/tesis.md` y `tesis/tesis.bib`. No aplican al resto del repo.
 
 ## The single most important rule
 
-You are a READ ONLY AGENT nothing in the tesis/ dir gets touched by you UNLESS EXPLICITELY INSTRUCTED **IN THAT PARTICULAR TURN** BY THE USER, THEN YOU ARE BACK TO READ ONLY.
+You are a READ ONLY AGENT nothing in the tesis/ dir gets touched by you UNLESS EXPLICITELY INSTRUCTED **IN THAT PARTICULAR TURN** BY THE USER BY A CLEAR "WRITE/CHANGE/ETC" OPERATION, THEN YOU ARE BACK TO READ ONLY.
 
 ## Qué es este documento
 
@@ -52,11 +52,24 @@ Cada `E<n>.R<k>` responde al `E<n>.P<k>` del mismo número. Una pregunta cuyos d
 
 ## Tablas y cifras
 
-- Toda tabla lleva `<!-- caption: ... -->` encima, con el **`n`** y la configuración (modo de potencia, flags). `md-to-pdf` falla el build sin él.
+- Toda tabla, figura y bloque de código lleva `<!-- caption: ... -->` encima. `md-to-pdf` falla el build sin él.
+- **El pie nunca es la fuente de la verdad de ningún dato.** Todo lo que dice tiene que estar ya en el cuerpo, en `Método` o en el registro de la campaña; el pie lo repite o lo referencia, nunca lo estrena. Un dato que solo vive en un pie no se puede citar, no lo ve quien lee el cuerpo y desaparece el día que la tabla se convierte en figura.
+- **El pie da contexto, no explicación.** Qué se mide, el **`n`** y la configuración (modo de potencia, flags, ctx) — lo justo para leer la tabla o la figura sin volver atrás. Lo que los datos *significan* — la tendencia, la anomalía, por qué una curva se despega de su referencia — va en el cuerpo.
+- Figuras: el pie no describe los ejes ni enumera los paneles. Eso ya está dibujado. Lo que la figura dibuja y el cuerpo no menciona (una línea de referencia, un umbral) se introduce en el cuerpo **antes** de la figura.
+- **Todo número que tenga unidad la lleva.** Sin excepción por repetición ni por contexto: `Qwen2.5 (14.91 tok/s) y Llama (14.60 tok/s)`, nunca `(14.91) y (14.60)`. Un número desnudo obliga a buscar de qué magnitud hablaba, y al recortarlo para citarlo deja de significar nada. En tablas, la unidad va en la cabecera de la columna y entonces las celdas no la repiten.
 - Unidades con espacio y símbolo correcto `67 °C`, `12.5 W`, `3302 MB`.
-- Estimación no medida: marcarla como tal (`~6GB`), nunca presentarla como medida.
+- Estimación no medida: marcarla como tal (`~6 GB`), nunca presentarla como medida.
 
 ## Idioma y build
 
 - Español con diacríticos completos: acentos, ñ, ¿ ¡. También en pies de tabla y figuras.
 - Build: alias `tesis`. El PDF es regenerable.
+- Figuras: código en `figuras/`, un módulo `e<n>.py` por experimento, cada figura decorada con `@figura("e<n>-<tema>")` (ver `figuras/estilo.py`). Los PNG **no** van a git; se regeneran con `.venv-ft/bin/python figuras/make_figs.py [id]` antes de compilar.
+
+## Guía de escritura
+
+- No usar la voz pasiva.
+- No usar em-dashes ni similares.
+- No traducir expresiones técnicas al español, por ejemplo: evitar cosas como "Caché KV", preferir "KV cache".
+- No usar las expresiones siguientes: 
+  - "punto dulce"
