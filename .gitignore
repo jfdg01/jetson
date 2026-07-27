@@ -124,3 +124,6 @@ showcase/**/*.mp4
 # provenance is tegrastats.log.gz (make_proof.py reads either).
 !experiments/2026-07-25-maintain-cost/runs/**/tegrastats.log.gz
 !experiments/2026-07-25-maintain-cost/runs/**/device_json/*.json
+
+# PDF regenerable de tesis/ (md-to-pdf)
+tesis/*.pdf
