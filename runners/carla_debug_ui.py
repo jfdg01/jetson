@@ -198,7 +198,15 @@ CARRY_BRIDGE = "cd ~/sam2-bench && ./.venv/bin/python -u carry_ssh_bridge.py --i
 # time -- a mismatch is a hard fail, not a silent resize. Only 640 has an engine, so the dropdown's
 # 1024 fallback for the small/distant tail stays on the eager path and simply gets no speedup.
 # Paths are relative: the bridge command cd's into ~/sam2-bench first.
-CARRY_TRT_PLANS = {640: "enc640.plan"}
+# 2026-07-27: DISABLED. enc640.plan was rebuilt on the Orin 2026-07-26T20:54 and since
+# then the panel loses the mask on the first carry step -- the prompt goes in, nothing
+# propagates. That engine is EXP-9's adopted lever running by default on the panel's
+# default carry size, so every follow went through an untested build. Empty dict = every
+# size falls back to the eager encoder, which is what every measured Part VI number used
+# except EXP-9's own arm. Re-enable once the engine is rebuilt and re-validated against
+# jetson_trt_acc.py; the +19.5% carry rate is not worth an unusable demo.
+CARRY_TRT_PLANS = {}
+_CARRY_TRT_PLANS_DISABLED = {640: "enc640.plan"}
 
 
 def _bridge_cmd(size: int) -> str:
