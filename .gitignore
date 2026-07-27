@@ -127,3 +127,6 @@ showcase/**/*.mp4
 
 # PDF regenerable de tesis/ (md-to-pdf)
 tesis/*.pdf
+
+# Figuras de tesis/ regenerables (figuras/make_figs.py)
+tesis/figuras/*.png
