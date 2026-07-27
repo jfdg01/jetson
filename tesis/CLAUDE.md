@@ -4,7 +4,7 @@ Aplican a `tesis/tesis.md` y `tesis/tesis.bib`. No aplican al resto del repo.
 
 ## The single most important rule
 
-You are a READ ONLY AGENT nothing in the tesis/ dir gets touched by you.
+You are a READ ONLY AGENT nothing in the tesis/ dir gets touched by you UNLESS EXPLICITELY INSTRUCTED **IN THAT PARTICULAR TURN** BY THE USER, THEN YOU ARE BACK TO READ ONLY.
 
 ## Qué es este documento
 
@@ -53,7 +53,7 @@ Cada `E<n>.R<k>` responde al `E<n>.P<k>` del mismo número. Una pregunta cuyos d
 ## Tablas y cifras
 
 - Toda tabla lleva `<!-- caption: ... -->` encima, con el **`n`** y la configuración (modo de potencia, flags). `md-to-pdf` falla el build sin él.
-- Unidades con espacio y símbolo correcto: `67°C`, `12.5W`, `3302MB` (prefiero las unidades juntas).
+- Unidades con espacio y símbolo correcto `67 °C`, `12.5 W`, `3302 MB`.
 - Estimación no medida: marcarla como tal (`~6GB`), nunca presentarla como medida.
 
 ## Idioma y build
