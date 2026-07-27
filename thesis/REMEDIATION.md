@@ -39,10 +39,15 @@ audit that found the apparatus wrong. This one was opened by the apparatus runni
 finish criterion — "the thesis chapters are written from the corrected claim set" —
 has not been started.
 
-**Author steer, 2026-07-25: the thesis text is NOT started yet.** It waits on
-supervisor confirmation of scope. Until then the evidence programme stays live and
-experiments continue. Everything below is therefore split by whether it can be worked
+**Author steer, 2026-07-25: the thesis text is NOT started yet.** It waited on
+supervisor confirmation of scope. Everything below is split by whether it can be worked
 *while experimenting* (the R series, yes) or only *once writing begins* (the W series).
+
+**Superseded in part, 2026-07-27: scope is now confirmed** —
+`thesis/SCOPE-2026-07-27-supervisor-steer.md`. Focus on tracking, a real-drone test that
+includes the piloting, airframe chosen by September, target regime **200 km/h**. The evidence
+programme stays live. W-2 and W-4 are resolved by the steer, W-3 narrows, W-1 remains deferred
+on a different blocker. Nothing was pre-registered — the author deferred Part VII the same day.
 
 
 ## Status board — R series (integrity; work these any time)
@@ -64,23 +69,31 @@ experiments continue. Everything below is therefore split by whether it can be w
 | R-55 | EXP-4 publishes p-values outside `claims.json`, exactly as R-44's EXP-1/EXP-2 did | P1 | OPEN — R-44's *demote* pick applies verbatim, but the scope asked for was EXP-1/EXP-2/EXP-6 |
 | R-53 | The live panel cold-started a SAM2 bridge per designation (P6.7 measured the fix; panel now resident) | **P1** | DONE |
 
-## Status board — W series (the writing programme; BLOCKED on the supervisor)
+## Status board — W series (the writing programme)
+
+**Scope confirmed 2026-07-27** — see `thesis/SCOPE-2026-07-27-supervisor-steer.md` for the
+steer, its measured consequences and a *proposed* (not applied) page rebalance. The supervisor
+asked for: focus on tracking, a real-drone test including the piloting, and an airframe chosen
+by September. The target regime is new — **attack drones at 200 km/h**, i.e. 22x the fastest
+ownship motion this repository has ever measured. Nothing was pre-registered; the author
+deferred that on the same day.
 
 W-3, W-5, W-6, W-7, W-8 and W-9 are **not** blocked — they are preparation that makes
-the writing possible and can be done at any time. Only W-1, W-2 and W-4 need the
-go-ahead.
+the writing possible and can be done at any time. W-1 is still deferred, but for a new reason
+(see its row); W-2 and W-4 are resolved by the steer.
 
 | ID | Task | Blocked? | Status |
 |---|---|---|---|
-| W-1 | Write the 287 paragraphs (cap01–cap10) | yes | BLOCKED |
-| W-2 | cap04 is the weakest chapter and needs the most work | yes | BLOCKED |
-| W-3 | Reconstruct the Part I–III figures — those campaigns have no `proof/` | **no** | OPEN |
-| W-4 | cap08's scaffold is ~2x its page budget | yes | BLOCKED |
+| W-1 | Write the 287 paragraphs (cap01–cap10) | yes | DEFERRED — no longer on scope. Waits on cap08's campaign existing, and on whether the 200 km/h regime changes what caps 7/9 may claim. Caps 1–7, 9–10 are not blocked by the airframe |
+| W-2 | ~~cap04 is the weakest chapter and needs the most work~~ | no | **INVERTED** by the 2026-07-27 steer — cap04 is single-frame grounding, now de-prioritised. Shrink the budget (11 → 7) to fit the scaffold instead of thickening the scaffold. A reduction in work, not a task |
+| W-3 | Reconstruct the Part I–III figures — those campaigns have no `proof/` | **no** | OPEN — **narrowed**: Part III is tracking and stays mandatory; the Part I–II figures drop to optional with cap04's budget |
+| W-4 | cap08's scaffold is ~2x its page budget | no | **RESOLVED** by the 2026-07-27 steer — the budget moves (4 → 12), the scaffold was right. Applied only when the rebalance in the scope doc is accepted |
 | W-5 | `00-esquema.md` has no chapter plan for cap01 or cap02 | **no** | OPEN |
 | W-6 | The two finished method documents are not in the assembly | **no** | OPEN |
 | W-7 | cap01 carries a bracket that breaks pandoc's citation parser | **no** | OPEN |
 | W-8 | Two competing claim-reference forms across chapters | **no** | OPEN |
 | W-9 | cap03's mean-IoU figure has never been computed | **no** | OPEN |
+| W-10 | cap09 must carry the speed-regime threat: every result here was measured 22x below the stated 200 km/h target, and the Part V idle-window premise shrinks to ~4 s of FOV dwell at 200 m | **no** | OPEN — new 2026-07-27, holds whether or not anything ever flies |
 
 ---
 
