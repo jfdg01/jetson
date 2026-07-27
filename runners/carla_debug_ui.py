@@ -2005,9 +2005,26 @@ def main():
         # probe8 showed is load-bearing for this grounder.
         cx, cy = click_xy
         s = full.shape[1] / seed.shape[1]          # 960 feed px -> native px (2.0)
-        win = point_window(cx * s, cy * s, full.shape[1], full.shape[0],
-                           int(ground_res))
-        crop = np.ascontiguousarray(full[win[1]:win[3], win[0]:win[2]])
+        # point_window keeps the click centred by SHRINKING at the frame border, which
+        # is right for a window that must stay inside the image and wrong for what the
+        # grounder is fed: a click 76 px from the edge got a 152 px crop and the VLM
+        # answered a 5x6 px box on a building corner, which SAM2 then failed to carry
+        # for 178 straight steps (runs/carla-ui/trace-1252). Nothing under 512 has ever
+        # been measured. Replicate-pad instead: full `ground_res` of context AND the
+        # click dead centre, which G6/probe8 showed is load-bearing. `win` may now be
+        # negative or past the frame -- the map back is linear, so it still holds.
+        # ponytail: border pixels are replicated road; if that ever confuses the
+        # grounder, reflect-pad or refuse the click instead.
+        g = int(ground_res)
+        nx, ny = int(round(cx * s)), int(round(cy * s))
+        win = (nx - g // 2, ny - g // 2, nx + g // 2, ny + g // 2)
+        H0, W0 = full.shape[:2]
+        pl, pt = max(0, -win[0]), max(0, -win[1])
+        pr, pb = max(0, win[2] - W0), max(0, win[3] - H0)
+        src = (cv2.copyMakeBorder(full, pt, pb, pl, pr, cv2.BORDER_REPLICATE)
+               if (pl or pt or pr or pb) else full)
+        crop = np.ascontiguousarray(src[win[1] + pt:win[3] + pt,
+                                        win[0] + pl:win[2] + pl])
         track["msg"] = (f"grounding {caption!r} @{crop.shape[1]}px native crop "
                         f"({win[0]},{win[1]})-({win[2]},{win[3]}) on Orin...")
         t0 = time.time()
@@ -2020,8 +2037,16 @@ def main():
             (win[0] + vbox[0]) / s, (win[1] + vbox[1]) / s,
             (win[0] + vbox[2]) / s, (win[1] + vbox[3]) / s]
         track["ground_ms"] = gms["ms"]           # on-device VLM point-crop time
-        if not X._valid(box, seed.shape):
-            track["msg"] = f"NO_MATCH {caption!r} in {gms['ms']:.0f} ms"
+        # _valid only demands >=2 px a side, so a degenerate answer reaches SAM2 and
+        # dies as 178 silent `lost` steps instead of one legible message. A nadir car
+        # is ~20x12 feed px, so 8 px / 100 px^2 rejects garbage without touching the
+        # small/distant tail EXP-6 cares about.
+        _bw = None if box is None else box[2] - box[0]
+        _bh = None if box is None else box[3] - box[1]
+        if not X._valid(box, seed.shape) or min(_bw, _bh) < 8 or _bw * _bh < 100:
+            track["msg"] = (f"NO_MATCH {caption!r} in {gms['ms']:.0f} ms"
+                            + (f" (degenerate box {_bw:.0f}x{_bh:.0f} px)"
+                               if box is not None else ""))
             return
         seed_box = [int(x) for x in box]
         with track_lock:
