@@ -70,3 +70,13 @@ en `truck3`, mismo formato: `res_*` a frame completo, `crop_*` a dos paneles.
 
 El par más elocuente: `crop_wakeboard1_c512.mp4` contra `res_wakeboard1_t1024.mp4`. El primero es
 4.3× más rápido y no falla un solo frame por encima de IoU 0.5; el segundo se queda en 0.720.
+
+## Tercera secuencia: bird1_1, salida de campo (run `bird1_1-res-crop`)
+
+253 frames, hueco de GT en 115–173 (el pájaro sale del encuadre y vuelve). Los siete arms se hunden
+por igual, mIoU 0.08–0.19, IoU@0.5 ≤ 0.12: `crop_bird1_1_c{512,640,704}.mp4` y
+`res_bird1_1_t{512,640,768,1024}.mp4`.
+
+Lo que muestran: la rotura empieza hacia el frame 10, mucho antes del hueco. Es metraje FPV con HUD
+superpuesto y la máscara se derrama por la línea del horizonte artificial que cruza al pájaro. En el
+hueco los siete devuelven cero cajas, correcto; ninguno recupera al reaparecer el objetivo.

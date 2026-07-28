@@ -125,6 +125,9 @@ def main() -> None:
         n = rows[1]["win"][2]
         for i in range(2, len(frames)):
             b = rows[i - 1]["box"]
+            if b is None:  # lost frame: the arm holds the previous window rather than re-centring
+                assert rows[i]["win"] == rows[i - 1]["win"], (i, rows[i]["win"])
+                continue
             e = crop_box(((b[0] + b[2]) / 2, (b[1] + b[3]) / 2), n, meta["w"], meta["h"])
             assert rows[i]["win"] == [e[0], e[1], e[2] - e[0]], (i, rows[i]["win"], e)
         score["win_checked"] = len(frames) - 2

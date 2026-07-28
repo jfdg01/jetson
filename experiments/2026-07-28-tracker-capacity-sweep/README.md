@@ -314,3 +314,45 @@ arms puntúan sobre los 421.
 Verificado en píxeles (frame 211, `crop_wakeboard1_c512.mid.png` y `res_wakeboard1_t512.mid.png`):
 el objetivo es el wakeboarder, no la lancha, y la caja del panel de crop cae sobre él tras
 deshacer el desplazamiento de la ventana. `win_checked: 419` en los tres arms de crop.
+
+## Tercera secuencia: bird1_1, salida de campo (run `bird1_1-res-crop`, 2026-07-29)
+
+Elegida para probar el modo de fallo que `truck3` y `wakeboard1` no tocaron: el pájaro **sale del
+encuadre** y vuelve. 253 frames, hueco de GT continuo en los frames 115–173 (59 frames sin objetivo),
+y luego reaparece. Mismos 7 arms.
+
+| arm | p50 | mIoU | IoU@0.5 | perdidos | frames puntuados |
+| --- | --- | --- | --- | --- | --- |
+| `sam2_t512` | 122.1 ms | 0.078 | 0.006 | 82 | 171 |
+| `sam2_t640` | 180.2 ms | 0.133 | 0.017 | 81 | 172 |
+| `sam2_t768` | 251.7 ms | 0.108 | 0.029 | 79 | 174 |
+| `sam2_t1024` | 433.0 ms | 0.192 | 0.118 | 143 | 110 |
+| `sam2_c512` | 100.7 ms | 0.085 | 0.007 | 114 | 139 |
+| `sam2_c640` | 159.3 ms | 0.085 | 0.012 | 82 | 171 |
+| `sam2_c704` | 190.7 ms | 0.087 | 0.012 | 83 | 170 |
+
+**Se hunden los siete.** Ningún arm pasa de 0.12 en IoU@0.5. El crop no rescata nada aquí y el
+frame completo tampoco: la ventaja del crop, replicada en dos secuencias, **desaparece por
+completo** en la tercera. El menos malo es `sam2_t1024`, y es inservible igual.
+
+**El clip no llega a probar lo que se buscaba.** Todos los arms se rompen entre los frames 1 y 16,
+cien frames *antes* del hueco. Verificado en píxeles (frames 0, 5, 12, 30 de `sam2_c512`): `bird1_1`
+es metraje de gafas FPV con **HUD de telemetría superpuesto**, y la línea de horizonte artificial
+pasa justo por encima del pájaro. La máscara se derrama por esa línea: en el frame 12 la predicción
+mide 196×130 px contra un GT de 48×33. No es deriva de seguimiento ni falta de resolución, es fuga
+de máscara hacia un gráfico sintético pegado al objetivo.
+
+Lo que sí se puede leer del hueco, con esa reserva: durante los 59 frames sin objetivo **los siete
+arms devuelven cero cajas** (0/59), que es el comportamiento correcto. Y ninguno recupera de verdad
+al reaparecer el pájaro. En `sam2_c512` la ventana se queda congelada en (768, 208) — sin predicción
+no hay dónde recentrarse — pero el pájaro reaparece **dentro** de esa ventana (frame 210) y el
+modelo sigue sin devolver caja. Es decir: aquí el fallo de recuperación es del propio SAM2, no de la
+geometría de la ventana. Con la fuga de máscara de por medio, esto no cierra la pregunta.
+
+Efecto colateral útil: la comprobación `win_checked` del render reventaba con `TypeError` en un
+frame perdido, porque asumía que siempre hay caja previa de la que derivar la ventana. Corregido —
+en frame perdido la ventana esperada es la anterior, que es lo que hace el arm.
+
+Pendiente si se quiere cerrar la pregunta de salida de campo: una secuencia con hueco de GT y sin
+HUD superpuesto. `bird1_3` es del mismo metraje FPV, así que no sirve; los candidatos del subconjunto
+con huecos son `bike2`, `car12`, `car1_3`, `group2_3`, `person19_3` y `uav1_2`.
