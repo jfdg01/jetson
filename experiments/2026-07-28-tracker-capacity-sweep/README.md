@@ -227,3 +227,44 @@ puntos útiles, y por encima de 720 recortar no aporta nada sobre el frame compl
 del frame que ocupa la ventana va de 28% (512) a 56% (720).
 
 Pendiente: alimentar el recorte al tracker y medir; eso todavía no está hecho.
+
+## Crop alimentado al modelo (run `crop-truck3`, 2026-07-29)
+
+Arms `sam2_c<N>`: al modelo se le da **solo** una ventana de N×N alrededor del objetivo, a píxeles
+nativos (`image_size == N`, sin reescalar). Mismo cómputo que el arm de frame completo al mismo
+`image_size`; lo que cambia es qué se sacrifica. El arm de frame completo encoge el objetivo
+(el camión de 26×16 px pasa a ~10×6 a 512); el arm de crop lo deja a 26×16 y sacrifica contexto.
+
+La ventana persigue la **propia predicción anterior del arm**, nunca GT — en el dispositivo no
+existe GT más allá del frame 0. Un frame perdido mantiene la ventana anterior.
+
+| arm | entrada | p50 | fps | mIoU | IoU@0.25 | IoU@0.5 | perdidos |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `sam2_c512` | crop 512 nativo | 100.5 ms | 9.95 | 0.761 | 0.972 | 0.929 | 0 |
+| `sam2_t512` | frame completo → 512 | 122.7 ms | 8.15 | 0.661 | 0.966 | 0.818 | 1 |
+| `sam2_c640` | crop 640 nativo | 159.2 ms | 6.28 | **0.773** | **0.991** | **0.957** | 0 |
+| `sam2_t640` | frame completo → 640 | 179.9 ms | 5.56 | 0.190 | 0.264 | 0.247 | 171 |
+| `sam2_c704` | crop 704 nativo | 190.3 ms | 5.25 | **0.791** | 0.987 | 0.953 | 0 |
+| `sam2_t1024` | frame completo → 1024 | 434.0 ms | 2.30 | 0.779 | 0.944 | 0.908 | 0 |
+
+**El crop gana en las dos dimensiones a la vez.** `sam2_c512` supera a `sam2_t1024` en IoU@0.25 y
+en IoU@0.5 con **4.3× menos latencia**. Ninguno de los tres arms de crop pierde un solo frame,
+incluido 640, que en frame completo se hundía a 171 perdidos. El crop también es más rápido que su
+homólogo de frame completo al mismo `image_size` (100.5 vs 122.7 ms a 512): recortar 512×512 sale
+más barato que reescalar 1280×720.
+
+Lectura honesta: esto **no** separa las dos causas posibles. El objetivo es más grande en espacio
+de modelo *y* el fondo distractor desaparece, y con una secuencia no se puede decir cuál manda. Y
+sigue siendo **n=1**, un solo clip, un solo objetivo, sin oclusión larga ni salida de campo.
+
+Techo conocido, sin resolver: el banco de memoria de SAM2 ve un marco de referencia que se traslada
+cada frame y nadie se lo dice. Aquí no ha hecho daño; con movimiento más rápido puede.
+
+**704, no 720.** 720 no es una entrada legal de Hiera: el pos-embed de ventana se tesela a
+`image_size/4` en bloques de 8, así que `image_size` tiene que ser múltiplo de 32 y 720 muere con
+`The size of tensor a (180) must match the size of tensor b (176)`. 704 es el mayor que cabe en un
+frame de 720 de alto. Sin arm de crop a 768 o 1024 en clips 720p: no caben.
+
+Comprobación de geometría y del viaje de ida y vuelta de coordenadas, sin GPU:
+`python device/trackers.py --self-check`. Verificado además en píxeles (frame 268 de `sam2_c512`,
+ampliado 4×): la máscara cae sobre el camión en el frame completo, sin desfase de mapeo.

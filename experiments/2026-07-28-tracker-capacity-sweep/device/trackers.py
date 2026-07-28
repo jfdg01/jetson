@@ -83,6 +83,73 @@ class Sam2Arm:
         return (list(box) if box else None), mask_contours(mask)
 
 
+def crop_window(center, size: int, w: int, h: int) -> tuple[int, int, int]:
+    """`size`x`size` window centred on `center`, slid (not shrunk) to stay inside the frame.
+
+    Same geometry as `analysis/render_overlay.py:crop_box` -- five lines, deliberately duplicated
+    rather than shared, because host and device do not import from each other.
+    """
+    s = min(size, w, h)
+    x = int(round(min(max(center[0] - s / 2, 0), w - s)))
+    y = int(round(min(max(center[1] - s / 2, 0), h - s)))
+    return x, y, s
+
+
+class Sam2CropArm:
+    """SAM2 fed only an NxN crop around the target, at native pixels (image_size == N).
+
+    Same compute as the full-frame arm at the same `image_size`, but the frame is not downscaled,
+    so the target keeps its original pixel size and loses context instead. This is the variable the
+    resolution sweep confounds: `sam2_t512` shrinks a 26x16 truck to ~10x6, `sam2_c512` leaves it
+    at 26x16 inside a 512 window.
+
+    The window follows the arm's OWN last prediction, never GT -- GT past frame 0 does not exist on
+    this device. A lost frame holds the last window rather than resetting to centre, which is the
+    only chance the target has of walking back into view.
+
+    Known ceiling: SAM2's memory bank sees a reference frame that translates every step, and
+    nothing here tells it so. If the crop arms underperform, that is the first suspect.
+    """
+
+    def __init__(self, checkpoint: str, size: int):
+        self.size = size
+        self.inner = Sam2Arm(checkpoint, size)
+        self.win = None  # (x, y, s) in full-frame coords
+        self.last = None  # last full-frame box, the thing the window chases
+
+    def _shift(self, box, dx, dy):
+        return None if box is None else [box[0] + dx, box[1] + dy, box[2] + dx, box[3] + dy]
+
+    def _crop(self, frame, center):
+        h, w = frame.shape[:2]
+        x, y, s = crop_window(center, self.size, w, h)
+        self.win = (x, y, s)
+        return frame[y:y + s, x:x + s]
+
+    def init(self, frame, box):
+        cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
+        sub = self._crop(frame, (cx, cy))
+        x, y, _ = self.win
+        b, cnts = self.inner.init(sub, [box[0] - x, box[1] - y, box[2] - x, box[3] - y])
+        self.last = self._shift(b, x, y)
+        return self.last, _shift_contours(cnts, x, y)
+
+    def step(self, frame):
+        if self.last is not None:  # re-centre on where the target was last seen
+            cx, cy = (self.last[0] + self.last[2]) / 2, (self.last[1] + self.last[3]) / 2
+            self._crop(frame, (cx, cy))
+        x, y, s = self.win  # a lost frame keeps the previous window
+        b, cnts = self.inner.step(frame[y:y + s, x:x + s])
+        self.last = self._shift(b, x, y)
+        return self.last, _shift_contours(cnts, x, y)
+
+
+def _shift_contours(cnts, dx, dy):
+    if not cnts:
+        return cnts
+    return [[[p[0] + dx, p[1] + dy] for p in c] for c in cnts]
+
+
 def _box_of(mask):
     ys, xs = np.nonzero(mask)
     if len(xs) == 0:
@@ -118,6 +185,15 @@ for _ck, _short in [("tiny", "t"), ("small", "s"), ("base-plus", "bp"), ("large"
             lambda ck=_ck, sz=_sz: Sam2Arm(f"facebook/sam2.1-hiera-{ck}", sz)
         )
 
+# Crop arms only for tiny, and only up to 704. UAV123 clips are 1280x720, so a window above 720 is
+# capped by frame height -- but 720 itself is not a legal Hiera input: the window pos-embed tiles at
+# image_size/4 in blocks of 8, so image_size must be a multiple of 32 and 720 dies with
+# `The size of tensor a (180) must match the size of tensor b (176)`. 704 is the largest that fits.
+for _sz in (512, 640, 704):
+    arm(f"sam2_c{_sz}", family="sam2crop", ckpt="tiny", image_size=_sz, crop=_sz)(
+        lambda sz=_sz: Sam2CropArm("facebook/sam2.1-hiera-tiny", sz)
+    )
+
 for _n in ["TrackerNano", "TrackerVit", "TrackerDaSiamRPN", "TrackerGOTURN", "TrackerMIL", "TrackerCSRT"]:
     arm(_n.replace("Tracker", "cv_").lower(), family="opencv")(lambda n=_n: CvArm(n))
 
@@ -128,5 +204,34 @@ def build(name: str):
     return REGISTRY[name]["factory"]()
 
 
+def _check() -> None:
+    """Crop geometry and the crop->full-frame coordinate round trip, without touching a GPU."""
+    assert crop_window((640, 360), 512, 1280, 720) == (384, 104, 512)
+    assert crop_window((10, 10), 512, 1280, 720) == (0, 0, 512)  # slid off the corner
+    assert crop_window((1270, 710), 512, 1280, 720) == (768, 208, 512)
+    assert crop_window((640, 360), 1024, 1280, 720) == (280, 0, 720)  # capped by frame height
+
+    class FakeInner:  # returns the box it was given, so any coordinate slip shows up as an offset
+        def __init__(self): self.last_in = None
+        def init(self, sub, box): self.last_in = box; return list(box), [[[box[0], box[1]]]]
+        def step(self, sub): return list(self.last_in), [[[self.last_in[0], self.last_in[1]]]]
+
+    a = Sam2CropArm("x", 512)
+    a.inner = FakeInner()
+    frame = np.zeros((720, 1280, 3), np.uint8)
+    box = [600, 340, 680, 380]
+    b, cnts = a.init(frame, box)
+    assert b == box, b  # crop then un-crop is the identity
+    assert cnts == [[[600, 340]]], cnts
+    assert a.win == (384, 104, 512), a.win
+    b, _ = a.step(frame)
+    assert b == box, b  # window re-centres on the same target, so the box does not move
+    print("crop geometry ok")
+
+
 if __name__ == "__main__":
-    print(len(REGISTRY), "arms:", ", ".join(sorted(REGISTRY)))
+    import sys as _sys
+    if "--self-check" in _sys.argv:
+        _check()
+    else:
+        print(len(REGISTRY), "arms:", ", ".join(sorted(REGISTRY)))
