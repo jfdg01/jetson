@@ -32,6 +32,15 @@ Las tablas siguen usando p50.
 Al modelo se le da solo una ventana de N×N a píxeles nativos, centrada en su **propia predicción
 anterior** (nunca GT). Mismos colores y mismo pie.
 
+Los vídeos van a dos paneles. **Izquierda:** el frame completo con la ventana en naranja; su
+interior se deja intacto (el recuadro se dibuja por fuera del borde y el pie va en una franja
+propia debajo) porque es literalmente lo que entra al modelo. **Derecha:** esa misma ventana,
+recortada con los mismos enteros `(x, y, s)` que el arm registró en el propio JSON, con GT y
+predicción encima. Verificado en píxeles en el frame 268 de las tres: el interior izquierdo es
+idéntico al JPEG original, y el panel derecho solo difiere del recorte crudo dentro de las cajas
+GT+predicción. El render además comprueba en cada ejecución que las 533 ventanas registradas por el
+dispositivo coinciden con la geometría del host (`win_checked` en la salida).
+
 | fichero | entrada | Hz medio | mIoU | IoU@0.5 | perdidos |
 | --- | --- | --- | --- | --- | --- |
 | `crop_truck3_c512.mp4` | crop 512 nativo | 9.9 | 0.761 | 0.929 | 0 |

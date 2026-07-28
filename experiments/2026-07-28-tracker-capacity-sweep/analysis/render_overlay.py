@@ -48,6 +48,35 @@ def crop_box(center: tuple[float, float], size: int, w: int, h: int) -> list[int
     return [x, y, x + s, y + s]
 
 
+def annotate(img, g, r, off=(0, 0)) -> None:
+    """GT fill + outline, then prediction fill + outline. `off` shifts full-frame coords into a crop.
+
+    Two separate blends: one shared layer would let whichever is drawn last hide the other exactly
+    when they agree, which is the case worth seeing.
+    """
+    dx, dy = off
+    if g:
+        over = img.copy()
+        cv2.rectangle(over, (int(g[0]) - dx, int(g[1]) - dy),
+                      (int(g[2]) - dx, int(g[3]) - dy), GREEN, -1)
+        cv2.addWeighted(over, ALPHA, img, 1 - ALPHA, 0, img)
+    over = img.copy()
+    if r and r.get("contours"):
+        polys = [np.array(c, np.int32) - (dx, dy) for c in r["contours"] if len(c) >= 3]
+        if polys:
+            cv2.fillPoly(over, polys, LIGHTBLUE)
+    elif r and r.get("box"):
+        b = [int(v) for v in r["box"]]  # SAM2 boxes come back as floats
+        cv2.rectangle(over, (b[0] - dx, b[1] - dy), (b[2] - dx, b[3] - dy), LIGHTBLUE, -1)
+    cv2.addWeighted(over, ALPHA, img, 1 - ALPHA, 0, img)
+    if g:
+        cv2.rectangle(img, (int(g[0]) - dx, int(g[1]) - dy),
+                      (int(g[2]) - dx, int(g[3]) - dy), GREEN, 2)
+    if r and r.get("box"):
+        b = [int(v) for v in r["box"]]
+        cv2.rectangle(img, (b[0] - dx, b[1] - dy), (b[2] - dx, b[3] - dy), LIGHTBLUE, 2)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("result_json", nargs="?", help="omit when using --seq")
@@ -89,49 +118,69 @@ def main() -> None:
         hz = 1000 / (sum(lat) / len(lat))
         score["mean_hz"] = hz
 
+    # Provenance check for crop arms: every window the device recorded must be the one this file's
+    # own geometry derives from the previous frame's box. If the two ever disagree, the panel would
+    # be showing something the model never saw, which is the one lie this render must not tell.
+    if rows and rows.get(1, {}).get("win"):
+        n = rows[1]["win"][2]
+        for i in range(2, len(frames)):
+            b = rows[i - 1]["box"]
+            e = crop_box(((b[0] + b[2]) / 2, (b[1] + b[3]) / 2), n, meta["w"], meta["h"])
+            assert rows[i]["win"] == [e[0], e[1], e[2] - e[0]], (i, rows[i]["win"], e)
+        score["win_checked"] = len(frames) - 2
+
     if args.out:
         h, w = meta["h"], meta["w"]
+        # A crop arm records the window it sliced; the panel is drawn from that recorded value, not
+        # re-derived here, so what the video shows cannot silently disagree with what the arm did.
+        win = rows.get(1, {}).get("win") if rows else None
+        cw = win[2] if win else 0
+        # A crop arm gets its own caption strip below the frame: at 704 the text baseline lands
+        # inside the window, and the caption must not paint over the pixels it claims are the input.
+        bar = 28 if win else 0
+        cvw, cvh = w + cw, max(h, cw) + bar
+        assert cvw % 2 == 0 and cvh % 2 == 0, f"yuv420p needs even dims, got {cvw}x{cvh}"
         ff = subprocess.Popen(
             ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "bgr24",
-             "-s", f"{w}x{h}", "-r", "30", "-i", "-", "-c:v", "libx264", "-preset", "veryfast",
+             "-s", f"{cvw}x{cvh}", "-r", "30", "-i", "-", "-c:v", "libx264", "-preset", "veryfast",
              "-pix_fmt", "yuv420p", "-crf", "28", args.out], stdin=subprocess.PIPE)
         mid = Path(args.out).with_suffix(".mid.png")
         crop = crop_box((w / 2, h / 2), args.crop, w, h) if args.crop else None
         for i, fp in enumerate(frames):
-            img = cv2.imread(str(fp))
+            raw = cv2.imread(str(fp))
+            img = raw.copy()
             g, r = gt[i], rows.get(i)
-            # two separate blends: one shared layer would let whichever is drawn last hide the
-            # other exactly when they agree, which is the case worth seeing.
-            if g:
-                over = img.copy()
-                cv2.rectangle(over, (int(g[0]), int(g[1])), (int(g[2]), int(g[3])), GREEN, -1)
-                cv2.addWeighted(over, ALPHA, img, 1 - ALPHA, 0, img)
-            over = img.copy()
-            if r and r.get("contours"):
-                polys = [np.array(c, np.int32) for c in r["contours"] if len(c) >= 3]
-                if polys:
-                    cv2.fillPoly(over, polys, LIGHTBLUE)
-            elif r and r.get("box"):
-                b = [int(v) for v in r["box"]]  # SAM2 boxes come back as floats
-                cv2.rectangle(over, (b[0], b[1]), (b[2], b[3]), LIGHTBLUE, -1)
-            cv2.addWeighted(over, ALPHA, img, 1 - ALPHA, 0, img)
-            if g:
-                cv2.rectangle(img, (int(g[0]), int(g[1])), (int(g[2]), int(g[3])), GREEN, 2)
-            if r and r.get("box"):
-                b = [int(v) for v in r["box"]]
-                cv2.rectangle(img, (b[0], b[1]), (b[2], b[3]), LIGHTBLUE, 2)
+            annotate(img, g, r)
             if args.crop:
                 if g:  # GT gap: hold the last window rather than snapping it back to the centre
                     crop = crop_box(((g[0] + g[2]) / 2, (g[1] + g[3]) / 2), args.crop, w, h)
                 cv2.rectangle(img, (crop[0], crop[1]), (crop[2], crop[3]), ORANGE, 2)
 
+            if win:
+                x, y, s = r["win"] if r and r.get("win") else win
+                # the model's input, byte for byte: the same decoded jpeg sliced with the same
+                # integers the arm used. Annotations go on this copy, never on `raw`.
+                panel = raw[y:y + s, x:x + s].copy()
+                # restore the window interior on the left panel so it stays literally the model
+                # input, then outline it from outside -- a 2 px line centred on the border would
+                # paint into the region it is claiming is untouched.
+                img[y:y + s, x:x + s] = raw[y:y + s, x:x + s]
+                cv2.rectangle(img, (x - 2, y - 2), (x + s + 1, y + s + 1), ORANGE, 2)
+                annotate(panel, g, r, off=(x, y))
+                canvas = np.zeros((cvh, cvw, 3), np.uint8)
+                canvas[:h, :w] = img
+                canvas[:s, w:w + s] = panel  # no border here: it would paint over the input itself
+                img = canvas
+
             parts = [meta["arm"], f"{name} {i + 1}/{len(frames)}", "GT=verde"]
             if rows:
                 parts += [f"{hz:.1f} Hz", "pred=azul",
                           "LOST" if not (r and r.get("box")) else f"IoU {ious[i]:.2f}"]
-            if args.crop:
+            if win:
+                parts.append(f"entrada {win[2]}px=naranja (derecha)")
+            elif args.crop:
                 parts.append(f"crop {crop[2] - crop[0]}px=naranja")
-            cv2.putText(img, "  ".join(parts), (12, h - 16),
+            cv2.putText(img, "  ".join(parts), (12, cvh - 16),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
             if i == len(frames) // 2:  # mid-run still for visual verification, never frame 0
                 cv2.imwrite(str(mid), img)

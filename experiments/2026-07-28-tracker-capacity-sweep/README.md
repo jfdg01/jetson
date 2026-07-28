@@ -268,3 +268,12 @@ frame de 720 de alto. Sin arm de crop a 768 o 1024 en clips 720p: no caben.
 Comprobación de geometría y del viaje de ida y vuelta de coordenadas, sin GPU:
 `python device/trackers.py --self-check`. Verificado además en píxeles (frame 268 de `sam2_c512`,
 ampliado 4×): la máscara cae sobre el camión en el frame completo, sin desfase de mapeo.
+
+**Los vídeos enseñan la entrada real, no una reconstrucción.** `device/run_arm.py` registra en cada
+fila el `(x, y, s)` exacto que el arm recortó, y el render dibuja el panel derecho a partir de ese
+valor en vez de volver a derivarlo. Sobre el frame completo, el interior de la ventana se restaura
+a píxeles crudos, el recuadro naranja se traza por fuera del borde y el pie va en una franja aparte
+—a 704 el texto caía dentro de la ventana—, así que lo que se ve dentro del naranja es lo que vio
+el modelo. `analysis/render_overlay.py` verifica en cada ejecución que las 533 ventanas del
+dispositivo coinciden con su propia geometría (campo `win_checked`); la identidad de píxeles del
+panel está comprobada en el frame 268 de los tres tamaños.

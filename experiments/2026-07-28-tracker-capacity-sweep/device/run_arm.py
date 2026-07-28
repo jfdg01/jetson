@@ -51,7 +51,10 @@ def main() -> None:
     b, cnts = tr.init(first, box0)
     init_s = time.monotonic() - t0
 
-    rows = [{"i": 0, "ms": init_s * 1000, "box": b, "contours": cnts, "init": True}]
+    # `win` is the exact (x, y, s) the arm sliced out of this frame, recorded so the host draws the
+    # window the model really saw instead of re-deriving it and hoping the two agree.
+    rows = [{"i": 0, "ms": init_s * 1000, "box": b, "contours": cnts, "init": True,
+             "win": getattr(tr, "win", None)}]
     decode_ms = []
     t_start = time.monotonic()
     for i, fp in enumerate(files[1:], start=1):
@@ -65,7 +68,8 @@ def main() -> None:
         b, cnts = tr.step(frame)
         e = time.monotonic()
         decode_ms.append((d - t) * 1000)
-        rows.append({"i": i, "ms": (e - d) * 1000, "box": b, "contours": cnts})
+        rows.append({"i": i, "ms": (e - d) * 1000, "box": b, "contours": cnts,
+                     "win": getattr(tr, "win", None)})
 
     lat = np.array([r["ms"] for r in rows[1 + WARMUP:]])
     assert len(lat) > 0, "sequence too short to have any post-warmup frames"
