@@ -60,8 +60,16 @@ class Sam2Arm:
         from stream_carry import StreamCarry
 
         self.torch = torch
-        predictor = SAM2VideoPredictor.from_pretrained(self.checkpoint, device="cuda")
-        predictor.image_size = self.image_size
+        # image_size must be set AT CONSTRUCTION via the hydra override, the way the rest of the
+        # project does it. Assigning predictor.image_size afterwards leaves
+        # sam_image_embedding_size and the prompt encoder at the checkpoint default, and any size
+        # other than 1024 then dies on
+        # `assert backbone_features.size(2) == self.sam_image_embedding_size`.
+        predictor = SAM2VideoPredictor.from_pretrained(
+            self.checkpoint, device="cuda",
+            hydra_overrides_extra=[f"++model.image_size={self.image_size}"],
+        )
+        assert predictor.image_size == self.image_size
         torch.backends.cudnn.benchmark = False
         # StreamCarry wants RGB (it goes through PIL); the rig passes BGR everywhere.
         with self._amp():

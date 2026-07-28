@@ -164,3 +164,37 @@ aparecían hasta que el arm terminaba. Corregido heredando stdout; todo cae en `
 
 Deliverable: `proof/smoke_truck3_bf16.mp4` — GT en verde al 60% de alfa, salida del modelo en azul
 claro, IoU por frame quemado en la imagen.
+
+## Barrido de resolución sobre truck3 (run `res-truck3`, 2026-07-29)
+
+Mismo clip, mismo checkpoint (`sam2.1-hiera-tiny`), bf16, 15 W. Solo cambia `image_size`.
+
+| arm | p50 | p95 | fps | mIoU | IoU@0.25 | IoU@0.5 | perdidos | RSS pico | GPU pico |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `sam2_t512` | 122.7 ms | 124.4 ms | 8.15 | 0.661 | 0.966 | 0.818 | 1 | 1911 MB | 424 MB |
+| `sam2_t640` | 179.9 ms | 181.9 ms | 5.56 | 0.190 | 0.264 | 0.247 | **171** | 2057 MB | 494 MB |
+| `sam2_t768` | 252.0 ms | 254.3 ms | 3.97 | 0.766 | 0.953 | 0.931 | 0 | 2214 MB | 553 MB |
+| `sam2_t1024` | 434.0 ms | 437.9 ms | 2.30 | 0.779 | 0.944 | 0.908 | 0 | 2650 MB | 644 MB |
+
+Latencia y memoria escalan limpiamente con la resolución; la latencia va casi con el número de
+píxeles (512 → 1024 es 4× el área y 3.5× el tiempo). La inicialización cuesta ~5.1 s en las cuatro,
+o sea que la domina la carga del checkpoint, no la resolución.
+
+**La exactitud NO es monótona y 640 se hunde.** Verificado en píxeles, no inferido del log: a
+frame 110 la máscara de 640 ya está detrás del camión sobre asfalto vacío, a frame 116 se queda
+vacía y no recupera en los 419 frames restantes. No es un error de forma (no lanza excepción), es
+deriva de seguimiento. 512, con el objetivo aún más pequeño en espacio de modelo, aguanta.
+
+Cuidado al leerlo: **una secuencia, un objetivo, n=1**. `truck3` tiene un blanco diminuto (~416 px
+de área, ~26×16 en 1280×720), justo el régimen donde el proyecto ya despliega gating por tamaño
+(EXP-1: 640 por defecto, 1024 como respaldo para objetivos pequeños o lejanos). Este resultado es
+consistente con ese gating pero **no lo mide**: si 640 es frágil en general o solo aquí lo decide
+el barrido de 30 secuencias, no este clip.
+
+**Fallo encontrado y corregido.** `image_size` hay que fijarlo *en construcción* con el override de
+Hydra `++model.image_size=N`, como hace el resto del proyecto. Asignar `predictor.image_size`
+después de `from_pretrained` deja `sam_image_embedding_size` y el prompt encoder en el valor por
+defecto del checkpoint, y cualquier tamaño distinto de 1024 muere con
+`assert backbone_features.size(2) == self.sam_image_embedding_size`. Con 1024 coincidía por
+casualidad, que es por qué el smoke test pasó y ocultó el bug. Tras el cambio, 1024 reproduce el
+número anterior (434.0 vs 432.6 ms p50), así que las dos rutas son equivalentes en el default.

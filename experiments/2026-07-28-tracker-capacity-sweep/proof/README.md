@@ -10,3 +10,8 @@
   obligatoria antes de afirmar nada sobre los píxeles.
 
 Reproducir: `analysis/render_overlay.py raw/smoke-truck3-bf16/sam2_t1024__truck3.json --out <mp4>`.
+- **`res640_drift_truck3.png`** — `sam2_t640 × truck3`, run `res-truck3`. Cuatro recortes ampliados
+  alrededor del objetivo (frames 110, 113, 116, 130), GT en verde y predicción en azul. Muestra la
+  deriva: a 110 y 113 la caja azul ya está detrás del camión sobre asfalto vacío, a 116 la máscara
+  se vacía y no recupera. Prueba de que el hundimiento de 640 es deriva de seguimiento y no un
+  error de forma del modelo.
