@@ -217,6 +217,13 @@ entrada y el número no sería comparable con el resto. Solo un frame más peque
 ventana menor (720 de alto lo hace para N=1024). Comprobación en
 `analysis/render_overlay.py --self-check`.
 
-Entregable: `proof/crop512_truck3.mp4` (535 frames, ventana de 512). Verificado abriendo
-`proof/crop512_truck3.mid.png` (frame 268): la caja naranja está centrada en el camión y dentro del
-frame. Pendiente: alimentar el recorte al tracker y medir; eso todavía no está hecho.
+Entregables: `proof/crop{512,640,720}_truck3.mp4`, 535 frames cada uno. Verificados abriendo el
+frame 268 de cada render: la caja naranja está centrada en el camión y dentro del frame.
+
+**Techo de 720 px.** Con clips de 1280x720, cualquier ventana por encima de 720 se recorta a la
+altura del frame, así que 768 y 1024 producen el mismo vídeo byte a byte y solo se guarda uno
+(`crop720`). Consecuencia para el experimento: en UAV123 a 720p el modo crop solo tiene tres
+puntos útiles, y por encima de 720 recortar no aporta nada sobre el frame completo. La fracción
+del frame que ocupa la ventana va de 28% (512) a 56% (720).
+
+Pendiente: alimentar el recorte al tracker y medir; eso todavía no está hecho.
