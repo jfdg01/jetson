@@ -198,3 +198,25 @@ defecto del checkpoint, y cualquier tamaño distinto de 1024 muere con
 `assert backbone_features.size(2) == self.sam_image_embedding_size`. Con 1024 coincidía por
 casualidad, que es por qué el smoke test pasó y ocultó el bug. Tras el cambio, 1024 reproduce el
 número anterior (434.0 vs 432.6 ms p50), así que las dos rutas son equivalentes en el default.
+
+## Modo crop (activable, 2026-07-29)
+
+Modo opcional del renderer: en vez de dar el frame completo, se recorta una ventana cuadrada de
+`N` px centrada en el objetivo. La idea es desacoplar dos cosas que hasta ahora iban juntas —
+resolución de entrada del modelo y tamaño aparente del objetivo. A 1024 el camión de `truck3` ocupa
+~26x16 px; en un recorte de 512 ocupa lo mismo en píxeles pero el doble de fracción de la entrada.
+
+De momento **solo geometría, sin modelo**: `analysis/render_overlay.py --seq <clip> --crop N --out
+<mp4>` pinta la ventana en naranja sobre el vídeo original, con GT en verde, para ver qué encuadre
+recibiría el modelo. No toca ninguna de las rutas existentes: sin `--crop` el renderer se comporta
+exactamente igual que antes, y `--seq` es un modo GT-only que no necesita resultado de tracker.
+
+Decisión de geometría: la ventana **se desliza** para quedarse dentro del frame, no se recorta.
+Si se recortase, un objetivo pegado al borde cambiaría en silencio la resolución efectiva de
+entrada y el número no sería comparable con el resto. Solo un frame más pequeño que `N` fuerza una
+ventana menor (720 de alto lo hace para N=1024). Comprobación en
+`analysis/render_overlay.py --self-check`.
+
+Entregable: `proof/crop512_truck3.mp4` (535 frames, ventana de 512). Verificado abriendo
+`proof/crop512_truck3.mid.png` (frame 268): la caja naranja está centrada en el camión y dentro del
+frame. Pendiente: alimentar el recorte al tracker y medir; eso todavía no está hecho.

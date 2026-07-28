@@ -27,3 +27,14 @@ camión de principio a fin; 640 lo pierde a mitad y no recupera.
   ningún número.
 
 Reproducir: `analysis/render_overlay.py raw/res-truck3/sam2_t<N>__truck3.json --out <mp4>`.
+
+## Modo crop (previsualización de geometría, sin modelo)
+
+- **`crop512_truck3.mp4`** — `truck3` completo (535 frames), GT en verde y la ventana de recorte de
+  512×512 en **naranja**, centrada en el GT frame a frame. Ningún tracker interviene: es solo la
+  geometría que vería el modelo si se le alimentara el recorte en vez del frame completo. La ventana
+  se desliza para quedarse dentro del frame en vez de encogerse, de modo que la resolución efectiva
+  de entrada nunca cambia; en un frame de 720 de alto una ventana de más de 720 sí se recorta.
+- **`crop512_truck3.mid.png`** — frame 268/535 del mismo vídeo, verificación visual.
+
+Reproducir: `analysis/render_overlay.py --seq truck3 --crop 512 --out proof/crop512_truck3.mp4`.
