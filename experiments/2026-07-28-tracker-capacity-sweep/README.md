@@ -277,3 +277,40 @@ a píxeles crudos, el recuadro naranja se traza por fuera del borde y el pie va 
 el modelo. `analysis/render_overlay.py` verifica en cada ejecución que las 533 ventanas del
 dispositivo coinciden con su propia geometría (campo `win_checked`); la identidad de píxeles del
 panel está comprobada en el frame 268 de los tres tamaños.
+
+## Segunda secuencia: wakeboard1 (run `wakeboard1-res-crop`, 2026-07-29)
+
+`truck3` es n=1. Segunda secuencia elegida por contraste, no por conveniencia: `wakeboard1`, 421
+frames, 1280×720, objetivo de área mediana 5568 px (13× el camión) que **encoge de forma monótona**
+(tendencia de escala −0.96, la más negativa de las 30), sobre agua y espuma en vez de asfalto, y
+sin huecos de GT. Mismos 7 arms, mismo checkpoint `sam2.1-hiera-tiny`, bf16, 15 W.
+
+| arm | entrada | p50 | Hz medio | mIoU | IoU@0.25 | IoU@0.5 | perdidos |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `sam2_c512` | crop 512 nativo | 101.3 ms | 9.8 | **0.823** | **1.000** | **1.000** | 0 |
+| `sam2_t512` | frame completo → 512 | 122.2 ms | 8.1 | 0.679 | 0.803 | 0.795 | 36 |
+| `sam2_c640` | crop 640 nativo | 159.6 ms | 6.2 | 0.817 | 0.993 | 0.993 | 0 |
+| `sam2_t640` | frame completo → 640 | 181.1 ms | 5.5 | 0.701 | 0.831 | 0.829 | 0 |
+| `sam2_c704` | crop 704 nativo | 190.8 ms | 5.2 | 0.814 | 0.995 | 0.988 | 0 |
+| `sam2_t768` | frame completo → 768 | 252.0 ms | 4.0 | 0.647 | 0.762 | 0.732 | 0 |
+| `sam2_t1024` | frame completo → 1024 | 433.7 ms | 2.3 | 0.637 | 0.739 | 0.720 | 0 |
+
+**Se replica el patrón de `truck3`, y más marcado.** El crop más barato gana a todos los arms de
+frame completo en las tres métricas de exactitud a la vez que es el más rápido: `sam2_c512` da
+IoU@0.5 = 1.000 sobre los 421 frames a 9.8 Hz, contra 0.720 de `sam2_t1024` a 2.3 Hz — **4.3× más
+rápido y 0.28 más de IoU@0.5**. Los tres arms de crop quedan agrupados en 0.81–0.82 mIoU: aquí la
+resolución dentro del crop casi no importa, lo que importa es recortar.
+
+**El frame completo vuelve a no ser monótono, y esta vez baja.** 512 → 640 sube, pero 768 y 1024
+empeoran (0.647 y 0.637), peor que la resolución más baja que no pierde el objetivo. Dos
+secuencias, dos formas distintas de romperse en frame completo (`truck3`: hundimiento aislado en
+640; `wakeboard1`: degradación a partir de 640), pero la misma conclusión: subir `image_size` no
+compra exactitud.
+
+Cautela de lectura: el mIoU de `sam2_t512` (0.679) está calculado solo sobre los 385 frames en los
+que devolvió caja, así que **le favorece** — los 36 frames perdidos no puntúan como 0. El resto de
+arms puntúan sobre los 421.
+
+Verificado en píxeles (frame 211, `crop_wakeboard1_c512.mid.png` y `res_wakeboard1_t512.mid.png`):
+el objetivo es el wakeboarder, no la lancha, y la caja del panel de crop cae sobre él tras
+deshacer el desplazamiento de la ventana. `win_checked: 419` en los tres arms de crop.

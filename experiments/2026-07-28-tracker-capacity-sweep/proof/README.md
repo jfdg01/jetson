@@ -52,3 +52,21 @@ Comparar `crop_truck3_c640.mp4` con `res_truck3_t640.mp4` es el par más elocuen
 nunca.
 
 Reproducir: `analysis/render_overlay.py raw/crop-truck3/sam2_c<N>__truck3.json --out <mp4>`.
+
+## Segunda secuencia: wakeboard1 (run `wakeboard1-res-crop`)
+
+421 frames, 1280×720, objetivo grande que encoge de forma monótona sobre agua. Mismos 7 arms que
+en `truck3`, mismo formato: `res_*` a frame completo, `crop_*` a dos paneles.
+
+| fichero | entrada | Hz medio | mIoU | IoU@0.5 | perdidos |
+| --- | --- | --- | --- | --- | --- |
+| `crop_wakeboard1_c512.mp4` | crop 512 nativo | 9.8 | 0.823 | 1.000 | 0 |
+| `crop_wakeboard1_c640.mp4` | crop 640 nativo | 6.2 | 0.817 | 0.993 | 0 |
+| `crop_wakeboard1_c704.mp4` | crop 704 nativo | 5.2 | 0.814 | 0.988 | 0 |
+| `res_wakeboard1_t512.mp4` | frame → 512 | 8.1 | 0.679 | 0.795 | 36 |
+| `res_wakeboard1_t640.mp4` | frame → 640 | 5.5 | 0.701 | 0.829 | 0 |
+| `res_wakeboard1_t768.mp4` | frame → 768 | 4.0 | 0.647 | 0.732 | 0 |
+| `res_wakeboard1_t1024.mp4` | frame → 1024 | 2.3 | 0.637 | 0.720 | 0 |
+
+El par más elocuente: `crop_wakeboard1_c512.mp4` contra `res_wakeboard1_t1024.mp4`. El primero es
+4.3× más rápido y no falla un solo frame por encima de IoU 0.5; el segundo se queda en 0.720.
