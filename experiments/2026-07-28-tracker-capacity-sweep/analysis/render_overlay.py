@@ -82,6 +82,13 @@ def main() -> None:
             "ms_p50": meta["ms_p50"], "fps": meta["fps"],
         }
 
+    # mean, not median: the burned-in rate should include the slow frames, since a tail stall is
+    # exactly what a follow loop feels. meta["fps"] stays median-based so the tables do not move.
+    if rows:
+        lat = [r["ms"] for r in rows.values() if not r.get("init")][meta["warmup_frames"]:]
+        hz = 1000 / (sum(lat) / len(lat))
+        score["mean_hz"] = hz
+
     if args.out:
         h, w = meta["h"], meta["w"]
         ff = subprocess.Popen(
@@ -120,7 +127,8 @@ def main() -> None:
 
             parts = [meta["arm"], f"{name} {i + 1}/{len(frames)}", "GT=verde"]
             if rows:
-                parts += ["pred=azul", "LOST" if not (r and r.get("box")) else f"IoU {ious[i]:.2f}"]
+                parts += [f"{hz:.1f} Hz", "pred=azul",
+                          "LOST" if not (r and r.get("box")) else f"IoU {ious[i]:.2f}"]
             if args.crop:
                 parts.append(f"crop {crop[2] - crop[0]}px=naranja")
             cv2.putText(img, "  ".join(parts), (12, h - 16),

@@ -23,22 +23,23 @@ error de forma del modelo. Se ve en el propio `res_truck3_t640.mp4`.
 
 Reproducir: `analysis/render_overlay.py raw/res-truck3/sam2_t<N>__truck3.json --out <mp4>`.
 
-## Modo crop (previsualización de geometría, sin modelo)
+En el pie de cada vídeo va la tasa **media** (Hz), no la mediana: `1000 / media(ms)` sobre los
+frames post-warmup, así que incluye los frames lentos, que es lo que sufre un lazo de seguimiento.
+Las tablas siguen usando p50.
 
-`truck3` completo (535 frames), GT en verde y la ventana de recorte en **naranja**, centrada en el
-GT frame a frame. Ningún tracker interviene: es solo la geometría que vería el modelo si se le
-alimentara el recorte en vez del frame completo.
+## Crop alimentado al modelo (run `crop-truck3`)
 
-| fichero | ventana pedida | ventana real | fracción del frame |
-| --- | --- | --- | --- |
-| `crop512_truck3.mp4` | 512 | 512×512 | 28% |
-| `crop640_truck3.mp4` | 640 | 640×640 | 44% |
-| `crop720_truck3.mp4` | 768 y 1024 | 720×720 | 56% |
+Al modelo se le da solo una ventana de N×N a píxeles nativos, centrada en su **propia predicción
+anterior** (nunca GT). Mismos colores y mismo pie.
 
-La ventana se desliza para quedarse dentro del frame en vez de encogerse, de modo que la resolución
-efectiva de entrada nunca cambia a lo largo de la secuencia. El único límite es la altura del
-frame: con 1280×720, cualquier petición por encima de 720 se recorta a 720, así que **768 y 1024
-dan el mismo vídeo byte a byte** y aquí solo se guarda una copia. El pie del vídeo dice el tamaño
-real (`crop 720px`), no el pedido.
+| fichero | entrada | Hz medio | mIoU | IoU@0.5 | perdidos |
+| --- | --- | --- | --- | --- | --- |
+| `crop_truck3_c512.mp4` | crop 512 nativo | 9.9 | 0.761 | 0.929 | 0 |
+| `crop_truck3_c640.mp4` | crop 640 nativo | 6.3 | 0.773 | 0.957 | 0 |
+| `crop_truck3_c704.mp4` | crop 704 nativo | 5.2 | 0.791 | 0.953 | 0 |
 
-Reproducir: `analysis/render_overlay.py --seq truck3 --crop <N> --out proof/crop<N>_truck3.mp4`.
+Comparar `crop_truck3_c640.mp4` con `res_truck3_t640.mp4` es el par más elocuente: mismo
+`image_size`, mismo checkpoint, y uno pierde el camión 171 frames mientras el otro no lo pierde
+nunca.
+
+Reproducir: `analysis/render_overlay.py raw/crop-truck3/sam2_c<N>__truck3.json --out <mp4>`.
