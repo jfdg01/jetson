@@ -64,7 +64,7 @@ def main() -> None:
         ff = subprocess.Popen(
             ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "bgr24",
              "-s", f"{w}x{h}", "-r", "30", "-i", "-", "-c:v", "libx264", "-preset", "veryfast",
-             "-pix_fmt", "yuv420p", "-crf", "20", args.out], stdin=subprocess.PIPE)
+             "-pix_fmt", "yuv420p", "-crf", "28", args.out], stdin=subprocess.PIPE)
         mid = Path(args.out).with_suffix(".mid.png")
         for i, fp in enumerate(frames):
             img = cv2.imread(str(fp))
