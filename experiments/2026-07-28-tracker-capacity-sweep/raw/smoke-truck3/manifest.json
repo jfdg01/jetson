@@ -1,0 +1,50 @@
+{
+ "utc": "2026-07-28T21:43:35Z",
+ "arms": [
+  "sam2_t1024"
+ ],
+ "seqs": [
+  "truck3"
+ ],
+ "seed": 0,
+ "nvpmodel": "NV Power Mode: 15W\n0",
+ "governor": "schedutil",
+ "nproc": "6",
+ "l4t": "# R36 (release), REVISION: 5.0, GCID: 43688277, BOARD: generic, EABI: aarch64, DATE: Fri Jan 16 03:50:45 UTC 2026\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia",
+ "meminfo": {
+  "MemTotal": "        7789948 kB",
+  "MemAvailable": "    6601820 kB",
+  "SwapTotal": "       3894960 kB",
+  "SwapFree": "        3460696 kB"
+ },
+ "thermals_start": {
+  "cpu-thermal": 56.812,
+  "gpu-thermal": 56.281,
+  "soc0-thermal": 53.187,
+  "soc1-thermal": 55.375,
+  "soc2-thermal": 55.062,
+  "tj-thermal": 56.781
+ },
+ "rails_start": {
+  "VDD_IN": 6.615872,
+  "VDD_CPU_GPU_CV": 1.938048,
+  "VDD_SOC": 1.465792
+ },
+ "code_sha256": "ddfba506094d8c6a5a194690145e388028c71cb16c7dd0cfc7c7a1df15558003",
+ "freeze": "annotated-doc==0.0.4\nantlr4-python3-runtime==4.9.3\nanyio==4.14.1\ncertifi==2026.6.17\nclick==8.4.2\nexceptiongroup==1.3.1\nfilelock==3.29.4\nfsspec==2026.6.0\nh11==0.16.0\nhf-xet==1.5.1\nhttpcore==1.0.9\nhttpx==0.28.1\nhuggingface-hub==1.21.0\nhydra-core==1.3.3\nidna==3.18\niopath==0.1.10\njinja2==3.1.6\nmarkdown-it-py==4.2.0\nmarkupsafe==3.0.3\nmdurl==0.1.2\nmpmath==1.3.0\nnetworkx==3.4.2\nnumpy==1.26.4\nomegaconf==2.3.1\nopencv-python-headless==4.11.0.86\npackaging==26.2\npillow==12.3.0\nportalocker==3.2.0\npygments==2.20.0\npyyaml==6.0.3\nregex==2026.7.19\nrich==15.0.0\nsafetensors==0.8.0\nsam2==1.1.0\nsetuptools==81.0.0\nshellingham==1.5.4\nsympy==1.14.0\ntokenizers==0.22.2\ntorch==2.8.0\ntorchvision==0.23.0\ntqdm==4.68.3\ntransformers==5.14.1\ntyper==0.25.1\ntyping-extensions==4.15.0",
+ "big_procs": "",
+ "thermals_end": {
+  "cpu-thermal": 67.25,
+  "gpu-thermal": 66.75,
+  "soc0-thermal": 63.906,
+  "soc1-thermal": 65.531,
+  "soc2-thermal": 65.843,
+  "tj-thermal": 67.25
+ },
+ "rails_end": {
+  "VDD_IN": 6.684288,
+  "VDD_CPU_GPU_CV": 1.737472,
+  "VDD_SOC": 1.621632
+ },
+ "finished_utc": "2026-07-28T21:56:41Z"
+}

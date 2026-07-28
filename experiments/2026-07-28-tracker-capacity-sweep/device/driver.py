@@ -1,0 +1,120 @@
+"""Device-side driver: writes the manifest, then runs each (arm, sequence) in a fresh process.
+
+A fresh process per arm is the only way the "no allocator / cuDNN cache contamination" row in the
+README is actually true rather than aspirational. Arm order is shuffled so thermal drift over a
+long sweep does not correlate with arm identity.
+
+No manifest, no run: the environment is captured before anything is measured, so a result can
+never be reported as "probably at 15 W".
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import random
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+PY = sys.executable
+
+
+def sh(cmd: str) -> str:
+    return subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout.strip()
+
+
+def thermals() -> dict[str, float]:
+    out = {}
+    for z in sorted(Path("/sys/devices/virtual/thermal").glob("thermal_zone*")):
+        try:  # a zone can return EAGAIN or an empty read; it is telemetry, never fatal
+            out[(z / "type").read_text().strip()] = int((z / "temp").read_text()) / 1000
+        except Exception:
+            pass
+    return out
+
+
+def rails() -> dict[str, float]:
+    """INA3221 instantaneous power per rail, in watts."""
+    out = {}
+    for ch in sorted(Path("/sys/bus/i2c/devices/1-0040/hwmon").glob("hwmon*/in*_label")):
+        try:
+            name = ch.read_text().strip()
+            volt = int((ch.parent / ch.name.replace("_label", "_input")).read_text())
+            cur = int((ch.parent / ch.name.replace("in", "curr").replace("_label", "_input")).read_text())
+            out[name] = volt * cur / 1e6
+        except Exception:
+            pass
+    return out
+
+
+def manifest(run_dir: Path, arms: list[str], seqs: list[str], seed: int) -> dict:
+    m = {
+        "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "arms": arms, "seqs": seqs, "seed": seed,
+        "nvpmodel": sh("nvpmodel -q"),
+        "governor": sh("cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"),
+        "nproc": sh("nproc"),
+        "l4t": sh("cat /etc/nv_tegra_release"),
+        "meminfo": {k: v for k, v in
+                    (ln.split(":", 1) for ln in Path("/proc/meminfo").read_text().splitlines())
+                    if k in ("MemTotal", "MemAvailable", "SwapTotal", "SwapFree")},
+        "thermals_start": thermals(),
+        "rails_start": rails(),
+        "code_sha256": sh(f"cat {HERE}/*.py | sha256sum | cut -d' ' -f1"),
+        "freeze": sh(f"{PY} -m pip freeze 2>/dev/null") or sh(
+            f"/home/jfdg/.local/bin/uv pip freeze --python {PY} 2>/dev/null"),
+        "big_procs": sh("ps -eo rss,comm --sort=-rss | awk 'NR>1 && $1>102400'"),
+    }
+    (run_dir / "manifest.json").write_text(json.dumps(m, indent=1))
+    return m
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--run-dir", required=True)
+    ap.add_argument("--arms", required=True)
+    ap.add_argument("--seqs", required=True)
+    ap.add_argument("--data", required=True)
+    ap.add_argument("--seed", type=int, default=0)
+    args = ap.parse_args()
+
+    run_dir = Path(args.run_dir)
+    run_dir.mkdir(parents=True, exist_ok=True)
+    arms, seqs = args.arms.split(","), args.seqs.split(",")
+
+    m = manifest(run_dir, arms, seqs, args.seed)
+    print("manifest written;", m["nvpmodel"].replace("\n", " "), "| governor", m["governor"], flush=True)
+    if m["big_procs"]:
+        print(f"WARNING: processes >100 MB resident:\n{m['big_procs']}", flush=True)
+
+    jobs = [(a, s) for a in arms for s in seqs]
+    random.Random(args.seed).shuffle(jobs)  # decorrelate thermal drift from arm identity
+
+    for n, (a, s) in enumerate(jobs, 1):
+        out = run_dir / f"{a}__{s}.json"
+        if out.exists():
+            print(f"[{n}/{len(jobs)}] skip {a} x {s} (done)", flush=True)
+            continue
+        t = time.monotonic()
+        print(f"[{n}/{len(jobs)}] {a} x {s} ...", flush=True)
+        # inherit stdout/stderr: capturing them hides the child's progress lines until it exits,
+        # which makes a multi-hour sweep unwatchable. Everything lands in driver.log.
+        p = subprocess.run(
+            [PY, str(HERE / "run_arm.py"), "--arm", a,
+             "--seq-dir", f"{args.data}/{s}", "--out", str(out)],
+        )
+        if p.returncode:
+            (run_dir / f"{a}__{s}.FAIL").write_text(f"rc={p.returncode}; traceback in driver.log\n")
+            print(f"  FAIL rc={p.returncode}", flush=True)
+        print(f"  {time.monotonic() - t:.1f}s wall, temps {thermals().get('CPU-therm')}C", flush=True)
+
+    (run_dir / "manifest.json").write_text(json.dumps(
+        {**m, "thermals_end": thermals(), "rails_end": rails(),
+         "finished_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}, indent=1))
+    print("DONE", flush=True)
+
+
+if __name__ == "__main__":
+    main()

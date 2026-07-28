@@ -1,0 +1,15 @@
+manifest written; NV Power Mode: 15W 0 | governor schedutil
+[1/1] sam2_t1024 x truck3 ...
+  50/535  21s  2.33 fps  eta 208s
+  100/535  44s  2.30 fps  eta 189s
+  150/535  66s  2.29 fps  eta 168s
+  200/535  88s  2.28 fps  eta 147s
+  250/535  110s  2.28 fps  eta 125s
+  300/535  132s  2.28 fps  eta 103s
+  350/535  154s  2.27 fps  eta 81s
+  400/535  176s  2.27 fps  eta 59s
+  450/535  198s  2.27 fps  eta 37s
+  500/535  220s  2.27 fps  eta 15s
+{"arm": "sam2_t1024", "seq": "truck3", "frames": 535, "w": 1280, "h": 720, "init_ms": 5425.145040731877, "warmup_frames": 5, "ms_p50": 432.5699298642576, "ms_p95": 436.51404520496726, "ms_p99": 438.96122796460986, "ms_max": 442.81740905717015, "fps": 2.3117649447195845, "decode_ms_p50": 8.988821180537343, "lost_frames": 0, "rss_peak_mb": 2556.87890625, "gpu_peak_mb": 643.71630859375}
+  242.7s wall, temps NoneC
+DONE

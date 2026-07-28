@@ -1,0 +1,5 @@
+manifest written; NV Power Mode: 15W 0 | governor schedutil
+[1/1] sam2_t1024 x truck3 ...
+  {"arm": "sam2_t1024", "seq": "truck3", "frames": 535, "w": 1280, "h": 720, "init_ms": 6766.114719212055, "warmup_frames": 5, "ms_p50": 1449.879630934447, "ms_p95": 1473.676222190261, "ms_p99": 1481.0690873675048, "ms_max": 1491.7246391996741, "fps": 0.6897124276140774, "decode_ms_p50": 8.964735548943281, "lost_frames": 0, "rss_peak_mb": 2716.61328125, "gpu_peak_mb": 723.61328125}
+  785.2s wall, temps NoneC
+DONE
