@@ -391,15 +391,96 @@ Reserva conocida, a comprobar en los resultados: 5 de las 30 (`uav1_2`, `uav2`, 
 480x480, que SAM2 luego **escala hacia arriba** hasta `image_size`. En esos 5 clips los tres arms
 de crop dejan de ser "píxeles nativos" y no son comparables sin más con los otros 25.
 
+### Resultados (210/210, 2026-07-29T00:01Z -> 12:06Z UTC)
+
+Mediana por secuencia (n=30 en todas las filas), no media sobre frames. `FP hueco` = frames donde
+GT es NaN (objetivo fuera de campo) y el brazo contestó igual: suma sobre las 30, no mediana.
+
+| arm | entrada | p50 | mIoU | IoU@0.25 | IoU@0.5 | perdidos | FP hueco |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `sam2_c512` | crop 512 | 100.9 ms | 0.679 | 0.956 | 0.861 | 0.0% | 150 |
+| `sam2_c640` | crop 640 | 159.4 ms | **0.759** | 0.990 | 0.957 | 0.0% | 576 |
+| `sam2_c704` | crop 704 | 190.7 ms | 0.762 | 0.988 | 0.956 | 0.0% | 259 |
+| `sam2_t512` | frame 512 | 122.3 ms | 0.591 | 0.774 | 0.708 | 0.2% | 429 |
+| `sam2_t640` | frame 640 | 180.6 ms | 0.678 | 0.948 | 0.833 | 0.0% | 385 |
+| `sam2_t768` | frame 768 | 251.9 ms | 0.704 | 0.948 | 0.904 | 0.0% | 254 |
+| `sam2_t1024` | frame 1024 | 434.0 ms | 0.752 | 0.952 | 0.917 | 0.0% | 267 |
+
+Lecturas:
+
+- **`sam2_c640` es el punto de operación.** Iguala a `c704` (-0.003 mIoU) por 31 ms menos, y bate a
+  `t1024` (0.759 vs 0.752) a **2.7x su velocidad**. El crop compra resolución efectiva mucho más
+  barato que subir `image_size`.
+- El crop deja de pagar por encima de 640: 512 -> 640 son +0.080 de mIoU, 640 -> 704 son +0.003.
+- Contrapartida de `c640`: la **peor** cuenta de falsos positivos en hueco (576) con 0% de frames
+  perdidos, es decir, nunca dice "no está". Con la ventana pegada al objetivo siempre encuentra
+  *algo*. Es justo lo que la heurística `coast` evita por diseño y lo que `edge` podría empeorar.
+- Runtime real 12.1 h frente a las 11.8 h estimadas (+2.5%). Térmicas 58 -> 68 C, sin throttling.
+
+La reserva de los 5 clips 720x480 (`uav1_2`, `uav2`, `uav3`, `uav5`, `uav7`) sigue en pie: ahí el
+crop se recorta a 480x480 y SAM2 lo escala hacia arriba, así que esos brazos no son "píxeles
+nativos". No se ha separado el análisis por ese eje.
+
+## Barrido difícil: UAV123-hard, 49 secuencias x 6 arms (run `uav123-hard`, lanzado 2026-07-29T14:31Z)
+
+Las 30 de `full-sweep-30` se eligieron para cubrir el rango de dificultad. Este run va al otro lado:
+concentra el presupuesto donde los brazos se separan. Con mIoU de 0.68-0.76 en la muestra ancha, la
+mayoría de clips ya están saturados y no discriminan; el tercil difícil es donde queda señal.
+
+**Dataset `UAV123-hard`** (`dataset.txt`, construido por `analysis/difficulty.py` sobre las 123):
+
+- **41 clips = el tercil difícil entero.** No una muestra del tercil: el tercil completo, así que no
+  hay selección que explicar.
+- **4 MEDIO + 4 FACIL como control de banda**, uno por categoría y elegidos solo entre categorías
+  que también aparecen en la banda difícil. Sin ese emparejamiento, "difícil vs fácil" sería en
+  parte "uav vs boat" — el índice y la categoría están confundidos en UAV123 (10/10 `uav` caen en
+  difícil, 0/9 `boat`).
+- 49 clips, 41461 frames anotados. Categorías: uav 10, car 10, person 7, group 6, wakeboard 6,
+  truck 4, bird 3, bike 3.
+
+**Solo se corren 27 clips.** Los otros 22 ya tienen resultados en `full-sweep-30` con estos mismos
+brazos y el mismo código (`code_sha256` sin cambios), y `driver.py` salta los JSON que ya existen.
+Los 27 nuevos suman 21603 frames.
+
+**6 arms, sin `sam2_t1024`.** Se descartó por coste: 434 ms de p50 sin ganar a nadie. Wilcoxon
+pareado sobre las 30 secuencias de `full-sweep-30`, mIoU de `t1024` menos la del rival —
+`c640` p=0.79 (delta -0.017), `c704` p=0.30 (-0.036), `t768` p=0.12 (+0.014), `t640` p=0.064
+(+0.050). Contra los dos brazos de crop el signo es negativo: paga 2.3-2.7x de latencia para ir
+por detrás. **Nulo acotado, no equivalencia probada** — n=30 no descarta diferencias pequeñas.
+
+```
+./jetson.py stage <los 27 nuevos>
+./jetson.py run --id uav123-hard \
+  --arms sam2_t512 sam2_t640 sam2_t768 sam2_c512 sam2_c640 sam2_c704 \
+  --seqs uav6 car11 uav4 uav1_3 bird1_2 uav8 truck4_1 uav1_1 wakeboard9 group2_2 wakeboard6 \
+         car1_2 group2_1 car13 group3_4 wakeboard3 car2 car15 person10 group3_2 truck4_2 car14 \
+         person12_2 person14_1 person22 bike3 car3
+```
+
+162 jobs. Sin vídeos. Estimación de runtime: 21603 frames x 1.006 s (suma de los p50 de los 6 arms
+en `full-sweep-30`) = 6.0 h, mas ~15 s de carga de modelo por job (~41 min) = **~6.7 h**.
+
+Limitaciones declaradas antes de correr:
+
+- **41 vs 4 vs 4 no da contraste inferencial entre bandas.** Los 8 controles sirven para mirar si el
+  índice ordena, no para un test difícil-vs-fácil; con n=4 por banda ningún estadístico llega. Subir
+  a ~15 por banda costaría unas 4 h más y no se ha hecho.
+- La muestra está sesgada a difícil por construcción, así que **ninguna cifra de este run es una
+  estimación del rendimiento en UAV123**. Es una comparación entre brazos bajo carga.
+- 10 de los 49 son 720x480 (`uav1_1`, `uav1_2`, `uav1_3`, `uav2`, `uav3`, `uav4`, `uav5`, `uav6`,
+  `uav7`, `uav8`) — todos de la misma categoría, la más representada en la banda difícil. Ahí el
+  crop no es a píxeles nativos (ver la reserva de `full-sweep-30`), y el sesgo cae entero sobre una
+  categoría.
+
 ### Resultados (TBD)
 
-| arm | entrada | p50 | mIoU | IoU@0.25 | IoU@0.5 | perdidos | secuencias |
+| arm | entrada | p50 | mIoU | IoU@0.25 | IoU@0.5 | perdidos | FP hueco |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | | | | | | | | |
 
-Estado: lanzado, en curso. Siguiente paso: `./jetson.py fetch full-sweep-30` y agregación por arm
-(mediana por secuencia, no media sobre frames — un clip de 3085 frames no puede pesar 23 veces lo
-que uno de 133).
+Estado: en curso (4.9 fps en el primer job). Siguiente paso: `./jetson.py fetch uav123-hard`,
+agregación sobre los 49 (los 27 nuevos mas los 22 de `full-sweep-30`) y estratificación por banda
+del índice y por categoría.
 
 ## Heurísticas de recuperación (implementadas, sin correr, 2026-07-29T14:20Z)
 
