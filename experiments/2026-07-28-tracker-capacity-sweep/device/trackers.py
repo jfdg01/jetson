@@ -209,9 +209,10 @@ class Sam2CropArm:
     """
 
     def __init__(self, checkpoint: str, size: int, coast: int = 0, edge: bool = False,
-                 factor: float = 0.0):
+                 factor: float = 0.0, pad: bool = False):
         self.size = size
         self.factor = factor
+        self.pad = pad
         self.inner = Sam2Arm(checkpoint, size)
         self.coast, self.edge = coast, edge
         self.win = None   # (x, y, s) in full-frame coords; None means the full frame was fed
@@ -243,6 +244,15 @@ class Sam2CropArm:
             self.win = search_window(
                 [center[0] - bw / 2, center[1] - bh / 2, center[0] + bw / 2, center[1] + bh / 2],
                 self.factor)
+            return crop_pad(frame, self.win)
+        if self.pad:
+            # Fixed size like the plain crop arms, but the window stays CENTRED on the target and
+            # what hangs off the frame is filled instead of slid back in. Splits the two things
+            # `sam2_c640` vs `sam2_f5` changes at once. Not an edge case here: a 640 window fits
+            # inside a 720-tall frame only when the centre sits in an 80 px band, so `crop_window`
+            # is sliding vertically on nearly every frame of UAV123.
+            s = self.size
+            self.win = (round(center[0] - s / 2), round(center[1] - s / 2), s)
             return crop_pad(frame, self.win)
         x, y, s = crop_window(center, self.size, w, h)
         self.win = (x, y, s)
@@ -493,6 +503,13 @@ arm("sam2_c640_edge", family="sam2crop", ckpt="tiny", image_size=640, crop=640, 
     lambda: Sam2CropArm("facebook/sam2.1-hiera-tiny", 640, edge=True)
 )
 
+# Same 640 window, centred and zero-padded instead of slid back inside the frame. The middle rung
+# of `c640` (slides) -> `c640_pad` (pads) -> `f5` (pads, sized by the target): each step changes one
+# thing, so a difference is attributable.
+arm("sam2_c640_pad", family="sam2crop", ckpt="tiny", image_size=640, crop=640, heur="pad")(
+    lambda: Sam2CropArm("facebook/sam2.1-hiera-tiny", 640, pad=True)
+)
+
 # Search-factor arms: same model, same 640 input, same compute as `sam2_c640` -- only the window
 # geometry changes, from a fixed 640 square to `factor * sqrt(area)` around the target. Factor 5 is
 # the primary (LoRAT at 378 input); 6 is OSTrack's ablation optimum and brackets it from above, so a
@@ -536,6 +553,16 @@ def _check() -> None:
     assert a.win == (384, 104, 512), a.win
     b, _ = a.step(frame)
     assert b == box, b  # window re-centres on the same target, so the box does not move
+
+    # pad arm: window stays centred where `crop_window` would have slid it, and the round trip
+    # still lands on the original box even though the window hangs off the frame
+    p = Sam2CropArm("x", 512, pad=True)
+    p.inner = FakeInner()
+    corner = [0, 0, 40, 30]
+    b, _ = p.init(frame, corner)
+    assert b == corner, b
+    assert p.win == (-236, -241, 512), p.win  # centred on (20, 15), NOT slid to (0, 0)
+    assert crop_window((20, 15), 512, 1280, 720) == (0, 0, 512)  # what the sliding arm does instead
 
     class Scripted:  # boxes in CROP coords, None = lost; drives the recovery heuristics
         def __init__(self, script): self.script = list(script)
