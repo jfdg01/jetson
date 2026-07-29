@@ -25,6 +25,28 @@ import uav123  # noqa: E402
 from render_overlay import iou  # noqa: E402
 
 
+def auc_ope(gt: list, rows: dict) -> float:
+    """Success-plot AUC in the OPE toolkit's convention, so it is comparable to a published number.
+
+    Copied deliberately from `pytracking/analysis/extract_results.py`, which is what the trackers
+    we compare against report with:
+
+      * 21 thresholds, `arange(0, 1.05, 0.05)`, and the test is STRICT `>` -- so a frame at IoU 0
+        counts as a failure even at threshold 0, and the curve does not start at 1.0.
+      * `err_overlap[~valid] = -1`, and the denominator is the FULL sequence length
+        (`exclude_invalid_frames=False` by default). A frame where GT is absent is therefore a
+        failure at every threshold, not an excluded frame.
+
+    Every other column in this file excludes GT-absent frames instead, which is the right call for
+    a question about tracking quality but is not the published quantity. On `asym_b` over UAV123 the
+    two conventions differ by 1.3 AUC points (67.1 vs 68.4), which is larger than the replication
+    tolerance -- so mixing them up would have been the whole verdict.
+    """
+    ious = np.array([0.0 if (g is None or rows.get(i, {}).get("box") is None)
+                     else iou(g, rows[i]["box"]) for i, g in enumerate(gt)])
+    return float((ious[:, None] > np.linspace(0, 1, 21)).mean(0).mean())
+
+
 def score_one(path: Path) -> dict:
     res = json.loads(path.read_text())
     meta, rows = res["meta"], {r["i"]: r for r in res["rows"]}
@@ -37,7 +59,7 @@ def score_one(path: Path) -> dict:
     return {
         "arm": meta["arm"], "seq": meta["seq"], "frames": meta["frames"],
         "gt_frames": len(have), "gap_frames": gap, "gap_false_pos": fp,
-        "auc": float((ious[:, None] >= np.linspace(0, 1, 21)).mean(0).mean()),
+        "auc": auc_ope(gt, rows),
         "mean_iou": float(ious.mean()), "iou@0.25": float((ious >= 0.25).mean()),
         "iou@0.5": float((ious >= 0.5).mean()),
         "lost": meta["lost_frames"], "ms_p50": meta["ms_p50"],

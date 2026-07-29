@@ -1,0 +1,669 @@
+{
+ "utc": "2026-07-29T16:49:56Z",
+ "arms": [
+  "asym_b"
+ ],
+ "seqs": [
+  "bike1",
+  "bike2",
+  "bike3",
+  "bird1_1",
+  "bird1_2",
+  "bird1_3",
+  "boat1",
+  "boat2",
+  "boat3",
+  "boat4",
+  "boat5",
+  "boat6",
+  "boat7",
+  "boat8",
+  "boat9",
+  "building1",
+  "building2",
+  "building3",
+  "building4",
+  "building5",
+  "car10",
+  "car11",
+  "car12",
+  "car13",
+  "car14",
+  "car15",
+  "car16_1",
+  "car16_2",
+  "car17",
+  "car18",
+  "car1_1",
+  "car1_2",
+  "car1_3",
+  "car1_s",
+  "car2",
+  "car2_s",
+  "car3",
+  "car3_s",
+  "car4",
+  "car4_s",
+  "car5",
+  "car6_1",
+  "car6_2",
+  "car6_3",
+  "car6_4",
+  "car6_5",
+  "car7",
+  "car8_1",
+  "car8_2",
+  "car9",
+  "group1_1",
+  "group1_2",
+  "group1_3",
+  "group1_4",
+  "group2_1",
+  "group2_2",
+  "group2_3",
+  "group3_1",
+  "group3_2",
+  "group3_3",
+  "group3_4",
+  "person1",
+  "person10",
+  "person11",
+  "person12_1",
+  "person12_2",
+  "person13",
+  "person14_1",
+  "person14_2",
+  "person14_3",
+  "person15",
+  "person16",
+  "person17_1",
+  "person17_2",
+  "person18",
+  "person19_1",
+  "person19_2",
+  "person19_3",
+  "person1_s",
+  "person20",
+  "person21",
+  "person22",
+  "person23",
+  "person2_1",
+  "person2_2",
+  "person2_s",
+  "person3",
+  "person3_s",
+  "person4_1",
+  "person4_2",
+  "person5_1",
+  "person5_2",
+  "person6",
+  "person7_1",
+  "person7_2",
+  "person8_1",
+  "person8_2",
+  "person9",
+  "truck1",
+  "truck2",
+  "truck3",
+  "truck4_1",
+  "truck4_2",
+  "uav1_1",
+  "uav1_2",
+  "uav1_3",
+  "uav2",
+  "uav3",
+  "uav4",
+  "uav5",
+  "uav6",
+  "uav7",
+  "uav8",
+  "wakeboard1",
+  "wakeboard10",
+  "wakeboard2",
+  "wakeboard3",
+  "wakeboard4",
+  "wakeboard5",
+  "wakeboard6",
+  "wakeboard7",
+  "wakeboard8",
+  "wakeboard9"
+ ],
+ "seed": 0,
+ "nvpmodel": "NV Power Mode: 15W\n0",
+ "governor": "schedutil",
+ "nproc": "6",
+ "l4t": "# R36 (release), REVISION: 5.0, GCID: 43688277, BOARD: generic, EABI: aarch64, DATE: Fri Jan 16 03:50:45 UTC 2026\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia",
+ "meminfo": {
+  "MemTotal": "        7789948 kB",
+  "MemAvailable": "    6751684 kB",
+  "SwapTotal": "       3894960 kB",
+  "SwapFree": "        3607384 kB"
+ },
+ "thermals_start": {
+  "cpu-thermal": 58.625,
+  "gpu-thermal": 58.062,
+  "soc0-thermal": 55.218,
+  "soc1-thermal": 57.375,
+  "soc2-thermal": 57.0,
+  "tj-thermal": 58.625
+ },
+ "rails_start": {
+  "VDD_IN": 6.14048,
+  "VDD_CPU_GPU_CV": 1.621632,
+  "VDD_SOC": 1.465792
+ },
+ "code_sha256": "b22a5a7920ddbc0288435472c31ea41003eb1652c12d41789fea12530f76430c",
+ "freeze": {
+  "/home/jfdg/tracker-sweep/.venv-asym/bin/python": "anyio==4.14.2\nbeautifulsoup4==4.15.0\ncertifi==2026.7.22\ncffi==2.1.0\ncharset-normalizer==3.4.9\nclick==8.4.2\ncolorama==0.4.6\ncython==3.2.9\neasydict==1.13\nexceptiongroup==1.3.1\nfilelock==3.32.0\nfsspec==2026.7.0\ngdown==6.1.0\nh11==0.16.0\nhf-xet==1.5.2\nhttpcore==1.0.9\nhttpx==0.28.1\nhuggingface-hub==1.25.1\nidna==3.18\njinja2==3.1.6\njpeg4py==0.1.4\nlmdb==2.3.0\nmarkupsafe==3.0.3\nmpmath==1.3.0\nnetworkx==3.4.2\nnumpy==1.26.4\nopencv-python-headless==5.0.0.93\npackaging==26.2\npandas==2.3.3\npillow==12.3.0\nprotobuf==7.35.1\npycocotools==2.0.11\npycparser==3.0\npysocks==1.7.1\npython-dateutil==2.9.0.post0\npytz==2026.3.post1\npyyaml==6.0.3\nrequests==2.34.2\nsafetensors==0.8.0\nscipy==1.15.3\nsix==1.17.0\nsoupsieve==2.9.1\nsympy==1.14.0\ntensorboardx==2.6.5\nthop==0.1.1.post2209072238\ntimm==0.9.2\ntorch==2.8.0\ntorchvision==0.23.0\ntqdm==4.70.0\ntyping-extensions==4.16.0\ntzdata==2026.3\nurllib3==2.7.0\nyacs==0.1.8"
+ },
+ "big_procs": "",
+ "frame_size": {
+  "bike1": [
+   1280,
+   720
+  ],
+  "bike2": [
+   1280,
+   720
+  ],
+  "bike3": [
+   1280,
+   720
+  ],
+  "bird1_1": [
+   1280,
+   720
+  ],
+  "bird1_2": [
+   1280,
+   720
+  ],
+  "bird1_3": [
+   1280,
+   720
+  ],
+  "boat1": [
+   1280,
+   720
+  ],
+  "boat2": [
+   1280,
+   720
+  ],
+  "boat3": [
+   1280,
+   720
+  ],
+  "boat4": [
+   1280,
+   720
+  ],
+  "boat5": [
+   1280,
+   720
+  ],
+  "boat6": [
+   1280,
+   720
+  ],
+  "boat7": [
+   1280,
+   720
+  ],
+  "boat8": [
+   1280,
+   720
+  ],
+  "boat9": [
+   1280,
+   720
+  ],
+  "building1": [
+   1280,
+   720
+  ],
+  "building2": [
+   1280,
+   720
+  ],
+  "building3": [
+   1280,
+   720
+  ],
+  "building4": [
+   1280,
+   720
+  ],
+  "building5": [
+   1280,
+   720
+  ],
+  "car10": [
+   1280,
+   720
+  ],
+  "car11": [
+   1280,
+   720
+  ],
+  "car12": [
+   1280,
+   720
+  ],
+  "car13": [
+   1280,
+   720
+  ],
+  "car14": [
+   1280,
+   720
+  ],
+  "car15": [
+   1280,
+   720
+  ],
+  "car16_1": [
+   1280,
+   720
+  ],
+  "car16_2": [
+   1280,
+   720
+  ],
+  "car17": [
+   1280,
+   720
+  ],
+  "car18": [
+   1280,
+   720
+  ],
+  "car1_1": [
+   1280,
+   720
+  ],
+  "car1_2": [
+   1280,
+   720
+  ],
+  "car1_3": [
+   1280,
+   720
+  ],
+  "car1_s": [
+   1280,
+   720
+  ],
+  "car2": [
+   1280,
+   720
+  ],
+  "car2_s": [
+   1280,
+   720
+  ],
+  "car3": [
+   1280,
+   720
+  ],
+  "car3_s": [
+   1280,
+   720
+  ],
+  "car4": [
+   1280,
+   720
+  ],
+  "car4_s": [
+   1280,
+   720
+  ],
+  "car5": [
+   1280,
+   720
+  ],
+  "car6_1": [
+   1280,
+   720
+  ],
+  "car6_2": [
+   1280,
+   720
+  ],
+  "car6_3": [
+   1280,
+   720
+  ],
+  "car6_4": [
+   1280,
+   720
+  ],
+  "car6_5": [
+   1280,
+   720
+  ],
+  "car7": [
+   1280,
+   720
+  ],
+  "car8_1": [
+   1280,
+   720
+  ],
+  "car8_2": [
+   1280,
+   720
+  ],
+  "car9": [
+   1280,
+   720
+  ],
+  "group1_1": [
+   1280,
+   720
+  ],
+  "group1_2": [
+   1280,
+   720
+  ],
+  "group1_3": [
+   1280,
+   720
+  ],
+  "group1_4": [
+   1280,
+   720
+  ],
+  "group2_1": [
+   1280,
+   720
+  ],
+  "group2_2": [
+   1280,
+   720
+  ],
+  "group2_3": [
+   1280,
+   720
+  ],
+  "group3_1": [
+   1280,
+   720
+  ],
+  "group3_2": [
+   1280,
+   720
+  ],
+  "group3_3": [
+   1280,
+   720
+  ],
+  "group3_4": [
+   1280,
+   720
+  ],
+  "person1": [
+   1280,
+   720
+  ],
+  "person10": [
+   1280,
+   720
+  ],
+  "person11": [
+   1280,
+   720
+  ],
+  "person12_1": [
+   1280,
+   720
+  ],
+  "person12_2": [
+   1280,
+   720
+  ],
+  "person13": [
+   1280,
+   720
+  ],
+  "person14_1": [
+   1280,
+   720
+  ],
+  "person14_2": [
+   1280,
+   720
+  ],
+  "person14_3": [
+   1280,
+   720
+  ],
+  "person15": [
+   1280,
+   720
+  ],
+  "person16": [
+   1280,
+   720
+  ],
+  "person17_1": [
+   1280,
+   720
+  ],
+  "person17_2": [
+   1280,
+   720
+  ],
+  "person18": [
+   1280,
+   720
+  ],
+  "person19_1": [
+   1280,
+   720
+  ],
+  "person19_2": [
+   1280,
+   720
+  ],
+  "person19_3": [
+   1280,
+   720
+  ],
+  "person1_s": [
+   1280,
+   720
+  ],
+  "person20": [
+   1280,
+   720
+  ],
+  "person21": [
+   1280,
+   720
+  ],
+  "person22": [
+   1280,
+   720
+  ],
+  "person23": [
+   1280,
+   720
+  ],
+  "person2_1": [
+   1280,
+   720
+  ],
+  "person2_2": [
+   1280,
+   720
+  ],
+  "person2_s": [
+   1280,
+   720
+  ],
+  "person3": [
+   1280,
+   720
+  ],
+  "person3_s": [
+   1280,
+   720
+  ],
+  "person4_1": [
+   1280,
+   720
+  ],
+  "person4_2": [
+   1280,
+   720
+  ],
+  "person5_1": [
+   1280,
+   720
+  ],
+  "person5_2": [
+   1280,
+   720
+  ],
+  "person6": [
+   1280,
+   720
+  ],
+  "person7_1": [
+   1280,
+   720
+  ],
+  "person7_2": [
+   1280,
+   720
+  ],
+  "person8_1": [
+   1280,
+   720
+  ],
+  "person8_2": [
+   1280,
+   720
+  ],
+  "person9": [
+   1280,
+   720
+  ],
+  "truck1": [
+   1280,
+   720
+  ],
+  "truck2": [
+   1280,
+   720
+  ],
+  "truck3": [
+   1280,
+   720
+  ],
+  "truck4_1": [
+   1280,
+   720
+  ],
+  "truck4_2": [
+   1280,
+   720
+  ],
+  "uav1_1": [
+   720,
+   480
+  ],
+  "uav1_2": [
+   720,
+   480
+  ],
+  "uav1_3": [
+   720,
+   480
+  ],
+  "uav2": [
+   720,
+   480
+  ],
+  "uav3": [
+   720,
+   480
+  ],
+  "uav4": [
+   720,
+   480
+  ],
+  "uav5": [
+   720,
+   480
+  ],
+  "uav6": [
+   720,
+   480
+  ],
+  "uav7": [
+   720,
+   480
+  ],
+  "uav8": [
+   720,
+   480
+  ],
+  "wakeboard1": [
+   1280,
+   720
+  ],
+  "wakeboard10": [
+   1280,
+   720
+  ],
+  "wakeboard2": [
+   1280,
+   720
+  ],
+  "wakeboard3": [
+   1280,
+   720
+  ],
+  "wakeboard4": [
+   1280,
+   720
+  ],
+  "wakeboard5": [
+   1280,
+   720
+  ],
+  "wakeboard6": [
+   1280,
+   720
+  ],
+  "wakeboard7": [
+   1280,
+   720
+  ],
+  "wakeboard8": [
+   1280,
+   720
+  ],
+  "wakeboard9": [
+   1280,
+   720
+  ]
+ },
+ "gated": [],
+ "thermals_end": {
+  "cpu-thermal": 62.625,
+  "gpu-thermal": 62.343,
+  "soc0-thermal": 59.312,
+  "soc1-thermal": 61.312,
+  "soc2-thermal": 61.093,
+  "tj-thermal": 62.625
+ },
+ "rails_end": {
+  "VDD_IN": 6.180096,
+  "VDD_CPU_GPU_CV": 1.423872,
+  "VDD_SOC": 1.502976
+ },
+ "finished_utc": "2026-07-29T18:19:34Z"
+}

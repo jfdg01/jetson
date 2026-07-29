@@ -835,18 +835,96 @@ poder enlazar con los runs anteriores.
 - Un solo pase, sin repeticiones: el tracker es determinista dada la caja de init, así que la
   varianza run-a-run debería ser cero. **Verificarlo** re-corriendo 3 secuencias, no asumirlo.
 
-### Resultados (TBD)
+### Resultados (123/123, corrido 2026-07-29T20:05Z -> 21:35Z, `raw/asym-repro/`)
+
+Jetson a 15 W, governor `schedutil`, mismo estado de potencia registrado en el manifiesto de
+`full-sweep-30`. Un pase, init con caja GT del frame 1, sin reinicio.
 
 | métrica | publicado | medido | delta |
 | --- | --- | --- | --- |
-| AUC UAV123 | 66.5 | | |
-| precisión | no reportado | | |
-| mIoU (nuestro) | — | | |
-| p50 ms/frame | — | | |
+| **AUC UAV123** (convención OPE) | **66.5** | **67.1** | **+0.6** |
+| precisión | no reportado | — | — |
+| mIoU (nuestro, mediana por secuencia) | — | 0.775 | — |
+| IoU@0.25 / IoU@0.5 | — | 0.997 / 0.974 | — |
+| p50 ms/frame (mediana de secuencias) | 30-60 (estimado) | **29.3** | fuera por debajo |
+| frames perdidos | — | 0.0 % | — |
+| falsos positivos en hueco de GT | — | 2683 (2.4 % de frames sin GT) | — |
+| pico de GPU | — | 51.6 MB | — |
 
-Estado: entorno instalado y verificado; pesos descargando. Siguiente paso: escribir el arm
-`asymtrack_b` en `device/trackers.py`, añadir AUC a `analysis/aggregate.py`, montar las 123
-secuencias y lanzar.
+**Veredicto: |67.1 − 66.5| = 0.6 <= 1.0 -> arnés validado.** Se puede seguir al experimento completo.
+
+**Lo que decidió el veredicto no fue el modelo, fue la convención de la métrica.** El primer agregado
+dio **68.9**, es decir +2.4, dentro de la banda "investigar antes de seguir". La sospecha
+preregistrada nº 2 (tratamiento de los frames con GT ausente) y la nº 3 (definición de AUC) eran las
+correctas, y las dos a la vez. Convención de la casa: excluir los frames sin GT y contar aciertos con
+`>=`. Convención de los toolkits OPE, verificada leyendo el fuente de `pytracking`
+(`analysis/extract_results.py`, no de memoria):
+
+- `err_overlap[~valid] = -1.0` y `exclude_invalid_frames=False` por defecto, así que el denominador es
+  la **longitud completa** de la secuencia: un frame sin GT es un fallo en todos los umbrales, no un
+  frame excluido.
+- El test es `>` **estricto**, no `>=`, así que un frame con IoU 0 falla incluso en el umbral 0 y la
+  curva no arranca en 1.0.
+- 21 umbrales, `arange(0, 1.05, 0.05)`.
+
+Bajo esa convención el mismo run lee 67.1. La diferencia (1.3 puntos) es mayor que la tolerancia de
+replicación de ±1.0, o sea que confundirlas habría sido el veredicto entero. `auc_ope()` en
+`analysis/aggregate.py` implementa la convención publicada y lleva esto escrito en su docstring; es
+la única columna que es **media** sobre secuencias en vez de mediana, por el mismo motivo.
+
+**Efecto secundario: cambia también toda la columna AUC de SAM2.** Reagregado `full-sweep-30` con
+`auc_ope`: `c704` 62.6, `c640` 61.3, `t1024` 59.7, `t768` 58.4, `c512` 56.2, `t640` 54.6, `t512` 48.7
+(antes 65.7 / 64.0 / 62.4 / 61.1 / 59.4 / 57.7 / 51.0 con la convención de la casa). **No** son
+comparables con el 66.5 publicado: son 30 clips, no UAV123 completo.
+
+**Estimación frente a real.**
+
+| | preregistrado | real |
+| --- | --- | --- |
+| latencia | 30-60 ms (derating desde AGX Xavier) | 29.3 ms mediana, 40.4 ms máximo |
+| runtime total | 1.5-2.5 h | ~1.5 h |
+
+La estimación de latencia se queda corta por debajo: el derating 2.7x desde AGX Xavier era la parte
+conservadora y el modelo es 12x más pequeño que HiT-Base, lo que evidentemente pesa más. Sale del
+techo optimista, no del pesimista. **Esta es la cifra que la revisión de literatura marcó como
+inexistente**: ningún tracker SOT publicado tiene número en Orin Nano.
+
+**Dónde falla.** 14 secuencias con AUC < 30 sobre 123. Las 8 peores:
+
+| secuencia | AUC | mIoU | frames |
+| --- | --- | --- | --- |
+| uav5 | 5.9 | 0.058 | 139 |
+| car11 | 6.9 | 0.074 | 337 |
+| uav4 | 7.7 | 0.052 | 157 |
+| uav8 | 8.8 | 0.088 | 301 |
+| bird1_2 | 10.3 | 0.121 | 703 |
+| car12 | 10.8 | 0.107 | 499 |
+| car15 | 11.6 | 0.117 | 469 |
+| bike2 | 13.7 | 0.149 | 553 |
+
+Todas aéreas y de objetivo pequeño: es el tercil difícil otra vez, el mismo régimen donde SAM2 se
+cae. El candidato no arregla ese régimen por ser candidato — lo que arregla, si algo, es el coste.
+
+**Verificación visual (obligatoria, no inferida del log).** Overlay renderizado de `uav5` frame
+70/139, abierto con `Read`: la caja GT (verde) está sobre el objetivo diminuto junto al muro, la
+predicción (azul) se ve en el panel de entrada arriba a la derecha, y la ventana de búsqueda naranja
+(101 px de lado) está desplazada al borde derecho del frame, lejos del objetivo. IoU 0.00. Es deriva
+real del tracker, no un fallo de render: el frame tiene contenido, el objetivo existe y el modelo
+está mirando a otro sitio. En `bike1` el mismo overlay muestra el ciclista encajado con IoU 0.90 y
+ventana de 322 px, así que el pipeline de render está sano en ambos extremos.
+
+**Comparación directa en `bike1`** (misma clip, mismo protocolo):
+
+| arm | mIoU | p50 ms |
+| --- | --- | --- |
+| `asym_b` | 0.882 | 29.7 |
+| `sam2_c640` | 0.916 | 159.1 |
+| `sam2_t1024` | 0.884 | 434.0 |
+
+Iguala a `t1024` con **14.6x menos latencia** y 51.6 MB de pico de GPU.
+
+**Determinismo:** pendiente. Preregistrado como "verificarlo, no asumirlo" — re-corriendo `uav5`,
+`bike1` y `car11` en `runs/asym-determ` para comparar frame a frame contra `raw/asym-repro/`.
 
 ## Experimento completo: `search-window` (preregistrado 2026-07-29T17:05Z)
 
