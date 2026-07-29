@@ -53,8 +53,11 @@ def main() -> None:
 
     # `win` is the exact (x, y, s) the arm sliced out of this frame, recorded so the host draws the
     # window the model really saw instead of re-deriving it and hoping the two agree.
+    # `conf` is the arm's presence score: SAM2's trained occlusion head, AsymTrack's corner-peak
+    # surrogate, None for arms that have neither. Recorded raw and uncalibrated -- both the VOT-LT
+    # F-score and MaxGM sweep the threshold themselves, so only the ORDER has to mean anything.
     rows = [{"i": 0, "ms": init_s * 1000, "box": b, "contours": cnts, "init": True,
-             "win": getattr(tr, "win", None)}]
+             "win": getattr(tr, "win", None), "conf": getattr(tr, "conf", None)}]
     decode_ms = []
     t_start = time.monotonic()
     for i, fp in enumerate(files[1:], start=1):
@@ -69,7 +72,7 @@ def main() -> None:
         e = time.monotonic()
         decode_ms.append((d - t) * 1000)
         rows.append({"i": i, "ms": (e - d) * 1000, "box": b, "contours": cnts,
-                     "win": getattr(tr, "win", None)})
+                     "win": getattr(tr, "win", None), "conf": getattr(tr, "conf", None)})
 
     lat = np.array([r["ms"] for r in rows[1 + WARMUP:]])
     assert len(lat) > 0, "sequence too short to have any post-warmup frames"
@@ -81,6 +84,9 @@ def main() -> None:
         "fps": float(1000 / np.median(lat)),
         "decode_ms_p50": float(np.median(decode_ms)),
         "lost_frames": sum(1 for r in rows if r["box"] is None),
+        # 0 here means the arm has no presence signal at all, which is a different thing from a
+        # useless one -- and it is the failure that would otherwise show up as an empty analysis
+        "conf_frames": sum(1 for r in rows if r["conf"] is not None),
         "rss_peak_mb": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024,
         "gpu_peak_mb": gpu_peak_mb(),
     }

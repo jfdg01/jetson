@@ -1,0 +1,150 @@
+"""Is the arm's `conf` a usable presence signal, and what does abstention buy?
+
+Three numbers, all threshold-free, because we do not know the operating point yet:
+
+  * `presence_auc` -- ROC AUC of `conf` as a binary classifier of "GT present this frame". 0.5 is a
+    coin flip. Rank-based, so the 2.4% prevalence of absent frames does not flatter it the way
+    accuracy would (always-present already scores 97.6%).
+  * `f_lt` -- VOT-LT F-score, `max over tau of 2PR/(P+R)`. Maximising over the threshold is why an
+    UNCALIBRATED score is fine: only the ordering has to carry information.
+  * `maxgm` -- OxUvA, `max over tau of sqrt((1-p) * TPR * ((1-p) * TNR + p))`, where p is the rate
+    of frames the tracker declined to answer at all. Rewards abstaining over guessing, which is the
+    axis `asym_b` fails on -- 2683 gap frames, 2683 answers.
+
+Pre-registered read (2026-07-30, before looking): presence_auc >= 0.75 the surrogate is usable and
+the re-detection state machine gets built on it; < 0.65 it is dead and we go to a cosine verifier
+or to a tracker with a trained score head. Between, build the cosine verifier and compare.
+
+Reported as the MEDIAN over sequences, not pooled: only 33 of 123 UAV123 sequences have any absent
+frame and `bird1_3` alone holds 15% of them, so a pooled number is three clips wearing a trenchcoat.
+The pooled figure is printed beside it, labelled.
+
+    analysis/presence.py raw/asym-conf
+"""
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+import numpy as np
+
+
+def roc_auc(y: np.ndarray, s: np.ndarray) -> float:
+    """AUC via the rank identity (Mann-Whitney U). Ties get average rank, which is what makes a
+    constant score come out at exactly 0.5 instead of 0 or 1."""
+    order = np.argsort(s, kind="mergesort")
+    ranks = np.empty(len(s), float)
+    ranks[order] = np.arange(1, len(s) + 1)
+    # average the ranks inside each tied group
+    su = s[order]
+    i = 0
+    while i < len(su):
+        j = i
+        while j + 1 < len(su) and su[j + 1] == su[i]:
+            j += 1
+        if j > i:
+            ranks[order[i:j + 1]] = (i + j + 2) / 2
+        i = j + 1
+    npos = int(y.sum())
+    nneg = len(y) - npos
+    if npos == 0 or nneg == 0:
+        return float("nan")
+    return float((ranks[y == 1].sum() - npos * (npos + 1) / 2) / (npos * nneg))
+
+
+def sweep(present: np.ndarray, conf: np.ndarray, answered: np.ndarray, hit: np.ndarray) -> dict:
+    """F-score and MaxGM over every threshold the data actually distinguishes.
+
+    A frame counts as a prediction only if the arm answered AND conf >= tau. `hit` (IoU > 0) is what
+    separates "predicted something and was right" from "predicted something anywhere", which is the
+    difference between VOT-LT precision and a presence classifier.
+    """
+    taus = np.unique(np.concatenate([conf[np.isfinite(conf)], [np.inf]]))
+    best_f, best_gm = 0.0, 0.0
+    for t in taus:
+        pred = answered & (conf >= t)
+        tp = float((pred & hit).sum())
+        if pred.sum() and present.sum():
+            p, r = tp / pred.sum(), tp / present.sum()
+            if p + r:
+                best_f = max(best_f, 2 * p * r / (p + r))
+        # OxUvA: rate of declined frames enters as p, so silence is neither a hit nor a miss
+        pr = 1 - pred.mean()
+        tpr = (pred & present).sum() / max(present.sum(), 1)
+        tnr = (~pred & ~present).sum() / max((~present).sum(), 1)
+        best_gm = max(best_gm, float(np.sqrt(pr * tpr * (pr * tnr + (1 - pr)))))
+    return {"f_lt": best_f, "maxgm": best_gm}
+
+
+def score_one(path: Path, gt: list) -> dict | None:
+    res = json.loads(path.read_text())
+    meta, rows = res["meta"], {r["i"]: r for r in res["rows"]}
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from render_overlay import iou
+
+    conf = np.array([rows.get(i, {}).get("conf", None) or np.nan for i in range(len(gt))], float)
+    if not np.isfinite(conf).any():
+        return None  # arm has no presence signal; not the same as having a bad one
+    present = np.array([g is not None for g in gt])
+    answered = np.array([rows.get(i, {}).get("box") is not None for i in range(len(gt))])
+    hit = np.array([bool(g is not None and rows.get(i, {}).get("box")
+                         and iou(g, rows[i]["box"]) > 0) for i, g in enumerate(gt)])
+    ok = np.isfinite(conf)
+    out = {"arm": meta["arm"], "seq": meta["seq"], "gap": int((~present).sum()),
+           "presence_auc": roc_auc(present[ok].astype(int), conf[ok]) if (~present[ok]).any()
+           else float("nan")}
+    out.update(sweep(present[ok], conf[ok], answered[ok], hit[ok]))
+    return out
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("run_dir")
+    args = ap.parse_args()
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import uav123
+
+    per = []
+    for p in sorted(Path(args.run_dir).glob("*.json")):
+        if p.stem == "manifest":
+            continue
+        r = score_one(p, uav123.boxes(json.loads(p.read_text())["meta"]["seq"]))
+        if r:
+            per.append(r)
+    assert per, f"no arm in {args.run_dir} recorded a conf signal"
+
+    print(f"{'arm':11s} {'n':>3s} {'gap seqs':>9s} {'presence_auc':>13s} {'f_lt':>7s} {'maxgm':>7s}")
+    for a in sorted({r["arm"] for r in per}):
+        g = [r for r in per if r["arm"] == a]
+        gapped = [r for r in g if r["gap"] > 0]
+        auc = np.median([r["presence_auc"] for r in gapped]) if gapped else float("nan")
+        print(f"{a:11s} {len(g):3d} {len(gapped):9d} {auc:13.3f} "
+              f"{np.median([r['f_lt'] for r in g]):7.3f} "
+              f"{np.median([r['maxgm'] for r in g]):7.3f}")
+        if gapped:
+            w = sorted(gapped, key=lambda r: r["presence_auc"])[:5]
+            print("    peores: " + ", ".join(f"{r['seq']} {r['presence_auc']:.2f}" for r in w))
+
+
+def _check() -> None:
+    """A perfect score, an inverted one and a constant one, since those are the three readings that
+    decide the experiment and a sign slip between them is invisible in a plausible-looking 0.6."""
+    y = np.array([1, 1, 1, 0, 0, 0])
+    assert roc_auc(y, np.array([9.0, 8, 7, 3, 2, 1])) == 1.0
+    assert roc_auc(y, np.array([1.0, 2, 3, 7, 8, 9])) == 0.0
+    assert roc_auc(y, np.full(6, 5.0)) == 0.5
+    # direction check: high conf on present frames must read ABOVE 0.5, not below
+    present = np.array([True] * 3 + [False] * 3)
+    assert roc_auc(present.astype(int), np.array([9.0, 8, 7, 3, 2, 1])) == 1.0
+    print("presence OK")
+
+
+if __name__ == "__main__":
+    import sys
+    if "--self-check" in sys.argv:
+        _check()
+    else:
+        main()

@@ -78,6 +78,10 @@ class Sam2Arm:
         self.checkpoint, self.image_size = checkpoint, image_size
         self.carry = None
         self.torch = None
+        # `object_score_logits`, SAM2's own occlusion head: a TRAINED answer to "is the object in
+        # this frame", not a by-product of localisation. It is the one arm family here that has a
+        # real presence signal rather than a surrogate.
+        self.conf = None
 
     def _amp(self):
         # StreamCarry is `@torch.inference_mode()` but does NOT autocast internally; all six
@@ -112,6 +116,7 @@ class Sam2Arm:
     def step(self, frame):
         with self._amp():
             mask, box = self.carry.step(frame[:, :, ::-1].copy())
+        self.conf = getattr(self.carry, "last_score", None)
         return (list(box) if box else None), mask_contours(mask)
 
 
@@ -217,6 +222,11 @@ class Sam2CropArm:
         self.i = 0
         self.coasted = 0.0
         self.full = False
+
+    @property
+    def conf(self):
+        """The inner arm's score, unmodified. Cropping changes what SAM2 sees, not how it scores."""
+        return self.inner.conf
 
     def _shift(self, box, dx, dy):
         return None if box is None else [box[0] + dx, box[1] + dy, box[2] + dx, box[3] + dy]
@@ -353,6 +363,8 @@ class AsymArm:
         self.cfg_name, self.epoch = cfg_name, epoch
         self.t = None
         self.win = None
+        self.conf = None
+        self._maps = None
 
     def _params(self):
         from lib.config.AsymTrack.config import cfg, update_config_from_file
@@ -379,6 +391,7 @@ class AsymArm:
 
         p = self._params()
         self.t = AsymTrack(p, "uav")
+        self._tap_score_map()
         x1, y1, x2, y2 = box
         self._record_win([x1, y1, x2 - x1, y2 - y1], p)
         self.t.initialize(frame[:, :, ::-1], {"init_bbox": [x1, y1, x2 - x1, y2 - y1]})
@@ -397,9 +410,56 @@ class AsymArm:
         x, y, w, h = xywh
         self.win = search_window([x, y, x + w, y + h], float(p.search_factor))
 
+    def _tap_score_map(self) -> None:
+        """Keep the corner logit maps the head already computes, for `_corner_peak`.
+
+        `forward_box_head` calls `box_head(opt_feat)` without `return_dist`, so the distributions
+        are dropped. Asking for them in a SECOND head pass cost +4.7 ms p50 on bird1_3 (44.8 vs the
+        40.1 that same sequence ran at in `asym-repro`) -- `get_score_map` is 8 convs over a 24x24
+        grid, not free. Wrapping the method reuses the maps the first pass already produced and
+        lands back on 40.1 exactly, with an identical presence_auc, so the tap is equivalent and
+        the score costs nothing.
+
+        A monkeypatch and not a forward hook because `get_score_map` is a method, not a submodule,
+        so there is nothing to hook. Bound to the instance, so a second AsymArm in the same process
+        would get its own.
+        """
+        head = self.t.network.box_head
+        orig = head.get_score_map
+
+        def tapped(x):
+            out = orig(x)
+            self._maps = out
+            return out
+
+        head.get_score_map = tapped
+
+    def _corner_peak(self) -> float | None:
+        """SURROGATE presence score: the peak of the corner softmax.
+
+        AsymTrack has no presence output -- CORNER head, L1+GIoU only, no classification branch --
+        so this is the sharpest signal available without adding a network.
+
+        Geometric mean of the two corner peaks: both corners must be sharp for the box to be
+        trustworthy, and the geometric mean punishes one flat corner the way `min` does without
+        being blind to the other one.
+
+        What it actually measures is certainty about WHERE the corner is, and we are borrowing it
+        as certainty about WHETHER the target is there. Whether those correlate is what
+        `presence_auc` tests; until that number exists this is a labelled guess.
+        """
+        import torch
+        if self._maps is None:
+            return None
+        tl, br = self._maps
+        # softmax over the flattened grid, exactly `soft_argmax`'s, but we only want its peak
+        peak = [float(torch.softmax(m.reshape(1, -1), dim=1).max()) for m in (tl, br)]
+        return float(np.sqrt(peak[0] * peak[1]))
+
     def step(self, frame):
         self._record_win(self.t.state)  # window used for THIS frame: centred on the previous box
         out = self.t.track(frame[:, :, ::-1])
+        self.conf = self._corner_peak()
         x, y, w, h = out["target_bbox"]
         return [int(x), int(y), int(x + w), int(y + h)], None
 
