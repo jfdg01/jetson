@@ -400,3 +400,59 @@ de crop dejan de ser "píxeles nativos" y no son comparables sin más con los ot
 Estado: lanzado, en curso. Siguiente paso: `./jetson.py fetch full-sweep-30` y agregación por arm
 (mediana por secuencia, no media sobre frames — un clip de 3085 frames no puede pesar 23 veces lo
 que uno de 133).
+
+## Heurísticas de recuperación (implementadas, sin correr, 2026-07-29T14:20Z)
+
+Dos formas de recuperar un objetivo perdido en modo crop. Cada una en su **propio brazo** para poder
+atribuir cualquier diferencia; `sam2_c640` sin tocar es el control. Solo sobre 640, el mejor crop.
+
+`sam2_c640_coast` — al perder el objetivo, la ventana sigue deslizándose en la dirección reciente en
+vez de congelarse. Velocidad = **mediana** del paso de centro de los últimos 7 aciertos (una caja
+mala no puede lanzar la ventana al otro lado) y solo pares de frames consecutivos (un salto sobre un
+hueco es un teletransporte, no una velocidad). Mueve la **ventana**, no emite caja: una caja
+extrapolada durante una oclusión real es un falso positivo garantizado y `aggregate.py` los cuenta.
+Presupuesto: deja de deslizar cuando ha recorrido un ancho de ventana — sin constante que ajustar.
+Ataca el fallo medido en `car12`, donde una pérdida congela la ventana y el brazo no vuelve a ver el
+objetivo (450/499 frames perdidos).
+
+`sam2_c640_edge` — si el último avistamiento estaba a menos de un tamaño-de-objetivo del borde
+**real** del frame y luego se pierde, pasa a frame completo hasta reenganchar. Cerca del borde una
+pérdida suele significar que el objetivo salió de campo, y la ventana está mirando justo el único
+sitio donde no puede estar. Frame completo = el mismo predictor sin recortar (o sea, el
+comportamiento de `sam2_t640`), no se carga un segundo modelo. El enganche ocurre un frame después
+de la pérdida: el recorte se elige antes de correr el modelo, así que es lo más pronto posible.
+
+Riesgo declarado en `edge`: el memory bank de SAM2 va lleno de features encuadradas en recorte y el
+salto de encuadre es brusco. Eso es exactamente lo que mediría el experimento.
+
+Verificación sin GPU en `device/trackers.py --self-check`: geometría del coast (incluido `coast=0`
+como control de congelación) y el enganche de borde, con un `Scripted` inner que puede perder a
+voluntad. `render_overlay.py` solo asserta ya los frames derivables — tras una pérdida la ventana
+depende de estado que el host no ve — y en modo full encuadra el frame entero en lugar de dibujar un
+recorte que el modelo no recibió.
+
+Estado: implementadas y commiteadas, **sin lanzar**. Guardadas para más adelante.
+
+## Auditoría del índice de dificultad (2026-07-29T14:20Z)
+
+`analysis/index_search.py` audiciona 14 ejes candidatos solo-GT y busca subconjuntos, validando por
+leave-one-out contra la mIoU mediana cross-arm de las 30 secuencias de `full-sweep-30`.
+
+Resultado: **no hay mejora barata**. El índice actual (`size_px+motion+gap`) da rho=-0.743 sin haber
+seleccionado nada. La mejor búsqueda libre llega a -0.793 en muestra pero **-0.694 en LOO**; una
+familia acotada a size x motion x gap (27 combinaciones) llega a -0.777 pero **-0.734 en LOO**. Toda
+selección valida peor que no seleccionar. Los tres ejes correlan 0.5-0.8 entre sí, así que un cuarto
+eje no aporta grados de libertad, solo ruido.
+
+Descartados por no aportar: `roam` (-0.288, p=0.12), `scale_range`, `scale_jitter`, `aspect_jitter`.
+`gap` y `gap_max` correlan 1.00 en rango: la variante da igual. `edge_frac` sale con signo invertido
+(+0.375) — más contacto con el borde es *más fácil*, porque son los objetivos grandes los que lo
+tocan.
+
+Único cambio con argumento a priori: `size_px` -> `size_min` (un tracker falla en el peor momento del
+clip, no en el mediano), rho -0.743 -> -0.771, gana en 78% de remuestreos pero IC95 bootstrap
+[-0.128, +0.065] cruza cero y solo mueve 1 clip de 41 del tercil difícil. **No adoptado**: dentro del
+ruido y obligaría a retocar un dataset ya en cola.
+
+Salvedad: n=30 y muestra sesgada a difícil, así que el rango restringido comprime rho. Reevaluar con
+los 49 de `UAV123-hard`.
