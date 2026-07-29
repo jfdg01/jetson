@@ -121,16 +121,25 @@ def main() -> None:
     # Provenance check for crop arms: every window the device recorded must be the one this file's
     # own geometry derives from the previous frame's box. If the two ever disagree, the panel would
     # be showing something the model never saw, which is the one lie this render must not tell.
+    #
+    # Only frames whose PREVIOUS frame was a hit are derivable. After a loss the recovery arms
+    # (`_coast` slides the window, `_edge` drops to the full frame and records win=None) move it
+    # from state this file cannot see, so those frames are skipped rather than asserted -- the panel
+    # is still drawn from the recorded window either way, so it is never a lie, just unverified.
     if rows and rows.get(1, {}).get("win"):
-        n = rows[1]["win"][2]
+        n, checked = rows[1]["win"][2], 0
         for i in range(2, len(frames)):
-            b = rows[i - 1]["box"]
-            if b is None:  # lost frame: the arm holds the previous window rather than re-centring
-                assert rows[i]["win"] == rows[i - 1]["win"], (i, rows[i]["win"])
+            b, win = rows[i - 1]["box"], rows[i].get("win")
+            if win is None:  # arm fed the full frame this step
+                continue
+            if b is None:
+                if "_" not in meta["arm"][5:]:  # plain crop arm: a lost frame holds the window
+                    assert win == rows[i - 1]["win"], (i, win)
                 continue
             e = crop_box(((b[0] + b[2]) / 2, (b[1] + b[3]) / 2), n, meta["w"], meta["h"])
-            assert rows[i]["win"] == [e[0], e[1], e[2] - e[0]], (i, rows[i]["win"], e)
-        score["win_checked"] = len(frames) - 2
+            assert win == [e[0], e[1], e[2] - e[0]], (i, win, e)
+            checked += 1
+        score["win_checked"] = checked
 
     if args.out:
         h, w = meta["h"], meta["w"]
@@ -159,7 +168,20 @@ def main() -> None:
                     crop = crop_box(((g[0] + g[2]) / 2, (g[1] + g[3]) / 2), args.crop, w, h)
                 cv2.rectangle(img, (crop[0], crop[1]), (crop[2], crop[3]), ORANGE, 2)
 
-            if win:
+            if win and r is not None and r.get("win") is None:
+                # `edge` arm dropped to the whole frame this step. Outlining the old crop here would
+                # claim an input the model was not given, so outline the frame and letterbox it.
+                s = win[2]
+                cv2.rectangle(img, (1, 1), (w - 2, h - 2), ORANGE, 2)
+                shot = raw.copy()
+                annotate(shot, g, r)
+                sc = min(s / w, s / h)
+                rz = cv2.resize(shot, (int(w * sc), int(h * sc)))
+                canvas = np.zeros((cvh, cvw, 3), np.uint8)
+                canvas[:h, :w] = img
+                canvas[:rz.shape[0], w:w + rz.shape[1]] = rz
+                img = canvas
+            elif win:
                 x, y, s = r["win"] if r and r.get("win") else win
                 # the model's input, byte for byte: the same decoded jpeg sliced with the same
                 # integers the arm used. Annotations go on this copy, never on `raw`.

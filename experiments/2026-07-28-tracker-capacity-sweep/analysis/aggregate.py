@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -50,7 +51,12 @@ def main() -> None:
 
     per = [score_one(p) for p in sorted(Path(args.run_dir).glob("*.json")) if p.stem != "manifest"]
     assert per, f"no results in {args.run_dir}"
-    arms = sorted({r["arm"] for r in per}, key=lambda a: (a[5], int(a[6:])))
+    # sort by family letter then resolution: 'sam2_c640_coast' -> ('c', 640, '_coast')
+    def key(a: str) -> tuple:
+        m = re.match(r"sam2_([a-z]+)(\d+)(.*)", a)
+        return (0, m[1], int(m[2]), m[3]) if m else (1, a, 0, "")
+
+    arms = sorted({r["arm"] for r in per}, key=key)
 
     print(f"{len(per)} results, {len({r['seq'] for r in per})} sequences\n")
     print(f"{'arm':11s} {'n':>3s} {'p50':>8s} {'mIoU':>7s} {'@0.25':>7s} {'@0.5':>7s} "

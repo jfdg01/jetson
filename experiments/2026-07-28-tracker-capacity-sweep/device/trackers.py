@@ -11,6 +11,7 @@ Streaming is also the path the rest of the project deploys, so the sweep measure
 """
 from __future__ import annotations
 
+import collections
 import sys
 from pathlib import Path
 
@@ -109,13 +110,39 @@ class Sam2CropArm:
 
     Known ceiling: SAM2's memory bank sees a reference frame that translates every step, and
     nothing here tells it so. If the crop arms underperform, that is the first suspect.
+
+    Two optional recovery heuristics, off by default so the plain arm stays the control. They are
+    independent flags on purpose: each ships as its own arm, so a win can be attributed.
+
+    `coast=N`  On a lost frame, keep sliding the window along the target's recent velocity instead
+        of freezing it. Targets the observed `car12` failure, where one loss pins the window and the
+        arm never sees the target again (450/499 frames lost). Velocity is the MEDIAN per-frame
+        centre step over the last N hits, so one bad box cannot launch the window across the frame,
+        and only consecutive pairs count -- a step across a gap is a teleport, not a speed.
+        It moves the WINDOW and emits no box: an extrapolated box during a real occlusion is a
+        guaranteed false positive, and `aggregate.py` counts those.
+
+    `edge=True`  If the target was last seen within one target-size of the REAL frame border and is
+        then lost, drop to the full frame until it comes back. Near the frame edge a loss usually
+        means the target left the shot, and the crop window is then looking at the one place it
+        cannot be. Full frame is the same predictor fed an unsliced image, i.e. the `sam2_t<N>`
+        behaviour, so no second model is loaded.
+        Named risk: the memory bank is full of crop-framed features and the framing jump is abrupt.
+        That is the thing being measured.
     """
 
-    def __init__(self, checkpoint: str, size: int):
+    def __init__(self, checkpoint: str, size: int, coast: int = 0, edge: bool = False):
         self.size = size
         self.inner = Sam2Arm(checkpoint, size)
-        self.win = None  # (x, y, s) in full-frame coords
-        self.last = None  # last full-frame box, the thing the window chases
+        self.coast, self.edge = coast, edge
+        self.win = None   # (x, y, s) in full-frame coords; None means the full frame was fed
+        self.last = None  # this frame's box, None if lost
+        self.seen = None  # last box actually found, which is what `edge` interrogates
+        self.anchor = None  # window centre; unlike `last` it survives a loss, and `coast` moves it
+        self.hist = collections.deque(maxlen=max(coast, 2))  # (frame_index, centre) of hits
+        self.i = 0
+        self.coasted = 0.0
+        self.full = False
 
     def _shift(self, box, dx, dy):
         return None if box is None else [box[0] + dx, box[1] + dy, box[2] + dx, box[3] + dy]
@@ -126,20 +153,60 @@ class Sam2CropArm:
         self.win = (x, y, s)
         return frame[y:y + s, x:x + s]
 
+    def _hit(self, box):
+        self.seen = box
+        self.anchor = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
+        self.hist.append((self.i, self.anchor))
+        self.coasted = 0.0
+        self.full = False  # re-acquired: back to the crop
+
+    def _velocity(self) -> tuple[float, float]:
+        c = list(self.hist)
+        d = [(c[k + 1][1][0] - c[k][1][0], c[k + 1][1][1] - c[k][1][1])
+             for k in range(len(c) - 1) if c[k + 1][0] - c[k][0] == 1]
+        if not d:
+            return 0.0, 0.0
+        return float(np.median([p[0] for p in d])), float(np.median([p[1] for p in d]))
+
+    def _at_edge(self, w: int, h: int) -> bool:
+        b = self.seen
+        if b is None:
+            return False
+        m = max(b[2] - b[0], b[3] - b[1])  # one target-size of margin, so nothing needs tuning
+        return b[0] < m or b[1] < m or b[2] > w - m or b[3] > h - m
+
     def init(self, frame, box):
         cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
         sub = self._crop(frame, (cx, cy))
         x, y, _ = self.win
         b, cnts = self.inner.init(sub, [box[0] - x, box[1] - y, box[2] - x, box[3] - y])
         self.last = self._shift(b, x, y)
+        if self.last is not None:
+            self._hit(self.last)
         return self.last, _shift_contours(cnts, x, y)
 
     def step(self, frame):
+        h, w = frame.shape[:2]
+        self.i += 1
         if self.last is not None:  # re-centre on where the target was last seen
-            cx, cy = (self.last[0] + self.last[2]) / 2, (self.last[1] + self.last[3]) / 2
-            self._crop(frame, (cx, cy))
-        x, y, s = self.win  # a lost frame keeps the previous window
-        b, cnts = self.inner.step(frame[y:y + s, x:x + s])
+            self._hit(self.last)
+        else:
+            if self.edge and self._at_edge(w, h):
+                self.full = True
+            if self.coast:
+                vx, vy = self._velocity()
+                d = float(np.hypot(vx, vy))
+                # coast until the window has travelled its own width, then stop: past that the
+                # extrapolation is older than any evidence, and a runaway window never walks back.
+                if d and self.coasted + d <= self.size:
+                    self.anchor = (self.anchor[0] + vx, self.anchor[1] + vy)
+                    self.coasted += d
+        if self.full:
+            self.win, sub, x, y = None, frame, 0, 0
+        else:
+            sub = self._crop(frame, self.anchor)  # a lost frame otherwise keeps the same window
+            x, y, _ = self.win
+        b, cnts = self.inner.step(sub)
         self.last = self._shift(b, x, y)
         return self.last, _shift_contours(cnts, x, y)
 
@@ -194,6 +261,16 @@ for _sz in (512, 640, 704):
         lambda sz=_sz: Sam2CropArm("facebook/sam2.1-hiera-tiny", sz)
     )
 
+# Recovery heuristics, one per arm and only on 640 -- the best crop arm, so `sam2_c640` is the
+# control and a difference is attributable to the one flag that changed. Combining them is only
+# worth an arm once each is shown to earn its keep alone.
+arm("sam2_c640_coast", family="sam2crop", ckpt="tiny", image_size=640, crop=640, heur="coast7")(
+    lambda: Sam2CropArm("facebook/sam2.1-hiera-tiny", 640, coast=7)
+)
+arm("sam2_c640_edge", family="sam2crop", ckpt="tiny", image_size=640, crop=640, heur="edge")(
+    lambda: Sam2CropArm("facebook/sam2.1-hiera-tiny", 640, edge=True)
+)
+
 for _n in ["TrackerNano", "TrackerVit", "TrackerDaSiamRPN", "TrackerGOTURN", "TrackerMIL", "TrackerCSRT"]:
     arm(_n.replace("Tracker", "cv_").lower(), family="opencv")(lambda n=_n: CvArm(n))
 
@@ -226,7 +303,53 @@ def _check() -> None:
     assert a.win == (384, 104, 512), a.win
     b, _ = a.step(frame)
     assert b == box, b  # window re-centres on the same target, so the box does not move
-    print("crop geometry ok")
+
+    class Scripted:  # boxes in CROP coords, None = lost; drives the recovery heuristics
+        def __init__(self, script): self.script = list(script)
+        def init(self, sub, box): return list(box), []
+        def step(self, sub):
+            b = self.script.pop(0) if self.script else None
+            return (list(b) if b else None), []
+
+    # A box sitting 12 px right of the crop centre every frame IS +12 px/frame of real motion: the
+    # window re-centres on it, so next frame it has to move another 12 to look the same again.
+    RIGHT = [[256, 236, 280, 276]]  # centre (268, 256) in a 512 crop whose centre is (256, 256)
+
+    # 5 hits then lost. Step 6 is the first frame the arm answers None, and its window is still the
+    # one the last hit set -- coasting only starts on step 7, so that is where the two arms split.
+    for coast, want in [(7, [12, 24]), (0, [0, 0])]:  # coast=0 is the control: window freezes
+        a = Sam2CropArm("x", 512, coast=coast)
+        a.inner = Scripted(RIGHT * 5 + [None] * 6)
+        a.init(frame, [600, 340, 624, 380])
+        for _ in range(4):
+            a.step(frame)
+        assert a.win[0] == 392, a.win[0]  # 356 + 3 hits x 12
+        for _ in range(2):
+            a.step(frame)
+        assert a.last is None and a.win[0] == 416, (a.last, a.win[0])
+        for w in want:
+            a.step(frame)
+            assert a.win[0] == 416 + w, (coast, a.win[0], w)
+
+    # edge: last seen hard against the right border, then lost -> full frame (win None). The latch
+    # lands one frame after the loss, because the crop is chosen before the model runs.
+    a = Sam2CropArm("x", 512, edge=True)
+    a.inner = Scripted([[500, 236, 512, 276], None, None])
+    a.init(frame, [1250, 340, 1279, 380])
+    a.step(frame)
+    assert a._at_edge(1280, 720), a.seen
+    a.step(frame)
+    assert a.last is None and a.win is not None, (a.last, a.win)
+    a.step(frame)
+    assert a.win is None and a.full, (a.win, a.full)
+
+    a = Sam2CropArm("x", 512, edge=True)  # lost mid-frame is not an edge loss, stay cropped
+    a.inner = Scripted([[244, 236, 268, 276], None, None])
+    a.init(frame, [600, 340, 624, 380])
+    for _ in range(3):
+        a.step(frame)
+    assert a.win is not None and not a.full, (a.win, a.full)
+    print("crop geometry ok; coast + edge ok")
 
 
 if __name__ == "__main__":
