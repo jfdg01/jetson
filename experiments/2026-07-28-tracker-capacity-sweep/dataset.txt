@@ -1,0 +1,54 @@
+# UAV123-hard: dataset refinado por analysis/difficulty.py (indice a priori, solo GT).
+# Tercil dificil completo (41) + 4 MEDIO + 4 FACIL como anclas de control.
+# Los 4+4 son de categorias distintas y presentes tambien en la banda dificil, para que el
+# contraste entre bandas no se confunda con el contraste entre categorias.
+# rank 1 = mas dificil de las 123 secuencias con anotacion.
+uav2          HARD  rank   1/123  score 0.97    133f    10.2px  mot 0.301  gap  14%
+uav6          HARD  rank   2/123  score 0.92    109f     9.4px  mot 0.328  gap   5% NUEVO
+uav7          HARD  rank   3/123  score 0.91    373f    12.2px  mot 0.337  gap   5%
+car11         HARD  rank   4/123  score 0.90    337f    15.9px  mot 0.145  gap  10% NUEVO
+uav4          HARD  rank   5/123  score 0.90    157f    10.8px  mot 0.354  gap   0% NUEVO
+uav1_3        HARD  rank   6/123  score 0.90    997f    17.0px  mot 0.177  gap   9% NUEVO
+bird1_1       HARD  rank   7/123  score 0.89    253f    37.4px  mot 0.385  gap  23%
+car12         HARD  rank   8/123  score 0.88    499f    32.0px  mot 0.112  gap  21%
+bird1_3       HARD  rank   9/123  score 0.86    865f    40.8px  mot 0.368  gap  45%
+uav5          HARD  rank  10/123  score 0.85    139f    15.3px  mot 0.215  gap   0%
+bird1_2       HARD  rank  11/123  score 0.84    703f    40.3px  mot 0.247  gap  17% NUEVO
+uav8          HARD  rank  12/123  score 0.83    301f    11.4px  mot 0.278  gap   0% NUEVO
+bike2         HARD  rank  13/123  score 0.83    553f    12.0px  mot 0.061  gap   6%
+uav3          HARD  rank  14/123  score 0.83    265f    15.5px  mot 0.220  gap   0%
+truck4_1      HARD  rank  15/123  score 0.81    577f    11.5px  mot 0.075  gap   0% NUEVO
+group2_3      HARD  rank  16/123  score 0.81    913f    32.5px  mot 0.072  gap  14%
+truck3        HARD  rank  17/123  score 0.79    535f    18.4px  mot 0.101  gap   0%
+uav1_1        HARD  rank  18/123  score 0.76   1555f    33.9px  mot 0.077  gap   1% NUEVO
+truck2        HARD  rank  19/123  score 0.75    385f    27.8px  mot 0.089  gap   0%
+wakeboard9    HARD  rank  20/123  score 0.74    355f    20.0px  mot 0.085  gap   0% NUEVO
+wakeboard8    HARD  rank  21/123  score 0.74   1543f    18.6px  mot 0.084  gap   0%
+uav1_2        HARD  rank  22/123  score 0.73    823f    37.7px  mot 0.073  gap   4%
+person21      HARD  rank  23/123  score 0.72    487f    14.4px  mot 0.101  gap   0%
+group2_2      HARD  rank  24/123  score 0.72    865f    37.8px  mot 0.074  gap   2% NUEVO
+wakeboard6    HARD  rank  25/123  score 0.72   1165f    34.2px  mot 0.108  gap   0% NUEVO
+car1_2        HARD  rank  26/123  score 0.71    877f    31.8px  mot 0.047  gap   3% NUEVO
+car1_3        HARD  rank  27/123  score 0.71   1003f    40.7px  mot 0.040  gap  18%
+group2_1      HARD  rank  28/123  score 0.70    907f    39.6px  mot 0.048  gap   7% NUEVO
+car13         HARD  rank  29/123  score 0.70    415f    11.4px  mot 0.255  gap   0% NUEVO
+group3_4      HARD  rank  30/123  score 0.69   1159f    35.9px  mot 0.043  gap   5% NUEVO
+wakeboard3    HARD  rank  31/123  score 0.69    823f    26.4px  mot 0.059  gap   0% NUEVO
+car2          HARD  rank  32/123  score 0.68   1321f    26.5px  mot 0.036  gap   1% NUEVO
+car15         HARD  rank  33/123  score 0.67    469f    12.0px  mot 0.106  gap   0% NUEVO
+person10      HARD  rank  34/123  score 0.66   1021f    64.4px  mot 0.064  gap  16% NUEVO
+group3_2      HARD  rank  35/123  score 0.66   1261f    35.0px  mot 0.026  gap  12% NUEVO
+truck4_2      HARD  rank  36/123  score 0.66    685f    30.0px  mot 0.042  gap   0% NUEVO
+wakeboard5    HARD  rank  37/123  score 0.65   1675f    44.7px  mot 0.084  gap   0%
+car14         HARD  rank  38/123  score 0.64   1327f    39.8px  mot 0.033  gap   6% NUEVO
+person12_2    HARD  rank  39/123  score 0.64   1021f    53.3px  mot 0.050  gap   7% NUEVO
+person14_1    HARD  rank  40/123  score 0.64    847f    34.4px  mot 0.031  gap   4% NUEVO
+person22      HARD  rank  41/123  score 0.64    199f    25.6px  mot 0.062  gap   0% NUEVO
+wakeboard7    MED   rank  42/123  score 0.63    199f    41.2px  mot 0.077  gap   0%
+bike3         MED   rank  48/123  score 0.58    433f    13.1px  mot 0.077  gap   0% NUEVO
+person19_3    MED   rank  49/123  score 0.58   1567f    48.8px  mot 0.027  gap  11%
+car3          MED   rank  56/123  score 0.53   1717f    24.4px  mot 0.040  gap   0% NUEVO
+person4_1     EASY  rank  86/123  score 0.37   1501f    69.3px  mot 0.032  gap   0%
+car9          EASY  rank  90/123  score 0.34   1879f    45.7px  mot 0.015  gap   0%
+group1_2      EASY  rank  94/123  score 0.32   1183f    50.1px  mot 0.020  gap   0%
+bike1         EASY  rank 113/123  score 0.19   3085f    74.0px  mot 0.024  gap   0%
