@@ -76,8 +76,11 @@ def manifest(run_dir: Path, arms: list[str], seqs: list[str], seed: int) -> dict
         "thermals_start": thermals(),
         "rails_start": rails(),
         "code_sha256": sh(f"cat {HERE}/*.py | sha256sum | cut -d' ' -f1"),
-        "freeze": sh(f"{PY} -m pip freeze 2>/dev/null") or sh(
-            f"/home/jfdg/.local/bin/uv pip freeze --python {PY} 2>/dev/null"),
+        # one freeze per interpreter actually used: a run mixing SAM2 and AsymTrack arms spans two
+        # venvs, and "which packages produced this number" has to be answerable for both.
+        "freeze": {py: sh(f"{py} -m pip freeze 2>/dev/null")
+                        or sh(f"/home/jfdg/.local/bin/uv pip freeze --python {py} 2>/dev/null")
+                   for py in sorted({trackers.REGISTRY[a].get("venv_python", PY) for a in arms})},
         "big_procs": sh("ps -eo rss,comm --sort=-rss | awk 'NR>1 && $1>102400'"),
     }
     (run_dir / "manifest.json").write_text(json.dumps(m, indent=1))
@@ -123,8 +126,10 @@ def main() -> None:
         print(f"[{n}/{len(jobs)}] {a} x {s} ...", flush=True)
         # inherit stdout/stderr: capturing them hides the child's progress lines until it exits,
         # which makes a multi-hour sweep unwatchable. Everything lands in driver.log.
+        # arms can declare their own interpreter: AsymTrack needs deps that would perturb the venv
+        # every committed result was measured in. Default is this process's.
         p = subprocess.run(
-            [PY, str(HERE / "run_arm.py"), "--arm", a,
+            [trackers.REGISTRY[a].get("venv_python", PY), str(HERE / "run_arm.py"), "--arm", a,
              "--seq-dir", f"{args.data}/{s}", "--out", str(out)],
         )
         if p.returncode:

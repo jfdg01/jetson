@@ -12,6 +12,7 @@ Streaming is also the path the rest of the project deploys, so the sweep measure
 from __future__ import annotations
 
 import collections
+import os
 import sys
 from pathlib import Path
 
@@ -264,6 +265,75 @@ class CvArm:
             return None, None
         x, y, w, h = r
         return [int(x), int(y), int(x + w), int(y + h)], None
+
+
+# Outside `code/`, deliberately: `jetson.py sync` pushes `device/` with `rsync --delete`, so a
+# 100 MB checkout parked under `code/` is erased by the next sync. It cost us one clone already.
+ASYM_DIR = Path(os.environ.get("ASYMTRACK_DIR", "/home/jfdg/tracker-sweep/ext/AsymTrack"))
+
+
+class AsymArm:
+    """AsymTrack (Zhu et al., MIT) driven through its own `lib/test/tracker/AsymTrack.py`.
+
+    Box-only: the head is `CORNER` with `PREDICT_MASK: false`, so `contours` is always None, and
+    the tracker never abstains -- it emits a box every frame with no confidence output.
+
+    Their parameter loader builds the checkpoint path out of `env_settings()`, which wants two
+    local.py files filled in with someone else's dataset paths. We build `TrackerParams` here
+    instead: same fields, read from the same yaml, no environment to keep in sync.
+    """
+
+    def __init__(self, cfg_name: str = "base", epoch: int = 500):
+        self.cfg_name, self.epoch = cfg_name, epoch
+        self.t = None
+        self.win = None
+
+    def _params(self):
+        from lib.config.AsymTrack.config import cfg, update_config_from_file
+        from lib.test.utils import TrackerParams
+
+        update_config_from_file(str(ASYM_DIR / f"experiments/AsymTrack/{self.cfg_name}.yaml"))
+        ck = ASYM_DIR / f"output/checkpoints/AsymTrack/{self.cfg_name}/AsymTrack_ep{self.epoch:04d}.pth.tar"
+        if not ck.exists():
+            raise SystemExit(f"missing AsymTrack checkpoint {ck}")
+        p = TrackerParams()
+        p.cfg = cfg
+        p.yaml_name = self.cfg_name
+        p.template_factor, p.template_size = cfg.TEST.TEMPLATE_FACTOR, cfg.TEST.TEMPLATE_SIZE
+        p.search_factor, p.search_size = cfg.TEST.SEARCH_FACTOR, cfg.TEST.SEARCH_SIZE
+        p.checkpoint, p.debug, p.save_all_boxes = str(ck), 0, False
+        cfg.TEST.EPOCH = self.epoch
+        cfg.TEST_MODE = True
+        return p
+
+    def init(self, frame, box):
+        if str(ASYM_DIR) not in sys.path:
+            sys.path.insert(0, str(ASYM_DIR))
+        from lib.test.tracker.AsymTrack import AsymTrack
+
+        p = self._params()
+        self.t = AsymTrack(p, "uav")
+        x1, y1, x2, y2 = box
+        self._record_win([x1, y1, x2 - x1, y2 - y1], p)
+        self.t.initialize(frame[:, :, ::-1], {"init_bbox": [x1, y1, x2 - x1, y2 - y1]})
+        return [int(v) for v in (x1, y1, x2, y2)], None
+
+    def _record_win(self, xywh, p=None):
+        """The square search crop `sample_target` will take next, in frame coordinates."""
+        p = p or self.t.params
+        x, y, w, h = xywh
+        side = float(p.search_factor) * (max(w * h, 1.0) ** 0.5)
+        self.win = (int(round(x + w / 2 - side / 2)), int(round(y + h / 2 - side / 2)), int(round(side)))
+
+    def step(self, frame):
+        self._record_win(self.t.state)  # window used for THIS frame: centred on the previous box
+        out = self.t.track(frame[:, :, ::-1])
+        x, y, w, h = out["target_bbox"]
+        return [int(x), int(y), int(x + w), int(y + h)], None
+
+
+arm("asym_b", family="asymtrack", ckpt="base", search_factor=4.0, image_size=None,
+    venv_python="/home/jfdg/tracker-sweep/.venv-asym/bin/python")(lambda: AsymArm("base"))
 
 
 for _ck, _short in [("tiny", "t"), ("small", "s"), ("base-plus", "bp"), ("large", "l")]:
