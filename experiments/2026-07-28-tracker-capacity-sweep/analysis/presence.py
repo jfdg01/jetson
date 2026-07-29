@@ -99,10 +99,60 @@ def score_one(path: Path, gt: list) -> dict | None:
     return out
 
 
+def thresholds(run_dir: Path) -> None:
+    """Fit `tau_lo` / `tau_hi` for the long-term state machine, out of sample.
+
+    `tau_lo` = the conf at 90% TPR (the 10th percentile over PRESENT frames): the machine only
+    declares a loss when the score is clearly bad. `tau_hi` = the conf at 5% FPR (the 95th
+    percentile over ABSENT frames): coming back needs strong evidence. Two thresholds because one
+    oscillates on the boundary.
+
+    Fitted on the even-indexed gap sequences, evaluated on the odd ones -- ~16/17 each. Small, but
+    it is the difference between a threshold and a threshold chosen so the result comes out right.
+    The eval half is printed because that, not all 33, is what the `asym_lt` run scores on.
+    """
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import uav123
+
+    gapped = []
+    for p in sorted(run_dir.glob("*.json")):
+        if p.stem == "manifest":
+            continue
+        seq = json.loads(p.read_text())["meta"]["seq"]
+        gt = uav123.boxes(seq)
+        if all(g is not None for g in gt):
+            continue
+        res = json.loads(p.read_text())
+        rows = {r["i"]: r for r in res["rows"]}
+        conf = np.array([rows.get(i, {}).get("conf", None) or np.nan for i in range(len(gt))], float)
+        present = np.array([g is not None for g in gt])
+        ok = np.isfinite(conf)
+        gapped.append((seq, conf[ok], present[ok]))
+
+    fit = [g for i, g in enumerate(gapped) if i % 2 == 0]
+    ev = [g for i, g in enumerate(gapped) if i % 2 == 1]
+    assert fit and ev, "need gap sequences on both sides of the split"
+    c = np.concatenate([g[1] for g in fit])
+    p_ = np.concatenate([g[2] for g in fit])
+    tau_lo = float(np.percentile(c[p_], 10))
+    tau_hi = float(np.percentile(c[~p_], 95))
+    print(f"fit on {len(fit)} seqs ({p_.sum()} present, {(~p_).sum()} absent)")
+    print(f"tau_lo = {tau_lo:.4f}   (conf at 90% TPR)")
+    print(f"tau_hi = {tau_hi:.4f}   (conf at  5% FPR)")
+    if tau_hi <= tau_lo:
+        print("WARNING: tau_hi <= tau_lo, the two classes barely separate; hysteresis is a fiction")
+    print(f"eval seqs ({len(ev)}): " + ",".join(g[0] for g in ev))
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("run_dir")
+    ap.add_argument("--thresholds", action="store_true",
+                    help="fit the long-term tau_lo/tau_hi instead of scoring")
     args = ap.parse_args()
+    if args.thresholds:
+        return thresholds(Path(args.run_dir))
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import uav123
