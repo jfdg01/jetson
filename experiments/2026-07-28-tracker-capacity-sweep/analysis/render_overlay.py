@@ -126,7 +126,11 @@ def main() -> None:
     # (`_coast` slides the window, `_edge` drops to the full frame and records win=None) move it
     # from state this file cannot see, so those frames are skipped rather than asserted -- the panel
     # is still drawn from the recorded window either way, so it is never a lie, just unverified.
-    if rows and rows.get(1, {}).get("win"):
+    #
+    # Only the SAM2 crop arms are checkable this way: their window is a fixed NxN slid to stay
+    # inside the frame. A target-scaled arm (`asym_b`) resizes its window every frame from
+    # `search_factor * sqrt(w*h)`, so there is no constant N to re-derive -- drawn, not asserted.
+    if rows and rows.get(1, {}).get("win") and meta["arm"].startswith("sam2_"):
         n, checked = rows[1]["win"][2], 0
         for i in range(2, len(frames)):
             b, win = rows[i - 1]["box"], rows[i].get("win")
@@ -146,7 +150,10 @@ def main() -> None:
         # A crop arm records the window it sliced; the panel is drawn from that recorded value, not
         # re-derived here, so what the video shows cannot silently disagree with what the arm did.
         win = rows.get(1, {}).get("win") if rows else None
-        cw = win[2] if win else 0
+        # A fixed-window arm needs a column as wide as its one window; a target-scaled arm needs
+        # the widest window it ever asked for, and each frame's panel is pasted top-left inside it.
+        cw = max((r["win"][2] for r in rows.values() if r.get("win")), default=0) if win else 0
+        cw += cw % 2
         # A crop arm gets its own caption strip below the frame: at 704 the text baseline lands
         # inside the window, and the caption must not paint over the pixels it claims are the input.
         bar = 28 if win else 0
@@ -183,18 +190,23 @@ def main() -> None:
                 img = canvas
             elif win:
                 x, y, s = r["win"] if r and r.get("win") else win
+                # A target-scaled window can hang off the frame; the arm's own crop pads there, so
+                # the panel shows only the part that exists rather than wrapping a negative slice.
+                cx, cy = max(x, 0), max(y, 0)
+                x2, y2 = min(x + s, w), min(y + s, h)
                 # the model's input, byte for byte: the same decoded jpeg sliced with the same
                 # integers the arm used. Annotations go on this copy, never on `raw`.
-                panel = raw[y:y + s, x:x + s].copy()
+                panel = raw[cy:y2, cx:x2].copy()
                 # restore the window interior on the left panel so it stays literally the model
                 # input, then outline it from outside -- a 2 px line centred on the border would
                 # paint into the region it is claiming is untouched.
-                img[y:y + s, x:x + s] = raw[y:y + s, x:x + s]
+                img[cy:y2, cx:x2] = raw[cy:y2, cx:x2]
                 cv2.rectangle(img, (x - 2, y - 2), (x + s + 1, y + s + 1), ORANGE, 2)
-                annotate(panel, g, r, off=(x, y))
+                annotate(panel, g, r, off=(cx, cy))
                 canvas = np.zeros((cvh, cvw, 3), np.uint8)
                 canvas[:h, :w] = img
-                canvas[:s, w:w + s] = panel  # no border here: it would paint over the input itself
+                ph, pw = panel.shape[:2]
+                canvas[:ph, w:w + pw] = panel  # no border: it would paint over the input itself
                 img = canvas
 
             parts = [meta["arm"], f"{name} {i + 1}/{len(frames)}", "GT=verde"]
@@ -202,7 +214,9 @@ def main() -> None:
                 parts += [f"{hz:.1f} Hz", "pred=azul",
                           "LOST" if not (r and r.get("box")) else f"IoU {ious[i]:.2f}"]
             if win:
-                parts.append(f"entrada {win[2]}px=naranja (derecha)")
+                # the CURRENT frame's window, not frame 1's: on a target-scaled arm they differ
+                parts.append(f"entrada {(r['win'] if r and r.get('win') else win)[2]}px=naranja "
+                             f"(derecha)")
             elif args.crop:
                 parts.append(f"crop {crop[2] - crop[0]}px=naranja")
             cv2.putText(img, "  ".join(parts), (12, cvh - 16),
