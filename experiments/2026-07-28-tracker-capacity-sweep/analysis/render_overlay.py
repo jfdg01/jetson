@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -46,6 +48,24 @@ def crop_box(center: tuple[float, float], size: int, w: int, h: int) -> list[int
     x = int(round(min(max(center[0] - s / 2, 0), w - s)))
     y = int(round(min(max(center[1] - s / 2, 0), h - s)))
     return [x, y, x + s, y + s]
+
+
+def search_box(box, factor: float) -> list[int]:
+    """Mirror of `device/trackers.py:search_window`, as (x, y, side).
+
+    Duplicated for the same reason as `crop_box`: host and device do not import from each other.
+    Both must change together or the overlay stops being evidence about what the arm did.
+    """
+    x1, y1, x2, y2 = box
+    w, h = max(x2 - x1, 1.0), max(y2 - y1, 1.0)
+    s = max(math.ceil(math.sqrt(w * h) * factor), 1)
+    return [int(round(x1 + w / 2 - s / 2)), int(round(y1 + h / 2 - s / 2)), s]
+
+
+def arm_factor(arm: str) -> float:
+    """Search factor of an arm, from its name. 0 means a fixed window or no window at all."""
+    m = re.match(r"sam2_f(\d+)$", arm)
+    return float(m[1]) if m else (4.0 if arm.startswith("asym_") else 0.0)
 
 
 def annotate(img, g, r, off=(0, 0)) -> None:
@@ -127,10 +147,12 @@ def main() -> None:
     # from state this file cannot see, so those frames are skipped rather than asserted -- the panel
     # is still drawn from the recorded window either way, so it is never a lie, just unverified.
     #
-    # Only the SAM2 crop arms are checkable this way: their window is a fixed NxN slid to stay
-    # inside the frame. A target-scaled arm (`asym_b`) resizes its window every frame from
-    # `search_factor * sqrt(w*h)`, so there is no constant N to re-derive -- drawn, not asserted.
-    if rows and rows.get(1, {}).get("win") and meta["arm"].startswith("sam2_"):
+    # Both window geometries are re-derivable, so both are asserted rather than trusted. A fixed
+    # arm slides a constant NxN inside the frame; a target-scaled arm rebuilds the window every
+    # frame as `factor * sqrt(w*h)` around the previous box, which is just as checkable once the
+    # factor is known -- and checking it is what caught the round-vs-ceil drift in `AsymArm`.
+    fac = arm_factor(meta["arm"])
+    if rows and rows.get(1, {}).get("win") and (fac or meta["arm"].startswith("sam2_")):
         n, checked = rows[1]["win"][2], 0
         for i in range(2, len(frames)):
             b, win = rows[i - 1]["box"], rows[i].get("win")
@@ -140,8 +162,12 @@ def main() -> None:
                 if "_" not in meta["arm"][5:]:  # plain crop arm: a lost frame holds the window
                     assert win == rows[i - 1]["win"], (i, win)
                 continue
-            e = crop_box(((b[0] + b[2]) / 2, (b[1] + b[3]) / 2), n, meta["w"], meta["h"])
-            assert win == [e[0], e[1], e[2] - e[0]], (i, win, e)
+            if fac:
+                e = search_box(b, fac)
+            else:
+                c = crop_box(((b[0] + b[2]) / 2, (b[1] + b[3]) / 2), n, meta["w"], meta["h"])
+                e = [c[0], c[1], c[2] - c[0]]
+            assert win == e, (i, win, e)
             checked += 1
         score["win_checked"] = checked
 

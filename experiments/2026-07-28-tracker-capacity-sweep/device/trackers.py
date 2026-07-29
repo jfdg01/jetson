@@ -12,6 +12,7 @@ Streaming is also the path the rest of the project deploys, so the sweep measure
 from __future__ import annotations
 
 import collections
+import math
 import os
 import sys
 from pathlib import Path
@@ -38,16 +39,25 @@ def upscales(name: str, w: int, h: int) -> bool:
     interpolation, and two arms whose sizes both exceed the source stop being two treatments. The
     driver skips those jobs rather than writing a number that reads like the others.
 
-    The two families need different tests. A crop is square and `crop_window` already caps it at
-    `min(w, h)`, so anything above that is pure upsampling on both axes. A full frame is squashed to
-    `image_size` square regardless of aspect, so no single axis answers it -- 1280x720 into 768
-    upsamples vertically while downsampling horizontally, and still ends up with fewer pixels than
-    it started with. Pixel budget is the honest comparison there.
+    That reasoning holds for a FRAME and not for a SEARCH REGION, which is why the rule no longer
+    applies to `search_factor` arms. A search region is a window sized by the target and resampled to
+    the model input by definition -- every tracker in the lineage we compare against does exactly
+    that, and at a 28 px target a factor-5 window is 140 px going into a 640 input. Gating on
+    "the window is smaller than the input" would forbid the design the literature calls optimal.
+    Whether that upsampling helps is the question `search-window` asks; it is not a validity check.
+
+    Two rules remain. A FIXED crop is square and `crop_window` caps it at `min(w, h)`, so anything
+    above that is pure upsampling on both axes. A full frame is squashed to `image_size` square
+    regardless of aspect, so no single axis answers it -- 1280x720 into 768 upsamples vertically
+    while downsampling horizontally, and still ends up with fewer pixels than it started with. Pixel
+    budget is the honest comparison there.
     """
     m = REGISTRY[name]
     n = m.get("image_size")
     if n is None:
         return False  # opencv arms are handed the frame as it comes
+    if m.get("search_factor"):
+        return False
     return n > min(w, h) if m["family"] == "sam2crop" else n * n > w * h
 
 
@@ -108,6 +118,10 @@ class Sam2Arm:
 def crop_window(center, size: int, w: int, h: int) -> tuple[int, int, int]:
     """`size`x`size` window centred on `center`, slid (not shrunk) to stay inside the frame.
 
+    The FIXED-size geometry, kept because every committed result was measured with it and it is the
+    control in `search-window`. Sliding is our own invention, not the literature's -- see
+    `search_window` for what the trackers we compare against actually do.
+
     Same geometry as `analysis/render_overlay.py:crop_box` -- five lines, deliberately duplicated
     rather than shared, because host and device do not import from each other.
     """
@@ -115,6 +129,43 @@ def crop_window(center, size: int, w: int, h: int) -> tuple[int, int, int]:
     x = int(round(min(max(center[0] - s / 2, 0), w - s)))
     y = int(round(min(max(center[1] - s / 2, 0), h - s)))
     return x, y, s
+
+
+def search_window(box, factor: float) -> tuple[int, int, int]:
+    """Target-scaled square search region: side `factor * sqrt(area)`, centred on `box`.
+
+    Byte-for-byte the arithmetic of `sample_target` in the STARK/OSTrack/AsymTrack lineage
+    (`lib/train/data/processing_utils.py:30-39`), `ceil` included, so `sam2_f*` and `asym_b` ask for
+    the same window given the same box and only the model differs. The universal convention since
+    SiamFC 2016; OSTrack's ablation puts factor 4 -> 6 at +6.1 AUC and 7 in regression.
+
+    Deliberately NOT clamped to the frame: clamping or sliding changes the target/context ratio,
+    which is the one quantity the factor exists to hold constant. What falls outside is padded by
+    `crop_pad`.
+    """
+    x1, y1, x2, y2 = box
+    w, h = max(x2 - x1, 1.0), max(y2 - y1, 1.0)
+    s = max(int(math.ceil(math.sqrt(w * h) * factor)), 1)
+    return int(round(x1 + w / 2 - s / 2)), int(round(y1 + h / 2 - s / 2)), s
+
+
+def crop_pad(frame: np.ndarray, win: tuple[int, int, int], value=0) -> np.ndarray:
+    """Slice `win` out of `frame`, padding whatever hangs off the border.
+
+    `value=0` (black) because that is what AsymTrack does -- `cv.copyMakeBorder(..., BORDER_CONSTANT)`
+    with no `value` at `processing_utils.py:53`. SiamFC's older convention is the per-channel image
+    mean, and the field never converged; matching the arm we compare against matters more than
+    picking the prettier one, since a border-fill difference would enter the comparison disguised as
+    a model difference. Left as a knob so the mean can be measured later rather than argued about.
+    """
+    x, y, s = win
+    h, w = frame.shape[:2]
+    out = np.full((s, s, frame.shape[2]), value, frame.dtype)
+    sx, sy = max(x, 0), max(y, 0)
+    ex, ey = min(x + s, w), min(y + s, h)
+    if ex > sx and ey > sy:
+        out[sy - y:ey - y, sx - x:ex - x] = frame[sy:ey, sx:ex]
+    return out
 
 
 class Sam2CropArm:
@@ -152,8 +203,10 @@ class Sam2CropArm:
         That is the thing being measured.
     """
 
-    def __init__(self, checkpoint: str, size: int, coast: int = 0, edge: bool = False):
+    def __init__(self, checkpoint: str, size: int, coast: int = 0, edge: bool = False,
+                 factor: float = 0.0):
         self.size = size
+        self.factor = factor
         self.inner = Sam2Arm(checkpoint, size)
         self.coast, self.edge = coast, edge
         self.win = None   # (x, y, s) in full-frame coords; None means the full frame was fed
@@ -169,7 +222,18 @@ class Sam2CropArm:
         return None if box is None else [box[0] + dx, box[1] + dy, box[2] + dx, box[3] + dy]
 
     def _crop(self, frame, center):
+        """Slice the window for this frame. `self.win` is always what the model was actually fed."""
         h, w = frame.shape[:2]
+        if self.factor:
+            # window sized by the last box we FOUND and centred on `center`, which on a lost frame
+            # is the coasted anchor rather than that box's own centre. Holding the size across a
+            # loss is deliberate: a lost frame carries no evidence that the target got smaller.
+            bw = self.seen[2] - self.seen[0]
+            bh = self.seen[3] - self.seen[1]
+            self.win = search_window(
+                [center[0] - bw / 2, center[1] - bh / 2, center[0] + bw / 2, center[1] + bh / 2],
+                self.factor)
+            return crop_pad(frame, self.win)
         x, y, s = crop_window(center, self.size, w, h)
         self.win = (x, y, s)
         return frame[y:y + s, x:x + s]
@@ -198,6 +262,7 @@ class Sam2CropArm:
 
     def init(self, frame, box):
         cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
+        self.seen = box  # `_crop` sizes a factor window from it, and frame 0 is the only GT we get
         sub = self._crop(frame, (cx, cy))
         x, y, _ = self.win
         b, cnts = self.inner.init(sub, [box[0] - x, box[1] - y, box[2] - x, box[3] - y])
@@ -219,7 +284,8 @@ class Sam2CropArm:
                 d = float(np.hypot(vx, vy))
                 # coast until the window has travelled its own width, then stop: past that the
                 # extrapolation is older than any evidence, and a runaway window never walks back.
-                if d and self.coasted + d <= self.size:
+                ceiling = self.win[2] if (self.factor and self.win) else self.size
+                if d and self.coasted + d <= ceiling:
                     self.anchor = (self.anchor[0] + vx, self.anchor[1] + vy)
                     self.coasted += d
         if self.full:
@@ -319,11 +385,17 @@ class AsymArm:
         return [int(v) for v in (x1, y1, x2, y2)], None
 
     def _record_win(self, xywh, p=None):
-        """The square search crop `sample_target` will take next, in frame coordinates."""
+        """The square search crop `sample_target` will take next, in frame coordinates.
+
+        Through the shared `search_window`, which is `sample_target`'s arithmetic verbatim. It used
+        to round the side where the original ceils, so the window we drew could sit a pixel off the
+        window the model actually cropped -- small, but the overlay is the instrument that verifies
+        every geometry claim in this experiment, and an instrument that is approximately right is
+        not one you can assert against.
+        """
         p = p or self.t.params
         x, y, w, h = xywh
-        side = float(p.search_factor) * (max(w * h, 1.0) ** 0.5)
-        self.win = (int(round(x + w / 2 - side / 2)), int(round(y + h / 2 - side / 2)), int(round(side)))
+        self.win = search_window([x, y, x + w, y + h], float(p.search_factor))
 
     def step(self, frame):
         self._record_win(self.t.state)  # window used for THIS frame: centred on the previous box
@@ -360,6 +432,17 @@ arm("sam2_c640_coast", family="sam2crop", ckpt="tiny", image_size=640, crop=640,
 arm("sam2_c640_edge", family="sam2crop", ckpt="tiny", image_size=640, crop=640, heur="edge")(
     lambda: Sam2CropArm("facebook/sam2.1-hiera-tiny", 640, edge=True)
 )
+
+# Search-factor arms: same model, same 640 input, same compute as `sam2_c640` -- only the window
+# geometry changes, from a fixed 640 square to `factor * sqrt(area)` around the target. Factor 5 is
+# the primary (LoRAT at 378 input); 6 is OSTrack's ablation optimum and brackets it from above, so a
+# monotone result is distinguishable from a peak. The point is the target/stride-16 ratio: at a 28 px
+# target, `c640` puts 1.75 memory-attention cells on the target and factor 5 puts 8.
+for _f in (5.0, 6.0):
+    arm(f"sam2_f{int(_f)}", family="sam2crop", ckpt="tiny", image_size=640, crop=640,
+        search_factor=_f)(
+        lambda f=_f: Sam2CropArm("facebook/sam2.1-hiera-tiny", 640, factor=f)
+    )
 
 for _n in ["TrackerNano", "TrackerVit", "TrackerDaSiamRPN", "TrackerGOTURN", "TrackerMIL", "TrackerCSRT"]:
     arm(_n.replace("Tracker", "cv_").lower(), family="opencv")(lambda n=_n: CvArm(n))
