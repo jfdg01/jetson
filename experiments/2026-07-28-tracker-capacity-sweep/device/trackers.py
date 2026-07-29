@@ -474,6 +474,113 @@ class AsymArm:
         return [int(x), int(y), int(x + w), int(y + h)], None
 
 
+class AsymLtArm:
+    """AsymTrack plus the long-term wrapper neither tracker in this sweep has.
+
+    Measured on `raw/full-sweep-30`: no arm re-attaches. Full frame at max resolution (`t1024`)
+    recovers 3 of 13 losses, crop (`c704`) 5 of 13. SAM2's memory bank propagates forward through
+    whatever window it is handed; it never searches elsewhere. AsymTrack's `clip_box(..., margin=10)`
+    forces a box every frame, so it never registers being lost at all -- it answered in all 2683
+    UAV123 frames where the ground truth says the target is absent.
+
+    So re-detection is a WRAPPER, which is LTMU's explicit thesis: keep your short-term tracker,
+    put a state machine around it. Five pieces, no new network:
+
+      1. local tracker -- `AsymArm` unchanged, one window, ~29-40 ms;
+      2. verifier -- `conf`, the corner-softmax peak (a surrogate; `presence_auc` is what says
+         whether it is usable);
+      3. state machine with hysteresis -- `tracking` -> `lost` after `k` frames under `tau_lo`,
+         back only on a candidate at or above `tau_hi`. Two thresholds because one oscillates;
+      4. re-detector -- the SAME AsymTrack over several windows. In `lost` it evaluates `probes`
+         raster positions per frame at the last known target scale on top of the local one, and
+         takes the argmax of `conf`. The sweep is AMORTISED rather than done in one burst: at the
+         5 Hz this thesis actually runs at there are ~170 ms spare per frame after AsymTrack's 29,
+         which is ~5 extra windows, and the whole frame is covered in ~8 frames (~1.6 s). No
+         latency spike, no dropped control cycle. GlobalTrack's trained re-detector is the
+         literature answer and is out of reach here -- Faster-RCNN + ResNet-50, ~6 FPS on a 1080Ti.
+         That the edge forces the cheap version is a result, not an embarrassment;
+      5. template -- frame 0, frozen. `AsymTrack.initialize` assigns `self.template` once and no
+         line reassigns it, so this is free. Deliberately never touched while lost: that is exactly
+         where a running template memorises the distractor.
+
+    Emits a box only while `tracking`, `None` while `lost`. That is the point -- `asym_b` scores
+    badly on MaxGM because it answers 2683 times where there is nothing to answer.
+
+    Known ceiling: the raster grid steps by a full window with no overlap, so a target straddling
+    two cells is seen at the edge of both. Overlapping the grid doubles the sweep time; worth it
+    only if re-detection turns out to miss targets it passed over.
+    """
+
+    def __init__(self, tau_lo: float, tau_hi: float, k: int = 3, probes: int = 5):
+        self.inner = AsymArm("base")
+        self.tau_lo, self.tau_hi, self.k, self.probes = tau_lo, tau_hi, k, probes
+        self.lost = False
+        self.low = 0        # consecutive frames under tau_lo
+        self.cursor = 0     # position in the raster sweep, so it resumes instead of restarting
+        self.size = None    # (w, h) of the last CONFIRMED box; a loss carries no evidence of scale
+        self.win = None
+        self.conf = None
+
+    def init(self, frame, box):
+        b, _ = self.inner.init(frame, box)
+        self.size = (box[2] - box[0], box[3] - box[1])
+        self.win, self.conf = self.inner.win, self.inner.conf
+        return b, None
+
+    def _grid(self, w: int, h: int):
+        """Raster positions at the current target scale: one window side apart, so a full pass
+        covers the frame exactly once."""
+        side = search_window([0, 0, self.size[0], self.size[1]],
+                             float(self.inner.t.params.search_factor))[2]
+        step = max(int(side), 1)
+        return [(x, y) for y in range(step // 2, h + step, step)
+                for x in range(step // 2, w + step, step)]
+
+    def _probe(self, frame, cx, cy):
+        """One forward pass with the search window moved to (cx, cy). `track` both reads and writes
+        `self.state`, so the caller is responsible for restoring it."""
+        tw, th = self.size
+        self.inner.t.state = [cx - tw / 2, cy - th / 2, tw, th]
+        self.inner._record_win(self.inner.t.state)
+        out = self.inner.t.track(frame[:, :, ::-1])
+        return self.inner._corner_peak(), list(out["target_bbox"]), self.inner.win
+
+    def step(self, frame):
+        h, w = frame.shape[:2]
+        if not self.lost:
+            b, _ = self.inner.step(frame)
+            self.win, self.conf = self.inner.win, self.inner.conf
+            self.low = self.low + 1 if (self.conf is not None and self.conf < self.tau_lo) else 0
+            if self.low >= self.k:
+                self.lost, self.low = True, 0
+                return None, None  # the k frames before this one were already emitted: hysteresis
+            self.size = (b[2] - b[0], b[3] - b[1])
+            return b, None
+
+        keep = list(self.inner.t.state)  # where we were when we lost it; restored unless we re-find
+        g = self._grid(w, h)
+        # the local window stays in the running: the target most often walks back into it
+        cands = [(keep[0] + keep[2] / 2, keep[1] + keep[3] / 2)]
+        cands += [g[(self.cursor + j) % len(g)] for j in range(self.probes)]
+        self.cursor = (self.cursor + self.probes) % len(g)
+
+        best = (-1.0, None, None)
+        for cx, cy in cands:
+            s, box, win = self._probe(frame, cx, cy)
+            if s is not None and s > best[0]:
+                best = (s, box, win)
+
+        self.conf, self.win = (best[0] if best[1] else None), best[2]
+        if best[1] is not None and best[0] >= self.tau_hi:
+            self.lost = False
+            self.inner.t.state = best[1]
+            x, y, bw, bh = best[1]
+            self.size = (bw, bh)
+            return [int(x), int(y), int(x + bw), int(y + bh)], None
+        self.inner.t.state = keep  # nothing convincing: do not let the probes drag the anchor
+        return None, None
+
+
 arm("asym_b", family="asymtrack", ckpt="base", search_factor=4.0, image_size=None,
     venv_python="/home/jfdg/tracker-sweep/.venv-asym/bin/python")(lambda: AsymArm("base"))
 
@@ -531,6 +638,70 @@ def build(name: str):
     return REGISTRY[name]["factory"]()
 
 
+def _check_lt() -> None:
+    """The long-term state machine, driven by a scripted confidence and no network.
+
+    The three things worth breaking: it must not declare lost on a single dip, it must stop emitting
+    boxes once it does, and it must not come back on a score between the two thresholds. The probe
+    positions are checked too, because a sweep that keeps re-testing the same cell would still pass
+    every state assertion while never finding anything.
+    """
+    import types
+
+    class FakeAsym:
+        def __init__(self, confs):
+            self.confs, self.win, self.conf, self.cur = list(confs), None, None, 0.0
+            self.probed = []
+            self.t = types.SimpleNamespace(state=[100, 100, 20, 20], track=self._track,
+                                           params=types.SimpleNamespace(search_factor=4.0))
+
+        def _next(self):
+            return self.confs.pop(0) if self.confs else 0.0
+
+        def init(self, frame, box):
+            self.conf = 0.9
+            return list(box), None
+
+        def step(self, frame):
+            self.conf = self._next()
+            x, y, w, h = self.t.state
+            return [x, y, x + w, y + h], None
+
+        def _record_win(self, xywh):
+            x, y, w, h = xywh
+            self.win = search_window([x, y, x + w, y + h], 4.0)
+
+        def _track(self, img):
+            self.probed.append((round(self.t.state[0]), round(self.t.state[1])))
+            self.cur = self._next()
+            return {"target_bbox": list(self.t.state)}
+
+        def _corner_peak(self):
+            return self.cur
+
+    frame = np.zeros((720, 1280, 3), np.uint8)
+    lt = AsymLtArm(tau_lo=0.3, tau_hi=0.7, k=3, probes=2)
+    #                tracking       -> lost      lost frames, 3 probes each (local + 2 raster)
+    lt.inner = FakeAsym([0.9, 0.1, 0.1, 0.1] + [0.1, 0.1, 0.1] + [0.1, 0.5, 0.1] + [0.1, 0.9, 0.1])
+    lt.init(frame, [100, 100, 120, 120])
+
+    assert lt.step(frame)[0] is not None and not lt.lost          # 0.9, plainly fine
+    assert lt.step(frame)[0] is not None and not lt.lost          # 0.1 once is not a loss
+    assert lt.step(frame)[0] is not None and not lt.lost          # twice still is not
+    assert lt.step(frame)[0] is None and lt.lost                  # k=3 reached
+    assert lt.step(frame)[0] is None and lt.lost                  # all probes cold
+    assert lt.step(frame)[0] is None and lt.lost                  # 0.5 sits between the thresholds
+    assert lt.step(frame)[0] is not None and not lt.lost          # 0.9 clears tau_hi
+
+    # the sweep advances: the raster cells probed across the three lost frames are all distinct,
+    # and the local anchor is re-tested every one of them
+    raster = [p for i, p in enumerate(lt.inner.probed) if i % 3]
+    assert len(set(raster)) == len(raster) == 6, lt.inner.probed
+    local = [p for i, p in enumerate(lt.inner.probed) if i % 3 == 0]
+    assert len(set(local)) == 1, local
+    print("long-term state machine ok")
+
+
 def _check() -> None:
     """Crop geometry and the crop->full-frame coordinate round trip, without touching a GPU."""
     assert crop_window((640, 360), 512, 1280, 720) == (384, 104, 512)
@@ -563,6 +734,8 @@ def _check() -> None:
     assert b == corner, b
     assert p.win == (-236, -241, 512), p.win  # centred on (20, 15), NOT slid to (0, 0)
     assert crop_window((20, 15), 512, 1280, 720) == (0, 0, 512)  # what the sliding arm does instead
+
+    _check_lt()
 
     class Scripted:  # boxes in CROP coords, None = lost; drives the recovery heuristics
         def __init__(self, script): self.script = list(script)
