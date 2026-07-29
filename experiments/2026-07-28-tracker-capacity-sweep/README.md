@@ -356,3 +356,47 @@ en frame perdido la ventana esperada es la anterior, que es lo que hace el arm.
 Pendiente si se quiere cerrar la pregunta de salida de campo: una secuencia con hueco de GT y sin
 HUD superpuesto. `bird1_3` es del mismo metraje FPV, así que no sirve; los candidatos del subconjunto
 con huecos son `bike2`, `car12`, `car1_3`, `group2_3`, `person19_3` y `uav1_2`.
+
+## Barrido completo: 30 secuencias x 7 arms (run `full-sweep-30`, lanzado 2026-07-29T23:50Z)
+
+Lo que los tres clips piloto no pueden dar: n. `truck3` y `wakeboard1` dicen que el crop gana,
+`bird1_1` dice que no gana nada, y con n=3 elegidos a mano eso no es un resultado. Este run pasa
+las **30 secuencias del subconjunto** por los **7 arms** que ya estaban caracterizados.
+
+Arms: `sam2_t512`, `sam2_t640`, `sam2_t768`, `sam2_t1024` (frame completo reescalado) y
+`sam2_c512`, `sam2_c640`, `sam2_c704` (crop a píxeles nativos). Todos `sam2.1-hiera-tiny`, bf16
+autocast, 15 W mode 0, caja GT solo en el frame 0.
+
+```
+./jetson.py stage <las 30>
+./jetson.py run --id full-sweep-30 \
+  --arms sam2_t512 sam2_t640 sam2_t768 sam2_t1024 sam2_c512 sam2_c640 sam2_c704 \
+  --seqs bike1 bike2 bird1_1 bird1_3 boat3 boat6 building5 car12 car16_1 car1_3 car8_2 car9 \
+         group1_2 group2_3 person18 person19_3 person20 person21 person4_1 truck2 truck3 \
+         uav1_2 uav2 uav3 uav5 uav7 wakeboard1 wakeboard5 wakeboard7 wakeboard8
+```
+
+210 jobs, 27276 frames por arm. **Sin vídeos**: este run mide, no ilustra. Los renders saldrán
+después y solo de los casos que valga la pena mirar.
+
+Estimaciones (a contrastar con lo real):
+
+- Runtime: 27276 frames x 1.438 s (suma de los p50 de los 7 arms) = **10.9 h**, mas ~15 s de carga
+  de modelo por job (210 jobs, ~53 min) = **~11.8 h**. El driver salta los JSON que ya existen, así
+  que un corte no obliga a repetir nada.
+- Disco: 30 secuencias ocupan ~2.5 GB en `~/tracker-sweep/data`; había 126 GB libres.
+
+Reserva conocida, a comprobar en los resultados: 5 de las 30 (`uav1_2`, `uav2`, `uav3`, `uav5`,
+`uav7`) son de 720x480. Ahí `crop_window` no puede dar una ventana de 512/640/704 y la recorta a
+480x480, que SAM2 luego **escala hacia arriba** hasta `image_size`. En esos 5 clips los tres arms
+de crop dejan de ser "píxeles nativos" y no son comparables sin más con los otros 25.
+
+### Resultados (TBD)
+
+| arm | entrada | p50 | mIoU | IoU@0.25 | IoU@0.5 | perdidos | secuencias |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| | | | | | | | |
+
+Estado: lanzado, en curso. Siguiente paso: `./jetson.py fetch full-sweep-30` y agregación por arm
+(mediana por secuencia, no media sobre frames — un clip de 3085 frames no puede pesar 23 veces lo
+que uno de 133).
