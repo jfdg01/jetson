@@ -923,8 +923,11 @@ ventana de 322 px, así que el pipeline de render está sano en ambos extremos.
 
 Iguala a `t1024` con **14.6x menos latencia** y 51.6 MB de pico de GPU.
 
-**Determinismo:** pendiente. Preregistrado como "verificarlo, no asumirlo" — re-corriendo `uav5`,
-`bike1` y `car11` en `runs/asym-determ` para comparar frame a frame contra `raw/asym-repro/`.
+**Determinismo: verificado, no asumido** (`raw/asym-determ/`). Re-corridas `uav5`, `bike1` y `car11`
+en un proceso nuevo y comparadas caja a caja contra `raw/asym-repro/`: **0 cajas distintas de 3561
+frames**. La latencia sí varía, como debe (p50 27.8 vs 28.3, 29.9 vs 29.6, 28.4 vs 28.7 ms), o sea
+que la varianza run-a-run de las métricas de calidad es exactamente cero y un solo pase basta. Los
+tests de significancia del experimento completo se parean, por tanto, sobre clips, no sobre pases.
 
 ## Experimento completo: `search-window` (preregistrado 2026-07-29T17:05Z)
 
