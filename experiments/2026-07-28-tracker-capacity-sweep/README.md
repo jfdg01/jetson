@@ -752,6 +752,28 @@ Ninguno es del tracker; los dos cuestan tiempo y se documentan para no repetirlo
    (bucle cada 30 min, log en `fetch_weights.log`). **Sin pesos no hay humo, así que `asym-repro`
    está bloqueado en este punto**, no por el código.
 
+### Humo parcial sin pesos (2026-07-29T19:35Z)
+
+Los pesos faltan pero la arquitectura no depende de ellos para construirse ni para cronometrarse:
+las formas son las mismas con pesos aleatorios. Verificado en el Jetson, venv `.venv-asym`:
+
+- `build_asymtrack(cfg)` + `switch_to_deploy()` + `.cuda()` construye sin error. **3.55 M
+  parámetros** (el paper dice 3.36 M; la diferencia cabe en qué cuenta cada uno, no se ha
+  investigado).
+- Pasada completa `forward_backbone` + `forward_head` sobre un frame 1280x720 sintético:
+  `pred_boxes` sale `[1, 1, 4]`, `resize_factor` 3.92 para una caja de 30x20 (ventana de
+  4.0*sqrt(600) = 98 px reescalada a 384).
+- **Latencia p50 = 26.7 ms, 37.5 FPS**, fp32, 35 iteraciones, 5 de calentamiento descartadas,
+  incluyendo el `sample_target` y la vuelta del box a CPU. **Estimación, no medida de arnés**: es
+  un bucle sintético con pesos aleatorios y sin decodificar JPEG, y no se ha reconfirmado el modo
+  de potencia en esa ventana. Para comparar: `sam2_c640` marca 159.4 ms p50 en el barrido real,
+  o sea **~6x**. Si sobrevive a la medición con el arnés, es el primer número de un tracker SOT
+  sobre Orin Nano que hemos podido encontrar publicado o no (ver "huecos confirmados").
+
+Deriva de aquí la estimación de runtime de `asym-repro`: ~113 k frames a ~27 ms es ~50 min de
+cómputo de tracker, más decodificación, bastante por debajo de la horquilla 1.5-2.5 h que se
+preregistró.
+
 ### Cambios de arnés que trae el candidato
 
 - `analysis/aggregate.py` calcula ya el **AUC de curva de éxito** (21 umbrales, 0 a 1), la métrica
