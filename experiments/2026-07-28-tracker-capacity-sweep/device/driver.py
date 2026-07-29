@@ -17,8 +17,21 @@ import sys
 import time
 from pathlib import Path
 
+from PIL import Image
+
 HERE = Path(__file__).resolve().parent
 PY = sys.executable
+
+sys.path.insert(0, str(HERE))
+import trackers  # noqa: E402
+
+
+def frame_size(seq_dir: str) -> tuple[int, int]:
+    """(w, h) of the staged clip, from the first jpeg's header. No decode, no cv2 import here."""
+    sd = Path(seq_dir)
+    first = json.loads((sd / "spec.json").read_text())["files"][0]
+    with Image.open(sd / "frames" / first) as im:
+        return im.size
 
 
 def sh(cmd: str) -> str:
@@ -89,7 +102,16 @@ def main() -> None:
     if m["big_procs"]:
         print(f"WARNING: processes >100 MB resident:\n{m['big_procs']}", flush=True)
 
-    jobs = [(a, s) for a in arms for s in seqs]
+    # Drop the arm x clip pairs the source resolution cannot support. Recorded in the manifest so a
+    # missing cell in the tables is a documented skip, not an unexplained hole.
+    size = {s: frame_size(f"{args.data}/{s}") for s in seqs}
+    jobs = [(a, s) for a in arms for s in seqs if not trackers.upscales(a, *size[s])]
+    gated = [f"{a}__{s}" for a in arms for s in seqs if trackers.upscales(a, *size[s])]
+    if gated:
+        print(f"gated {len(gated)} jobs (arm larger than source): {' '.join(gated)}", flush=True)
+    m = {**m, "frame_size": {s: list(v) for s, v in size.items()}, "gated": gated}
+    (run_dir / "manifest.json").write_text(json.dumps(m, indent=1))
+
     random.Random(args.seed).shuffle(jobs)  # decorrelate thermal drift from arm identity
 
     for n, (a, s) in enumerate(jobs, 1):

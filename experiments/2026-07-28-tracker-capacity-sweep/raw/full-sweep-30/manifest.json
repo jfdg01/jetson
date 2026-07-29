@@ -67,5 +67,19 @@
  },
  "code_sha256": "e16b8ee6b753d972cb8bb36158404e90989ddab8385d83d2693e584ce4f1205c",
  "freeze": "annotated-doc==0.0.4\nantlr4-python3-runtime==4.9.3\nanyio==4.14.1\ncertifi==2026.6.17\nclick==8.4.2\nexceptiongroup==1.3.1\nfilelock==3.29.4\nfsspec==2026.6.0\nh11==0.16.0\nhf-xet==1.5.1\nhttpcore==1.0.9\nhttpx==0.28.1\nhuggingface-hub==1.21.0\nhydra-core==1.3.3\nidna==3.18\niopath==0.1.10\njinja2==3.1.6\nmarkdown-it-py==4.2.0\nmarkupsafe==3.0.3\nmdurl==0.1.2\nmpmath==1.3.0\nnetworkx==3.4.2\nnumpy==1.26.4\nomegaconf==2.3.1\nopencv-python-headless==4.11.0.86\npackaging==26.2\npillow==12.3.0\nportalocker==3.2.0\npygments==2.20.0\npyyaml==6.0.3\nregex==2026.7.19\nrich==15.0.0\nsafetensors==0.8.0\nsam2==1.1.0\nsetuptools==81.0.0\nshellingham==1.5.4\nsympy==1.14.0\ntokenizers==0.22.2\ntorch==2.8.0\ntorchvision==0.23.0\ntqdm==4.68.3\ntransformers==5.14.1\ntyper==0.25.1\ntyping-extensions==4.15.0",
- "big_procs": ""
+ "big_procs": "",
+ "thermals_end": {
+  "cpu-thermal": 68.062,
+  "gpu-thermal": 68.187,
+  "soc0-thermal": 64.593,
+  "soc1-thermal": 66.156,
+  "soc2-thermal": 66.687,
+  "tj-thermal": 68.25
+ },
+ "rails_end": {
+  "VDD_IN": 11.372544,
+  "VDD_CPU_GPU_CV": 4.44768,
+  "VDD_SOC": 2.326016
+ },
+ "finished_utc": "2026-07-29T12:06:46Z"
 }

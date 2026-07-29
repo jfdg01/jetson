@@ -30,6 +30,26 @@ def arm(name: str, **meta):
     return deco
 
 
+def upscales(name: str, w: int, h: int) -> bool:
+    """Would this arm have to invent pixels on a `w`x`h` clip?
+
+    A clip that does not carry the resolution cannot be measured at it: SAM2 would be scored on
+    interpolation, and two arms whose sizes both exceed the source stop being two treatments. The
+    driver skips those jobs rather than writing a number that reads like the others.
+
+    The two families need different tests. A crop is square and `crop_window` already caps it at
+    `min(w, h)`, so anything above that is pure upsampling on both axes. A full frame is squashed to
+    `image_size` square regardless of aspect, so no single axis answers it -- 1280x720 into 768
+    upsamples vertically while downsampling horizontally, and still ends up with fewer pixels than
+    it started with. Pixel budget is the honest comparison there.
+    """
+    m = REGISTRY[name]
+    n = m.get("image_size")
+    if n is None:
+        return False  # opencv arms are handed the frame as it comes
+    return n > min(w, h) if m["family"] == "sam2crop" else n * n > w * h
+
+
 def mask_contours(mask: np.ndarray) -> list[list[list[int]]]:
     cnts, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     return [c.reshape(-1, 2).tolist() for c in cnts]
