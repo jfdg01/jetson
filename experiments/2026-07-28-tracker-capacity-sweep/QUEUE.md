@@ -157,6 +157,31 @@ punto, así que toca clip y no figura. Visto con Read antes de afirmar nada.
 Se anota aquí lo que pase, con hora Madrid. Un run que falla se anota igual: un negativo es
 contenido.
 
+- `2026-07-30T06:40Z` — **`f5-30`: el tercer peldaño pierde 7 puntos, y el mecanismo se ve.**
+  Sobre las mismas 25: `f5` AUC **57.9** contra 65.0 de `c640`, 64.8 de `c640_pad`, 66.9 de `c704`.
+  mIoU 0.759 vs 0.785. Latencia igual (159.6 ms).
+  Pero no es una degradación uniforme: **@0.25 sube a 0.999 y @0.5 a 0.987**, los dos por encima de
+  cualquier brazo de crop fijo, y los falsos positivos en hueco caen de 542 a 59. `f5` es bimodal —
+  gana claro donde gana (`wakeboard5` 0.674 vs 0.525, `building5` 0.821 vs 0.728, `truck2` 0.838 vs
+  0.789, `bike2` 0.176 vs 0.120, `car1_3` 0.632 vs 0.558) y se hunde a cero donde pierde (`car12`
+  0.028 vs 0.671, `car9` 0.355 vs 0.847, `person18` 0.268 vs 0.766, `person19_3` 0.193 vs 0.752,
+  `bird1_3` 0.013 vs 0.094). La geometría escalada al objeto es mejor cuando funciona; la media la
+  matan cinco clips.
+  **El mecanismo: colapso de escala con realimentación positiva.** La ventana la dimensiona la caja
+  que produce el propio brazo, así que caja que encoge encoge la ventana, que quita contexto, que
+  encoge más la caja. Sin suelo. Medido: `car9` 647 px -> 52 px, `person19_3` 173 -> 32,
+  `wakeboard5` 448 -> 18. Un lado de 52 px entrando en una entrada de 640 son 12x de interpolación,
+  y es justo el caso que la compuerta `upscales` se niega a filtrar para los brazos de factor.
+  Visto (`scratchpad/f5_collapse.png`, `car9`): frame 301 ventana 274 px IoU 0.77, frame 701
+  226 px IoU 0.88, frame 801 la ventana ya son 52 px **enganchada al pórtico de señalización** y en
+  `LOST`, frame 1001 sigue en el pórtico con el coche (verde) a 200 px. Terminal: con 52 px de
+  ventana no puede volver a ver el coche nunca.
+  Lanzado `sam2_f5_floor` (misma geometría, el lado nunca baja de su valor del frame 0) sobre las
+  mismas 30 para contestar una sola pregunta: **¿el déficit de `f5` es enteramente el colapso?**
+  Prohíbe que un objeto que se aleja de verdad encoja su ventana, y eso solo es asumible porque
+  `c640` ya demuestra que una ventana de más no cuesta nada aquí. Estimación a priori: si el colapso
+  lo explica todo, `f5_floor` queda por encima de 65.0; si queda entre 58 y 63, la geometría
+  escalada al objeto tiene además un problema propio.
 - `2026-07-30T05:10Z` — **Q2 cerrado: el borde no importa.** `sam2_c640_pad` sobre las mismas 25
   secuencias que el incumbente: AUC 64.8 vs 65.0 de `c640`, mIoU 0.787 vs 0.785, @0.5 0.983 en
   ambos, latencia idéntica (159.4 vs 159.3 ms). Dentro del +-1 punto que decía la estimación a

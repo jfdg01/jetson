@@ -209,9 +209,11 @@ class Sam2CropArm:
     """
 
     def __init__(self, checkpoint: str, size: int, coast: int = 0, edge: bool = False,
-                 factor: float = 0.0, pad: bool = False):
+                 factor: float = 0.0, pad: bool = False, floor: bool = False):
         self.size = size
         self.factor = factor
+        self.floor = floor
+        self._s0 = None  # frame-0 window side, the lower bound when `floor`
         self.pad = pad
         self.inner = Sam2Arm(checkpoint, size)
         self.coast, self.edge = coast, edge
@@ -244,6 +246,20 @@ class Sam2CropArm:
             self.win = search_window(
                 [center[0] - bw / 2, center[1] - bh / 2, center[0] + bw / 2, center[1] + bh / 2],
                 self.factor)
+            if self.floor:
+                # The window is sized by the box the arm itself produced, so a shrinking box shrinks
+                # the window, which removes context, which shrinks the box: positive feedback with
+                # no bottom. Measured on `f5-30`: car9 went 647 px to 52 px and stayed on a gantry
+                # sign 200 px from the car for the last 1000 frames. This floors the side at its
+                # frame-0 value, which asks exactly one question -- is `f5`'s deficit the collapse?
+                # It forbids a legitimately receding target from shrinking its window, and that is
+                # affordable only because `c640` shows an over-large window costs nothing here.
+                if self._s0 is None:
+                    self._s0 = self.win[2]
+                elif self.win[2] < self._s0:
+                    cx = self.win[0] + self.win[2] / 2
+                    cy = self.win[1] + self.win[2] / 2
+                    self.win = (round(cx - self._s0 / 2), round(cy - self._s0 / 2), self._s0)
             return crop_pad(frame, self.win)
         if self.pad:
             # Fixed size like the plain crop arms, but the window stays CENTRED on the target and
@@ -676,6 +692,13 @@ for _f in (5.0, 6.0):
         lambda f=_f: Sam2CropArm("facebook/sam2.1-hiera-tiny", 640, factor=f)
     )
 
+# Same as `sam2_f5` with one change: the window side never drops below its frame-0 value. Isolates
+# the scale-collapse failure mode from the target-scaled geometry itself.
+arm("sam2_f5_floor", family="sam2crop", ckpt="tiny", image_size=640, crop=640, search_factor=5.0,
+    heur="floor")(
+    lambda: Sam2CropArm("facebook/sam2.1-hiera-tiny", 640, factor=5.0, floor=True)
+)
+
 for _n in ["TrackerNano", "TrackerVit", "TrackerDaSiamRPN", "TrackerGOTURN", "TrackerMIL", "TrackerCSRT"]:
     arm(_n.replace("Tracker", "cv_").lower(), family="opencv")(lambda n=_n: CvArm(n))
 
@@ -788,6 +811,23 @@ def _check() -> None:
     assert b == corner, b
     assert p.win == (-236, -241, 512), p.win  # centred on (20, 15), NOT slid to (0, 0)
     assert crop_window((20, 15), 512, 1280, 720) == (0, 0, 512)  # what the sliding arm does instead
+
+    # floor: a shrinking box shrinks the window, until it does not. The fake returns whatever box it
+    # was handed, so feeding a 10x smaller one is exactly the collapse `f5` shows on car9.
+    class Shrink(FakeInner):
+        def step(self, sub):
+            x1, y1, x2, y2 = self.last_in
+            self.last_in = [x1, y1, x1 + (x2 - x1) / 4, y1 + (y2 - y1) / 4]
+            return list(self.last_in), []
+
+    for floor, want in [(False, 18), (True, 283)]:
+        f = Sam2CropArm("x", 512, factor=5.0, floor=floor)
+        f.inner = Shrink()
+        f.init(frame, [600, 340, 680, 380])
+        for _ in range(3):
+            f.step(frame)
+        assert f.win[2] == want, (floor, f.win)
+    assert 283 == search_window([600, 340, 680, 380], 5.0)[2]  # the floor IS the frame-0 side
 
     _check_lt()
 
