@@ -557,6 +557,7 @@ class AsymLtArm:
         b, _ = self.inner.init(frame, box)
         self.size = (box[2] - box[0], box[3] - box[1])
         self.win, self.conf = self.inner.win, self.inner.conf
+        self.conf_cos = self.inner.conf_cos
         return b, None
 
     def _grid(self, w: int, h: int):
@@ -582,6 +583,7 @@ class AsymLtArm:
         if not self.lost:
             b, _ = self.inner.step(frame)
             self.win, self.conf = self.inner.win, self.inner.conf
+            self.conf_cos = self.inner.conf_cos
             self.low = self.low + 1 if (self.conf is not None and self.conf < self.tau_lo) else 0
             if self.low >= self.k:
                 self.lost, self.low = True, 0
@@ -697,6 +699,7 @@ def _check_lt() -> None:
     class FakeAsym:
         def __init__(self, confs):
             self.confs, self.win, self.conf, self.cur = list(confs), None, None, 0.0
+                self.conf_cos = None
             self.probed = []
             self.t = types.SimpleNamespace(state=[100, 100, 20, 20], track=self._track,
                                            params=types.SimpleNamespace(search_factor=4.0))
