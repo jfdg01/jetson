@@ -1,0 +1,59 @@
+{
+ "utc": "2026-07-30T09:48:08Z",
+ "arms": [
+  "dam4sam_t"
+ ],
+ "seqs": [
+  "bike2"
+ ],
+ "seed": 0,
+ "nvpmodel": "NV Power Mode: 15W\n0",
+ "governor": "schedutil",
+ "nproc": "6",
+ "l4t": "# R36 (release), REVISION: 5.0, GCID: 43688277, BOARD: generic, EABI: aarch64, DATE: Fri Jan 16 03:50:45 UTC 2026\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia",
+ "meminfo": {
+  "MemTotal": "        7789948 kB",
+  "MemAvailable": "    6265664 kB",
+  "SwapTotal": "       3894960 kB",
+  "SwapFree": "        3543384 kB"
+ },
+ "thermals_start": {
+  "cpu-thermal": 56.812,
+  "gpu-thermal": 56.25,
+  "soc0-thermal": 53.468,
+  "soc1-thermal": 55.593,
+  "soc2-thermal": 55.156,
+  "tj-thermal": 56.812
+ },
+ "rails_start": {
+  "VDD_IN": 6.73472,
+  "VDD_CPU_GPU_CV": 2.017152,
+  "VDD_SOC": 1.505408
+ },
+ "code_sha256": "be4d572538f64a6a99a8dd04f9cfefd608b163f0892a77b5602623755850edd4",
+ "freeze": {
+  "/home/jfdg/tracker-sweep/.venv-dam4sam/bin/python": "antlr4-python3-runtime==4.9.3\nattributee==0.1.9\nattrs==26.1.0\nbidict==0.23.1\ncachetools==7.1.6\ncertifi==2026.7.22\ncharset-normalizer==3.4.9\ncolorama==0.4.6\ncontourpy==1.3.2\ncycler==0.12.1\ndominate==2.9.1\nfilelock==3.32.2\nfonttools==4.63.0\nfsspec==2026.7.0\nhydra-core==1.3.3\nidna==3.18\niopath==0.1.10\njinja2==3.1.6\njsonschema==4.26.0\njsonschema-specifications==2025.9.1\nkiwisolver==1.5.0\nlazy-object-proxy==1.12.0\nllvmlite==0.48.0\nmarkupsafe==3.0.3\nmatplotlib==3.10.9\nmpmath==1.3.0\nnetworkx==3.4.2\nnumba==0.66.0\nnumpy==1.26.4\nomegaconf==2.3.1\nopencv-python==4.11.0.86\nopencv-python-headless==4.11.0.86\nordered-set==4.1.0\npackaging==26.2\nphx-class-registry==5.1.0\npillow==12.3.0\nportalocker==3.2.0\npylatex==1.4.2\npyparsing==3.3.2\npython-dateutil==2.9.0.post0\npyyaml==6.0.3\nreferencing==0.37.0\nrequests==2.34.2\nrpds-py==0.30.0\nsix==1.17.0\nsympy==1.14.0\ntorch==2.8.0\ntorchvision==0.23.0\ntqdm==4.68.3\ntyping-extensions==4.16.0\nurllib3==2.7.0\nvot-toolkit==0.7.1\nvot-trax==4.0.2"
+ },
+ "big_procs": "",
+ "frame_size": {
+  "bike2": [
+   1280,
+   720
+  ]
+ },
+ "gated": [],
+ "thermals_end": {
+  "cpu-thermal": 65.125,
+  "gpu-thermal": 64.656,
+  "soc0-thermal": 61.812,
+  "soc1-thermal": 63.718,
+  "soc2-thermal": 63.718,
+  "tj-thermal": 65.187
+ },
+ "rails_end": {
+  "VDD_IN": 6.219712,
+  "VDD_CPU_GPU_CV": 1.502976,
+  "VDD_SOC": 1.542528
+ },
+ "finished_utc": "2026-07-30T09:52:23Z"
+}

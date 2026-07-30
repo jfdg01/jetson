@@ -347,6 +347,65 @@ def _box_of(mask):
     return [int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1]
 
 
+DAM4SAM_DIR = Path(os.environ.get("DAM4SAM_DIR", "/home/jfdg/trackers/DAM4SAM"))
+
+
+class Dam4SamArm:
+    """DAM4SAM: SAM2.1 plus a distractor-resolving memory (Videnovic et al., CVPR 2025 / IJCV 2026).
+
+    Training-free -- same tiny checkpoint as `sam2_*`, different memory policy: on a frame where the
+    chosen mask is confident and stable but an ALTERNATIVE mask disagrees with it, that frame is
+    pushed into a second memory bank (DRM) so the model keeps a record of what the distractor looks
+    like. That is exactly the failure `asym_lt` could not fix by heuristic (`car7` 0.740 -> 0.003).
+
+    Full frame, no crop, by author's decision: measure the published tracker as published first, and
+    only then ask whether our window geometry helps it. Input is fixed at 1024 inside the wrapper
+    (`self.input_image_size`), so the `upscales` gate applies and the five 720x480 clips are skipped
+    -- the same rule that produced the common-25 set the other arms are compared on.
+
+    Not pip-installed: the repo vendors its own modified `sam2` fork, which would collide with the
+    `sam2 1.1.0` in the main venv. It gets its own interpreter (`.venv-dam4sam`) and is reached by
+    path, the way `AsymArm` reaches AsymTrack.
+    """
+
+    def __init__(self, name: str = "sam21pp-T"):
+        self.name = name
+        self.tr = None
+        self.torch = None
+
+    def _amp(self):
+        return self.torch.autocast("cuda", dtype=self.torch.bfloat16)
+
+    @staticmethod
+    def _pil(frame):
+        from PIL import Image
+        return Image.fromarray(frame[:, :, ::-1].copy())  # rig is BGR, wrapper wants a PIL RGB
+
+    def init(self, frame, box):
+        import sys
+
+        import torch
+
+        if str(DAM4SAM_DIR) not in sys.path:
+            sys.path.insert(0, str(DAM4SAM_DIR))
+        from dam4sam_tracker import DAM4SAMTracker
+
+        self.torch = torch
+        self.tr = DAM4SAMTracker(self.name)
+        x1, y1, x2, y2 = box
+        with self._amp():
+            # `initialize` takes a MASK; passing bbox=None-mask makes it prompt SAM2 with the box
+            # first (`estimate_mask_from_box`), which is the published bbox-init path. xywh there.
+            m = self.tr.initialize(self._pil(frame), None,
+                                   bbox=[x1, y1, x2 - x1, y2 - y1])["pred_mask"]
+        return _box_of(m), mask_contours(m)
+
+    def step(self, frame):
+        with self._amp():
+            m = self.tr.track(self._pil(frame))["pred_mask"]
+        return _box_of(m), mask_contours(m)
+
+
 class CvArm:
     """OpenCV built-in trackers. Box-only: no mask, so `contours` is None."""
 
@@ -647,6 +706,15 @@ arm("asym_lt", family="asymtrack", ckpt="base", search_factor=4.0, image_size=No
     venv_python="/home/jfdg/tracker-sweep/.venv-asym/bin/python")(
     lambda: AsymLtArm(tau_lo=0.3920, tau_hi=0.7293)
 )
+
+
+# `image_size=None` so the `upscales` gate does not apply, same as the AsymTrack arms. 1024 is not
+# a knob we chose from a ladder: it is the wrapper's hard-coded input (`self.input_image_size`), and
+# at 1024 the gate rejects EVERY UAV123 clip (1024^2 > 1280x720), which would veto the published
+# tracker outright instead of measuring it. The gate exists to keep our own resolution ladder
+# honest, not to forbid a fixed-input model.
+arm("dam4sam_t", family="dam4sam", ckpt="sam21pp-T", image_size=None,
+    venv_python="/home/jfdg/tracker-sweep/.venv-dam4sam/bin/python")(lambda: Dam4SamArm())
 
 
 for _ck, _short in [("tiny", "t"), ("small", "s"), ("base-plus", "bp"), ("large", "l")]:
