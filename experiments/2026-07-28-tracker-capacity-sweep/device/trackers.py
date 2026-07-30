@@ -372,6 +372,11 @@ class Dam4SamArm:
         self.name, self.size = name, size
         self.tr = None
         self.torch = None
+        # Same quantity as `Sam2Arm.conf` -- SAM2.1's trained occlusion head -- pulled out of the
+        # inference state instead of off StreamCarry, because the DAM4SAM wrapper's `track()`
+        # returns only `pred_mask`. Extracted exactly as `stream_carry.py:142` does it, so the two
+        # families' presence scores are the same number on the same scale and comparable.
+        self.conf = None
 
     def _amp(self):
         return self.torch.autocast("cuda", dtype=self.torch.bfloat16)
@@ -416,9 +421,26 @@ class Dam4SamArm:
                                    bbox=[x1, y1, x2 - x1, y2 - y1])["pred_mask"]
         return _box_of(m), mask_contours(m)
 
+    def _score(self):
+        """`object_score_logits` for the frame just tracked, or None if it is not there.
+
+        `propagate_in_video` consolidates into `inference_state["output_dict"]`, keyed by frame
+        index; a tracked frame lands under `non_cond_frame_outputs` (frame 0 under
+        `cond_frame_outputs`). Returns None rather than raising: a missing score is a measurement
+        gap, and killing a 7-hour sweep over one is worse than a NaN in a column.
+        """
+        try:
+            d = self.tr.inference_state["output_dict"]
+            out = (d["non_cond_frame_outputs"].get(self.tr.frame_index)
+                   or d["cond_frame_outputs"].get(self.tr.frame_index))
+            return float(out["object_score_logits"].reshape(-1)[0])
+        except Exception:
+            return None
+
     def step(self, frame):
         with self._amp():
             m = self.tr.track(self._pil(frame))["pred_mask"]
+        self.conf = self._score()
         return _box_of(m), mask_contours(m)
 
 
