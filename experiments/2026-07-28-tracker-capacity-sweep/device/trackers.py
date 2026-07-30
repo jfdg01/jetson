@@ -368,8 +368,8 @@ class Dam4SamArm:
     path, the way `AsymArm` reaches AsymTrack.
     """
 
-    def __init__(self, name: str = "sam21pp-T"):
-        self.name = name
+    def __init__(self, name: str = "sam21pp-T", size: int = 1024):
+        self.name, self.size = name, size
         self.tr = None
         self.torch = None
 
@@ -391,7 +391,23 @@ class Dam4SamArm:
         from dam4sam_tracker import DAM4SAMTracker
 
         self.torch = torch
-        self.tr = DAM4SAMTracker(self.name)
+        if self.size != 1024:
+            # The wrapper hard-codes 1024 and builds the predictor with no hydra override, so both
+            # ends have to move together: `input_image_size` is what `_prepare_image` resizes to,
+            # `model.image_size` is what sets `sam_image_embedding_size`. Change one and SAM2 dies on
+            # `assert backbone_features.size(2) == self.sam_image_embedding_size`.
+            import dam4sam_tracker as _dt
+            _build = _dt.build_sam2_video_predictor
+            _dt.build_sam2_video_predictor = lambda cfg, ck=None, **kw: _build(
+                cfg, ck, hydra_overrides_extra=[f"++model.image_size={self.size}"], **kw)
+            try:
+                self.tr = DAM4SAMTracker(self.name)
+            finally:
+                _dt.build_sam2_video_predictor = _build
+            self.tr.input_image_size = self.size
+            assert self.tr.predictor.image_size == self.size
+        else:
+            self.tr = DAM4SAMTracker(self.name)
         x1, y1, x2, y2 = box
         with self._amp():
             # `initialize` takes a MASK; passing bbox=None-mask makes it prompt SAM2 with the box
@@ -713,6 +729,12 @@ arm("asym_lt", family="asymtrack", ckpt="base", search_factor=4.0, image_size=No
 # at 1024 the gate rejects EVERY UAV123 clip (1024^2 > 1280x720), which would veto the published
 # tracker outright instead of measuring it. The gate exists to keep our own resolution ladder
 # honest, not to forbid a fixed-input model.
+for _sz in (512, 640, 1024):
+    arm(f"dam4sam_t{_sz}", family="dam4sam", ckpt="sam21pp-T", image_size=None,
+        venv_python="/home/jfdg/tracker-sweep/.venv-dam4sam/bin/python")(
+        lambda sz=_sz: Dam4SamArm(size=sz)
+    )
+
 arm("dam4sam_t", family="dam4sam", ckpt="sam21pp-T", image_size=None,
     venv_python="/home/jfdg/tracker-sweep/.venv-dam4sam/bin/python")(lambda: Dam4SamArm())
 
