@@ -699,7 +699,7 @@ def _check_lt() -> None:
     class FakeAsym:
         def __init__(self, confs):
             self.confs, self.win, self.conf, self.cur = list(confs), None, None, 0.0
-                self.conf_cos = None
+            self.conf_cos = None
             self.probed = []
             self.t = types.SimpleNamespace(state=[100, 100, 20, 20], track=self._track,
                                            params=types.SimpleNamespace(search_factor=4.0))
