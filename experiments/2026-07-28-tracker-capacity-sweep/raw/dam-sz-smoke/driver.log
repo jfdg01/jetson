@@ -1,0 +1,36 @@
+manifest written; NV Power Mode: 15W 0 | governor schedutil
+[1/2] dam4sam_t768 x truck3 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/535  13s  3.71 fps  eta 131s
+  100/535  27s  3.69 fps  eta 118s
+  150/535  41s  3.68 fps  eta 104s
+  200/535  54s  3.69 fps  eta 91s
+  250/535  68s  3.69 fps  eta 77s
+  300/535  81s  3.68 fps  eta 64s
+  350/535  95s  3.68 fps  eta 50s
+  400/535  109s  3.68 fps  eta 37s
+  450/535  122s  3.68 fps  eta 23s
+  500/535  136s  3.68 fps  eta 10s
+{"arm": "dam4sam_t768", "seq": "truck3", "frames": 535, "w": 1280, "h": 720, "init_ms": 7266.084244009107, "warmup_frames": 5, "ms_p50": 262.1127259917557, "ms_p95": 264.6274517290294, "ms_p99": 265.8552972972393, "ms_max": 268.8020230270922, "fps": 3.815152416641736, "decode_ms_p50": 9.038258576765656, "lost_frames": 0, "conf_frames": 0, "rss_peak_mb": 2481.52734375, "gpu_peak_mb": 666.6376953125}
+  155.1s wall, temps NoneC
+[2/2] dam4sam_t960 x truck3 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/535  19s  2.62 fps  eta 185s
+  100/535  39s  2.55 fps  eta 171s
+  150/535  59s  2.53 fps  eta 152s
+  200/535  79s  2.52 fps  eta 133s
+  250/535  100s  2.51 fps  eta 113s
+  300/535  120s  2.51 fps  eta 94s
+  350/535  140s  2.50 fps  eta 74s
+  400/535  160s  2.50 fps  eta 54s
+  450/535  180s  2.50 fps  eta 34s
+  500/535  200s  2.50 fps  eta 14s
+{"arm": "dam4sam_t960", "seq": "truck3", "frames": 535, "w": 1280, "h": 720, "init_ms": 7212.593073956668, "warmup_frames": 5, "ms_p50": 393.20718543604016, "ms_p95": 396.2159085087478, "ms_p99": 397.8453290835023, "ms_max": 642.2229120507836, "fps": 2.5431885200446365, "decode_ms_p50": 8.985365042462945, "lost_frames": 0, "conf_frames": 0, "rss_peak_mb": 2988.51171875, "gpu_peak_mb": 919.60498046875}
+  223.5s wall, temps NoneC
+DONE
