@@ -157,6 +157,28 @@ punto, así que toca clip y no figura. Visto con Read antes de afirmar nada.
 Se anota aquí lo que pase, con hora Madrid. Un run que falla se anota igual: un negativo es
 contenido.
 
+- `2026-07-30T02:45Z` — smoke de `asym_lt` (car12, bird1_3) con un fallo encontrado **mirando el
+  overlay**, que es exactamente para lo que está la regla. La máquina de estados funciona
+  mecánicamente: frame 117/123 en `LOST`, ventana barriendo otra zona del frame, frame 125
+  reenganche con IoU 0.67 sobre el coche. Pero la ventana de sondeo ponía `entrada 508px` mientras
+  el brazo trackeaba con 154-196px: `self.size` se actualizaba en **todos** los frames de
+  `tracking`, incluidos los k de confianza baja previos a la pérdida, donde la caja ya está
+  reventada. La escala del ráster salía de la caja rota. Corregido: solo actualiza escala un frame
+  por encima de `tau_lo`. Añadida la aserción al self-check. Re-smoke lanzado.
+  De paso, dos fallos preexistentes de `render_overlay` (no causados por `asym_lt`, `asym_b` fallaba
+  igual): la re-derivación exacta de la ventana no puede cumplirse para los brazos AsymTrack porque
+  el device la construye desde el `state` float y la fila guarda la caja truncada a int — se
+  comprueba el centro; y la rama "un frame perdido congela la ventana" se aplicaba a `asym_lt`,
+  cuyo objetivo es precisamente moverla.
+- `2026-07-30T02:20Z` — Q1 cerrado. `presence_auc = 0.711` sobre las 33 secuencias con huecos:
+  **zona gris**, así que se construye Q3 **y** el verificador coseno (`AsymArm.conf_cos`, NCC de
+  media cero contra el parche template del frame 0, ~0.3 ms, sin red nueva). `f_lt` y `maxgm`
+  estaban medianados sobre las 123 secuencias, y en las 90 sin huecos un tracker que siempre
+  responde saca `f_lt = 1` por construcción; corregido a solo las 33: `f_lt 0.826`, `maxgm 0.482`.
+  Ese 0.482 es la referencia a batir, no el 0.385 que salía antes. Umbrales ajustados sobre las 17
+  pares: `tau_lo = 0.3920`, `tau_hi = 0.7293`, sin aviso de solape — la histéresis es real.
+  5 de 33 secuencias con `presence_auc < 0.5` (uav6 0.34 está anticorrelada): el sustituto no es
+  solo débil, en algunas secuencias engaña.
 - `2026-07-30T01:05Z` — cola escrita. `asym-conf` en 100/123. Matada una espera zombi de
   `crop-truck3` que llevaba 24 h consultando la Jetson cada 20 s (`jetson.py status` no imprime
   `NOT-RUNNING` para un run-id que ya no conoce, así que el `grep` nunca casaba).

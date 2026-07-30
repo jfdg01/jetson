@@ -96,6 +96,12 @@ def score_one(path: Path, gt: list) -> dict | None:
            "presence_auc": roc_auc(present[ok].astype(int), conf[ok]) if (~present[ok]).any()
            else float("nan")}
     out.update(sweep(present[ok], conf[ok], answered[ok], hit[ok]))
+    # second, independent verifier: NCC against the frame-0 template. Scored the same way and on the
+    # same frames, so the two AUCs are directly comparable -- which is the whole point of having it.
+    cos = np.array([rows.get(i, {}).get("conf_cos", None) or np.nan for i in range(len(gt))], float)
+    ok2 = np.isfinite(cos)
+    out["cos_auc"] = (roc_auc(present[ok2].astype(int), cos[ok2])
+                      if ok2.any() and (~present[ok2]).any() else float("nan"))
     return out
 
 
@@ -169,8 +175,8 @@ def main() -> None:
     # everything is medianed over the GAP sequences only. On a sequence with no absent frame an
     # always-answer tracker scores f_lt = 1 by construction, so pooling the other 90 in reports the
     # dataset's prevalence rather than the arm's behaviour.
-    print(f"{'arm':11s} {'n':>3s} {'gap':>4s} {'presence_auc':>13s} {'f_lt':>7s} {'maxgm':>7s} "
-          f"{'auc<0.5':>8s}")
+    print(f"{'arm':11s} {'n':>3s} {'gap':>4s} {'presence_auc':>13s} {'cos_auc':>8s} {'f_lt':>7s} "
+          f"{'maxgm':>7s} {'auc<0.5':>8s}")
     for a in sorted({r["arm"] for r in per}):
         g = [r for r in per if r["arm"] == a]
         gapped = [r for r in g if r["gap"] > 0]
@@ -179,6 +185,7 @@ def main() -> None:
             continue
         auc = [r["presence_auc"] for r in gapped]
         print(f"{a:11s} {len(g):3d} {len(gapped):4d} {np.median(auc):13.3f} "
+              f"{np.nanmedian([r['cos_auc'] for r in gapped]):8.3f} "
               f"{np.median([r['f_lt'] for r in gapped]):7.3f} "
               f"{np.median([r['maxgm'] for r in gapped]):7.3f} "
               f"{sum(1 for v in auc if v < 0.5):5d}/{len(auc):<3d}")

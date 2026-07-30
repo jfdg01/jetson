@@ -1,0 +1,36 @@
+manifest written; NV Power Mode: 15W 0 | governor schedutil
+[1/2] asym_lt x car12 ...
+==============> Switch To Deploy
+  50/499  3s  16.18 fps  eta 28s
+  100/499  5s  18.44 fps  eta 22s
+  150/499  7s  20.46 fps  eta 17s
+  200/499  9s  21.60 fps  eta 14s
+  250/499  11s  22.09 fps  eta 11s
+  300/499  13s  22.67 fps  eta 9s
+  350/499  17s  20.62 fps  eta 7s
+  400/499  19s  21.25 fps  eta 5s
+  450/499  24s  18.96 fps  eta 3s
+{"arm": "asym_lt", "seq": "car12", "frames": 499, "w": 1280, "h": 720, "init_ms": 5195.679334923625, "warmup_frames": 5, "ms_p50": 30.079727061092854, "ms_p95": 181.58678598701954, "ms_p99": 191.31177494302392, "ms_max": 196.28653675317764, "fps": 33.24498250828437, "decode_ms_p50": 8.159792050719261, "lost_frames": 68, "conf_frames": 498, "rss_peak_mb": 1016.91796875, "gpu_peak_mb": 51.56591796875}
+  36.4s wall, temps NoneC
+[2/2] asym_lt x bird1_3 ...
+==============> Switch To Deploy
+  50/865  2s  22.12 fps  eta 37s
+  100/865  4s  24.49 fps  eta 31s
+  150/865  7s  22.55 fps  eta 32s
+  200/865  10s  19.53 fps  eta 34s
+  250/865  12s  20.78 fps  eta 30s
+  300/865  14s  21.60 fps  eta 26s
+  350/865  17s  20.96 fps  eta 25s
+  400/865  19s  21.36 fps  eta 22s
+  450/865  28s  16.10 fps  eta 26s
+  500/865  32s  15.84 fps  eta 23s
+  550/865  34s  16.09 fps  eta 20s
+  600/865  36s  16.67 fps  eta 16s
+  650/865  38s  17.19 fps  eta 13s
+  700/865  44s  15.79 fps  eta 10s
+  750/865  54s  13.84 fps  eta 8s
+  800/865  64s  12.49 fps  eta 5s
+  850/865  74s  11.50 fps  eta 1s
+{"arm": "asym_lt", "seq": "bird1_3", "frames": 865, "w": 1280, "h": 720, "init_ms": 5137.546451296657, "warmup_frames": 5, "ms_p50": 32.782499212771654, "ms_p95": 196.34930808097124, "ms_p99": 197.5620275363326, "ms_max": 198.27933376654983, "fps": 30.504080653204515, "decode_ms_p50": 5.811573937535286, "lost_frames": 284, "conf_frames": 864, "rss_peak_mb": 1013.328125, "gpu_peak_mb": 51.56591796875}
+  83.8s wall, temps NoneC
+DONE
