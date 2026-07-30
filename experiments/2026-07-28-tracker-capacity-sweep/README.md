@@ -987,3 +987,144 @@ brazos: **3.2-3.7 h**.
   factor es el run siguiente y ahí sí con la curva completa.
 - Sigue sin medirse la penalización por cambiar la ventana a mitad de stream, que afecta a
   `asym_b_redet`. Es el riesgo declarado, y también lo que el brazo mediría.
+
+---
+
+## Q1 — la señal de presencia de AsymTrack (run `asym-conf`, 123 secuencias, 2026-07-30T02:20Z)
+
+AsymTrack no tiene cabeza de oclusión. El sustituto medido es `conf` = pico del corner-softmax.
+Métricas medianadas **solo sobre las 33 secuencias con huecos** (30747 frames, 2683 ausentes): en las
+90 sin huecos un tracker que siempre responde saca `f_lt = 1` por construcción.
+
+| métrica | valor | lectura |
+| --- | --- | --- |
+| `presence_auc` | **0.711** | zona gris del pre-registro (0.65-0.75) |
+| `f_lt` | 0.826 | — |
+| `maxgm` | **0.482** | referencia a batir para Q3 |
+| `presence_auc < 0.5` | 5 / 33 | `uav6` 0.34: anticorrelada |
+
+Rama elegida por el pre-registro (`analysis/presence.py`, docstring escrito antes de ver el número):
+zona gris = construir Q3 **y además** un verificador coseno independiente para comparar.
+Implementado como `AsymArm.conf_cos`, NCC de media cero contra el parche template del frame 0,
+~0.3 ms, sin red nueva.
+
+Umbrales para Q3, ajustados sobre las 17 secuencias de índice par y evaluados sobre las 16 impares:
+`tau_lo = 0.3920` (conf al 90% TPR), `tau_hi = 0.7293` (conf al 5% FPR). Sin aviso de solape — la
+histéresis es real.
+
+## Q2 — tamaño de ventana contra tratamiento del borde (run `c640pad`, 2026-07-30T05:10Z)
+
+Confundido detectado por el autor: `c640` **desliza** la ventana para que quepa en el frame, `f5`
+**rellena** con ceros. Compararlos mezcla dos cambios. `c640_pad` es el peldaño intermedio: mismo
+tamaño fijo de 640, relleno en vez de deslizamiento. `c640` se queda congelado como incumbente.
+
+Sobre las **25 secuencias comunes** (ver nota de la compuerta abajo):
+
+| brazo | AUC | mIoU | @0.5 | p50 ms |
+| --- | --- | --- | --- | --- |
+| `sam2_c640` | 65.0 | 0.785 | 0.983 | 159.3 |
+| `sam2_c640_pad` | **64.8** | 0.787 | 0.983 | 159.4 |
+| `sam2_c704` | 66.9 | — | — | — |
+
+Dentro del +-1 punto que decía la estimación a priori: **deslizar o rellenar es indiferente**. Luego
+lo que separa `c640` de `f5` es el tamaño de ventana escalado al objeto, no el borde.
+
+Verificación visual obligatoria (`raw/c640pad/q2_tile.png`, `car1_3` frame 307, coche pegado al borde
+superior): arriba `c640_pad`, ventana centrada saliéndose del frame y panel de entrada **negro en la
+banda superior** — el relleno de ceros, visible. Abajo `c640`, misma ventana deslizada hacia dentro y
+panel lleno. IoU 0.79 vs 0.75 en ese frame.
+
+Dos hallazgos laterales:
+
+- **5 secuencias fuera por la compuerta `upscales`**: `uav1_2,uav2,uav3,uav5,uav7` son 720x480 y una
+  ventana de 640 no cabe en 480. La compuerta es correcta. Incómodo: `full-sweep-30` es anterior a
+  ella y **sí** tiene esas 5 celdas para `c640`/`c704`, así que los números publicados del incumbente
+  incluyen 5 clips que la regla actual del proyecto declara inválidos por interpolación. Todas las
+  comparaciones de esta sección están hechas sobre las 25 comunes. *(Decisión del autor 2026-07-30:
+  no se relanza; se deja anotado.)*
+- `render_overlay` no sabía re-derivar la ventana del brazo `pad` (la re-derivaba deslizada:
+  `AssertionError: (2, [46, -199, 640], [46, 0, 640])`). Origen negativo es justamente el tratamiento
+  bajo prueba. Arreglado.
+
+## Q3 — el reenganche: `asym_lt` (run `asym-lt`, 33 secuencias x 2 brazos, 2026-07-30T03:45Z)
+
+Envoltura estilo LTMU sobre AsymTrack, no un modelo nuevo: tracker local + verificador (`conf`) +
+máquina de estados con histéresis (k=3 frames bajo `tau_lo` para declarar `LOST`) + redetector ráster
+amortizado (N=5 ventanas/frame, cubre el frame en ~8 frames) + template del frame 0 congelado. Emite
+caja **solo** en estado `tracking`.
+
+**Negativo en todas las métricas.** Mitad de evaluación (16 impares) salvo donde se indica:
+
+| métrica | `asym_lt` | `asym_b` |
+| --- | --- | --- |
+| `maxgm` | 0.492 | **0.493** |
+| `f_lt` | 0.770 | **0.883** |
+| AUC OPE (33) | 45.4 | **52.0** |
+| mIoU (33) | 0.561 | **0.645** |
+| p50 ms | 30.5 | 30.4 |
+
+La estimación a priori decía "`maxgm` sube claramente, es casi por construcción". Falso, y el porqué
+es el resultado:
+
+- **Precisión de abstención 26.7%.** 3737 abstenciones, solo 998 sobre frames realmente vacíos. Se
+  calla en 2739 frames CON objeto para acertar 998 sin él.
+- **Precisión de reenganche 24.7%.** 162 episodios de pérdida, 40 vuelven con IoU > 0.3. Por debajo
+  del 35-40% que los brazos SAM2 recuperaban **pasivamente**, sin máquina de estados.
+- **Coste asimétrico**: `car7` cae de mIoU 0.740 a 0.003 (reengancha sobre un distractor y ya no
+  vuelve), `bike2` 0.149 a 0.013.
+- **Latencia idéntica**: el ráster amortizado no cuesta nada. Esa pieza del diseño sí funciona.
+
+No es un problema de umbrales: subir `tau_hi` empeora las 2739 abstenciones falsas, bajarlo empeora
+los 122 reenganches malos.
+
+**El verificador coseno tampoco.** `cos_auc` 0.714 sobre las 33 (0.770 en la mitad impar) contra
+0.711 (0.720) del pico del corner-softmax. Dos verificadores independientes, el mismo techo mediocre.
+La rama gris del pre-registro queda agotada: **lo que falta es una cabeza de score entrenada, no otra
+heurística sobre las features de AsymTrack.**
+
+Verificación visual (`raw/asym-lt/p17_reattach.mp4` y `p17_tile.png`, `person17_1` 570-645): frame
+579 responde con el objeto ausente; 591 y 616 en `LOST` con la ventana de 205 px barriendo; 632
+reengancha con IoU 0.76. El frame 616 es el hallazgo: la persona está **visible y dentro de la
+ventana** y el brazo sigue en `LOST` — las 2739 abstenciones falsas en una imagen.
+
+## Tercer peldaño de la escalera: `sam2_f5` (run `f5-30`, 2026-07-30T06:40Z)
+
+Ventana `5*sqrt(w*h)` escalada al objeto, rellenada, misma entrada 640x640. Sobre las mismas 25:
+
+| brazo | AUC | mIoU | @0.25 | @0.5 | FP en hueco | p50 ms |
+| --- | --- | --- | --- | --- | --- | --- |
+| `sam2_c640` | **65.0** | 0.785 | — | 0.983 | 542 | 159.3 |
+| `sam2_f5` | 57.9 | 0.759 | **0.999** | **0.987** | **59** | 159.6 |
+
+Menos 7 puntos de AUC, pero @0.25, @0.5 y falsos positivos en hueco son los mejores de todo el
+barrido. **Bimodal**, no degradado uniformemente:
+
+- gana: `wakeboard5` 0.674 vs 0.525, `building5` 0.821 vs 0.728, `truck2` 0.838 vs 0.789,
+  `bike2` 0.176 vs 0.120, `car1_3` 0.632 vs 0.558.
+- se hunde: `car12` 0.028 vs 0.671, `car9` 0.355 vs 0.847, `person18` 0.268 vs 0.766,
+  `person19_3` 0.193 vs 0.752, `bird1_3` 0.013 vs 0.094.
+
+**Mecanismo: colapso de escala con realimentación positiva.** La ventana la dimensiona la caja que
+produce el propio brazo, así que una caja que encoge encoge la ventana, que quita contexto, que
+encoge más la caja. Sin suelo. Medido: `car9` 647 px -> 52 px, `person19_3` 173 -> 32, `wakeboard5`
+448 -> 18, `car12` arranca en 97 y no se recupera. Un lado de 52 px entrando en 640 son 12x de
+interpolación — justo lo que la compuerta `upscales` no filtra para los brazos de factor.
+
+Verificación visual (`raw/f5-30/f5_collapse.png`, `car9`): frame 301 ventana 274 px IoU 0.77; frame
+701 226 px IoU 0.88; frame 801 la ventana ya son 52 px **enganchada al pórtico de señalización** y en
+`LOST`; frame 1001 sigue en el pórtico con el coche (verde) a 200 px. Terminal: con 52 px de ventana
+no puede volver a ver el coche.
+
+### `sam2_f5_floor` (corriendo, lanzado 2026-07-30T08:10Z)
+
+Misma geometría con el lado de la ventana **acotado por abajo a su valor del frame 0**. Aísla el
+colapso de la geometría escalada. Prohíbe que un objeto que se aleja de verdad encoja su ventana, y
+eso solo es asumible porque `c640` ya demuestra que una ventana de más no cuesta nada aquí.
+
+**Estimación a priori** (escrita antes del resultado): si el colapso lo explica todo, `f5_floor` queda
+**por encima de 65.0**; si queda **entre 58 y 63**, la geometría escalada al objeto tiene además un
+problema propio.
+
+*Nota de ejecución: el run se lanzó por primera vez a las 06:40Z y no llegó a arrancar — el
+lanzamiento heredó el cwd `device/` de un self-check anterior y `../../.venv-ft/bin/python` no
+resolvió. La Jetson estuvo parada ~1.5 h. Relanzado desde la raíz.*
