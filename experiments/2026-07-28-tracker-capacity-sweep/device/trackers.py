@@ -422,6 +422,107 @@ class Dam4SamArm:
         return _box_of(m), mask_contours(m)
 
 
+SAMURAI_DIR = Path(os.environ.get("SAMURAI_DIR", "/home/jfdg/trackers/samurai"))
+
+
+class SamuraiArm:
+    """SAMURAI: SAM2.1 with motion-aware memory selection (Yang et al., arXiv 2411.11922).
+
+    Also training-free and also the same tiny checkpoint: a Kalman filter over the box predicts where
+    the target should be, that prediction re-weights SAM2's multimask choice (`kf_score`), and frames
+    only enter memory while the track is "stable". Kalman state lives on the MODEL (`self.kf_mean`,
+    `self.stable_frames` in `sam2_base.py`), not in the inference state, which is what makes the
+    streaming surgery below safe.
+
+    Published usage is OFFLINE: `init_state(video_path)` calls `load_video_frames`, which decodes and
+    resizes the WHOLE clip up front. At 1024 that is ~12.6 MB/frame; `bird1_3` alone is 865 frames,
+    ~10.9 GB. Infeasible on an 8 GB Jetson, and it would also measure a batch pipeline instead of the
+    per-frame latency the rig exists to measure. So the state is built by hand -- everything
+    `init_state` does except `load_video_frames` -- with `images` as a DICT holding only the current
+    frame, and `num_frames` advanced one frame at a time. `_get_image_feature` indexes `images` by
+    frame index, so a dict is a drop-in; `propagate_in_video(start_frame_idx=i,
+    max_frame_num_to_track=0)` then runs exactly one frame. Same trick DAM4SAM ships as
+    `init_state_tw`.
+
+    Own venv (`.venv-samurai`) and reached by path, same reason as `Dam4SamArm`: vendored `sam2` fork.
+    """
+
+    MEAN = (0.485, 0.456, 0.406)
+    STD = (0.229, 0.224, 0.225)
+
+    def __init__(self, size: int = 1024, ckpt: str = "sam2.1_hiera_tiny.pt"):
+        self.size, self.ckpt = size, ckpt
+        self.predictor = None
+        self.state = None
+        self.torch = None
+        self.i = 0
+
+    def _amp(self):
+        # fp16 here, not bf16: the published demo runs fp16 and the Kalman gating reads the mask
+        # scores, so the numerics of the score head are part of the method.
+        return self.torch.autocast("cuda", dtype=self.torch.float16)
+
+    def _prep(self, frame):
+        """BGR uint8 HxWx3 -> normalized CHW tensor on GPU, matching `_load_img_as_tensor`."""
+        import cv2
+        torch = self.torch
+        img = cv2.resize(frame[:, :, ::-1], (self.size, self.size), interpolation=cv2.INTER_LINEAR)
+        t = torch.from_numpy(np.ascontiguousarray(img)).permute(2, 0, 1).float() / 255.0
+        t -= torch.tensor(self.MEAN)[:, None, None]
+        t /= torch.tensor(self.STD)[:, None, None]
+        return t.to("cuda")
+
+    def init(self, frame, box):
+        import sys
+
+        import torch
+
+        pkg = str(SAMURAI_DIR / "sam2")
+        if pkg not in sys.path:
+            sys.path.insert(0, pkg)
+        from sam2.build_sam import build_sam2_video_predictor
+
+        self.torch = torch
+        h, w = frame.shape[:2]
+        over = [f"++model.image_size={self.size}"] if self.size != 1024 else []
+        self.predictor = build_sam2_video_predictor(
+            "configs/samurai/sam2.1_hiera_t.yaml", str(SAMURAI_DIR / "checkpoints" / self.ckpt),
+            device="cuda:0", hydra_overrides_extra=over)
+        assert self.predictor.image_size == self.size
+        dev = torch.device("cuda")
+        self.i = 0
+        self.state = {
+            "images": {0: self._prep(frame)}, "num_frames": 1,
+            "offload_video_to_cpu": False, "offload_state_to_cpu": False,
+            "video_height": h, "video_width": w, "device": dev, "storage_device": dev,
+            "point_inputs_per_obj": {}, "mask_inputs_per_obj": {}, "cached_features": {},
+            "constants": {}, "obj_id_to_idx": collections.OrderedDict(),
+            "obj_idx_to_id": collections.OrderedDict(),
+            "obj_ids": [],
+            "output_dict": {"cond_frame_outputs": {}, "non_cond_frame_outputs": {}},
+            "output_dict_per_obj": {}, "temp_output_dict_per_obj": {},
+            "consolidated_frame_inds": {"cond_frame_outputs": set(), "non_cond_frame_outputs": set()},
+            "tracking_has_started": False, "frames_already_tracked": {},
+        }
+        with torch.inference_mode(), self._amp():
+            _, _, masks = self.predictor.add_new_points_or_box(
+                self.state, box=list(box), frame_idx=0, obj_id=0)
+        m = (masks[0, 0] > 0).cpu().numpy()
+        return _box_of(m), mask_contours(m)
+
+    def step(self, frame):
+        torch = self.torch
+        self.i += 1
+        self.state["images"].pop(self.i - 1, None)  # only the current frame is ever needed
+        self.state["images"][self.i] = self._prep(frame)
+        self.state["num_frames"] = self.i + 1
+        with torch.inference_mode(), self._amp():
+            _, _, masks = next(self.predictor.propagate_in_video(
+                self.state, start_frame_idx=self.i, max_frame_num_to_track=0))
+        m = (masks[0, 0] > 0).cpu().numpy()
+        return _box_of(m), mask_contours(m)
+
+
 class CvArm:
     """OpenCV built-in trackers. Box-only: no mask, so `contours` is None."""
 
@@ -737,6 +838,14 @@ for _sz in (512, 640, 1024):
 
 arm("dam4sam_t", family="dam4sam", ckpt="sam21pp-T", image_size=None,
     venv_python="/home/jfdg/tracker-sweep/.venv-dam4sam/bin/python")(lambda: Dam4SamArm())
+
+# Same treatment for SAMURAI, and for the same reason: fixed-input published tracker, `image_size`
+# is a hydra override we drive, not a rung on our ladder.
+for _sz in (512, 640, 1024):
+    arm(f"samurai_t{_sz}", family="samurai", ckpt="sam2.1_hiera_tiny", image_size=None,
+        venv_python="/home/jfdg/tracker-sweep/.venv-samurai/bin/python")(
+        lambda sz=_sz: SamuraiArm(size=sz)
+    )
 
 
 for _ck, _short in [("tiny", "t"), ("small", "s"), ("base-plus", "bp"), ("large", "l")]:
