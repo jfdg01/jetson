@@ -191,6 +191,16 @@ def main() -> None:
               f"{sum(1 for v in auc if v < 0.5):5d}/{len(auc):<3d}")
         w = sorted(gapped, key=lambda r: r["presence_auc"])[:5]
         print("    peores: " + ", ".join(f"{r['seq']} {r['presence_auc']:.2f}" for r in w))
+        # A sequence's AUC rests on its ABSENT frames, and seven of the 33 have fewer than 25 --
+        # uav6 has five. Gating at 25 barely moves the median (0.711 -> 0.715 on asym_b) and drops
+        # two of the five inversions, which is the point: the surrogate is uniformly mediocre, not
+        # good on some clips and broken on others. Printed rather than substituted, because the
+        # ungated median is what the pre-registration named.
+        big = [r for r in gapped if r["gap"] >= 25]
+        if big and len(big) != len(gapped):
+            b = [r["presence_auc"] for r in big]
+            print(f"    huecos >= 25 fr: n={len(big)}  auc {np.median(b):.3f}  "
+                  f"por debajo de 0.5: {sum(1 for v in b if v < 0.5)}")
 
 
 def _check() -> None:
