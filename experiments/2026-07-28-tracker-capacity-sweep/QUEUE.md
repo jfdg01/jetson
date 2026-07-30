@@ -157,6 +157,30 @@ punto, así que toca clip y no figura. Visto con Read antes de afirmar nada.
 Se anota aquí lo que pase, con hora Madrid. Un run que falla se anota igual: un negativo es
 contenido.
 
+- `2026-07-30T03:45Z` — **Q3 cerrado: `asym_lt` no gana en ninguna métrica.** 33 secuencias con
+  huecos, dos brazos. Mitad de evaluación (16 impares, la que cuenta): `maxgm` 0.492 vs 0.493 de
+  `asym_b` — plano, no sube; `f_lt` 0.770 vs 0.883 — baja; AUC OPE 45.4 vs 52.0 sobre las 33.
+  Latencia idéntica (p50 30.5 vs 30.4 ms): el ráster amortizado no cuesta nada, esa parte del
+  diseño sí funciona. La estimación a priori decía "`maxgm` sube claramente, es casi por
+  construcción"; falso, y el porqué es el resultado.
+  El desglose: 3737 abstenciones, solo 998 sobre frames realmente vacíos — **precisión de
+  abstención 26.7%**. Se calla en 2739 frames CON objeto para acertar 998 sin él. Y reengancha
+  peor de lo que se pierde: 162 episodios de pérdida, 40 vuelven con IoU > 0.3 = **24.7%**, por
+  debajo del 35-40% que recuperaban pasivamente los brazos SAM2. El coste es asimétrico — `car7`
+  cae de mIoU 0.740 a 0.003 porque reengancha sobre un distractor y ya no vuelve; `bike2`
+  0.149 a 0.013.
+  Diagnóstico: la máquina de estados es mecánicamente correcta (se ve en el clip), el verificador
+  no. Con `presence_auc = 0.711` el redetector elige mal el candidato y el `tau_hi` no deja volver
+  a tiempo. No es un problema de umbrales que se arregle moviéndolos: subir `tau_hi` empeora las
+  2739 abstenciones falsas, bajarlo empeora los 122 reenganches malos.
+  **Verificador coseno: tampoco.** `cos_auc` 0.714 sobre las 33 (0.770 en la mitad impar) contra
+  0.711 (0.720) del pico del corner-softmax. Dos verificadores independientes, el mismo techo
+  mediocre. La rama gris del pre-registro está agotada: lo que falta es una cabeza de score
+  entrenada, no otra heurística sobre las features de AsymTrack.
+  Clip: `person17_1` 570-645 (`scratchpad/p17_reattach.mp4`), leído con Read en 4 frames. 579
+  responde con el objeto ausente, 591 y 616 en `LOST` con la ventana de 205 px barriendo, 632
+  reengancha con IoU 0.76. El frame 616 es el hallazgo visual: la persona está **visible y dentro
+  de la ventana** y el brazo sigue en `LOST` — las 2739 abstenciones falsas en una imagen.
 - `2026-07-30T02:45Z` — smoke de `asym_lt` (car12, bird1_3) con un fallo encontrado **mirando el
   overlay**, que es exactamente para lo que está la regla. La máquina de estados funciona
   mecánicamente: frame 117/123 en `LOST`, ventana barriendo otra zona del frame, frame 125
