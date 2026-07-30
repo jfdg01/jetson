@@ -157,6 +157,25 @@ punto, así que toca clip y no figura. Visto con Read antes de afirmar nada.
 Se anota aquí lo que pase, con hora Madrid. Un run que falla se anota igual: un negativo es
 contenido.
 
+- `2026-07-30T05:10Z` — **Q2 cerrado: el borde no importa.** `sam2_c640_pad` sobre las mismas 25
+  secuencias que el incumbente: AUC 64.8 vs 65.0 de `c640`, mIoU 0.787 vs 0.785, @0.5 0.983 en
+  ambos, latencia idéntica (159.4 vs 159.3 ms). Dentro del +-1 punto que decía la estimación a
+  priori, así que **deslizar o rellenar es indiferente** y lo que separa `c640` de `f5` tiene que
+  ser el tamaño de ventana escalado al objeto, no el tratamiento del borde. Lanzado `f5-30` para
+  cerrar el tercer peldaño sobre las mismas secuencias.
+  Verificado a ojo (`scratchpad/q2_tile.png`, `car1_3` frame 307, el coche pegado al borde
+  superior): arriba `c640_pad` con la ventana centrada saliéndose del frame y el panel de entrada
+  **negro en la banda superior** — el relleno de ceros, visible; abajo `c640` con la misma ventana
+  deslizada hacia dentro y el panel lleno. IoU 0.79 vs 0.75 en ese frame.
+  Dos cosas más que salieron de aquí:
+  - **5 secuencias quedaron fuera por la compuerta `upscales`**: `uav1_2,uav2,uav3,uav5,uav7` son
+    720x480 y una ventana de 640 no cabe en 480. La compuerta es correcta. Lo incómodo es que
+    `full-sweep-30` es anterior a ella y **sí** tiene esas 5 celdas para `c640`/`c704`: los números
+    publicados del incumbente incluyen 5 clips que la regla actual del propio proyecto declara
+    inválidos por interpolación. Las comparaciones de arriba están hechas sobre las 25 comunes.
+  - `render_overlay` no sabía re-derivar la ventana del brazo `pad` (la re-derivaba deslizada y
+    reventaba con `AssertionError: (2, [46, -199, 640], [46, 0, 640])`); origen negativo es
+    justamente el tratamiento bajo prueba. Arreglado.
 - `2026-07-30T03:45Z` — **Q3 cerrado: `asym_lt` no gana en ninguna métrica.** 33 secuencias con
   huecos, dos brazos. Mitad de evaluación (16 impares, la que cuenta): `maxgm` 0.492 vs 0.493 de
   `asym_b` — plano, no sube; `f_lt` 0.770 vs 0.883 — baja; AUC OPE 45.4 vs 52.0 sobre las 33.

@@ -167,6 +167,12 @@ def main() -> None:
                 continue
             if fac:
                 e = search_box(b, fac)
+            elif meta["arm"].endswith("_pad"):
+                # The pad arm does NOT slide: the window stays centred on the target and hangs off
+                # the frame, so its origin is routinely negative. Re-deriving it with `crop_box`
+                # checks the wrong geometry -- that is the whole treatment under test.
+                cx, cy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2
+                e = [round(cx - n / 2), round(cy - n / 2), n]
             else:
                 c = crop_box(((b[0] + b[2]) / 2, (b[1] + b[3]) / 2), n, meta["w"], meta["h"])
                 e = [c[0], c[1], c[2] - c[0]]
