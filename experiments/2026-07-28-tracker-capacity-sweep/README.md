@@ -1115,7 +1115,7 @@ Verificación visual (`raw/f5-30/f5_collapse.png`, `car9`): frame 301 ventana 27
 `LOST`; frame 1001 sigue en el pórtico con el coche (verde) a 200 px. Terminal: con 52 px de ventana
 no puede volver a ver el coche.
 
-### `sam2_f5_floor` (corriendo, lanzado 2026-07-30T08:10Z)
+### `sam2_f5_floor` (run `f5floor`, 2026-07-30T09:05Z)
 
 Misma geometría con el lado de la ventana **acotado por abajo a su valor del frame 0**. Aísla el
 colapso de la geometría escalada. Prohíbe que un objeto que se aleja de verdad encoja su ventana, y
@@ -1128,3 +1128,41 @@ problema propio.
 *Nota de ejecución: el run se lanzó por primera vez a las 06:40Z y no llegó a arrancar — el
 lanzamiento heredó el cwd `device/` de un self-check anterior y `../../.venv-ft/bin/python` no
 resolvió. La Jetson estuvo parada ~1.5 h. Relanzado desde la raíz.*
+
+**Resultado: AUC 62.0** — dentro de la banda 58-63 de la estimación a priori, que decía
+*"la geometría escalada al objeto tiene además un problema propio"*. El suelo recupera 4.1 de los
+7.1 puntos perdidos; quedan 3 sin explicar por el colapso.
+
+| brazo | p50 ms | mIoU | @0.25 | @0.5 | FP en hueco | AUC |
+| --- | --- | --- | --- | --- | --- | --- |
+| `sam2_c640` | 159.3 | 0.785 | 0.998 | 0.983 | 542 | **65.0** |
+| `sam2_c640_pad` | 159.4 | 0.787 | 0.998 | 0.983 | 482 | 64.8 |
+| `sam2_c704` | 190.7 | 0.785 | 0.997 | 0.981 | 228 | 66.9 |
+| `sam2_f5` | 159.6 | 0.759 | **0.999** | **0.987** | **59** | 57.9 |
+| `sam2_f5_floor` | 160.6 | 0.783 | 0.998 | 0.983 | 115 | 62.0 |
+
+El suelo funciona mecánicamente — el lado mínimo iguala exactamente el del frame 0 en las 25
+secuencias. Y donde el colapso era la causa, la recuperación es completa:
+
+| seq | lado f5 (frame0 -> min) | lado floor | mIoU `f5` | mIoU `floor` | mIoU `c640` |
+| --- | --- | --- | --- | --- | --- |
+| `car9` | 647 -> 52 | 647 | 0.355 | **0.816** | 0.847 |
+| `person19_3` | 173 -> 32 | 173 | 0.193 | **0.777** | 0.752 |
+| `wakeboard5` | 448 -> 18 | 448 | 0.674 | — | 0.525 |
+| `bike2` | — | — | 0.176 | **0.246** | 0.120 |
+| `bird1_3` | — | — | 0.013 | 0.135 | 0.094 |
+
+**Dos clips no se recuperan, por dos motivos distintos:**
+
+- `car12` 0.028 -> 0.027. El suelo es 97 px porque el objeto ya es pequeño en el frame 0; 97 px
+  entrando en 640 son 6.6x de interpolación desde el primer frame. Aquí el colapso nunca fue el
+  problema: **la geometría escalada al objeto le da al objetivo pequeño una ventana pequeña para
+  siempre**, y el suelo no puede arreglar lo que hereda.
+- `person18` 0.268 -> 0.282, con el suelo en **787 px** — ventana más grande que la de `c640`, y aun
+  así 0.282 contra 0.766. No es colapso ni ventana pequeña. **Sin explicar**: pendiente de mirar el
+  overlay antes de afirmar mecanismo.
+
+Lo que sí queda establecido: a igualdad de latencia (160.6 vs 159.3 ms) y de mIoU (0.783 vs 0.785),
+`f5_floor` emite **115 falsos positivos en hueco contra 542** del incumbente, 4.7x menos. La
+geometría escalada con suelo no mejora la AUC, pero cambia el perfil de error hacia callarse cuando
+no hay objeto.
