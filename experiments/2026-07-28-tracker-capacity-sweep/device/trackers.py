@@ -347,6 +347,26 @@ def _box_of(mask):
     return [int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1]
 
 
+def _object_score(output_dict, idx):
+    """SAM2's `object_score_logits` for frame `idx`, or None if it is not there.
+
+    Same quantity `Sam2Arm.conf` records, pulled out of the inference state instead, because both
+    vendored wrappers (DAM4SAM, SAMURAI) return only masks from their step. `propagate_in_video`
+    consolidates into `output_dict` keyed by frame index; a tracked frame lands under
+    `non_cond_frame_outputs`, frame 0 under `cond_frame_outputs`. One helper for both families so
+    the two presence scores are literally the same number on the same scale.
+
+    Returns None rather than raising: a missing score is a measurement gap, and killing a 4-hour
+    sweep over one is worse than a NaN in a column.
+    """
+    try:
+        out = (output_dict["non_cond_frame_outputs"].get(idx)
+               or output_dict["cond_frame_outputs"].get(idx))
+        return float(out["object_score_logits"].reshape(-1)[0])
+    except Exception:
+        return None
+
+
 DAM4SAM_DIR = Path(os.environ.get("DAM4SAM_DIR", "/home/jfdg/trackers/DAM4SAM"))
 
 
@@ -422,20 +442,7 @@ class Dam4SamArm:
         return _box_of(m), mask_contours(m)
 
     def _score(self):
-        """`object_score_logits` for the frame just tracked, or None if it is not there.
-
-        `propagate_in_video` consolidates into `inference_state["output_dict"]`, keyed by frame
-        index; a tracked frame lands under `non_cond_frame_outputs` (frame 0 under
-        `cond_frame_outputs`). Returns None rather than raising: a missing score is a measurement
-        gap, and killing a 7-hour sweep over one is worse than a NaN in a column.
-        """
-        try:
-            d = self.tr.inference_state["output_dict"]
-            out = (d["non_cond_frame_outputs"].get(self.tr.frame_index)
-                   or d["cond_frame_outputs"].get(self.tr.frame_index))
-            return float(out["object_score_logits"].reshape(-1)[0])
-        except Exception:
-            return None
+        return _object_score(self.tr.inference_state["output_dict"], self.tr.frame_index)
 
     def step(self, frame):
         with self._amp():
@@ -478,6 +485,7 @@ class SamuraiArm:
         self.state = None
         self.torch = None
         self.i = 0
+        self.conf = None  # see `_object_score`
 
     def _amp(self):
         # fp16 here, not bf16: the published demo runs fp16 and the Kalman gating reads the mask
@@ -542,6 +550,7 @@ class SamuraiArm:
             _, _, masks = next(self.predictor.propagate_in_video(
                 self.state, start_frame_idx=self.i, max_frame_num_to_track=0))
         m = (masks[0, 0] > 0).cpu().numpy()
+        self.conf = _object_score(self.state["output_dict"], self.i)
         return _box_of(m), mask_contours(m)
 
 
@@ -835,6 +844,60 @@ class AsymLtArm:
         return None, None
 
 
+class Dam4SamLtArm:
+    """DAM4SAM plus the abstention half of the long-term state machine. No re-detector, on purpose.
+
+    `AsymLtArm` needs five pieces because AsymTrack looks through ONE search window: once the target
+    leaves it, nothing will ever bring it back, so a raster sweep has to go looking. DAM4SAM runs on
+    the FULL FRAME. It already evaluates every pixel every frame -- there is nowhere to search that
+    it is not already looking. The re-detector, which is the expensive and fragile piece, is
+    structurally unnecessary here.
+
+    That leaves exactly what `asym_b` and every DAM4SAM arm measured so far lack: the decision not to
+    answer. Same hysteresis as `AsymLtArm` (`tracking` -> `lost` after `k` frames under `tau_lo`,
+    back on one frame at or above `tau_hi`), driven by the trained occlusion head instead of a
+    corner-peak surrogate.
+
+    `inner.step` is called on EVERY frame including while lost, and its result is thrown away. That
+    is not waste, it is the mechanism: SAM2's memory has to keep advancing or there is nothing to
+    come back with, and DRM has to keep watching the distractor. So the arm costs the same 204 ms as
+    `dam4sam_t640` -- abstention here is free, which is not true of the AsymTrack version.
+
+    Known ceiling: while lost, the memory keeps ingesting frames of whatever the model is looking at,
+    which is the distractor. DRM is the reason to expect that to survive, and it is the assumption
+    under test. If the arm re-attaches to distractors, the fix is suppressing the memory write while
+    lost -- which the vendored wrapper does not expose, so it would mean patching `track()`.
+    """
+
+    def __init__(self, tau_lo: float, tau_hi: float, size: int = 640, k: int = 3):
+        self.inner = Dam4SamArm(size=size)
+        self.tau_lo, self.tau_hi, self.k = tau_lo, tau_hi, k
+        self.lost = False
+        self.low = 0  # consecutive frames under tau_lo
+        self.conf = None
+
+    def init(self, frame, box):
+        b, c = self.inner.init(frame, box)
+        self.conf = self.inner.conf
+        return b, c
+
+    def step(self, frame):
+        b, c = self.inner.step(frame)
+        self.conf = self.inner.conf
+        if self.conf is None:
+            return b, c  # no score this frame: fall through to the plain arm rather than guess
+        if self.lost:
+            if self.conf >= self.tau_hi:
+                self.lost = False
+                return b, c
+            return None, None
+        self.low = self.low + 1 if self.conf < self.tau_lo else 0
+        if self.low >= self.k:
+            self.lost, self.low = True, 0
+            return None, None  # the k frames before this one were already emitted: hysteresis
+        return b, c
+
+
 arm("asym_b", family="asymtrack", ckpt="base", search_factor=4.0, image_size=None,
     venv_python="/home/jfdg/tracker-sweep/.venv-asym/bin/python")(lambda: AsymArm("base"))
 
@@ -928,6 +991,46 @@ def build(name: str):
     if name not in REGISTRY:
         raise SystemExit(f"unknown arm {name!r}; have: {', '.join(sorted(REGISTRY))}")
     return REGISTRY[name]["factory"]()
+
+
+def _check_dam_lt() -> None:
+    """Abstention state machine only -- no network, no probes, scripted confidences.
+
+    Same three things as `_check_lt` minus re-detection: a single dip must not trigger a loss, no box
+    comes out while lost, and a score between the thresholds must not bring it back. Plus one that is
+    specific to this arm: `inner.step` has to be called on EVERY frame including while lost, because
+    suppressing the memory update is exactly the bug this design cannot afford.
+    """
+    import types
+
+    class FakeDam:
+        def __init__(self, confs):
+            self.confs, self.conf, self.calls = list(confs), None, 0
+
+        def init(self, frame, box):
+            self.conf = 9.0
+            return list(box), None
+
+        def step(self, frame):
+            self.calls += 1
+            self.conf = self.confs.pop(0) if self.confs else 0.0
+            return [10, 10, 30, 30], None
+
+    #        dip  recover  ---- three under tau_lo ----  between  under tau_hi
+    script = [0.0, 5.0, -2.0, -2.0, -2.0, 3.0, 6.0]
+    a = Dam4SamLtArm(tau_lo=1.0, tau_hi=8.0, k=3)
+    a.inner = FakeDam(script)
+    a.init(None, [10, 10, 30, 30])
+    out = [a.step(None)[0] for _ in range(len(script))]
+    assert out[0] is not None and out[1] is not None, "one dip below tau_lo is not a loss"
+    assert out[2] is not None and out[3] is not None, "hysteresis: the k frames still emit"
+    assert out[4] is None, "k consecutive frames under tau_lo must declare lost"
+    assert out[5] is None, "a score between the thresholds must not re-attach"
+    assert out[6] is None, "6.0 < tau_hi 8.0: still lost"
+    assert a.inner.calls == len(script), (a.inner.calls, "memory must advance while lost")
+    a.inner.confs = [9.0]
+    assert a.step(None)[0] is not None and not a.lost, "at or above tau_hi comes back"
+    print("dam4sam lt state machine ok")
 
 
 def _check_lt() -> None:
@@ -1051,6 +1154,7 @@ def _check() -> None:
     assert 283 == search_window([600, 340, 680, 380], 5.0)[2]  # the floor IS the frame-0 side
 
     _check_lt()
+    _check_dam_lt()
 
     class Scripted:  # boxes in CROP coords, None = lost; drives the recovery heuristics
         def __init__(self, script): self.script = list(script)
