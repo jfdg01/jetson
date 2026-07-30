@@ -830,7 +830,7 @@ arm("asym_lt", family="asymtrack", ckpt="base", search_factor=4.0, image_size=No
 # at 1024 the gate rejects EVERY UAV123 clip (1024^2 > 1280x720), which would veto the published
 # tracker outright instead of measuring it. The gate exists to keep our own resolution ladder
 # honest, not to forbid a fixed-input model.
-for _sz in (512, 640, 1024):
+for _sz in (512, 640, 768, 960, 1024):
     arm(f"dam4sam_t{_sz}", family="dam4sam", ckpt="sam21pp-T", image_size=None,
         venv_python="/home/jfdg/tracker-sweep/.venv-dam4sam/bin/python")(
         lambda sz=_sz: Dam4SamArm(size=sz)
@@ -841,7 +841,7 @@ arm("dam4sam_t", family="dam4sam", ckpt="sam21pp-T", image_size=None,
 
 # Same treatment for SAMURAI, and for the same reason: fixed-input published tracker, `image_size`
 # is a hydra override we drive, not a rung on our ladder.
-for _sz in (512, 640, 1024):
+for _sz in (512, 640, 768, 960, 1024):
     arm(f"samurai_t{_sz}", family="samurai", ckpt="sam2.1_hiera_tiny", image_size=None,
         venv_python="/home/jfdg/tracker-sweep/.venv-samurai/bin/python")(
         lambda sz=_sz: SamuraiArm(size=sz)
