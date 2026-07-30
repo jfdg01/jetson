@@ -166,17 +166,24 @@ def main() -> None:
             per.append(r)
     assert per, f"no arm in {args.run_dir} recorded a conf signal"
 
-    print(f"{'arm':11s} {'n':>3s} {'gap seqs':>9s} {'presence_auc':>13s} {'f_lt':>7s} {'maxgm':>7s}")
+    # everything is medianed over the GAP sequences only. On a sequence with no absent frame an
+    # always-answer tracker scores f_lt = 1 by construction, so pooling the other 90 in reports the
+    # dataset's prevalence rather than the arm's behaviour.
+    print(f"{'arm':11s} {'n':>3s} {'gap':>4s} {'presence_auc':>13s} {'f_lt':>7s} {'maxgm':>7s} "
+          f"{'auc<0.5':>8s}")
     for a in sorted({r["arm"] for r in per}):
         g = [r for r in per if r["arm"] == a]
         gapped = [r for r in g if r["gap"] > 0]
-        auc = np.median([r["presence_auc"] for r in gapped]) if gapped else float("nan")
-        print(f"{a:11s} {len(g):3d} {len(gapped):9d} {auc:13.3f} "
-              f"{np.median([r['f_lt'] for r in g]):7.3f} "
-              f"{np.median([r['maxgm'] for r in g]):7.3f}")
-        if gapped:
-            w = sorted(gapped, key=lambda r: r["presence_auc"])[:5]
-            print("    peores: " + ", ".join(f"{r['seq']} {r['presence_auc']:.2f}" for r in w))
+        if not gapped:
+            print(f"{a:11s} {len(g):3d}    0  (no gap sequence in this run)")
+            continue
+        auc = [r["presence_auc"] for r in gapped]
+        print(f"{a:11s} {len(g):3d} {len(gapped):4d} {np.median(auc):13.3f} "
+              f"{np.median([r['f_lt'] for r in gapped]):7.3f} "
+              f"{np.median([r['maxgm'] for r in gapped]):7.3f} "
+              f"{sum(1 for v in auc if v < 0.5):5d}/{len(auc):<3d}")
+        w = sorted(gapped, key=lambda r: r["presence_auc"])[:5]
+        print("    peores: " + ", ".join(f"{r['seq']} {r['presence_auc']:.2f}" for r in w))
 
 
 def _check() -> None:

@@ -159,7 +159,10 @@ def main() -> None:
             if win is None:  # arm fed the full frame this step
                 continue
             if b is None:
-                if "_" not in meta["arm"][5:]:  # plain crop arm: a lost frame holds the window
+                # Plain SAM2 crop arm: a lost frame holds the window where it was. Not true of
+                # `asym_lt`, whose whole point is that a lost frame MOVES the window -- that is the
+                # re-detection sweep.
+                if meta["arm"].startswith("sam2_") and "_" not in meta["arm"][5:]:
                     assert win == rows[i - 1]["win"], (i, win)
                 continue
             if fac:
@@ -167,7 +170,17 @@ def main() -> None:
             else:
                 c = crop_box(((b[0] + b[2]) / 2, (b[1] + b[3]) / 2), n, meta["w"], meta["h"])
                 e = [c[0], c[1], c[2] - c[0]]
-            assert win == e, (i, win, e)
+            if meta["arm"].startswith("asym_"):
+                # The side is not checkable for these arms. The device builds the window from the
+                # tracker's float `state`, the row records the box int-truncated, and the side is
+                # `ceil(factor * sqrt(w*h))` -- on a car12-sized target (~19 px) losing a fraction
+                # of a pixel on w and h moves the side by 3. What IS checkable, and what this
+                # assert is really for, is that the window is centred on the box it claims to
+                # follow: a window built from the wrong box is off by tens of pixels.
+                assert all(abs((win[k] + win[2] / 2) - (b[k] + b[k + 2]) / 2) <= 2
+                           for k in (0, 1)), (i, win, b)
+            else:
+                assert win == e, (i, win, e)
             checked += 1
         score["win_checked"] = checked
 

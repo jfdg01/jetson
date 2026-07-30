@@ -374,7 +374,9 @@ class AsymArm:
         self.t = None
         self.win = None
         self.conf = None
+        self.conf_cos = None
         self._maps = None
+        self._z = None  # frame-0 template patch, for the cosine verifier
 
     def _params(self):
         from lib.config.AsymTrack.config import cfg, update_config_from_file
@@ -405,7 +407,35 @@ class AsymArm:
         x1, y1, x2, y2 = box
         self._record_win([x1, y1, x2 - x1, y2 - y1], p)
         self.t.initialize(frame[:, :, ::-1], {"init_bbox": [x1, y1, x2 - x1, y2 - y1]})
+        self._z = self._patch(frame[:, :, ::-1], [x1, y1, x2 - x1, y2 - y1])
         return [int(v) for v in (x1, y1, x2, y2)], None
+
+    def _patch(self, rgb, xywh):
+        """The template crop `initialize` takes, as a zero-mean unit-norm vector."""
+        from lib.test.tracker.vittrack_utils import sample_target
+        p = self.t.params
+        a, _ = sample_target(rgb, list(xywh), p.template_factor, output_sz=p.template_size)
+        v = a.astype(np.float32).ravel()
+        v -= v.mean()
+        n = float(np.linalg.norm(v))
+        return v / n if n else v
+
+    def _cosine(self, rgb) -> float | None:
+        """SECOND presence surrogate, independent of the head: normalised cross-correlation between
+        the frame-0 template patch and the same crop taken around the box just predicted.
+
+        Pre-registered because `presence_auc` for the corner peak came out at 0.711, inside the
+        0.65-0.75 grey band, where the plan says build a second verifier and compare rather than
+        trust the first one. It is the pre-deep-learning verifier (NCC), and that is the point: it
+        fails on different things than the corner softmax does -- illumination and pose break it,
+        while a confident lock onto a distractor, which is what fools the corner peak, does not.
+
+        Zero-mean before normalising, so a global brightness shift does not by itself look like a
+        different object. No network: one crop and a dot product, ~0.3 ms.
+        """
+        if self._z is None:
+            return None
+        return float(self._z @ self._patch(rgb, self.t.state))
 
     def _record_win(self, xywh, p=None):
         """The square search crop `sample_target` will take next, in frame coordinates.
@@ -468,8 +498,10 @@ class AsymArm:
 
     def step(self, frame):
         self._record_win(self.t.state)  # window used for THIS frame: centred on the previous box
-        out = self.t.track(frame[:, :, ::-1])
+        rgb = frame[:, :, ::-1]
+        out = self.t.track(rgb)
         self.conf = self._corner_peak()
+        self.conf_cos = self._cosine(rgb)
         x, y, w, h = out["target_bbox"]
         return [int(x), int(y), int(x + w), int(y + h)], None
 
@@ -554,7 +586,13 @@ class AsymLtArm:
             if self.low >= self.k:
                 self.lost, self.low = True, 0
                 return None, None  # the k frames before this one were already emitted: hysteresis
-            self.size = (b[2] - b[0], b[3] - b[1])
+            if not self.low:
+                # Only a frame the verifier is happy with updates the target scale. Updating on
+                # every frame instead fed the k low-confidence frames before a loss -- exactly where
+                # the box has already blown up -- into the scale the sweep rasters at: seen on the
+                # car12 overlay, a car being tracked with a 154 px window produced 508 px probe
+                # windows, so the grid was 4 cells and every probe was at the wrong scale.
+                self.size = (b[2] - b[0], b[3] - b[1])
             return b, None
 
         keep = list(self.inner.t.state)  # where we were when we lost it; restored unless we re-find
@@ -583,6 +621,14 @@ class AsymLtArm:
 
 arm("asym_b", family="asymtrack", ckpt="base", search_factor=4.0, image_size=None,
     venv_python="/home/jfdg/tracker-sweep/.venv-asym/bin/python")(lambda: AsymArm("base"))
+
+# Thresholds are the literal output of `analysis/presence.py raw/asym-conf --thresholds`, fitted on
+# the 17 even-indexed gap sequences and evaluated on the 16 odd-indexed ones. They are not tuned
+# against this arm's score; if they were, the number would mean nothing.
+arm("asym_lt", family="asymtrack", ckpt="base", search_factor=4.0, image_size=None, heur="lt",
+    venv_python="/home/jfdg/tracker-sweep/.venv-asym/bin/python")(
+    lambda: AsymLtArm(tau_lo=0.3920, tau_hi=0.7293)
+)
 
 
 for _ck, _short in [("tiny", "t"), ("small", "s"), ("base-plus", "bp"), ("large", "l")]:
@@ -664,6 +710,8 @@ def _check_lt() -> None:
 
         def step(self, frame):
             self.conf = self._next()
+            if self.conf < 0.3:
+                self.t.state = [100, 100, 400, 400]  # a box coming apart, as it does before a loss
             x, y, w, h = self.t.state
             return [x, y, x + w, y + h], None
 
@@ -689,6 +737,9 @@ def _check_lt() -> None:
     assert lt.step(frame)[0] is not None and not lt.lost          # 0.1 once is not a loss
     assert lt.step(frame)[0] is not None and not lt.lost          # twice still is not
     assert lt.step(frame)[0] is None and lt.lost                  # k=3 reached
+    # the sweep scale is the last GOOD frame's box, not the exploding one that preceded the loss:
+    # the fake blows its box up to 400x400 on every sub-tau_lo frame
+    assert lt.size == (20, 20), lt.size
     assert lt.step(frame)[0] is None and lt.lost                  # all probes cold
     assert lt.step(frame)[0] is None and lt.lost                  # 0.5 sits between the thresholds
     assert lt.step(frame)[0] is not None and not lt.lost          # 0.9 clears tau_hi
