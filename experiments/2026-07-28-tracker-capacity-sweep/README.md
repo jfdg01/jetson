@@ -1427,3 +1427,151 @@ sobre cielo blanco. De los otros cinco solo se afirman los números, no lo que s
 `sam-full30` se lanzó con la misma escalera 640/768/960 y **el autor lo canceló a los 3 jobs**;
 los tres resultados parciales quedan en `raw/sam-full30/`. Los brazos `samurai_t768` y
 `samurai_t960` ya están registrados y sincronizados.
+
+## Presencia y reenganche en DAM4SAM (2026-07-31T21:20Z)
+
+Cuatro cosas encadenadas: dar señal de presencia a las familias que no la tenían, medir si esa
+señal es mejor que la de SAM2 pelado, ajustar el umbral de la máquina de estados fuera de muestra
+y comprobar en la Jetson que la simulación no mentía.
+
+### 1. `conf` para DAM4SAM y SAMURAI (commits `efdb8a3`, `02817e5`)
+
+El punto 6 de la sección anterior dejaba el eje de presencia **sin medir** para DAM4SAM: el
+plumbing de `conf` cubría SAM2 y AsymTrack, no las familias vendorizadas después, y
+`analysis/presence.py` moría con `no arm in raw/dam-full30b recorded a conf signal`. Ambas familias
+envuelven el mismo predictor de SAM2, así que la señal ya existía dentro: `object_score_logits`, la
+cabeza de oclusión **entrenada**. Solo había que sacarla del wrapper.
+
+### 2. `lt-controls33`: el DRM no mejora la señal de presencia (93 corridas, `raw/lt-controls33/`)
+
+Controles a 33 secuencias con hueco: `sam2_t640` (SAM2 pelado, sin DRM), `samurai_t640` y
+`sam2_f5_floor`. Con `raw/dam-conf33` ya en disco, quedan cinco brazos comparables.
+
+    analysis/presence.py raw/lt-controls33 raw/dam-conf33 --vs sam2_t640
+
+| brazo | n | secs con hueco | presence_auc mediana | f_lt | auc < 0.5 |
+| --- | --- | --- | --- | --- | --- |
+| `dam4sam_t640` | 33 | 33 | 0.979 | 0.973 | 1/33 |
+| `dam4sam_t768` | 33 | 33 | 0.984 | 0.982 | 0/33 |
+| `sam2_t640` | 27 | 27 | 0.962 | 0.924 | 1/27 |
+| `samurai_t640` | 33 | 33 | 0.956 | 0.928 | 1/33 |
+| `sam2_f5_floor` | 33 | 33 | 0.925 | 0.825 | 2/33 |
+
+`sam2_t640` sale con 27 y no 33 porque la puerta `upscales` (`device/trackers.py`) veta las seis
+secuencias de 720x480 (`uav1_*`, `uav2`, `uav6`, `uav7`) — a `family="sam2"` la regla es
+`n*n > w*h`. Comparar una mediana de 33 contra una de 27 es exactamente el error que la tabla de
+medianas invita a cometer, así que **el contraste es pareado** sobre las 27 comunes, Wilcoxon:
+
+| brazo vs `sam2_t640` | n | d presence_auc | p | d f_lt | p | d maxgm | p |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `dam4sam_t640` | 27 | +0.000 | 0.6109 | +0.004 | 0.0280 | +0.000 | 0.5506 |
+| `dam4sam_t768` | 27 | +0.013 | 0.0009 | +0.033 | 0.0000 | +0.000 | 0.3809 |
+| `samurai_t640` | 27 | +0.002 | 0.1855 | +0.000 | 0.7982 | +0.000 | 0.0150 |
+| `sam2_f5_floor` | 27 | -0.000 | 0.6617 | +0.001 | 0.3674 | -0.000 | 0.0245 |
+
+**El DRM no mejora la señal de presencia a 640.** La mediana pareada es exactamente 0.000 con
+p = 0.61. Lo que hace es **barajar** qué secuencias funcionan: gana `car7` 0.447 -> 0.891,
+`person16` 0.632 -> 0.991, `car14` 0.701 -> 0.994, `bird1_2` 0.908 -> 0.997, `group2_1`
+0.900 -> 0.984; y pierde `person19_3` 0.991 -> 0.562, `bike2` 0.507 -> 0.284, `car1_3`
+0.913 -> 0.846, `group2_3` 0.933 -> 0.867, `group3_2` 0.927 -> 0.877. La señal es de la cabeza de
+oclusión de SAM2, no del banco de memoria. El único brazo significativo en AUC es `dam4sam_t768`,
+y está **confundido con resolución** — de ahí el control `sam2_t768` (más abajo).
+
+Nota de lectura: la columna `maxgm` de esta tabla es la vieja, la que sustituye p por la tasa de
+silencio; para un brazo que nunca se abstiene vale 0 por construcción. Es degenerada y no se usa
+para decidir nada. Lo que decide es `gm_ox` en `analysis/lt_sim.py`.
+
+### 3. `analysis/lt_sim.py`: por qué evaluar el largo plazo no cuesta GPU
+
+`Dam4SamLtArm.step` llama a `inner.step(frame)` **en todos los frames** y solo decide si devuelve
+la caja o no. Nada de lo que decide la máquina de estados llega al tracker: no hay re-init, ni
+edición de memoria, ni movimiento de la ventana de búsqueda. El lazo está **abierto**. Consecuencia
+práctica: la máscara de respuesta es una función pura de la traza `(box, conf)` por frame que ya
+está escrita en `raw/*.json`. Cambiar tau vuelve a filtrar un JSON; no calcula un solo píxel. Un
+barrido de ~1.900 configuraciones sale en segundos en el portátil.
+
+Lo que **no** es simulable, y por qué: el re-detector de cinco sondas de `AsymLtArm` mueve la
+ventana de búsqueda, así que la entrada del frame siguiente depende del estado — lazo cerrado.
+Igual pasa con suprimir la escritura en memoria mientras `LOST` (ver `TODO.md`): cambia lo que ve
+el modelo. Eso se corre en la Jetson o no se mide.
+
+Métrica de decisión: **`gm_ox`**, el MaxGM publicado de OxUvA para una política fija,
+`max_p sqrt((1-p) TPR ((1-p) TNR + p))`. En forma cerrada con u = 1-p da `u* = 1/(2(1-TNR))`
+recortado a 1, así que con TNR >= 0.5 colapsa a `sqrt(TPR TNR)`. Exige HIT (IoU > 0) para contar
+TPR, que es lo que impide que "abstenerse siempre" gane.
+
+### 4. Umbral fijo contra umbral relativo
+
+El umbral fijo es un tau global, y asume que `object_score_logits` está calibrado **entre**
+secuencias. No lo está. Ajustado sobre las 17 secuencias pares de `raw/dam-conf33` y evaluado en
+las 16 impares, `lo 5.719 hi 6.120 k 1` cuesta 0.10 de f_lt y 0.20 de TPR sobre frames PRESENTES,
+y **cinco de las seis peores secuencias ya tenían presence_auc >= 0.86**: el orden dentro del clip
+estaba bien, lo que estaba mal era el punto de corte.
+
+La alternativa es cortar en `mu - a sigma` sobre los últimos `w` frames que el brazo cree
+on-target. Es **causal** — solo mira frames ya emitidos — que es lo que la hace desplegable y no un
+mero ajuste offline mejor. Los primeros `w` frames siempre responden: el operador acaba de designar
+el objetivo, la misma suposición que hace el `init` del propio tracker. Consecuencia que conviene
+saber: una secuencia más corta que `w` nunca se abstiene y el brazo es exactamente `dam4sam_t640`.
+
+`analysis/lt_sim.py raw/dam-conf33 --arm dam4sam_t640` — mejor fijo `lo 5.719 hi 6.120 k 1`, mejor
+relativo `a 4.0 b 2.0 k 1 w 300 movil`:
+
+| | gm_ox | f_lt | tpr | tnr | silencio | sil. en hueco |
+| --- | --- | --- | --- | --- | --- | --- |
+| fit fijo | 0.810 | 0.801 | 0.671 | 1.000 | 0.350 | 1.000 |
+| fit rel | 0.813 | 0.918 | 0.926 | 0.956 | 0.111 | 0.956 |
+| fit plain | 0.707 | 0.918 | 0.978 | 0.737 | 0.058 | 0.737 |
+| EVAL fijo | 0.862 | 0.863 | 0.797 | 1.000 | 0.220 | 1.000 |
+| **EVAL rel** | **0.869** | **0.964** | **0.949** | 0.903 | 0.122 | 0.903 |
+| EVAL plain | 0.606 | 0.968 | 0.992 | 0.521 | 0.037 | 0.521 |
+| todas 33 fijo | 0.816 | 0.811 | 0.687 | 1.000 | 0.261 | 1.000 |
+| todas 33 rel | 0.851 | 0.959 | 0.937 | 0.926 | 0.111 | 0.926 |
+| todas 33 plain | 0.630 | 0.962 | 0.983 | 0.600 | 0.049 | 0.600 |
+
+Contra el brazo sin abstención, fuera de muestra: `fijo` gana 11/16, mediana +0.216, **peor -0.294**,
+d f_lt -0.022; `rel` gana 10/16, mediana +0.078, **peor -0.037**, d f_lt **-0.001**. El relativo
+gana menos por secuencia y **pierde muchísimo menos en la peor**, que es la propiedad que importa
+en un lazo de control. En `dam4sam_t768` la lectura se repite: fijo `lo 5.438 hi 5.495 k 3` EVAL
+0.919 peor -0.206, relativo `a 2.0 b 2.0 k 5 w 30 movil` EVAL **0.947** peor -0.034.
+
+**`asym_b` va al revés** (`raw/asym-conf`): fijo `lo 0.427 hi 0.595 k 1` EVAL gm_ox 0.625 contra
+relativo `a 1.5 b 0.0 k 2 w 100 movil` 0.594. Con presence_auc 0.711 el **orden** dentro del clip
+ya es malo, así que normalizar la escala solo mueve ruido. El umbral relativo no arregla una señal
+mala; explota una señal buena mal calibrada.
+
+### 5. `dam4sam_lt` registrado, y el humo de paridad (`raw/parity-smoke/`)
+
+`dam4sam_lt` = `dam4sam_t640` + umbral relativo `a=4.0 b=2.0 k=1 w=300`, el argmax de la mediana de
+`gm_ox` sobre la mitad de ajuste. La afirmación "la simulación reproduce el brazo real" es
+verificable y por tanto se verifica: se corrió el brazo real en la Jetson sobre `car2` y se comparó
+frame a frame contra `run_machine_rel` replicado desde `raw/dam-conf33/dam4sam_t640__car2.json`.
+
+    conf identico brazo real vs base: True
+    frames que responde: real 1293  simulado 1293  de 1321
+    discrepancias: 0
+
+La primera línea es la premisa (el wrapper no perturba al tracker), la tercera es la conclusión.
+Latencia `dam4sam_lt` p50 **215.1 ms** contra ~204 ms del brazo pelado: abstenerse es gratis, como
+debe ser, porque el trabajo se hace igual. En la misma tanda se rehizo `dam4sam_t768 x car2` sin
+contención: p50 **282.0 ms** (la medida previa salió de una máquina compartida y se descarta).
+
+Las dos máquinas de estados tienen self-check ejecutable: `python device/trackers.py --self-check`
+y el bloque final de `analysis/lt_sim.py`. Ambos incluyen la aserción que justifica el diseño — la
+misma traza desplazada +1000 debe dar **la misma** máscara.
+
+### 6. `sam2-t768-control`: el control que separa resolución de memoria
+
+`dam4sam_t768` es el único brazo significativo del pareado de arriba y está confundido: sube
+resolución **y** añade DRM. `sam2_t768` sobre las mismas 33 secuencias con hueco (27 tras la puerta
+`upscales`) desempata.
+
+Primer intento **muerto sin traza**: el driver se detuvo en `550/865` de `bird1_3`, sin traceback,
+dejando solo `manifest.json`. No se pudo confirmar OOM — `dmesg` en la Jetson pide contraseña y
+`journalctl -k` no devolvió nada. Hipótesis principal es presión de memoria: 7,6 GB de RAM, dos
+procesos de `run_arm.py` a ~2,1 GB de RSS y 126 MB libres con 3 GB en caché durante la corrida.
+Relanzado sin cambios, `bird1_3` pasó y el run siguió. Queda anotado como caída no explicada, no
+como fallo reproducible.
+
+Pendiente: cerrar el run, y con él el pareado a tres bandas `sam2_t640` / `sam2_t768` /
+`dam4sam_t768`.

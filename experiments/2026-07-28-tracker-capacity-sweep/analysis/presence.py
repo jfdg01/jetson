@@ -151,25 +151,57 @@ def thresholds(run_dir: Path) -> None:
     print(f"eval seqs ({len(ev)}): " + ",".join(g[0] for g in ev))
 
 
+def paired(per: list[dict], ref: str) -> None:
+    """Every other arm against `ref` on the sequences BOTH ran, Wilcoxon signed-rank.
+
+    Medians of medians across arms mislead as soon as the sequence sets differ, and here they do:
+    the `upscales` gate drops the six 720x480 `uav*` clips for an arm at 768, so a 33-sequence
+    median gets compared against a 27-sequence one. The paired contrast is the only honest read.
+    """
+    from scipy.stats import wilcoxon
+
+    by = {}
+    for r in per:
+        if r["gap"] > 0:
+            by.setdefault(r["arm"], {})[r["seq"]] = r
+    assert ref in by, f"{ref} not among {sorted(by)}"
+    print(f"\npareado contra {ref} (solo secuencias con hueco que corrieron ambos brazos)")
+    print(f"{'arm':13s} {'n':>3s} " + " ".join(f"{m:>11s} {'p':>7s}" for m in
+                                               ("presence_auc", "f_lt", "maxgm")))
+    for a in sorted(by):
+        if a == ref:
+            continue
+        common = sorted(set(by[a]) & set(by[ref]))
+        line = f"{a:13s} {len(common):3d} "
+        for m in ("presence_auc", "f_lt", "maxgm"):
+            d = np.array([by[a][s][m] - by[ref][s][m] for s in common])
+            p = wilcoxon(d).pvalue if np.any(d) else 1.0
+            line += f" {np.median(d):+11.3f} {p:7.4f}"
+        print(line)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("run_dir")
+    ap.add_argument("run_dir", nargs="+", help="one or more; results are pooled by arm")
     ap.add_argument("--thresholds", action="store_true",
                     help="fit the long-term tau_lo/tau_hi instead of scoring")
+    ap.add_argument("--vs", metavar="ARM",
+                    help="also print a paired Wilcoxon of every other arm against ARM")
     args = ap.parse_args()
     if args.thresholds:
-        return thresholds(Path(args.run_dir))
+        return thresholds(Path(args.run_dir[0]))
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import uav123
 
     per = []
-    for p in sorted(Path(args.run_dir).glob("*.json")):
-        if p.stem == "manifest":
-            continue
-        r = score_one(p, uav123.boxes(json.loads(p.read_text())["meta"]["seq"]))
-        if r:
-            per.append(r)
+    for d in args.run_dir:
+        for p in sorted(Path(d).glob("*.json")):
+            if p.stem == "manifest":
+                continue
+            r = score_one(p, uav123.boxes(json.loads(p.read_text())["meta"]["seq"]))
+            if r:
+                per.append(r)
     assert per, f"no arm in {args.run_dir} recorded a conf signal"
 
     # everything is medianed over the GAP sequences only. On a sequence with no absent frame an
@@ -201,6 +233,8 @@ def main() -> None:
             b = [r["presence_auc"] for r in big]
             print(f"    huecos >= 25 fr: n={len(big)}  auc {np.median(b):.3f}  "
                   f"por debajo de 0.5: {sum(1 for v in b if v < 0.5)}")
+    if args.vs:
+        paired(per, args.vs)
 
 
 def _check() -> None:
