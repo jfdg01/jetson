@@ -101,6 +101,10 @@ def cmd_run(args) -> None:
     run_id = args.id or time.strftime("%Y%m%dT%H%M%S")
     cmd_sync(args)
     rd = f"{ROOT}/runs/{run_id}"
+    # two drivers on one run dir write the same result files and produce concatenated JSON that only
+    # shows up much later, at `json.load`. It happened on `sam2-t768-control`; refuse instead.
+    if sh(f"pgrep -f '[d]river.py --run-dir {rd}' > /dev/null && echo BUSY || true").strip():
+        raise SystemExit(f"run {run_id} already has a driver alive; pick another --id")
     sh(f"mkdir -p {rd}")
     arms, seqs = ",".join(args.arms), ",".join(args.seqs)
     launch = (f"cd {ROOT} && setsid nohup {PY} code/driver.py --run-dir {rd} "

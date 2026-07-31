@@ -1566,12 +1566,25 @@ misma traza desplazada +1000 debe dar **la misma** máscara.
 resolución **y** añade DRM. `sam2_t768` sobre las mismas 33 secuencias con hueco (27 tras la puerta
 `upscales`) desempata.
 
-Primer intento **muerto sin traza**: el driver se detuvo en `550/865` de `bird1_3`, sin traceback,
-dejando solo `manifest.json`. No se pudo confirmar OOM — `dmesg` en la Jetson pide contraseña y
-`journalctl -k` no devolvió nada. Hipótesis principal es presión de memoria: 7,6 GB de RAM, dos
-procesos de `run_arm.py` a ~2,1 GB de RSS y 126 MB libres con 3 GB en caché durante la corrida.
-Relanzado sin cambios, `bird1_3` pasó y el run siguió. Queda anotado como caída no explicada, no
-como fallo reproducible.
+**Un error de operación que conviene dejar escrito, porque el modo de fallo es silencioso.** Se dio
+el primer intento por muerto y se relanzó con el **mismo `--id`**. No estaba muerto. El diagnóstico
+se apoyó en dos señales, y las dos eran malas:
 
-Pendiente: cerrar el run, y con él el pareado a tres bandas `sam2_t640` / `sam2_t768` /
+- `pgrep -c "[d]river.py"` devolvió 0. Sin `-f`, `pgrep` compara contra el **nombre** del proceso,
+  que es `python`; el patrón vive en los argumentos. Nunca iba a coincidir. Con `pgrep -af` el
+  proceso estaba ahí.
+- El directorio de run tenía solo `manifest.json`. Es lo normal: cada resultado se escribe al
+  **terminar** su secuencia, y `bird1_3` (job 1/27, 865 frames) seguía en vuelo.
+
+El resultado fueron dos drivers escribiendo el mismo directorio. Se nota en `ps`: dos `run_arm.py`
+sobre `group3_2` con el mismo `--out`, y dos `DONE` en un único `driver.log`. Tres ficheros salieron
+con dos documentos JSON concatenados (`Extra data: line 1 column 717134`) — `group2_2`,
+`person17_1`, `person19_2` — y el resto de la carrera se ganó por orden de llegada. El daño es
+limitado y detectable (`json.load` revienta), pero **nada en el arnés lo impidió**: `driver.py` no
+toma un lock sobre el directorio de run. Los tres se borraron y se relanzaron aparte
+(`sam2-t768-fix`); los 24 restantes son válidos.
+
+Lección de arnés, no de tracking: un `--id` repetido debería fallar en seco.
+
+Pendiente: fusionar los tres, y con ellos el pareado a tres bandas `sam2_t640` / `sam2_t768` /
 `dam4sam_t768`.
