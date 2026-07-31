@@ -867,13 +867,28 @@ class Dam4SamLtArm:
     which is the distractor. DRM is the reason to expect that to survive, and it is the assumption
     under test. If the arm re-attaches to distractors, the fix is suppressing the memory write while
     lost -- which the vendored wrapper does not expose, so it would mean patching `track()`.
+
+    The threshold is RELATIVE, not a constant: `mu - a sigma` over the last `w` frames believed on
+    target. A global tau assumes `object_score_logits` is calibrated across sequences and it is not
+    -- fitted globally on the even-indexed gap sequences it cost 0.10 of f_lt and 0.20 of TPR on
+    PRESENT frames while five of the six worst sequences already had presence_auc >= 0.86, i.e. the
+    ordering inside the clip was fine and only the cut point was wrong. Relative keeps the same
+    abstention benefit (EVAL gm_ox 0.869 vs 0.862) with the TPR intact (0.949 vs 0.797) and turns
+    the worst sequence from -0.294 into -0.037. See `analysis/lt_sim.py`, which replays this exact
+    machine offline -- it can, because nothing the machine decides reaches the tracker.
+
+    The first `w` frames always answer: the operator just designated the target, so it is present,
+    the same assumption the tracker's own init makes. Consequence worth knowing: a sequence shorter
+    than `w` never abstains and this arm is exactly `dam4sam_t640` on it.
     """
 
-    def __init__(self, tau_lo: float, tau_hi: float, size: int = 640, k: int = 3):
+    def __init__(self, a: float, b: float, size: int = 640, k: int = 1, w: int = 300):
+        assert b <= a, "coming back must need no more evidence than losing"
         self.inner = Dam4SamArm(size=size)
-        self.tau_lo, self.tau_hi, self.k = tau_lo, tau_hi, k
+        self.a, self.b, self.k, self.w = a, b, k, w
+        self.buf = []  # confs of the last `w` frames believed on target
         self.lost = False
-        self.low = 0  # consecutive frames under tau_lo
+        self.low = 0  # consecutive frames under the low threshold
         self.conf = None
 
     def init(self, frame, box):
@@ -882,20 +897,28 @@ class Dam4SamLtArm:
         return b, c
 
     def step(self, frame):
-        b, c = self.inner.step(frame)
+        # mirrors `analysis.lt_sim.run_machine_rel`; the parity smoke checks they agree frame by frame
+        box, cont = self.inner.step(frame)
         self.conf = self.inner.conf
         if self.conf is None:
-            return b, c  # no score this frame: fall through to the plain arm rather than guess
+            return box, cont  # no score this frame: fall through to the plain arm rather than guess
+        if len(self.buf) < self.w:
+            self.buf.append(self.conf)
+            return box, cont
+        m = sum(self.buf) / len(self.buf)
+        s = (sum((x - m) ** 2 for x in self.buf) / len(self.buf)) ** 0.5 + 1e-6
         if self.lost:
-            if self.conf >= self.tau_hi:
-                self.lost = False
-                return b, c
-            return None, None
-        self.low = self.low + 1 if self.conf < self.tau_lo else 0
-        if self.low >= self.k:
-            self.lost, self.low = True, 0
-            return None, None  # the k frames before this one were already emitted: hysteresis
-        return b, c
+            if self.conf < m - self.b * s:
+                return None, None
+            self.lost = False
+        else:
+            self.low = self.low + 1 if self.conf < m - self.a * s else 0
+            if self.low >= self.k:
+                self.lost, self.low = True, 0
+                return None, None  # the k frames before this one were already emitted: hysteresis
+        self.buf.append(self.conf)
+        del self.buf[0]
+        return box, cont
 
 
 arm("asym_b", family="asymtrack", ckpt="base", search_factor=4.0, image_size=None,
@@ -923,6 +946,15 @@ for _sz in (512, 640, 768, 960, 1024):
 
 arm("dam4sam_t", family="dam4sam", ckpt="sam21pp-T", image_size=None,
     venv_python="/home/jfdg/tracker-sweep/.venv-dam4sam/bin/python")(lambda: Dam4SamArm())
+
+# a/b/k/w are the argmax of the median gm_ox over the 17 even-indexed gap sequences of
+# `raw/dam-conf33`, evaluated on the 16 odd-indexed ones -- same split as `asym_lt`, same reason.
+# Fitted with `analysis/lt_sim.py raw/dam-conf33 --arm dam4sam_t640`, which replays this machine
+# exactly rather than approximately, because nothing it decides reaches the tracker.
+arm("dam4sam_lt", family="dam4sam", ckpt="sam21pp-T", image_size=None, heur="lt",
+    venv_python="/home/jfdg/tracker-sweep/.venv-dam4sam/bin/python")(
+    lambda: Dam4SamLtArm(a=4.0, b=2.0, k=1, w=300)
+)
 
 # Same treatment for SAMURAI, and for the same reason: fixed-input published tracker, `image_size`
 # is a hydra override we drive, not a rung on our ladder.
@@ -1016,20 +1048,25 @@ def _check_dam_lt() -> None:
             self.conf = self.confs.pop(0) if self.confs else 0.0
             return [10, 10, 30, 30], None
 
-    #        dip  recover  ---- three under tau_lo ----  between  under tau_hi
-    script = [0.0, 5.0, -2.0, -2.0, -2.0, 3.0, 6.0]
-    a = Dam4SamLtArm(tau_lo=1.0, tau_hi=8.0, k=3)
-    a.inner = FakeDam(script)
-    a.init(None, [10, 10, 30, 30])
-    out = [a.step(None)[0] for _ in range(len(script))]
-    assert out[0] is not None and out[1] is not None, "one dip below tau_lo is not a loss"
-    assert out[2] is not None and out[3] is not None, "hysteresis: the k frames still emit"
-    assert out[4] is None, "k consecutive frames under tau_lo must declare lost"
-    assert out[5] is None, "a score between the thresholds must not re-attach"
-    assert out[6] is None, "6.0 < tau_hi 8.0: still lost"
+    # w=6 warm-up giving mu 11, sigma 0.816, so a=2 cuts at 9.37 and b=1 lets it back at 10.18
+    #         ------ warm-up, always answers ------  collapse  between  over hi
+    script = [10.0, 11.0, 12.0, 10.0, 11.0, 12.0, 0.0, 9.0, 12.0]
+
+    def run(s):
+        a = Dam4SamLtArm(a=2.0, b=1.0, k=1, w=6)
+        a.inner = FakeDam(s)
+        a.init(None, [10, 10, 30, 30])
+        return a, [a.step(None)[0] for _ in range(len(s))]
+
+    a, out = run(script)
+    assert all(o is not None for o in out[:6]), "the designation window always answers"
+    assert out[6] is None, "a collapse far under mu - a sigma declares lost"
+    assert out[7] is None, "between the two thresholds must not re-attach"
+    assert out[8] is not None and not a.lost, "at or above mu - b sigma comes back"
     assert a.inner.calls == len(script), (a.inner.calls, "memory must advance while lost")
-    a.inner.confs = [9.0]
-    assert a.step(None)[0] is not None and not a.lost, "at or above tau_hi comes back"
+    # scale invariance is the entire reason the threshold is relative, so it gets an assertion
+    assert [o is None for o in run([c + 1000 for c in script])[1]] == [o is None for o in out]
+    assert all(o is not None for o in run([5.0] * 9)[1]), "constant conf: never lost"
     print("dam4sam lt state machine ok")
 
 
