@@ -1588,3 +1588,42 @@ Lección de arnés, no de tracking: un `--id` repetido debería fallar en seco.
 
 Pendiente: fusionar los tres, y con ellos el pareado a tres bandas `sam2_t640` / `sam2_t768` /
 `dam4sam_t768`.
+
+### 7. Cierre del control: la resolución no compra presencia, el DRM sí, y solo a 768
+
+27 secuencias (las mismas que pasan la puerta `upscales`), tres contrastes pareados:
+
+    analysis/presence.py raw/lt-controls33 raw/dam-conf33 raw/sam2-t768-control --vs sam2_t768
+
+| brazo | n | presence_auc mediana | f_lt |
+| --- | --- | --- | --- |
+| `sam2_t640` | 27 | 0.962 | 0.924 |
+| `sam2_t768` | 27 | 0.973 | 0.939 |
+| `dam4sam_t640` | 33 | 0.979 | 0.973 |
+| `dam4sam_t768` | 33 | 0.984 | 0.982 |
+
+| contraste pareado | n | d presence_auc | p | d f_lt | p |
+| --- | --- | --- | --- | --- | --- |
+| `sam2_t768` vs `sam2_t640` (solo resolución) | 27 | +0.000 | 0.8040 | +0.001 | 0.1919 |
+| `dam4sam_t640` vs `sam2_t640` (solo DRM, a 640) | 27 | +0.000 | 0.6109 | +0.004 | 0.0280 |
+| `dam4sam_t768` vs `sam2_t768` (solo DRM, a 768) | 27 | **+0.007** | **0.0007** | +0.017 | 0.0039 |
+
+Tres lecturas, en orden de confianza:
+
+**1. La resolución no compra nada en el eje de presencia.** 640 -> 768 sobre el mismo tracker da
+mediana pareada exactamente 0.000, p = 0.80. Esto es un negativo limpio y contrasta con el eje de
+mIoU, donde el mismo escalón valía +0.042 con p = 0.0087 (sección anterior). **Píxeles compran
+cajas, no saber si el objeto está.** Coherente con que la señal salga de una cabeza entrenada: lo
+que la limita es su entrenamiento, no la entrada.
+
+**2. El DRM sí, pero solo a 768.** +0.007 con p = 0.0007 a 768; +0.000 con p = 0.61 a 640. Es una
+interacción, no un efecto principal, y con n=27 y un solo dataset no está medida — está insinuada.
+
+**3. El tamaño del efecto es marginal aunque el p sea pequeño.** +0.007 de AUC sobre 0.973. Lo que
+mueve el número es la **cola**: `sam2_t768` tiene 0/27 secuencias por debajo de 0.5 y `sam2_t640`
+tenía 1 (`bike2` 0.51, en el filo). El pareado detecta un desplazamiento consistente y pequeño; no
+justifica por sí solo los +72 ms de 768.
+
+Esto cierra la pregunta que abría el punto 2: la significancia de `dam4sam_t768` **no** era
+resolución disfrazada. Pero tampoco es el DRM en general — a 640, la resolución que se desplegaría,
+el DRM no aporta señal de presencia sobre SAM2 pelado.
