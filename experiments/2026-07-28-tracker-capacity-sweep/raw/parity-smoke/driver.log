@@ -1,0 +1,68 @@
+manifest written; NV Power Mode: 15W 0 | governor schedutil
+[1/2] dam4sam_lt x car2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1321  11s  4.46 fps  eta 285s
+  100/1321  22s  4.46 fps  eta 274s
+  150/1321  34s  4.46 fps  eta 263s
+  200/1321  45s  4.46 fps  eta 251s
+  250/1321  56s  4.46 fps  eta 240s
+  300/1321  67s  4.47 fps  eta 229s
+  350/1321  78s  4.46 fps  eta 218s
+  400/1321  90s  4.46 fps  eta 206s
+  450/1321  101s  4.47 fps  eta 195s
+  500/1321  112s  4.47 fps  eta 184s
+  550/1321  123s  4.47 fps  eta 173s
+  600/1321  134s  4.49 fps  eta 161s
+  650/1321  145s  4.48 fps  eta 150s
+  700/1321  156s  4.47 fps  eta 139s
+  750/1321  168s  4.47 fps  eta 128s
+  800/1321  179s  4.47 fps  eta 117s
+  850/1321  190s  4.47 fps  eta 105s
+  900/1321  201s  4.47 fps  eta 94s
+  950/1321  213s  4.47 fps  eta 83s
+  1000/1321  224s  4.47 fps  eta 72s
+  1050/1321  235s  4.47 fps  eta 61s
+  1100/1321  246s  4.47 fps  eta 49s
+  1150/1321  257s  4.47 fps  eta 38s
+  1200/1321  268s  4.47 fps  eta 27s
+  1250/1321  280s  4.47 fps  eta 16s
+  1300/1321  291s  4.47 fps  eta 5s
+{"arm": "dam4sam_lt", "seq": "car2", "frames": 1321, "w": 1280, "h": 720, "init_ms": 8025.8599212393165, "warmup_frames": 5, "ms_p50": 215.14336438849568, "ms_p95": 219.47383075021207, "ms_p99": 220.3900884464383, "ms_max": 496.0300358943641, "fps": 4.6480634103789855, "decode_ms_p50": 7.931240601465106, "lost_frames": 28, "conf_frames": 1320, "rss_peak_mb": 2826.71875, "gpu_peak_mb": 766.07275390625}
+  305.9s wall, temps NoneC
+[2/2] dam4sam_t768 x car2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1321  14s  3.56 fps  eta 357s
+  100/1321  29s  3.51 fps  eta 348s
+  150/1321  43s  3.49 fps  eta 336s
+  200/1321  57s  3.48 fps  eta 322s
+  250/1321  72s  3.48 fps  eta 308s
+  300/1321  86s  3.47 fps  eta 294s
+  350/1321  101s  3.47 fps  eta 280s
+  400/1321  115s  3.47 fps  eta 266s
+  450/1321  130s  3.47 fps  eta 251s
+  500/1321  144s  3.47 fps  eta 237s
+  550/1321  159s  3.47 fps  eta 222s
+  600/1321  172s  3.48 fps  eta 207s
+  650/1321  187s  3.47 fps  eta 193s
+  700/1321  202s  3.47 fps  eta 179s
+  750/1321  216s  3.47 fps  eta 165s
+  800/1321  231s  3.47 fps  eta 150s
+  850/1321  245s  3.46 fps  eta 136s
+  900/1321  260s  3.46 fps  eta 122s
+  950/1321  274s  3.46 fps  eta 107s
+  1000/1321  289s  3.46 fps  eta 93s
+  1050/1321  303s  3.46 fps  eta 78s
+  1100/1321  318s  3.46 fps  eta 64s
+  1150/1321  332s  3.46 fps  eta 49s
+  1200/1321  346s  3.46 fps  eta 35s
+  1250/1321  361s  3.46 fps  eta 21s
+  1300/1321  376s  3.46 fps  eta 6s
+{"arm": "dam4sam_t768", "seq": "car2", "frames": 1321, "w": 1280, "h": 720, "init_ms": 7654.135098215193, "warmup_frames": 5, "ms_p50": 282.00421994552016, "ms_p95": 285.5581938289106, "ms_p99": 286.4289279654622, "ms_max": 569.4715483114123, "fps": 3.5460462265181283, "decode_ms_p50": 7.944572949782014, "lost_frames": 0, "conf_frames": 1320, "rss_peak_mb": 3211.04296875, "gpu_peak_mb": 998.5439453125}
+  391.8s wall, temps NoneC
+DONE
