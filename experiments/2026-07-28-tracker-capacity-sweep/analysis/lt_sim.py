@@ -60,6 +60,48 @@ def run_machine(conf: np.ndarray, tau_lo: float, tau_hi: float, k: int) -> np.nd
     return out
 
 
+def run_machine_rel(conf: np.ndarray, a: float, b: float, k: int, w: int, freeze: bool) -> np.ndarray:
+    """Same machine, but the threshold is relative to the arm's OWN logits instead of a constant.
+
+    A global tau assumes `object_score_logits` is calibrated across sequences. It is not: five of the
+    six worst losses have presence_auc >= 0.86, so the ordering inside the clip is fine and only the
+    cut point is wrong. So take mu/sigma over the last `w` frames the machine believes are on-target
+    and cut at `mu - a sigma` (lose) / `mu - b sigma` (come back), b <= a.
+
+    Causal by construction -- it only ever looks at frames already emitted -- which is what makes it
+    deployable, not just a better offline fit. The first `w` frames always answer: the operator just
+    designated the target, so it is present, and that is the same assumption the tracker's own init
+    makes. `freeze` keeps that designation window as the reference forever instead of sliding it;
+    sliding adapts to illumination drift, freezing cannot be dragged down by a slow failure.
+    """
+    out = np.ones(len(conf), bool)
+    buf: list[float] = []
+    lost, low = False, 0
+    for i, c in enumerate(conf):
+        if not np.isfinite(c):
+            continue  # no score this frame: fall through to the plain arm
+        if len(buf) < w:
+            buf.append(c)
+            continue
+        m, s = float(np.mean(buf)), float(np.std(buf)) + 1e-6
+        if lost:
+            if c >= m - b * s:
+                lost = False
+            else:
+                out[i] = False
+                continue
+        else:
+            low = low + 1 if c < m - a * s else 0
+            if low >= k:
+                lost, low = True, 0
+                out[i] = False
+                continue
+        if not freeze:
+            buf.append(c)
+            del buf[0]
+    return out
+
+
 def point_metrics(present: np.ndarray, answered: np.ndarray, hit: np.ndarray) -> dict:
     """Metrics at ONE operating point, no max over tau.
 
@@ -117,14 +159,18 @@ def load(run_dir: Path, arm: str) -> list[tuple]:
     return out
 
 
-def score(seqs: list[tuple], tau_lo: float, tau_hi: float, k: int) -> list[dict]:
+def score(seqs: list[tuple], machine) -> list[dict]:
+    """`machine` maps a conf trace to the mask of frames it answers on -- either `run_machine`
+    partially applied or `run_machine_rel`, so both policies go through the same metric code."""
     res = []
     for seq, conf, present, hit, base in seqs:
-        ans = base & run_machine(conf, tau_lo, tau_hi, k)
-        m = point_metrics(present, ans, hit)
+        m = point_metrics(present, base & machine(conf), hit)
         m["seq"] = seq
         res.append(m)
     return res
+
+
+PLAIN = lambda c: run_machine(c, -np.inf, -np.inf, 1)  # noqa: E731 -- never lost, i.e. no LT at all
 
 
 def main() -> None:
@@ -145,31 +191,44 @@ def main() -> None:
     p_ = np.concatenate([s[2][np.isfinite(s[1])] for s in fit])
     los = np.percentile(c[p_], [2, 5, 10, 15, 20, 30])
     his = np.percentile(c[~p_], [70, 80, 90, 95, 98, 99])
-    best = None
-    for lo in los:
-        for hi in his:
-            if hi <= lo:
-                continue
-            for k in (1, 2, 3, 5, 8):
-                g = float(np.median([m["gm_ox"] for m in score(fit, lo, hi, k)]))
-                if best is None or g > best[0]:
-                    best = (g, lo, hi, k)
-    g, lo, hi, k = best
-    print(f"fit best: tau_lo {lo:.3f}  tau_hi {hi:.3f}  k {k}   gm_ox(fit) {g:.3f}")
+    cands = [(f"fijo lo {lo:.3f} hi {hi:.3f} k {k}",
+              (lambda lo=lo, hi=hi, k=k: (lambda c: run_machine(c, lo, hi, k)))())
+             for lo in los for hi in his if hi > lo for k in (1, 2, 3, 5, 8)]
+    # Relative: cut at mu - a sigma over the last `w` on-target frames. `w` in frames at ~30 fps, so
+    # 30 is one second of designation and 300 ten -- long enough to span a slow appearance change.
+    cands += [(f"rel a {a:.1f} b {b:.1f} k {k} w {w} {'fijo' if fz else 'movil'}",
+               (lambda a=a, b=b, k=k, w=w, fz=fz:
+                (lambda c: run_machine_rel(c, a, b, k, w, fz)))())
+              for a in (1.0, 1.5, 2.0, 3.0, 4.0) for b in (0.0, 1.0, 2.0) if b <= a
+              for k in (1, 2, 3, 5) for w in (30, 100, 300) for fz in (True, False)]
 
+    def pick(pool):
+        return max(pool, key=lambda t: np.median([m["gm_ox"] for m in score(fit, t[1])]))
+
+    fixed = pick([t for t in cands if t[0].startswith("fijo")])
+    rel = pick([t for t in cands if t[0].startswith("rel")])
     cols = ("gm_ox", "gm", "f_lt", "tpr", "tnr", "silence", "gap_silence")
-    print("\n" + f"{'':24s}" + "".join(f"{c[:8]:>9s}" for c in cols))
-    for label, ss in (("fit", fit), ("EVAL (out of sample)", ev), ("all 33", seqs)):
-        # -inf/-inf/k=1 is the plain arm: never under tau_lo, never lost. Same code path, so any bug
-        # in `run_machine` hits both rows and the delta stays honest.
-        for tag, r in ((f"{label} lt", score(ss, lo, hi, k)),
-                       (f"{label} plain", score(ss, -np.inf, -np.inf, 1))):
-            print(f"{tag:24s}" + "".join(f"{np.median([m[c] for m in r]):9.3f}" for c in cols))
+    for name, _ in (fixed, rel):
+        print(f"fit best {name}")
+    print("\n" + f"{'':26s}" + "".join(f"{c[:8]:>9s}" for c in cols))
+    for label, ss in (("fit", fit), ("EVAL (fuera de muestra)", ev), ("todas 33", seqs)):
+        # `PLAIN` is the same code path with the thresholds at -inf, so any bug in `run_machine` hits
+        # the baseline row too and the delta stays honest.
+        for tag, mach in ((f"{label} fijo", fixed[1]), (f"{label} rel", rel[1]),
+                          (f"{label} plain", PLAIN)):
+            r = score(ss, mach)
+            print(f"{tag:26s}" + "".join(f"{np.median([m[c] for m in r]):9.3f}" for c in cols))
 
-    lt, pl = score(ev, lo, hi, k), score(ev, -np.inf, -np.inf, 1)
-    d = [a["gm_ox"] - b["gm_ox"] for a, b in zip(lt, pl)]
-    print(f"\npor secuencia (EVAL), delta gm_ox lt - plain: "
-          f"gana {sum(1 for x in d if x > 0)}/{len(d)}, pierde {sum(1 for x in d if x < 0)}")
+    for label, ss in (("EVAL", ev), ("todas 33", seqs)):
+        pl = score(ss, PLAIN)
+        for name, mach in (fixed, rel):
+            d = [a["gm_ox"] - b["gm_ox"] for a, b in zip(score(ss, mach), pl)]
+            print(f"{label:9s} {name:34s} gana {sum(1 for x in d if x > 0):2d}/{len(d)}  "
+                  f"mediana {np.median(d):+.3f}  media {np.mean(d):+.3f}  "
+                  f"peor {min(d):+.3f}  d f_lt {np.median([a['f_lt'] - b['f_lt'] for a, b in zip(score(ss, mach), pl)]):+.3f}")
+
+    lt, pl = score(ev, rel[1]), score(ev, PLAIN)
+    print("\npor secuencia (EVAL), umbral relativo contra plain:")
     for (a, b) in sorted(zip(lt, pl), key=lambda t: t[0]["gm_ox"] - t[1]["gm_ox"]):
         print(f"  {a['seq']:14s} {b['gm_ox']:.3f} -> {a['gm_ox']:.3f} "
               f"({a['gm_ox'] - b['gm_ox']:+.3f})  silencio en hueco {a['gap_silence']:.2f}  "
@@ -188,6 +247,16 @@ def _check() -> None:
     assert a[7], "at or above tau_hi comes back"
     assert run_machine(c, -np.inf, -np.inf, 1).all(), "tau_lo -inf is the plain arm"
     assert run_machine(np.full(5, np.nan), 1.0, 8.0, 1).all(), "no score: fall through, do not abstain"
+
+    # relative: the same trace shifted by +1000 must give the SAME mask. That invariance to absolute
+    # scale is the entire reason this variant exists.
+    r = np.concatenate([10.0 + np.arange(30) % 3, [0.0, 0.0, 0.0], np.full(5, 11.0)])
+    ma = run_machine_rel(r, a=2.0, b=1.0, k=1, w=30, freeze=True)
+    assert ma[:30].all(), "the designation window always answers"
+    assert not ma[30:33].any(), "a collapse far under mu - 2 sigma is a loss"
+    assert ma[33:].all(), "back over mu - 1 sigma re-attaches"
+    assert (run_machine_rel(r + 1000, 2.0, 1.0, 1, 30, True) == ma).all(), "must be scale-invariant"
+    assert run_machine_rel(np.full(40, 5.0), 2.0, 1.0, 1, 30, True).all(), "constant conf: never lost"
 
     # metrics: perfect abstention on a 2-present/2-absent trace scores 1 on f_lt
     m = point_metrics(np.array([1, 1, 0, 0], bool), np.array([1, 1, 0, 0], bool),

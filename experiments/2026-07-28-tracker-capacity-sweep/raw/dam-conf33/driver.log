@@ -1,0 +1,1664 @@
+manifest written; NV Power Mode: 15W 0 | governor schedutil
+[1/66] dam4sam_t768 x group3_4 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1159  14s  3.49 fps  eta 318s
+  100/1159  29s  3.44 fps  eta 308s
+  150/1159  44s  3.42 fps  eta 295s
+  200/1159  59s  3.41 fps  eta 281s
+  250/1159  73s  3.40 fps  eta 267s
+  300/1159  88s  3.40 fps  eta 253s
+  350/1159  103s  3.39 fps  eta 238s
+  400/1159  118s  3.38 fps  eta 224s
+  450/1159  133s  3.38 fps  eta 210s
+  500/1159  148s  3.39 fps  eta 195s
+  550/1159  162s  3.40 fps  eta 179s
+  600/1159  176s  3.40 fps  eta 164s
+  650/1159  191s  3.40 fps  eta 150s
+  700/1159  206s  3.39 fps  eta 135s
+  750/1159  221s  3.40 fps  eta 120s
+  800/1159  235s  3.41 fps  eta 105s
+  850/1159  249s  3.41 fps  eta 91s
+  900/1159  264s  3.41 fps  eta 76s
+  950/1159  279s  3.40 fps  eta 61s
+  1000/1159  294s  3.40 fps  eta 47s
+  1050/1159  309s  3.40 fps  eta 32s
+  1100/1159  324s  3.40 fps  eta 17s
+  1150/1159  338s  3.40 fps  eta 3s
+{"arm": "dam4sam_t768", "seq": "group3_4", "frames": 1159, "w": 1280, "h": 720, "init_ms": 7346.268515102565, "warmup_frames": 5, "ms_p50": 281.82620787993073, "ms_p95": 285.2990275248885, "ms_p99": 286.2692770920694, "ms_max": 561.4121998660266, "fps": 3.5482860430994414, "decode_ms_p50": 15.154161024838686, "lost_frames": 38, "conf_frames": 1158, "rss_peak_mb": 3048.515625, "gpu_peak_mb": 933.30078125}
+  350.8s wall, temps NoneC
+[2/66] dam4sam_t768 x bird1_3 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/865  13s  3.86 fps  eta 211s
+  100/865  27s  3.72 fps  eta 206s
+  150/865  41s  3.69 fps  eta 194s
+  200/865  54s  3.69 fps  eta 180s
+  250/865  68s  3.70 fps  eta 166s
+  300/865  81s  3.68 fps  eta 153s
+  350/865  95s  3.68 fps  eta 140s
+  400/865  109s  3.68 fps  eta 126s
+  450/865  122s  3.69 fps  eta 113s
+  500/865  135s  3.69 fps  eta 99s
+  550/865  149s  3.69 fps  eta 85s
+  600/865  162s  3.69 fps  eta 72s
+  650/865  176s  3.69 fps  eta 58s
+  700/865  190s  3.69 fps  eta 45s
+  750/865  203s  3.69 fps  eta 31s
+  800/865  217s  3.69 fps  eta 18s
+  850/865  230s  3.69 fps  eta 4s
+{"arm": "dam4sam_t768", "seq": "bird1_3", "frames": 865, "w": 1280, "h": 720, "init_ms": 7105.994366109371, "warmup_frames": 5, "ms_p50": 262.5279319472611, "ms_p95": 279.5408321544528, "ms_p99": 285.2742477878928, "ms_max": 601.0011620819569, "fps": 3.809118491059796, "decode_ms_p50": 6.692322203889489, "lost_frames": 354, "conf_frames": 864, "rss_peak_mb": 2786.41796875, "gpu_peak_mb": 809.28173828125}
+  243.6s wall, temps NoneC
+[3/66] dam4sam_t768 x person16 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1147  14s  3.48 fps  eta 315s
+  100/1147  29s  3.43 fps  eta 306s
+  150/1147  44s  3.42 fps  eta 292s
+  200/1147  58s  3.46 fps  eta 274s
+  250/1147  72s  3.47 fps  eta 258s
+  300/1147  87s  3.46 fps  eta 245s
+  350/1147  102s  3.44 fps  eta 232s
+  400/1147  117s  3.42 fps  eta 218s
+  450/1147  132s  3.41 fps  eta 204s
+  500/1147  147s  3.41 fps  eta 190s
+  550/1147  162s  3.40 fps  eta 175s
+  600/1147  177s  3.40 fps  eta 161s
+  650/1147  191s  3.41 fps  eta 146s
+  700/1147  206s  3.41 fps  eta 131s
+  750/1147  221s  3.40 fps  eta 117s
+  800/1147  236s  3.40 fps  eta 102s
+  850/1147  250s  3.39 fps  eta 88s
+  900/1147  265s  3.39 fps  eta 73s
+  950/1147  280s  3.39 fps  eta 58s
+  1000/1147  295s  3.39 fps  eta 43s
+  1050/1147  310s  3.39 fps  eta 29s
+  1100/1147  325s  3.38 fps  eta 14s
+{"arm": "dam4sam_t768", "seq": "person16", "frames": 1147, "w": 1280, "h": 720, "init_ms": 7406.875504180789, "warmup_frames": 5, "ms_p50": 282.4058262631297, "ms_p95": 287.41411538794637, "ms_p99": 288.290006108582, "ms_max": 559.5320481806993, "fps": 3.541003431948521, "decode_ms_p50": 15.239731175825, "lost_frames": 63, "conf_frames": 1146, "rss_peak_mb": 3029.953125, "gpu_peak_mb": 924.36279296875}
+  349.0s wall, temps NoneC
+[4/66] dam4sam_t640 x car1_2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/877  12s  4.29 fps  eta 193s
+  100/877  23s  4.31 fps  eta 180s
+  150/877  35s  4.31 fps  eta 169s
+  200/877  46s  4.31 fps  eta 157s
+  250/877  57s  4.36 fps  eta 144s
+  300/877  69s  4.36 fps  eta 132s
+  350/877  80s  4.36 fps  eta 121s
+  400/877  92s  4.36 fps  eta 109s
+  450/877  103s  4.36 fps  eta 98s
+  500/877  114s  4.37 fps  eta 86s
+  550/877  126s  4.37 fps  eta 75s
+  600/877  137s  4.37 fps  eta 63s
+  650/877  149s  4.36 fps  eta 52s
+  700/877  160s  4.36 fps  eta 41s
+  750/877  172s  4.36 fps  eta 29s
+  800/877  183s  4.38 fps  eta 18s
+  850/877  194s  4.38 fps  eta 6s
+{"arm": "dam4sam_t640", "seq": "car1_2", "frames": 877, "w": 1280, "h": 720, "init_ms": 7061.00281002, "warmup_frames": 5, "ms_p50": 215.21147061139345, "ms_p95": 219.6716160979122, "ms_p99": 220.84532077424228, "ms_max": 506.62500923499465, "fps": 4.6465924755734616, "decode_ms_p50": 13.463697163388133, "lost_frames": 2, "conf_frames": 876, "rss_peak_mb": 2519.97265625, "gpu_peak_mb": 633.57470703125}
+  209.8s wall, temps NoneC
+[5/66] dam4sam_t768 x car2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1321  14s  3.50 fps  eta 363s
+  100/1321  29s  3.45 fps  eta 354s
+  150/1321  44s  3.43 fps  eta 342s
+  200/1321  60s  3.34 fps  eta 336s
+  250/1321  86s  2.90 fps  eta 369s
+  300/1321  112s  2.67 fps  eta 383s
+  350/1321  139s  2.52 fps  eta 385s
+  400/1321  165s  2.42 fps  eta 380s
+  450/1321  191s  2.35 fps  eta 370s
+  500/1321  223s  2.24 fps  eta 367s
+  550/1321  262s  2.10 fps  eta 368s
+  600/1321  301s  1.99 fps  eta 362s
+  650/1321  338s  1.92 fps  eta 349s
+  700/1321  368s  1.90 fps  eta 326s
+  750/1321  383s  1.96 fps  eta 291s
+  800/1321  397s  2.01 fps  eta 259s
+  850/1321  412s  2.06 fps  eta 228s
+  900/1321  427s  2.11 fps  eta 200s
+  950/1321  442s  2.15 fps  eta 173s
+  1000/1321  457s  2.19 fps  eta 147s
+  1050/1321  471s  2.23 fps  eta 122s
+  1100/1321  486s  2.26 fps  eta 98s
+  1150/1321  501s  2.30 fps  eta 74s
+  1200/1321  516s  2.33 fps  eta 52s
+  1250/1321  530s  2.36 fps  eta 30s
+  1300/1321  545s  2.38 fps  eta 9s
+{"arm": "dam4sam_t768", "seq": "car2", "frames": 1321, "w": 1280, "h": 720, "init_ms": 7352.354262024164, "warmup_frames": 5, "ms_p50": 284.1884009540081, "ms_p95": 772.8298512753099, "ms_p99": 809.4187927618623, "ms_max": 1090.6467428430915, "fps": 3.518792451215614, "decode_ms_p50": 13.8918727170676, "lost_frames": 0, "conf_frames": 1320, "rss_peak_mb": 3126.71875, "gpu_peak_mb": 998.5439453125}
+  561.4s wall, temps NoneC
+[6/66] dam4sam_t640 x person7_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1249  11s  4.40 fps  eta 272s
+  100/1249  23s  4.38 fps  eta 263s
+  150/1249  34s  4.40 fps  eta 250s
+  200/1249  45s  4.40 fps  eta 239s
+  250/1249  57s  4.38 fps  eta 228s
+  300/1249  69s  4.36 fps  eta 218s
+  350/1249  80s  4.36 fps  eta 206s
+  400/1249  92s  4.36 fps  eta 195s
+  450/1249  103s  4.36 fps  eta 183s
+  500/1249  115s  4.36 fps  eta 172s
+  550/1249  126s  4.35 fps  eta 161s
+  600/1249  138s  4.35 fps  eta 149s
+  650/1249  149s  4.35 fps  eta 138s
+  700/1249  161s  4.35 fps  eta 126s
+  750/1249  172s  4.37 fps  eta 114s
+  800/1249  183s  4.37 fps  eta 103s
+  850/1249  195s  4.37 fps  eta 91s
+  900/1249  206s  4.37 fps  eta 80s
+  950/1249  218s  4.37 fps  eta 68s
+  1000/1249  229s  4.36 fps  eta 57s
+  1050/1249  241s  4.36 fps  eta 46s
+  1100/1249  252s  4.37 fps  eta 34s
+  1150/1249  264s  4.36 fps  eta 23s
+  1200/1249  275s  4.36 fps  eta 11s
+{"arm": "dam4sam_t640", "seq": "person7_1", "frames": 1249, "w": 1280, "h": 720, "init_ms": 8618.067208211869, "warmup_frames": 5, "ms_p50": 216.3335932418704, "ms_p95": 220.05765796639025, "ms_p99": 221.03502796031535, "ms_max": 528.3831129781902, "fps": 4.622490594338514, "decode_ms_p50": 13.58391554094851, "lost_frames": 62, "conf_frames": 1248, "rss_peak_mb": 2795.73828125, "gpu_peak_mb": 745.41259765625}
+  296.7s wall, temps NoneC
+[7/66] dam4sam_t640 x uav1_2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/823  10s  4.92 fps  eta 157s
+  100/823  20s  4.97 fps  eta 145s
+  150/823  30s  5.03 fps  eta 134s
+  200/823  39s  5.08 fps  eta 123s
+  250/823  49s  5.11 fps  eta 112s
+  300/823  59s  5.12 fps  eta 102s
+  350/823  68s  5.14 fps  eta 92s
+  400/823  78s  5.15 fps  eta 82s
+  450/823  88s  5.13 fps  eta 73s
+  500/823  98s  5.11 fps  eta 63s
+  550/823  108s  5.10 fps  eta 54s
+  600/823  118s  5.10 fps  eta 44s
+  650/823  127s  5.11 fps  eta 34s
+  700/823  137s  5.12 fps  eta 24s
+  750/823  146s  5.12 fps  eta 14s
+  800/823  156s  5.13 fps  eta 4s
+{"arm": "dam4sam_t640", "seq": "uav1_2", "frames": 823, "w": 720, "h": 480, "init_ms": 7084.776449017227, "warmup_frames": 5, "ms_p50": 183.03965823724866, "ms_p95": 192.73055037483573, "ms_p99": 194.44098813459277, "ms_max": 452.52807065844536, "fps": 5.463296914070066, "decode_ms_p50": 8.963056840002537, "lost_frames": 211, "conf_frames": 822, "rss_peak_mb": 2434.98828125, "gpu_peak_mb": 617.73828125}
+  169.8s wall, temps NoneC
+[8/66] dam4sam_t640 x person19_3 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1567  11s  4.37 fps  eta 347s
+  100/1567  23s  4.36 fps  eta 336s
+  150/1567  35s  4.34 fps  eta 326s
+  200/1567  46s  4.34 fps  eta 315s
+  250/1567  57s  4.35 fps  eta 303s
+  300/1567  69s  4.37 fps  eta 290s
+  350/1567  79s  4.42 fps  eta 276s
+  400/1567  90s  4.45 fps  eta 262s
+  450/1567  101s  4.46 fps  eta 250s
+  500/1567  112s  4.48 fps  eta 238s
+  550/1567  122s  4.51 fps  eta 226s
+  600/1567  133s  4.52 fps  eta 214s
+  650/1567  143s  4.54 fps  eta 202s
+  700/1567  154s  4.56 fps  eta 190s
+  750/1567  164s  4.57 fps  eta 179s
+  800/1567  175s  4.58 fps  eta 167s
+  850/1567  185s  4.59 fps  eta 156s
+  900/1567  196s  4.60 fps  eta 145s
+  950/1567  206s  4.60 fps  eta 134s
+  1000/1567  217s  4.61 fps  eta 123s
+  1050/1567  227s  4.62 fps  eta 112s
+  1100/1567  238s  4.62 fps  eta 101s
+  1150/1567  248s  4.63 fps  eta 90s
+  1200/1567  259s  4.64 fps  eta 79s
+  1250/1567  269s  4.64 fps  eta 68s
+  1300/1567  280s  4.65 fps  eta 57s
+  1350/1567  291s  4.64 fps  eta 47s
+  1400/1567  302s  4.63 fps  eta 36s
+  1450/1567  314s  4.62 fps  eta 25s
+  1500/1567  325s  4.62 fps  eta 15s
+  1550/1567  336s  4.61 fps  eta 4s
+{"arm": "dam4sam_t640", "seq": "person19_3", "frames": 1567, "w": 1280, "h": 720, "init_ms": 7398.052904754877, "warmup_frames": 5, "ms_p50": 197.6290801540017, "ms_p95": 219.07119126990438, "ms_p99": 220.42256277054548, "ms_max": 478.9708792231977, "fps": 5.059984083419069, "decode_ms_p50": 13.383399695158005, "lost_frames": 896, "conf_frames": 1566, "rss_peak_mb": 3041.3125, "gpu_peak_mb": 837.6298828125}
+  349.8s wall, temps NoneC
+[9/66] dam4sam_t768 x car1_3 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1003  14s  3.57 fps  eta 267s
+  100/1003  28s  3.51 fps  eta 257s
+  150/1003  43s  3.49 fps  eta 244s
+  200/1003  57s  3.48 fps  eta 231s
+  250/1003  72s  3.47 fps  eta 217s
+  300/1003  86s  3.47 fps  eta 202s
+  350/1003  101s  3.47 fps  eta 188s
+  400/1003  115s  3.47 fps  eta 174s
+  450/1003  130s  3.45 fps  eta 160s
+  500/1003  145s  3.46 fps  eta 146s
+  550/1003  159s  3.46 fps  eta 131s
+  600/1003  173s  3.48 fps  eta 116s
+  650/1003  186s  3.49 fps  eta 101s
+  700/1003  200s  3.51 fps  eta 86s
+  750/1003  213s  3.52 fps  eta 72s
+  800/1003  227s  3.53 fps  eta 58s
+  850/1003  241s  3.53 fps  eta 43s
+  900/1003  254s  3.54 fps  eta 29s
+  950/1003  268s  3.54 fps  eta 15s
+  1000/1003  282s  3.55 fps  eta 1s
+{"arm": "dam4sam_t768", "seq": "car1_3", "frames": 1003, "w": 1280, "h": 720, "init_ms": 7350.5163616500795, "warmup_frames": 5, "ms_p50": 274.61650082841516, "ms_p95": 283.17586621269584, "ms_p99": 284.7233728133142, "ms_max": 563.2650288753211, "fps": 3.6414417814784414, "decode_ms_p50": 7.644013734534383, "lost_frames": 424, "conf_frames": 1002, "rss_peak_mb": 2905.14453125, "gpu_peak_mb": 863.30517578125}
+  292.4s wall, temps NoneC
+[10/66] dam4sam_t768 x person8_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1075  14s  3.50 fps  eta 293s
+  100/1075  29s  3.45 fps  eta 283s
+  150/1075  44s  3.40 fps  eta 272s
+  200/1075  59s  3.39 fps  eta 258s
+  250/1075  74s  3.39 fps  eta 243s
+  300/1075  89s  3.39 fps  eta 229s
+  350/1075  103s  3.39 fps  eta 214s
+  400/1075  118s  3.39 fps  eta 199s
+  450/1075  133s  3.39 fps  eta 185s
+  500/1075  148s  3.39 fps  eta 170s
+  550/1075  163s  3.38 fps  eta 155s
+  600/1075  178s  3.38 fps  eta 141s
+  650/1075  193s  3.38 fps  eta 126s
+  700/1075  207s  3.38 fps  eta 111s
+  750/1075  222s  3.38 fps  eta 96s
+  800/1075  237s  3.38 fps  eta 81s
+  850/1075  251s  3.38 fps  eta 67s
+  900/1075  266s  3.38 fps  eta 52s
+  950/1075  280s  3.39 fps  eta 37s
+  1000/1075  294s  3.40 fps  eta 22s
+  1050/1075  308s  3.41 fps  eta 7s
+{"arm": "dam4sam_t768", "seq": "person8_1", "frames": 1075, "w": 1280, "h": 720, "init_ms": 7366.160763893276, "warmup_frames": 5, "ms_p50": 279.93812086060643, "ms_p95": 284.6401359885931, "ms_p99": 286.0915940441191, "ms_max": 587.1108323335648, "fps": 3.5722180206315817, "decode_ms_p50": 15.122598968446255, "lost_frames": 76, "conf_frames": 1074, "rss_peak_mb": 3006.171875, "gpu_peak_mb": 897.748046875}
+  325.5s wall, temps NoneC
+[11/66] dam4sam_t768 x bike2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/553  13s  3.83 fps  eta 131s
+  100/553  27s  3.72 fps  eta 122s
+  150/553  41s  3.69 fps  eta 109s
+  200/553  54s  3.67 fps  eta 96s
+  250/553  68s  3.65 fps  eta 83s
+  300/553  82s  3.65 fps  eta 69s
+  350/553  96s  3.64 fps  eta 56s
+  400/553  110s  3.64 fps  eta 42s
+  450/553  124s  3.63 fps  eta 28s
+  500/553  138s  3.62 fps  eta 15s
+  550/553  152s  3.62 fps  eta 1s
+{"arm": "dam4sam_t768", "seq": "bike2", "frames": 553, "w": 1280, "h": 720, "init_ms": 7100.140884052962, "warmup_frames": 5, "ms_p50": 261.3968048244715, "ms_p95": 264.34358712285757, "ms_p99": 282.98129906877875, "ms_max": 590.0481739081442, "fps": 3.8256014669785356, "decode_ms_p50": 14.361135428771377, "lost_frames": 32, "conf_frames": 552, "rss_peak_mb": 2498.4296875, "gpu_peak_mb": 672.5654296875}
+  162.0s wall, temps NoneC
+[12/66] dam4sam_t768 x person14_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/847  15s  3.43 fps  eta 232s
+  100/847  29s  3.42 fps  eta 218s
+  150/847  44s  3.44 fps  eta 202s
+  200/847  57s  3.48 fps  eta 186s
+  250/847  72s  3.46 fps  eta 172s
+  300/847  87s  3.45 fps  eta 159s
+  350/847  102s  3.43 fps  eta 145s
+  400/847  117s  3.43 fps  eta 130s
+  450/847  132s  3.42 fps  eta 116s
+  500/847  146s  3.42 fps  eta 102s
+  550/847  161s  3.41 fps  eta 87s
+  600/847  176s  3.40 fps  eta 73s
+  650/847  191s  3.40 fps  eta 58s
+  700/847  206s  3.40 fps  eta 43s
+  750/847  221s  3.40 fps  eta 29s
+  800/847  236s  3.40 fps  eta 14s
+{"arm": "dam4sam_t768", "seq": "person14_1", "frames": 847, "w": 1280, "h": 720, "init_ms": 7074.900740757585, "warmup_frames": 5, "ms_p50": 283.02664728835225, "ms_p95": 285.7423177920282, "ms_p99": 286.7628359235823, "ms_max": 570.4624610953033, "fps": 3.533236214967361, "decode_ms_p50": 13.706970028579235, "lost_frames": 42, "conf_frames": 846, "rss_peak_mb": 2754.57421875, "gpu_peak_mb": 797.02734375}
+  258.9s wall, temps NoneC
+[13/66] dam4sam_t768 x uav2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/133  12s  4.12 fps  eta 20s
+  100/133  25s  3.96 fps  eta 8s
+{"arm": "dam4sam_t768", "seq": "uav2", "frames": 133, "w": 720, "h": 480, "init_ms": 7334.807442035526, "warmup_frames": 5, "ms_p50": 247.21650686115026, "ms_p95": 249.81092493981123, "ms_p99": 256.44652316346765, "ms_max": 566.7858025990427, "fps": 4.045037334669777, "decode_ms_p50": 8.751530200242996, "lost_frames": 19, "conf_frames": 132, "rss_peak_mb": 2113.15625, "gpu_peak_mb": 495.52734375}
+  43.3s wall, temps NoneC
+[14/66] dam4sam_t640 x group2_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/907  11s  4.39 fps  eta 195s
+  100/907  23s  4.44 fps  eta 182s
+  150/907  33s  4.54 fps  eta 167s
+  200/907  44s  4.53 fps  eta 156s
+  250/907  55s  4.52 fps  eta 145s
+  300/907  67s  4.49 fps  eta 135s
+  350/907  78s  4.47 fps  eta 125s
+  400/907  90s  4.46 fps  eta 114s
+  450/907  101s  4.47 fps  eta 102s
+  500/907  113s  4.44 fps  eta 92s
+  550/907  124s  4.44 fps  eta 80s
+  600/907  135s  4.45 fps  eta 69s
+  650/907  146s  4.46 fps  eta 58s
+  700/907  157s  4.45 fps  eta 47s
+  750/907  168s  4.46 fps  eta 35s
+  800/907  179s  4.46 fps  eta 24s
+  850/907  190s  4.46 fps  eta 13s
+  900/907  202s  4.46 fps  eta 2s
+{"arm": "dam4sam_t640", "seq": "group2_1", "frames": 907, "w": 1280, "h": 720, "init_ms": 7092.897676397115, "warmup_frames": 5, "ms_p50": 215.60342609882355, "ms_p95": 217.90683502331376, "ms_p99": 219.53431144356728, "ms_max": 500.9321919642389, "fps": 4.638145219184235, "decode_ms_p50": 13.58867553062737, "lost_frames": 44, "conf_frames": 906, "rss_peak_mb": 2519.57421875, "gpu_peak_mb": 642.11865234375}
+  212.8s wall, temps NoneC
+[15/66] dam4sam_t640 x bird1_3 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/865  11s  4.69 fps  eta 174s
+  100/865  21s  4.68 fps  eta 164s
+  150/865  32s  4.67 fps  eta 153s
+  200/865  43s  4.68 fps  eta 142s
+  250/865  53s  4.67 fps  eta 132s
+  300/865  64s  4.68 fps  eta 121s
+  350/865  75s  4.67 fps  eta 110s
+  400/865  86s  4.67 fps  eta 99s
+  450/865  96s  4.68 fps  eta 89s
+  500/865  107s  4.69 fps  eta 78s
+  550/865  117s  4.70 fps  eta 67s
+  600/865  128s  4.70 fps  eta 56s
+  650/865  139s  4.69 fps  eta 46s
+  700/865  149s  4.69 fps  eta 35s
+  750/865  160s  4.69 fps  eta 25s
+  800/865  170s  4.69 fps  eta 14s
+  850/865  181s  4.70 fps  eta 3s
+{"arm": "dam4sam_t640", "seq": "bird1_3", "frames": 865, "w": 1280, "h": 720, "init_ms": 7116.032006219029, "warmup_frames": 5, "ms_p50": 197.17842806130648, "ms_p95": 218.2242073584348, "ms_p99": 220.19969580695033, "ms_max": 533.0041232518852, "fps": 5.071548697452244, "decode_ms_p50": 12.461562873795629, "lost_frames": 352, "conf_frames": 864, "rss_peak_mb": 2502.34375, "gpu_peak_mb": 631.09033203125}
+  193.5s wall, temps NoneC
+[16/66] dam4sam_t640 x car7 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1033  11s  4.38 fps  eta 224s
+  100/1033  23s  4.36 fps  eta 214s
+  150/1033  34s  4.42 fps  eta 200s
+  200/1033  45s  4.44 fps  eta 188s
+  250/1033  56s  4.48 fps  eta 175s
+  300/1033  67s  4.48 fps  eta 164s
+  350/1033  78s  4.47 fps  eta 153s
+  400/1033  89s  4.50 fps  eta 141s
+  450/1033  100s  4.49 fps  eta 130s
+  500/1033  111s  4.49 fps  eta 119s
+  550/1033  122s  4.51 fps  eta 107s
+  600/1033  133s  4.53 fps  eta 96s
+  650/1033  144s  4.53 fps  eta 85s
+  700/1033  155s  4.51 fps  eta 74s
+  750/1033  167s  4.50 fps  eta 63s
+  800/1033  178s  4.49 fps  eta 52s
+  850/1033  190s  4.48 fps  eta 41s
+  900/1033  201s  4.47 fps  eta 30s
+  950/1033  213s  4.46 fps  eta 19s
+  1000/1033  224s  4.46 fps  eta 7s
+{"arm": "dam4sam_t640", "seq": "car7", "frames": 1033, "w": 1280, "h": 720, "init_ms": 7314.220932777971, "warmup_frames": 5, "ms_p50": 215.199229773134, "ms_p95": 219.2903102375567, "ms_p99": 219.98966905288398, "ms_max": 478.5625762306154, "fps": 4.6468567803621506, "decode_ms_p50": 14.17011208832264, "lost_frames": 10, "conf_frames": 1032, "rss_peak_mb": 2603.99609375, "gpu_peak_mb": 681.28662109375}
+  241.6s wall, temps NoneC
+[17/66] dam4sam_t640 x person9 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/661  11s  4.38 fps  eta 140s
+  100/661  22s  4.50 fps  eta 125s
+  150/661  34s  4.45 fps  eta 115s
+  200/661  45s  4.45 fps  eta 104s
+  250/661  56s  4.43 fps  eta 93s
+  300/661  68s  4.40 fps  eta 82s
+  350/661  80s  4.40 fps  eta 71s
+  400/661  91s  4.39 fps  eta 59s
+  450/661  103s  4.39 fps  eta 48s
+  500/661  114s  4.39 fps  eta 37s
+  550/661  125s  4.38 fps  eta 25s
+  600/661  137s  4.38 fps  eta 14s
+  650/661  148s  4.38 fps  eta 3s
+{"arm": "dam4sam_t640", "seq": "person9", "frames": 661, "w": 1280, "h": 720, "init_ms": 7099.77778699249, "warmup_frames": 5, "ms_p50": 215.52618825808167, "ms_p95": 218.69667526334524, "ms_p99": 219.32526958175004, "ms_max": 497.80504405498505, "fps": 4.63980738527492, "decode_ms_p50": 14.259671559557319, "lost_frames": 19, "conf_frames": 660, "rss_peak_mb": 2391.63671875, "gpu_peak_mb": 570.27392578125}
+  160.2s wall, temps NoneC
+[18/66] dam4sam_t640 x uav1_3 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/997  10s  5.17 fps  eta 183s
+  100/997  20s  5.10 fps  eta 176s
+  150/997  30s  5.07 fps  eta 167s
+  200/997  39s  5.07 fps  eta 157s
+  250/997  49s  5.09 fps  eta 147s
+  300/997  59s  5.11 fps  eta 136s
+  350/997  68s  5.12 fps  eta 126s
+  400/997  78s  5.10 fps  eta 117s
+  450/997  88s  5.10 fps  eta 107s
+  500/997  98s  5.11 fps  eta 97s
+  550/997  108s  5.10 fps  eta 88s
+  600/997  117s  5.11 fps  eta 78s
+  650/997  127s  5.11 fps  eta 68s
+  700/997  137s  5.12 fps  eta 58s
+  750/997  146s  5.12 fps  eta 48s
+  800/997  156s  5.13 fps  eta 38s
+  850/997  166s  5.13 fps  eta 29s
+  900/997  175s  5.14 fps  eta 19s
+  950/997  185s  5.14 fps  eta 9s
+{"arm": "dam4sam_t640", "seq": "uav1_3", "frames": 997, "w": 720, "h": 480, "init_ms": 7288.195876870304, "warmup_frames": 5, "ms_p50": 183.73693944886327, "ms_p95": 192.75305327028036, "ms_p99": 194.12064016796649, "ms_max": 508.6653237231076, "fps": 5.44256371636317, "decode_ms_p50": 8.984717540442944, "lost_frames": 557, "conf_frames": 996, "rss_peak_mb": 2547.3359375, "gpu_peak_mb": 668.83544921875}
+  203.5s wall, temps NoneC
+[19/66] dam4sam_t640 x group2_2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/865  12s  4.28 fps  eta 191s
+  100/865  23s  4.31 fps  eta 178s
+  150/865  35s  4.31 fps  eta 166s
+  200/865  46s  4.33 fps  eta 154s
+  250/865  58s  4.33 fps  eta 142s
+  300/865  69s  4.36 fps  eta 130s
+  350/865  80s  4.36 fps  eta 118s
+  400/865  92s  4.35 fps  eta 107s
+  450/865  103s  4.36 fps  eta 95s
+  500/865  115s  4.36 fps  eta 84s
+  550/865  126s  4.37 fps  eta 72s
+  600/865  137s  4.38 fps  eta 61s
+  650/865  148s  4.38 fps  eta 49s
+  700/865  160s  4.37 fps  eta 38s
+  750/865  172s  4.37 fps  eta 26s
+  800/865  183s  4.38 fps  eta 15s
+  850/865  194s  4.38 fps  eta 3s
+{"arm": "dam4sam_t640", "seq": "group2_2", "frames": 865, "w": 1280, "h": 720, "init_ms": 7088.9121582731605, "warmup_frames": 5, "ms_p50": 217.2938077710569, "ms_p95": 219.32400967925787, "ms_p99": 220.44102230109274, "ms_max": 462.3715071938932, "fps": 4.6020639532149525, "decode_ms_p50": 14.42980719730258, "lost_frames": 0, "conf_frames": 864, "rss_peak_mb": 2510.84765625, "gpu_peak_mb": 632.70654296875}
+  206.8s wall, temps NoneC
+[20/66] dam4sam_t640 x bird1_2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/703  10s  4.82 fps  eta 135s
+  100/703  21s  4.71 fps  eta 128s
+  150/703  32s  4.71 fps  eta 117s
+  200/703  42s  4.71 fps  eta 107s
+  250/703  53s  4.68 fps  eta 97s
+  300/703  64s  4.69 fps  eta 86s
+  350/703  75s  4.67 fps  eta 76s
+  400/703  86s  4.67 fps  eta 65s
+  450/703  96s  4.67 fps  eta 54s
+  500/703  108s  4.64 fps  eta 44s
+  550/703  119s  4.63 fps  eta 33s
+  600/703  130s  4.63 fps  eta 22s
+  650/703  141s  4.62 fps  eta 11s
+  700/703  152s  4.60 fps  eta 1s
+{"arm": "dam4sam_t640", "seq": "bird1_2", "frames": 703, "w": 1280, "h": 720, "init_ms": 7080.012809019536, "warmup_frames": 5, "ms_p50": 198.27077770605683, "ms_p95": 219.3092817440629, "ms_p99": 220.74477726593614, "ms_max": 536.4918680861592, "fps": 5.043607593462583, "decode_ms_p50": 12.588066048920155, "lost_frames": 89, "conf_frames": 702, "rss_peak_mb": 2403.5078125, "gpu_peak_mb": 583.24658203125}
+  162.2s wall, temps NoneC
+[21/66] dam4sam_t640 x bike2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/553  10s  5.04 fps  eta 100s
+  100/553  20s  4.95 fps  eta 92s
+  150/553  31s  4.91 fps  eta 82s
+  200/553  41s  4.89 fps  eta 72s
+  250/553  51s  4.88 fps  eta 62s
+  300/553  62s  4.85 fps  eta 52s
+  350/553  72s  4.85 fps  eta 42s
+  400/553  82s  4.85 fps  eta 32s
+  450/553  93s  4.85 fps  eta 21s
+  500/553  103s  4.85 fps  eta 11s
+  550/553  114s  4.85 fps  eta 1s
+{"arm": "dam4sam_t640", "seq": "bike2", "frames": 553, "w": 1280, "h": 720, "init_ms": 7050.354158971459, "warmup_frames": 5, "ms_p50": 198.1834708712995, "ms_p95": 199.7445751912892, "ms_p99": 200.66915907897055, "ms_max": 445.5992607399821, "fps": 5.045829481154867, "decode_ms_p50": 8.493932196870446, "lost_frames": 32, "conf_frames": 552, "rss_peak_mb": 2296.90234375, "gpu_peak_mb": 538.01708984375}
+  123.3s wall, temps NoneC
+[22/66] dam4sam_t768 x person7_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1249  14s  3.56 fps  eta 337s
+  100/1249  28s  3.52 fps  eta 327s
+  150/1249  43s  3.50 fps  eta 314s
+  200/1249  57s  3.49 fps  eta 300s
+  250/1249  72s  3.49 fps  eta 286s
+  300/1249  86s  3.47 fps  eta 273s
+  350/1249  101s  3.48 fps  eta 259s
+  400/1249  115s  3.47 fps  eta 244s
+  450/1249  130s  3.47 fps  eta 230s
+  500/1249  144s  3.47 fps  eta 216s
+  550/1249  159s  3.46 fps  eta 202s
+  600/1249  173s  3.46 fps  eta 187s
+  650/1249  188s  3.46 fps  eta 173s
+  700/1249  202s  3.46 fps  eta 159s
+  750/1249  216s  3.47 fps  eta 144s
+  800/1249  231s  3.47 fps  eta 129s
+  850/1249  245s  3.47 fps  eta 115s
+  900/1249  259s  3.47 fps  eta 101s
+  950/1249  274s  3.47 fps  eta 86s
+  1000/1249  288s  3.47 fps  eta 72s
+  1050/1249  303s  3.47 fps  eta 57s
+  1100/1249  317s  3.47 fps  eta 43s
+  1150/1249  332s  3.46 fps  eta 29s
+  1200/1249  346s  3.47 fps  eta 14s
+{"arm": "dam4sam_t768", "seq": "person7_1", "frames": 1249, "w": 1280, "h": 720, "init_ms": 7397.442374844104, "warmup_frames": 5, "ms_p50": 281.5476581454277, "ms_p95": 286.5271187853068, "ms_p99": 287.6109834946692, "ms_max": 597.8643111884594, "fps": 3.5517965469400936, "decode_ms_p50": 7.6608010567724705, "lost_frames": 60, "conf_frames": 1248, "rss_peak_mb": 3114.046875, "gpu_peak_mb": 969.88232421875}
+  369.4s wall, temps NoneC
+[23/66] dam4sam_t640 x bird1_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/253  11s  4.71 fps  eta 43s
+  100/253  21s  4.69 fps  eta 33s
+  150/253  32s  4.72 fps  eta 22s
+  200/253  43s  4.68 fps  eta 11s
+  250/253  54s  4.64 fps  eta 1s
+{"arm": "dam4sam_t640", "seq": "bird1_1", "frames": 253, "w": 1280, "h": 720, "init_ms": 7336.86711313203, "warmup_frames": 5, "ms_p50": 196.93626509979367, "ms_p95": 218.0478718597442, "ms_p99": 219.89686149172485, "ms_max": 494.51875081285834, "fps": 5.07778493459937, "decode_ms_p50": 12.912817066535354, "lost_frames": 22, "conf_frames": 252, "rss_peak_mb": 2090.2421875, "gpu_peak_mb": 450.3974609375}
+  64.1s wall, temps NoneC
+[24/66] dam4sam_t768 x group3_2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1261  14s  3.51 fps  eta 345s
+  100/1261  29s  3.48 fps  eta 334s
+  150/1261  43s  3.52 fps  eta 316s
+  200/1261  57s  3.54 fps  eta 300s
+  250/1261  71s  3.54 fps  eta 286s
+  300/1261  84s  3.55 fps  eta 270s
+  350/1261  98s  3.56 fps  eta 256s
+  400/1261  112s  3.57 fps  eta 241s
+  450/1261  126s  3.58 fps  eta 227s
+  500/1261  140s  3.58 fps  eta 213s
+  550/1261  154s  3.56 fps  eta 200s
+  600/1261  169s  3.55 fps  eta 186s
+  650/1261  184s  3.54 fps  eta 173s
+  700/1261  198s  3.54 fps  eta 158s
+  750/1261  212s  3.55 fps  eta 144s
+  800/1261  226s  3.54 fps  eta 130s
+  850/1261  241s  3.53 fps  eta 116s
+  900/1261  255s  3.52 fps  eta 102s
+  950/1261  270s  3.52 fps  eta 88s
+  1000/1261  285s  3.51 fps  eta 74s
+  1050/1261  300s  3.50 fps  eta 60s
+  1100/1261  315s  3.50 fps  eta 46s
+  1150/1261  330s  3.49 fps  eta 32s
+  1200/1261  344s  3.49 fps  eta 17s
+  1250/1261  359s  3.48 fps  eta 3s
+{"arm": "dam4sam_t768", "seq": "group3_2", "frames": 1261, "w": 1280, "h": 720, "init_ms": 7377.343254163861, "warmup_frames": 5, "ms_p50": 266.8563579209149, "ms_p95": 285.00792318955064, "ms_p99": 285.81440267153084, "ms_max": 539.3799180164933, "fps": 3.7473343629172904, "decode_ms_p50": 15.012387186288834, "lost_frames": 319, "conf_frames": 1260, "rss_peak_mb": 3187.29296875, "gpu_peak_mb": 973.99609375}
+  371.7s wall, temps NoneC
+[25/66] dam4sam_t768 x group2_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/907  14s  3.47 fps  eta 247s
+  100/907  29s  3.49 fps  eta 232s
+  150/907  42s  3.55 fps  eta 213s
+  200/907  56s  3.56 fps  eta 199s
+  250/907  71s  3.54 fps  eta 186s
+  300/907  85s  3.52 fps  eta 172s
+  350/907  100s  3.51 fps  eta 159s
+  400/907  114s  3.50 fps  eta 145s
+  450/907  129s  3.50 fps  eta 131s
+  500/907  143s  3.50 fps  eta 116s
+  550/907  157s  3.49 fps  eta 102s
+  600/907  171s  3.50 fps  eta 88s
+  650/907  185s  3.51 fps  eta 73s
+  700/907  200s  3.51 fps  eta 59s
+  750/907  214s  3.51 fps  eta 45s
+  800/907  228s  3.51 fps  eta 31s
+  850/907  243s  3.51 fps  eta 16s
+  900/907  257s  3.50 fps  eta 2s
+{"arm": "dam4sam_t768", "seq": "group2_1", "frames": 907, "w": 1280, "h": 720, "init_ms": 7113.751711789519, "warmup_frames": 5, "ms_p50": 282.5753688812256, "ms_p95": 285.865203011781, "ms_p99": 286.9457630440593, "ms_max": 536.5785472095013, "fps": 3.538878862510937, "decode_ms_p50": 7.7013804111629725, "lost_frames": 64, "conf_frames": 906, "rss_peak_mb": 2840.17578125, "gpu_peak_mb": 826.625}
+  268.5s wall, temps NoneC
+[26/66] dam4sam_t640 x group3_2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1261  11s  4.55 fps  eta 266s
+  100/1261  22s  4.63 fps  eta 251s
+  150/1261  32s  4.69 fps  eta 237s
+  200/1261  42s  4.72 fps  eta 225s
+  250/1261  53s  4.74 fps  eta 213s
+  300/1261  63s  4.75 fps  eta 202s
+  350/1261  73s  4.77 fps  eta 191s
+  400/1261  84s  4.78 fps  eta 180s
+  450/1261  94s  4.78 fps  eta 170s
+  500/1261  104s  4.79 fps  eta 159s
+  550/1261  115s  4.79 fps  eta 148s
+  600/1261  125s  4.80 fps  eta 138s
+  650/1261  135s  4.80 fps  eta 127s
+  700/1261  146s  4.80 fps  eta 117s
+  750/1261  156s  4.80 fps  eta 106s
+  800/1261  167s  4.80 fps  eta 96s
+  850/1261  178s  4.78 fps  eta 86s
+  900/1261  189s  4.76 fps  eta 76s
+  950/1261  201s  4.73 fps  eta 66s
+  1000/1261  212s  4.71 fps  eta 55s
+  1050/1261  224s  4.69 fps  eta 45s
+  1100/1261  235s  4.68 fps  eta 34s
+  1150/1261  246s  4.67 fps  eta 24s
+  1200/1261  257s  4.66 fps  eta 13s
+  1250/1261  269s  4.65 fps  eta 2s
+{"arm": "dam4sam_t640", "seq": "group3_2", "frames": 1261, "w": 1280, "h": 720, "init_ms": 7289.888624101877, "warmup_frames": 5, "ms_p50": 198.70873307809234, "ms_p95": 220.39105664007366, "ms_p99": 220.9407902508974, "ms_max": 506.3619241118431, "fps": 5.032491448712529, "decode_ms_p50": 9.172582998871803, "lost_frames": 533, "conf_frames": 1260, "rss_peak_mb": 2765.04296875, "gpu_peak_mb": 747.8115234375}
+  280.9s wall, temps NoneC
+[27/66] dam4sam_t640 x group3_4 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1159  11s  4.35 fps  eta 255s
+  100/1159  23s  4.40 fps  eta 241s
+  150/1159  34s  4.37 fps  eta 231s
+  200/1159  46s  4.36 fps  eta 220s
+  250/1159  58s  4.35 fps  eta 209s
+  300/1159  69s  4.34 fps  eta 198s
+  350/1159  81s  4.34 fps  eta 187s
+  400/1159  93s  4.32 fps  eta 176s
+  450/1159  104s  4.32 fps  eta 164s
+  500/1159  115s  4.34 fps  eta 152s
+  550/1159  126s  4.37 fps  eta 139s
+  600/1159  137s  4.37 fps  eta 128s
+  650/1159  149s  4.36 fps  eta 117s
+  700/1159  161s  4.36 fps  eta 105s
+  750/1159  172s  4.36 fps  eta 94s
+  800/1159  183s  4.38 fps  eta 82s
+  850/1159  194s  4.38 fps  eta 71s
+  900/1159  206s  4.38 fps  eta 59s
+  950/1159  217s  4.38 fps  eta 48s
+  1000/1159  229s  4.37 fps  eta 36s
+  1050/1159  240s  4.37 fps  eta 25s
+  1100/1159  252s  4.37 fps  eta 14s
+  1150/1159  263s  4.37 fps  eta 2s
+{"arm": "dam4sam_t640", "seq": "group3_4", "frames": 1159, "w": 1280, "h": 720, "init_ms": 7360.707776620984, "warmup_frames": 5, "ms_p50": 217.47804479673505, "ms_p95": 219.51585514470935, "ms_p99": 220.3968644142151, "ms_max": 494.6331228129566, "fps": 4.598165304155856, "decode_ms_p50": 14.977591345086694, "lost_frames": 35, "conf_frames": 1158, "rss_peak_mb": 2699.58984375, "gpu_peak_mb": 718.37451171875}
+  275.1s wall, temps NoneC
+[28/66] dam4sam_t640 x person12_2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1021  11s  4.37 fps  eta 222s
+  100/1021  23s  4.35 fps  eta 212s
+  150/1021  34s  4.36 fps  eta 200s
+  200/1021  46s  4.36 fps  eta 188s
+  250/1021  57s  4.36 fps  eta 177s
+  300/1021  69s  4.35 fps  eta 166s
+  350/1021  81s  4.35 fps  eta 154s
+  400/1021  92s  4.36 fps  eta 142s
+  450/1021  103s  4.36 fps  eta 131s
+  500/1021  114s  4.37 fps  eta 119s
+  550/1021  126s  4.36 fps  eta 108s
+  600/1021  138s  4.36 fps  eta 97s
+  650/1021  149s  4.37 fps  eta 85s
+  700/1021  159s  4.40 fps  eta 73s
+  750/1021  171s  4.40 fps  eta 62s
+  800/1021  182s  4.39 fps  eta 50s
+  850/1021  194s  4.39 fps  eta 39s
+  900/1021  205s  4.38 fps  eta 28s
+  950/1021  217s  4.38 fps  eta 16s
+  1000/1021  228s  4.38 fps  eta 5s
+{"arm": "dam4sam_t640", "seq": "person12_2", "frames": 1021, "w": 1280, "h": 720, "init_ms": 7317.008414771408, "warmup_frames": 5, "ms_p50": 217.6075391471386, "ms_p95": 219.35902829281986, "ms_p99": 219.9086717236787, "ms_max": 500.51224790513515, "fps": 4.595429018310965, "decode_ms_p50": 13.681056909263134, "lost_frames": 28, "conf_frames": 1020, "rss_peak_mb": 2626.2265625, "gpu_peak_mb": 675.96240234375}
+  243.0s wall, temps NoneC
+[29/66] dam4sam_t768 x car7 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1033  14s  3.56 fps  eta 276s
+  100/1033  29s  3.51 fps  eta 266s
+  150/1033  43s  3.51 fps  eta 251s
+  200/1033  57s  3.52 fps  eta 237s
+  250/1033  70s  3.55 fps  eta 221s
+  300/1033  84s  3.57 fps  eta 206s
+  350/1033  98s  3.56 fps  eta 192s
+  400/1033  113s  3.55 fps  eta 178s
+  450/1033  127s  3.55 fps  eta 164s
+  500/1033  141s  3.54 fps  eta 150s
+  550/1033  156s  3.54 fps  eta 137s
+  600/1033  170s  3.53 fps  eta 123s
+  650/1033  184s  3.53 fps  eta 109s
+  700/1033  199s  3.52 fps  eta 95s
+  750/1033  213s  3.52 fps  eta 80s
+  800/1033  228s  3.51 fps  eta 66s
+  850/1033  242s  3.51 fps  eta 52s
+  900/1033  256s  3.51 fps  eta 38s
+  950/1033  270s  3.52 fps  eta 24s
+  1000/1033  285s  3.51 fps  eta 9s
+{"arm": "dam4sam_t768", "seq": "car7", "frames": 1033, "w": 1280, "h": 720, "init_ms": 7373.742750380188, "warmup_frames": 5, "ms_p50": 279.54815328121185, "ms_p95": 285.1835561916232, "ms_p99": 286.64441424421966, "ms_max": 565.081681124866, "fps": 3.5772012380065648, "decode_ms_p50": 8.221742929890752, "lost_frames": 1, "conf_frames": 1032, "rss_peak_mb": 2937.1484375, "gpu_peak_mb": 878.2900390625}
+  304.0s wall, temps NoneC
+[30/66] dam4sam_t768 x person9 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/661  14s  3.54 fps  eta 172s
+  100/661  28s  3.59 fps  eta 156s
+  150/661  42s  3.54 fps  eta 144s
+  200/661  57s  3.53 fps  eta 131s
+  250/661  72s  3.49 fps  eta 118s
+  300/661  86s  3.49 fps  eta 104s
+  350/661  101s  3.48 fps  eta 89s
+  400/661  115s  3.48 fps  eta 75s
+  450/661  130s  3.47 fps  eta 61s
+  500/661  144s  3.47 fps  eta 46s
+  550/661  159s  3.47 fps  eta 32s
+  600/661  173s  3.47 fps  eta 18s
+  650/661  188s  3.47 fps  eta 3s
+{"arm": "dam4sam_t768", "seq": "person9", "frames": 661, "w": 1280, "h": 720, "init_ms": 7217.184665612876, "warmup_frames": 5, "ms_p50": 281.2469401396811, "ms_p95": 285.8126276638359, "ms_p99": 286.7358492873609, "ms_max": 557.4750420637429, "fps": 3.555594238655008, "decode_ms_p50": 8.430717512965202, "lost_frames": 18, "conf_frames": 660, "rss_peak_mb": 2638.3984375, "gpu_peak_mb": 721.72998046875}
+  200.2s wall, temps NoneC
+[31/66] dam4sam_t768 x car1_2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/877  15s  3.42 fps  eta 242s
+  100/877  29s  3.40 fps  eta 229s
+  150/877  44s  3.39 fps  eta 215s
+  200/877  59s  3.39 fps  eta 200s
+  250/877  73s  3.40 fps  eta 184s
+  300/877  88s  3.40 fps  eta 170s
+  350/877  103s  3.40 fps  eta 155s
+  400/877  118s  3.40 fps  eta 140s
+  450/877  132s  3.40 fps  eta 126s
+  500/877  147s  3.40 fps  eta 111s
+  550/877  162s  3.40 fps  eta 96s
+  600/877  176s  3.40 fps  eta 81s
+  650/877  191s  3.40 fps  eta 67s
+  700/877  206s  3.40 fps  eta 52s
+  750/877  220s  3.40 fps  eta 37s
+  800/877  235s  3.41 fps  eta 23s
+  850/877  249s  3.41 fps  eta 8s
+{"arm": "dam4sam_t768", "seq": "car1_2", "frames": 877, "w": 1280, "h": 720, "init_ms": 7135.388976894319, "warmup_frames": 5, "ms_p50": 280.53155820816755, "ms_p95": 284.8561620339751, "ms_p99": 286.2087436951697, "ms_max": 502.70412769168615, "fps": 3.564661339306265, "decode_ms_p50": 13.371249893680215, "lost_frames": 2, "conf_frames": 876, "rss_peak_mb": 2812.48046875, "gpu_peak_mb": 809.96435546875}
+  266.7s wall, temps NoneC
+[32/66] dam4sam_t640 x person17_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1501  11s  4.40 fps  eta 330s
+  100/1501  23s  4.39 fps  eta 319s
+  150/1501  34s  4.37 fps  eta 309s
+  200/1501  46s  4.36 fps  eta 299s
+  250/1501  57s  4.35 fps  eta 288s
+  300/1501  69s  4.34 fps  eta 276s
+  350/1501  81s  4.34 fps  eta 265s
+  400/1501  92s  4.34 fps  eta 254s
+  450/1501  104s  4.33 fps  eta 243s
+  500/1501  116s  4.33 fps  eta 231s
+  550/1501  127s  4.33 fps  eta 220s
+  600/1501  138s  4.35 fps  eta 207s
+  650/1501  149s  4.36 fps  eta 195s
+  700/1501  161s  4.36 fps  eta 184s
+  750/1501  172s  4.36 fps  eta 172s
+  800/1501  184s  4.35 fps  eta 161s
+  850/1501  195s  4.35 fps  eta 150s
+  900/1501  207s  4.35 fps  eta 138s
+  950/1501  218s  4.35 fps  eta 127s
+  1000/1501  230s  4.35 fps  eta 115s
+  1050/1501  242s  4.35 fps  eta 104s
+  1100/1501  253s  4.35 fps  eta 92s
+  1150/1501  265s  4.34 fps  eta 81s
+  1200/1501  276s  4.34 fps  eta 69s
+  1250/1501  288s  4.34 fps  eta 58s
+  1300/1501  300s  4.34 fps  eta 46s
+  1350/1501  311s  4.34 fps  eta 35s
+  1400/1501  323s  4.34 fps  eta 23s
+  1450/1501  334s  4.35 fps  eta 12s
+  1500/1501  345s  4.35 fps  eta 0s
+{"arm": "dam4sam_t640", "seq": "person17_1", "frames": 1501, "w": 1280, "h": 720, "init_ms": 7298.722922801971, "warmup_frames": 5, "ms_p50": 216.64977399632335, "ms_p95": 218.79927031695843, "ms_p99": 219.56119768321514, "ms_max": 500.52850507199764, "fps": 4.615744487307753, "decode_ms_p50": 15.33649256452918, "lost_frames": 0, "conf_frames": 1500, "rss_peak_mb": 2942.2734375, "gpu_peak_mb": 818.04833984375}
+  355.1s wall, temps NoneC
+[33/66] dam4sam_t640 x uav1_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1555  10s  5.16 fps  eta 291s
+  100/1555  19s  5.16 fps  eta 282s
+  150/1555  29s  5.16 fps  eta 273s
+  200/1555  39s  5.14 fps  eta 263s
+  250/1555  49s  5.11 fps  eta 255s
+  300/1555  59s  5.09 fps  eta 247s
+  350/1555  69s  5.10 fps  eta 236s
+  400/1555  78s  5.10 fps  eta 226s
+  450/1555  88s  5.10 fps  eta 217s
+  500/1555  98s  5.09 fps  eta 207s
+  550/1555  108s  5.08 fps  eta 198s
+  600/1555  118s  5.06 fps  eta 189s
+  650/1555  129s  5.06 fps  eta 179s
+  700/1555  139s  5.05 fps  eta 169s
+  750/1555  149s  5.04 fps  eta 160s
+  800/1555  159s  5.04 fps  eta 150s
+  850/1555  169s  5.04 fps  eta 140s
+  900/1555  178s  5.05 fps  eta 130s
+  950/1555  188s  5.05 fps  eta 120s
+  1000/1555  198s  5.05 fps  eta 110s
+  1050/1555  208s  5.06 fps  eta 100s
+  1100/1555  217s  5.06 fps  eta 90s
+  1150/1555  227s  5.06 fps  eta 80s
+  1200/1555  237s  5.07 fps  eta 70s
+  1250/1555  247s  5.07 fps  eta 60s
+  1300/1555  256s  5.07 fps  eta 50s
+  1350/1555  266s  5.07 fps  eta 40s
+  1400/1555  276s  5.07 fps  eta 31s
+  1450/1555  286s  5.08 fps  eta 21s
+  1500/1555  295s  5.08 fps  eta 11s
+  1550/1555  305s  5.08 fps  eta 1s
+{"arm": "dam4sam_t640", "seq": "uav1_1", "frames": 1555, "w": 720, "h": 480, "init_ms": 7624.342887662351, "warmup_frames": 5, "ms_p50": 186.14006601274014, "ms_p95": 195.34097984433174, "ms_p99": 196.83607693761587, "ms_max": 508.9754010550678, "fps": 5.3722985138060295, "decode_ms_p50": 8.872508071362972, "lost_frames": 17, "conf_frames": 1554, "rss_peak_mb": 2911.0703125, "gpu_peak_mb": 832.87890625}
+  316.5s wall, temps NoneC
+[34/66] dam4sam_t768 x person19_3 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1567  14s  3.49 fps  eta 435s
+  100/1567  29s  3.47 fps  eta 423s
+  150/1567  43s  3.46 fps  eta 409s
+  200/1567  58s  3.45 fps  eta 396s
+  250/1567  72s  3.46 fps  eta 381s
+  300/1567  87s  3.47 fps  eta 366s
+  350/1567  100s  3.49 fps  eta 349s
+  400/1567  114s  3.51 fps  eta 332s
+  450/1567  128s  3.53 fps  eta 317s
+  500/1567  142s  3.53 fps  eta 303s
+  550/1567  156s  3.53 fps  eta 288s
+  600/1567  171s  3.52 fps  eta 275s
+  650/1567  185s  3.51 fps  eta 261s
+  700/1567  200s  3.50 fps  eta 248s
+  750/1567  215s  3.50 fps  eta 234s
+  800/1567  229s  3.50 fps  eta 219s
+  850/1567  243s  3.50 fps  eta 205s
+  900/1567  257s  3.51 fps  eta 190s
+  950/1567  271s  3.51 fps  eta 176s
+  1000/1567  286s  3.50 fps  eta 162s
+  1050/1567  300s  3.50 fps  eta 148s
+  1100/1567  315s  3.50 fps  eta 134s
+  1150/1567  329s  3.50 fps  eta 119s
+  1200/1567  343s  3.49 fps  eta 105s
+  1250/1567  358s  3.49 fps  eta 91s
+  1300/1567  372s  3.49 fps  eta 76s
+  1350/1567  387s  3.49 fps  eta 62s
+  1400/1567  401s  3.49 fps  eta 48s
+  1450/1567  415s  3.49 fps  eta 34s
+  1500/1567  430s  3.49 fps  eta 19s
+  1550/1567  444s  3.49 fps  eta 5s
+{"arm": "dam4sam_t768", "seq": "person19_3", "frames": 1567, "w": 1280, "h": 720, "init_ms": 7397.104495204985, "warmup_frames": 5, "ms_p50": 281.53452975675464, "ms_p95": 286.74478409811854, "ms_p99": 287.84843338653445, "ms_max": 550.3565669059753, "fps": 3.551962172682684, "decode_ms_p50": 7.5574389193207026, "lost_frames": 145, "conf_frames": 1566, "rss_peak_mb": 3414.9453125, "gpu_peak_mb": 1102.07666015625}
+  458.9s wall, temps NoneC
+[35/66] dam4sam_t768 x group2_2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/865  14s  3.51 fps  eta 232s
+  100/865  29s  3.49 fps  eta 219s
+  150/865  43s  3.48 fps  eta 205s
+  200/865  57s  3.48 fps  eta 191s
+  250/865  72s  3.48 fps  eta 177s
+  300/865  86s  3.49 fps  eta 162s
+  350/865  100s  3.49 fps  eta 148s
+  400/865  115s  3.48 fps  eta 134s
+  450/865  129s  3.48 fps  eta 119s
+  500/865  144s  3.48 fps  eta 105s
+  550/865  158s  3.48 fps  eta 90s
+  600/865  172s  3.48 fps  eta 76s
+  650/865  187s  3.48 fps  eta 62s
+  700/865  201s  3.48 fps  eta 47s
+  750/865  216s  3.48 fps  eta 33s
+  800/865  230s  3.48 fps  eta 19s
+  850/865  244s  3.48 fps  eta 4s
+{"arm": "dam4sam_t768", "seq": "group2_2", "frames": 865, "w": 1280, "h": 720, "init_ms": 7071.63168117404, "warmup_frames": 5, "ms_p50": 281.6736502572894, "ms_p95": 284.7525152377784, "ms_p99": 285.550067005679, "ms_max": 533.3344270475209, "fps": 3.550207834799489, "decode_ms_p50": 8.457900024950504, "lost_frames": 0, "conf_frames": 864, "rss_peak_mb": 2776.27734375, "gpu_peak_mb": 808.8408203125}
+  258.1s wall, temps NoneC
+[36/66] dam4sam_t768 x bird1_2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/703  13s  3.86 fps  eta 169s
+  100/703  27s  3.75 fps  eta 161s
+  150/703  40s  3.73 fps  eta 148s
+  200/703  54s  3.72 fps  eta 135s
+  250/703  67s  3.71 fps  eta 122s
+  300/703  81s  3.70 fps  eta 109s
+  350/703  95s  3.69 fps  eta 96s
+  400/703  109s  3.68 fps  eta 82s
+  450/703  123s  3.67 fps  eta 69s
+  500/703  137s  3.65 fps  eta 56s
+  550/703  151s  3.64 fps  eta 42s
+  600/703  165s  3.64 fps  eta 28s
+  650/703  179s  3.64 fps  eta 15s
+  700/703  193s  3.63 fps  eta 1s
+{"arm": "dam4sam_t768", "seq": "bird1_2", "frames": 703, "w": 1280, "h": 720, "init_ms": 7072.322798892856, "warmup_frames": 5, "ms_p50": 262.67089508473873, "ms_p95": 283.6540254764259, "ms_p99": 285.28275271877646, "ms_max": 594.8816030286252, "fps": 3.8070453130233397, "decode_ms_p50": 6.693950388580561, "lost_frames": 94, "conf_frames": 702, "rss_peak_mb": 2631.2109375, "gpu_peak_mb": 736.1884765625}
+  203.3s wall, temps NoneC
+[37/66] dam4sam_t768 x person19_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1243  14s  3.48 fps  eta 342s
+  100/1243  29s  3.41 fps  eta 335s
+  150/1243  44s  3.40 fps  eta 321s
+  200/1243  59s  3.40 fps  eta 307s
+  250/1243  73s  3.40 fps  eta 292s
+  300/1243  88s  3.42 fps  eta 276s
+  350/1243  102s  3.43 fps  eta 260s
+  400/1243  117s  3.43 fps  eta 246s
+  450/1243  131s  3.42 fps  eta 232s
+  500/1243  146s  3.42 fps  eta 217s
+  550/1243  161s  3.41 fps  eta 203s
+  600/1243  176s  3.41 fps  eta 189s
+  650/1243  191s  3.41 fps  eta 174s
+  700/1243  205s  3.42 fps  eta 159s
+  750/1243  219s  3.42 fps  eta 144s
+  800/1243  233s  3.43 fps  eta 129s
+  850/1243  248s  3.43 fps  eta 114s
+  900/1243  262s  3.44 fps  eta 100s
+  950/1243  276s  3.44 fps  eta 85s
+  1000/1243  291s  3.44 fps  eta 71s
+  1050/1243  306s  3.44 fps  eta 56s
+  1100/1243  320s  3.44 fps  eta 42s
+  1150/1243  334s  3.44 fps  eta 27s
+  1200/1243  348s  3.45 fps  eta 12s
+{"arm": "dam4sam_t768", "seq": "person19_1", "frames": 1243, "w": 1280, "h": 720, "init_ms": 7398.182895965874, "warmup_frames": 5, "ms_p50": 279.36988696455956, "ms_p95": 285.7438667677343, "ms_p99": 287.5504577346146, "ms_max": 578.6304087378085, "fps": 3.5794838551331, "decode_ms_p50": 13.543999288231134, "lost_frames": 55, "conf_frames": 1242, "rss_peak_mb": 3181.1328125, "gpu_peak_mb": 968.919921875}
+  370.2s wall, temps NoneC
+[38/66] dam4sam_t640 x person19_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1243  11s  4.50 fps  eta 265s
+  100/1243  23s  4.43 fps  eta 258s
+  150/1243  34s  4.44 fps  eta 246s
+  200/1243  45s  4.44 fps  eta 235s
+  250/1243  56s  4.45 fps  eta 223s
+  300/1243  67s  4.48 fps  eta 211s
+  350/1243  78s  4.50 fps  eta 198s
+  400/1243  89s  4.50 fps  eta 187s
+  450/1243  100s  4.50 fps  eta 176s
+  500/1243  111s  4.49 fps  eta 165s
+  550/1243  123s  4.48 fps  eta 155s
+  600/1243  134s  4.48 fps  eta 143s
+  650/1243  145s  4.49 fps  eta 132s
+  700/1243  155s  4.51 fps  eta 120s
+  750/1243  166s  4.52 fps  eta 109s
+  800/1243  176s  4.54 fps  eta 98s
+  850/1243  187s  4.55 fps  eta 86s
+  900/1243  197s  4.56 fps  eta 75s
+  950/1243  208s  4.56 fps  eta 64s
+  1000/1243  220s  4.56 fps  eta 53s
+  1050/1243  230s  4.56 fps  eta 42s
+  1100/1243  241s  4.56 fps  eta 31s
+  1150/1243  252s  4.57 fps  eta 20s
+  1200/1243  262s  4.58 fps  eta 9s
+{"arm": "dam4sam_t640", "seq": "person19_1", "frames": 1243, "w": 1280, "h": 720, "init_ms": 7358.984455000609, "warmup_frames": 5, "ms_p50": 213.88663304969668, "ms_p95": 219.77839935570955, "ms_p99": 221.2292024306953, "ms_max": 523.9961380138993, "fps": 4.675373985468505, "decode_ms_p50": 7.674301974475384, "lost_frames": 55, "conf_frames": 1242, "rss_peak_mb": 2750.296875, "gpu_peak_mb": 744.05810546875}
+  280.9s wall, temps NoneC
+[39/66] dam4sam_t640 x car11 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/337  10s  4.93 fps  eta 58s
+  100/337  21s  4.78 fps  eta 50s
+  150/337  31s  4.76 fps  eta 39s
+  200/337  42s  4.75 fps  eta 29s
+  250/337  53s  4.75 fps  eta 18s
+  300/337  63s  4.74 fps  eta 8s
+{"arm": "dam4sam_t640", "seq": "car11", "frames": 337, "w": 1280, "h": 720, "init_ms": 7099.383005872369, "warmup_frames": 5, "ms_p50": 196.87810726463795, "ms_p95": 198.61499359831214, "ms_p99": 200.25330409407616, "ms_max": 431.90434388816357, "fps": 5.079284913359252, "decode_ms_p50": 14.50340123847127, "lost_frames": 86, "conf_frames": 336, "rss_peak_mb": 2110.51171875, "gpu_peak_mb": 474.41943359375}
+  80.2s wall, temps NoneC
+[40/66] dam4sam_t768 x group2_3 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/913  14s  3.50 fps  eta 247s
+  100/913  29s  3.48 fps  eta 234s
+  150/913  43s  3.49 fps  eta 219s
+  200/913  57s  3.51 fps  eta 203s
+  250/913  71s  3.51 fps  eta 189s
+  300/913  86s  3.50 fps  eta 175s
+  350/913  100s  3.49 fps  eta 161s
+  400/913  115s  3.47 fps  eta 148s
+  450/913  130s  3.46 fps  eta 134s
+  500/913  145s  3.45 fps  eta 120s
+  550/913  160s  3.44 fps  eta 105s
+  600/913  174s  3.46 fps  eta 91s
+  650/913  188s  3.46 fps  eta 76s
+  700/913  202s  3.46 fps  eta 62s
+  750/913  217s  3.46 fps  eta 47s
+  800/913  231s  3.46 fps  eta 33s
+  850/913  245s  3.47 fps  eta 18s
+  900/913  259s  3.48 fps  eta 4s
+{"arm": "dam4sam_t768", "seq": "group2_3", "frames": 913, "w": 1280, "h": 720, "init_ms": 7143.382488749921, "warmup_frames": 5, "ms_p50": 265.0140440091491, "ms_p95": 285.6531063094735, "ms_p99": 286.83504443615675, "ms_max": 549.4319973513484, "fps": 3.773384930367981, "decode_ms_p50": 14.31936607696116, "lost_frames": 60, "conf_frames": 912, "rss_peak_mb": 2844.171875, "gpu_peak_mb": 826.36376953125}
+  271.8s wall, temps NoneC
+[41/66] dam4sam_t768 x person19_2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1549  14s  3.50 fps  eta 428s
+  100/1549  29s  3.45 fps  eta 420s
+  150/1549  44s  3.43 fps  eta 408s
+  200/1549  58s  3.42 fps  eta 394s
+  250/1549  73s  3.41 fps  eta 381s
+  300/1549  88s  3.40 fps  eta 367s
+  350/1549  103s  3.40 fps  eta 352s
+  400/1549  118s  3.40 fps  eta 338s
+  450/1549  132s  3.40 fps  eta 323s
+  500/1549  147s  3.40 fps  eta 309s
+  550/1549  162s  3.40 fps  eta 294s
+  600/1549  177s  3.40 fps  eta 279s
+  650/1549  191s  3.40 fps  eta 265s
+  700/1549  205s  3.41 fps  eta 249s
+  750/1549  219s  3.42 fps  eta 233s
+  800/1549  234s  3.42 fps  eta 219s
+  850/1549  249s  3.42 fps  eta 204s
+  900/1549  263s  3.42 fps  eta 190s
+  950/1549  278s  3.42 fps  eta 175s
+  1000/1549  293s  3.42 fps  eta 161s
+  1050/1549  307s  3.42 fps  eta 146s
+  1100/1549  322s  3.41 fps  eta 132s
+  1150/1549  337s  3.41 fps  eta 117s
+  1200/1549  352s  3.41 fps  eta 102s
+  1250/1549  367s  3.41 fps  eta 88s
+  1300/1549  382s  3.40 fps  eta 73s
+  1350/1549  397s  3.40 fps  eta 59s
+  1400/1549  412s  3.40 fps  eta 44s
+  1450/1549  426s  3.40 fps  eta 29s
+  1500/1549  441s  3.40 fps  eta 14s
+{"arm": "dam4sam_t768", "seq": "person19_2", "frames": 1549, "w": 1280, "h": 720, "init_ms": 7321.071831975132, "warmup_frames": 5, "ms_p50": 280.91916581615806, "ms_p95": 286.090529197827, "ms_p99": 287.242725007236, "ms_max": 575.7508389651775, "fps": 3.5597428786842906, "decode_ms_p50": 13.574980664998293, "lost_frames": 68, "conf_frames": 1548, "rss_peak_mb": 3382.39453125, "gpu_peak_mb": 1094.44775390625}
+  465.7s wall, temps NoneC
+[42/66] dam4sam_t640 x car2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1321  11s  4.39 fps  eta 290s
+  100/1321  23s  4.36 fps  eta 280s
+  150/1321  34s  4.35 fps  eta 269s
+  200/1321  46s  4.35 fps  eta 258s
+  250/1321  58s  4.35 fps  eta 246s
+  300/1321  69s  4.35 fps  eta 235s
+  350/1321  81s  4.35 fps  eta 223s
+  400/1321  92s  4.35 fps  eta 212s
+  450/1321  103s  4.35 fps  eta 200s
+  500/1321  115s  4.35 fps  eta 189s
+  550/1321  126s  4.35 fps  eta 177s
+  600/1321  137s  4.37 fps  eta 165s
+  650/1321  149s  4.36 fps  eta 154s
+  700/1321  161s  4.36 fps  eta 142s
+  750/1321  172s  4.36 fps  eta 131s
+  800/1321  184s  4.36 fps  eta 120s
+  850/1321  195s  4.35 fps  eta 108s
+  900/1321  207s  4.35 fps  eta 97s
+  950/1321  218s  4.35 fps  eta 85s
+  1000/1321  230s  4.35 fps  eta 74s
+  1050/1321  241s  4.35 fps  eta 62s
+  1100/1321  253s  4.35 fps  eta 51s
+  1150/1321  264s  4.35 fps  eta 39s
+  1200/1321  275s  4.36 fps  eta 28s
+  1250/1321  287s  4.36 fps  eta 16s
+  1300/1321  298s  4.36 fps  eta 5s
+{"arm": "dam4sam_t640", "seq": "car2", "frames": 1321, "w": 1280, "h": 720, "init_ms": 7350.63784988597, "warmup_frames": 5, "ms_p50": 215.58621898293495, "ms_p95": 219.88373002968729, "ms_p99": 221.0417506750673, "ms_max": 502.3048189468682, "fps": 4.6385154149354815, "decode_ms_p50": 13.758589047938585, "lost_frames": 0, "conf_frames": 1320, "rss_peak_mb": 2798.26953125, "gpu_peak_mb": 766.07275390625}
+  312.8s wall, temps NoneC
+[43/66] dam4sam_t768 x car12 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/499  13s  3.73 fps  eta 120s
+  100/499  27s  3.67 fps  eta 109s
+  150/499  41s  3.64 fps  eta 96s
+  200/499  55s  3.61 fps  eta 83s
+  250/499  69s  3.60 fps  eta 69s
+  300/499  84s  3.59 fps  eta 56s
+  350/499  98s  3.56 fps  eta 42s
+  400/499  113s  3.54 fps  eta 28s
+  450/499  127s  3.55 fps  eta 14s
+{"arm": "dam4sam_t768", "seq": "car12", "frames": 499, "w": 1280, "h": 720, "init_ms": 7101.347072981298, "warmup_frames": 5, "ms_p50": 262.23616674542427, "ms_p95": 283.22649830952287, "ms_p99": 284.238837659359, "ms_max": 285.0854811258614, "fps": 3.813356534344052, "decode_ms_p50": 14.790208311751485, "lost_frames": 81, "conf_frames": 498, "rss_peak_mb": 2438.8515625, "gpu_peak_mb": 649.57080078125}
+  149.6s wall, temps NoneC
+[44/66] dam4sam_t768 x bird1_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/253  13s  3.92 fps  eta 52s
+  100/253  26s  3.81 fps  eta 40s
+  150/253  40s  3.75 fps  eta 27s
+  200/253  53s  3.74 fps  eta 14s
+  250/253  68s  3.70 fps  eta 1s
+{"arm": "dam4sam_t768", "seq": "bird1_1", "frames": 253, "w": 1280, "h": 720, "init_ms": 7363.913252949715, "warmup_frames": 5, "ms_p50": 261.8313883431256, "ms_p95": 282.6651556417346, "ms_p99": 285.57212392799556, "ms_max": 600.097962655127, "fps": 3.8192517953176686, "decode_ms_p50": 7.0735260378569365, "lost_frames": 78, "conf_frames": 252, "rss_peak_mb": 2238.0, "gpu_peak_mb": 546.89404296875}
+  78.0s wall, temps NoneC
+[45/66] dam4sam_t768 x uav1_3 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/997  13s  3.92 fps  eta 242s
+  100/997  26s  3.85 fps  eta 233s
+  150/997  39s  3.83 fps  eta 221s
+  200/997  52s  3.81 fps  eta 209s
+  250/997  66s  3.81 fps  eta 196s
+  300/997  78s  3.82 fps  eta 182s
+  350/997  92s  3.82 fps  eta 169s
+  400/997  105s  3.81 fps  eta 157s
+  450/997  118s  3.82 fps  eta 143s
+  500/997  131s  3.82 fps  eta 130s
+  550/997  144s  3.82 fps  eta 117s
+  600/997  157s  3.82 fps  eta 104s
+  650/997  170s  3.82 fps  eta 91s
+  700/997  183s  3.83 fps  eta 78s
+  750/997  196s  3.83 fps  eta 64s
+  800/997  209s  3.83 fps  eta 51s
+  850/997  222s  3.84 fps  eta 38s
+  900/997  234s  3.84 fps  eta 25s
+  950/997  247s  3.84 fps  eta 12s
+{"arm": "dam4sam_t768", "seq": "uav1_3", "frames": 997, "w": 720, "h": 480, "init_ms": 7383.724169805646, "warmup_frames": 5, "ms_p50": 249.84122905880213, "ms_p95": 258.4952372126281, "ms_p99": 260.42528860270977, "ms_max": 266.40253979712725, "fps": 4.002541949409967, "decode_ms_p50": 8.865695912390947, "lost_frames": 515, "conf_frames": 996, "rss_peak_mb": 2883.96875, "gpu_peak_mb": 859.6943359375}
+  269.1s wall, temps NoneC
+[46/66] dam4sam_t768 x car14 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1327  14s  3.52 fps  eta 363s
+  100/1327  29s  3.47 fps  eta 353s
+  150/1327  44s  3.45 fps  eta 341s
+  200/1327  58s  3.44 fps  eta 328s
+  250/1327  73s  3.43 fps  eta 314s
+  300/1327  88s  3.42 fps  eta 300s
+  350/1327  103s  3.41 fps  eta 286s
+  400/1327  117s  3.41 fps  eta 272s
+  450/1327  132s  3.40 fps  eta 258s
+  500/1327  147s  3.40 fps  eta 243s
+  550/1327  162s  3.39 fps  eta 229s
+  600/1327  177s  3.39 fps  eta 215s
+  650/1327  192s  3.38 fps  eta 200s
+  700/1327  207s  3.38 fps  eta 185s
+  750/1327  222s  3.38 fps  eta 171s
+  800/1327  237s  3.38 fps  eta 156s
+  850/1327  251s  3.39 fps  eta 141s
+  900/1327  265s  3.40 fps  eta 126s
+  950/1327  279s  3.41 fps  eta 111s
+  1000/1327  293s  3.41 fps  eta 96s
+  1050/1327  308s  3.41 fps  eta 81s
+  1100/1327  322s  3.41 fps  eta 66s
+  1150/1327  336s  3.42 fps  eta 52s
+  1200/1327  351s  3.42 fps  eta 37s
+  1250/1327  366s  3.42 fps  eta 23s
+  1300/1327  380s  3.42 fps  eta 8s
+{"arm": "dam4sam_t768", "seq": "car14", "frames": 1327, "w": 1280, "h": 720, "init_ms": 7382.412267848849, "warmup_frames": 5, "ms_p50": 282.1425092406571, "ms_p95": 286.12049808725715, "ms_p99": 287.04023715108633, "ms_max": 539.3472900614142, "fps": 3.544308167852286, "decode_ms_p50": 13.531630858778954, "lost_frames": 40, "conf_frames": 1326, "rss_peak_mb": 3185.76953125, "gpu_peak_mb": 1004.41796875}
+  398.3s wall, temps NoneC
+[47/66] dam4sam_t640 x car14 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1327  11s  4.58 fps  eta 279s
+  100/1327  22s  4.56 fps  eta 269s
+  150/1327  33s  4.54 fps  eta 259s
+  200/1327  44s  4.53 fps  eta 249s
+  250/1327  55s  4.52 fps  eta 238s
+  300/1327  67s  4.51 fps  eta 228s
+  350/1327  78s  4.50 fps  eta 217s
+  400/1327  89s  4.50 fps  eta 206s
+  450/1327  100s  4.49 fps  eta 195s
+  500/1327  111s  4.49 fps  eta 184s
+  550/1327  123s  4.48 fps  eta 174s
+  600/1327  134s  4.48 fps  eta 162s
+  650/1327  145s  4.47 fps  eta 151s
+  700/1327  157s  4.47 fps  eta 140s
+  750/1327  168s  4.47 fps  eta 129s
+  800/1327  179s  4.47 fps  eta 118s
+  850/1327  189s  4.49 fps  eta 106s
+  900/1327  199s  4.51 fps  eta 95s
+  950/1327  210s  4.53 fps  eta 83s
+  1000/1327  220s  4.55 fps  eta 72s
+  1050/1327  231s  4.55 fps  eta 61s
+  1100/1327  242s  4.55 fps  eta 50s
+  1150/1327  253s  4.55 fps  eta 39s
+  1200/1327  264s  4.55 fps  eta 28s
+  1250/1327  275s  4.55 fps  eta 17s
+  1300/1327  285s  4.56 fps  eta 6s
+{"arm": "dam4sam_t640", "seq": "car14", "frames": 1327, "w": 1280, "h": 720, "init_ms": 7267.477844841778, "warmup_frames": 5, "ms_p50": 213.75906700268388, "ms_p95": 218.06948026642203, "ms_p99": 218.83065113797784, "ms_max": 497.4747793748975, "fps": 4.6781641313369144, "decode_ms_p50": 7.6912203803658485, "lost_frames": 96, "conf_frames": 1326, "rss_peak_mb": 2817.6484375, "gpu_peak_mb": 766.05908203125}
+  300.4s wall, temps NoneC
+[48/66] dam4sam_t768 x uav7 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/373  13s  3.91 fps  eta 83s
+  100/373  26s  3.91 fps  eta 70s
+  150/373  38s  3.90 fps  eta 57s
+  200/373  51s  3.90 fps  eta 44s
+  250/373  64s  3.90 fps  eta 32s
+  300/373  77s  3.90 fps  eta 19s
+  350/373  90s  3.90 fps  eta 6s
+{"arm": "dam4sam_t768", "seq": "uav7", "frames": 373, "w": 720, "h": 480, "init_ms": 7120.801689568907, "warmup_frames": 5, "ms_p50": 247.39506281912327, "ms_p95": 249.3937809485942, "ms_p99": 250.19245371222496, "ms_max": 251.18594011291862, "fps": 4.042117852332102, "decode_ms_p50": 8.871050085872412, "lost_frames": 118, "conf_frames": 372, "rss_peak_mb": 2314.875, "gpu_peak_mb": 595.12109375}
+  104.9s wall, temps NoneC
+[49/66] dam4sam_t640 x person14_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/847  12s  4.32 fps  eta 185s
+  100/847  23s  4.35 fps  eta 172s
+  150/847  34s  4.41 fps  eta 158s
+  200/847  45s  4.49 fps  eta 144s
+  250/847  56s  4.48 fps  eta 133s
+  300/847  67s  4.46 fps  eta 123s
+  350/847  79s  4.44 fps  eta 112s
+  400/847  90s  4.43 fps  eta 101s
+  450/847  102s  4.42 fps  eta 90s
+  500/847  114s  4.40 fps  eta 79s
+  550/847  125s  4.40 fps  eta 67s
+  600/847  136s  4.40 fps  eta 56s
+  650/847  148s  4.40 fps  eta 45s
+  700/847  159s  4.39 fps  eta 33s
+  750/847  171s  4.39 fps  eta 22s
+  800/847  182s  4.39 fps  eta 11s
+{"arm": "dam4sam_t640", "seq": "person14_1", "frames": 847, "w": 1280, "h": 720, "init_ms": 7022.780464030802, "warmup_frames": 5, "ms_p50": 216.67845686897635, "ms_p95": 219.27572274580598, "ms_p99": 220.3793161548674, "ms_max": 495.75706385076046, "fps": 4.615133476812102, "decode_ms_p50": 13.564756838604808, "lost_frames": 37, "conf_frames": 846, "rss_peak_mb": 2503.37109375, "gpu_peak_mb": 625.60888671875}
+  202.4s wall, temps NoneC
+[50/66] dam4sam_t640 x car1_3 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1003  11s  4.40 fps  eta 216s
+  100/1003  23s  4.38 fps  eta 206s
+  150/1003  34s  4.41 fps  eta 193s
+  200/1003  45s  4.41 fps  eta 182s
+  250/1003  57s  4.42 fps  eta 170s
+  300/1003  68s  4.42 fps  eta 159s
+  350/1003  79s  4.44 fps  eta 147s
+  400/1003  90s  4.44 fps  eta 136s
+  450/1003  102s  4.42 fps  eta 125s
+  500/1003  113s  4.43 fps  eta 114s
+  550/1003  124s  4.44 fps  eta 102s
+  600/1003  134s  4.46 fps  eta 90s
+  650/1003  145s  4.49 fps  eta 79s
+  700/1003  155s  4.51 fps  eta 67s
+  750/1003  165s  4.53 fps  eta 56s
+  800/1003  176s  4.55 fps  eta 45s
+  850/1003  186s  4.56 fps  eta 34s
+  900/1003  197s  4.57 fps  eta 23s
+  950/1003  207s  4.58 fps  eta 12s
+  1000/1003  218s  4.59 fps  eta 1s
+{"arm": "dam4sam_t640", "seq": "car1_3", "frames": 1003, "w": 1280, "h": 720, "init_ms": 7341.653691139072, "warmup_frames": 5, "ms_p50": 209.3863058835268, "ms_p95": 218.39286126196384, "ms_p99": 219.19735852628946, "ms_max": 492.7237220108509, "fps": 4.775861514822559, "decode_ms_p50": 13.218584470450878, "lost_frames": 425, "conf_frames": 1002, "rss_peak_mb": 2588.3984375, "gpu_peak_mb": 670.51611328125}
+  228.2s wall, temps NoneC
+[51/66] dam4sam_t768 x uav1_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1555  12s  4.04 fps  eta 373s
+  100/1555  25s  4.00 fps  eta 364s
+  150/1555  38s  3.98 fps  eta 353s
+  200/1555  50s  3.96 fps  eta 342s
+  250/1555  63s  3.94 fps  eta 331s
+  300/1555  77s  3.92 fps  eta 320s
+  350/1555  89s  3.92 fps  eta 307s
+  400/1555  102s  3.92 fps  eta 294s
+  450/1555  115s  3.92 fps  eta 282s
+  500/1555  128s  3.91 fps  eta 270s
+  550/1555  141s  3.91 fps  eta 257s
+  600/1555  154s  3.90 fps  eta 245s
+  650/1555  167s  3.89 fps  eta 232s
+  700/1555  180s  3.89 fps  eta 220s
+  750/1555  193s  3.88 fps  eta 207s
+  800/1555  206s  3.89 fps  eta 194s
+  850/1555  219s  3.89 fps  eta 181s
+  900/1555  231s  3.89 fps  eta 168s
+  950/1555  244s  3.90 fps  eta 155s
+  1000/1555  256s  3.90 fps  eta 142s
+  1050/1555  269s  3.90 fps  eta 129s
+  1100/1555  282s  3.90 fps  eta 117s
+  1150/1555  294s  3.91 fps  eta 104s
+  1200/1555  307s  3.91 fps  eta 91s
+  1250/1555  320s  3.91 fps  eta 78s
+  1300/1555  333s  3.90 fps  eta 65s
+  1350/1555  346s  3.91 fps  eta 52s
+  1400/1555  358s  3.91 fps  eta 40s
+  1450/1555  371s  3.91 fps  eta 27s
+  1500/1555  384s  3.91 fps  eta 14s
+  1550/1555  397s  3.91 fps  eta 1s
+{"arm": "dam4sam_t768", "seq": "uav1_1", "frames": 1555, "w": 720, "h": 480, "init_ms": 7375.9252689778805, "warmup_frames": 5, "ms_p50": 250.6389799527824, "ms_p95": 259.3762238509953, "ms_p99": 261.29124661907554, "ms_max": 544.6116891689599, "fps": 3.98980238504158, "decode_ms_p50": 3.093782579526305, "lost_frames": 18, "conf_frames": 1554, "rss_peak_mb": 3376.9609375, "gpu_peak_mb": 1096.40380859375}
+  407.9s wall, temps NoneC
+[52/66] dam4sam_t640 x group2_3 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/913  11s  4.53 fps  eta 190s
+  100/913  21s  4.68 fps  eta 174s
+  150/913  32s  4.75 fps  eta 161s
+  200/913  42s  4.78 fps  eta 149s
+  250/913  52s  4.80 fps  eta 138s
+  300/913  63s  4.78 fps  eta 128s
+  350/913  74s  4.74 fps  eta 119s
+  400/913  85s  4.71 fps  eta 109s
+  450/913  96s  4.68 fps  eta 99s
+  500/913  107s  4.66 fps  eta 89s
+  550/913  118s  4.66 fps  eta 78s
+  600/913  128s  4.68 fps  eta 67s
+  650/913  139s  4.69 fps  eta 56s
+  700/913  149s  4.69 fps  eta 45s
+  750/913  160s  4.70 fps  eta 35s
+  800/913  170s  4.71 fps  eta 24s
+  850/913  180s  4.72 fps  eta 13s
+  900/913  191s  4.71 fps  eta 3s
+{"arm": "dam4sam_t640", "seq": "group2_3", "frames": 913, "w": 1280, "h": 720, "init_ms": 7108.340349048376, "warmup_frames": 5, "ms_p50": 196.73798000440001, "ms_p95": 217.8551615215838, "ms_p99": 218.69827688671649, "ms_max": 475.8111583068967, "fps": 5.082902650406572, "decode_ms_p50": 8.430724032223225, "lost_frames": 0, "conf_frames": 912, "rss_peak_mb": 2514.40234375, "gpu_peak_mb": 644.470703125}
+  203.3s wall, temps NoneC
+[53/66] dam4sam_t768 x car11 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/337  13s  3.85 fps  eta 75s
+  100/337  26s  3.78 fps  eta 63s
+  150/337  40s  3.75 fps  eta 50s
+  200/337  53s  3.74 fps  eta 37s
+  250/337  68s  3.68 fps  eta 24s
+  300/337  82s  3.68 fps  eta 10s
+{"arm": "dam4sam_t768", "seq": "car11", "frames": 337, "w": 1280, "h": 720, "init_ms": 7079.495541751385, "warmup_frames": 5, "ms_p50": 261.33430702611804, "ms_p95": 281.4448375720531, "ms_p99": 284.0858660172671, "ms_max": 594.709434080869, "fps": 3.826516355160591, "decode_ms_p50": 8.528245147317648, "lost_frames": 63, "conf_frames": 336, "rss_peak_mb": 2284.91796875, "gpu_peak_mb": 583.6181640625}
+  100.8s wall, temps NoneC
+[54/66] dam4sam_t640 x person19_2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1549  11s  4.57 fps  eta 328s
+  100/1549  22s  4.55 fps  eta 319s
+  150/1549  33s  4.54 fps  eta 308s
+  200/1549  44s  4.53 fps  eta 298s
+  250/1549  55s  4.51 fps  eta 288s
+  300/1549  67s  4.51 fps  eta 277s
+  350/1549  78s  4.51 fps  eta 266s
+  400/1549  89s  4.51 fps  eta 255s
+  450/1549  100s  4.51 fps  eta 244s
+  500/1549  111s  4.51 fps  eta 233s
+  550/1549  122s  4.51 fps  eta 222s
+  600/1549  133s  4.51 fps  eta 210s
+  650/1549  144s  4.51 fps  eta 199s
+  700/1549  154s  4.53 fps  eta 187s
+  750/1549  165s  4.56 fps  eta 175s
+  800/1549  176s  4.55 fps  eta 164s
+  850/1549  187s  4.55 fps  eta 154s
+  900/1549  198s  4.55 fps  eta 143s
+  950/1549  209s  4.55 fps  eta 132s
+  1000/1549  220s  4.54 fps  eta 121s
+  1050/1549  231s  4.54 fps  eta 110s
+  1100/1549  242s  4.54 fps  eta 99s
+  1150/1549  253s  4.54 fps  eta 88s
+  1200/1549  265s  4.53 fps  eta 77s
+  1250/1549  276s  4.53 fps  eta 66s
+  1300/1549  287s  4.52 fps  eta 55s
+  1350/1549  299s  4.52 fps  eta 44s
+  1400/1549  310s  4.52 fps  eta 33s
+  1450/1549  321s  4.52 fps  eta 22s
+  1500/1549  332s  4.51 fps  eta 11s
+{"arm": "dam4sam_t640", "seq": "person19_2", "frames": 1549, "w": 1280, "h": 720, "init_ms": 7375.588335096836, "warmup_frames": 5, "ms_p50": 213.93760526552796, "ms_p95": 218.52898988872766, "ms_p99": 219.24013706855476, "ms_max": 528.7013938650489, "fps": 4.6742600430571954, "decode_ms_p50": 7.707750424742699, "lost_frames": 68, "conf_frames": 1548, "rss_peak_mb": 2976.828125, "gpu_peak_mb": 832.306640625}
+  353.1s wall, temps NoneC
+[55/66] dam4sam_t640 x uav2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/133  9s  5.45 fps  eta 15s
+  100/133  19s  5.36 fps  eta 6s
+{"arm": "dam4sam_t640", "seq": "uav2", "frames": 133, "w": 720, "h": 480, "init_ms": 7299.209190066904, "warmup_frames": 5, "ms_p50": 181.4777418039739, "ms_p95": 183.75990218482912, "ms_p99": 190.0561501458287, "ms_max": 502.8427643701434, "fps": 5.510317629366173, "decode_ms_p50": 8.706886088475585, "lost_frames": 3, "conf_frames": 132, "rss_peak_mb": 1993.29296875, "gpu_peak_mb": 413.4638671875}
+  34.8s wall, temps NoneC
+[56/66] dam4sam_t640 x person16 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1147  11s  4.39 fps  eta 250s
+  100/1147  23s  4.37 fps  eta 240s
+  150/1147  34s  4.38 fps  eta 228s
+  200/1147  45s  4.46 fps  eta 212s
+  250/1147  56s  4.50 fps  eta 199s
+  300/1147  67s  4.47 fps  eta 189s
+  350/1147  79s  4.45 fps  eta 179s
+  400/1147  90s  4.42 fps  eta 169s
+  450/1147  102s  4.41 fps  eta 158s
+  500/1147  114s  4.40 fps  eta 147s
+  550/1147  125s  4.39 fps  eta 136s
+  600/1147  137s  4.38 fps  eta 125s
+  650/1147  148s  4.40 fps  eta 113s
+  700/1147  159s  4.39 fps  eta 102s
+  750/1147  171s  4.39 fps  eta 90s
+  800/1147  182s  4.38 fps  eta 79s
+  850/1147  194s  4.38 fps  eta 68s
+  900/1147  206s  4.38 fps  eta 56s
+  950/1147  217s  4.37 fps  eta 45s
+  1000/1147  229s  4.37 fps  eta 34s
+  1050/1147  240s  4.37 fps  eta 22s
+  1100/1147  252s  4.37 fps  eta 11s
+{"arm": "dam4sam_t640", "seq": "person16", "frames": 1147, "w": 1280, "h": 720, "init_ms": 7341.533090919256, "warmup_frames": 5, "ms_p50": 215.36515792831779, "ms_p95": 219.6291321888566, "ms_p99": 220.29327247291803, "ms_max": 504.3750610202551, "fps": 4.643276608061367, "decode_ms_p50": 15.133469132706523, "lost_frames": 26, "conf_frames": 1146, "rss_peak_mb": 2694.52734375, "gpu_peak_mb": 713.06640625}
+  272.5s wall, temps NoneC
+[57/66] dam4sam_t768 x uav6 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/109  12s  4.11 fps  eta 14s
+  100/109  25s  3.95 fps  eta 2s
+{"arm": "dam4sam_t768", "seq": "uav6", "frames": 109, "w": 720, "h": 480, "init_ms": 7364.465781953186, "warmup_frames": 5, "ms_p50": 247.49514600262046, "ms_p95": 250.23991693742573, "ms_p99": 256.7804501950741, "ms_max": 574.450493324548, "fps": 4.040483282809159, "decode_ms_p50": 8.886682102456689, "lost_frames": 3, "conf_frames": 108, "rss_peak_mb": 2067.3125, "gpu_peak_mb": 485.1220703125}
+  37.3s wall, temps NoneC
+[58/66] dam4sam_t768 x person12_2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1021  14s  3.55 fps  eta 274s
+  100/1021  29s  3.50 fps  eta 263s
+  150/1021  43s  3.48 fps  eta 250s
+  200/1021  58s  3.48 fps  eta 236s
+  250/1021  72s  3.48 fps  eta 222s
+  300/1021  87s  3.47 fps  eta 208s
+  350/1021  101s  3.47 fps  eta 193s
+  400/1021  115s  3.48 fps  eta 179s
+  450/1021  129s  3.48 fps  eta 164s
+  500/1021  144s  3.48 fps  eta 150s
+  550/1021  158s  3.47 fps  eta 136s
+  600/1021  173s  3.47 fps  eta 121s
+  650/1021  187s  3.48 fps  eta 107s
+  700/1021  200s  3.49 fps  eta 92s
+  750/1021  215s  3.49 fps  eta 78s
+  800/1021  229s  3.49 fps  eta 63s
+  850/1021  244s  3.49 fps  eta 49s
+  900/1021  258s  3.48 fps  eta 35s
+  950/1021  273s  3.48 fps  eta 20s
+  1000/1021  287s  3.48 fps  eta 6s
+{"arm": "dam4sam_t768", "seq": "person12_2", "frames": 1021, "w": 1280, "h": 720, "init_ms": 7398.979689925909, "warmup_frames": 5, "ms_p50": 281.74345195293427, "ms_p95": 285.4092363268137, "ms_p99": 286.286410195753, "ms_max": 563.4517930448055, "fps": 3.54932827389029, "decode_ms_p50": 7.8020531218498945, "lost_frames": 29, "conf_frames": 1020, "rss_peak_mb": 2927.2734375, "gpu_peak_mb": 874.0283203125}
+  303.0s wall, temps NoneC
+[59/66] dam4sam_t640 x person8_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1075  11s  4.39 fps  eta 234s
+  100/1075  23s  4.36 fps  eta 224s
+  150/1075  35s  4.30 fps  eta 215s
+  200/1075  46s  4.31 fps  eta 203s
+  250/1075  58s  4.31 fps  eta 192s
+  300/1075  70s  4.31 fps  eta 180s
+  350/1075  81s  4.30 fps  eta 168s
+  400/1075  93s  4.31 fps  eta 157s
+  450/1075  104s  4.31 fps  eta 145s
+  500/1075  116s  4.31 fps  eta 133s
+  550/1075  128s  4.31 fps  eta 122s
+  600/1075  140s  4.30 fps  eta 110s
+  650/1075  151s  4.30 fps  eta 99s
+  700/1075  163s  4.30 fps  eta 87s
+  750/1075  174s  4.31 fps  eta 75s
+  800/1075  185s  4.31 fps  eta 64s
+  850/1075  197s  4.32 fps  eta 52s
+  900/1075  208s  4.32 fps  eta 41s
+  950/1075  219s  4.33 fps  eta 29s
+  1000/1075  230s  4.35 fps  eta 17s
+  1050/1075  241s  4.36 fps  eta 6s
+{"arm": "dam4sam_t640", "seq": "person8_1", "frames": 1075, "w": 1280, "h": 720, "init_ms": 7314.539491198957, "warmup_frames": 5, "ms_p50": 216.19061194360256, "ms_p95": 219.0862880088389, "ms_p99": 220.1390591263771, "ms_max": 519.4641519337893, "fps": 4.625547756259041, "decode_ms_p50": 15.106439823284745, "lost_frames": 76, "conf_frames": 1074, "rss_peak_mb": 2663.99609375, "gpu_peak_mb": 691.87841796875}
+  256.0s wall, temps NoneC
+[60/66] dam4sam_t640 x uav6 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/109  9s  5.62 fps  eta 10s
+  100/109  18s  5.41 fps  eta 2s
+{"arm": "dam4sam_t640", "seq": "uav6", "frames": 109, "w": 720, "h": 480, "init_ms": 7296.947159804404, "warmup_frames": 5, "ms_p50": 181.83518294245005, "ms_p95": 184.68148615211248, "ms_p99": 192.0571197476238, "ms_max": 506.539867259562, "fps": 5.499485764075125, "decode_ms_p50": 3.0277487821877003, "lost_frames": 3, "conf_frames": 108, "rss_peak_mb": 1960.390625, "gpu_peak_mb": 406.130859375}
+  29.7s wall, temps NoneC
+[61/66] dam4sam_t640 x uav7 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/373  9s  5.27 fps  eta 61s
+  100/373  19s  5.34 fps  eta 51s
+  150/373  28s  5.36 fps  eta 42s
+  200/373  37s  5.37 fps  eta 32s
+  250/373  46s  5.38 fps  eta 23s
+  300/373  56s  5.39 fps  eta 14s
+  350/373  65s  5.39 fps  eta 4s
+{"arm": "dam4sam_t640", "seq": "uav7", "frames": 373, "w": 720, "h": 480, "init_ms": 7040.59204692021, "warmup_frames": 5, "ms_p50": 181.70333793386817, "ms_p95": 183.8126621209085, "ms_p99": 184.75406009703872, "ms_max": 193.83743731305003, "fps": 5.503476223226867, "decode_ms_p50": 3.0187563970685005, "lost_frames": 214, "conf_frames": 372, "rss_peak_mb": 2132.66796875, "gpu_peak_mb": 483.513671875}
+  78.5s wall, temps NoneC
+[62/66] dam4sam_t768 x uav1_2 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/823  13s  3.88 fps  eta 199s
+  100/823  26s  3.87 fps  eta 187s
+  150/823  39s  3.86 fps  eta 174s
+  200/823  52s  3.87 fps  eta 161s
+  250/823  64s  3.88 fps  eta 148s
+  300/823  77s  3.89 fps  eta 134s
+  350/823  90s  3.90 fps  eta 121s
+  400/823  102s  3.91 fps  eta 108s
+  450/823  115s  3.90 fps  eta 96s
+  500/823  129s  3.89 fps  eta 83s
+  550/823  142s  3.89 fps  eta 70s
+  600/823  154s  3.89 fps  eta 57s
+  650/823  167s  3.89 fps  eta 44s
+  700/823  180s  3.90 fps  eta 32s
+  750/823  192s  3.90 fps  eta 19s
+  800/823  205s  3.90 fps  eta 6s
+{"arm": "dam4sam_t768", "seq": "uav1_2", "frames": 823, "w": 720, "h": 480, "init_ms": 7109.764989931136, "warmup_frames": 5, "ms_p50": 251.60310370847583, "ms_p95": 258.68067257106304, "ms_p99": 263.79421677440405, "ms_max": 469.0061220899224, "fps": 3.9745137689504295, "decode_ms_p50": 3.2474359031766653, "lost_frames": 88, "conf_frames": 822, "rss_peak_mb": 2726.97265625, "gpu_peak_mb": 786.1572265625}
+  220.3s wall, temps NoneC
+[63/66] dam4sam_t640 x person10 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1021  11s  4.40 fps  eta 220s
+  100/1021  23s  4.38 fps  eta 210s
+  150/1021  34s  4.37 fps  eta 199s
+  200/1021  46s  4.36 fps  eta 188s
+  250/1021  57s  4.42 fps  eta 174s
+  300/1021  68s  4.44 fps  eta 162s
+  350/1021  79s  4.41 fps  eta 152s
+  400/1021  91s  4.40 fps  eta 141s
+  450/1021  102s  4.40 fps  eta 130s
+  500/1021  114s  4.39 fps  eta 119s
+  550/1021  125s  4.39 fps  eta 107s
+  600/1021  136s  4.41 fps  eta 96s
+  650/1021  147s  4.42 fps  eta 84s
+  700/1021  158s  4.42 fps  eta 73s
+  750/1021  169s  4.43 fps  eta 61s
+  800/1021  181s  4.43 fps  eta 50s
+  850/1021  192s  4.42 fps  eta 39s
+  900/1021  204s  4.42 fps  eta 27s
+  950/1021  215s  4.42 fps  eta 16s
+  1000/1021  226s  4.42 fps  eta 5s
+{"arm": "dam4sam_t640", "seq": "person10", "frames": 1021, "w": 1280, "h": 720, "init_ms": 7298.262835945934, "warmup_frames": 5, "ms_p50": 214.825585950166, "ms_p95": 219.7641257662326, "ms_p99": 220.61325156129897, "ms_max": 492.0015996322036, "fps": 4.654939008205355, "decode_ms_p50": 14.28765943273902, "lost_frames": 120, "conf_frames": 1020, "rss_peak_mb": 2628.66796875, "gpu_peak_mb": 675.83447265625}
+  240.3s wall, temps NoneC
+[64/66] dam4sam_t640 x car12 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/499  10s  4.86 fps  eta 92s
+  100/499  20s  4.88 fps  eta 82s
+  150/499  31s  4.86 fps  eta 72s
+  200/499  41s  4.82 fps  eta 62s
+  250/499  52s  4.82 fps  eta 52s
+  300/499  63s  4.79 fps  eta 42s
+  350/499  74s  4.75 fps  eta 31s
+  400/499  85s  4.72 fps  eta 21s
+  450/499  95s  4.74 fps  eta 10s
+{"arm": "dam4sam_t640", "seq": "car12", "frames": 499, "w": 1280, "h": 720, "init_ms": 7068.9081298187375, "warmup_frames": 5, "ms_p50": 196.64260419085622, "ms_p95": 217.89691904559731, "ms_p99": 219.08229807391763, "ms_max": 220.2437617816031, "fps": 5.08536796547622, "decode_ms_p50": 8.900439599528909, "lost_frames": 87, "conf_frames": 498, "rss_peak_mb": 2226.02734375, "gpu_peak_mb": 523.18115234375}
+  114.2s wall, temps NoneC
+[65/66] dam4sam_t768 x person17_1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1501  14s  3.54 fps  eta 410s
+  100/1501  29s  3.49 fps  eta 402s
+  150/1501  43s  3.48 fps  eta 389s
+  200/1501  58s  3.47 fps  eta 375s
+  250/1501  72s  3.47 fps  eta 361s
+  300/1501  87s  3.46 fps  eta 347s
+  350/1501  101s  3.46 fps  eta 333s
+  400/1501  116s  3.46 fps  eta 319s
+  450/1501  131s  3.45 fps  eta 305s
+  500/1501  145s  3.45 fps  eta 290s
+  550/1501  160s  3.45 fps  eta 276s
+  600/1501  173s  3.46 fps  eta 260s
+  650/1501  188s  3.46 fps  eta 246s
+  700/1501  202s  3.46 fps  eta 231s
+  750/1501  217s  3.46 fps  eta 217s
+  800/1501  231s  3.46 fps  eta 203s
+  850/1501  246s  3.46 fps  eta 188s
+  900/1501  260s  3.46 fps  eta 174s
+  950/1501  275s  3.46 fps  eta 159s
+  1000/1501  289s  3.46 fps  eta 145s
+  1050/1501  304s  3.45 fps  eta 131s
+  1100/1501  319s  3.45 fps  eta 116s
+  1150/1501  333s  3.45 fps  eta 102s
+  1200/1501  348s  3.45 fps  eta 87s
+  1250/1501  363s  3.45 fps  eta 73s
+  1300/1501  377s  3.45 fps  eta 58s
+  1350/1501  392s  3.45 fps  eta 44s
+  1400/1501  407s  3.44 fps  eta 29s
+  1450/1501  421s  3.45 fps  eta 15s
+  1500/1501  435s  3.45 fps  eta 0s
+{"arm": "dam4sam_t768", "seq": "person17_1", "frames": 1501, "w": 1280, "h": 720, "init_ms": 7373.690701089799, "warmup_frames": 5, "ms_p50": 281.5186819061637, "ms_p95": 285.4958023875952, "ms_p99": 286.2641013227403, "ms_max": 552.995606791228, "fps": 3.552162127319571, "decode_ms_p50": 9.411421604454517, "lost_frames": 0, "conf_frames": 1500, "rss_peak_mb": 3311.30078125, "gpu_peak_mb": 1075.583984375}
+  445.5s wall, temps NoneC
+[66/66] dam4sam_t768 x person10 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1021  14s  3.58 fps  eta 271s
+  100/1021  28s  3.54 fps  eta 260s
+  150/1021  43s  3.52 fps  eta 248s
+  200/1021  57s  3.51 fps  eta 234s
+  250/1021  70s  3.55 fps  eta 217s
+  300/1021  84s  3.56 fps  eta 203s
+  350/1021  99s  3.53 fps  eta 190s
+  400/1021  113s  3.53 fps  eta 176s
+  450/1021  128s  3.52 fps  eta 162s
+  500/1021  142s  3.52 fps  eta 148s
+  550/1021  156s  3.51 fps  eta 134s
+  600/1021  170s  3.52 fps  eta 119s
+  650/1021  184s  3.53 fps  eta 105s
+  700/1021  198s  3.53 fps  eta 91s
+  750/1021  212s  3.53 fps  eta 77s
+  800/1021  227s  3.53 fps  eta 63s
+  850/1021  241s  3.53 fps  eta 48s
+  900/1021  255s  3.52 fps  eta 34s
+  950/1021  270s  3.52 fps  eta 20s
+  1000/1021  284s  3.52 fps  eta 6s
+{"arm": "dam4sam_t768", "seq": "person10", "frames": 1021, "w": 1280, "h": 720, "init_ms": 7315.773482900113, "warmup_frames": 5, "ms_p50": 278.14789582043886, "ms_p95": 284.10834884271026, "ms_p99": 285.17762972041965, "ms_max": 557.6536250300705, "fps": 3.595209652945065, "decode_ms_p50": 8.395696058869362, "lost_frames": 120, "conf_frames": 1020, "rss_peak_mb": 2916.125, "gpu_peak_mb": 874.0458984375}
+  299.3s wall, temps NoneC
+DONE

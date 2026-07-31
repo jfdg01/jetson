@@ -18,6 +18,15 @@ se ejecutan.
   sin oclusión (si el área ya oscila sola, la heurística es ruido). Nota: 5 Hz es un régimen de
   trabajo válido — es el que se ha usado toda la tesis.
 
+- **Suprimir la escritura en memoria mientras el brazo está `LOST`.** Hoy `Dam4SamLtArm` solo tacha
+  la salida: `inner.step` corre igual en todos los frames, así que el frame ocluido entra en el
+  banco de memoria de DRM y contamina el condicionamiento de los siguientes. Suprimir la escritura
+  es lo que hacen SAMURAI (gate por score de movimiento) y HiM2SAM. **Cuesta GPU y hay que
+  testearlo**: a diferencia de la máquina de estados actual, esto cambia lo que ve el modelo, así
+  que cierra el lazo y `analysis/lt_sim.py` deja de poder simularlo — se corre en la Jetson o no
+  se mide. Necesita tocar el wrapper vendorizado de DAM4SAM (el `output_dict` /
+  `memory_bank`), no basta con envolverlo desde fuera.
+
 ## Geometría de ventana
 
 - **Padding por media de canal** (SiamFC) en vez de ceros. Es una perilla medible, no una obviedad.
