@@ -479,8 +479,8 @@ class SamuraiArm:
     MEAN = (0.485, 0.456, 0.406)
     STD = (0.229, 0.224, 0.225)
 
-    def __init__(self, size: int = 1024, ckpt: str = "sam2.1_hiera_tiny.pt"):
-        self.size, self.ckpt = size, ckpt
+    def __init__(self, size: int = 1024, ckpt: str = "sam2.1_hiera_tiny.pt", amp: str = "fp16"):
+        self.size, self.ckpt, self.amp = size, ckpt, amp
         self.predictor = None
         self.state = None
         self.torch = None
@@ -488,9 +488,12 @@ class SamuraiArm:
         self.conf = None  # see `_object_score`
 
     def _amp(self):
-        # fp16 here, not bf16: the published demo runs fp16 and the Kalman gating reads the mask
-        # scores, so the numerics of the score head are part of the method.
-        return self.torch.autocast("cuda", dtype=self.torch.float16)
+        # fp16 by default, not bf16: the published demo runs fp16 and the Kalman gating reads the
+        # mask scores, so the numerics of the score head are part of the method. But DAM4SAM runs
+        # bf16, so a head-to-head at the default confounds memory policy with precision -- hence the
+        # knob, and the `samurai_b*` arms that hold the policy fixed and move only the dtype.
+        return self.torch.autocast("cuda", dtype=getattr(self.torch, {"fp16": "float16",
+                                                                      "bf16": "bfloat16"}[self.amp]))
 
     def _prep(self, frame):
         """BGR uint8 HxWx3 -> normalized CHW tensor on GPU, matching `_load_img_as_tensor`."""
@@ -962,6 +965,15 @@ for _sz in (512, 640, 768, 960, 1024):
     arm(f"samurai_t{_sz}", family="samurai", ckpt="sam2.1_hiera_tiny", image_size=None,
         venv_python="/home/jfdg/tracker-sweep/.venv-samurai/bin/python")(
         lambda sz=_sz: SamuraiArm(size=sz)
+    )
+
+# `samurai_b*`: identical to `samurai_t*` except the autocast dtype. Only reason it exists is that
+# `dam4sam_t*` runs bf16 and `samurai_t*` runs fp16, so any SAMURAI-vs-DAM4SAM delta is precision
+# plus policy until this arm prices the precision half on its own.
+for _sz in (640,):
+    arm(f"samurai_b{_sz}", family="samurai", ckpt="sam2.1_hiera_tiny", image_size=None,
+        venv_python="/home/jfdg/tracker-sweep/.venv-samurai/bin/python")(
+        lambda sz=_sz: SamuraiArm(size=sz, amp="bf16")
     )
 
 
