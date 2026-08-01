@@ -1372,6 +1372,21 @@ Lección de arnés, no de tracking: un `--id` repetido debe fallar en seco. Impl
 hay un driver vivo sobre ese directorio, `SystemExit`. Los tres resultados se fusionaron y el
 pareado a tres bandas está en el punto 7.
 
+**Las tres formas en que `pgrep` ha mentido en este experimento.** Las tres salen con código 0 y se
+leen como una respuesta correcta, que es por lo que cuestan horas:
+
+1. **Se encuentra a sí mismo.** `pgrep -f PATRON` casa con su propia línea de comando siempre que el
+   patrón viaje dentro de ella. Un vigía `until ! ssh jetson 'pgrep -f "bash night.sh"'; do sleep
+   300; done` esperó 9.6 h de más a las etapas de la noche del 2026-07-31: ssh ejecuta el comando
+   vía `bash -c`, y el `pgrep` remoto encontraba ese envoltorio. Remedio: un corchete —
+   `"[b]ash night.sh"`. `cmd_status` ya lo hace bien; la trampa es el sitio de llamada nuevo.
+2. **Sin `-f` casa el NOMBRE del proceso, no los argumentos.** `pgrep python` no distingue dos
+   trabajos de python. Así se declaró muerto un run vivo, con el segundo driver escribiendo sobre el
+   mismo directorio.
+3. **Filtrar la salida lo vuelve a esconder.** `pgrep -af X | grep -v pgrep` descarta cualquier
+   proceso real cuya línea de comando contenga la palabra `pgrep` — que es justo el aspecto que
+   tiene un bucle de vigilancia.
+
 ### 7. Cierre del control: la resolución no compra presencia, el DRM sí, y solo a 768
 
 27 secuencias (las mismas que pasan la puerta `upscales`), tres contrastes pareados:
