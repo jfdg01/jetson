@@ -235,7 +235,7 @@ secuencias: a igual resolución el recorte gana (`c640_pad` bate a `t640` 32/45,
 `t768`/`t1024` son indistinguibles del recorte a 640 que cuesta 159 ms. Los brazos DAM4SAM son un
 **nulo acotado**, no equivalencia. Paridad de `dam4sam_lt` exacta (0 frames, 0 cajas de 30.747). El
 brazo LT sube `gm_ox` +0.105 y baja mIoU -0.016, las dos con p < 0.001: **propuesta medida, no
-resultado**. Sin verificación visual de esta tanda. El +0.105 queda corregido en la sección 15.
+resultado**. Sin verificación visual de esta tanda. El +0.105 queda corregido en la sección 15, y el nulo de los brazos DAM4SAM frente al recorte, matizado en la 17.
 
 ### 15. Validación cruzada de las constantes LT — [`notes/15-validacion-cruzada-de-las-constantes-lt.md`](notes/15-validacion-cruzada-de-las-constantes-lt.md) · 0 h
 
@@ -255,3 +255,14 @@ importa**: bf16 contra fp16 dentro de SAMURAI es nulo en mIoU, AUC y falsos posi
 existe solo a 960** (mediana +0.008, 21/30, p = 0.0087, sobrevive a Holm); a 640 y 768 las dos
 políticas de memoria son indistinguibles. Cuesta un 7% más de latencia y el peldaño entero está a
 2.6x del incumbente `c640`. Sin verificación visual de esta tanda.
+
+### 17. Reenganche tras hueco: lo que mIoU esconde — [`notes/17-reenganche-tras-hueco-lo-que-miou-esconde.md`](notes/17-reenganche-tras-hueco-lo-que-miou-esconde.md) · 0 h
+
+Reanálisis sin GPU de las trazas ya grabadas, pareado **por hueco** en vez de por secuencia: se
+puntúan los K frames siguientes a cada regreso del objetivo. **La objeción al recorte no se sostiene
+en UAV123** — el frame completo no reengancha mejor que el recorte a igual resolución (p = 0.14 /
+0.12 / 0.08 a K = 30/60/120), porque el dron sigue al objetivo y este vuelve por donde se fue. Lo que
+sí aparece es que **mIoU escondía a DAM4SAM**: `t768` y `t960` baten al incumbente en IoU tras hueco
+(+0.011 y +0.016 a K=60, p = 0.003 y 0.0007, sobreviven a Holm) donde mIoU decía nulo. Por debajo de
+640 el brazo directamente no redetecta. Los huecos no son independientes, así que los p son
+optimistas. Sin verificación visual.

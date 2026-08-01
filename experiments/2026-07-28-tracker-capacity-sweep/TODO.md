@@ -46,7 +46,7 @@ se ejecutan.
 
 ## Datos
 
-- **TLP** (Track Long and Prolong): las 3 R (re-detección, recuperación, robustez) y las secuencias
+- **TLP** (Track Long and Prosper): las 3 R (re-detección, recuperación, robustez) y las secuencias
   mutiladas. Es el dataset diseñado para lo que aquí se quiere medir; UAV123 solo tiene 2.38% de
   frames ausentes.
 - **`dataset.txt` del tercil duro (37 clips)** para el barrido de ventana.
