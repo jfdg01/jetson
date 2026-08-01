@@ -66,13 +66,43 @@ def score_one(path: Path) -> dict:
     }
 
 
+def paired(per: list[dict], ref: str, metric: str = "mean_iou") -> None:
+    """Every arm against `ref` on the sequences both ran, Wilcoxon signed-rank.
+
+    The per-arm medians above are over whatever sequences that arm happens to have, and the
+    `upscales` gate makes those sets differ by arm -- a crop arm at 640 loses every 720x480 clip.
+    Comparing two such medians is the mistake this function exists to avoid.
+    """
+    from scipy.stats import wilcoxon
+
+    by: dict = {}
+    for r in per:
+        by.setdefault(r["arm"], {})[r["seq"]] = r[metric]
+    assert ref in by, f"{ref} not among {sorted(by)}"
+    print(f"\npareado contra {ref}, {metric}")
+    print(f"{'arm':16s} {'n':>3s} {'d mediana':>10s} {'d media':>9s} {'gana':>6s} {'p':>8s}")
+    for a in sorted(by):
+        if a == ref:
+            continue
+        common = sorted(set(by[a]) & set(by[ref]))
+        if len(common) < 5:
+            continue
+        d = np.array([by[a][s] - by[ref][s] for s in common])
+        p = wilcoxon(d).pvalue if np.any(d) else 1.0
+        print(f"{a:16s} {len(common):3d} {np.median(d):+10.3f} {np.mean(d):+9.3f} "
+              f"{sum(1 for x in d if x > 0):3d}/{len(d):<3d} {p:8.4f}")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("run_dir")
+    ap.add_argument("run_dir", nargs="+", help="one or more; results are pooled by arm")
     ap.add_argument("--csv")
+    ap.add_argument("--vs", metavar="ARM", help="paired Wilcoxon of every arm against ARM")
+    ap.add_argument("--metric", default="mean_iou", help="metric for --vs")
     args = ap.parse_args()
 
-    per = [score_one(p) for p in sorted(Path(args.run_dir).glob("*.json")) if p.stem != "manifest"]
+    per = [score_one(p) for d in args.run_dir
+           for p in sorted(Path(d).glob("*.json")) if p.stem != "manifest"]
     assert per, f"no results in {args.run_dir}"
     # sort by family letter then resolution: 'sam2_c640_coast' -> ('c', 640, '_coast')
     def key(a: str) -> tuple:
@@ -96,11 +126,16 @@ def main() -> None:
     # column stays median for the reason in the module docstring.
 
     seqs = sorted({r["seq"] for r in per})
-    print(f"\nmIoU por secuencia\n{'seq':13s}" + "".join(f"{a[5:]:>7s}" for a in arms))
+    # drop the `sam2_` prefix only where it is one, so `dam4sam_t640` does not print as `bam_t640`
+    short = {a: (a[5:] if a.startswith("sam2_") else a)[-6:] for a in arms}
+    print(f"\nmIoU por secuencia\n{'seq':13s}" + "".join(f"{short[a]:>7s}" for a in arms))
     for s in seqs:
         row = {r["arm"]: r for r in per if r["seq"] == s}
         print(f"{s:13s}" + "".join(
             f"{row[a]['mean_iou']:7.3f}" if a in row else "      -" for a in arms))
+
+    if args.vs:
+        paired(per, args.vs, args.metric)
 
     if args.csv:
         keys = list(per[0])

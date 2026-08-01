@@ -1,0 +1,590 @@
+manifest written; NV Power Mode: 15W 0 | governor schedutil
+gated 3 jobs (arm larger than source): sam2_c640__uav1_1 sam2_c640__uav1_3 sam2_c640__uav6
+[1/20] sam2_c640 x person10 ...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 71.17it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1021  8s  5.99 fps  eta 162s
+  100/1021  17s  5.93 fps  eta 155s
+  150/1021  25s  5.89 fps  eta 148s
+  200/1021  34s  5.87 fps  eta 140s
+  250/1021  43s  5.86 fps  eta 131s
+  300/1021  51s  5.86 fps  eta 123s
+  350/1021  60s  5.87 fps  eta 114s
+  400/1021  68s  5.87 fps  eta 106s
+  450/1021  77s  5.87 fps  eta 97s
+  500/1021  85s  5.87 fps  eta 89s
+  550/1021  93s  5.88 fps  eta 80s
+  600/1021  102s  5.88 fps  eta 72s
+  650/1021  110s  5.88 fps  eta 63s
+  700/1021  119s  5.88 fps  eta 55s
+  750/1021  127s  5.88 fps  eta 46s
+  800/1021  136s  5.89 fps  eta 38s
+  850/1021  144s  5.89 fps  eta 29s
+  900/1021  153s  5.89 fps  eta 21s
+  950/1021  161s  5.89 fps  eta 12s
+  1000/1021  170s  5.89 fps  eta 4s
+{"arm": "sam2_c640", "seq": "person10", "frames": 1021, "w": 1280, "h": 720, "init_ms": 5242.100149393082, "warmup_frames": 5, "ms_p50": 158.88187615200877, "ms_p95": 160.92565045692027, "ms_p99": 163.04245547391474, "ms_max": 267.6505227573216, "fps": 6.293984085656562, "decode_ms_p50": 8.551309350878, "lost_frames": 119, "conf_frames": 1020, "rss_peak_mb": 1995.54296875, "gpu_peak_mb": 494.30078125}
+  180.1s wall, temps NoneC
+[2/20] sam2_c640 x person8_1 ...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 67.79it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1075  8s  5.97 fps  eta 172s
+  100/1075  17s  5.85 fps  eta 167s
+  150/1075  26s  5.82 fps  eta 159s
+  200/1075  34s  5.81 fps  eta 151s
+  250/1075  43s  5.83 fps  eta 142s
+  300/1075  51s  5.84 fps  eta 133s
+  350/1075  60s  5.85 fps  eta 124s
+  400/1075  68s  5.85 fps  eta 115s
+  450/1075  77s  5.84 fps  eta 107s
+  500/1075  85s  5.85 fps  eta 98s
+  550/1075  94s  5.86 fps  eta 90s
+  600/1075  102s  5.86 fps  eta 81s
+  650/1075  111s  5.86 fps  eta 72s
+  700/1075  119s  5.86 fps  eta 64s
+  750/1075  128s  5.87 fps  eta 55s
+  800/1075  137s  5.86 fps  eta 47s
+  850/1075  145s  5.86 fps  eta 38s
+  900/1075  153s  5.86 fps  eta 30s
+  950/1075  162s  5.86 fps  eta 21s
+  1000/1075  170s  5.87 fps  eta 13s
+  1050/1075  179s  5.86 fps  eta 4s
+{"arm": "sam2_c640", "seq": "person8_1", "frames": 1075, "w": 1280, "h": 720, "init_ms": 5152.584615163505, "warmup_frames": 5, "ms_p50": 159.46129290387034, "ms_p95": 161.255316529423, "ms_p99": 162.80967628583312, "ms_max": 335.8036638237536, "fps": 6.271114336209728, "decode_ms_p50": 9.28840646520257, "lost_frames": 76, "conf_frames": 1074, "rss_peak_mb": 1996.6796875, "gpu_peak_mb": 494.30078125}
+  190.3s wall, temps NoneC
+[3/20] sam2_c640 x person19_2 ...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 68.38it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1549  8s  6.09 fps  eta 246s
+  100/1549  17s  6.04 fps  eta 240s
+  150/1549  25s  5.99 fps  eta 234s
+  200/1549  33s  5.99 fps  eta 225s
+  250/1549  42s  5.99 fps  eta 217s
+  300/1549  50s  5.98 fps  eta 209s
+  350/1549  58s  5.99 fps  eta 200s
+  400/1549  67s  5.99 fps  eta 192s
+  450/1549  75s  5.99 fps  eta 184s
+  500/1549  84s  5.99 fps  eta 175s
+  550/1549  92s  5.99 fps  eta 167s
+  600/1549  100s  5.99 fps  eta 159s
+  650/1549  109s  5.99 fps  eta 150s
+  700/1549  117s  5.98 fps  eta 142s
+  750/1549  125s  5.98 fps  eta 134s
+  800/1549  134s  5.99 fps  eta 125s
+  850/1549  142s  5.99 fps  eta 117s
+  900/1549  150s  5.99 fps  eta 108s
+  950/1549  159s  5.98 fps  eta 100s
+  1000/1549  167s  5.98 fps  eta 92s
+  1050/1549  176s  5.97 fps  eta 84s
+  1100/1549  185s  5.96 fps  eta 75s
+  1150/1549  193s  5.95 fps  eta 67s
+  1200/1549  202s  5.95 fps  eta 59s
+  1250/1549  210s  5.95 fps  eta 50s
+  1300/1549  218s  5.95 fps  eta 42s
+  1350/1549  227s  5.95 fps  eta 33s
+  1400/1549  236s  5.94 fps  eta 25s
+  1450/1549  244s  5.94 fps  eta 17s
+  1500/1549  253s  5.94 fps  eta 8s
+{"arm": "sam2_c640", "seq": "person19_2", "frames": 1549, "w": 1280, "h": 720, "init_ms": 5071.972152218223, "warmup_frames": 5, "ms_p50": 158.95501105114818, "ms_p95": 160.6838678009808, "ms_p99": 162.5841521564871, "ms_max": 329.916181974113, "fps": 6.2910882355147795, "decode_ms_p50": 7.810677168890834, "lost_frames": 71, "conf_frames": 1548, "rss_peak_mb": 2013.3359375, "gpu_peak_mb": 494.30078125}
+  267.7s wall, temps NoneC
+[4/20] sam2_c640 x person17_1 ...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 63.96it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1501  8s  5.94 fps  eta 244s
+  100/1501  17s  5.88 fps  eta 238s
+  150/1501  26s  5.87 fps  eta 230s
+  200/1501  34s  5.83 fps  eta 223s
+  250/1501  43s  5.82 fps  eta 215s
+  300/1501  52s  5.82 fps  eta 206s
+  350/1501  60s  5.82 fps  eta 198s
+  400/1501  69s  5.82 fps  eta 189s
+  450/1501  77s  5.82 fps  eta 181s
+  500/1501  86s  5.82 fps  eta 172s
+  550/1501  95s  5.81 fps  eta 164s
+  600/1501  103s  5.81 fps  eta 155s
+  650/1501  112s  5.81 fps  eta 146s
+  700/1501  120s  5.82 fps  eta 138s
+  750/1501  129s  5.82 fps  eta 129s
+  800/1501  137s  5.83 fps  eta 120s
+  850/1501  146s  5.83 fps  eta 112s
+  900/1501  154s  5.84 fps  eta 103s
+  950/1501  163s  5.84 fps  eta 94s
+  1000/1501  171s  5.85 fps  eta 86s
+  1050/1501  179s  5.85 fps  eta 77s
+  1100/1501  188s  5.85 fps  eta 69s
+  1150/1501  197s  5.85 fps  eta 60s
+  1200/1501  205s  5.84 fps  eta 52s
+  1250/1501  214s  5.84 fps  eta 43s
+  1300/1501  223s  5.83 fps  eta 34s
+  1350/1501  231s  5.84 fps  eta 26s
+  1400/1501  240s  5.84 fps  eta 17s
+  1450/1501  248s  5.84 fps  eta 9s
+  1500/1501  257s  5.84 fps  eta 0s
+{"arm": "sam2_c640", "seq": "person17_1", "frames": 1501, "w": 1280, "h": 720, "init_ms": 5092.309988103807, "warmup_frames": 5, "ms_p50": 159.31240003556013, "ms_p95": 161.03798770345747, "ms_p99": 162.24996604025364, "ms_max": 328.8022018969059, "fps": 6.2769752999565, "decode_ms_p50": 9.496653452515602, "lost_frames": 0, "conf_frames": 1500, "rss_peak_mb": 1997.49609375, "gpu_peak_mb": 494.30078125}
+  263.5s wall, temps NoneC
+[5/20] sam2_c640 x bird1_2 ...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 83.20it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/703  8s  6.13 fps  eta 106s
+  100/703  16s  6.08 fps  eta 99s
+  150/703  25s  6.06 fps  eta 91s
+  200/703  33s  6.03 fps  eta 83s
+  250/703  41s  6.03 fps  eta 75s
+  300/703  50s  6.03 fps  eta 67s
+  350/703  58s  6.03 fps  eta 59s
+  400/703  66s  6.03 fps  eta 50s
+  450/703  75s  6.03 fps  eta 42s
+  500/703  83s  6.03 fps  eta 34s
+  550/703  91s  6.03 fps  eta 25s
+  600/703  99s  6.03 fps  eta 17s
+  650/703  108s  6.03 fps  eta 9s
+  700/703  116s  6.03 fps  eta 0s
+{"arm": "sam2_c640", "seq": "bird1_2", "frames": 703, "w": 1280, "h": 720, "init_ms": 5147.017578594387, "warmup_frames": 5, "ms_p50": 158.9212859980762, "ms_p95": 160.73248302564025, "ms_p99": 162.92952235788107, "ms_max": 270.43442567810416, "fps": 6.292423281876195, "decode_ms_p50": 6.690271431580186, "lost_frames": 0, "conf_frames": 702, "rss_peak_mb": 1991.671875, "gpu_peak_mb": 494.30078125}
+  123.1s wall, temps NoneC
+[6/20] sam2_c640 x person7_1 ...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 68.40it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1249  8s  5.89 fps  eta 204s
+  100/1249  17s  5.83 fps  eta 197s
+  150/1249  26s  5.81 fps  eta 189s
+  200/1249  35s  5.78 fps  eta 182s
+  250/1249  43s  5.78 fps  eta 173s
+  300/1249  52s  5.78 fps  eta 164s
+  350/1249  61s  5.78 fps  eta 156s
+  400/1249  69s  5.78 fps  eta 147s
+  450/1249  78s  5.78 fps  eta 138s
+  500/1249  87s  5.78 fps  eta 130s
+  550/1249  95s  5.78 fps  eta 121s
+  600/1249  104s  5.78 fps  eta 112s
+  650/1249  112s  5.78 fps  eta 104s
+  700/1249  121s  5.78 fps  eta 95s
+  750/1249  130s  5.78 fps  eta 86s
+  800/1249  138s  5.78 fps  eta 78s
+  850/1249  147s  5.78 fps  eta 69s
+  900/1249  156s  5.78 fps  eta 60s
+  950/1249  164s  5.78 fps  eta 52s
+  1000/1249  173s  5.78 fps  eta 43s
+  1050/1249  182s  5.78 fps  eta 34s
+  1100/1249  190s  5.78 fps  eta 26s
+  1150/1249  199s  5.77 fps  eta 17s
+  1200/1249  208s  5.78 fps  eta 8s
+{"arm": "sam2_c640", "seq": "person7_1", "frames": 1249, "w": 1280, "h": 720, "init_ms": 5081.667197868228, "warmup_frames": 5, "ms_p50": 159.38898408785462, "ms_p95": 161.01338025182486, "ms_p99": 162.84438431262967, "ms_max": 330.46072628349066, "fps": 6.273959306050935, "decode_ms_p50": 13.431713450700045, "lost_frames": 63, "conf_frames": 1248, "rss_peak_mb": 1992.66796875, "gpu_peak_mb": 494.30078125}
+  222.8s wall, temps NoneC
+[7/20] sam2_c640 x person12_2 ...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 74.22it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1021  8s  6.05 fps  eta 160s
+  100/1021  17s  6.00 fps  eta 153s
+  150/1021  25s  5.99 fps  eta 145s
+  200/1021  34s  5.96 fps  eta 138s
+  250/1021  42s  5.96 fps  eta 129s
+  300/1021  50s  5.96 fps  eta 121s
+  350/1021  59s  5.97 fps  eta 112s
+  400/1021  67s  5.97 fps  eta 104s
+  450/1021  75s  5.97 fps  eta 96s
+  500/1021  84s  5.97 fps  eta 87s
+  550/1021  92s  5.97 fps  eta 79s
+  600/1021  101s  5.97 fps  eta 71s
+  650/1021  109s  5.97 fps  eta 62s
+  700/1021  117s  5.97 fps  eta 54s
+  750/1021  126s  5.97 fps  eta 45s
+  800/1021  134s  5.97 fps  eta 37s
+  850/1021  142s  5.97 fps  eta 29s
+  900/1021  151s  5.98 fps  eta 20s
+  950/1021  159s  5.98 fps  eta 12s
+  1000/1021  167s  5.98 fps  eta 4s
+{"arm": "sam2_c640", "seq": "person12_2", "frames": 1021, "w": 1280, "h": 720, "init_ms": 5130.369699560106, "warmup_frames": 5, "ms_p50": 159.22337910160422, "ms_p95": 161.01872227154672, "ms_p99": 162.97608799301088, "ms_max": 272.915568202734, "fps": 6.28048472304985, "decode_ms_p50": 7.779764477163553, "lost_frames": 169, "conf_frames": 1020, "rss_peak_mb": 1986.26953125, "gpu_peak_mb": 494.30078125}
+  177.4s wall, temps NoneC
+[8/20] sam2_c640 x car14 ...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 70.58it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1327  8s  6.02 fps  eta 212s
+  100/1327  17s  5.99 fps  eta 205s
+  150/1327  25s  5.98 fps  eta 197s
+  200/1327  33s  5.97 fps  eta 189s
+  250/1327  42s  5.95 fps  eta 181s
+  300/1327  50s  5.95 fps  eta 173s
+  350/1327  59s  5.95 fps  eta 164s
+  400/1327  67s  5.95 fps  eta 156s
+  450/1327  76s  5.95 fps  eta 147s
+  500/1327  84s  5.95 fps  eta 139s
+  550/1327  92s  5.96 fps  eta 130s
+  600/1327  101s  5.96 fps  eta 122s
+  650/1327  109s  5.96 fps  eta 114s
+  700/1327  118s  5.96 fps  eta 105s
+  750/1327  126s  5.95 fps  eta 97s
+  800/1327  134s  5.95 fps  eta 89s
+  850/1327  143s  5.95 fps  eta 80s
+  900/1327  151s  5.95 fps  eta 72s
+  950/1327  160s  5.95 fps  eta 63s
+  1000/1327  168s  5.95 fps  eta 55s
+  1050/1327  176s  5.95 fps  eta 47s
+  1100/1327  185s  5.96 fps  eta 38s
+  1150/1327  193s  5.96 fps  eta 30s
+  1200/1327  201s  5.96 fps  eta 21s
+  1250/1327  210s  5.96 fps  eta 13s
+  1300/1327  218s  5.96 fps  eta 5s
+{"arm": "sam2_c640", "seq": "car14", "frames": 1327, "w": 1280, "h": 720, "init_ms": 5078.5181927494705, "warmup_frames": 5, "ms_p50": 159.39698508009315, "ms_p95": 161.46975802257657, "ms_p99": 163.68244728073478, "ms_max": 311.56297493726015, "fps": 6.273644382279402, "decode_ms_p50": 7.733587175607681, "lost_frames": 501, "conf_frames": 1326, "rss_peak_mb": 2004.99609375, "gpu_peak_mb": 494.30078125}
+  229.2s wall, temps NoneC
+[9/20] sam2_c640 x car1_2 ...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 71.63it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/877  8s  6.04 fps  eta 137s
+  100/877  17s  5.99 fps  eta 130s
+  150/877  25s  5.97 fps  eta 122s
+  200/877  34s  5.97 fps  eta 113s
+  250/877  42s  5.97 fps  eta 105s
+  300/877  50s  5.96 fps  eta 97s
+  350/877  59s  5.97 fps  eta 88s
+  400/877  67s  5.95 fps  eta 80s
+  450/877  76s  5.95 fps  eta 72s
+  500/877  84s  5.96 fps  eta 63s
+  550/877  92s  5.96 fps  eta 55s
+  600/877  101s  5.96 fps  eta 47s
+  650/877  109s  5.96 fps  eta 38s
+  700/877  117s  5.96 fps  eta 30s
+  750/877  126s  5.96 fps  eta 21s
+  800/877  134s  5.96 fps  eta 13s
+  850/877  143s  5.96 fps  eta 5s
+{"arm": "sam2_c640", "seq": "car1_2", "frames": 877, "w": 1280, "h": 720, "init_ms": 5077.041457872838, "warmup_frames": 5, "ms_p50": 159.3396719545126, "ms_p95": 161.04841232299805, "ms_p99": 162.75466834194958, "ms_max": 308.74249804764986, "fps": 6.275900958836381, "decode_ms_p50": 7.6829129830002785, "lost_frames": 0, "conf_frames": 876, "rss_peak_mb": 2001.72265625, "gpu_peak_mb": 494.30078125}
+  153.7s wall, temps NoneC
+[10/20] sam2_c640 x group3_4 ...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 69.19it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1159  8s  6.00 fps  eta 185s
+  100/1159  17s  5.94 fps  eta 178s
+  150/1159  25s  5.92 fps  eta 170s
+  200/1159  34s  5.92 fps  eta 162s
+  250/1159  42s  5.90 fps  eta 154s
+  300/1159  51s  5.90 fps  eta 146s
+  350/1159  59s  5.90 fps  eta 137s
+  400/1159  68s  5.90 fps  eta 129s
+  450/1159  76s  5.90 fps  eta 120s
+  500/1159  85s  5.89 fps  eta 112s
+  550/1159  93s  5.89 fps  eta 103s
+  600/1159  102s  5.88 fps  eta 95s
+  650/1159  111s  5.87 fps  eta 87s
+  700/1159  119s  5.86 fps  eta 78s
+  750/1159  128s  5.86 fps  eta 70s
+  800/1159  137s  5.86 fps  eta 61s
+  850/1159  145s  5.86 fps  eta 53s
+  900/1159  154s  5.85 fps  eta 44s
+  950/1159  163s  5.84 fps  eta 36s
+  1000/1159  171s  5.84 fps  eta 27s
+  1050/1159  180s  5.83 fps  eta 19s
+  1100/1159  189s  5.83 fps  eta 10s
+  1150/1159  197s  5.83 fps  eta 2s
+{"arm": "sam2_c640", "seq": "group3_4", "frames": 1159, "w": 1280, "h": 720, "init_ms": 5080.696598161012, "warmup_frames": 5, "ms_p50": 159.35068018734455, "ms_p95": 160.74578817933798, "ms_p99": 161.5804093144834, "ms_max": 279.12493888288736, "fps": 6.275467408261611, "decode_ms_p50": 14.13600705564022, "lost_frames": 48, "conf_frames": 1158, "rss_peak_mb": 2014.4375, "gpu_peak_mb": 494.30078125}
+  205.6s wall, temps NoneC
+[11/20] sam2_c640 x car7 ...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 73.03it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1033  8s  6.06 fps  eta 162s
+  100/1033  17s  6.01 fps  eta 155s
+  150/1033  25s  6.00 fps  eta 147s
+  200/1033  33s  5.99 fps  eta 139s
+  250/1033  42s  5.98 fps  eta 131s
+  300/1033  50s  5.97 fps  eta 123s
+  350/1033  59s  5.97 fps  eta 114s
+  400/1033  67s  5.96 fps  eta 106s
+  450/1033  75s  5.96 fps  eta 98s
+  500/1033  84s  5.96 fps  eta 89s
+  550/1033  92s  5.96 fps  eta 81s
+  600/1033  101s  5.96 fps  eta 73s
+  650/1033  109s  5.96 fps  eta 64s
+  700/1033  117s  5.97 fps  eta 56s
+  750/1033  126s  5.97 fps  eta 47s
+  800/1033  134s  5.97 fps  eta 39s
+  850/1033  142s  5.97 fps  eta 31s
+  900/1033  151s  5.97 fps  eta 22s
+  950/1033  159s  5.97 fps  eta 14s
+  1000/1033  167s  5.97 fps  eta 6s
+{"arm": "sam2_c640", "seq": "car7", "frames": 1033, "w": 1280, "h": 720, "init_ms": 5079.073889181018, "warmup_frames": 5, "ms_p50": 158.9534911327064, "ms_p95": 160.5535485316068, "ms_p99": 161.52828411199152, "ms_max": 271.81796077638865, "fps": 6.291148391104693, "decode_ms_p50": 8.209633640944958, "lost_frames": 462, "conf_frames": 1032, "rss_peak_mb": 1985.75390625, "gpu_peak_mb": 494.30078125}
+  179.5s wall, temps NoneC
+[12/20] sam2_c640 x group2_2 ...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 73.16it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/865  8s  5.90 fps  eta 138s
+  100/865  17s  5.84 fps  eta 131s
+  150/865  26s  5.82 fps  eta 123s
+  200/865  34s  5.83 fps  eta 114s
+  250/865  43s  5.82 fps  eta 106s
+  300/865  52s  5.79 fps  eta 98s
+  350/865  61s  5.78 fps  eta 89s
+  400/865  69s  5.78 fps  eta 80s
+  450/865  78s  5.78 fps  eta 72s
+  500/865  87s  5.77 fps  eta 63s
+  550/865  95s  5.77 fps  eta 55s
+  600/865  104s  5.77 fps  eta 46s
+  650/865  113s  5.77 fps  eta 37s
+  700/865  121s  5.77 fps  eta 29s
+  750/865  130s  5.77 fps  eta 20s
+  800/865  138s  5.78 fps  eta 11s
+  850/865  147s  5.79 fps  eta 3s
+{"arm": "sam2_c640", "seq": "group2_2", "frames": 865, "w": 1280, "h": 720, "init_ms": 5175.235082861036, "warmup_frames": 5, "ms_p50": 159.2735112644732, "ms_p95": 161.26161310821772, "ms_p99": 162.7473729941994, "ms_max": 308.7574113160372, "fps": 6.2785079079439825, "decode_ms_p50": 14.156536431983113, "lost_frames": 0, "conf_frames": 864, "rss_peak_mb": 1983.76171875, "gpu_peak_mb": 494.30078125}
+  155.9s wall, temps NoneC
+[13/20] sam2_c640 x car2 ...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 68.18it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1321  8s  6.01 fps  eta 212s
+  100/1321  17s  5.97 fps  eta 204s
+  150/1321  25s  5.95 fps  eta 197s
+  200/1321  34s  5.95 fps  eta 188s
+  250/1321  42s  5.95 fps  eta 180s
+  300/1321  51s  5.93 fps  eta 172s
+  350/1321  59s  5.93 fps  eta 164s
+  400/1321  68s  5.92 fps  eta 155s
+  450/1321  76s  5.92 fps  eta 147s
+  500/1321  84s  5.93 fps  eta 139s
+  550/1321  93s  5.93 fps  eta 130s
+  600/1321  101s  5.93 fps  eta 122s
+  650/1321  110s  5.93 fps  eta 113s
+  700/1321  118s  5.93 fps  eta 105s
+  750/1321  126s  5.93 fps  eta 96s
+  800/1321  135s  5.93 fps  eta 88s
+  850/1321  143s  5.93 fps  eta 79s
+  900/1321  152s  5.93 fps  eta 71s
+  950/1321  160s  5.93 fps  eta 63s
+  1000/1321  169s  5.93 fps  eta 54s
+  1050/1321  177s  5.93 fps  eta 46s
+  1100/1321  186s  5.93 fps  eta 37s
+  1150/1321  194s  5.93 fps  eta 29s
+  1200/1321  202s  5.93 fps  eta 20s
+  1250/1321  211s  5.93 fps  eta 12s
+  1300/1321  219s  5.92 fps  eta 4s
+{"arm": "sam2_c640", "seq": "car2", "frames": 1321, "w": 1280, "h": 720, "init_ms": 5183.940904214978, "warmup_frames": 5, "ms_p50": 159.37313390895724, "ms_p95": 161.64244702085853, "ms_p99": 164.48060877621174, "ms_max": 296.09657917171717, "fps": 6.274583271803235, "decode_ms_p50": 8.072749944403768, "lost_frames": 0, "conf_frames": 1320, "rss_peak_mb": 2029.75, "gpu_peak_mb": 494.30078125}
+  229.6s wall, temps NoneC
+[14/20] sam2_c640 x person9 ...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 70.24it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/661  8s  6.04 fps  eta 101s
+  100/661  17s  5.99 fps  eta 94s
+  150/661  25s  5.94 fps  eta 86s
+  200/661  34s  5.93 fps  eta 78s
+  250/661  42s  5.92 fps  eta 69s
+  300/661  51s  5.92 fps  eta 61s
+  350/661  59s  5.92 fps  eta 53s
+  400/661  68s  5.92 fps  eta 44s
+  450/661  76s  5.91 fps  eta 36s
+  500/661  85s  5.91 fps  eta 27s
+  550/661  93s  5.92 fps  eta 19s
+  600/661  101s  5.92 fps  eta 10s
+  650/661  110s  5.92 fps  eta 2s
+{"arm": "sam2_c640", "seq": "person9", "frames": 661, "w": 1280, "h": 720, "init_ms": 5073.741697706282, "warmup_frames": 5, "ms_p50": 159.33031821623445, "ms_p95": 160.65977704711258, "ms_p99": 161.47985296323895, "ms_max": 312.18233797699213, "fps": 6.276269395526182, "decode_ms_p50": 8.542909985408187, "lost_frames": 7, "conf_frames": 660, "rss_peak_mb": 1995.29296875, "gpu_peak_mb": 494.30078125}
+  118.3s wall, temps NoneC
+[15/20] sam2_c640 x group2_1 ...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 68.96it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/907  8s  5.96 fps  eta 144s
+  100/907  17s  5.89 fps  eta 137s
+  150/907  26s  5.86 fps  eta 129s
+  200/907  34s  5.83 fps  eta 121s
+  250/907  43s  5.82 fps  eta 113s
+  300/907  52s  5.80 fps  eta 105s
+  350/907  60s  5.80 fps  eta 96s
+  400/907  69s  5.81 fps  eta 87s
+  450/907  77s  5.81 fps  eta 79s
+  500/907  86s  5.81 fps  eta 70s
+  550/907  94s  5.82 fps  eta 61s
+  600/907  103s  5.83 fps  eta 53s
+  650/907  111s  5.83 fps  eta 44s
+  700/907  120s  5.83 fps  eta 35s
+  750/907  129s  5.83 fps  eta 27s
+  800/907  137s  5.83 fps  eta 18s
+  850/907  146s  5.83 fps  eta 10s
+  900/907  155s  5.82 fps  eta 1s
+{"arm": "sam2_c640", "seq": "group2_1", "frames": 907, "w": 1280, "h": 720, "init_ms": 5084.909508004785, "warmup_frames": 5, "ms_p50": 159.0600381605327, "ms_p95": 160.71052476763725, "ms_p99": 162.19006292521954, "ms_max": 315.6056231819093, "fps": 6.286934239200555, "decode_ms_p50": 13.30916490405798, "lost_frames": 43, "conf_frames": 906, "rss_peak_mb": 1960.51953125, "gpu_peak_mb": 494.30078125}
+  162.3s wall, temps NoneC
+[16/20] sam2_c640 x person19_1 ...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 77.16it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1243  8s  5.91 fps  eta 202s
+  100/1243  17s  5.93 fps  eta 193s
+  150/1243  25s  5.92 fps  eta 185s
+  200/1243  34s  5.91 fps  eta 176s
+  250/1243  42s  5.92 fps  eta 168s
+  300/1243  51s  5.89 fps  eta 160s
+  350/1243  59s  5.90 fps  eta 151s
+  400/1243  68s  5.90 fps  eta 143s
+  450/1243  76s  5.90 fps  eta 134s
+  500/1243  85s  5.90 fps  eta 126s
+  550/1243  93s  5.90 fps  eta 117s
+  600/1243  102s  5.91 fps  eta 109s
+  650/1243  110s  5.91 fps  eta 100s
+  700/1243  118s  5.91 fps  eta 92s
+  750/1243  127s  5.91 fps  eta 83s
+  800/1243  135s  5.91 fps  eta 75s
+  850/1243  144s  5.90 fps  eta 67s
+  900/1243  153s  5.90 fps  eta 58s
+  950/1243  161s  5.90 fps  eta 50s
+  1000/1243  170s  5.90 fps  eta 41s
+  1050/1243  178s  5.89 fps  eta 33s
+  1100/1243  187s  5.89 fps  eta 24s
+  1150/1243  195s  5.89 fps  eta 16s
+  1200/1243  203s  5.90 fps  eta 7s
+{"arm": "sam2_c640", "seq": "person19_1", "frames": 1243, "w": 1280, "h": 720, "init_ms": 5100.452792830765, "warmup_frames": 5, "ms_p50": 159.52770272269845, "ms_p95": 161.42221819609404, "ms_p99": 162.78256809338927, "ms_max": 342.4391970038414, "fps": 6.268503732785934, "decode_ms_p50": 7.79794086702168, "lost_frames": 55, "conf_frames": 1242, "rss_peak_mb": 2004.64453125, "gpu_peak_mb": 494.30078125}
+  217.4s wall, temps NoneC
+[17/20] sam2_c640 x group3_2 ...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 63.48it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1261  8s  6.06 fps  eta 200s
+  100/1261  17s  6.00 fps  eta 193s
+  150/1261  25s  5.98 fps  eta 186s
+  200/1261  33s  5.97 fps  eta 178s
+  250/1261  42s  5.96 fps  eta 170s
+  300/1261  50s  5.94 fps  eta 162s
+  350/1261  59s  5.94 fps  eta 153s
+  400/1261  67s  5.94 fps  eta 145s
+  450/1261  76s  5.94 fps  eta 136s
+  500/1261  84s  5.94 fps  eta 128s
+  550/1261  93s  5.94 fps  eta 120s
+  600/1261  101s  5.94 fps  eta 111s
+  650/1261  109s  5.94 fps  eta 103s
+  700/1261  118s  5.94 fps  eta 94s
+  750/1261  126s  5.94 fps  eta 86s
+  800/1261  135s  5.94 fps  eta 78s
+  850/1261  143s  5.94 fps  eta 69s
+  900/1261  152s  5.94 fps  eta 61s
+  950/1261  160s  5.94 fps  eta 52s
+  1000/1261  168s  5.94 fps  eta 44s
+  1050/1261  177s  5.94 fps  eta 36s
+  1100/1261  185s  5.94 fps  eta 27s
+  1150/1261  194s  5.94 fps  eta 19s
+  1200/1261  202s  5.94 fps  eta 10s
+  1250/1261  211s  5.93 fps  eta 2s
+{"arm": "sam2_c640", "seq": "group3_2", "frames": 1261, "w": 1280, "h": 720, "init_ms": 5271.363768726587, "warmup_frames": 5, "ms_p50": 159.08033028244972, "ms_p95": 160.67789583466947, "ms_p99": 161.90407720394433, "ms_max": 270.9203250706196, "fps": 6.2861322843904315, "decode_ms_p50": 9.209412382915616, "lost_frames": 711, "conf_frames": 1260, "rss_peak_mb": 1994.1171875, "gpu_peak_mb": 494.30078125}
+  219.4s wall, temps NoneC
+[18/20] sam2_c640 x car11 ...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 71.16it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/337  8s  6.10 fps  eta 47s
+  100/337  17s  6.03 fps  eta 39s
+  150/337  25s  6.00 fps  eta 31s
+  200/337  33s  5.99 fps  eta 23s
+  250/337  42s  5.98 fps  eta 15s
+  300/337  50s  5.98 fps  eta 6s
+{"arm": "sam2_c640", "seq": "car11", "frames": 337, "w": 1280, "h": 720, "init_ms": 5097.933581098914, "warmup_frames": 5, "ms_p50": 159.0752098709345, "ms_p95": 161.15583921782672, "ms_p99": 163.19770603440702, "ms_max": 174.00492494925857, "fps": 6.286334626315119, "decode_ms_p50": 8.589871460571885, "lost_frames": 92, "conf_frames": 336, "rss_peak_mb": 1969.3046875, "gpu_peak_mb": 494.30078125}
+  62.9s wall, temps NoneC
+[19/20] sam2_c640 x person16 ...
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 68.49it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/1147  8s  6.04 fps  eta 182s
+  100/1147  17s  5.99 fps  eta 175s
+  150/1147  25s  5.97 fps  eta 167s
+  200/1147  34s  5.96 fps  eta 159s
+  250/1147  42s  5.96 fps  eta 151s
+  300/1147  50s  5.95 fps  eta 142s
+  350/1147  59s  5.93 fps  eta 134s
+  400/1147  67s  5.93 fps  eta 126s
+  450/1147  76s  5.93 fps  eta 117s
+  500/1147  84s  5.93 fps  eta 109s
+  550/1147  93s  5.93 fps  eta 101s
+  600/1147  101s  5.93 fps  eta 92s
+  650/1147  110s  5.93 fps  eta 84s
+  700/1147  118s  5.93 fps  eta 75s
+  750/1147  127s  5.93 fps  eta 67s
+  800/1147  135s  5.93 fps  eta 59s
+  850/1147  143s  5.93 fps  eta 50s
+  900/1147  152s  5.93 fps  eta 42s
+  950/1147  160s  5.93 fps  eta 33s
+  1000/1147  169s  5.93 fps  eta 25s
+  1050/1147  177s  5.93 fps  eta 16s
+  1100/1147  186s  5.93 fps  eta 8s
+{"arm": "sam2_c640", "seq": "person16", "frames": 1147, "w": 1280, "h": 720, "init_ms": 5082.987806759775, "warmup_frames": 5, "ms_p50": 159.20545533299446, "ms_p95": 161.1601752229035, "ms_p99": 162.5352301634848, "ms_max": 271.72381011769176, "fps": 6.2811917965273105, "decode_ms_p50": 9.296486852690578, "lost_frames": 102, "conf_frames": 1146, "rss_peak_mb": 1982.28125, "gpu_peak_mb": 494.30078125}
+  200.2s wall, temps NoneC
+[20/20] sam2_c640 x person14_1 ...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+frame loading (JPEG):   0%|          | 0/1 [00:00<?, ?it/s]frame loading (JPEG): 100%|██████████| 1/1 [00:00<00:00, 72.56it/s]
+/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/sam2_video_predictor.py:786: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/tracker-sweep/.venv/lib/python3.10/site-packages/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  50/847  8s  6.07 fps  eta 131s
+  100/847  17s  6.02 fps  eta 124s
+  150/847  25s  6.00 fps  eta 116s
+  200/847  33s  5.99 fps  eta 108s
+  250/847  42s  5.99 fps  eta 100s
+  300/847  50s  5.99 fps  eta 91s
+  350/847  58s  5.98 fps  eta 83s
+  400/847  67s  5.97 fps  eta 75s
+  450/847  75s  5.97 fps  eta 66s
+  500/847  84s  5.98 fps  eta 58s
+  550/847  92s  5.97 fps  eta 50s
+  600/847  100s  5.97 fps  eta 41s
+  650/847  109s  5.98 fps  eta 33s
+  700/847  117s  5.98 fps  eta 25s
+  750/847  126s  5.98 fps  eta 16s
+  800/847  134s  5.98 fps  eta 8s
+{"arm": "sam2_c640", "seq": "person14_1", "frames": 847, "w": 1280, "h": 720, "init_ms": 5108.718027826399, "warmup_frames": 5, "ms_p50": 159.25924899056554, "ms_p95": 161.04794899001718, "ms_p99": 162.33123010024428, "ms_max": 304.9643151462078, "fps": 6.279070172302769, "decode_ms_p50": 7.821557577699423, "lost_frames": 89, "conf_frames": 846, "rss_peak_mb": 1997.7109375, "gpu_peak_mb": 494.30078125}
+  148.3s wall, temps NoneC
+DONE

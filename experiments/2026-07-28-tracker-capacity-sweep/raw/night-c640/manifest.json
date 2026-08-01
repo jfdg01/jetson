@@ -1,0 +1,173 @@
+{
+ "utc": "2026-08-01T01:46:59Z",
+ "arms": [
+  "sam2_c640"
+ ],
+ "seqs": [
+  "bird1_2",
+  "car11",
+  "car14",
+  "car1_2",
+  "car2",
+  "car7",
+  "group2_1",
+  "group2_2",
+  "group3_2",
+  "group3_4",
+  "person10",
+  "person12_2",
+  "person14_1",
+  "person16",
+  "person17_1",
+  "person19_1",
+  "person19_2",
+  "person7_1",
+  "person8_1",
+  "person9",
+  "uav1_1",
+  "uav1_3",
+  "uav6"
+ ],
+ "seed": 0,
+ "nvpmodel": "NV Power Mode: 15W\n0",
+ "governor": "schedutil",
+ "nproc": "6",
+ "l4t": "# R36 (release), REVISION: 5.0, GCID: 43688277, BOARD: generic, EABI: aarch64, DATE: Fri Jan 16 03:50:45 UTC 2026\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia",
+ "meminfo": {
+  "MemTotal": "        7789948 kB",
+  "MemAvailable": "    5920956 kB",
+  "SwapTotal": "       3894960 kB",
+  "SwapFree": "        3555160 kB"
+ },
+ "thermals_start": {
+  "cpu-thermal": 68.218,
+  "gpu-thermal": 67.75,
+  "soc0-thermal": 64.906,
+  "soc1-thermal": 66.593,
+  "soc2-thermal": 66.875,
+  "tj-thermal": 68.218
+ },
+ "rails_start": {
+  "VDD_IN": 6.605184,
+  "VDD_CPU_GPU_CV": 1.737472,
+  "VDD_SOC": 1.619008
+ },
+ "code_sha256": "c769dbc995be6c307c223bddc803f8e109a6895109efd9633f27b6decfe0f76b",
+ "freeze": {
+  "/home/jfdg/tracker-sweep/.venv/bin/python": "annotated-doc==0.0.4\nantlr4-python3-runtime==4.9.3\nanyio==4.14.1\ncertifi==2026.6.17\nclick==8.4.2\nexceptiongroup==1.3.1\nfilelock==3.29.4\nfsspec==2026.6.0\nh11==0.16.0\nhf-xet==1.5.1\nhttpcore==1.0.9\nhttpx==0.28.1\nhuggingface-hub==1.21.0\nhydra-core==1.3.3\nidna==3.18\niopath==0.1.10\njinja2==3.1.6\nmarkdown-it-py==4.2.0\nmarkupsafe==3.0.3\nmdurl==0.1.2\nmpmath==1.3.0\nnetworkx==3.4.2\nnumpy==1.26.4\nomegaconf==2.3.1\nopencv-python-headless==4.11.0.86\npackaging==26.2\npillow==12.3.0\nportalocker==3.2.0\npygments==2.20.0\npyyaml==6.0.3\nregex==2026.7.19\nrich==15.0.0\nsafetensors==0.8.0\nsam2==1.1.0\nsetuptools==81.0.0\nshellingham==1.5.4\nsympy==1.14.0\ntokenizers==0.22.2\ntorch==2.8.0\ntorchvision==0.23.0\ntqdm==4.68.3\ntransformers==5.14.1\ntyper==0.25.1\ntyping-extensions==4.15.0"
+ },
+ "big_procs": "",
+ "frame_size": {
+  "bird1_2": [
+   1280,
+   720
+  ],
+  "car11": [
+   1280,
+   720
+  ],
+  "car14": [
+   1280,
+   720
+  ],
+  "car1_2": [
+   1280,
+   720
+  ],
+  "car2": [
+   1280,
+   720
+  ],
+  "car7": [
+   1280,
+   720
+  ],
+  "group2_1": [
+   1280,
+   720
+  ],
+  "group2_2": [
+   1280,
+   720
+  ],
+  "group3_2": [
+   1280,
+   720
+  ],
+  "group3_4": [
+   1280,
+   720
+  ],
+  "person10": [
+   1280,
+   720
+  ],
+  "person12_2": [
+   1280,
+   720
+  ],
+  "person14_1": [
+   1280,
+   720
+  ],
+  "person16": [
+   1280,
+   720
+  ],
+  "person17_1": [
+   1280,
+   720
+  ],
+  "person19_1": [
+   1280,
+   720
+  ],
+  "person19_2": [
+   1280,
+   720
+  ],
+  "person7_1": [
+   1280,
+   720
+  ],
+  "person8_1": [
+   1280,
+   720
+  ],
+  "person9": [
+   1280,
+   720
+  ],
+  "uav1_1": [
+   720,
+   480
+  ],
+  "uav1_3": [
+   720,
+   480
+  ],
+  "uav6": [
+   720,
+   480
+  ]
+ },
+ "gated": [
+  "sam2_c640__uav1_1",
+  "sam2_c640__uav1_3",
+  "sam2_c640__uav6"
+ ],
+ "thermals_end": {
+  "cpu-thermal": 69.062,
+  "gpu-thermal": 68.562,
+  "soc0-thermal": 65.687,
+  "soc1-thermal": 67.343,
+  "soc2-thermal": 67.718,
+  "tj-thermal": 68.968
+ },
+ "rails_end": {
+  "VDD_IN": 6.565632,
+  "VDD_CPU_GPU_CV": 1.658496,
+  "VDD_SOC": 1.619008
+ },
+ "finished_utc": "2026-08-01T02:48:47Z"
+}
