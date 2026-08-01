@@ -128,7 +128,7 @@ El detalle completo de cada tanda vive en `notes/`. Aquí queda el resumen y el 
 de cada tabla, las verificaciones visuales y los tropiezos están en el fichero enlazado. Cada fichero
 abre con su fecha, su rango horario y su coste de dispositivo.
 
-**Coste total del barrido: ~45.5 h de dispositivo** sobre la Jetson a 15 W, 1061 corridas. Es una
+**Coste total del barrido: ~51.9 h de dispositivo** sobre la Jetson a 15 W, 1153 corridas. Es una
 estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON de `raw/`; no incluye el tiempo muerto
 entre etapas ni los renders de overlay, así que el reloj de pared es mayor.
 
@@ -235,4 +235,23 @@ secuencias: a igual resolución el recorte gana (`c640_pad` bate a `t640` 32/45,
 `t768`/`t1024` son indistinguibles del recorte a 640 que cuesta 159 ms. Los brazos DAM4SAM son un
 **nulo acotado**, no equivalencia. Paridad de `dam4sam_lt` exacta (0 frames, 0 cajas de 30.747). El
 brazo LT sube `gm_ox` +0.105 y baja mIoU -0.016, las dos con p < 0.001: **propuesta medida, no
-resultado**. Sin verificación visual de esta tanda.
+resultado**. Sin verificación visual de esta tanda. El +0.105 queda corregido en la sección 15.
+
+### 15. Validación cruzada de las constantes LT — [`notes/15-validacion-cruzada-de-las-constantes-lt.md`](notes/15-validacion-cruzada-de-las-constantes-lt.md) · 0 h
+
+Leave-one-sequence-out sobre los 312 candidatos de umbral relativo, sin GPU (la política se simula
+sobre la traza grabada). **Fuera de muestra el brazo LT es un nulo: p = 0.058**, contra el 0.0005 de
+la sección 14, que estaba inflado por reportar en parte sobre las secuencias que fijaron las
+constantes. Solo `b = 2` y la ventana móvil son estables entre pliegues; `k` y `w` bailan, o sea que
+**la mitad de los parámetros no está determinada por los datos**. El efecto es de cola — tres clips
+concentran la ganancia — así que es una palanca condicionada, no un comportamiento por defecto. El
+mismo sesgo afecta a `asym_lt`, que **no** se puede validar así porque cierra el lazo.
+
+### 16. Paridad DAM4SAM/SAMURAI: precisión y resolución — [`notes/16-paridad-dam4sam-samurai-dtype-y-resolucion.md`](notes/16-paridad-dam4sam-samurai-dtype-y-resolucion.md) · 6.38 h
+
+92 corridas que matan los dos confundidos de la comparación entre familias. **La precisión no
+importa**: bf16 contra fp16 dentro de SAMURAI es nulo en mIoU, AUC y falsos positivos (p = 0.48,
+0.58, 0.69), así que no hizo falta el 2x2 completo. **Pareando la resolución, la ventaja de DAM4SAM
+existe solo a 960** (mediana +0.008, 21/30, p = 0.0087, sobrevive a Holm); a 640 y 768 las dos
+políticas de memoria son indistinguibles. Cuesta un 7% más de latencia y el peldaño entero está a
+2.6x del incumbente `c640`. Sin verificación visual de esta tanda.

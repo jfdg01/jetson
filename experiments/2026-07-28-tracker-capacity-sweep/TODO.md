@@ -27,6 +27,15 @@ se ejecutan.
   se mide. Necesita tocar el wrapper vendorizado de DAM4SAM (el `output_dict` /
   `memory_bank`), no basta con envolverlo desde fuera.
 
+- **Encoger la rejilla del umbral relativo a ~15 candidatos.** La validación cruzada
+  (`notes/15-...`) muestra que 33 secuencias no soportan seleccionar entre 312: solo `b = 2` y la
+  ventana móvil salen estables, `k` y `w` bailan por pliegue. Fijar esos dos y barrer solo `a` y `w`
+  deja la selección fuera del camino crítico. Coste cero de dispositivo, se re-corre
+  `analysis/lt_sim.py`.
+- **Puerta para el brazo LT.** El efecto es de cola (tres clips de 33 dan casi toda la ganancia), o
+  sea que la política debería activarse condicionalmente, como el 1024 con puerta de tamaño de la
+  Parte VI. Falta encontrar un predictor **causal** de "esta secuencia es de las que se benefician".
+
 ## Geometría de ventana
 
 - **Padding por media de canal** (SiamFC) en vez de ceros. Es una perilla medible, no una obviedad.
