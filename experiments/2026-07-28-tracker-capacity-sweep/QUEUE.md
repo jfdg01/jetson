@@ -147,8 +147,8 @@ punto, así que toca clip y no figura. Visto con Read antes de afirmar nada.
 
 ## Fuera de la cola a propósito
 
-- `README.md`, ledgers y `proof/` no se escriben: el `CLAUDE.md` de este directorio lo prohíbe hasta
-  que el autor lo pida. Cuando lo pida se escribe todo de golpe.
+- Ledgers del proyecto y `proof/` no se escriben hasta que el autor lo pida (`CLAUDE.md` de este
+  directorio). `notes/` y el índice del README sí: cada evento se documenta al cerrar.
 - No se toca `sam2_f5` como brazo retrospectivo: aplazado por el autor.
 - Todo lo demás vive en `TODO.md`, que no es una cola sino deuda.
 
