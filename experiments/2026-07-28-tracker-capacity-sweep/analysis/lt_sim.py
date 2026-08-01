@@ -173,14 +173,82 @@ def score(seqs: list[tuple], machine) -> list[dict]:
 PLAIN = lambda c: run_machine(c, -np.inf, -np.inf, 1)  # noqa: E731 -- never lost, i.e. no LT at all
 
 
+def rel_cands() -> list[tuple]:
+    """The relative-threshold grid. `w` in frames at ~30 fps, so 30 is one second of designation
+    and 300 ten -- long enough to span a slow appearance change."""
+    return [(f"rel a {a:.1f} b {b:.1f} k {k} w {w} {'fijo' if fz else 'movil'}",
+             (lambda a=a, b=b, k=k, w=w, fz=fz: (lambda c: run_machine_rel(c, a, b, k, w, fz)))())
+            for a in (1.0, 1.5, 2.0, 3.0, 4.0) for b in (0.0, 1.0, 2.0) if b <= a
+            for k in (1, 2, 3, 5) for w in (30, 100, 300) for fz in (True, False)]
+
+
+def cv(seqs: list[tuple]) -> None:
+    """Leave-one-sequence-out over the relative grid: does the fitted (a,b,k,w) survive resampling?
+
+    The deployed `dam4sam_lt` constants come from ONE even/odd split of these same sequences, so the
+    reported out-of-sample number is a sample of size one from the distribution of splits. LOO gives
+    the other 32: each fold selects on 32 sequences and scores the held-out one, so every sequence is
+    out-of-sample exactly once and the spread of selected constants is visible instead of assumed.
+
+    Only the relative machine is cross-validated. The fixed grid's thresholds are percentiles of the
+    fit fold's own logits, so a shared grid would leak the held-out sequence into the candidate set;
+    the relative grid is scale-free constants and leaks nothing.
+
+    The cache is what makes this cheap: 360 candidates x 33 sequences of state machine, once, and
+    every fold is then a median over columns.
+    """
+    cands = rel_cands()
+    g = np.array([[m["gm_ox"] for m in score(seqs, mach)] for _, mach in cands])  # cand x seq
+    plain = np.array([m["gm_ox"] for m in score(seqs, PLAIN)])
+    n = len(seqs)
+    print(f"LOO sobre {len(cands)} candidatos relativos, {n} secuencias con hueco\n")
+
+    picks, held = [], []
+    for j in range(n):
+        other = [i for i in range(n) if i != j]
+        best = int(np.argmax(np.median(g[:, other], axis=1)))
+        picks.append(cands[best][0])
+        held.append(g[best, j] - plain[j])
+    import collections
+    print("constantes elegidas por fold:")
+    for name, c in collections.Counter(picks).most_common():
+        print(f"  {c:2d}/{n}  {name}")
+
+    from scipy.stats import wilcoxon
+    p = lambda x: wilcoxon(x).pvalue if np.any(x) else 1.0  # noqa: E731
+    d = np.array(held)
+    print(f"\nLOO fuera de muestra contra plain: gana {int((d > 0).sum())}/{n}  "
+          f"mediana {np.median(d):+.3f}  media {np.mean(d):+.3f}  peor {d.min():+.3f}  "
+          f"p {p(d):.4f}")
+
+    order = np.argsort(d)
+    print("\npeores y mejores folds (secuencia, delta, constantes que eligieron las otras 32):")
+    for j in list(order[:4]) + list(order[-3:]):
+        print(f"  {seqs[j][0]:14s} {d[j]:+.3f}  {picks[j]}")
+
+    # the deployed constants, scored on every sequence, as the thing LOO is judging
+    dep = next(m for nm, m in cands if nm == "rel a 4.0 b 2.0 k 1 w 300 movil")
+    dd = np.array([m["gm_ox"] for m in score(seqs, dep)]) - plain
+    print(f"desplegado (a 4.0 b 2.0 k 1 w 300 movil), en las {n}: gana "
+          f"{int((dd > 0).sum())}/{n}  mediana {np.median(dd):+.3f}  media {np.mean(dd):+.3f}  "
+          f"peor {dd.min():+.3f}  p {p(dd):.4f}")
+    # how far the deployed pick is from each fold's own optimum, in ranks
+    rank = np.median(g, axis=1).argsort()[::-1].tolist()
+    dep_i = [i for i, (nm, _) in enumerate(cands) if nm == "rel a 4.0 b 2.0 k 1 w 300 movil"][0]
+    print(f"rango del desplegado por mediana global: {rank.index(dep_i) + 1}/{len(cands)}")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("run_dir")
     ap.add_argument("--arm", required=True)
+    ap.add_argument("--cv", action="store_true", help="leave-one-sequence-out over the rel grid")
     args = ap.parse_args()
 
     seqs = load(Path(args.run_dir), args.arm)
     assert seqs, f"no gap sequence for {args.arm} in {args.run_dir}"
+    if args.cv:
+        return cv(seqs)
     fit = [s for i, s in enumerate(seqs) if i % 2 == 0]
     ev = [s for i, s in enumerate(seqs) if i % 2 == 1]
     print(f"{args.arm}: {len(seqs)} gap seqs -> fit {len(fit)} / eval {len(ev)}")
@@ -194,13 +262,8 @@ def main() -> None:
     cands = [(f"fijo lo {lo:.3f} hi {hi:.3f} k {k}",
               (lambda lo=lo, hi=hi, k=k: (lambda c: run_machine(c, lo, hi, k)))())
              for lo in los for hi in his if hi > lo for k in (1, 2, 3, 5, 8)]
-    # Relative: cut at mu - a sigma over the last `w` on-target frames. `w` in frames at ~30 fps, so
-    # 30 is one second of designation and 300 ten -- long enough to span a slow appearance change.
-    cands += [(f"rel a {a:.1f} b {b:.1f} k {k} w {w} {'fijo' if fz else 'movil'}",
-               (lambda a=a, b=b, k=k, w=w, fz=fz:
-                (lambda c: run_machine_rel(c, a, b, k, w, fz)))())
-              for a in (1.0, 1.5, 2.0, 3.0, 4.0) for b in (0.0, 1.0, 2.0) if b <= a
-              for k in (1, 2, 3, 5) for w in (30, 100, 300) for fz in (True, False)]
+    # Relative: cut at mu - a sigma over the last `w` on-target frames.
+    cands += rel_cands()
 
     def pick(pool):
         return max(pool, key=lambda t: np.median([m["gm_ox"] for m in score(fit, t[1])]))
