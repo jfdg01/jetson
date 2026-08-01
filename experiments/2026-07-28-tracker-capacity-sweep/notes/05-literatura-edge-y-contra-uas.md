@@ -1,6 +1,9 @@
-# Revisión de literatura: tracking en edge y contra-UAS
+# Literatura: tracking en edge y contra-UAS
 
 Parte de [`../README.md`](../README.md).
+
+**Coste:** sin corridas de dispositivo — análisis, diseño o lectura.
+
 
 ## Revisión de literatura: tracking en edge y contra-UAS (2026-07-29T16:40Z)
 

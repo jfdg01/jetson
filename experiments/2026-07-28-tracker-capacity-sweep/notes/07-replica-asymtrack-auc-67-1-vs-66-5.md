@@ -1,6 +1,11 @@
-# asym-repro: validación del arnés contra el número publicado
+# Réplica de AsymTrack: AUC 67.1 contra 66.5 publicado
 
 Parte de [`../README.md`](../README.md).
+
+**Cuándo:** 2026-07-29T18:50Z -> 2026-07-29T20:29Z (sello de los ficheros traídos, o sea el final de cada corrida).  
+**Coste:** 126 corridas, **1.14 h de dispositivo** — estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON; no incluye tiempo muerto entre etapas.  
+**Datos:** `raw/asym-repro/`, `raw/asym-determ/`
+
 
 ## Experimento previo de confirmación: `asym-repro` (preregistrado 2026-07-29T17:05Z)
 

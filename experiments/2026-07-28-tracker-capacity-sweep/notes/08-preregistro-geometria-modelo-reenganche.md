@@ -1,6 +1,9 @@
-# Preregistro search-window (ejecutado por partes)
+# Preregistro: separar geometría, modelo y reenganche
 
 Parte de [`../README.md`](../README.md).
+
+**Coste:** sin corridas de dispositivo — análisis, diseño o lectura.
+
 
 ## Experimento completo: `search-window` (preregistrado 2026-07-29T17:05Z)
 

@@ -1,6 +1,11 @@
-# Q1 presencia, Q2 borde de ventana, Q3 reenganche asym_lt
+# Presencia por `conf`, borde de ventana y `asym_lt`
 
 Parte de [`../README.md`](../README.md).
+
+**Cuándo:** 2026-07-30T00:32Z -> 2026-07-30T04:55Z (sello de los ficheros traídos, o sea el final de cada corrida).  
+**Coste:** 222 corridas, **3.11 h de dispositivo** — estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON; no incluye tiempo muerto entre etapas.  
+**Datos:** `raw/asym-conf/`, `raw/conf-smoke/`, `raw/conf-smoke2/`, `raw/c640pad/`, `raw/asym-lt/`, `raw/lt-smoke/`, `raw/lt-smoke2/`
+
 
 ## Q1 — la señal de presencia de AsymTrack (run `asym-conf`, 123 secuencias, 2026-07-30T02:20Z)
 

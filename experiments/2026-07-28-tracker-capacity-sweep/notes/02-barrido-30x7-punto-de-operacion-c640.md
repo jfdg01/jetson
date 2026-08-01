@@ -1,6 +1,11 @@
-# Barrido completo 30 secuencias x 7 brazos
+# Barrido 30x7: `c640` es el punto de operación
 
 Parte de [`../README.md`](../README.md).
+
+**Cuándo:** 2026-07-29T02:04Z -> 2026-07-29T14:06Z (sello de los ficheros traídos, o sea el final de cada corrida).  
+**Coste:** 210 corridas, **11.50 h de dispositivo** — estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON; no incluye tiempo muerto entre etapas.  
+**Datos:** `raw/full-sweep-30/`
+
 
 ## Barrido completo: 30 secuencias x 7 arms (run `full-sweep-30`, lanzado 2026-07-29T23:50Z)
 

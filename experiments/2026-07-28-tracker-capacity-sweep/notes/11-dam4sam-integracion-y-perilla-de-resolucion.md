@@ -1,6 +1,11 @@
-# DAM4SAM: integración, humo y 5 clips x 3 resoluciones
+# DAM4SAM: integración y perilla de resolución
 
 Parte de [`../README.md`](../README.md).
+
+**Cuándo:** 2026-07-30T11:52Z -> 2026-07-30T14:30Z (sello de los ficheros traídos, o sea el final de cada corrida).  
+**Coste:** 35 corridas, **1.70 h de dispositivo** — estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON; no incluye tiempo muerto entre etapas.  
+**Datos:** `raw/dam-smoke3/`, `raw/dam-5x3/`, `raw/dam-sz-smoke/`, `raw/sam-smoke2/`, `raw/sam-5x3/`
+
 
 ## DAM4SAM: candidato principal (runs `dam-smoke3` y `dam-5x3`, 2026-07-30T12:55Z)
 

@@ -1,6 +1,9 @@
-# Región de búsqueda: el defecto común a los 6 brazos
+# Rejilla de stride 16: el objetivo es subcelular
 
 Parte de [`../README.md`](../README.md).
+
+**Coste:** sin corridas de dispositivo — análisis, diseño o lectura.
+
 
 ## Región de búsqueda: el defecto común a los 6 brazos (2026-07-29T16:10Z)
 

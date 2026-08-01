@@ -125,9 +125,14 @@ Decisiones del rig y su porqué:
 ## Bitácora: un fichero por evento
 
 El detalle completo de cada tanda vive en `notes/`. Aquí queda el resumen y el puntero; los números
-de cada tabla, las verificaciones visuales y los tropiezos están en el fichero enlazado.
+de cada tabla, las verificaciones visuales y los tropiezos están en el fichero enlazado. Cada fichero
+abre con su fecha, su rango horario y su coste de dispositivo.
 
-### 1. Humo bf16 y los tres pilotos n=1 — [`notes/01-pilotos-n1.md`](notes/01-pilotos-n1.md)
+**Coste total del barrido: ~45.5 h de dispositivo** sobre la Jetson a 15 W, 1061 corridas. Es una
+estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON de `raw/`; no incluye el tiempo muerto
+entre etapas ni los renders de overlay, así que el reloj de pared es mayor.
+
+### 1. bf16 y la geometría de la ventana — [`notes/01-bf16-y-geometria-de-ventana.md`](notes/01-bf16-y-geometria-de-ventana.md) · 0.80 h
 
 `torch.autocast` faltaba y no fallaba: fp32 1449.9 ms contra bf16 432.6 ms p50, 3.4x regalado. Tres
 pilotos de una secuencia fijaron la geometría del barrido antes de gastar horas: recortar gana a
@@ -135,40 +140,40 @@ subir resolución, la ventana se **desliza** para caber (no se recorta), 704 en 
 Hiera exige múltiplo de 32, y la regla de provenance `win_checked`. Diagnóstico de fuga de máscara
 por el HUD en `bird1_1`.
 
-### 2. Barrido completo, 30 x 7 — [`notes/02-full-sweep-30.md`](notes/02-full-sweep-30.md)
+### 2. Barrido 30x7: `c640` es el punto de operación — [`notes/02-barrido-30x7-punto-de-operacion-c640.md`](notes/02-barrido-30x7-punto-de-operacion-c640.md) · 11.50 h
 
 210/210 corridas, 12.1 h. **`sam2_c640` es el punto de operación**: mIoU 0.759 a 159.4 ms, por
 encima de `t1024` (0.752) a 2.7x menos latencia. Recortar deja de pagar por encima de 640. Contra:
 `c640` es el peor en falsos positivos en hueco (576) y nunca se abstiene.
 
-### 3. UAV123-hard, heurísticas y auditoría del índice — [`notes/03-uav123-hard.md`](notes/03-uav123-hard.md)
+### 3. El tercil difícil, diseñado y cancelado — [`notes/03-tercil-dificil-disenado-y-cancelado.md`](notes/03-tercil-dificil-disenado-y-cancelado.md) · 0 h
 
 El barrido difícil se **mató** antes de correr; sobrevive su diseño de dataset (41 clips del tercil
 difícil + 4 MEDIO + 4 FÁCIL pareados por categoría, 49 clips / 41.461 frames) y sus limitaciones
 declaradas. Incluye las heurísticas de recuperación implementadas y nunca corridas, y la auditoría
 del índice de dificultad.
 
-### 4. Región de búsqueda — [`notes/04-region-de-busqueda.md`](notes/04-region-de-busqueda.md)
+### 4. Rejilla de stride 16: el objetivo es subcelular — [`notes/04-rejilla-stride-16-objetivo-subcelular.md`](notes/04-rejilla-stride-16-objetivo-subcelular.md) · 0 h
 
 El defecto común a los seis brazos, en una cuenta: la atención de memoria solo recibe
 `current_vision_feats[-1]`, stride 16, así que la decisión "¿sigue aquí?" corre sobre una rejilla de
 `image_size/16`. Un objetivo de 28 px es **subcelular** en `t640`, 1.75 celdas en `c640`, y serían 8
 celdas con el factor 5 de la literatura.
 
-### 5. Revisión de literatura — [`notes/05-literatura.md`](notes/05-literatura.md)
+### 5. Literatura: tracking en edge y contra-UAS — [`notes/05-literatura-edge-y-contra-uas.md`](notes/05-literatura-edge-y-contra-uas.md) · 0 h
 
 Qué se descarta y por qué (FocusTrack solo IR y RTX 3090, SRRT sin código, LAF-YOLOv10 otra tarea,
 SAM2Long demasiado pesado, EdgeTAM sin portar), qué sí resuelve la literatura, y los huecos
 confirmados: **ningún tracker SOT publicado tiene número en Orin Nano**, no hay curva publicada de
 resolución/precisión/latencia, y las regresiones INT8 en Jetson.
 
-### 6. AsymTrack-B como candidato — [`notes/06-asymtrack-candidato.md`](notes/06-asymtrack-candidato.md)
+### 6. AsymTrack-B: elección e integración — [`notes/06-asymtrack-b-eleccion-e-integracion.md`](notes/06-asymtrack-b-eleccion-e-integracion.md) · 0 h
 
 Por qué él: 66.5 de AUC en UAV123 con 3.36 M de parámetros, MIT, 192/384. Instalación, dos
 tropiezos de integración (`rsync --delete` se llevó el clon; numpy 2.2.6 contra la rueda de torch de
 jetson-ai-lab, pineado a 1.26.4), humo parcial sin pesos y los cambios de arnés que trajo.
 
-### 7. `asym-repro`: validación del arnés — [`notes/07-asym-repro.md`](notes/07-asym-repro.md)
+### 7. Réplica de AsymTrack: AUC 67.1 contra 66.5 — [`notes/07-replica-asymtrack-auc-67-1-vs-66-5.md`](notes/07-replica-asymtrack-auc-67-1-vs-66-5.md) · 1.14 h
 
 Peldaño 2 de la escalera de replicación, sobre UAV123 completo. **AUC 67.1 contra 66.5 publicado,
 delta 0.6 <= 1.0: arnés validado.** Lo que decidió el veredicto fue la convención de la métrica, no
@@ -176,14 +181,14 @@ el modelo — la convención de la casa daba 68.9; `auc_ope()` copia la de `pytr
 (1.3 puntos) es mayor que la tolerancia. p50 29.3 ms, por debajo de la estimación 30-60. Determinismo
 verificado: 0 cajas distintas de 3561.
 
-### 8. Preregistro `search-window` — [`notes/08-search-window-preregistro.md`](notes/08-search-window-preregistro.md)
+### 8. Preregistro: separar geometría, modelo y reenganche — [`notes/08-preregistro-geometria-modelo-reenganche.md`](notes/08-preregistro-geometria-modelo-reenganche.md) · 0 h
 
 El diseño de cuatro brazos que separaba geometría, modelo y reenganche. Se ejecutó por partes y
 `asym_b_redet` nunca se corrió; sobrevive el razonamiento: re-detección agnóstica de clase estilo
 SiamSTA (0.9/0.1), el factor 5 fijado a priori desde la ablación de OSTrack, y las métricas de
 contra-UAS que el mIoU no ve.
 
-### 9. Q1, Q2 y Q3 sobre AsymTrack — [`notes/09-q1-q2-q3-asym.md`](notes/09-q1-q2-q3-asym.md)
+### 9. Presencia por `conf`, borde de ventana y `asym_lt` — [`notes/09-presencia-conf-borde-de-ventana-y-asym-lt.md`](notes/09-presencia-conf-borde-de-ventana-y-asym-lt.md) · 3.11 h
 
 Q1: `conf` como señal de presencia da `presence_auc` 0.711 — zona gris del preregistro. Q2: deslizar
 o rellenar el borde es **indiferente** (`c640` contra `c640_pad`), luego lo que separa a `f5` es el
@@ -191,14 +196,14 @@ tamaño de ventana. Q3: `asym_lt` es **negativo en todo** — precisión de abst
 reenganche 24.7%, por debajo de lo que los brazos SAM2 recuperaban pasivamente. El verificador coseno
 llega al mismo techo: falta una cabeza de score entrenada, no otra heurística.
 
-### 10. `sam2_f5` y `sam2_f5_floor` — [`notes/10-sam2-f5.md`](notes/10-sam2-f5.md)
+### 10. Ventana escalada al objeto: colapso y suelo — [`notes/10-ventana-escalada-al-objeto-colapso-y-suelo.md`](notes/10-ventana-escalada-al-objeto-colapso-y-suelo.md) · 2.85 h
 
 Ventana `5*sqrt(w*h)` escalada al objeto: pierde 7.1 puntos de AUC pero saca los mejores @0.25, @0.5
 y falsos positivos en hueco del barrido. La causa es **colapso de escala con realimentación
 positiva** (`car9` 647 px a 52 px). Con suelo en el lado del frame 0 recupera 4.1 de los 7.1 puntos y
 emite 115 FP en hueco contra 542 del incumbente, a la misma latencia y la misma mIoU.
 
-### 11. DAM4SAM: integración y 5 x 3 — [`notes/11-dam4sam-integracion.md`](notes/11-dam4sam-integracion.md)
+### 11. DAM4SAM: integración y perilla de resolución — [`notes/11-dam4sam-integracion-y-perilla-de-resolucion.md`](notes/11-dam4sam-integracion-y-perilla-de-resolucion.md) · 1.70 h
 
 SAM2.1 con memoria consciente de distractores (DRM): mismo checkpoint, cero entrenamiento. Venv
 propio, `vot-toolkit` pineado a 0.7.1, y el tamaño de entrada abierto como perilla (640 corre a 198
@@ -206,7 +211,7 @@ ms contra 431 a 1024). Lectura a n=5: 640 empata al incumbente en mIoU con mejor
 1024 es el techo de calidad. El autor lo declara **candidato principal**, con la advertencia de que
 n=5 no es una muestra con potencia.
 
-### 12. Escalera 640/768/960 — [`notes/12-dam4sam-escalera.md`](notes/12-dam4sam-escalera.md)
+### 12. Escalera 640/768/960: el recorte gana — [`notes/12-escalera-640-768-960-el-recorte-gana.md`](notes/12-escalera-640-768-960-el-recorte-gana.md) · 7.06 h
 
 90 corridas, 7 h 20 min, y **corrige a la baja** la lectura a n=5. La escalera es monótona y
 significativa, pero la ganancia es bimodal: en 22 de 30 secuencias subir a 960 vale +0.036 por 203
@@ -214,7 +219,7 @@ ms, y toda la señal está en las 8 que colapsan a 640. 768 es el codo. Ningún 
 jamás. Frente al incumbente recortado, DAM4SAM a frame completo no gana hasta 960 y a 2x la
 latencia: **el recorte compra más que los píxeles**. `bike2` es geometría, no resolución.
 
-### 13. Presencia y reenganche en DAM4SAM — [`notes/13-presencia-y-reenganche.md`](notes/13-presencia-y-reenganche.md)
+### 13. Señal de presencia, DRM y umbral relativo — [`notes/13-senal-de-presencia-drm-y-umbral-relativo.md`](notes/13-senal-de-presencia-drm-y-umbral-relativo.md) · 12.66 h
 
 `object_score_logits` — la cabeza de oclusión entrenada — sacada del wrapper para DAM4SAM y SAMURAI.
 **El DRM no mejora la señal de presencia a 640** (mediana pareada 0.000, p = 0.61); baraja qué
@@ -223,7 +228,7 @@ si el objeto está**. El lazo abierto hace que barrer políticas LT no cueste GP
 umbral **relativo** (`mu - a*sigma`, causal) gana al fijo por la peor secuencia, no por la mediana.
 Aquí vive también el error del `--id` repetido y las tres formas en que `pgrep` ha mentido.
 
-### 14. La noche del 2026-07-31 — [`notes/14-noche-2026-07-31.md`](notes/14-noche-2026-07-31.md)
+### 14. Base pareada a 123 secuencias y el brazo LT — [`notes/14-base-pareada-123-secuencias-y-brazo-lt.md`](notes/14-base-pareada-123-secuencias-y-brazo-lt.md) · 4.72 h
 
 90 corridas nuevas en cuatro etapas encadenadas. **El titular sobrevive al pareado** sobre 123
 secuencias: a igual resolución el recorte gana (`c640_pad` bate a `t640` 32/45, p = 0.0005), y

@@ -1,6 +1,11 @@
-# Barrido completo DAM4SAM: escalera 640/768/960
+# Escalera 640/768/960: el recorte gana
 
 Parte de [`../README.md`](../README.md).
+
+**Cuándo:** 2026-07-30T14:41Z -> 2026-07-30T22:11Z (sello de los ficheros traídos, o sea el final de cada corrida).  
+**Coste:** 93 corridas, **7.06 h de dispositivo** — estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON; no incluye tiempo muerto entre etapas.  
+**Datos:** `raw/dam-full30b/`, `raw/sam-full30/`
+
 
 ## Barrido completo de DAM4SAM: la escalera 640/768/960 (run `dam-full30b`, 2026-07-30T22:20Z)
 

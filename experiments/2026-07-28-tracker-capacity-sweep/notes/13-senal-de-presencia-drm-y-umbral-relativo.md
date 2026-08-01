@@ -1,6 +1,11 @@
-# Presencia y reenganche en DAM4SAM
+# Señal de presencia, DRM y umbral relativo
 
 Parte de [`../README.md`](../README.md).
+
+**Cuándo:** 2026-07-31T00:03Z -> 2026-08-01T01:19Z (sello de los ficheros traídos, o sea el final de cada corrida).  
+**Coste:** 192 corridas, **12.66 h de dispositivo** — estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON; no incluye tiempo muerto entre etapas.  
+**Datos:** `raw/dam-conf-smoke/`, `raw/dam-conf33/`, `raw/lt-controls33/`, `raw/sam2-t768-control/`, `raw/sam2-t768-fix/`, `raw/parity-smoke/`
+
 
 ## Presencia y reenganche en DAM4SAM (2026-07-31T21:20Z)
 

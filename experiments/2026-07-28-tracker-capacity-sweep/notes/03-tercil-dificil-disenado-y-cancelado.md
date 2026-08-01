@@ -1,6 +1,10 @@
-# Barrido difícil UAV123-hard (matado), heurísticas y auditoría del índice
+# El tercil difícil, diseñado y cancelado
 
 Parte de [`../README.md`](../README.md).
+
+**Coste:** ninguna corrida — no se ejecutó.  
+**Datos:** `raw/uav123-hard/` (vacío)
+
 
 ## Barrido difícil: UAV123-hard, 49 secuencias x 6 arms (run `uav123-hard`, MATADO 2026-07-29)
 

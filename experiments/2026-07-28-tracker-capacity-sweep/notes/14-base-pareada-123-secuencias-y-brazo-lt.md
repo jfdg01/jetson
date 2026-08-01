@@ -1,6 +1,11 @@
-# La noche del 2026-07-31: base pareada a 640 y brazo LT completo
+# Base pareada a 123 secuencias y el brazo LT
 
 Parte de [`../README.md`](../README.md).
+
+**Cuándo:** 2026-08-01T01:45Z -> 2026-08-01T06:46Z (sello de los ficheros traídos, o sea el final de cada corrida).  
+**Coste:** 90 corridas, **4.72 h de dispositivo** — estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON; no incluye tiempo muerto entre etapas.  
+**Datos:** `raw/night-c640pad/`, `raw/night-samurai/`, `raw/night-c640/`, `raw/night-damlt/`
+
 
 ## La noche del 2026-07-31: base pareada a 640 y el brazo LT completo (2026-08-01T09:10Z)
 

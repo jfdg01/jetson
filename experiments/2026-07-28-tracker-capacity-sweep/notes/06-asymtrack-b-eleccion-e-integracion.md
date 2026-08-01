@@ -1,6 +1,9 @@
-# AsymTrack-B como candidato: decisión, instalación e integración
+# AsymTrack-B: elección e integración
 
 Parte de [`../README.md`](../README.md).
+
+**Coste:** sin corridas de dispositivo — análisis, diseño o lectura.
+
 
 ## Decisión: AsymTrack-B como candidato principal (2026-07-29T17:05Z)
 

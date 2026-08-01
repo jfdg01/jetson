@@ -1,6 +1,11 @@
-# Humo bf16 y los tres pilotos n=1
+# bf16 y la geometría de la ventana
 
 Parte de [`../README.md`](../README.md).
+
+**Cuándo:** 2026-07-29T00:05Z -> 2026-07-29T01:53Z (sello de los ficheros traídos, o sea el final de cada corrida).  
+**Coste:** 23 corridas, **0.80 h de dispositivo** — estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON; no incluye tiempo muerto entre etapas.  
+**Datos:** `raw/smoke-truck3/`, `raw/smoke-truck3-bf16/`, `raw/res-truck3/`, `raw/crop-truck3/`, `raw/bird1_1-res-crop/`, `raw/wakeboard1-res-crop/`
+
 
 ## Smoke test (2026-07-29)
 

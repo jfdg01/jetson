@@ -1,6 +1,11 @@
-# sam2_f5 y sam2_f5_floor: geometría escalada al objeto
+# Ventana escalada al objeto: colapso y suelo
 
 Parte de [`../README.md`](../README.md).
+
+**Cuándo:** 2026-07-29T23:44Z -> 2026-07-30T11:29Z (sello de los ficheros traídos, o sea el final de cada corrida).  
+**Coste:** 70 corridas, **2.85 h de dispositivo** — estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON; no incluye tiempo muerto entre etapas.  
+**Datos:** `raw/f5-smoke/`, `raw/f5-30/`, `raw/f5floor/`
+
 
 ## Tercer peldaño de la escalera: `sam2_f5` (run `f5-30`, 2026-07-30T06:40Z)
 
