@@ -10,33 +10,17 @@ Estado del dispositivo verificado el 2026-07-28T18:41Z tras matar `llama-server`
 
 ## Modelos a probar
 
-1. `facebook/sam2.1-hiera-tiny`
-2. `facebook/sam2.1-hiera-small`
-3. `facebook/sam2.1-hiera-base-plus`
-4. `facebook/sam2.1-hiera-large`
-5. EdgeTAM
-6. EfficientTAM-ti
-7. EfficientTAM-s
-8. SAMURAI (sobre tiny)
-9. SAM2Long (sobre tiny)
-10. `cv2.TrackerNano`
-11. `cv2.TrackerVit`
-12. `cv2.TrackerDaSiamRPN`
-13. `cv2.TrackerGOTURN`
-14. `cv2.TrackerMIL`
-15. ATOM
-16. DiMP-18
-17. DiMP-50
-18. PrDiMP-50
-19. ToMP-50
-20. KeepTrack
-21. OSTrack-256
-22. MixFormerV2-S
-23. HiT-Small
-24. YOLO11n + ByteTrack
-25. YOLO11s + ByteTrack
-26. YOLO11n + BoT-SORT
-27. ByteTrack propio + detecciones oracle
+Catálogo inicial, 27 candidatos (de estos solo llegaron a correr SAM2.1-tiny, SAMURAI, AsymTrack-B
+y DAM4SAM; el resto quedó descartado por la revisión de literatura más abajo):
+
+1. SAM2.1-hiera `tiny` / `small` / `base-plus` / `large`
+2. EdgeTAM, EfficientTAM-ti, EfficientTAM-s
+3. SAMURAI y SAM2Long, ambos sobre tiny
+4. OpenCV: `TrackerNano`, `TrackerVit`, `TrackerDaSiamRPN`, `TrackerGOTURN`, `TrackerMIL`
+5. PyTracking: ATOM, DiMP-18, DiMP-50, PrDiMP-50, ToMP-50, KeepTrack
+6. Transformer: OSTrack-256, MixFormerV2-S, HiT-Small
+7. Detector + asociación: YOLO11n/YOLO11s + ByteTrack, YOLO11n + BoT-SORT, ByteTrack con
+   detecciones oráculo
 
 ## Clips
 
@@ -165,197 +149,62 @@ aparecían hasta que el arm terminaba. Corregido heredando stdout; todo cae en `
 Deliverable: `proof/smoke_truck3_bf16.mp4` — GT en verde al 60% de alfa, salida del modelo en azul
 claro, IoU por frame quemado en la imagen.
 
-## Barrido de resolución sobre truck3 (run `res-truck3`, 2026-07-29)
+## Los tres pilotos n=1 (`res-truck3`, `crop-truck3`, `wakeboard1-res-crop`, `bird1_1-res-crop`, 2026-07-29)
 
-Mismo clip, mismo checkpoint (`sam2.1-hiera-tiny`), bf16, 15 W. Solo cambia `image_size`.
+Superados por `full-sweep-30` y por la base pareada de 53 secuencias; se conservan por los fallos
+que destaparon y por lo que fijaron de geometría. Datos completos en `raw/`.
 
-| arm | p50 | p95 | fps | mIoU | IoU@0.25 | IoU@0.5 | perdidos | RSS pico | GPU pico |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `sam2_t512` | 122.7 ms | 124.4 ms | 8.15 | 0.661 | 0.966 | 0.818 | 1 | 1911 MB | 424 MB |
-| `sam2_t640` | 179.9 ms | 181.9 ms | 5.56 | 0.190 | 0.264 | 0.247 | **171** | 2057 MB | 494 MB |
-| `sam2_t768` | 252.0 ms | 254.3 ms | 3.97 | 0.766 | 0.953 | 0.931 | 0 | 2214 MB | 553 MB |
-| `sam2_t1024` | 434.0 ms | 437.9 ms | 2.30 | 0.779 | 0.944 | 0.908 | 0 | 2650 MB | 644 MB |
+**Escalera de resolución en frame completo (`truck3`, 535 fr).** Latencia y memoria escalan con el
+área (512 a 1024 es 4x píxeles y 3.5x tiempo); la inicialización cuesta ~5.1 s en las cuatro, o sea
+que la domina la carga del checkpoint. La exactitud **no** es monótona: 512 da 0.661 mIoU, 640 se
+hunde a 0.190 con 171 frames perdidos, 768 sube a 0.766 y 1024 a 0.779 (434 ms). El hundimiento de
+640 está verificado en píxeles: a frame 110 la máscara ya está detrás del camión sobre asfalto
+vacío, a 116 se vacía y no recupera. Es deriva, no error de forma.
 
-Latencia y memoria escalan limpiamente con la resolución; la latencia va casi con el número de
-píxeles (512 → 1024 es 4× el área y 3.5× el tiempo). La inicialización cuesta ~5.1 s en las cuatro,
-o sea que la domina la carga del checkpoint, no la resolución.
-
-**La exactitud NO es monótona y 640 se hunde.** Verificado en píxeles, no inferido del log: a
-frame 110 la máscara de 640 ya está detrás del camión sobre asfalto vacío, a frame 116 se queda
-vacía y no recupera en los 419 frames restantes. No es un error de forma (no lanza excepción), es
-deriva de seguimiento. 512, con el objetivo aún más pequeño en espacio de modelo, aguanta.
-
-Cuidado al leerlo: **una secuencia, un objetivo, n=1**. `truck3` tiene un blanco diminuto (~416 px
-de área, ~26×16 en 1280×720), justo el régimen donde el proyecto ya despliega gating por tamaño
-(EXP-1: 640 por defecto, 1024 como respaldo para objetivos pequeños o lejanos). Este resultado es
-consistente con ese gating pero **no lo mide**: si 640 es frágil en general o solo aquí lo decide
-el barrido de 30 secuencias, no este clip.
-
-**Fallo encontrado y corregido.** `image_size` hay que fijarlo *en construcción* con el override de
-Hydra `++model.image_size=N`, como hace el resto del proyecto. Asignar `predictor.image_size`
-después de `from_pretrained` deja `sam_image_embedding_size` y el prompt encoder en el valor por
-defecto del checkpoint, y cualquier tamaño distinto de 1024 muere con
+**Fallo corregido:** `image_size` hay que fijarlo en construcción con el override de Hydra
+`++model.image_size=N`. Asignar `predictor.image_size` tras `from_pretrained` deja
+`sam_image_embedding_size` en el defecto del checkpoint y cualquier tamaño distinto de 1024 muere en
 `assert backbone_features.size(2) == self.sam_image_embedding_size`. Con 1024 coincidía por
-casualidad, que es por qué el smoke test pasó y ocultó el bug. Tras el cambio, 1024 reproduce el
-número anterior (434.0 vs 432.6 ms p50), así que las dos rutas son equivalentes en el default.
+casualidad, que es por qué el smoke test lo ocultó. Tras el cambio 1024 reproduce (434.0 vs 432.6).
 
-## Modo crop (activable, 2026-07-29)
+**Modo crop.** Al modelo se le da solo una ventana de N x N centrada en el objetivo, a píxeles
+nativos (`image_size == N`, sin reescalar), persiguiendo la **propia predicción anterior del arm**,
+nunca GT — en el dispositivo no hay GT más allá del frame 0. Un frame perdido mantiene la ventana.
+Desacopla resolución de entrada de tamaño aparente del objetivo: el camión de `truck3` (~26x16 px)
+pasa a ~10x6 al encoger el frame a 512, y se queda a 26x16 dentro de un recorte de 512.
 
-Modo opcional del renderer: en vez de dar el frame completo, se recorta una ventana cuadrada de
-`N` px centrada en el objetivo. La idea es desacoplar dos cosas que hasta ahora iban juntas —
-resolución de entrada del modelo y tamaño aparente del objetivo. A 1024 el camión de `truck3` ocupa
-~26x16 px; en un recorte de 512 ocupa lo mismo en píxeles pero el doble de fracción de la entrada.
+Decisiones de geometría que siguen vigentes:
 
-De momento **solo geometría, sin modelo**: `analysis/render_overlay.py --seq <clip> --crop N --out
-<mp4>` pinta la ventana en naranja sobre el vídeo original, con GT en verde, para ver qué encuadre
-recibiría el modelo. No toca ninguna de las rutas existentes: sin `--crop` el renderer se comporta
-exactamente igual que antes, y `--seq` es un modo GT-only que no necesita resultado de tracker.
+- La ventana **se desliza** para quedarse dentro del frame, no se recorta: recortarla cambiaría en
+  silencio la resolución efectiva y el número dejaría de ser comparable. Comprobación en
+  `analysis/render_overlay.py --self-check`.
+- **704, no 720.** 720 no es entrada legal de Hiera — el pos-embed de ventana se tesela a
+  `image_size/4` en bloques de 8, luego `image_size` debe ser múltiplo de 32, y 720 muere con
+  `The size of tensor a (180) must match the size of tensor b (176)`. 704 es el mayor que cabe en un
+  frame de 720 de alto: en clips 720p no hay crop a 768 ni a 1024.
+- Los vídeos enseñan la **entrada real**: `device/run_arm.py` registra el `(x, y, s)` exacto que
+  recortó el arm y el render dibuja el panel desde ese valor en vez de rederivarlo (campo
+  `win_checked`, verificado frame a frame en cada ejecución).
 
-Decisión de geometría: la ventana **se desliza** para quedarse dentro del frame, no se recorta.
-Si se recortase, un objetivo pegado al borde cambiaría en silencio la resolución efectiva de
-entrada y el número no sería comparable con el resto. Solo un frame más pequeño que `N` fuerza una
-ventana menor (720 de alto lo hace para N=1024). Comprobación en
-`analysis/render_overlay.py --self-check`.
+**Crop contra frame completo, `truck3` y `wakeboard1`.** El crop gana en exactitud y en latencia a
+la vez. `sam2_c512` (100.5 ms) supera a `sam2_t1024` (434 ms) en IoU@0.25 y @0.5 en las dos
+secuencias, con 4.3x menos latencia; ningún arm de crop pierde un frame, incluido 640, que en frame
+completo perdía 171. Recortar 512x512 sale más barato que reescalar 1280x720. En `wakeboard1` los
+tres crops quedan agrupados en 0.81-0.82 mIoU — ahí la resolución dentro del crop casi no importa —
+y el frame completo empeora al subir (768: 0.647, 1024: 0.637).
 
-Entregables: `proof/crop{512,640,720}_truck3.mp4`, 535 frames cada uno. Verificados abriendo el
-frame 268 de cada render: la caja naranja está centrada en el camión y dentro del frame.
+Lectura honesta de entonces, ya resuelta por el pareado de 53 secuencias más abajo: n=1, y no separa
+las dos causas posibles (objetivo más grande en espacio de modelo **y** fondo distractor eliminado).
 
-**Techo de 720 px.** Con clips de 1280x720, cualquier ventana por encima de 720 se recorta a la
-altura del frame, así que 768 y 1024 producen el mismo vídeo byte a byte y solo se guarda uno
-(`crop720`). Consecuencia para el experimento: en UAV123 a 720p el modo crop solo tiene tres
-puntos útiles, y por encima de 720 recortar no aporta nada sobre el frame completo. La fracción
-del frame que ocupa la ventana va de 28% (512) a 56% (720).
-
-Pendiente: alimentar el recorte al tracker y medir; eso todavía no está hecho.
-
-## Crop alimentado al modelo (run `crop-truck3`, 2026-07-29)
-
-Arms `sam2_c<N>`: al modelo se le da **solo** una ventana de N×N alrededor del objetivo, a píxeles
-nativos (`image_size == N`, sin reescalar). Mismo cómputo que el arm de frame completo al mismo
-`image_size`; lo que cambia es qué se sacrifica. El arm de frame completo encoge el objetivo
-(el camión de 26×16 px pasa a ~10×6 a 512); el arm de crop lo deja a 26×16 y sacrifica contexto.
-
-La ventana persigue la **propia predicción anterior del arm**, nunca GT — en el dispositivo no
-existe GT más allá del frame 0. Un frame perdido mantiene la ventana anterior.
-
-| arm | entrada | p50 | fps | mIoU | IoU@0.25 | IoU@0.5 | perdidos |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `sam2_c512` | crop 512 nativo | 100.5 ms | 9.95 | 0.761 | 0.972 | 0.929 | 0 |
-| `sam2_t512` | frame completo → 512 | 122.7 ms | 8.15 | 0.661 | 0.966 | 0.818 | 1 |
-| `sam2_c640` | crop 640 nativo | 159.2 ms | 6.28 | **0.773** | **0.991** | **0.957** | 0 |
-| `sam2_t640` | frame completo → 640 | 179.9 ms | 5.56 | 0.190 | 0.264 | 0.247 | 171 |
-| `sam2_c704` | crop 704 nativo | 190.3 ms | 5.25 | **0.791** | 0.987 | 0.953 | 0 |
-| `sam2_t1024` | frame completo → 1024 | 434.0 ms | 2.30 | 0.779 | 0.944 | 0.908 | 0 |
-
-**El crop gana en las dos dimensiones a la vez.** `sam2_c512` supera a `sam2_t1024` en IoU@0.25 y
-en IoU@0.5 con **4.3× menos latencia**. Ninguno de los tres arms de crop pierde un solo frame,
-incluido 640, que en frame completo se hundía a 171 perdidos. El crop también es más rápido que su
-homólogo de frame completo al mismo `image_size` (100.5 vs 122.7 ms a 512): recortar 512×512 sale
-más barato que reescalar 1280×720.
-
-Lectura honesta: esto **no** separa las dos causas posibles. El objetivo es más grande en espacio
-de modelo *y* el fondo distractor desaparece, y con una secuencia no se puede decir cuál manda. Y
-sigue siendo **n=1**, un solo clip, un solo objetivo, sin oclusión larga ni salida de campo.
-
-Techo conocido, sin resolver: el banco de memoria de SAM2 ve un marco de referencia que se traslada
-cada frame y nadie se lo dice. Aquí no ha hecho daño; con movimiento más rápido puede.
-
-**704, no 720.** 720 no es una entrada legal de Hiera: el pos-embed de ventana se tesela a
-`image_size/4` en bloques de 8, así que `image_size` tiene que ser múltiplo de 32 y 720 muere con
-`The size of tensor a (180) must match the size of tensor b (176)`. 704 es el mayor que cabe en un
-frame de 720 de alto. Sin arm de crop a 768 o 1024 en clips 720p: no caben.
-
-Comprobación de geometría y del viaje de ida y vuelta de coordenadas, sin GPU:
-`python device/trackers.py --self-check`. Verificado además en píxeles (frame 268 de `sam2_c512`,
-ampliado 4×): la máscara cae sobre el camión en el frame completo, sin desfase de mapeo.
-
-**Los vídeos enseñan la entrada real, no una reconstrucción.** `device/run_arm.py` registra en cada
-fila el `(x, y, s)` exacto que el arm recortó, y el render dibuja el panel derecho a partir de ese
-valor en vez de volver a derivarlo. Sobre el frame completo, el interior de la ventana se restaura
-a píxeles crudos, el recuadro naranja se traza por fuera del borde y el pie va en una franja aparte
-—a 704 el texto caía dentro de la ventana—, así que lo que se ve dentro del naranja es lo que vio
-el modelo. `analysis/render_overlay.py` verifica en cada ejecución que las 533 ventanas del
-dispositivo coinciden con su propia geometría (campo `win_checked`); la identidad de píxeles del
-panel está comprobada en el frame 268 de los tres tamaños.
-
-## Segunda secuencia: wakeboard1 (run `wakeboard1-res-crop`, 2026-07-29)
-
-`truck3` es n=1. Segunda secuencia elegida por contraste, no por conveniencia: `wakeboard1`, 421
-frames, 1280×720, objetivo de área mediana 5568 px (13× el camión) que **encoge de forma monótona**
-(tendencia de escala −0.96, la más negativa de las 30), sobre agua y espuma en vez de asfalto, y
-sin huecos de GT. Mismos 7 arms, mismo checkpoint `sam2.1-hiera-tiny`, bf16, 15 W.
-
-| arm | entrada | p50 | Hz medio | mIoU | IoU@0.25 | IoU@0.5 | perdidos |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `sam2_c512` | crop 512 nativo | 101.3 ms | 9.8 | **0.823** | **1.000** | **1.000** | 0 |
-| `sam2_t512` | frame completo → 512 | 122.2 ms | 8.1 | 0.679 | 0.803 | 0.795 | 36 |
-| `sam2_c640` | crop 640 nativo | 159.6 ms | 6.2 | 0.817 | 0.993 | 0.993 | 0 |
-| `sam2_t640` | frame completo → 640 | 181.1 ms | 5.5 | 0.701 | 0.831 | 0.829 | 0 |
-| `sam2_c704` | crop 704 nativo | 190.8 ms | 5.2 | 0.814 | 0.995 | 0.988 | 0 |
-| `sam2_t768` | frame completo → 768 | 252.0 ms | 4.0 | 0.647 | 0.762 | 0.732 | 0 |
-| `sam2_t1024` | frame completo → 1024 | 433.7 ms | 2.3 | 0.637 | 0.739 | 0.720 | 0 |
-
-**Se replica el patrón de `truck3`, y más marcado.** El crop más barato gana a todos los arms de
-frame completo en las tres métricas de exactitud a la vez que es el más rápido: `sam2_c512` da
-IoU@0.5 = 1.000 sobre los 421 frames a 9.8 Hz, contra 0.720 de `sam2_t1024` a 2.3 Hz — **4.3× más
-rápido y 0.28 más de IoU@0.5**. Los tres arms de crop quedan agrupados en 0.81–0.82 mIoU: aquí la
-resolución dentro del crop casi no importa, lo que importa es recortar.
-
-**El frame completo vuelve a no ser monótono, y esta vez baja.** 512 → 640 sube, pero 768 y 1024
-empeoran (0.647 y 0.637), peor que la resolución más baja que no pierde el objetivo. Dos
-secuencias, dos formas distintas de romperse en frame completo (`truck3`: hundimiento aislado en
-640; `wakeboard1`: degradación a partir de 640), pero la misma conclusión: subir `image_size` no
-compra exactitud.
-
-Cautela de lectura: el mIoU de `sam2_t512` (0.679) está calculado solo sobre los 385 frames en los
-que devolvió caja, así que **le favorece** — los 36 frames perdidos no puntúan como 0. El resto de
-arms puntúan sobre los 421.
-
-Verificado en píxeles (frame 211, `crop_wakeboard1_c512.mid.png` y `res_wakeboard1_t512.mid.png`):
-el objetivo es el wakeboarder, no la lancha, y la caja del panel de crop cae sobre él tras
-deshacer el desplazamiento de la ventana. `win_checked: 419` en los tres arms de crop.
-
-## Tercera secuencia: bird1_1, salida de campo (run `bird1_1-res-crop`, 2026-07-29)
-
-Elegida para probar el modo de fallo que `truck3` y `wakeboard1` no tocaron: el pájaro **sale del
-encuadre** y vuelve. 253 frames, hueco de GT continuo en los frames 115–173 (59 frames sin objetivo),
-y luego reaparece. Mismos 7 arms.
-
-| arm | p50 | mIoU | IoU@0.5 | perdidos | frames puntuados |
-| --- | --- | --- | --- | --- | --- |
-| `sam2_t512` | 122.1 ms | 0.078 | 0.006 | 82 | 171 |
-| `sam2_t640` | 180.2 ms | 0.133 | 0.017 | 81 | 172 |
-| `sam2_t768` | 251.7 ms | 0.108 | 0.029 | 79 | 174 |
-| `sam2_t1024` | 433.0 ms | 0.192 | 0.118 | 143 | 110 |
-| `sam2_c512` | 100.7 ms | 0.085 | 0.007 | 114 | 139 |
-| `sam2_c640` | 159.3 ms | 0.085 | 0.012 | 82 | 171 |
-| `sam2_c704` | 190.7 ms | 0.087 | 0.012 | 83 | 170 |
-
-**Se hunden los siete.** Ningún arm pasa de 0.12 en IoU@0.5. El crop no rescata nada aquí y el
-frame completo tampoco: la ventaja del crop, replicada en dos secuencias, **desaparece por
-completo** en la tercera. El menos malo es `sam2_t1024`, y es inservible igual.
-
-**El clip no llega a probar lo que se buscaba.** Todos los arms se rompen entre los frames 1 y 16,
-cien frames *antes* del hueco. Verificado en píxeles (frames 0, 5, 12, 30 de `sam2_c512`): `bird1_1`
-es metraje de gafas FPV con **HUD de telemetría superpuesto**, y la línea de horizonte artificial
-pasa justo por encima del pájaro. La máscara se derrama por esa línea: en el frame 12 la predicción
-mide 196×130 px contra un GT de 48×33. No es deriva de seguimiento ni falta de resolución, es fuga
-de máscara hacia un gráfico sintético pegado al objetivo.
-
-Lo que sí se puede leer del hueco, con esa reserva: durante los 59 frames sin objetivo **los siete
-arms devuelven cero cajas** (0/59), que es el comportamiento correcto. Y ninguno recupera de verdad
-al reaparecer el pájaro. En `sam2_c512` la ventana se queda congelada en (768, 208) — sin predicción
-no hay dónde recentrarse — pero el pájaro reaparece **dentro** de esa ventana (frame 210) y el
-modelo sigue sin devolver caja. Es decir: aquí el fallo de recuperación es del propio SAM2, no de la
-geometría de la ventana. Con la fuga de máscara de por medio, esto no cierra la pregunta.
-
-Efecto colateral útil: la comprobación `win_checked` del render reventaba con `TypeError` en un
-frame perdido, porque asumía que siempre hay caja previa de la que derivar la ventana. Corregido —
-en frame perdido la ventana esperada es la anterior, que es lo que hace el arm.
-
-Pendiente si se quiere cerrar la pregunta de salida de campo: una secuencia con hueco de GT y sin
-HUD superpuesto. `bird1_3` es del mismo metraje FPV, así que no sirve; los candidatos del subconjunto
-con huecos son `bike2`, `car12`, `car1_3`, `group2_3`, `person19_3` y `uav1_2`.
+**`bird1_1`: el clip no prueba lo que se buscaba.** Se eligió por su hueco de GT (frames 115-173,
+salida de campo) y se hunden los siete arms, ninguno pasa de 0.12 en IoU@0.5. Verificado en píxeles
+(frames 0, 5, 12, 30): es metraje FPV con **HUD de telemetría superpuesto** y la línea de horizonte
+artificial pasa justo sobre el pájaro; la máscara se derrama por ella y en el frame 12 mide 196x130
+contra un GT de 48x33. Fuga de máscara hacia un gráfico sintético, no deriva ni falta de resolución.
+Lo único legible: durante el hueco los siete devuelven **cero cajas** (0/59), que es lo correcto, y
+ninguno recupera al reaparecer — en `sam2_c512` el pájaro reaparece **dentro** de la ventana
+congelada (frame 210) y aun así no hay caja, luego el fallo de reenganche es de SAM2, no de la
+geometría. `bird1_3` es del mismo metraje FPV y no sirve de repuesto.
 
 ## Barrido completo: 30 secuencias x 7 arms (run `full-sweep-30`, lanzado 2026-07-29T23:50Z)
 
@@ -423,72 +272,31 @@ nativos". No se ha separado el análisis por ese eje.
 
 ## Barrido difícil: UAV123-hard, 49 secuencias x 6 arms (run `uav123-hard`, MATADO 2026-07-29)
 
-**Este run se mató a mitad y sus resultados se borraron del dispositivo.** Se conserva la sección
-porque el diseño del dataset (tercil difícil completo + controles de banda emparejados por
-categoría) sigue vigente y lo reutilizan los experimentos de abajo. Motivo del corte: el análisis
-de geometría de la sección "Región de búsqueda" mostró que los 6 brazos comparten el mismo defecto
-—ventana de tamaño fijo, no escalada al objetivo—, así que el barrido medía seis variantes de una
-sola decisión equivocada. Ninguna cifra de este run existe.
-
-
-Las 30 de `full-sweep-30` se eligieron para cubrir el rango de dificultad. Este run va al otro lado:
-concentra el presupuesto donde los brazos se separan. Con mIoU de 0.68-0.76 en la muestra ancha, la
-mayoría de clips ya están saturados y no discriminan; el tercil difícil es donde queda señal.
+**Este run se mató a mitad y sus resultados se borraron del dispositivo. Ninguna cifra suya
+existe.** Motivo del corte: el análisis de la sección "Región de búsqueda" mostró que los 6 brazos
+comparten el mismo defecto —ventana de tamaño fijo, no escalada al objetivo—, así que el barrido
+medía seis variantes de una sola decisión equivocada. Se conserva la sección porque el **diseño del
+dataset** sigue vigente y lo reutilizan los experimentos de abajo.
 
 **Dataset `UAV123-hard`** (`dataset.txt`, construido por `analysis/difficulty.py` sobre las 123):
+41 clips = el tercil difícil **entero**, no una muestra, así que no hay selección que explicar; más
+**4 MEDIO + 4 FÁCIL como control de banda**, uno por categoría y solo entre categorías que también
+aparecen en la banda difícil — sin ese emparejamiento, "difícil contra fácil" sería en parte "uav
+contra boat", porque índice y categoría están confundidos en UAV123 (10/10 `uav` caen en difícil,
+0/9 `boat`). Total 49 clips, 41461 frames anotados: uav 10, car 10, person 7, group 6, wakeboard 6,
+truck 4, bird 3, bike 3.
 
-- **41 clips = el tercil difícil entero.** No una muestra del tercil: el tercil completo, así que no
-  hay selección que explicar.
-- **4 MEDIO + 4 FACIL como control de banda**, uno por categoría y elegidos solo entre categorías
-  que también aparecen en la banda difícil. Sin ese emparejamiento, "difícil vs fácil" sería en
-  parte "uav vs boat" — el índice y la categoría están confundidos en UAV123 (10/10 `uav` caen en
-  difícil, 0/9 `boat`).
-- 49 clips, 41461 frames anotados. Categorías: uav 10, car 10, person 7, group 6, wakeboard 6,
-  truck 4, bird 3, bike 3.
+**Sin `sam2_t1024`,** descartado por coste: 434 ms de p50 sin ganar a nadie. Wilcoxon pareado sobre
+las 30 de `full-sweep-30`, mIoU de `t1024` menos la del rival — `c640` p=0.79 (-0.017), `c704`
+p=0.30 (-0.036), `t768` p=0.12 (+0.014), `t640` p=0.064 (+0.050). Contra los dos brazos de crop el
+signo es negativo: paga 2.3-2.7x de latencia para ir por detrás. **Nulo acotado, no equivalencia.**
 
-**Solo se corren 27 clips.** Los otros 22 ya tienen resultados en `full-sweep-30` con estos mismos
-brazos y el mismo código (`code_sha256` sin cambios), y `driver.py` salta los JSON que ya existen.
-Los 27 nuevos suman 21603 frames.
-
-**6 arms, sin `sam2_t1024`.** Se descartó por coste: 434 ms de p50 sin ganar a nadie. Wilcoxon
-pareado sobre las 30 secuencias de `full-sweep-30`, mIoU de `t1024` menos la del rival —
-`c640` p=0.79 (delta -0.017), `c704` p=0.30 (-0.036), `t768` p=0.12 (+0.014), `t640` p=0.064
-(+0.050). Contra los dos brazos de crop el signo es negativo: paga 2.3-2.7x de latencia para ir
-por detrás. **Nulo acotado, no equivalencia probada** — n=30 no descarta diferencias pequeñas.
-
-```
-./jetson.py stage <los 27 nuevos>
-./jetson.py run --id uav123-hard \
-  --arms sam2_t512 sam2_t640 sam2_t768 sam2_c512 sam2_c640 sam2_c704 \
-  --seqs uav6 car11 uav4 uav1_3 bird1_2 uav8 truck4_1 uav1_1 wakeboard9 group2_2 wakeboard6 \
-         car1_2 group2_1 car13 group3_4 wakeboard3 car2 car15 person10 group3_2 truck4_2 car14 \
-         person12_2 person14_1 person22 bike3 car3
-```
-
-162 jobs. Sin vídeos. Estimación de runtime: 21603 frames x 1.006 s (suma de los p50 de los 6 arms
-en `full-sweep-30`) = 6.0 h, mas ~15 s de carga de modelo por job (~41 min) = **~6.7 h**.
-
-Limitaciones declaradas antes de correr:
-
-- **41 vs 4 vs 4 no da contraste inferencial entre bandas.** Los 8 controles sirven para mirar si el
-  índice ordena, no para un test difícil-vs-fácil; con n=4 por banda ningún estadístico llega. Subir
-  a ~15 por banda costaría unas 4 h más y no se ha hecho.
-- La muestra está sesgada a difícil por construcción, así que **ninguna cifra de este run es una
-  estimación del rendimiento en UAV123**. Es una comparación entre brazos bajo carga.
-- 10 de los 49 son 720x480 (`uav1_1`, `uav1_2`, `uav1_3`, `uav2`, `uav3`, `uav4`, `uav5`, `uav6`,
-  `uav7`, `uav8`) — todos de la misma categoría, la más representada en la banda difícil. Ahí el
-  crop no es a píxeles nativos (ver la reserva de `full-sweep-30`), y el sesgo cae entero sobre una
-  categoría.
-
-### Resultados (TBD)
-
-| arm | entrada | p50 | mIoU | IoU@0.25 | IoU@0.5 | perdidos | FP hueco |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| | | | | | | | |
-
-Estado: en curso (4.9 fps en el primer job). Siguiente paso: `./jetson.py fetch uav123-hard`,
-agregación sobre los 49 (los 27 nuevos mas los 22 de `full-sweep-30`) y estratificación por banda
-del índice y por categoría.
+Limitaciones que se declararon antes de correr y que siguen aplicando a cualquier reutilización del
+dataset: 41 contra 4 contra 4 **no da contraste inferencial entre bandas** (los 8 controles sirven
+para mirar si el índice ordena, no para un test); la muestra está sesgada a difícil por
+construcción, así que ninguna cifra sacada de aquí estima el rendimiento en UAV123; y 10 de los 49
+son 720x480, todos de la categoría `uav`, la más representada en la banda difícil — ahí el crop no
+es a píxeles nativos y el sesgo cae entero sobre una categoría.
 
 ## Heurísticas de recuperación (implementadas, sin correr, 2026-07-29T14:20Z)
 
@@ -931,62 +739,37 @@ tests de significancia del experimento completo se parean, por tanto, sobre clip
 
 ## Experimento completo: `search-window` (preregistrado 2026-07-29T17:05Z)
 
-Solo se lanza **si `asym-repro` valida**. Cuatro brazos sobre los **mismos 37 clips del tercil
-difícil**, pareados clip a clip (mismos frames, misma caja de init), Wilcoxon pareado.
+Cuatro brazos sobre el tercil difícil, pareados clip a clip, para separar tres causas que
+`asym_b` contra `sam2_c640` confunde: control `sam2_c640`; `sam2_f5` (SAM2 con ventana
+`5*sqrt(w*h)` de la última caja y relleno de color medio, misma entrada 640x640 y mismos ~159 ms)
+aísla **la geometría sola**; `asym_b` aísla **el modelo solo** (3.36M contra ~224M); y
+`asym_b_redet` (re-detección global agnóstica de clase, disparada por confianza con suelo duro de
+30 frames) aísla **el reenganche solo**. Se ejecutó por partes: `sam2_f5`/`sam2_f5_floor` y los
+brazos LT están más abajo; `asym_b_redet` nunca se corrió.
 
-| brazo | qué es | qué aísla |
-| --- | --- | --- |
-| `sam2_c640` | control, lo desplegado hoy | línea base sin tocar |
-| `sam2_f5` | SAM2 con ventana `5 * sqrt(w*h)` de la última caja, relleno de color medio en los bordes, misma entrada 640x640 | **la geometría sola**: mismo modelo, mismo cómputo, mismos ~159 ms; la única diferencia es que la ventana escala con el objetivo |
-| `asym_b` | AsymTrack-B tal cual | **el modelo solo**: 3.36M contra ~224M en régimen de 11-41 px |
-| `asym_b_redet` | AsymTrack-B + re-detección global **agnóstica de clase**, disparada por confianza con suelo duro de 30 frames | **el reenganche solo** |
+**Por qué la re-detección es agnóstica de clase.** UAV123 mezcla objetivos aéreos (`uav*`, `bird*`)
+con objetos de suelo filmados desde un dron (`car9`, `person21`, `truck3`, `wakeboard5`, `bike1`),
+así que un YOLO de Drone-vs-Bird sería inútil en buena parte del tercil y obligaría a bajar del
+n>=25. La alternativa es la tercera etapa de SiamSTA: búsqueda global por apariencia sobre la
+plantilla acumulada, 0.9 apariencia reciente / 0.1 plantilla original. Sin pesos de nadie y sin
+clase. Pesos abiertos localizados por si el eje se retoma restringido al subconjunto aéreo:
+`doguilmak/Drone-Detection-YOLOv11x` (MIT, mAP@50 0.905, ~8.9 ms/img) y
+`FardadDadboud/Drone_YOLOv5_Detector` (GPL-3.0). Ambos solo-dron.
 
-**Por qué la re-detección es agnóstica de clase y no un detector de drones.** UAV123 mezcla: los
-`uav*` y `bird*` son objetivos aéreos, pero `car9`, `person21`, `truck3`, `group2_3`, `wakeboard5` y
-`bike1` son objetos de suelo filmados desde un dron. Un YOLO entrenado en Drone-vs-Bird no ve un
-wakeboard, así que un detector específico de dron sería inútil en buena parte del tercil y obligaría
-a restringir el n por debajo de la regla de n>=25. La alternativa elegida es la tercera etapa de
-SiamSTA: **búsqueda global por apariencia sobre la plantilla acumulada**, ponderando 0.9 apariencia
-reciente / 0.1 plantilla original. No necesita pesos de nadie, no necesita clase, y conserva la
-estructura de disparo del paper WACVW quitándole la única pieza que no se puede descargar.
+**Métricas** más allá de mIoU y AUC, porque en contra-UAS el mIoU no las ve: tasa de falsos
+negativos, falsos positivos en hueco (ya en `aggregate.py`) y las "3 R's" de TLP (borrar un tramo y
+medir recuperación en 200 frames, en 30, y frames medios hasta recuperar). Sale gratis y **no
+existe publicado**: la curva P/R de `object_score_logits` como detector de pérdida — SAM2 lo
+entrena con cross-entropy en frames sin máscara GT incluidos, pero no hay umbral ni P/R publicados.
 
-Pesos abiertos de detectores de dron localizados, por si el eje se retoma restringido al subconjunto
-aéreo: `doguilmak/Drone-Detection-YOLOv11x` (MIT, `best.pt`, mAP@50 0.905, ~8.9 ms/img) y
-`FardadDadboud/Drone_YOLOv5_Detector` (GPL-3.0, Drone-vs-Bird + Det-Fly). Ambos solo-dron.
+**El factor 5 se fija a priori** desde la ablación de OSTrack (4 a 6 gana, 7 regresa); barrer
+f3/f4/f5/f6 multiplicaría por 4 el coste y añadiría comparaciones múltiples a una familia que ya
+tiene 4 brazos.
 
-**Métricas.** Además de mIoU y AUC, las que miden lo que importa en contra-UAS y que el mIoU no ve:
-
-- **tasa de falsos negativos** (frames con objetivo presente y sin caja emitida),
-- **falsos positivos en hueco** (caja emitida con GT ausente), ya instrumentado en `aggregate.py`,
-- **"3 R's" de TLP**: borrar un tramo intermedio y medir si recupera en 200 frames, si recupera en 30
-  (~1 s), y frames medios hasta recuperar.
-
-**Sale gratis, y no existe publicado:** la curva P/R de `object_score_logits` como detector de
-pérdida. Ya está instrumentado (`device/stream_carry.py:92` guarda `last_score`, asignado en la línea
-142 desde `current_out["object_score_logits"]`). SAM2 lo entrena con cross-entropy y pesos de pérdida
-máscara:IoU:oclusión:otros = 20:1:1:1, supervisado incluso en frames sin máscara GT, pero **no hay
-umbral publicado ni precisión/recall publicados como detector de pérdida**.
-
-**Estimaciones (marcadas como estimaciones):** tercil difícil = 37 clips, 30001 frames. SAM2 @640 =
-**1.33 h/brazo** (medido: p50 159 ms). AsymTrack-B = **0.25-0.5 h/brazo** (estimado). Total de los 4
-brazos: **3.2-3.7 h**.
-
-**Limitaciones declaradas antes de correr:**
-
-- `asym_b` frente a `sam2_c640` confunde dos cosas: modelo y geometría de ventana. Por eso está
-  `sam2_f5` en medio — es el único brazo que cambia la geometría manteniendo el modelo. Sin él, un
-  resultado a favor de AsymTrack no se podría atribuir.
-- La muestra está sesgada a difícil por construcción: **ninguna cifra de este run estima el
-  rendimiento en UAV123**. Es comparación entre brazos bajo carga. La estimación poblacional sale de
-  `asym-repro`.
-- 10 de los clips son 720x480 y todos de la categoría `uav`, la más representada en la banda difícil.
-  El sesgo de resolución cae entero sobre una categoría.
-- El factor 5 se fija a priori desde la ablación de OSTrack (4->6 gana, 7 regresa). **No se barre el
-  factor en este run**: barrer f3/f4/f5/f6 multiplicaría por 4 el coste del brazo SAM2 y añadiría
-  comparaciones múltiples a una familia que ya tiene 4 brazos. Si `sam2_f5` gana, el barrido del
-  factor es el run siguiente y ahí sí con la curva completa.
-- Sigue sin medirse la penalización por cambiar la ventana a mitad de stream, que afecta a
-  `asym_b_redet`. Es el riesgo declarado, y también lo que el brazo mediría.
+Limitaciones declaradas antes de correr: la muestra está sesgada a difícil, luego ninguna cifra de
+aquí estima el rendimiento en UAV123 (esa sale de `asym-repro`); 10 clips son 720x480 y todos `uav`,
+así que el sesgo de resolución cae entero sobre una categoría; y sigue sin medirse la penalización
+por cambiar la ventana a mitad de stream, que es a la vez el riesgo y el objeto de `asym_b_redet`.
 
 ---
 
@@ -1584,10 +1367,10 @@ limitado y detectable (`json.load` revienta), pero **nada en el arnés lo impidi
 toma un lock sobre el directorio de run. Los tres se borraron y se relanzaron aparte
 (`sam2-t768-fix`); los 24 restantes son válidos.
 
-Lección de arnés, no de tracking: un `--id` repetido debería fallar en seco.
-
-Pendiente: fusionar los tres, y con ellos el pareado a tres bandas `sam2_t640` / `sam2_t768` /
-`dam4sam_t768`.
+Lección de arnés, no de tracking: un `--id` repetido debe fallar en seco. Implementado en
+`jetson.py cmd_run` (commit `1ee38e9`): antes de lanzar, `pgrep -f "driver.py --run-dir <rd>"` y si
+hay un driver vivo sobre ese directorio, `SystemExit`. Los tres resultados se fusionaron y el
+pareado a tres bandas está en el punto 7.
 
 ### 7. Cierre del control: la resolución no compra presencia, el DRM sí, y solo a 768
 
@@ -1627,3 +1410,130 @@ justifica por sí solo los +72 ms de 768.
 Esto cierra la pregunta que abría el punto 2: la significancia de `dam4sam_t768` **no** era
 resolución disfrazada. Pero tampoco es el DRM en general — a 640, la resolución que se desplegaría,
 el DRM no aporta señal de presencia sobre SAM2 pelado.
+
+## La noche del 2026-07-31: base pareada a 640 y el brazo LT completo (2026-08-01T09:10Z)
+
+Cuatro etapas encadenadas en el dispositivo, 06:46 CEST de fin, 90 corridas nuevas, todas fetched y
+todos los JSON parsean (sin repetición de la carrera de `--id` de la sección anterior; el guardia de
+`jetson.py cmd_run` ya estaba puesto).
+
+| run | brazo | pedidas | corridas | por qué |
+| --- | --- | --- | --- | --- |
+| `night-c640pad` | `sam2_c640_pad` | 28 | 20 | 8 `uav*` vetadas por `upscales` (640 > 480) |
+| `night-samurai` | `samurai_t640` | 17 | 17 | — |
+| `night-c640` | `sam2_c640` | 23 | 20 | 3 vetadas |
+| `night-damlt` | `dam4sam_lt` | 33 | 33 | las 33 con hueco |
+
+**Motivo del diseño.** El titular del proyecto —*el recorte compra más que los píxeles*— descansaba
+sobre 25 secuencias comunes y una comparación que este mismo README etiquetaba "indicativa, no
+pareada" (punto 7 de `dam-full30b`). Las tres primeras etapas completan una **base de 53
+secuencias** (la unión de cobertura de `dam4sam_t640` y `sam2_t640`) para todos los brazos
+desplegables a 640. La cuarta convierte la paridad simulación-dispositivo de `dam4sam_lt` de una
+secuencia a 33, y de paso produce mIoU y latencia reales de ese brazo, que no existían.
+Deliberadamente **no** se relanzó la escalera de SAMURAI que el autor canceló.
+
+### 1. El titular sobrevive al pareado
+
+    analysis/aggregate.py raw/night-c640pad raw/night-c640 raw/night-samurai raw/c640pad \
+      raw/full-sweep-30 raw/dam-full30b raw/dam-conf33 raw/lt-controls33 raw/asym-repro \
+      raw/sam2-t768-control --vs sam2_c640_pad
+
+691 resultados, 123 secuencias. Wilcoxon pareado de mIoU contra el incumbente, sobre las secuencias
+que corrieron ambos brazos:
+
+| brazo | n | d mediana | d media | gana | p |
+| --- | --- | --- | --- | --- | --- |
+| `sam2_t512` | 25 | -0.081 | -0.122 | 4/25 | **0.0000** |
+| `sam2_t640` | 45 | -0.015 | -0.066 | 13/45 | **0.0005** |
+| `samurai_t640` | 42 | -0.011 | -0.029 | 11/42 | **0.0097** |
+| `sam2_c512` | 25 | -0.004 | -0.060 | 7/25 | **0.0160** |
+| `sam2_c704` | 25 | +0.002 | +0.025 | 16/25 | **0.0187** |
+| `dam4sam_t640` | 45 | -0.006 | -0.003 | 17/45 | 0.1466 |
+| `dam4sam_t768` | 45 | +0.002 | +0.045 | 26/45 | 0.1924 |
+| `dam4sam_t960` | 25 | +0.007 | +0.022 | 14/25 | 0.2200 |
+| `asym_b` | 45 | +0.008 | +0.027 | 27/45 | 0.2917 |
+| `sam2_t768` | 45 | -0.007 | +0.018 | 18/45 | 0.4737 |
+| `sam2_f5_floor` | 27 | -0.007 | +0.002 | 12/27 | 0.6617 |
+| `sam2_t1024` | 25 | +0.000 | -0.023 | 13/25 | 0.7112 |
+| `sam2_c640` | 45 | +0.000 | +0.007 | 25/45 | 0.8154 |
+
+**A igual resolución, el recorte gana.** `c640_pad` bate a `t640` en 32 de 45 secuencias
+(p = 0.0005) y a `samurai_t640` en 31 de 42 (p = 0.0097). Es el mismo `image_size`, la misma
+latencia de orden y el mismo checkpoint: lo único que cambia es la geometría de la ventana.
+
+**Subir resolución sin recortar no compensa.** `t768` no se distingue del recorte a 640 (p = 0.47)
+pagando 252 ms contra 159, y `t1024` tampoco (p = 0.71) a 434 ms. El único brazo que mejora al
+incumbente con significancia es `c704` (+0.002 de mediana, p = 0.019) — que también es recortado,
+solo que un poco más grande.
+
+**Deslizar contra rellenar sigue siendo indiferente** ahora con n=45: `c640` contra `c640_pad`
+p = 0.82. Confirma a n grande lo que Q2 vio sobre 25.
+
+Lecturas que hay que dejar claras para no sobreleer la tabla:
+
+- Los brazos DAM4SAM **no separan** del incumbente en mIoU a ninguna resolución (p = 0.15 a 640,
+  0.19 a 768, 0.22 a 960). Es un **nulo acotado**, no equivalencia probada, y en `t768`/`t960` la
+  media va a favor de DAM4SAM mientras la mediana casi no se mueve: la ganancia vuelve a estar en
+  las secuencias donde el incumbente colapsa, no en el clip típico.
+- `asym_b` mantiene la mejor mediana pareada (+0.008) a **29 ms** y tampoco separa (p = 0.29).
+  Sigue siendo el punto de operación barato, no un ganador demostrado.
+- Los conjuntos comunes difieren por brazo (25, 27, 42, 45) porque la puerta `upscales` y los runs
+  disponibles no coinciden. Cada fila es su propio pareado; **las filas no se comparan entre sí**.
+- 13 contrastes en una tabla: con la familia Holm del proyecto solo `t512`, `t640` y `samurai_t640`
+  sobrevivirían, que son precisamente los negativos. Los positivos (`c704`, `c512`) son
+  exploratorios.
+
+### 2. `dam4sam_lt`: la paridad simulación-dispositivo es exacta en 33 secuencias
+
+    analysis/lt_parity.py
+    33 secuencias, 30747 frames: 0 frames de mascara distintos, 0 cajas distintas
+
+`analysis/lt_parity.py` reconstruye el brazo real replicando `run_machine_rel(conf, 4.0, 2.0, 1,
+300, False)` sobre la traza `(box, conf)` de `dam4sam_t640` en `raw/dam-conf33`, y compara contra
+`raw/night-damlt` frame a frame: la máscara de frames que responde **y** la caja emitida cuando
+responde. Cero diferencias en las dos. La comprobación de caja importa tanto como la de máscara: es
+la que verifica que el envoltorio no perturba al tracker, que es la premisa entera del argumento de
+lazo abierto.
+
+De anécdota (`car2`, 0/1321) a evidencia. Consecuencia operativa: **barrer políticas de largo plazo
+sobre DAM4SAM no necesita GPU**, se re-filtra un JSON. Lo que siga cerrando el lazo — el
+re-detector de `AsymLtArm`, suprimir la escritura en memoria mientras `LOST` — sigue exigiendo la
+Jetson.
+
+### 3. Números reales del brazo LT, y las dos verdades que hay que decir juntas
+
+p50 **213.8 ms** contra 210.0 ms de `dam4sam_t640` sobre las mismas 33: abstenerse no cuesta
+latencia, como predecía el diseño — `inner.step` corre igual y solo se tira el resultado.
+
+Pareado contra `dam4sam_t640`, n=33, Wilcoxon:
+
+| métrica | d media | gana / pierde | p |
+| --- | --- | --- | --- |
+| `gm_ox` | **+0.105** | 17 / 1 | 0.0005 |
+| `tnr` | +0.226 | 18 / 0 | 0.0002 |
+| `tpr` | -0.024 | 0 / 16 | 0.0004 |
+| `f_lt` | -0.007 | 7 / 12 | 0.0486 |
+| `mean_iou` | -0.016 | 0 / 33 | 0.0004 |
+
+Medianas de nivel de `gm_ox`: **0.851** el brazo LT contra **0.630** el base. La mediana de las
+diferencias es solo +0.005 porque en 15 de las 33 el brazo no llega a abstenerse; donde actúa,
+actúa fuerte.
+
+- **En la métrica publicada de largo plazo, funciona.** Compra 0.226 de TNR por 0.024 de TPR, que es
+  exactamente el intercambio para el que se diseñó.
+- **En mIoU pierde en 33 de 33.** Nuestro `aggregate.py` puntúa 0 un frame no contestado igual que
+  uno fallado (docstring del módulo: puntuar solo lo contestado favorece a quien se rinde). Bajo esa
+  regla abstenerse solo puede restar.
+- **`f_lt` queda al borde y con signo negativo** (media -0.007, p = 0.049). Ni siquiera la métrica
+  de largo plazo que usa el resto del documento respalda el brazo con claridad; solo `gm_ox` lo
+  hace, y `gm_ox` es la métrica que el propio brazo optimizó al elegir sus parámetros sobre la mitad
+  de ajuste.
+
+Veredicto honesto: **el brazo LT es una propuesta medida, no un resultado**. Solo gana si el coste
+de contestar cuando no hay objeto entra en la métrica; si la métrica es "acertar cuando el objeto
+está", abstenerse resta. Cuál de las dos aplica lo decide el lazo de control que consuma la salida,
+y eso no se ha medido aquí.
+
+**Sin verificación visual de esta tanda.** No se ha abierto ningún overlay de `night-damlt`; todo lo
+de arriba son números de `raw/*.json`. Los overlays de `dam4sam_lt` que existen son los de
+`raw/parity-smoke/` sobre `car2`.
