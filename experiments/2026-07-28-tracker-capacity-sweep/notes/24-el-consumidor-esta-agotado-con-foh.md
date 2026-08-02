@@ -15,7 +15,7 @@ eso sin gastar dispositivo. La pregunta obvia, y barata, es cuánto queda: si la
 techo se coge con una regla algo mejor en el consumidor, es la mejora más rentable de la campaña,
 porque no cuesta ni un milisegundo de Jetson.
 
-Cinco reglas, todas estrictamente causales (solo respuestas ya aterrizadas):
+Seis reglas, todas estrictamente causales (solo respuestas ya aterrizadas):
 
 | regla | qué hace |
 | --- | --- |
