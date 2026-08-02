@@ -65,12 +65,42 @@ def held(rows: list[dict], fps: float, n: int) -> dict:
     return out
 
 
-def score_one(path: Path) -> dict:
+def extrapolate(rows: dict) -> dict:
+    """First-order hold: coast the held box along its own velocity instead of freezing it.
+
+    Zero-order hold freezes the last answer, so the consumer eats the full `motion * lag` drift.
+    Two consecutive answers already carry the velocity, in pixels per frame INDEX -- not per second,
+    because the boxes belong to captured frames and the gap between them is a frame count. Extending
+    it to the frame being scored costs no model and no device time: this is a change to the
+    CONSUMER, not to the tracker. Strictly causal -- only answers that had already landed are used.
+    """
+    out, cur, prev = {}, None, None
+    for j in sorted(rows):
+        r = rows[j]
+        if r is not cur:  # a new answer landed; the one it replaces is the velocity reference
+            prev, cur = cur, r
+        if not r or not r.get("box"):
+            out[j] = r
+            continue
+        b = r["box"]
+        di = r["i"] - prev["i"] if prev and prev.get("box") else 0
+        if di > 0:
+            k = (j - r["i"]) / di
+            vx = ((b[0] + b[2]) - (prev["box"][0] + prev["box"][2])) / 2
+            vy = ((b[1] + b[3]) - (prev["box"][1] + prev["box"][3])) / 2
+            b = [b[0] + vx * k, b[1] + vy * k, b[2] + vx * k, b[3] + vy * k]
+        out[j] = r | {"box": b}
+    return out
+
+
+def score_one(path: Path, foh: bool = False) -> dict:
     res = json.loads(path.read_text())
     meta = res["meta"]
     gt = data.boxes(meta["seq"])
     fps = meta.get("fps_stream")
     rows = held(res["rows"], fps, len(gt)) if fps else {r["i"]: r for r in res["rows"]}
+    if foh and fps:
+        rows = extrapolate(rows)
     have = [(g, rows.get(i, {}).get("box")) for i, g in enumerate(gt) if g is not None]
     ious = np.array([0.0 if p is None else iou(g, p) for g, p in have])
     gap = len(gt) - len(have)
@@ -123,9 +153,12 @@ def main() -> None:
     ap.add_argument("--csv")
     ap.add_argument("--vs", metavar="ARM", help="paired Wilcoxon of every arm against ARM")
     ap.add_argument("--metric", default="mean_iou", help="metric for --vs")
+    ap.add_argument("--foh", action="store_true",
+                    help="coast the held box along its velocity instead of freezing it "
+                         "(paced runs only; a consumer-side change, no device cost)")
     args = ap.parse_args()
 
-    per = [score_one(p) for d in args.run_dir
+    per = [score_one(p, args.foh) for d in args.run_dir
            for p in sorted(Path(d).glob("*.json")) if p.stem != "manifest"]
     assert per, f"no results in {args.run_dir}"
     # sort by family letter then resolution: 'sam2_c640_coast' -> ('c', 640, '_coast')

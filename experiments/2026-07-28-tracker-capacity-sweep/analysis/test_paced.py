@@ -17,7 +17,7 @@ sys.path[:0] = [str(HERE), str(HERE.parent / "device")]
 # run_arm imports the tracker registry, which needs sam2 and only exists on the device
 sys.modules.setdefault("trackers", types.ModuleType("trackers"))
 
-from aggregate import held  # noqa: E402
+from aggregate import extrapolate, held  # noqa: E402
 from run_arm import next_frame  # noqa: E402
 
 
@@ -61,6 +61,13 @@ def main() -> None:
     # loss rather than silently vanish -- an arm with a 2 s init is blind for 60 frames
     h = held([{"i": 0, "t": 2.0, "box": [0, 0, 1, 1]}], 30, 90)
     assert h[59] == {} and h[60]["box"], "hold must start at the answer, not at frame 0"
+
+    # first-order hold: on a target moving at a constant 2 px/frame the coasted box is EXACT, which
+    # is the whole claim -- zero-order hold would be off by up to a full step
+    rows = [{"i": i, "t": t, "box": [2 * i, 0, 2 * i + 10, 10]} for i, t in schedule(30, 431, 60)]
+    e = extrapolate(held(rows, 30, 60))
+    assert e[40]["box"][0] == 2 * 40, e[40]
+    assert held(rows, 30, 60)[40]["box"][0] != 2 * 40, "ZOH must NOT be exact, or the test is moot"
 
     print("ok")
 
