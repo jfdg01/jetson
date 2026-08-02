@@ -128,7 +128,7 @@ El detalle completo de cada tanda vive en `notes/`. Aquí queda el resumen y el 
 de cada tabla, las verificaciones visuales y los tropiezos están en el fichero enlazado. Cada fichero
 abre con su fecha, su rango horario y su coste de dispositivo.
 
-**Coste total del barrido: ~51.9 h de dispositivo** sobre la Jetson a 15 W, 1153 corridas (la nota
+**Coste total del barrido: ~53.6 h de dispositivo** sobre la Jetson a 15 W, 1308 corridas (la nota
 18 no añade ninguna: es reanálisis). Es una
 estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON de `raw/`; no incluye el tiempo muerto
 entre etapas ni los renders de overlay, así que el reloj de pared es mayor.
@@ -280,3 +280,17 @@ paced), los tres modos de feed de los que la ventana escalada al objeto sigue si
 población objetivo cuantificada — 28 clips de UAV123 bajo `<=40 px` y `>=0.06` anchuras/fotograma,
 con TLP descartado por no tener el fenómeno. n = 2 en lo medido; el resto es predicción. Sin
 verificación visual.
+
+### 19. El barrido a ritmo real, y la retención de primer orden — [`notes/19-paced-sweep-30-retencion-de-primer-orden.md`](notes/19-paced-sweep-30-retencion-de-primer-orden.md) · 1.66 h
+
+155 corridas a 30 fps con caída al último fotograma. Bajo stream **el orden de paridad se invierte**:
+`c704`/`c640` ganaban (0.762/0.759) y ahora pierden contra `c512` (0.439 contra 0.302/0.344), porque
+la resolución que compra máscara compra retraso. El resultado que manda es otro: **navegar la caja
+retenida en vez de congelarla vale +0.069 de mIoU mediana pareada sobre los 155 pares** (121/155
+ganan, p = 4.9e-19, los seis brazos pasan Holm) **a coste cero de dispositivo**, más que cualquier
+salto de resolución de la rejilla. Pierde en 34 pares y en ninguno por más de 0.042: objetivo casi
+quieto (`boat3`), peatón que cambia de dirección (`person18`) o caja ya perdida (`bird1_*`). Cierra
+dos suposiciones de la nota 18: `ms_p50` es idéntico entre paridad y paced, y el modelo de
+`sweetspot.py` ajusta k = 1.20 con RMSE 0.075 sin sesgo creciente con la resolución. `sam2_t1024`
+no aparece: la puerta `upscales` lo tumbó en los 30 clips. Vale solo si el consumidor real puede
+cambiarse — pregunta abierta. Sin verificación visual.

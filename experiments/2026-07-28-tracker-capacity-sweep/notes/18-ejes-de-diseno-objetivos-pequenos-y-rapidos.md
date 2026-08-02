@@ -5,6 +5,11 @@ Parte de [`../README.md`](../README.md).
 **Cuándo:** 2026-08-02T18:10Z -> 2026-08-02T21:40Z, hora local de Madrid.
 **Coste:** 0 corridas nuevas, **0 h de dispositivo** — todo es reanálisis de trazas ya grabadas.
 **Datos:** `raw/full-sweep-30/`, `raw/paced-smoke/`; `raw/paced-sweep-30/` en curso (136/210).
+
+> Cerrado por [`19-paced-sweep-30-retencion-de-primer-orden.md`](19-paced-sweep-30-retencion-de-primer-orden.md):
+> la retención de primer orden aguanta sobre 155 pares (+0.069 mediana pareada, no el 85% de
+> recuperación que sugería el n=2 de aquí); `k` real es 1.20, no 0.90; y la predicción de la §6 de
+> que `size_px` perdería peso bajo stream **es falsa** — sube.
 **Código:** `3d2f8c5` (`analysis/motion.py`), `728b0d6` (`analysis/sweetspot.py`), `96d57da`
 (`extrapolate` en `analysis/aggregate.py` + test).
 
