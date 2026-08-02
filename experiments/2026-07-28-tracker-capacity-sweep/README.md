@@ -334,3 +334,17 @@ llega justo cuando la nota 19 coronaba a `c512` como el mejor brazo de recorte p
 sin probar: el objetivo ocupa el 59% del alto de la ventana de 512 y el 47% de la de 640, y el
 recorte apretado deja a SAM2 sin contexto. Cierra de paso `person20`, que `c512` hace bien (0.750) —
 la clase "persona" no es el problema. Verificado en píxeles contra la nota 21, mismo fotograma f697.
+
+### 23. De qué está hecho el déficit: pausar cuesta posición, no forma — [`notes/23-de-que-esta-hecho-el-deficit.md`](notes/23-de-que-esta-hecho-el-deficit.md) · 0 h
+
+mIoU dice cuánto salió mal, no de qué. `analysis/errors.py` descompone cada fotograma en pérdida,
+traslación y escala con dos contrafactuales (la caja recentrada en el GT, y una caja del tamaño del
+GT en el centro de la predicha). Pareado sobre 25 clips, `c512`: pausar a 30 fps cuesta **−0.194** de
+solape condicional (23/25, p=8e−06) y **−0.004** de solape recentrado (no significativo). El déficit
+de pausar es casi todo **posición**: la caja entregada es la correcta con retardo. FOH recupera
++0.071 de esos y deja el recentrado invariante hasta el tercer decimal (`max |d| = 0.000`), que es la
+comprobación interna de que solo mueve centros; el nulo de `lead` (nota 20) queda además explicado —
+la palanca del retardo está en el consumidor, no en la entrada del modelo. Corrobora por cálculo las
+tres lecturas a ojo de la nota 21 y añade una cuarta: `car12` puntúa 0.087 con solape condicional
+**0.783** sobre el 11% de fotogramas en que contesta — pérdida, no caja mala. Sin verificación
+visual: no hay aquí ninguna afirmación sobre píxeles.
