@@ -144,6 +144,13 @@ def download(fid: str, out: Path) -> str:
     El `.part` sobrevive entre pasadas a proposito: 529 MB cortados a la mitad se retoman
     donde iban, no desde cero. El uuid es de un solo uso, asi que se pide uno nuevo en cada
     intento aunque se reanude.
+
+    **Solo se renombra a definitivo lo que llega entero.** La primera version daba por buena
+    cualquier transferencia que no lanzara excepcion, y una conexion cortada a mitad no la
+    lanza: `copyfileobj` vuelve tan campante. El resultado (2026-08-02T17:22Z, Boxing2) fue
+    renombrar un tar truncado, que fallara la validacion y **borrarlo**, tirando los bytes
+    buenos y la posibilidad de reanudar. Ahora se compara lo escrito contra el tamano que
+    anuncia el servidor y, si falta, el `.part` se queda donde esta.
     """
     part = out.with_suffix(out.suffix + ".part")
 
@@ -164,15 +171,31 @@ def download(fid: str, out: Path) -> str:
             return "quota" if "too many users have viewed" in head else "error:html"
         if have and r.status != 206:  # el servidor ignoro el Range: empezar de cero
             have = 0
+        # tamano total esperado: Content-Range manda cuando hay 206, si no Content-Length
+        total = None
+        cr = r.headers.get("Content-Range", "")
+        if "/" in cr and cr.rsplit("/", 1)[1].isdigit():
+            total = int(cr.rsplit("/", 1)[1])
+        elif (cl := r.headers.get("Content-Length", "")).isdigit():
+            total = have + int(cl)
         with part.open("ab" if have else "wb") as fh:
             shutil.copyfileobj(r, fh, 1 << 20)
+
+    got = part.stat().st_size
+    if total is None:
+        return "error:sin tamano anunciado"
+    if got < total:  # cortada: el .part se conserva, la pasada siguiente reanuda
+        return f"corta:{got}/{total}"
+    if got > total:  # no deberia pasar; si pasa, el fichero esta corrupto
+        part.unlink(missing_ok=True)
+        return f"error:sobra ({got} > {total})"
 
     part.rename(out)
     return "ok"
 
 
 def fetch(item: dict) -> str:
-    """-> 'done' | 'quota' | 'error'"""
+    """-> 'done' | 'quota' | 'parcial' | 'error'"""
     name, fid = item["name"], item["id"]
     tar = DEST / item["path"]
 
@@ -184,9 +207,19 @@ def fetch(item: dict) -> str:
             res = f"error:{type(exc).__name__}: {exc}"
         if res == "quota":
             return "quota"
-        if res != "ok" or not valid_tar(tar):
-            log(f"    {name}: descarga invalida ({res})")
-            tar.unlink(missing_ok=True)
+        if res.startswith("corta:"):
+            got, total = (int(x) for x in res.split(":")[1].split("/"))
+            log(f"    {name}: cortada en {got / total:.0%} ({got / 1e6:.0f}/{total / 1e6:.0f} MB), se reanuda")
+            return "parcial"
+        if res != "ok":
+            log(f"    {name}: {res}")
+            return "error"
+        if not valid_tar(tar):
+            # llego entero segun el servidor pero tarfile lo rechaza: se aparta en vez de
+            # borrarlo, porque sin el fichero no hay forma de averiguar por que.
+            bad = tar.with_suffix(".tar.bad")
+            tar.rename(bad)
+            log(f"    {name}: tar completo pero invalido -> {bad.name}, no se reintenta solo")
             return "error"
 
     size_gb = tar.stat().st_size / 1e9
@@ -197,7 +230,7 @@ def fetch(item: dict) -> str:
 
 
 def one_pass(items: list[dict]) -> dict:
-    tally = {"done": 0, "quota": 0, "error": 0, "skip": 0}
+    tally = {"done": 0, "quota": 0, "parcial": 0, "error": 0, "skip": 0}
     pending = [it for it in items if not is_done(it)]
     log(f"pasada: {len(items) - len(pending)}/{len(items)} ya estan, {len(pending)} pendientes")
 

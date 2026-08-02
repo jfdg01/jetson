@@ -50,35 +50,43 @@ se ejecutan.
   mutiladas. Es el dataset diseñado para lo que aquí se quiere medir; UAV123 solo tiene 2.38% de
   frames ausentes.
 
-  **REVISAR 2026-08-03.** Descarga bloqueada por cuota de Drive del propietario desde el
-  2026-08-01. Hay un demonio reintentando en tmux, sesión `tlp`:
+  **REVISAR 2026-08-03.** La cuota de Drive cedió el 2026-08-02 a las ~17:22Z tras 16 pasadas
+  en vano, y las secuencias están bajando a ~40 MB/s. Demonio en tmux, sesión `tlp`:
 
   ```
   tmux attach -t tlp                                  # ver el bucle
   .venv-ft/bin/python experiments/2026-07-28-tracker-capacity-sweep/tools/fetch_tlp.py --status
   ```
 
-  Arrancado 2026-08-02T17:18Z (Madrid), pid 1125390, log en `data/TLP/_fetch.log`. Reintenta
-  las 50 secuencias cada ~14 min, se para solo al completarlas o si el disco baja de 15 GB.
-  **No sobrevive a un reinicio de la máquina**; si la sesión tmux no está, relanzar con
+  Relanzado 2026-08-02T17:23Z (Madrid), log en `data/TLP/_fetch.log`. Se para solo al
+  completar las 50 o si el disco baja de 15 GB. **No sobrevive a un reinicio de la máquina**;
+  si la sesión tmux no está, relanzar con
   `tmux new-session -d -s tlp -c <dir del experimento> '../../.venv-ft/bin/python tools/fetch_tlp.py --daemon'`.
 
-  Al revisar, tres desenlaces y qué hacer con cada uno:
-  - **0/50 todavía** (13 pasadas hasta las 16:37 del día 2, ninguna secuencia): la cuota lleva
-    >24 h sin ceder, o sea que ya no es un pico pasajero. Abandonar TLP y tirar de LaSOT.
-  - **Parcial**: las secuencias bajadas sirven tal cual, cada tar es un clip completo. Dejar el
-    demonio a por el resto.
-  - **50/50**: matar el demonio y registrar el dataset en `SOURCES.md`.
+  Al revisar, tres desenlaces:
+  - **50/50**: matar el demonio y registrar el dataset en `SOURCES.md`. Es lo esperable si la
+    cuota aguanta: 87 GB a ~40 MB/s son ~40 min de transferencia.
+  - **Parcial**: cada tar es un clip completo, así que lo bajado sirve tal cual. Dejar el
+    demonio a por el resto; reanuda por `Range` los `.part` a medias.
+  - **Atascado otra vez en cuota**: es un racionamiento intermitente, no un bloqueo. Dejarlo
+    corriendo, no hay nada que arreglar.
 
-  Medido el 2026-08-02 y conviene no volver a tropezar: la cuota **no** depende de la IP —
+  Comprobar además que no haya `*.tar.bad` en `data/TLP/`: es un tar que llegó entero según el
+  servidor pero que `tarfile` rechaza. Se aparta en vez de borrarse y **no se reintenta solo**.
+
+  Formato del GT, verificado sobre `Alladin` (8992 frames, 8992 líneas): seis columnas
+  `frame,x,y,w,h,ausente`. **La sexta columna es la etiqueta de ausencia por frame** que pide
+  `notes/17-...` §6 — es justo lo que UAV123 no da y por lo que se quería este dataset.
+
+  Medido el 2026-08-02 y conviene no volver a tropezar: la cuota **no** dependía de la IP —
   sondeado desde 3090, jetson, garaserver y oracle (dos IP públicas, dos ASN), comportamiento
   idéntico. Y una petición con `Range` acotado de <= 1 MB devuelve 206 con bytes reales aunque
   la cuota esté agotada, así que "llegan los primeros KB" es un falso positivo: solo cuenta
   pedir el fichero entero.
 
-  **Alternativa que no depende de esto:** LaSOT en HuggingFace (`l-lt/LaSOT`), sin cuota, por
-  categorías, y con `full_occlusion.txt` + `out_of_view.txt` — la separación oclusión contra
-  salida de frame que pide `notes/17-...` §6 y que TLP tampoco etiqueta.
+  **Alternativa si esto se tuerce:** LaSOT en HuggingFace (`l-lt/LaSOT`), sin cuota, por
+  categorías, con `full_occlusion.txt` + `out_of_view.txt`. Separa oclusión de salida de frame,
+  cosa que TLP con una sola bandera no hace.
 - **`dataset.txt` del tercil duro (37 clips)** para el barrido de ventana.
 
 ## Retrospectiva
