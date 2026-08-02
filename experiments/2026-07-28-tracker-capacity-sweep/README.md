@@ -128,7 +128,7 @@ El detalle completo de cada tanda vive en `notes/`. Aquí queda el resumen y el 
 de cada tabla, las verificaciones visuales y los tropiezos están en el fichero enlazado. Cada fichero
 abre con su fecha, su rango horario y su coste de dispositivo.
 
-**Coste total del barrido: ~53.6 h de dispositivo** sobre la Jetson a 15 W, 1308 corridas (la nota
+**Coste total del barrido: ~53.9 h de dispositivo** sobre la Jetson a 15 W, 1333 corridas (la nota
 18 no añade ninguna: es reanálisis). Es una
 estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON de `raw/`; no incluye el tiempo muerto
 entre etapas ni los renders de overlay, así que el reloj de pared es mayor.
@@ -294,3 +294,16 @@ dos suposiciones de la nota 18: `ms_p50` es idéntico entre paridad y paced, y e
 `sweetspot.py` ajusta k = 1.20 con RMSE 0.075 sin sesgo creciente con la resolución. `sam2_t1024`
 no aparece: la puerta `upscales` lo tumbó en los 30 clips. Vale solo si el consumidor real puede
 cambiarse — pregunta abierta. Sin verificación visual.
+
+### 20. `lead`: la predicción de movimiento en la entrada no compra nada — [`notes/20-lead-prediccion-en-la-entrada.md`](notes/20-lead-prediccion-en-la-entrada.md) · 0.27 h
+
+La misma estimación de velocidad que la nota 19 gasta en la salida (FOH), puesta ahora en la
+**entrada**: `sam2_c512_lead` centra la ventana de recorte donde se predice que estará el objetivo.
+**Nulo en las dos políticas de salida** — ZOH +0.001 (15/25, p=0.31), FOH −0.001 (11/25, p=0.63),
+n=25 (los cinco `uav*` los veta la puerta `upscales`). Tampoco aparece el envenenamiento del banco
+de memoria que se temía: déficit por tercio de clip +0.000 / +0.002 / +0.000, pendiente 3º−1º
+p=0.31. El hallazgo real es por qué: el salto mediano entre respuestas es de 5.9 px contra ~230 px
+de margen de recorte, y `salto` contra `delta` da rho=+0.027, p=0.90 — `bird1_1`, que mueve 62 px
+por paso (26% del margen), da −0.003. **A SAM2 le da igual dónde caiga el objetivo dentro de la
+ventana mientras caiga dentro.** La corrección de movimiento va en la salida, no en la entrada.
+Nulo acotado a este régimen, y sin verificación visual.

@@ -173,6 +173,13 @@ llevar al sistema real de esta tanda, es esa, no un número de resolución.
 El contra honesto: es una mejora del **puntuador**, y solo vale si el consumidor real puede
 implementarla. Y no está verificada visualmente.
 
+**Corregido por la [nota 20](20-lead-prediccion-en-la-entrada.md) §1.** Donde esta sección deja FOH
+como "mejora del puntuador" sin más, hay que leer la distinción completa: como medida de calidad del
+**seguidor** es cosmética, pero como medida de **entrega** es real, porque el sistema en vuelo
+persigue usando esas cajas y un retardo es error de control. Es la separación que la Parte VI traza
+entre *grounding* y *delivery*. La nota 20 además cierra el punto 2 de la sección siguiente: la
+misma predicción puesta en la **entrada** (`lead`) es nula (+0.001 ZOH, p=0.31, n=25).
+
 ## 8. Qué sigue
 
 1. Preguntar al autor si el sistema real puede cambiar el consumidor (retención de primer orden).
