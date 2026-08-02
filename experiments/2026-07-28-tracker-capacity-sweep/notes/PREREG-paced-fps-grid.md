@@ -79,3 +79,24 @@ velocidad del brazo: las siete pasadas de `paced-sweep-30` cuestan 0.271-0.295 h
 - Contrastes múltiples: 7 brazos x 3 fps invita a pescar. Las tres hipótesis de arriba son las
   únicas pre-registradas; cualquier otra cosa que salga se marca como exploratoria y se corrige por
   Holm dentro de su familia.
+
+## Desviación registrada, 2026-08-03T01:35Z: el tramo de 15 fps se recorta a tres brazos
+
+El coste estimado (0.47 h por pasada a 15 fps, ~4.6 h en total) estaba mal. Medido sobre el tramo de
+120 fps en vuelo — 80 resultados en ~62 min — el coste real es
+
+    pared ~= n_corridas * 38 s  +  27276 s / fps  por pasada de brazo
+
+es decir un **coste fijo por corrida de ~38 s** que la estimación no tenía (sólo contaba
+`init_ms + frames * ms_p50`, que es tiempo de inferencia, no de arranque, montaje ni lectura de
+fotogramas). Con eso: 120 fps ~2.4 h, 60 fps ~2.8 h, y **15 fps a 7 brazos ~5.5 h**. Los tres tramos
+más el 2x2 de ventana contra entrada no caben en la noche.
+
+Recorte: a 15 fps corren **`sam2_c512`, `sam2_c640`, `sam2_c512_lead`** (~2.4 h), que son
+exactamente los brazos que sostienen las tres hipótesis — H1 es `c512` contra `c640`, H3 es `lead`
+contra `c512`, y H2 (FOH contra ZOH) se prueba sobre los pares brazo-clip que haya, con n >= 25 en
+todos los casos. Lo que se pierde es la fila de `t512/t640/t768/c704` **sólo en el punto de 15 fps**:
+la tabla de mIoU por brazo tendrá tres columnas completas a 30/60/120 y una parcial a 15, y así hay
+que leerla.
+
+Esto se escribe antes de correr el tramo, no después de verlo.
