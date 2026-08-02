@@ -307,3 +307,16 @@ de margen de recorte, y `salto` contra `delta` da rho=+0.027, p=0.90 — `bird1_
 por paso (26% del margen), da −0.003. **A SAM2 le da igual dónde caiga el objetivo dentro de la
 ventana mientras caiga dentro.** La corrección de movimiento va en la salida, no en la entrada.
 Nulo acotado a este régimen, y sin verificación visual.
+
+### 21. Los tres clips difíciles: FOH no es la causa de ninguno — [`notes/21-los-tres-clips-dificiles.md`](notes/21-los-tres-clips-dificiles.md) · 0 h
+
+La verificación visual de la nota 19 se cerró con el mejor caso (`truck2`, +0.258) y una pérdida
+trivial (`boat3`, −0.020). Aquí se miran los tres donde FOH pierde de verdad, y los fotogramas
+**contradicen la taxonomía de la nota 19 §4**: `person18` (−0.016) no es un cambio de dirección sino
+un error de escala — alto pred/GT mediano **0.45**, ancho 0.91, la caja cubre solo las piernas
+durante 990 fotogramas; `bird1_1` (−0.012) tiene la máscara reventada a **7.63×** el ancho del
+objetivo, una banda que cruza el fotograma; `bike2` (−0.014) mantiene el tamaño correcto (1.14,
+0.97) sobre un objeto a **12.94 anchuras** de distancia. Tres modos de fallo distintos con tres
+arreglos distintos, donde la nota 19 veía dos. Lo que sí sobrevive: en los tres, FOH resta entre
+0.012 y 0.016 sobre una base ya rota — **no causa ninguno de los fallos**, y el +0.069 agregado no
+depende de ellos. Clips en `proof/foh__{person18,bird1_1,bike2}.mp4`. Sin cubrir: `person20`.

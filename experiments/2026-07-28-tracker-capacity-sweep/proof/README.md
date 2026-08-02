@@ -37,9 +37,31 @@ inventarle movimiento que no tiene. Pierde 0.020, no se rompe.
 El guardarraíl del render esta en el propio script: si mas de la mitad de los fotogramas salen
 identicos byte a byte, aborta en vez de escribir un feed muerto de 900 fotogramas.
 
-No cubierto: `person18` (cambio brusco de direccion) ni `bird1_*` (caja ya perdida), los otros dos
-modos de perdida que la nota 19 §4 identifica. Y ningun clip de `lead` — la nota 20 es un nulo y no
-hay nada que ver.
+### Los tres difíciles — nota 21
+
+`truck2` y `boat3` son el mejor caso y una pérdida trivial. Estos tres son donde FOH pierde de
+verdad, y cada uno falla distinto:
+
+| Clip | ZOH | FOH | delta | alto pred/GT | ancho pred/GT | dist. centro |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `foh__person18.mp4` | 0.238 | 0.222 | −0.016 | **0.45** | 0.91 | 0.51 anchuras |
+| `foh__bird1_1.mp4` | 0.027 | 0.015 | −0.012 | **3.17** | **7.63** | 2.74 anchuras |
+| `foh__bike2.mp4` | 0.069 | 0.055 | −0.014 | 1.14 | 0.97 | **12.94 anchuras** |
+
+**`person18`** (f697, zoom 512): la caja cubre **solo los pantalones**. Ancho correcto, alto la
+mitad. Fallo de escala, no de dirección — la nota 19 §4 lo clasificaba mal.
+
+**`bird1_1`** (f127, zoom 384): la máscara ha reventado a una banda que cruza el fotograma, 7.6
+veces el ancho del pájaro. El zoom entero cae **dentro** de la caja predicha; las líneas roja y azul
+son sus bordes.
+
+**`bike2`** (f277, zoom 256): tamaño correcto, objeto equivocado. El ciclista verde de 12 px está en
+el centro y la caja del seguidor no aparece en la ventana.
+
+En los tres, FOH pierde entre 0.012 y 0.016 sobre una base ya rota: **no causa ninguno de los tres
+fallos**, solo empeora un pelo una caja que ya era mala.
+
+Sigue sin cubrirse `person20`. Y ningun clip de `lead` — la nota 20 es un nulo y no hay nada que ver.
 
 ## TLP, estructura de ausencia
 

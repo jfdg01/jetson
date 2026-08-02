@@ -99,9 +99,13 @@ Seis contrastes, Holm al 0.05 exige 0.0083 en el mayor: los seis pasan con marge
 
 - **objetivo casi quieto** — `boat3` (0.0052 anchuras/fotograma, mIoU ya 0.92): la velocidad
   estimada es ruido de anotación y la extrapolación lo amplifica. Media −0.021 sobre 6 brazos.
-- **cambio de dirección más rápido que el paso de retención** — `person18` (−0.020), `person20`
+- **[CORREGIDO por la nota 21: `person18` es un fallo de escala, no de dirección — la caja cubre
+  media persona durante 990 fotogramas.]** **cambio de dirección más rápido que el paso de
+  retención** — `person18` (−0.020), `person20`
   (−0.006): peatones. La velocidad pasada deja de predecir la futura.
-- **la caja ya estaba mal** — `bird1_1`, `bird1_3`, `bike2`, todos con mIoU 0.01-0.07: extrapolar
+- **la caja ya estaba mal** — [la nota 21 separa esta bolsa en dos: `bird1_1` revienta la máscara a
+  7.6x el ancho del objetivo, `bike2` mantiene el tamaño sobre el objeto equivocado a 12.9 anchuras]
+  `bird1_1`, `bird1_3`, `bike2`, todos con mIoU 0.01-0.07: extrapolar
   una caja equivocada la aleja más. Pérdidas de 0.003 a 0.033 sobre una base ya perdida.
 
 Gana donde el movimiento es lineal y rápido: `truck2` +0.376, `truck3` +0.336, `wakeboard8` +0.244,
