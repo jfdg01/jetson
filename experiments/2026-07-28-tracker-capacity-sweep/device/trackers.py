@@ -206,17 +206,31 @@ class Sam2CropArm:
         behaviour, so no second model is loaded.
         Named risk: the memory bank is full of crop-framed features and the framing jump is abrupt.
         That is the thing being measured.
+
+    `lead=True`  Centre the window where the target is PREDICTED to be, not where it was last seen.
+        Only meaningful under `--fps`: there the arm skips the frames it could not keep up with, so
+        the last box is one whole drop interval old before the crop is even taken. Velocity comes
+        from the last two hits and `hist` counts in STEPS, so one velocity is exactly one drop
+        interval -- the same estimator `aggregate.py:extrapolate` applies to the OUTPUT. Running
+        both answers whether the prediction belongs on the model's input, on the consumer's output,
+        or nowhere.
+        Named risk, and the reason this needs measuring rather than reasoning: a wrong prediction
+        mis-frames the crop, SAM2 writes the resulting mask into its memory bank, and the next
+        frames condition on it. Unlike the output-side version this is not reversible frame by
+        frame. Bounded by the crop margin -- a 512 window around a 40 px target tolerates ~230 px of
+        prediction error before the target leaves the window at all -- so damage should show up as
+        degradation that GROWS with frame index, not as a flat offset.
     """
 
     def __init__(self, checkpoint: str, size: int, coast: int = 0, edge: bool = False,
-                 factor: float = 0.0, pad: bool = False, floor: bool = False):
+                 factor: float = 0.0, pad: bool = False, floor: bool = False, lead: bool = False):
         self.size = size
         self.factor = factor
         self.floor = floor
         self._s0 = None  # frame-0 window side, the lower bound when `floor`
         self.pad = pad
         self.inner = Sam2Arm(checkpoint, size)
-        self.coast, self.edge = coast, edge
+        self.coast, self.edge, self.lead = coast, edge, lead
         self.win = None   # (x, y, s) in full-frame coords; None means the full frame was fed
         self.last = None  # this frame's box, None if lost
         self.seen = None  # last box actually found, which is what `edge` interrogates
@@ -312,6 +326,12 @@ class Sam2CropArm:
         self.i += 1
         if self.last is not None:  # re-centre on where the target was last seen
             self._hit(self.last)
+            if self.lead:
+                # `_hit` just set the anchor to the last box's centre; push it one step forward.
+                # Deliberately AFTER `_hit`, so `hist` keeps the measured centres and the velocity
+                # never feeds on its own extrapolations.
+                vx, vy = self._velocity()
+                self.anchor = (self.anchor[0] + vx, self.anchor[1] + vy)
         else:
             if self.edge and self._at_edge(w, h):
                 self.full = True
@@ -998,6 +1018,13 @@ for _sz in (512, 640, 704):
 arm("sam2_c640_coast", family="sam2crop", ckpt="tiny", image_size=640, crop=640, heur="coast7")(
     lambda: Sam2CropArm("facebook/sam2.1-hiera-tiny", 640, coast=7)
 )
+
+# `lead` goes on 512, not 640: under `--fps 30` the control is `sam2_c512` (the best crop arm in
+# stream, note 19 SS3), and the whole question only exists under the paced protocol.
+arm("sam2_c512_lead", family="sam2crop", ckpt="tiny", image_size=512, crop=512, heur="lead")(
+    lambda: Sam2CropArm("facebook/sam2.1-hiera-tiny", 512, lead=True)
+)
+
 arm("sam2_c640_edge", family="sam2crop", ckpt="tiny", image_size=640, crop=640, heur="edge")(
     lambda: Sam2CropArm("facebook/sam2.1-hiera-tiny", 640, edge=True)
 )
