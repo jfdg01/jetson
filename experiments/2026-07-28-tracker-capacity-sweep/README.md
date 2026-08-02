@@ -351,3 +351,15 @@ entregada puntúa 0.485 contra el GT del fotograma que se consume y **0.811 cont
 que miró**, con 5 de retardo; `c640` da 0.368 / **0.816** con 8. Los dos brazos producen cajas
 igual de buenas y solo difieren en cuándo llegan, así que la ordenación pausada de la nota 19 es
 retardo, no calidad. Sin verificación visual: no hay aquí ninguna afirmación sobre píxeles.
+
+### 24. El consumidor está agotado con FOH — [`notes/24-el-consumidor-esta-agotado-con-foh.md`](notes/24-el-consumidor-esta-agotado-con-foh.md) · 0 h
+
+Si el déficit pausado es retardo (nota 23), la mejora más rentable de la campaña sería una regla de
+consumidor mejor: no cuesta ni un milisegundo de Jetson. Cinco reglas causales contra el techo
+`GT(i)`, n=25, `c512` a 30 fps: FOH recupera **51%** del hueco (+0.097, 21/25), promediar la
+velocidad sobre 3 huecos +0.003 más, sobre 5 huecos **menos**, y extrapolar también el tamaño resta
+0.017. Mismo codo en `c640` (45%) y en `c512_lead` (48%): **FOH ya está en el codo y no hay segunda
+mitad barata** — nulo acotado, un predictor con modelo (Kalman) sigue sin probar. Efecto secundario
+con consecuencias: `c640 − c512` vale −0.043 bajo ZOH, −0.018 bajo FOH y **+0.037 bajo el techo**, o
+sea que el punto de operación pausado es propiedad de la pareja seguidor+consumidor, no del
+seguidor. El cambio de signo es débil (mediana +0.003, p=4.5e−02) y no despliega nada.
