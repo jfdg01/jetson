@@ -58,7 +58,11 @@ def upscales(name: str, w: int, h: int) -> bool:
         return False  # opencv arms are handed the frame as it comes
     if m.get("search_factor"):
         return False
-    return n > min(w, h) if m["family"] == "sam2crop" else n * n > w * h
+    # For a crop arm the question is about the WINDOW, not the model input: a window wider than the
+    # frame is pure upsampling on both axes, while a window resampled up to a larger input is the
+    # search-region design excused two paragraphs above. `crop` == `image_size` on every arm written
+    # before the two were split, so this changes no existing veto.
+    return m.get("crop", n) > min(w, h) if m["family"] == "sam2crop" else n * n > w * h
 
 
 def mask_contours(mask: np.ndarray) -> list[list[list[int]]]:
@@ -223,13 +227,18 @@ class Sam2CropArm:
     """
 
     def __init__(self, checkpoint: str, size: int, coast: int = 0, edge: bool = False,
-                 factor: float = 0.0, pad: bool = False, floor: bool = False, lead: bool = False):
+                 factor: float = 0.0, pad: bool = False, floor: bool = False, lead: bool = False,
+                 image_size: int = 0):
+        # `size` is the WINDOW side in full-frame pixels; `image_size` is what the model is fed.
+        # Equal by default, which is the native-pixel arm this class was written for. Splitting them
+        # separates the two things `c512` vs `c640` changes at once -- how much scene is in the
+        # window, and how many pixels the model gets -- and SAM2 resamples the crop for free.
         self.size = size
         self.factor = factor
         self.floor = floor
         self._s0 = None  # frame-0 window side, the lower bound when `floor`
         self.pad = pad
-        self.inner = Sam2Arm(checkpoint, size)
+        self.inner = Sam2Arm(checkpoint, image_size or size)
         self.coast, self.edge, self.lead = coast, edge, lead
         self.win = None   # (x, y, s) in full-frame coords; None means the full frame was fed
         self.last = None  # this frame's box, None if lost
@@ -1011,6 +1020,20 @@ for _sz in (512, 640, 704):
     arm(f"sam2_c{_sz}", family="sam2crop", ckpt="tiny", image_size=_sz, crop=_sz)(
         lambda sz=_sz: Sam2CropArm("facebook/sam2.1-hiera-tiny", sz)
     )
+
+# Window against input, the 2x2 that `c512` vs `c640` confounds. `c512` = (512, 512) and `c640` =
+# (640, 640) are the diagonal; these two are the off-diagonal, so the gap decomposes into context
+# (how much scene the window holds) and pixels (what the model is fed).
+#   `sam2_w640_i512`  more context, `c512`'s compute -- the direct test of nota 22 SS2 on person18,
+#                     where a 302 px target in a 512 window leaves ~105 px of margin and the arm
+#                     tracks the legs for 1393 frames.
+#   `sam2_w512_i640`  `c512`'s context, `c640`'s compute: the crop is upsampled 1.25x.
+arm("sam2_w640_i512", family="sam2crop", ckpt="tiny", image_size=512, crop=640)(
+    lambda: Sam2CropArm("facebook/sam2.1-hiera-tiny", 640, image_size=512)
+)
+arm("sam2_w512_i640", family="sam2crop", ckpt="tiny", image_size=640, crop=512)(
+    lambda: Sam2CropArm("facebook/sam2.1-hiera-tiny", 512, image_size=640)
+)
 
 # Recovery heuristics, one per arm and only on 640 -- the best crop arm, so `sam2_c640` is the
 # control and a difference is attributable to the one flag that changed. Combining them is only
