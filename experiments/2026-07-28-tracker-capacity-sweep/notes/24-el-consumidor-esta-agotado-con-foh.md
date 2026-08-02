@@ -2,7 +2,7 @@
 
 Parte de [`../README.md`](../README.md).
 
-**Cuándo:** 2026-08-03T03:25Z -> 04:00Z (hora local de Madrid).
+**Cuándo:** 2026-08-03T03:25Z -> 04:20Z (hora local de Madrid).
 **Coste:** 0 h de dispositivo — reglas de consumidor sobre las cajas ya commiteadas.
 **Datos:** `raw/paced-sweep-30/`, `raw/paced-lead-30/`
 **Código:** `analysis/consumer.py` (commit de esta nota).
@@ -23,6 +23,7 @@ Cinco reglas, todas estrictamente causales (solo respuestas ya aterrizadas):
 | `foh` | avanza a la velocidad de las dos últimas respuestas (`aggregate.extrapolate`) |
 | `foh3`, `foh5` | igual, con la velocidad promediada sobre 3 y 5 huecos |
 | `fohs` | `foh` más el **tamaño** avanzado al mismo ritmo, no solo el centro |
+| `acc` | aceleración constante: la parábola por los tres últimos centros, evaluada en `j` |
 | `techo` | la misma caja puntuada contra `GT(i)`. **No es una regla**, es la cota |
 
 `analysis/consumer.py --selftest` fija que `coast(k=2)` es exactamente `aggregate.extrapolate`, para
@@ -46,6 +47,7 @@ mIoU medio sobre 25 clips, pausado a 30 fps, `sam2_c512`. `% del techo` es la fr
 | `foh3` | 0.562 | +0.100 | 21/25 | 1.0e−05 | 52% |
 | `foh5` | 0.553 | +0.091 | 21/25 | 3.3e−06 | 47% |
 | `fohs` | 0.543 | +0.080 | 19/25 | 9.1e−04 | 42% |
+| `acc` | 0.482 | +0.020 | 13/25 | 2.6e−01 | **10%** |
 | `techo` | 0.654 | +0.192 | 24/25 | 1.8e−07 | 100% |
 
 **FOH ya está en el codo.** Promediar la velocidad sobre tres huecos añade +0.003 (dentro del ruido
@@ -53,9 +55,16 @@ de estos n) y sobre cinco resta; extrapolar además el tamaño resta 0.017. `c64
 (`foh` 45% del techo, `foh3` 44%, `fohs` 38%) y `c512_lead` también (48%, 50%, 40%). Tres brazos,
 mismo codo.
 
-Esto es un **nulo acotado, no una imposibilidad**: dice que las variantes obvias de la extrapolación
-lineal no compran la segunda mitad, no que la segunda mitad sea inalcanzable. Un predictor con
-modelo de movimiento (Kalman con aceleración, o el propio seguidor prediciendo) queda sin probar.
+Y subir el orden **empeora mucho**: `acc` (aceleración constante, que es lo que un Kalman con modelo
+de aceleración hace en el límite sin ruido y en régimen) se queda en el 10% del techo y ni siquiera
+es significativo (p=0.26; en `c640`, 15% y p=0.08). Ajustar una parábola a tres centros medidos con
+ruido amplifica el ruido más de lo que gana en curvatura, sobre un horizonte de 5 fotogramas.
+
+Junto con `foh3`/`foh5`, que mueven el estimador de velocidad en la otra dirección y tampoco compran
+nada, el cuadro es consistente: **el cuello de botella no es el orden del estimador, es que el
+movimiento no es predecible a ese horizonte**. Esto es un **nulo acotado, no una imposibilidad** —
+un Kalman con ruido de proceso ajustado por clip, o el propio seguidor prediciendo, siguen sin
+probarse — pero la familia obvia de arreglos de consumidor está barrida en las dos direcciones.
 
 ## 3. El efecto secundario: la ordenación pausada depende del consumidor
 
@@ -94,6 +103,7 @@ pareja seguidor + consumidor.* "512 gana pausado" es cierto **para el consumidor
 aritmética sobre cajas ya en disco. Si alguna de estas reglas se propusiera para despliegue, la
 verificación en píxeles sería obligatoria antes.
 
-No se midió: ningún predictor con modelo (Kalman, movimiento constante en aceleración); ni el efecto
+No se midió: un Kalman de verdad (con ruido de proceso y de medida ajustados, no el límite sin ruido
+que `acc` representa); ni el efecto
 de las reglas sobre un lazo de control real, que es donde el jitter que `foh5` suaviza podría
 importar más que el mIoU; ni si el cambio de signo del techo sobrevive a la rejilla de fps.

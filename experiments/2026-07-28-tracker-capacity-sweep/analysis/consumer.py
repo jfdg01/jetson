@@ -62,12 +62,42 @@ def coast(h: dict, k: int = 2, scale: bool = False) -> dict:
     return out
 
 
+def accel(h: dict) -> dict:
+    """Constant acceleration from the last three answers -- the "a Kalman would do better" rule.
+
+    A Kalman filter with a constant-acceleration model, in the noiseless limit and at steady state,
+    is this: fit the quadratic through the last three centres and evaluate it at the frame being
+    consumed. If this does not beat FOH, the bottleneck is that the motion is not predictable over
+    the lag horizon, not that the estimator is too crude -- and no amount of filter tuning moves it.
+    """
+    out, ans = {}, []
+    for j in sorted(h):
+        r = h[j]
+        if r and r.get("box") and (not ans or r is not ans[-1]):
+            ans.append(r)
+        if not r or not r.get("box"):
+            out[j] = r
+            continue
+        b, hist = list(r["box"]), ans[-3:]
+        if len(hist) == 3 and hist[0]["i"] < hist[1]["i"] < hist[2]["i"]:
+            xs = np.array([a["i"] for a in hist], dtype=float)
+            for c, axis in ((0, 0), (1, 1)):  # centre x, centre y; size stays frozen
+                ys = np.array([(a["box"][axis] + a["box"][axis + 2]) / 2 for a in hist])
+                p = np.polyfit(xs, ys, 2)
+                d = float(np.polyval(p, j) - ys[-1])
+                b[axis] += d
+                b[axis + 2] += d
+        out[j] = r | {"box": b}
+    return out
+
+
 RULES = {
     "zoh": lambda h: h,
     "foh": extrapolate,
     "foh3": lambda h: coast(h, 3),
     "foh5": lambda h: coast(h, 5),
     "fohs": lambda h: coast(h, 2, scale=True),
+    "acc": accel,
 }
 
 
