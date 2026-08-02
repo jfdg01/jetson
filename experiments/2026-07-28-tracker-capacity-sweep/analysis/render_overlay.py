@@ -107,6 +107,11 @@ def main() -> None:
     ap.add_argument("--frames", metavar="A:B",
                     help="1-based inclusive frame range, --seq only. A TLP clip is 20k frames, so "
                          "rendering it whole is 11 min of video nobody watches")
+    ap.add_argument("--stride", type=int, default=1, metavar="N",
+                    help="--seq only: keep one frame in N, covering the whole sequence instead of "
+                         "a window. Within each group of N it prefers an ABSENT frame, so a gap "
+                         "shorter than the stride still shows up rather than being skipped over")
+    ap.add_argument("--scale", type=int, metavar="W", help="resize the frame to W px wide")
     args = ap.parse_args()
 
     if args.seq:
@@ -131,7 +136,22 @@ def main() -> None:
         gt, frames = gt[off:b], frames[off:b]
         assert frames, f"{name}: empty range {args.frames} of {total} frames"
 
-    ious = np.array([iou(gt[i], rows.get(i, {}).get("box")) for i in range(len(frames))])
+    # `keep` is the absolute index of every frame that gets drawn. Everything downstream indexes
+    # through it, so stride never has to be special-cased again.
+    keep = list(range(off, off + len(frames)))
+    if args.stride > 1:
+        assert args.seq, "--stride only works with --seq"
+        sel = []
+        for s in range(0, len(keep), args.stride):
+            grp = range(s, min(s + args.stride, len(keep)))
+            # prefer an absent frame in the group: a 5-frame gap under stride 20 would otherwise
+            # vanish, and the gaps are the reason anyone watches these
+            sel.append(next((j for j in grp if gt[j] is None), s))
+        gt = [gt[j] for j in sel]
+        frames = [frames[j] for j in sel]
+        keep = [keep[j] for j in sel]
+
+    ious = np.array([iou(gt[i], rows.get(keep[i], {}).get("box")) for i in range(len(frames))])
     ok = ~np.isnan(ious)
     score = {"arm": meta["arm"], "seq": name, "frames": len(frames), "scored_frames": int(ok.sum())}
     if ok.any():
@@ -204,6 +224,12 @@ def main() -> None:
 
     if args.out:
         h, w = meta["h"], meta["w"]
+        sc = 1.0
+        if args.scale:
+            assert args.seq, "--scale only works with --seq (a crop panel is drawn in real pixels)"
+            sc = (args.scale & ~1) / w  # yuv420p wants even dims, and h follows below
+            w, h = args.scale & ~1, int(round(h * sc)) & ~1
+            gt = [None if g is None else [v * sc for v in g] for g in gt]
         # A crop arm records the window it sliced; the panel is drawn from that recorded value, not
         # re-derived here, so what the video shows cannot silently disagree with what the arm did.
         win = rows.get(1, {}).get("win") if rows else None
@@ -224,8 +250,10 @@ def main() -> None:
         crop = crop_box((w / 2, h / 2), args.crop, w, h) if args.crop else None
         for i, fp in enumerate(frames):
             raw = cv2.imread(str(fp))
+            if sc != 1.0:
+                raw = cv2.resize(raw, (w, h), interpolation=cv2.INTER_AREA)
             img = raw.copy()
-            g, r = gt[i], rows.get(i)
+            g, r = gt[i], rows.get(keep[i])
             annotate(img, g, r)
             if args.crop:
                 if g:  # GT gap: hold the last window rather than snapping it back to the centre
@@ -266,7 +294,7 @@ def main() -> None:
                 canvas[:ph, w:w + pw] = panel  # no border: it would paint over the input itself
                 img = canvas
 
-            parts = [meta["arm"], f"{name} {i + 1 + off}/{total}", "GT=verde"]
+            parts = [meta["arm"], f"{name} {keep[i] + 1}/{total}", "GT=verde"]
             if not rows and g is None:
                 # a GT-only render draws nothing on an absent frame, which looks exactly like a
                 # renderer that forgot to draw. On these datasets absence IS the subject, so it gets
@@ -284,9 +312,14 @@ def main() -> None:
                 parts.append(f"crop {crop[2] - crop[0]}px=naranja")
             # black pass first: white-on-white is unreadable wherever the footage has a caption of
             # its own, and a Billiards clip has a white scoreboard burned into exactly this strip
+            text = "  ".join(parts)
+            # shrink to fit rather than run off the edge: at --scale 640 the "AUSENTE" caption
+            # overflowed and lost the flag name it exists to state
+            fs = 0.7
+            while cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, fs, 2)[0][0] > cvw - 20 and fs > 0.3:
+                fs -= 0.05
             for colour, thick in (((0, 0, 0), 5), ((255, 255, 255), 2)):
-                cv2.putText(img, "  ".join(parts), (12, cvh - 16),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, colour, thick)
+                cv2.putText(img, text, (12, cvh - 16), cv2.FONT_HERSHEY_SIMPLEX, fs, colour, thick)
             if i == len(frames) // 2:  # mid-run still for visual verification, never frame 0
                 cv2.imwrite(str(mid), img)
             ff.stdin.write(img.tobytes())
