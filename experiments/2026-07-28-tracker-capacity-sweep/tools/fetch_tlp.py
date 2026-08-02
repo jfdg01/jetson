@@ -47,6 +47,7 @@ import sys
 import tarfile
 import time
 import urllib.request
+import zipfile
 from datetime import datetime
 from pathlib import Path
 
@@ -94,16 +95,19 @@ def entries() -> list[dict]:
 
 
 def valid_tar(path: Path) -> bool:
-    """gdown puede dejar el HTML de error de Drive con exit code 0. Solo cuenta un tar
-    que se abre y lista."""
+    """Un descargador puede dejar el HTML de error de Drive con exit code 0. Solo cuenta un
+    archivo que se abre y lista. V2 son `.tar`, el respaldo V1 son `.zip`."""
     if not path.exists() or path.stat().st_size < 1024:
         return False
     try:
+        if path.suffix == ".zip":
+            with zipfile.ZipFile(path) as zf:
+                return bool(zf.namelist())
         if not tarfile.is_tarfile(path):
             return False
         with tarfile.open(path) as tf:
             return bool(tf.getnames())
-    except (tarfile.TarError, OSError):
+    except (tarfile.TarError, zipfile.BadZipFile, OSError):
         return False
 
 
@@ -117,9 +121,14 @@ def extract(tar: Path, name: str) -> bool:
         shutil.rmtree(tmp, ignore_errors=True)
     tmp.mkdir(parents=True)
     try:
-        with tarfile.open(tar) as tf:
-            tf.extractall(tmp)
-    except (tarfile.TarError, OSError) as exc:
+        if tar.suffix == ".zip":
+            with zipfile.ZipFile(tar) as zf:
+                # los zip de V1 vienen de un Mac: __MACOSX/ son forks de recurso, no frames
+                zf.extractall(tmp, [n for n in zf.namelist() if not n.startswith("__MACOSX")])
+        else:
+            with tarfile.open(tar) as tf:
+                tf.extractall(tmp)
+    except (tarfile.TarError, zipfile.BadZipFile, OSError) as exc:
         log(f"    extraccion fallida ({exc}); se descarta el tar")
         shutil.rmtree(tmp, ignore_errors=True)
         tar.unlink(missing_ok=True)
@@ -163,6 +172,14 @@ def download(fid: str, out: Path) -> str:
     Boxing2, ISS, Parakeet, PolarBear2, Puppies2), que es el mismo valor topado. Se aborta antes
     de transferir: reintentarlas cuesta 4 GiB por secuencia y por pasada, y no hay pasada que las
     arregle.
+
+    **Respaldo en V1 para esas siete.** TLP tiene dos publicaciones: V2 (87.2 GB, la que se pide
+    aqui) y V1 (39 GB), *misma resolucion* y JPEG mas comprimido. Ninguna secuencia de V1 pasa de
+    1.8 GB, asi que ninguna topa. Verificado sobre Basketball el 2026-08-02: V1 trae los 17970
+    frames a 1280x720 con un `groundtruth_rect.txt` **identico** al de V2, y la caja del frame
+    17951 cae sobre el jugador (comprobado dibujandola). Lo unico que se pierde es calidad de
+    compresion: 25.8 dB de PSNR entre V1 y V2 en ese frame, 105 KB contra 305 KB. Los
+    `fallback_url` / `fallback_path` del JSON son zips de V1 y solo se usan al topar.
     """
     part = out.with_suffix(out.suffix + ".part")
 
@@ -223,8 +240,16 @@ def fetch(item: dict) -> str:
         if res == "quota":
             return "quota"
         if res == "tope32":
-            log(f"    {name}: > 4 GiB, el servidor topa en 2**32-1 B; no hay descarga posible")
-            return "tope"
+            if not item.get("fallback_url"):
+                log(f"    {name}: > 4 GiB, el servidor topa en 2**32-1 B; sin respaldo V1")
+                return "tope"
+            log(f"    {name}: V2 topada a 4 GiB, se cae al zip de V1")
+            tar = DEST / item["fallback_path"]
+            tar.unlink(missing_ok=True)
+            try:
+                res = download(item["fallback_url"].split("id=")[-1], tar)
+            except Exception as exc:
+                res = f"error:{type(exc).__name__}: {exc}"
         if res.startswith("corta:"):
             got, total = (int(x) for x in res.split(":")[1].split("/"))
             log(f"    {name}: cortada en {got / total:.0%} ({got / 1e6:.0f}/{total / 1e6:.0f} MB), se reanuda")

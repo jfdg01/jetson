@@ -58,37 +58,43 @@ se ejecutan.
   .venv-ft/bin/python experiments/2026-07-28-tracker-capacity-sweep/tools/fetch_tlp.py --status
   ```
 
-  Relanzado 2026-08-02T17:23Z (Madrid), log en `data/TLP/_fetch.log`. Se para solo al
+  Relanzado 2026-08-02T19:45Z (Madrid), log en `data/TLP/_fetch.log`. Se para solo al
   completar las 50 o si el disco baja de 15 GB. **No sobrevive a un reinicio de la máquina**;
   si la sesión tmux no está, relanzar con
   `tmux new-session -d -s tlp -c <dir del experimento> '../../.venv-ft/bin/python tools/fetch_tlp.py --daemon'`.
 
-  **El techo es 43 de 50, no 50.** Siete secuencias pasan de 4 GiB y `drive.usercontent` las
-  topa: anuncia `Content-Length: 4294967295` = 2^32-1 y sirve exactamente esos bytes; pedir el
-  byte 4294967295 da **416**, o sea que el servidor cree que el fichero mide eso. No es un corte
-  de red — un tar mide siempre múltiplo de 512 y 2^32-1 es impar, así que lo servido no puede
-  ser un tar entero nunca. Afectadas, todas mostradas como "4.0G" en la página de aviso:
-  **Basketball, Boxing1, Boxing2, ISS, Parakeet, PolarBear2, Puppies2**. `fetch_tlp.py` las
-  aborta antes de transferir (reintentarlas costaba 4 GiB por secuencia y por pasada) y el
-  demonio se para con `COMPLETO PARCIAL` cuando solo quedan esas.
+  **Siete secuencias pasan de 4 GiB en V2 y `drive.usercontent` las topa**: anuncia
+  `Content-Length: 4294967295` = 2^32-1 y sirve exactamente esos bytes; pedir el byte
+  4294967295 da **416**, o sea que el servidor cree que el fichero mide eso. No es un corte de
+  red — un tar mide siempre múltiplo de 512 y 2^32-1 es impar, así que lo servido no puede ser
+  un tar entero nunca. Confirmado además desde dentro del archivo: el GT de `Basketball` lista
+  17970 frames y solo llegan 16156 jpg. Afectadas, todas mostradas como "4.0G" en la página de
+  aviso: **Basketball, Boxing1, Boxing2, ISS, Parakeet, PolarBear2, Puppies2**.
+
+  **Resuelto con TLP V1** (2026-08-02). Los autores publican dos versiones: V2 (87.2 GB, la que
+  apuntaba `tlp_files.json`) y V1 (39 GB, "the resolution is still the same but images are much
+  sharper and have higher quality" según su gist). Las secuencias de V1 son `.zip` de 1.6-1.8 GB,
+  muy por debajo del tope. `fetch_tlp.py` detecta el tope en la cabecera, **aborta antes de
+  transferir** (reintentar costaba 4 GiB por secuencia y por pasada) y cae al `fallback_url` de
+  V1; `valid_tar()` y `extract()` aceptan las dos formas y descartan `__MACOSX/`.
+
+  Verificado sobre `Basketball` V1 bajado entero (1728371635 B): 17970 jpg a 1280x720, GT
+  idéntico al de V2 byte a byte, PSNR V1 contra V2 25.8 dB con jpg de 105 KB frente a 305 KB.
+  O sea, misma geometría y mismas etiquetas, más compresión. **Verificación visual hecha**: caja
+  del frame 17951 (x=287,y=349,w=28,h=70) recortada y mirada, cae sobre el jugador.
+  Consecuencia para la tesis: las siete van a entrar con calidad de imagen distinta al resto, y
+  eso hay que decirlo en cualquier tabla que las mezcle.
+
+  Descartado: usar lo truncado. El orden de los miembros del tar no es alfabético, así que los
+  1814 frames que faltan están **repartidos**, no en la cola — no se puede recortar el GT a un
+  prefijo. `Basketball.tar.bad` borrado.
 
   Al revisar, tres desenlaces:
-  - **43/50 y `COMPLETO PARCIAL`**: es el final bueno. Decidir qué hacer con las siete (abajo)
-    y registrar el dataset en `SOURCES.md`.
-  - **Parcial por debajo de 43**: cada tar es un clip completo, así que lo bajado sirve tal cual.
-    Dejar el demonio a por el resto; reanuda por `Range` los `.part` a medias.
+  - **50/50 y `COMPLETO`**: el final bueno. Registrar el dataset en `SOURCES.md`.
+  - **Parcial**: cada tar/zip es un clip completo, así que lo bajado sirve tal cual. Dejar el
+    demonio a por el resto; reanuda por `Range` los `.part` a medias.
   - **Atascado otra vez en cuota**: es un racionamiento intermitente, no un bloqueo. Dejarlo
     corriendo, no hay nada que arreglar.
-
-  Opciones para las siete topadas, ninguna ejecutada (decide el autor):
-  1. **Prescindir de ellas.** 43 secuencias con etiqueta de ausencia por frame siguen siendo
-     mucho más de lo que da UAV123. Lo barato.
-  2. **Usar lo truncado.** `Basketball.tar.bad` (4.29 GB) abre en streaming y suelta 16159
-     miembros antes de `unexpected end of data`, con `groundtruth_rect.txt` **entero** (399580 B)
-     porque va el primero en el tar. Sería una secuencia recortada: hay que cortar el GT a los
-     frames presentes y documentarla como truncada. Los 4.29 GB están en disco; borrarlos si se
-     elige (1).
-  3. **Otra vía de descarga** (API de Drive con clave, espejo de los autores). Sin explorar.
 
   Formato del GT, verificado sobre `Alladin` (8992 frames, 8992 líneas): seis columnas
   `frame,x,y,w,h,ausente`. **La sexta columna es la etiqueta de ausencia por frame** que pide
