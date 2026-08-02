@@ -38,6 +38,7 @@ Uso:
 from __future__ import annotations
 
 import argparse
+import concurrent.futures as cf
 import json
 import os
 import re
@@ -71,6 +72,7 @@ CAP32 = 2**32 - 1  # tope de tamano de drive.usercontent, ver download()
 
 PASS_SLEEP = 300  # entre pasadas completas
 ITEM_SLEEP = 10  # entre ficheros dentro de una pasada, para no martillear Drive
+JOBS = 3  # descargas en vuelo, ver one_pass()
 MIN_FREE_GB = 15  # por debajo de esto se para: TLP full son ~87 GB
 
 
@@ -272,20 +274,28 @@ def fetch(item: dict) -> str:
     return "done"
 
 
-def one_pass(items: list[dict]) -> dict:
-    tally = {"done": 0, "quota": 0, "parcial": 0, "tope": 0, "error": 0, "skip": 0}
+def one_pass(items: list[dict], jobs: int = JOBS) -> dict:
+    tally = {"done": 0, "quota": 0, "parcial": 0, "tope": 0, "error": 0, "skip": 0, "halt": 0}
     pending = [it for it in items if not is_done(it)]
     log(f"pasada: {len(items) - len(pending)}/{len(items)} ya estan, {len(pending)} pendientes")
 
-    for it in pending:
-        if free_gb() < MIN_FREE_GB:
-            log(f"PARADA: quedan {free_gb():.0f} GB libres (< {MIN_FREE_GB})")
-            tally["halt"] = True
-            return tally
+    def guarded(it: dict) -> str:
+        # el disco se comparte entre los N en vuelo, asi que se mira por descarga, no por pasada
+        if free_gb() < MIN_FREE_GB * jobs:  # `jobs` descargas comparten el disco
+            return "halt"
         res = fetch(it)
-        tally[res] += 1
         if res != "done":
+            # con `jobs` hilos esto acota el ritmo a jobs peticiones por ITEM_SLEEP, que es lo
+            # que la version secuencial conseguia con un sleep por item
             time.sleep(ITEM_SLEEP)
+        return res
+
+    with cf.ThreadPoolExecutor(jobs) as ex:
+        for res in ex.map(guarded, pending):
+            tally[res] += 1
+    if tally["halt"]:
+        log(f"PARADA: quedan {free_gb():.0f} GB libres (< {MIN_FREE_GB}), "
+            f"{tally['halt']} descargas sin intentar")
 
     STATUS.write_text(
         json.dumps(
@@ -326,6 +336,7 @@ def main() -> None:
     ap.add_argument("--once", action="store_true", help="una pasada y salir")
     ap.add_argument("--status", action="store_true")
     ap.add_argument("--sleep", type=int, default=PASS_SLEEP)
+    ap.add_argument("--jobs", type=int, default=JOBS, help="descargas en vuelo")
     args = ap.parse_args()
 
     items = entries()
@@ -351,7 +362,7 @@ def main() -> None:
         while True:
             n += 1
             log(f"--- pasada {n} ---")
-            tally = one_pass(items)
+            tally = one_pass(items, args.jobs)
             log(f"    resultado: {tally}")
             if tally.get("halt"):
                 break
