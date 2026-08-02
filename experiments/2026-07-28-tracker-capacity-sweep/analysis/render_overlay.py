@@ -104,6 +104,9 @@ def main() -> None:
     ap.add_argument("--out", help="mp4 path; omit to score without rendering")
     ap.add_argument("--crop", type=int, metavar="N",
                     help="also draw the NxN crop window centred on GT (crop mode preview)")
+    ap.add_argument("--frames", metavar="A:B",
+                    help="1-based inclusive frame range, --seq only. A TLP clip is 20k frames, so "
+                         "rendering it whole is 11 min of video nobody watches")
     args = ap.parse_args()
 
     if args.seq:
@@ -118,6 +121,15 @@ def main() -> None:
     gt = data.boxes(name)
     frames = data.frame_paths(name)
     assert len(gt) == len(frames), f"{name}: {len(gt)} anno vs {len(frames)} frames"
+
+    total, off = len(frames), 0
+    if args.frames:
+        # a result json indexes its rows by absolute frame, so slicing would silently mis-pair them
+        assert args.seq, "--frames only works with --seq"
+        a, b = (int(v) for v in args.frames.split(":"))
+        off = a - 1
+        gt, frames = gt[off:b], frames[off:b]
+        assert frames, f"{name}: empty range {args.frames} of {total} frames"
 
     ious = np.array([iou(gt[i], rows.get(i, {}).get("box")) for i in range(len(frames))])
     ok = ~np.isnan(ious)
@@ -254,7 +266,13 @@ def main() -> None:
                 canvas[:ph, w:w + pw] = panel  # no border: it would paint over the input itself
                 img = canvas
 
-            parts = [meta["arm"], f"{name} {i + 1}/{len(frames)}", "GT=verde"]
+            parts = [meta["arm"], f"{name} {i + 1 + off}/{total}", "GT=verde"]
+            if not rows and g is None:
+                # a GT-only render draws nothing on an absent frame, which looks exactly like a
+                # renderer that forgot to draw. On these datasets absence IS the subject, so it gets
+                # a border rather than being left to the caption alone.
+                cv2.rectangle(img, (1, 1), (w - 2, h - 2), (0, 0, 220), 6)
+                parts.append("AUSENTE (isLost=1)")
             if rows:
                 parts += [f"{hz:.1f} Hz", "pred=azul",
                           "LOST" if not (r and r.get("box")) else f"IoU {ious[i]:.2f}"]
@@ -264,8 +282,11 @@ def main() -> None:
                              f"(derecha)")
             elif args.crop:
                 parts.append(f"crop {crop[2] - crop[0]}px=naranja")
-            cv2.putText(img, "  ".join(parts), (12, cvh - 16),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            # black pass first: white-on-white is unreadable wherever the footage has a caption of
+            # its own, and a Billiards clip has a white scoreboard burned into exactly this strip
+            for colour, thick in (((0, 0, 0), 5), ((255, 255, 255), 2)):
+                cv2.putText(img, "  ".join(parts), (12, cvh - 16),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, colour, thick)
             if i == len(frames) // 2:  # mid-run still for visual verification, never frame 0
                 cv2.imwrite(str(mid), img)
             ff.stdin.write(img.tobytes())
