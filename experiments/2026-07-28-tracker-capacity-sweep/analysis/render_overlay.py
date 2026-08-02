@@ -127,6 +127,15 @@ def main() -> None:
     frames = data.frame_paths(name)
     assert len(gt) == len(frames), f"{name}: {len(gt)} anno vs {len(frames)} frames"
 
+    paced = bool(meta.get("fps_stream"))
+    if paced:
+        # a paced run answers on a fraction of the frames; draw what the consumer HOLDS on the
+        # rest, because the stale box is what the follow loop is actually flying on. Imported here
+        # and not at the top: aggregate imports iou from this file.
+        from aggregate import held
+        lat_rows = list(rows.values())
+        rows = {i: r for i, r in held(res["rows"], meta["fps_stream"], len(gt)).items() if r}
+
     total, off = len(frames), 0
     if args.frames:
         # a result json indexes its rows by absolute frame, so slicing would silently mis-pair them
@@ -166,7 +175,9 @@ def main() -> None:
     # mean, not median: the burned-in rate should include the slow frames, since a tail stall is
     # exactly what a follow loop feels. meta["fps"] stays median-based so the tables do not move.
     if rows:
-        lat = [r["ms"] for r in rows.values() if not r.get("init")][meta["warmup_frames"]:]
+        # in paced mode `rows` holds duplicates, so the latency has to come off the processed rows
+        lat = [r["ms"] for r in (lat_rows if paced else rows.values())
+               if not r.get("init")][meta["warmup_frames"]:]
         hz = 1000 / (sum(lat) / len(lat))
         score["mean_hz"] = hz
 
@@ -184,7 +195,9 @@ def main() -> None:
     # frame as `factor * sqrt(w*h)` around the previous box, which is just as checkable once the
     # factor is known -- and checking it is what caught the round-vs-ceil drift in `AsymArm`.
     fac = arm_factor(meta["arm"])
-    if rows and rows.get(1, {}).get("win") and (fac or meta["arm"].startswith("sam2_")):
+    # paced runs are exempt: consecutive entries are the same held answer, so "the window follows
+    # the previous frame's box" is not even the right statement to check
+    if rows and not paced and rows.get(1, {}).get("win") and (fac or meta["arm"].startswith("sam2_")):
         n, checked = rows[1]["win"][2], 0
         for i in range(2, len(frames)):
             b, win = rows[i - 1]["box"], rows[i].get("win")
@@ -304,6 +317,9 @@ def main() -> None:
             if rows:
                 parts += [f"{hz:.1f} Hz", "pred=azul",
                           "LOST" if not (r and r.get("box")) else f"IoU {ious[i]:.2f}"]
+            if paced and r:
+                # how old the drawn box is, in frames -- the number the parity protocol hides
+                parts.append(f"caja de f{r['i'] + 1} (+{keep[i] - r['i']})")
             if win:
                 # the CURRENT frame's window, not frame 1's: on a target-scaled arm they differ
                 parts.append(f"entrada {(r['win'] if r and r.get('win') else win)[2]}px=naranja "

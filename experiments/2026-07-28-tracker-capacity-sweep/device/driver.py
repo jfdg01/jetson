@@ -62,10 +62,10 @@ def rails() -> dict[str, float]:
     return out
 
 
-def manifest(run_dir: Path, arms: list[str], seqs: list[str], seed: int) -> dict:
+def manifest(run_dir: Path, arms: list[str], seqs: list[str], seed: int, fps: float) -> dict:
     m = {
         "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "arms": arms, "seqs": seqs, "seed": seed,
+        "arms": arms, "seqs": seqs, "seed": seed, "fps_stream": fps or None,
         "nvpmodel": sh("nvpmodel -q"),
         "governor": sh("cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"),
         "nproc": sh("nproc"),
@@ -94,13 +94,14 @@ def main() -> None:
     ap.add_argument("--seqs", required=True)
     ap.add_argument("--data", required=True)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--fps", type=float, default=0.0, help="stream rate, see run_arm.py --fps")
     args = ap.parse_args()
 
     run_dir = Path(args.run_dir)
     run_dir.mkdir(parents=True, exist_ok=True)
     arms, seqs = args.arms.split(","), args.seqs.split(",")
 
-    m = manifest(run_dir, arms, seqs, args.seed)
+    m = manifest(run_dir, arms, seqs, args.seed, args.fps)
     print("manifest written;", m["nvpmodel"].replace("\n", " "), "| governor", m["governor"], flush=True)
     if m["big_procs"]:
         print(f"WARNING: processes >100 MB resident:\n{m['big_procs']}", flush=True)
@@ -130,7 +131,7 @@ def main() -> None:
         # every committed result was measured in. Default is this process's.
         p = subprocess.run(
             [trackers.REGISTRY[a].get("venv_python", PY), str(HERE / "run_arm.py"), "--arm", a,
-             "--seq-dir", f"{args.data}/{s}", "--out", str(out)],
+             "--seq-dir", f"{args.data}/{s}", "--out", str(out), "--fps", str(args.fps)],
         )
         if p.returncode:
             (run_dir / f"{a}__{s}.FAIL").write_text(f"rc={p.returncode}; traceback in driver.log\n")

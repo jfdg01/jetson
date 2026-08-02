@@ -47,22 +47,46 @@ def auc_ope(gt: list, rows: dict) -> float:
     return float((ious[:, None] > np.linspace(0, 1, 21)).mean(0).mean())
 
 
+def held(rows: list[dict], fps: float, n: int) -> dict:
+    """Zero-order hold: what the consumer has in hand on each frame of the stream.
+
+    A paced run (`run_arm.py --fps`) only answers on the frames it managed to process, and each
+    answer lands one latency AFTER the frame it looked at -- `t` is when it lands. Between two
+    answers the consumer holds the last box, which is what a follow loop actually flies on. So a
+    slow arm pays twice: fewer updates, and every update already stale on arrival. Frames before
+    the first answer hold nothing and score 0, same as a loss -- the loop has nothing to point at.
+    """
+    out, k = {}, 0
+    ev = sorted(rows, key=lambda r: r["t"])
+    for j in range(n):
+        while k < len(ev) and ev[k]["t"] <= j / fps:
+            k += 1
+        out[j] = ev[k - 1] if k else {}
+    return out
+
+
 def score_one(path: Path) -> dict:
     res = json.loads(path.read_text())
-    meta, rows = res["meta"], {r["i"]: r for r in res["rows"]}
+    meta = res["meta"]
     gt = data.boxes(meta["seq"])
+    fps = meta.get("fps_stream")
+    rows = held(res["rows"], fps, len(gt)) if fps else {r["i"]: r for r in res["rows"]}
     have = [(g, rows.get(i, {}).get("box")) for i, g in enumerate(gt) if g is not None]
     ious = np.array([0.0 if p is None else iou(g, p) for g, p in have])
     gap = len(gt) - len(have)
     # a gap frame the arm answered anyway is a false positive: nothing was there to find
     fp = sum(1 for i, g in enumerate(gt) if g is None and rows.get(i, {}).get("box"))
     return {
-        "arm": meta["arm"], "seq": meta["seq"], "frames": meta["frames"],
+        # `frames` is the stream, `proc` what the arm actually looked at; they differ only in paced
+        # mode, and their ratio IS the drop rate, so lost% stays comparable across both modes
+        "arm": meta["arm"], "seq": meta["seq"], "frames": len(gt), "proc": meta["frames"],
+        "fps_stream": fps or 0,
         "gt_frames": len(have), "gap_frames": gap, "gap_false_pos": fp,
         "auc": auc_ope(gt, rows),
         "mean_iou": float(ious.mean()), "iou@0.25": float((ious >= 0.25).mean()),
         "iou@0.5": float((ious >= 0.5).mean()),
-        "lost": meta["lost_frames"], "ms_p50": meta["ms_p50"],
+        "lost": sum(1 for j in range(len(gt)) if rows.get(j, {}).get("box") is None),
+        "ms_p50": meta["ms_p50"],
     }
 
 
@@ -112,14 +136,16 @@ def main() -> None:
     arms = sorted({r["arm"] for r in per}, key=key)
 
     print(f"{len(per)} results, {len({r['seq'] for r in per})} sequences\n")
-    print(f"{'arm':11s} {'n':>3s} {'p50':>8s} {'mIoU':>7s} {'@0.25':>7s} {'@0.5':>7s} "
+    print(f"{'arm':11s} {'n':>3s} {'p50':>8s} {'visto%':>7s} {'mIoU':>7s} {'@0.25':>7s} {'@0.5':>7s} "
           f"{'lost%':>7s} {'FP hueco':>9s} {'AUC':>7s}")
     for a in arms:
         g = [r for r in per if r["arm"] == a]
         m = lambda k: np.median([r[k] for r in g])  # noqa: E731
         lost = np.median([r["lost"] / r["frames"] for r in g])
-        print(f"{a:11s} {len(g):3d} {m('ms_p50'):7.1f}m {m('mean_iou'):7.3f} {m('iou@0.25'):7.3f} "
-              f"{m('iou@0.5'):7.3f} {lost * 100:6.1f}% {int(sum(r['gap_false_pos'] for r in g)):9d} "
+        seen = np.median([r["proc"] / r["frames"] for r in g])  # 100% unless the run was paced
+        print(f"{a:11s} {len(g):3d} {m('ms_p50'):7.1f}m {seen * 100:6.1f}% {m('mean_iou'):7.3f} "
+              f"{m('iou@0.25'):7.3f} {m('iou@0.5'):7.3f} {lost * 100:6.1f}% "
+              f"{int(sum(r['gap_false_pos'] for r in g)):9d} "
               f"{np.mean([r['auc'] for r in g]) * 100:7.1f}")
     # AUC is the odd column out: MEAN over sequences, not median, because that is what the OPE
     # toolkits report and the only way our number is comparable to a published one. Every other

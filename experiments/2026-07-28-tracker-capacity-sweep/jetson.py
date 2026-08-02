@@ -112,7 +112,7 @@ def cmd_run(args) -> None:
     sh(f"mkdir -p {rd}")
     arms, seqs = ",".join(args.arms), ",".join(args.seqs)
     launch = (f"cd {ROOT} && setsid nohup {PY} code/driver.py --run-dir {rd} "
-              f"--arms {arms} --seqs {seqs} --data {ROOT}/data "
+              f"--arms {arms} --seqs {seqs} --data {ROOT}/data --fps {args.fps} "
               f"> {rd}/driver.log 2>&1 < /dev/null &")
     sh(launch)
     print(f"run-id {run_id}\n  ./jetson.py status {run_id}\n  ./jetson.py fetch {run_id}")
@@ -148,6 +148,9 @@ def main() -> None:
     p.add_argument("--arms", nargs="+", required=True)
     p.add_argument("--seqs", nargs="+", required=True)
     p.add_argument("--id")
+    p.add_argument("--fps", type=float, default=0.0,
+                   help="paced mode: the arm only gets the frame that is live when it finishes the "
+                        "previous one. 0 = every frame, the unbounded-compute upper bound")
     p.set_defaults(fn=cmd_run)
     p = sub.add_parser("status"); p.add_argument("id"); p.add_argument("--lines", type=int, default=15)
     p.set_defaults(fn=cmd_status)
