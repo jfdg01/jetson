@@ -1,4 +1,47 @@
-# proof — TLP, estructura de ausencia
+# proof
+
+Dos grupos, sin relacion entre si: los clips de **ZOH contra FOH** (notas 19 y 20) y los
+clips de **estructura de ausencia de TLP**. Los segundos son solo GT, sin ningun brazo corrido.
+
+## ZOH contra FOH — `foh__<seq>.mp4`
+
+```
+analysis/render_foh.py raw/paced-sweep-30/sam2_c512__truck2.json --zoom 320 --out proof/foh__truck2.mp4
+analysis/render_foh.py raw/paced-sweep-30/sam2_c512__boat3.json               --out proof/foh__boat3.mp4
+```
+
+La verificacion visual que las notas 19 y 20 declaraban pendiente. Tres cajas por fotograma sobre
+una corrida pausada (`sam2_c512`, `--fps 30`): **verde** GT, **rojo** ZOH (la ultima respuesta,
+congelada hasta que llega la siguiente), **azul** FOH (la misma respuesta navegada con su propia
+velocidad). El pie dice si el fotograma es `RESPUESTA` o `retenido`, y el IoU de cada una.
+
+| Clip | Fotogramas | Respuestas | ZOH | FOH | delta |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `foh__truck2.mp4` | 385 | 130 | 0.413 | 0.671 | **+0.258** |
+| `foh__boat3.mp4` | 901 | 297 | 0.920 | 0.900 | −0.020 |
+
+Cuidado con la nota 19, que da **+0.376** para `truck2`: ese numero es la media sobre los seis
+brazos. `sam2_c512` a solas da +0.258. Los dos son correctos, miden cosas distintas.
+
+**`truck2`** es el caso que gana, con `--zoom 320` porque el camion son ~40 px en 1280 y a fotograma
+completo las tres cajas se solapan en 30 px de pantalla. En `.mid.png` (f193, retenido) se ve la
+geometria entera: el camion baja por la avenida hacia la izquierda, **rojo se ha quedado a la
+derecha** — es donde el camion estaba cuando llego la ultima respuesta — y **azul se ha adelantado
+hacia la izquierda**, encima del verde. 0.63 contra 0.75 en ese fotograma.
+
+**`boat3`** es el caso que pierde, a fotograma completo porque el objetivo es grande. En `.mid.png`
+(f451) las tres cajas son practicamente la misma, 0.99 contra 0.97. Es la forma de la perdida: la
+lancha va casi quieta en el encuadre, ZOH ya esta en 0.920 y lo unico que FOH puede hacer es
+inventarle movimiento que no tiene. Pierde 0.020, no se rompe.
+
+El guardarraíl del render esta en el propio script: si mas de la mitad de los fotogramas salen
+identicos byte a byte, aborta en vez de escribir un feed muerto de 900 fotogramas.
+
+No cubierto: `person18` (cambio brusco de direccion) ni `bird1_*` (caja ya perdida), los otros dos
+modos de perdida que la nota 19 §4 identifica. Y ningun clip de `lead` — la nota 20 es un nulo y no
+hay nada que ver.
+
+## TLP, estructura de ausencia
 
 Parte de [`../README.md`](../README.md). Renderizado 2026-08-02T19:10Z (Madrid) sobre las 18
 secuencias de TLP que ya estaban en disco (van 50).

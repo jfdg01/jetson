@@ -153,8 +153,9 @@ la caja *entregada*, y eso lo coge FOH gratis.
 
 ## 8. Qué no se midió
 
-**Sin verificación visual de esta tanda.** Ninguna superposición abierta, ningún fotograma leído.
-El veredicto es de JSON contra JSON.
+**Sin verificación visual de esta tanda.** Ninguna superposición de `lead` abierta, ningún fotograma
+suyo leído. El veredicto es de JSON contra JSON, y así se queda: un nulo no tiene nada que enseñar
+en pantalla. Lo que sí se verificó ese día fue FOH contra ZOH — ver §9.
 
 Tampoco se midió: `lead` sobre otras resoluciones (solo 512, elegido porque es el mejor brazo de
 recorte bajo el protocolo pausado según la nota 19); `lead` a fps más bajos, donde el intervalo de
@@ -169,5 +170,8 @@ escribe nada en el banco de memoria. `lead` costó una tanda entera para un nulo
 registrado (`sam2_c512_lead`) porque el veredicto está acotado al régimen y la pregunta reabre sola
 en cuanto baje el fps.
 
-Pendiente heredado de la nota 19 §8: la verificación visual de ZOH contra FOH sobre `truck2`
-(+0.376) y `boat3` (pierde) sigue sin hacerse.
+Pendiente heredado de la nota 19 §8, **cerrado el mismo día**: la verificación visual de ZOH contra
+FOH está en `proof/foh__truck2.mp4` y `proof/foh__boat3.mp4`, descritos en `proof/README.md`. En
+`truck2` se ve la geometría entera — rojo (ZOH) atrás, azul (FOH) adelantado sobre el verde. Sigue
+sin cubrirse `person18` (cambio de dirección) ni `bird1_*` (caja perdida). De `lead` no hay clip:
+un nulo no tiene nada que enseñar.

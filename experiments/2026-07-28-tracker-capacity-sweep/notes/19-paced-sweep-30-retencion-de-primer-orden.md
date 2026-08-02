@@ -127,8 +127,9 @@ retenciones — pero el margen que sostiene esa elección pasa de holgado a marg
 - **`--foh` es una hipótesis sobre el consumidor.** Si el sistema real no puede cambiar cómo
   sostiene la caja entre respuestas, toda la §4 es inaplicable y manda la §3. Esa pregunta sigue
   abierta y decide qué configuración es óptima.
-- **Sin verificación visual de esta tanda.** Ninguna caja de FOH se ha dibujado sobre un fotograma
-  y mirado. Todo lo de arriba es aritmética sobre JSON.
+- **Sin verificación visual de esta tanda** cuando se escribió. Cerrada el 2026-08-02 con
+  `proof/foh__truck2.mp4` y `proof/foh__boat3.mp4` (ver §7); el resto de la tabla sigue siendo
+  aritmética sobre JSON, y `person18` y `bird1_*` siguen sin dibujarse.
 
 ## 6. Lo que la tanda cierra de la nota 18
 
@@ -171,7 +172,8 @@ cualquier salto de resolución de la rejilla.** +0.069 de mediana pareada a cost
 llevar al sistema real de esta tanda, es esa, no un número de resolución.
 
 El contra honesto: es una mejora del **puntuador**, y solo vale si el consumidor real puede
-implementarla. Y no está verificada visualmente.
+implementarla. Y no está verificada visualmente. **Corregido el 2026-08-02:** ya lo está, en
+`proof/foh__truck2.mp4` (gana, +0.258 en `sam2_c512`) y `proof/foh__boat3.mp4` (pierde, −0.020).
 
 **Corregido por la [nota 20](20-lead-prediccion-en-la-entrada.md) §1.** Donde esta sección deja FOH
 como "mejora del puntuador" sin más, hay que leer la distinción completa: como medida de calidad del
