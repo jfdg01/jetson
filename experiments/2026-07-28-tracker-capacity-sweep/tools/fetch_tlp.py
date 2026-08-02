@@ -13,9 +13,21 @@ Diseño y por qué:
   se relanza a mano. Una instancia como mucho, garantizada por lockfile con el PID dentro.
 - **Idempotente.** Un tar ya extraido se salta; un tar a medias se borra y se reintenta. Se
   puede matar y relanzar en cualquier momento sin perder trabajo ni duplicarlo.
-- **Verificacion antes de dar por buena una descarga.** gdown escribe felizmente el HTML de
-  la pagina de error de Drive con codigo de salida 0. Un fichero es valido solo si
-  `tarfile.is_tarfile` lo acepta y lista miembros.
+- **Verificacion antes de dar por buena una descarga.** Un descargador puede escribir
+  felizmente el HTML de la pagina de error de Drive y salir bien. Un fichero es valido solo
+  si `tarfile.is_tarfile` lo acepta y lista miembros.
+- **Sin gdown, urllib a pelo en dos pasos.** No porque gdown se equivoque — se comprobo
+  2026-08-02 que acierta — sino para quitar una dependencia opaca de en medio y poder
+  distinguir a que altura falla. Flujo real: `uc?export=download&id=` sirve *siempre* una
+  pagina de confirmacion ("Virus scan warning") con un `uuid` de un solo uso, y la descarga
+  esta en `drive.usercontent.google.com/download` con ese uuid. La cuota aparece en el
+  segundo paso, como HTML de 2009 bytes con status 200.
+
+  Medido el mismo dia, y es la trampa que casi cuela un falso positivo: una peticion con
+  `Range` *acotado* de <= 1 MB se sirve (206, application/octet-stream) aunque la cuota
+  este agotada; sin `Range`, con `Range: bytes=0-` abierto, o con un tramo de 4 MB, sale el
+  HTML de cuota. O sea que una sonda de "los primeros 4 KB llegan" **no** mide que el
+  fichero se pueda descargar. Por eso `download()` pide el fichero entero y no trocea.
 
 Uso:
     python tools/fetch_tlp.py --daemon          # bucle, reintento cada 5 min
@@ -28,12 +40,13 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import signal
-import subprocess
 import sys
 import tarfile
 import time
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 
@@ -41,7 +54,13 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
 LIST = HERE / "tlp_files.json"
 DEST = REPO / "data" / "TLP"
-GDOWN = REPO / ".venv-ft" / "bin" / "gdown"
+
+UA = "Mozilla/5.0"
+CONFIRM_URL = "https://drive.google.com/uc?export=download&id={fid}"
+DOWNLOAD_URL = (
+    "https://drive.usercontent.google.com/download"
+    "?id={fid}&export=download&confirm=t&uuid={uuid}"
+)
 
 LOG = DEST / "_fetch.log"
 LOCK = DEST / "_fetch.lock"
@@ -50,11 +69,6 @@ STATUS = DEST / "_fetch_status.json"
 PASS_SLEEP = 300  # entre pasadas completas
 ITEM_SLEEP = 10  # entre ficheros dentro de una pasada, para no martillear Drive
 MIN_FREE_GB = 15  # por debajo de esto se para: TLP full son ~87 GB
-QUOTA_MARKERS = (
-    "too many users have viewed or downloaded",
-    "quota exceeded",
-    "cannot retrieve the public link",
-)
 
 
 def log(msg: str) -> None:
@@ -119,6 +133,44 @@ def extract(tar: Path, name: str) -> bool:
     return True
 
 
+def _open(url: str, headers: dict | None = None, timeout: int = 60):
+    req = urllib.request.Request(url, headers={"User-Agent": UA, **(headers or {})})
+    return urllib.request.urlopen(req, timeout=timeout)
+
+
+def download(fid: str, out: Path) -> str:
+    """Descarga en dos pasos con reanudacion por Range. -> 'ok' | 'quota' | 'error:<que>'
+
+    El `.part` sobrevive entre pasadas a proposito: 529 MB cortados a la mitad se retoman
+    donde iban, no desde cero. El uuid es de un solo uso, asi que se pide uno nuevo en cada
+    intento aunque se reanude.
+    """
+    part = out.with_suffix(out.suffix + ".part")
+
+    with _open(CONFIRM_URL.format(fid=fid)) as r:
+        page = r.read(65536).decode("utf-8", "replace")
+    if "too many users have viewed" in page.lower():
+        return "quota"
+    m = re.search(r'name="uuid" value="([^"]+)"', page)
+    if not m:
+        return "error:sin pagina de confirmacion"
+
+    have = part.stat().st_size if part.exists() else 0
+    headers = {"Range": f"bytes={have}-"} if have else {}
+    with _open(DOWNLOAD_URL.format(fid=fid, uuid=m.group(1)), headers) as r:
+        ctype = r.headers.get("Content-Type", "")
+        if "text/html" in ctype:
+            head = r.read(8192).decode("utf-8", "replace").lower()
+            return "quota" if "too many users have viewed" in head else "error:html"
+        if have and r.status != 206:  # el servidor ignoro el Range: empezar de cero
+            have = 0
+        with part.open("ab" if have else "wb") as fh:
+            shutil.copyfileobj(r, fh, 1 << 20)
+
+    part.rename(out)
+    return "ok"
+
+
 def fetch(item: dict) -> str:
     """-> 'done' | 'quota' | 'error'"""
     name, fid = item["name"], item["id"]
@@ -126,18 +178,14 @@ def fetch(item: dict) -> str:
 
     if not valid_tar(tar):
         tar.unlink(missing_ok=True)
-        proc = subprocess.run(
-            [str(GDOWN), fid, "-O", str(tar), "--no-cookies"],
-            capture_output=True,
-            text=True,
-        )
-        blob = (proc.stdout + proc.stderr).lower()
-        if any(m in blob for m in QUOTA_MARKERS):
-            tar.unlink(missing_ok=True)
+        try:
+            res = download(fid, tar)
+        except Exception as exc:  # red, timeout, 5xx: se reintenta en la pasada siguiente
+            res = f"error:{type(exc).__name__}: {exc}"
+        if res == "quota":
             return "quota"
-        if not valid_tar(tar):
-            tail = (proc.stderr or proc.stdout).strip().splitlines()
-            log(f"    {name}: descarga invalida. {tail[-1] if tail else 'sin salida'}")
+        if res != "ok" or not valid_tar(tar):
+            log(f"    {name}: descarga invalida ({res})")
             tar.unlink(missing_ok=True)
             return "error"
 
