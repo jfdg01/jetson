@@ -63,16 +63,32 @@ se ejecutan.
   si la sesión tmux no está, relanzar con
   `tmux new-session -d -s tlp -c <dir del experimento> '../../.venv-ft/bin/python tools/fetch_tlp.py --daemon'`.
 
+  **El techo es 43 de 50, no 50.** Siete secuencias pasan de 4 GiB y `drive.usercontent` las
+  topa: anuncia `Content-Length: 4294967295` = 2^32-1 y sirve exactamente esos bytes; pedir el
+  byte 4294967295 da **416**, o sea que el servidor cree que el fichero mide eso. No es un corte
+  de red — un tar mide siempre múltiplo de 512 y 2^32-1 es impar, así que lo servido no puede
+  ser un tar entero nunca. Afectadas, todas mostradas como "4.0G" en la página de aviso:
+  **Basketball, Boxing1, Boxing2, ISS, Parakeet, PolarBear2, Puppies2**. `fetch_tlp.py` las
+  aborta antes de transferir (reintentarlas costaba 4 GiB por secuencia y por pasada) y el
+  demonio se para con `COMPLETO PARCIAL` cuando solo quedan esas.
+
   Al revisar, tres desenlaces:
-  - **50/50**: matar el demonio y registrar el dataset en `SOURCES.md`. Es lo esperable si la
-    cuota aguanta: 87 GB a ~40 MB/s son ~40 min de transferencia.
-  - **Parcial**: cada tar es un clip completo, así que lo bajado sirve tal cual. Dejar el
-    demonio a por el resto; reanuda por `Range` los `.part` a medias.
+  - **43/50 y `COMPLETO PARCIAL`**: es el final bueno. Decidir qué hacer con las siete (abajo)
+    y registrar el dataset en `SOURCES.md`.
+  - **Parcial por debajo de 43**: cada tar es un clip completo, así que lo bajado sirve tal cual.
+    Dejar el demonio a por el resto; reanuda por `Range` los `.part` a medias.
   - **Atascado otra vez en cuota**: es un racionamiento intermitente, no un bloqueo. Dejarlo
     corriendo, no hay nada que arreglar.
 
-  Comprobar además que no haya `*.tar.bad` en `data/TLP/`: es un tar que llegó entero según el
-  servidor pero que `tarfile` rechaza. Se aparta en vez de borrarse y **no se reintenta solo**.
+  Opciones para las siete topadas, ninguna ejecutada (decide el autor):
+  1. **Prescindir de ellas.** 43 secuencias con etiqueta de ausencia por frame siguen siendo
+     mucho más de lo que da UAV123. Lo barato.
+  2. **Usar lo truncado.** `Basketball.tar.bad` (4.29 GB) abre en streaming y suelta 16159
+     miembros antes de `unexpected end of data`, con `groundtruth_rect.txt` **entero** (399580 B)
+     porque va el primero en el tar. Sería una secuencia recortada: hay que cortar el GT a los
+     frames presentes y documentarla como truncada. Los 4.29 GB están en disco; borrarlos si se
+     elige (1).
+  3. **Otra vía de descarga** (API de Drive con clave, espejo de los autores). Sin explorar.
 
   Formato del GT, verificado sobre `Alladin` (8992 frames, 8992 líneas): seis columnas
   `frame,x,y,w,h,ausente`. **La sexta columna es la etiqueta de ausencia por frame** que pide

@@ -66,6 +66,8 @@ LOG = DEST / "_fetch.log"
 LOCK = DEST / "_fetch.lock"
 STATUS = DEST / "_fetch_status.json"
 
+CAP32 = 2**32 - 1  # tope de tamano de drive.usercontent, ver download()
+
 PASS_SLEEP = 300  # entre pasadas completas
 ITEM_SLEEP = 10  # entre ficheros dentro de una pasada, para no martillear Drive
 MIN_FREE_GB = 15  # por debajo de esto se para: TLP full son ~87 GB
@@ -151,6 +153,16 @@ def download(fid: str, out: Path) -> str:
     renombrar un tar truncado, que fallara la validacion y **borrarlo**, tirando los bytes
     buenos y la posibilidad de reanudar. Ahora se compara lo escrito contra el tamano que
     anuncia el servidor y, si falta, el `.part` se queda donde esta.
+
+    **Tope de 4 GiB del servidor** (medido 2026-08-02T17:35Z sobre `Basketball.tar`). Para los
+    ficheros de mas de 4 GiB, `drive.usercontent` anuncia `Content-Length: 4294967295` = 2**32-1
+    y sirve exactamente esos bytes; pedir el byte 4294967295 devuelve **416**, o sea que el
+    servidor cree de verdad que el fichero mide eso. No es un corte de red: un tar siempre mide
+    multiplo de 512 y 2**32-1 es impar, asi que lo que llega no puede ser un tar entero jamas.
+    La pagina de aviso de Drive muestra "4.0G" para las siete afectadas (Basketball, Boxing1,
+    Boxing2, ISS, Parakeet, PolarBear2, Puppies2), que es el mismo valor topado. Se aborta antes
+    de transferir: reintentarlas cuesta 4 GiB por secuencia y por pasada, y no hay pasada que las
+    arregle.
     """
     part = out.with_suffix(out.suffix + ".part")
 
@@ -178,6 +190,9 @@ def download(fid: str, out: Path) -> str:
             total = int(cr.rsplit("/", 1)[1])
         elif (cl := r.headers.get("Content-Length", "")).isdigit():
             total = have + int(cl)
+        if total == CAP32:
+            # se corta aqui, sin transferir: bajar 4 GiB para tirarlos cuesta 4 GiB
+            return "tope32"
         with part.open("ab" if have else "wb") as fh:
             shutil.copyfileobj(r, fh, 1 << 20)
 
@@ -207,6 +222,9 @@ def fetch(item: dict) -> str:
             res = f"error:{type(exc).__name__}: {exc}"
         if res == "quota":
             return "quota"
+        if res == "tope32":
+            log(f"    {name}: > 4 GiB, el servidor topa en 2**32-1 B; no hay descarga posible")
+            return "tope"
         if res.startswith("corta:"):
             got, total = (int(x) for x in res.split(":")[1].split("/"))
             log(f"    {name}: cortada en {got / total:.0%} ({got / 1e6:.0f}/{total / 1e6:.0f} MB), se reanuda")
@@ -230,7 +248,7 @@ def fetch(item: dict) -> str:
 
 
 def one_pass(items: list[dict]) -> dict:
-    tally = {"done": 0, "quota": 0, "parcial": 0, "error": 0, "skip": 0}
+    tally = {"done": 0, "quota": 0, "parcial": 0, "tope": 0, "error": 0, "skip": 0}
     pending = [it for it in items if not is_done(it)]
     log(f"pasada: {len(items) - len(pending)}/{len(items)} ya estan, {len(pending)} pendientes")
 
@@ -314,6 +332,14 @@ def main() -> None:
                 break
             if all(is_done(it) for it in items):
                 log("COMPLETO: las 50 secuencias estan en data/TLP/")
+                break
+            # nada que ganar durmiendo si lo unico que queda son las topadas a 4 GiB
+            if tally["tope"] and not (tally["done"] or tally["parcial"] or tally["quota"] or tally["error"]):
+                log(
+                    f"COMPLETO PARCIAL: {sum(1 for it in items if is_done(it))}/{len(items)}. "
+                    f"Las {tally['tope']} restantes pasan de 4 GiB y el servidor las topa; "
+                    "otra pasada no cambia nada. Ver TODO.md."
+                )
                 break
             if args.once:
                 break
