@@ -49,6 +49,36 @@ se ejecutan.
 - **TLP** (Track Long and Prosper): las 3 R (re-detección, recuperación, robustez) y las secuencias
   mutiladas. Es el dataset diseñado para lo que aquí se quiere medir; UAV123 solo tiene 2.38% de
   frames ausentes.
+
+  **REVISAR 2026-08-03.** Descarga bloqueada por cuota de Drive del propietario desde el
+  2026-08-01. Hay un demonio reintentando en tmux, sesión `tlp`:
+
+  ```
+  tmux attach -t tlp                                  # ver el bucle
+  .venv-ft/bin/python experiments/2026-07-28-tracker-capacity-sweep/tools/fetch_tlp.py --status
+  ```
+
+  Arrancado 2026-08-02T17:18Z (Madrid), pid 1125390, log en `data/TLP/_fetch.log`. Reintenta
+  las 50 secuencias cada ~14 min, se para solo al completarlas o si el disco baja de 15 GB.
+  **No sobrevive a un reinicio de la máquina**; si la sesión tmux no está, relanzar con
+  `tmux new-session -d -s tlp -c <dir del experimento> '../../.venv-ft/bin/python tools/fetch_tlp.py --daemon'`.
+
+  Al revisar, tres desenlaces y qué hacer con cada uno:
+  - **0/50 todavía** (13 pasadas hasta las 16:37 del día 2, ninguna secuencia): la cuota lleva
+    >24 h sin ceder, o sea que ya no es un pico pasajero. Abandonar TLP y tirar de LaSOT.
+  - **Parcial**: las secuencias bajadas sirven tal cual, cada tar es un clip completo. Dejar el
+    demonio a por el resto.
+  - **50/50**: matar el demonio y registrar el dataset en `SOURCES.md`.
+
+  Medido el 2026-08-02 y conviene no volver a tropezar: la cuota **no** depende de la IP —
+  sondeado desde 3090, jetson, garaserver y oracle (dos IP públicas, dos ASN), comportamiento
+  idéntico. Y una petición con `Range` acotado de <= 1 MB devuelve 206 con bytes reales aunque
+  la cuota esté agotada, así que "llegan los primeros KB" es un falso positivo: solo cuenta
+  pedir el fichero entero.
+
+  **Alternativa que no depende de esto:** LaSOT en HuggingFace (`l-lt/LaSOT`), sin cuota, por
+  categorías, y con `full_occlusion.txt` + `out_of_view.txt` — la separación oclusión contra
+  salida de frame que pide `notes/17-...` §6 y que TLP tampoco etiqueta.
 - **`dataset.txt` del tercil duro (37 clips)** para el barrido de ventana.
 
 ## Retrospectiva
