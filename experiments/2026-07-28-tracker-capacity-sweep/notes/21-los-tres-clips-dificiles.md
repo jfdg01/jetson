@@ -32,7 +32,8 @@ analysis/render_foh.py raw/paced-sweep-30/sam2_c512__bike2.json    --zoom 256 --
 
 Medianas sobre los fotogramas con GT y con caja retenida. Las tres filas son fallos **distintos**:
 
-- **`person18` es un fallo de escala, no de dirección.** En `.mid.png` (f697) se ve directamente: el
+- **`person18` es un fallo de escala, no de dirección.** [**Corregido por la nota 22:** el sujeto es
+  `sam2_c512`, no SAM2. Los otros cinco brazos siguen al señor entero, alto pred/GT 1.00.] En `.mid.png` (f697) se ve directamente: el
   GT verde cubre al señor entero, y la caja del seguidor cubre **solo los pantalones**. El ancho es
   correcto (0.91), el alto es la mitad (0.45). SAM2 segmenta las piernas y pierde el torso y el
   sombrero. Un mIoU de 0.238 con el objetivo perfectamente localizado y perfectamente encuadrado en
@@ -91,3 +92,6 @@ mirar.
 No se midió: si el fallo de escala de `person18` depende de la resolución del brazo (un `c704` que
 vea más contexto podría coger el torso); si `bird1_1` revienta desde el primer fotograma o degenera;
 ni si `bike2` se engancha a un objeto concreto o deriva al fondo.
+
+`person20` se cierra en la nota 22: `c512` lo hace bien (mIoU 0.750), así que la bolsa de la nota 19
+§4 que lo juntaba con `person18` no existe.

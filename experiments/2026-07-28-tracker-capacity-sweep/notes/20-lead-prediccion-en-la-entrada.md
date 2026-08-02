@@ -162,6 +162,11 @@ recorte bajo el protocolo pausado según la nota 19); `lead` a fps más bajos, d
 descarte crece y el desplazamiento por respuesta se acerca al margen; ni `lead` con la velocidad
 estimada sobre más de dos aciertos.
 
+> **Corregido el 2026-08-02 (ver `notes/PREREG-paced-fps-grid.md`):** "a fps más bajos" está al
+> revés. `device/run_arm.py:next_frame` es `nxt = max(i + 1, int(t * fps))`, así que el intervalo de
+> descarte es `latencia x fps` y **crece con el fps a la alza**. La condición de reapertura de este
+> nulo es fps **alto**, no bajo, y es lo que mide la rejilla brazo x fps.
+
 ## 9. Consecuencia
 
 La corrección de movimiento va en la **salida**, no en la entrada. FOH cuesta cero tiempo de

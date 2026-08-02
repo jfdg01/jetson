@@ -320,3 +320,17 @@ objetivo, una banda que cruza el fotograma; `bike2` (−0.014) mantiene el tama�
 arreglos distintos, donde la nota 19 veía dos. Lo que sí sobrevive: en los tres, FOH resta entre
 0.012 y 0.016 sobre una base ya rota — **no causa ninguno de los fallos**, y el +0.069 agregado no
 depende de ellos. Clips en `proof/foh__{person18,bird1_1,bike2}.mp4`. Sin cubrir: `person20`.
+Corregida en parte por la nota 22.
+
+### 22. `person18` no falla en SAM2: falla en `c512` — [`notes/22-person18-es-un-fallo-de-c512-no-de-sam2.md`](notes/22-person18-es-un-fallo-de-c512-no-de-sam2.md) · 0 h
+
+El fallo de escala de la nota 21 se midió sobre `sam2_c512` y se le atribuyó a SAM2. Descompuesto
+por brazo: **cinco de seis siguen a ese señor con la caja exacta 1393 fotogramas** (alto pred/GT
+1.00, mIoU 0.64-0.71); solo `c512` se queda en la mitad inferior (0.238, razón 0.45). No es un
+desplome progresivo — cae en la **primera respuesta propagada** (0.82 en `i=0` con la caja GT dada,
+0.61 en `i=1`) y se queda en 0.58 el resto del clip: un equilibrio estable equivocado. Es una
+**patología de capacidad del brazo de 512**, que es el objeto de la campaña, y no un fallo de SAM2;
+llega justo cuando la nota 19 coronaba a `c512` como el mejor brazo de recorte pausado. Hipótesis
+sin probar: el objetivo ocupa el 59% del alto de la ventana de 512 y el 47% de la de 640, y el
+recorte apretado deja a SAM2 sin contexto. Cierra de paso `person20`, que `c512` hace bien (0.750) —
+la clase "persona" no es el problema. Verificado en píxeles contra la nota 21, mismo fotograma f697.
