@@ -81,6 +81,31 @@ def decompose(res_path: Path, foh: bool = False) -> dict:
             "centrado": m(cen), "reescalado": m(rsz)}
 
 
+def lag(res_path: Path) -> dict:
+    """Is the translation deficit pure delay, or drift? Score the held box twice.
+
+    Once against the GT of the frame being consumed (`GT(j)`, the honest number) and once against
+    the GT of the frame the box actually looked at (`GT(i)`). A box that is simply late scores low
+    on the first and high on the second; a box that wandered off scores low on both. `GT(i)` is the
+    ceiling of any consumer-side delay compensation -- FOH, a Kalman, anything -- because nothing
+    downstream can fix a box that was already wrong when it was computed.
+    """
+    res = json.loads(res_path.read_text())
+    meta = res["meta"]
+    gt = data.boxes(meta["seq"])
+    assert meta.get("fps_stream"), "sin pausar no hay retardo que medir"
+    now, then, gap = [], [], []
+    for j, r in held(res["rows"], meta["fps_stream"], len(gt)).items():
+        if not gt[j] or not r or not r.get("box"):
+            continue
+        now.append(iou(gt[j], r["box"]))
+        if gt[r["i"]]:
+            then.append(iou(gt[r["i"]], r["box"])), gap.append(j - r["i"])
+    md = lambda v: float(np.median(v)) if v else 0.0  # noqa: E731
+    return {"seq": meta["seq"], "arm": meta["arm"], "ahora": md(now), "entonces": md(then),
+            "retardo": md(gap)}
+
+
 def selfcheck() -> None:
     g = [100, 100, 200, 200]
     # pure translation: right size, half a side off. Centring recovers everything, resizing nothing.
@@ -104,16 +129,30 @@ def main() -> None:
                     choices=["iou", "base", "centrado", "reescalado", "perdidos"])
     ap.add_argument("--foh", action="store_true",
                     help="coast the held box (first-order hold) before decomposing")
+    ap.add_argument("--lag", action="store_true",
+                    help="retardo contra deriva: la caja entregada contra GT(j) y contra GT(i)")
     ap.add_argument("--selftest", action="store_true")
     args = ap.parse_args()
     if args.selftest:
         return selfcheck()
     assert args.run_dir, "hace falta un run_dir (o --selftest)"
 
-    rows = [decompose(p, args.foh)
-            for p in sorted(Path(args.run_dir).glob("*.json")) if p.stem != "manifest"]
+    paths = [p for p in sorted(Path(args.run_dir).glob("*.json")) if p.stem != "manifest"]
+    rows = [(lag if args.lag else decompose)(p, *(() if args.lag else (args.foh,))) for p in paths]
     rows = [r for r in rows if not args.arm or r["arm"] in args.arm]
     assert rows, "ningun resultado que casar"
+
+    if args.lag:
+        for arm in sorted({r["arm"] for r in rows}):
+            sub = sorted((r for r in rows if r["arm"] == arm), key=lambda r: r["ahora"])
+            print(f"\n{arm}   n={len(sub)} clips   (IoU mediana por clip de la caja entregada)")
+            print(f"{'clip':14s}{'vs GT(j)':>10s}{'vs GT(i)':>10s}{'retardo':>9s}")
+            for r in sub:
+                print(f"{r['seq']:14s}{r['ahora']:10.3f}{r['entonces']:10.3f}{r['retardo']:9.0f}")
+            print(f"{'MEDIANA':14s}" + "".join(
+                f"{np.median([r[k] for r in sub]):10.3f}" for k in ("ahora", "entonces"))
+                + f"{np.median([r['retardo'] for r in sub]):9.0f}")
+        return
 
     for arm in sorted({r["arm"] for r in rows}):
         sub = sorted((r for r in rows if r["arm"] == arm), key=lambda r: r[args.sort])

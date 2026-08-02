@@ -346,5 +346,8 @@ de pausar es casi todo **posición**: la caja entregada es la correcta con retar
 comprobación interna de que solo mueve centros; el nulo de `lead` (nota 20) queda además explicado —
 la palanca del retardo está en el consumidor, no en la entrada del modelo. Corrobora por cálculo las
 tres lecturas a ojo de la nota 21 y añade una cuarta: `car12` puntúa 0.087 con solape condicional
-**0.783** sobre el 11% de fotogramas en que contesta — pérdida, no caja mala. Sin verificación
-visual: no hay aquí ninguna afirmación sobre píxeles.
+**0.783** sobre el 11% de fotogramas en que contesta — pérdida, no caja mala. Y con `--lag`: la caja
+entregada puntúa 0.485 contra el GT del fotograma que se consume y **0.811 contra el del fotograma
+que miró**, con 5 de retardo; `c640` da 0.368 / **0.816** con 8. Los dos brazos producen cajas
+igual de buenas y solo difieren en cuándo llegan, así que la ordenación pausada de la nota 19 es
+retardo, no calidad. Sin verificación visual: no hay aquí ninguna afirmación sobre píxeles.

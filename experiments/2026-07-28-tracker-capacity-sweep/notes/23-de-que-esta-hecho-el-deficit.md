@@ -2,10 +2,10 @@
 
 Parte de [`../README.md`](../README.md).
 
-**Cuándo:** 2026-08-03T02:10Z -> 02:55Z (hora local de Madrid).
+**Cuándo:** 2026-08-03T02:10Z -> 03:20Z (hora local de Madrid).
 **Coste:** 0 h de dispositivo — aritmética sobre las cajas ya commiteadas.
 **Datos:** `raw/full-sweep-30/`, `raw/paced-sweep-30/`, `raw/paced-lead-30/`
-**Código:** `dee75a1` (`analysis/errors.py`).
+**Código:** `dee75a1` (`analysis/errors.py`), más `--lag` en el commit de esta nota.
 
 ## 1. Por qué existe
 
@@ -66,7 +66,35 @@ contrafactual que anula la traslación tiene que ser invariante bajo FOH. Lo es.
 que `c512` sin `lead`. Su nulo no solo se confirma: se explica. La palanca del retardo está en el
 consumidor, no en qué fotograma se le da al modelo.
 
-## 3. La taxonomía de la nota 21, ahora calculada
+## 3. Retardo o deriva: es retardo, y es lo único que separa a los brazos
+
+Añadido en la misma sesión, 02:55Z -> 03:20Z, después de escribir la §6 que lo daba por no medido.
+La caja entregada se puntúa **dos veces**: contra el GT del fotograma que se consume (`GT(j)`, el
+número honesto) y contra el GT del fotograma que la caja miró (`GT(i)`). Tarde pero correcta da bajo
+en la primera y alto en la segunda; extraviada da bajo en las dos.
+
+```
+analysis/errors.py raw/paced-sweep-30 --arm sam2_c512 --lag
+analysis/errors.py raw/paced-sweep-30 --arm sam2_c640 --lag
+```
+
+Medianas por clip, pausado a 30 fps, n=25:
+
+| brazo | vs `GT(j)` | vs `GT(i)` | retardo mediano |
+| --- | ---: | ---: | ---: |
+| `sam2_c512` | 0.485 | **0.811** | 5 fotogramas |
+| `sam2_c640` | 0.368 | **0.816** | 8 fotogramas |
+
+Las dos cajas son **igual de buenas sobre el fotograma que miraron** (0.811 contra 0.816); lo que las
+separa es cuándo llegan. La ordenación pausada de la nota 19 (`c512` por encima de `c640`) no es una
+diferencia de calidad de caja: es la diferencia entre 5 y 8 fotogramas de retardo. Y `GT(i)` es el
+**techo de cualquier compensación en el consumidor** — FOH, un Kalman, lo que sea: nada aguas abajo
+arregla una caja que ya estaba mal cuando se calculó. FOH cobra 0.655 de ese techo de 0.811.
+
+Los clips donde `GT(i)` también es bajo son exactamente los de la taxonomía de abajo: `bike2` 0.000
+(objeto equivocado, el retardo da igual), `bird1_1` 0.034 (máscara), `person18` 0.350 (escala).
+
+## 4. La taxonomía de la nota 21, ahora calculada
 
 Sin pausar, `sam2_c512`, los cuatro peores clips:
 
@@ -86,7 +114,7 @@ En pausado, `person18` con `c640` sube a base 0.689 / centrado 0.773 / reescalad
 patología de `c512` de la nota 22 se ve también como hueco de solape **condicional**, no solo
 puntuado, así que no es un artefacto de fotogramas perdidos.
 
-## 4. Cómo no sobreleer
+## 5. Cómo no sobreleer
 
 - `centrado` y `reescalado` son **cotas superiores de recuperación**, no arreglos. Nadie tiene el
   centro del GT en tiempo de vuelo. Dicen dónde está el error, no que sea removible.
@@ -94,20 +122,22 @@ puntuado, así que no es un artefacto de fotogramas perdidos.
   puntúa alto en las dos. Se leen por su **diferencia**, no por su nivel.
 - `base`/`centrado`/`reescalado` son condicionales a respuesta; con `perdidos` alto describen una
   minoría de fotogramas (`car12`, 11%). La columna `perdidos` va siempre al lado.
+- La §3 puntúa **medianas por fotograma dentro de cada clip**; las tablas de la §2 son medias. No
+  son la misma estadística y no deben restarse entre secciones.
 - El régimen pausado es 30 fps sobre este dispositivo y esta potencia (15 W, `jetson_clocks`). Que
   el déficit sea traslación a 30 fps no dice qué pasa a 120; la rejilla `paced-grid-*` está corriendo
   para eso y esta descomposición se le pasará encima cuando aterrice.
 - n=25 pareado, un brazo (`c512`) para el contraste principal. `c640` se movió igual (base pausado
   0.344, centrado 0.815) pero no se ha probado que la conclusión sea de todos los brazos.
 
-## 5. Qué no se midió
+## 6. Qué no se midió
 
 **Sin verificación visual de este análisis.** No hace falta ni la sustituye: no hay ninguna
 afirmación aquí sobre lo que se ve en pantalla, solo aritmética sobre cajas que ya estaban en disco
 y cuya verificación visual es la de la nota 21. Cualquier lectura de esta nota que hable de píxeles
 está fuera de lo medido.
 
-No se midió: si el déficit de traslación es retardo puro (la caja correcta N fotogramas tarde) o
-además deriva — separarlos pide comparar contra el GT desplazado en el tiempo, y no se ha hecho; ni
+No se midió: si el retardo de la §3 es constante o se dispara en los clips difíciles (solo se da su
+mediana por clip); ni
 si `reescalado` mejora bajo brazos con más contexto, que es lo que la rejilla ventana-contra-entrada
 (`notes/PREREG-window-vs-input.md`) va a responder por otra vía.
