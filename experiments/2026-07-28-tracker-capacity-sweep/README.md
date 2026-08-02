@@ -128,7 +128,8 @@ El detalle completo de cada tanda vive en `notes/`. Aquí queda el resumen y el 
 de cada tabla, las verificaciones visuales y los tropiezos están en el fichero enlazado. Cada fichero
 abre con su fecha, su rango horario y su coste de dispositivo.
 
-**Coste total del barrido: ~51.9 h de dispositivo** sobre la Jetson a 15 W, 1153 corridas. Es una
+**Coste total del barrido: ~51.9 h de dispositivo** sobre la Jetson a 15 W, 1153 corridas (la nota
+18 no añade ninguna: es reanálisis). Es una
 estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON de `raw/`; no incluye el tiempo muerto
 entre etapas ni los renders de overlay, así que el reloj de pared es mayor.
 
@@ -266,3 +267,16 @@ sí aparece es que **mIoU escondía a DAM4SAM**: `t768` y `t960` baten al incumb
 (+0.011 y +0.016 a K=60, p = 0.003 y 0.0007, sobreviven a Holm) donde mIoU decía nulo. Por debajo de
 640 el brazo directamente no redetecta. Los huecos no son independientes, así que los p son
 optimistas. Sin verificación visual.
+
+### 18. Ejes de diseño para objetivos pequeños y rápidos — [`notes/18-ejes-de-diseno-objetivos-pequenos-y-rapidos.md`](notes/18-ejes-de-diseno-objetivos-pequenos-y-rapidos.md) · 0 h
+
+Diseño, no tanda: el espacio de configuraciones a barrer bajo el protocolo paced y en qué orden.
+Lleva dentro un resultado medido que reordena el resto — **la retención de primer orden recupera el
+85% del desplome** que el paced había atribuido a la latencia (`truck3` 0.297 -> 0.699, `car9` 0.763
+-> 0.819 con `aggregate.py --foh`), a coste cero, porque cambia el consumidor y no el tracker. Con
+eso, "ser lento" cuesta mucho menos y el óptimo de resolución vuelve a subir, así que ese eje se fija
+antes de barrer nada. Los otros ejes: máscara contra caja (`cv_*` y `asym_b` nunca corridos en
+paced), los tres modos de feed de los que la ventana escalada al objeto sigue sin cruzarse, y la
+población objetivo cuantificada — 28 clips de UAV123 bajo `<=40 px` y `>=0.06` anchuras/fotograma,
+con TLP descartado por no tener el fenómeno. n = 2 en lo medido; el resto es predicción. Sin
+verificación visual.
