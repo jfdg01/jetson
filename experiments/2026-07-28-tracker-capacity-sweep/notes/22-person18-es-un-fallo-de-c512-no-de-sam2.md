@@ -110,8 +110,17 @@ un clip, no como resultado.
 
 ## 5. Cómo no sobreleer
 
-- Un clip. `person18` es un caso, no una tasa. Cuántos de los 30 clips tienen una patología de
-  capacidad de este tipo en `c512` está sin contar.
+- Un clip, y **contado**: uno de 25. `c512` contra la mediana de los otros cinco brazos, por clip:
+
+  ```
+  n=25  mediana +0.099  gana en 22/25  peor -0.451 (person18)  mejor +0.190 (car9)
+  el resto de la cola negativa: building5 -0.076, bird1_3 -0.004
+  ```
+
+  El perfil es el que importa para desplegar: **la ventaja de `c512` es ancha y su pasivo está
+  concentrado**. Gana en 22 de 25 clips por márgenes de 0.02 a 0.19, y todo lo que pierde está en
+  un solo clip que pierde por 0.45 — seis veces la siguiente desviación en ese lado. La mediana que
+  lo corona en la nota 19 es real y es exactamente la estadística que esconde esto.
 - La hipótesis del contexto (§2) no se ha probado. Es la explicación más simple compatible con los
   seis brazos, y nada más.
 - La tabla por familia de §4 es **exploratoria**: no estaba pre-registrada, y partir 155 pares por
