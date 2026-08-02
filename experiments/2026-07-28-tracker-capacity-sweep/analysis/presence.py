@@ -119,14 +119,14 @@ def thresholds(run_dir: Path) -> None:
     """
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import uav123
+    import data
 
     gapped = []
     for p in sorted(run_dir.glob("*.json")):
         if p.stem == "manifest":
             continue
         seq = json.loads(p.read_text())["meta"]["seq"]
-        gt = uav123.boxes(seq)
+        gt = data.boxes(seq)
         if all(g is not None for g in gt):
             continue
         res = json.loads(p.read_text())
@@ -192,14 +192,14 @@ def main() -> None:
         return thresholds(Path(args.run_dir[0]))
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import uav123
+    import data
 
     per = []
     for d in args.run_dir:
         for p in sorted(Path(d).glob("*.json")):
             if p.stem == "manifest":
                 continue
-            r = score_one(p, uav123.boxes(json.loads(p.read_text())["meta"]["seq"]))
+            r = score_one(p, data.boxes(json.loads(p.read_text())["meta"]["seq"]))
             if r:
                 per.append(r)
     assert per, f"no arm in {args.run_dir} recorded a conf signal"

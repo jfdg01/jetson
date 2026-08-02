@@ -30,7 +30,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "analysis"))
-import uav123  # noqa: E402
+import data  # noqa: E402
 
 HOST = "jetson"
 ROOT = "/home/jfdg/tracker-sweep"
@@ -75,11 +75,15 @@ def cmd_sync(args) -> None:
 
 def cmd_stage(args) -> None:
     """Push frames + spec.json for each sequence. Idempotent: skips what already matches."""
-    cfg = uav123.config()
     for name in args.seqs:
-        folder, start, end, nz, ext = cfg[name]
-        files = [f"{i:0{nz}d}.{ext}" for i in range(start, end + 1)]
-        box = uav123.init_box(name)
+        # a UAV123 sub-sequence is a frame range inside a shared folder, a TLP one is its own img/
+        # dir. Both come out of frame_paths() as absolute paths; rsync only needs the common parent
+        # plus the basenames, and the device only ever reads the order in spec.json.
+        paths = data.frame_paths(name)
+        src = paths[0].parent
+        assert all(p.parent == src for p in paths), f"{name}: frames span several directories"
+        files = [p.name for p in paths]
+        box = data.init_box(name)
         assert box is not None, f"{name}: frame 0 has no GT, cannot initialise"
         remote = f"{ROOT}/data/{name}"
         have = sh(f"ls {remote}/frames 2>/dev/null | wc -l", check=False).strip()
@@ -89,7 +93,7 @@ def cmd_stage(args) -> None:
             sh(f"mkdir -p {remote}/frames")
             listing = "\n".join(files)
             subprocess.run(
-                ["rsync", "-a", "--files-from=-", str(uav123.SEQ / folder), f"{HOST}:{remote}/frames/"],
+                ["rsync", "-a", "--files-from=-", str(src), f"{HOST}:{remote}/frames/"],
                 input=listing, text=True, check=True,
             )
             print(f"staged {name}: {len(files)} frames")

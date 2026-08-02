@@ -25,7 +25,7 @@ from pathlib import Path
 
 import numpy as np
 
-import uav123
+import data
 from aggregate import iou
 
 
@@ -45,7 +45,7 @@ def gaps(gt: list) -> list[int]:
 def score_one(path: Path, k: int) -> list[dict]:
     res = json.loads(path.read_text())
     meta, rows = res["meta"], {r["i"]: r for r in res["rows"]}
-    gt = uav123.boxes(meta["seq"])
+    gt = data.boxes(meta["seq"])
     out = []
     for start in gaps(gt):
         win = [(i, gt[i]) for i in range(start, min(start + k, len(gt))) if gt[i] is not None]

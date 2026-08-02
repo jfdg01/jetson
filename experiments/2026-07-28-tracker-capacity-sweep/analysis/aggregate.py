@@ -21,7 +21,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import uav123  # noqa: E402
+import data  # noqa: E402
 from render_overlay import iou  # noqa: E402
 
 
@@ -50,7 +50,7 @@ def auc_ope(gt: list, rows: dict) -> float:
 def score_one(path: Path) -> dict:
     res = json.loads(path.read_text())
     meta, rows = res["meta"], {r["i"]: r for r in res["rows"]}
-    gt = uav123.boxes(meta["seq"])
+    gt = data.boxes(meta["seq"])
     have = [(g, rows.get(i, {}).get("box")) for i, g in enumerate(gt) if g is not None]
     ious = np.array([0.0 if p is None else iou(g, p) for g, p in have])
     gap = len(gt) - len(have)

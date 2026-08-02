@@ -19,7 +19,7 @@ import cv2
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import uav123  # noqa: E402
+import data  # noqa: E402
 
 GREEN = (0, 200, 0)
 LIGHTBLUE = (255, 200, 100)  # BGR
@@ -108,15 +108,15 @@ def main() -> None:
 
     if args.seq:
         name, rows = args.seq, {}
-        h0, w0 = cv2.imread(str(uav123.frame_paths(name)[0])).shape[:2]
+        h0, w0 = cv2.imread(str(data.frame_paths(name)[0])).shape[:2]
         meta = {"arm": "GT", "seq": name, "w": w0, "h": h0}
     else:
         assert args.result_json, "pass a result json or --seq"
         res = json.loads(Path(args.result_json).read_text())
         meta, rows = res["meta"], {r["i"]: r for r in res["rows"]}
         name = meta["seq"]
-    gt = uav123.boxes(name)
-    frames = uav123.frame_paths(name)
+    gt = data.boxes(name)
+    frames = data.frame_paths(name)
     assert len(gt) == len(frames), f"{name}: {len(gt)} anno vs {len(frames)} frames"
 
     ious = np.array([iou(gt[i], rows.get(i, {}).get("box")) for i in range(len(frames))])

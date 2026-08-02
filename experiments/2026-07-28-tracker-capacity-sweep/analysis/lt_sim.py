@@ -136,7 +136,7 @@ def point_metrics(present: np.ndarray, answered: np.ndarray, hit: np.ndarray) ->
 
 def load(run_dir: Path, arm: str) -> list[tuple]:
     """(seq, conf, present, hit, answered_base) for every GAP sequence of `arm`, in name order."""
-    import uav123
+    import data
     from render_overlay import iou
 
     out = []
@@ -146,7 +146,7 @@ def load(run_dir: Path, arm: str) -> list[tuple]:
         res = json.loads(p.read_text())
         if res["meta"]["arm"] != arm:
             continue
-        gt = uav123.boxes(res["meta"]["seq"])
+        gt = data.boxes(res["meta"]["seq"])
         present = np.array([g is not None for g in gt])
         if present.all():
             continue  # no absent frame: f_lt is 1 by construction, it measures nothing

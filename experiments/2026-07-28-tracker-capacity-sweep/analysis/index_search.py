@@ -29,7 +29,7 @@ from scipy.stats import spearmanr
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import difficulty  # noqa: E402
-import uav123  # noqa: E402
+import data  # noqa: E402
 from aggregate import score_one  # noqa: E402
 
 # name -> (higher value means harder?)
@@ -45,7 +45,7 @@ CANDIDATES = {
 def features(name: str) -> dict:
     """Everything `difficulty.features` has, plus the candidates being auditioned."""
     f = difficulty.features(name)
-    gt = uav123.boxes(name)
+    gt = data.boxes(name)
     vis = [(i, b) for i, b in enumerate(gt) if b is not None]
     idx = np.array([i for i, _ in vis])
     wh = np.array([[b[2] - b[0], b[3] - b[1]] for _, b in vis], float)
@@ -121,7 +121,8 @@ def main() -> None:
         by_seq.setdefault(r["seq"], []).append(r["mean_iou"])
     scored = {s: float(np.median(v)) for s, v in by_seq.items() if len(v) >= args.min_arms}
 
-    names = sorted(uav123.config())
+    # UAV123 only: the axes come from `difficulty.features`, which reads UAV123 attribute flags
+    names = data.sequences("uav123")
     feats = [features(n) for n in names]
     ranks = build_ranks(feats)
     axes = list(CANDIDATES)
