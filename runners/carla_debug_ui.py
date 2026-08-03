@@ -8,11 +8,13 @@ on the 3090, ArduCopter SITL is the physics, and BOTH models run on the Orin
 Three orthogonal mode switches, because they are the three questions the thesis
 asks and each one is a different demo:
 
-  PILOT     spectator | copter
-            spectator flies a camera on a stick -- perception in isolation, any view
-            you like, no flight dynamics. copter arms an ArduCopter SITL and slaves
-            the camera to the pose it reports (P6.1), so the pixels are a consequence
-            of the vehicle's own motion.
+  PILOT     god | drone
+            god flies a camera on a stick -- perception in isolation, any view you
+            like, no flight dynamics. drone arms an ArduCopter SITL and slaves the
+            camera to the pose it reports (P6.1), so the pixels are a consequence of
+            the vehicle's own motion. SAME keys either way (wasd ground-parallel,
+            q/e up-down, arrows look): pressing one of the two swaps the physics
+            under the operator's hand and nothing else.
   ACQUIRE   warm | cold
             warm maintains a track from the moment you designate and DELIVERS it on
             command (P5.1/P6.2-DELIVERY: maintain-and-deliver). cold does nothing
@@ -27,13 +29,13 @@ asks and each one is a different demo:
             manual = operator has sole authority. assist = the model aims (gimbal
             only, never position). auto = closed loop, the delivered box drives the
             copter through CascadePID -> LOCAL_NED velocity, the same path
-            run_p62_flight measured (P6.2). auto needs PILOT=copter.
+            run_p62_flight measured (P6.2). auto needs PILOT=drone.
 
     .venv-ft/bin/python runners/carla_debug_ui.py         # starts CARLA if needed
-    .venv-ft/bin/python runners/carla_debug_ui.py --pilot copter    # + SITL
+    .venv-ft/bin/python runners/carla_debug_ui.py --pilot drone     # + SITL
 
 Controls: click the view to take the stick. wasd/qe move, arrows look (gimbal in
-copter mode), space pause, t cycles FOLLOW, g delivers, Shift-click designates a car.
+drone mode), space pause, t cycles FOLLOW, g delivers, Shift-click designates a car.
 See runners/CARLA_DEBUG_UI.md.
 """
 import argparse
@@ -154,8 +156,10 @@ ASSIST_RATE = 3.0
 # is held at 33 m, a pedestrian at 6 m). See CARLA_DEBUG_UI.md.
 CHASE_TARGET_FRAC = 0.012
 CHASE_SPEED = 15.0          # m/s cap along the boresight, either direction. Matches
-                            # MANUAL_V_MAX / WPNAV_SPEED -- the old 30 was above the
-                            # airframe's cruise limit, so the extra was never flown.
+                            # SPORT_PARAMS["WPNAV_SPEED"] -- chase is a god-camera and
+                            # a follow-loop speed, both of which still fly velocity
+                            # setpoints; only the manual copter is lean-commanded and
+                            # capped lower (sitl_fly_leg.MANUAL_V_MAX).
 # Min altitude the chase is allowed to reach, and how far above it the escape
 # climbs once breached. CARLA world z, and Town10's ground is ~0, so it doubles
 # as AGL. ponytail: flat-ground assumption. Raycast the terrain if a map with
@@ -189,7 +193,7 @@ RAIL_W, INSTR_W = 470, 580
 # exists -- see the NEXT/badge block in show_preview for who is satisfied when.
 NEXT_TIP = {
     1: "step 1 -- spawn cars, or the nadir view has nothing to follow",
-    2: "step 2 -- arm the copter (or stay spectator and fly the camera by hand)",
+    2: "step 2 -- press drone to fly the airframe (or stay god and fly the camera)",
     3: "step 3 -- Shift-click a car in the view, or type a caption and press follow",
     4: "step 4 -- press deliver (g). That press IS the operator's command",
     5: "step 5 -- pick assist or auto to close the loop",
@@ -283,7 +287,7 @@ ORIN_CARRY_SIZE = CARRY_IMAGE_SIZE
 _EXP3 = {}
 
 # --- copter pilot mode: the P6.1/P6.2 rig, live -----------------------------
-# The spectator is a camera on a stick. The SYSTEM under test flies an ArduCopter
+# The god pilot is a camera on a stick. The SYSTEM under test flies an ArduCopter
 # SITL and slaves the camera to the pose the autopilot reports -- that is the whole
 # of P6.1, and it is what makes the pixels a consequence of the control output
 # instead of an input to it. Both pilots stay here because they answer different
@@ -299,18 +303,17 @@ COPTER_ALT = 45.0        # m AGL. P6.2-DELIVERY flew 45 m nadir. Note G6: q8_0 i
 # past the point where one box can produce that many steps per wall second the
 # speedup silently stops being real.
 ARM_SPEEDUP = 10.0
-MANUAL_V_MAX = 15.0      # m/s cap on operator velocity commands (the fly slider
-                         # goes to 300, which is a spectator speed, not a copter one).
-                         # Matches SPORT_PARAMS["WPNAV_SPEED"] = 1500 cm/s: asking for
-                         # more than the airframe's cruise limit just commands a lie.
-                         # Dropped from 25 because reversal time is 2*v/a: the top
-                         # speed is what makes a direction change feel slow, and
-                         # 25 m/s at 45 m AGL outruns the camera anyway.
+# The copter's top speed is sitl_fly_leg.MANUAL_V_MAX, deliberately NOT duplicated
+# here -- it is one leg of a measured tuning (lean, gain, speed) that only makes sense
+# read together, and the panel is not the place that owns it. The fly slider goes to
+# 300, which is a god-camera speed, not a copter one, so the copter clamps to it.
 GIMBAL_RATE = 90.0       # deg/s the arrow keys slew the gimbal in copter mode
-# A GUIDED velocity setpoint expires after ~3 s of silence and the copter drops to
-# loiter, so it must be resent -- but not at the 60 Hz render tick. 10 Hz is twice
-# the feed rate and a fiftieth of the MAVLink traffic.
-CMD_HZ = 10.0
+# A GUIDED setpoint expires after ~3 s of silence and the copter drops to loiter, so
+# it must be resent -- but not at the 60 Hz render tick. 20 Hz, up from 10: under the
+# operator's hand this is no longer a keepalive but a closed loop (velocity error ->
+# lean, in send_manual_attitude), and a loop that only corrects every 100 ms spends
+# half of it flying the previous answer. Still a fiftieth of the MAVLink traffic.
+CMD_HZ = 20.0
 # AUTO follow gains. CascadePID's default kp_lat=0.02 only holds a target under
 # dense (20 Hz oracle) delivery; at the on-device carry rate the P-lag lets a moving
 # target walk off frame (steady-state offset = v/kp). These are the raised gains the
@@ -326,10 +329,6 @@ AUTO_MAX_V = 8.0
 # ponytail: deadband before D. Add the D term if a MOVING target still rings.
 AUTO_DEADBAND_PX = 24.0
 FOLLOW_MODES = ("manual", "assist", "auto")
-# "to origin" is flown by the command loop, not by a blocking helper -- these are its
-# arrival test and its give-up. 3 m is reset_to_origin's own tolerance; 60 s covers the
-# ~150 m a chased copter ends up from origin at AUTO_MAX_V with margin.
-GOTO_TOL, GOTO_TIMEOUT = 3.0, 60.0
 
 
 def load_exp3():
@@ -413,11 +412,15 @@ def floor_climb(z, dt, goal):
 def manual_velocity(held, v, yaw_deg=0.0):
     """Held keys -> a LOCAL_NED velocity setpoint (vn, ve, vd) in m/s.
 
-    Copter mode only. `w` is always UP THE SCREEN and `d` always screen-right, at
-    whatever yaw the operator has rotated the view to -- the keys are view-relative,
-    not world-absolute. Flying north while looking east is disorienting in exactly
-    the way a nadir view makes worst: there is no horizon to correct against, so an
-    absolute mapping means every heading change silently remaps every key.
+    BOTH pilots. `drone` turns it into a lean the autopilot flies, `god` integrates it
+    into its own transform -- one mapping so the keys mean the same thing in each and
+    swapping pilot changes only the physics. `w` is always UP THE SCREEN and `d` always
+    screen-right, at whatever yaw the operator has rotated the view to -- the keys are
+    view-relative, not world-absolute -- and the motion is always PARALLEL TO THE
+    GROUND, with q/e the only way to change height. Flying north while looking east is
+    disorienting in exactly the way a nadir view makes worst: there is no horizon to
+    correct against, so an absolute mapping means every heading change silently remaps
+    every key.
 
     The rotation is the camera's, not the airframe's. SITL never sends yaw (R-10) so
     the copter has no heading we could use; the yaw here is the GIMBAL's, which is
@@ -1110,8 +1113,8 @@ def main():
                     help="CarlaUE4.sh to launch if nothing answers on the port")
     ap.add_argument("--auto-spawn", type=int, default=AUTO_SPAWN,
                     help="vehicles to spawn on startup (0 = none)")
-    ap.add_argument("--pilot", choices=("spectator", "copter"), default="spectator",
-                    help="spectator = fly a camera on a stick; copter = arm SITL and "
+    ap.add_argument("--pilot", choices=("god", "drone"), default="god",
+                    help="god = fly a camera on a stick; drone = arm SITL and "
                          "slave the camera to the pose it reports (P6.1)")
     ap.add_argument("--mavlink-url", default=MAVLINK_URL)
     ap.add_argument("--alt", type=float, default=COPTER_ALT,
@@ -1262,7 +1265,7 @@ def main():
                                             (5, "FOLLOW"))}
     w1, w2, w3, w4, w5 = (stg[n]["body"] for n in range(1, 6))
     w1_map, w1_spawn, w1_traffic, w1_wipe = (rrow(w1) for _ in range(4))
-    w2_pilot, w2_move, w2_speed = rrow(w2), rrow(w2), rrow(w2)
+    w2_pilot, w2_speed = rrow(w2), rrow(w2)
     (w3_src, w3_click, w3_res, w3_trk, w3_load,
      w3_cap, w3_drop) = (rrow(w3) for _ in range(7))
     w4_src, w4_go = rrow(w4), rrow(w4)
@@ -1713,7 +1716,14 @@ def main():
 
     speed = tk.Scale(w2_speed, from_=1, to=300, orient=tk.HORIZONTAL, length=RAIL_W - 40,
                      showvalue=True, sliderlength=16, width=11, bg=DARK, fg=MUTED,
-                     highlightthickness=0, label="fly speed  m/s")
+                     # the range is the GOD camera's; the drone clamps to
+                     # sitl_fly_leg.MANUAL_V_MAX, and a slider reading 45 while the
+                     # airframe flies 6 is a lying instrument, so the label says so
+                     # ponytail: 6 spelled out rather than read from
+                     # sitl_fly_leg.MANUAL_V_MAX -- that import pulls pymavlink and is
+                     # deliberately deferred to the drone button. Retune, retype.
+                     highlightthickness=0,
+                     label="fly speed  m/s (drone caps at 6)")
     speed.set(45)
     remember("fly_speed", speed)
     speed.pack(side=tk.LEFT)
@@ -2373,11 +2383,10 @@ def main():
     # that aimed Phase C at the sky for a month), and the operator's keys become GUIDED
     # velocity setpoints instead of teleports. The gimbal is ours because SITL never
     # sends yaw (R-10) and a nadir camera has nothing to rotate anyway.
-    pilot = {"mode": "spectator", "m": None, "fly": None,
+    pilot = {"mode": "god", "m": None, "fly": None,
              "ned": (0.0, 0.0, -args.alt), "ned_v": (0.0, 0.0, 0.0),
-             "vel": (0.0, 0.0, 0.0), "sent": 0.0,
-             "gim": {"pitch": -90.0, "yaw": 0.0}, "pid": None, "hb": "no link",
-             "goto": None, "goto_t": 0.0, "goto_msg": "", "goto_done": False}
+             "vel": (0.0, 0.0, 0.0), "sent": 0.0, "yaw": 0.0,
+             "gim": {"pitch": -90.0, "yaw": 0.0}, "pid": None, "hb": "no link"}
 
     def connect_copter(note):
         """Bring SITL up if needed, arm, take off. Blocking -- called through bg().
@@ -2412,7 +2421,7 @@ def main():
         cr.BASE_N, cr.BASE_E = here.x - n0, here.y - e0
         # reuses one already airborne
         reached = mavfly.arm_and_takeoff(m, args.alt, note=note, speedup=ARM_SPEEDUP)
-        pilot["mode"] = "copter"
+        pilot["mode"] = "drone"
         cam["t"] = None
         note_missed = f", params not applied: {','.join(missed)}" if missed else ""
         return f"copter airborne at {reached:.1f} m, camera slaved{note_missed}"
@@ -2421,39 +2430,21 @@ def main():
         """Hand the stick back. The copter is left hovering in GUIDED, not landed."""
         if pilot["m"] is not None:
             pilot["fly"].send_velocity(pilot["m"], 0.0, 0.0)
-        pilot["mode"] = "spectator"
+        pilot["mode"] = "god"
         cam["t"] = None
-        return "spectator: flying the camera directly"
+        return "god: flying the camera directly"
 
-    def do_land():
-        if pilot["m"] is None:
-            return "no copter"
-        from pymavlink import mavutil
-        m = pilot["m"]
-        m.mav.command_long_send(m.target_system, m.target_component,
-                                mavutil.mavlink.MAV_CMD_NAV_LAND,
-                                0, 0, 0, 0, 0, 0, 0, 0)
-        pilot["mode"] = "spectator"       # stop slaving to a descending copter
-        return "LAND commanded (pilot back to spectator)"
-
-    def do_to_origin():
-        """Hand the flight home to the command loop. Instant, so no bg() at all."""
-        if pilot["m"] is None or pilot["mode"] != "copter":
-            status.config(text="no copter -- 'arm + takeoff' first")
-            return
-        pilot["goto"], pilot["goto_t"] = (0.0, 0.0, -args.alt), time.time()
-
-    tk.Button(w2_pilot, text="arm + takeoff",
+    # Two pilots, one choice: a perfect camera or a real airframe. Both fly the same
+    # keys (wasd/qe ground-parallel, arrows look), so pressing these swaps the physics
+    # under the operator's hand and nothing else -- which is the comparison the panel
+    # exists to make. No land/to-origin: the copter is a demo body, not a vehicle to
+    # recover, and both buttons only ever put it somewhere the operator then flew back.
+    tk.Button(w2_pilot, text="god",
+              command=lambda: bg(status, go_spectator, link=True)).pack(side=tk.LEFT)
+    tk.Button(w2_pilot, text="drone",
               command=lambda: bg(status, connect_copter, note, link=True,
-                                 what="arm + takeoff: SITL boot + climb, ~40 s")
-              ).pack(side=tk.LEFT)
-    tk.Button(w2_pilot, text="spectator",
-              command=lambda: bg(status, go_spectator, link=True)).pack(side=tk.LEFT,
-                                                                       padx=(4, 0))
-    tk.Button(w2_move, text="to origin", command=do_to_origin).pack(side=tk.LEFT)
-    tk.Button(w2_move, text="land",
-              command=lambda: bg(status, do_land, link=True)).pack(side=tk.LEFT,
-                                                                   padx=(4, 0))
+                                 what="drone: SITL boot + climb, ~40 s")
+              ).pack(side=tk.LEFT, padx=(4, 0))
     def _arm_track():
         """Clear the old track, reap its Orin bridge, and set the WARM/COLD stance.
 
@@ -2881,7 +2872,7 @@ def main():
         # "do stage 3". Recomputed every tick because every input is already in hand,
         # and setw() skips the Tk call whenever the string has not changed.
         fps = preview["fps"]
-        armed = pilot["mode"] == "copter" and pilot["m"] is not None
+        armed = pilot["mode"] == "drone" and pilot["m"] is not None
         carrying = track["stop"] is not None and not track["stop"].is_set()
         boxed = carrying and track["box"] is not None
         fm = pilot_follow_mode()
@@ -2918,8 +2909,8 @@ def main():
         # --- the numbers, one line per stage, numbered to match the rail ------------
         cn, ce, _cd = pilot["vel"]
         setw(inum[1], text=f"1 WORLD      {len(spawned)} cars spawned   {fps:.0f} Hz render")
-        setw(inum[2], text=(f"2 PILOT      copter {-pilot['ned'][2]:5.1f} m AGL" if armed
-                            else "2 PILOT      spectator, no copter"))
+        setw(inum[2], text=(f"2 PILOT      drone {-pilot['ned'][2]:5.1f} m AGL" if armed
+                            else "2 PILOT      god camera, no copter"))
         # oracle costs no grounding, so "ground 0 ms" would read as an instant VLM.
         # Say which one produced the box instead -- the ORACLE-designation caveat is
         # the whole reason P6.2-DELIVERY's claim is scoped, and it has to be visible.
@@ -2933,11 +2924,6 @@ def main():
                            + (f"   {(cn ** 2 + ce ** 2) ** 0.5:.1f} m/s" if armed else ""))
         gstatus.config(text=f"{track['msg']}",
                        fg=ALERT if track["drift"] or track["lost_s"] else TEXT)
-        # a goto owns no thread and so cannot use bg()'s status line: it reports from
-        # the control loop that is actually flying it
-        if pilot["goto"] is not None or pilot["goto_done"]:
-            pilot["goto_done"] = False
-            setw(status, text=pilot["goto_msg"])
         # live per-stage timings, refreshed every tick straight off the track dict.
         # deliver comes FIRST because it is the number the whole warm-start argument
         # is about (command -> box in hand); the rest is where that number came from.
@@ -2990,7 +2976,7 @@ def main():
                            f"(P6.6: idle {P66_IDLE_W:.2f}, carry {P66_CARRY_W:.2f} W)"))
         # four short lines in the rail, not one 120-char row: same fields, and the
         # commanded-vs-achieved pair sits on one line where it can be compared
-        if pilot["mode"] == "copter":
+        if pilot["mode"] == "drone":
             n, e, d = pilot["ned"]
             vn, ve, vd = pilot["vel"]
             mn, me, _md = pilot["ned_v"]
@@ -3000,8 +2986,8 @@ def main():
                              f"cmd {vn:5.1f} {ve:5.1f} {vd:5.1f}"
                              f"   got {(mn**2 + me**2) ** 0.5:4.1f} m/s")
         else:
-            ptel.config(text="spectator: no copter in the loop.\n"
-                             "'arm + takeoff' arms SITL and\nslaves the camera to it.")
+            ptel.config(text="god: no copter in the loop.\n"
+                             "'drone' arms SITL and\nslaves the camera to it.")
 
     def do_click_follow(feed_x, feed_y, actor=None):
         v = actor or hit_test_live(feed_x, feed_y)   # actor: --smoke already projected it
@@ -3096,8 +3082,9 @@ def main():
     aim = {"yaw": 0.0, "pitch": 0.0, "stamp": -1, "chase": False, "seen": 0.0,
            "floor": None,
            "areas": collections.deque(maxlen=CHASE_HIST + 1)}
-    MOVE = {"w": (1, 0, 0), "s": (-1, 0, 0), "a": (0, -1, 0), "d": (0, 1, 0),
-            "e": (0, 0, 1), "q": (0, 0, -1)}
+    # A SET, not a basis: both pilots get their direction from manual_velocity(), so
+    # the only thing this decides is which keys are movement keys.
+    MOVE = frozenset("wasdqe")
     LOOK = {"left": (-1, 0), "right": (1, 0), "up": (0, 1), "down": (0, -1)}
     cam = {"spec": client.get_world().get_spectator(), "t": None, "sensor": None,
            "res": (LIVE_CAM_SIDE, LIVE_CAM_SIDE)}
@@ -3191,7 +3178,7 @@ def main():
         different experiment wearing the same label.
         """
         fm = follow_mode.get()
-        if fm == "auto" and (pilot["mode"] != "copter" or pilot["m"] is None):
+        if fm == "auto" and (pilot["mode"] != "drone" or pilot["m"] is None):
             return "manual"
         return fm
 
@@ -3245,12 +3232,13 @@ def main():
             # in; pin it at resync, where it also cleans up the basis vectors.
             cam["t"].rotation.roll = 0.0
         t = cam["t"]
-        fwd, right, up = (t.get_forward_vector(), t.get_right_vector(),
-                          t.get_up_vector())
-        step = speed.get() * dt
-        for k in held & MOVE.keys():
-            f, r, u = MOVE[k]
-            t.location += (fwd * f + right * r + up * u) * step
+        # SAME mapping as the copter (manual_velocity), so switching pilot changes the
+        # physics and nothing about the controls: wasd is ground-PARALLEL at the yaw the
+        # operator is looking along, q/e is world down/up. The old camera-basis version
+        # flew along the boresight, which at a nadir view meant `w` drove into the road
+        # and the same key did something different in each mode.
+        vn, ve, vd = manual_velocity(held & MOVE, speed.get(), t.rotation.yaw)
+        t.location += carla.Location(vn * dt, ve * dt, -vd * dt)
         looking = held & LOOK.keys()
         for k in looking:
             dyaw, dpitch = LOOK[k]
@@ -3270,11 +3258,11 @@ def main():
         # shrinks, and it settles on its own. A real closed loop where aim on a
         # frozen box is an open one.
         # The operator wins the same tie as with look: a held wasd outranks it.
-        if aim["chase"] and not (held & MOVE.keys()):
+        if aim["chase"] and not (held & MOVE):
             t.location += boresight(t.rotation.pitch, t.rotation.yaw) * (aim["chase"] * dt)
         # Min-AGL escape, same operator-wins tie: flying the camera low by hand is
         # a deliberate act, sinking into the road on a nose-down chase is not.
-        if not (held & MOVE.keys()):
+        if not (held & MOVE):
             dz, aim["floor"] = floor_climb(t.location.z, dt, aim["floor"])
             t.location.z += dz
         else:
@@ -3300,12 +3288,19 @@ def main():
             # a LIST, not a tuple: recv_match only wraps a bare string, so a tuple goes
             # through as type=[("A","B")], nothing ever matches it, and the drain
             # silently returns None forever -- which froze the NED pose at (0,0,-alt)
-            msg = m.recv_match(type=["LOCAL_POSITION_NED", "HEARTBEAT"], blocking=False)
+            msg = m.recv_match(type=["LOCAL_POSITION_NED", "HEARTBEAT", "ATTITUDE"],
+                               blocking=False)
             if msg is None:
                 break
             if msg.get_type() == "HEARTBEAT":
                 pilot["hb"] = ("armed" if msg.base_mode & 128 else "disarmed") + \
                               f" mode {msg.custom_mode}"
+                continue
+            if msg.get_type() == "ATTITUDE":
+                # the AIRFRAME's heading, which is not the gimbal's. Only the manual
+                # lean command needs it -- it has to be resolved in the body frame the
+                # autopilot is holding, and holding is all this copter does with yaw.
+                pilot["yaw"] = msg.yaw
                 continue
             pilot["ned"] = (msg.x, msg.y, msg.z)
             # ACHIEVED velocity, next to the commanded one. A follow that loses the
@@ -3351,12 +3346,11 @@ def main():
             n, e, d, yaw_rad=math.radians(gim["yaw"]), pitch_deg=gim["pitch"]))
         # Command. A held key outranks the model, same tie as everywhere else; with
         # nothing held AUTO gets the stick and MANUAL/ASSIST hover.
-        v = min(float(speed.get()), MANUAL_V_MAX)
-        if held & MOVE.keys():
+        v = min(float(speed.get()), mavfly.MANUAL_V_MAX)
+        if held & MOVE:
             # view-relative: the gimbal yaw the operator is looking along, so `w` is
             # up the screen at any heading.
-            vn, ve, vd = manual_velocity(held & MOVE.keys(), v, gim["yaw"])
-            pilot["goto"] = None            # operator outranks a goto, same as ASSIST
+            vn, ve, vd = manual_velocity(held & MOVE, v, gim["yaw"])
         elif auto and box is not None:
             if pilot["pid"] is None:
                 from sitl.cascade_pid import CascadePID
@@ -3386,35 +3380,26 @@ def main():
         else:
             vn, ve, vd = 0.0, 0.0, 0.0
         pilot["vel"] = (vn, ve, vd)
-        # "to origin" is a POSITION setpoint owned by THIS loop. It used to call
-        # reset_to_origin() on a bg thread, which blocks on its own recv_match: a
-        # second reader of this socket eats the LOCAL_POSITION_NED the camera is
-        # slaved to (the heartbeat-starvation bug in another costume), so the view
-        # froze for the whole flight home and the button looked like it did nothing.
-        # Here the pose is already in hand and nothing blocks.
-        goto = pilot["goto"]
-        if goto is not None:
-            gn, ge, gd = goto
-            dist = ((n - gn) ** 2 + (e - ge) ** 2 + (d - gd) ** 2) ** 0.5
-            if dist < GOTO_TOL:
-                pilot["goto"], pilot["goto_done"] = None, True
-                pilot["goto_msg"] = f"at origin ({dist:.1f} m)"
-            elif now - pilot["goto_t"] > GOTO_TIMEOUT:
-                pilot["goto"], pilot["goto_done"] = None, True
-                pilot["goto_msg"] = f"to origin: gave up {dist:.0f} m out"
-            else:
-                pilot["goto_msg"] = f"to origin: {dist:.0f} m to go"
-                if now - pilot["sent"] >= 1.0 / CMD_HZ:
-                    pilot["sent"] = now
-                    mavfly.send_position(m, gn, ge, gd)
-                return                      # position setpoint OR velocity, not both
         # Resend on a timer even when the command has not changed: a GUIDED setpoint
         # expires after ~3 s of silence and the copter drops to loiter, so a one-shot
         # send looks like it works and then stops. 60 Hz would be 60 sends/s for no
         # gain -- CMD_HZ is twice the feed rate.
         if now - pilot["sent"] >= 1.0 / CMD_HZ:
             pilot["sent"] = now
-            mavfly.send_velocity(m, vn, ve, vd)
+            if held & MOVE:
+                # Under the operator's hand the copter is flown as a LEAN, not as a
+                # velocity setpoint: the GUIDED velocity path costs ~2.7 s to reverse
+                # at ANY speed (lag in AC_PosControl, not accel authority -- the whole
+                # measurement is in sitl_fly_leg.SPORT_PARAMS), which is the sluggish
+                # feel. Commanding attitude directly reverses in 0.9 s at 6 m/s.
+                mavfly.send_manual_attitude(m, vn, ve, vd, pilot["ned_v"],
+                                            pilot["yaw"])
+            else:
+                # Hands off: back to a velocity setpoint of zero, which brakes and
+                # then HOLDS position. Copter picks the submode off whichever message
+                # arrives, so this is not a mode change and the follow loop -- which
+                # never left send_velocity -- is unaffected.
+                mavfly.send_velocity(m, vn, ve, vd)
 
     def fly():
         # WORLD ops only. A link op (arm, takeoff, land) leaves every CARLA handle
@@ -3426,7 +3411,7 @@ def main():
         now = time.time()
         box = model_box()
         charge_aim(now, box)
-        if pilot["mode"] == "copter" and pilot["m"] is not None:
+        if pilot["mode"] == "drone" and pilot["m"] is not None:
             # Measured dt, never a nominal 1/60: the tick also paints the preview, so
             # its real period swings with window size and load.
             dt = min(now - fly_t["last"], 0.1) if fly_t["last"] else 1 / 60
@@ -3478,7 +3463,7 @@ def main():
                 bg(status, fn, *a, link=link)
         return go
 
-    if args.pilot == "copter" and not args.selftest:
+    if args.pilot == "drone" and not args.selftest:
         def boot_then_spawn():
             msg = connect_copter(note)
             if args.auto_spawn:
@@ -3543,7 +3528,7 @@ def main():
         def smoke_step():
             ph, dt = smoke["phase"], time.time() - smoke["t"]
             if ph == "wait":            # airborne, a frame in hand, a car on screen
-                ready = (pilot["mode"] == "copter" and not busy["on"]
+                ready = (pilot["mode"] == "drone" and not busy["on"]
                          and latest["bgr"] is not None)
                 pt = nearest_on_screen() if ready else None
                 if pt is None:

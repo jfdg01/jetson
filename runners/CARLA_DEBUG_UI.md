@@ -18,19 +18,19 @@ combination.
 
 | switch | values | what it changes |
 |---|---|---|
-| **PILOT** | `spectator` \| `copter` | `spectator` flies a camera on a stick — perception in isolation, any view you like, no flight dynamics. `copter` arms an ArduCopter SITL and slaves the camera to the pose the autopilot reports (P6.1), so the pixels are a **consequence** of the control output. |
+| **PILOT** | `god` \| `drone` | `god` flies a camera on a stick — perception in isolation, any view you like, no flight dynamics. `drone` arms an ArduCopter SITL and slaves the camera to the pose the autopilot reports (P6.1), so the pixels are a **consequence** of the control output. **Same keys either way** (`wasd` parallel to the ground, `qe` up/down, arrows look): pressing one of the two swaps the physics under the operator's hand and nothing else. |
 | **ACQUIRE** | `warm` \| `cold` | `warm` maintains a track from the moment you designate and **delivers** it on command (P5.1 / P6.2-DELIVERY: maintain-and-deliver). `cold` does nothing until the command, then grounds under time pressure (E18 / R-34). The on-screen `deliver` timing is that comparison, measured live. |
 | **DESIGNATE** | `vlm` \| `oracle` | `vlm` runs the deployed grounder on a point crop around the click. `oracle` seeds the carry from the CARLA projected box and skips the VLM — which is the scope P6.2-DELIVERY's claim was measured in (G6: q8_0 is non-discriminative on a car at 45 m nadir). Switching between them separates "grounding failed" from "carry/control failed". |
-| **FOLLOW** | `manual` \| `assist` \| `auto` | `manual` = operator has sole authority. `assist` = the model aims (gimbal/look only, never position). `auto` = **closed loop**: the delivered box drives the copter through `CascadePID` → `SET_POSITION_TARGET_LOCAL_NED`, the same path `run_p62_flight.py` measured. `auto` needs `PILOT=copter` and says so if it does not have one. |
+| **FOLLOW** | `manual` \| `assist` \| `auto` | `manual` = operator has sole authority. `assist` = the model aims (gimbal/look only, never position). `auto` = **closed loop**: the delivered box drives the copter through `CascadePID` → `SET_POSITION_TARGET_LOCAL_NED`, the same path `run_p62_flight.py` measured. `auto` needs `PILOT=drone` and says so if it does not have one. |
 
 ## Run it
 
 ```bash
-.venv-ft/bin/python runners/carla_debug_ui.py                       # spectator, starts CARLA if needed
-.venv-ft/bin/python runners/carla_debug_ui.py --pilot copter        # + SITL, arm, take off to --alt
+.venv-ft/bin/python runners/carla_debug_ui.py                       # god, starts CARLA if needed
+.venv-ft/bin/python runners/carla_debug_ui.py --pilot drone         # + SITL, arm, take off to --alt
 .venv-ft/bin/python runners/carla_debug_ui.py --clean-world         # destroy every leftover actor first
 .venv-ft/bin/python runners/carla_debug_ui.py --designate oracle --acquire cold
-.venv-ft/bin/python runners/carla_debug_ui.py --pilot copter --smoke 45 \
+.venv-ft/bin/python runners/carla_debug_ui.py --pilot drone --smoke 45 \
     --out runs/carla-ui-spd --clean-world --auto-spawn 40           # unattended, writes smoke.png
 ```
 
@@ -41,14 +41,14 @@ combination.
 | `boot_sim.py` | `launch_sitl()` lives here; the panel calls it rather than re-spelling the P6.1 command |
 | `carla_trace.py` | reads a follow trace back (`trace.jsonl` → ground / identity / switches / drift / bloat) |
 | `ui_shot.py` | grabs the panel's own window to a PNG, so a layout claim can be looked at |
-| `carla_ui_proof/` | six committed frames, so an audit can look without a rerun |
+| `carla_ui_proof/` | eight committed frames, so an audit can look without a rerun |
 
 Controls: click the view to take the stick — the green border is the only "am I flying?"
-signal. `wasd` move, `qe` up/down, arrows look (gimbal in copter mode), `space` pause,
+signal. `wasd` move, `qe` up/down, arrows look (gimbal in drone mode), `space` pause,
 `t` cycles FOLLOW, `g` delivers, **Shift-click a car designates it**, `drop` stops. The
 key list is printed on the video header, where the keys are used.
 
-**`wasd` is relative to the VIEW, not to north** (copter mode, 2026-07-25T17:10Z). The
+**`wasd` is relative to the VIEW, not to north** (drone mode, 2026-07-25T17:10Z). The
 nadir camera yaws with the arrow keys, so a world-absolute `wasd` steered sideways or
 backwards on screen the moment the view was rotated — which reads as broken controls, not
 as a frame mismatch. `manual_velocity(held, v, yaw_deg)` rotates the key vector by the
@@ -249,9 +249,9 @@ difference is unmeasured here. Cite E18 for the acquire cost; cite this only as 
 still an order of magnitude worse than warm on the live rig". **That 10.23 s was measured
 at `ground` 1024; the default is now 512** — the same run has not been repeated there.
 
-## Copter pilot mode
+## Drone pilot mode
 
-`--pilot copter` calls `boot_sim.launch_sitl()` if 5760 is dead, waits, connects
+`--pilot drone` calls `boot_sim.launch_sitl()` if 5760 is dead, waits, connects
 pymavlink, arms, takes off, then slaves the camera to the NED the autopilot reports.
 
 - **The camera is hard nadir, north-up.** R-10: yaw never arrives from the autopilot, so
@@ -259,8 +259,24 @@ pymavlink, arms, takes off, then slaves the camera to the NED the autopilot repo
   body-right is east, which is what makes `pid_to_ned` in `run_p62_flight.py` the
   identity `(vx, vy)` and what `tests/test_pilot_modes.py` asserts the key mapping
   against. Flipping a sign here does not crash, it flies away from the target.
+- **The hand-flown drone commands LEAN, not velocity** (2026-08-03). A `wasd` key sends
+  `SET_ATTITUDE_TARGET` (`sitl_fly_leg.send_manual_attitude`): a Python P loop on
+  velocity error, `MANUAL_LEAN_K` lean per m/s of error, saturating at
+  `MANUAL_LEAN_DEG` = 65°. Hands off, it drops back to a zero velocity setpoint, which
+  brakes and then holds position. Copter picks its GUIDED submode off whichever message
+  arrives, so this is not a mode change and the AUTO follow loop below is untouched.
+  **Why:** a GUIDED velocity setpoint reverses in **~2.7 s at any speed** from 6 to
+  15 m/s. Speed-independence is the tell — the cost is lag inside `AC_PosControl`
+  (`shape_vel_accel_xy` takes its error against the *shaped* `_vel_desired`, not the
+  measured velocity), not accel authority. Raising `PSC_VELXY_P` 2→9 bought 0.6 s;
+  accel feedforward got 15 m/s to 2.05 s; neither reaches 1 s. Lean-commanded with
+  `MANUAL_V_MAX` = 6 m/s: **0.95 s**, altitude sag 0.4 m.
+  Check: `.venv-ft/bin/python runners/sitl_reversal_check.py` (add `--velocity` for the
+  old path's ~2.7 s baseline). Ceilings measured and recorded in `sitl_fly_leg.py`:
+  70° lean is no faster than 65°, `ATC_ANG_*_P` 14.0 rings, and 60° lean tops out at
+  13 m/s terminal, so `--v 15` never arrives.
 - **A GUIDED velocity setpoint expires after ~3 s of silence.** Resent at `CMD_HZ`
-  (10 Hz) — twice the feed rate, a fiftieth of the render tick.
+  (20 Hz) — the manual pilot is a closed loop on velocity error now, not a keepalive.
 - **AUTO gains are raised.** `CascadePID`'s default `kp_lat=0.02` holds a target only
   under dense (20 Hz oracle) delivery; at the on-device carry rate the steady-state
   offset `v/kp` walks a moving target off frame. `AUTO_KP_LAT=0.06`, `AUTO_MAX_V=8.0` are
@@ -312,7 +328,7 @@ asserts that refusal.
 - **MANUAL (default).** Operator has sole authority. The model grounds and tracks; it
   draws a box and moves nothing.
 - **ASSIST.** The model *aims* — `center_delta` pans the tracked box to frame centre —
-  and in spectator mode it also *closes* (CHASE, below). It never commands position on
+  and in god mode it also *closes* (CHASE, below). It never commands position on
   the copter. Operator input is live in both modes; in ASSIST an arrow key **outranks**
   aim and a held `wasd` outranks CHASE for as long as it is held, otherwise the two sum
   and the view crawls against the input. Assist is inert while paused and with no track.
@@ -320,7 +336,7 @@ asserts that refusal.
   This is the P6.2 loop, and it is the reason the "deliberately not built" note that used
   to live in this file is gone.
 
-### CHASE: hold the target at a set on-screen size (spectator)
+### CHASE: hold the target at a set on-screen size (god)
 
 The only range signal available is the box itself — no depth sensor, no target pose. So
 CHASE regulates **apparent size**: `chase_speed(areas)` drives the box area to
@@ -645,7 +661,7 @@ The first grab is what showed the invisible entries and the white checkbox.
 
 ## Committed frames
 
-Four of the seven are the redesign, and every one was opened with the Read tool before
+Four of the eight are the redesign, and every one was opened with the Read tool before
 anything in this file was written about it (`runners/ui_shot.py`, `--name "CARLA debug"`).
 
 | frame | run / config | what it shows |
@@ -656,6 +672,7 @@ anything in this file was written about it (`runners/ui_shot.py`, `--name "CARLA
 | `ui-maintained-vs-delivered.jpg` | one 45 m nadir CARLA frame, both overlay states | Left: **maintained** — amber corner brackets, `maintaining: <caption>`, the box the system carries before anyone asked for it. Right: the same target **delivered** — closed green rectangle. The warm-start claim is that the system tracks things it has not been asked about, so this distinction has to survive a glance; it was grey-on-asphalt before. |
 | `oracle-lock-45m.jpg` | copter / warm / oracle / auto, 40 cars | The flown view only (`smoke.png`, no panel chrome). The system working: green box tight on a white SUV, captioned `white SUV in the center`, `lock 60/60` (231/234 all). |
 | `ui-orin-cost-loaded.jpg` | spectator / cold / vlm / manual, 6 cars, a live on-device carry, with a 45 s CUDA matmul deliberately run alongside it on the Orin | The cost dashboard under real device load, and the P6.6 contamination fingerprint live. `orin 9.31 W  tj 59 C  gpu 100%  ram 7.0/7.8 GB` over `+4.12 W over idle  2.11 J/frame  (P6.6: idle 5.19, carry 10.84 W)` — the second consumer shows up exactly as P6.6 said it would: watts and GPU up, and the carry rate collapsed to `carry 227 ms (4.4 Hz)` against the 6.27 Hz the same configuration measures alone, which then costs `LOST 16s`. Idle, the same two lines read `orin 5.19 W ... +0.00 W over idle  -- J/frame`, matching arm A0's 5.195 W tegrastats median. |
+| `ui-pilot-god-drone.jpg` | drone / cold / oracle / auto, 10 cars, Town04, 44.5 m nadir — **the god/drone rework** (2026-08-03) | The reworked PILOT card: two buttons, `god` and `drone`, and nothing else — no `arm + takeoff`, no `to origin`, no `land`. Under them `fly speed  m/s (drone caps at 6)`, which is the slider not lying about a range the airframe no longer flies. Instruments read `2 PILOT      drone  44.5 m AGL` (was `copter`), telemetry `armed mode 4  alt 44.5 m  gimbal -90/0`, footer `pilot drone  acquire cold  designate oracle  follow auto`. The view is live at `27 Hz render` — highway, boulder, treeline, two lamp posts casting long shadows — so the frame is evidence of pixels, not of a log line. |
 | `vlm-g6-miss-45m.jpg` | copter / warm / **vlm** / auto | Flown view only. G6 in pixels: the grounder boxes a painted road marking beside the car, carry then holds that asphalt perfectly — `0/417`, `DRIFT 82 s`. |
 
 ## Follow trace

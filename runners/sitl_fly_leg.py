@@ -10,6 +10,7 @@ and, without MAVProxy, no second endpoint streams telemetry.
     .venv-ft/bin/python runners/sitl_fly_leg.py --alt 60 --north 8 --seconds 40
 """
 import argparse
+import math
 import threading
 import time
 
@@ -56,24 +57,124 @@ def connect(url="tcp:127.0.0.1:5760", rate_hz=20):
 # nav acceleration, which behind a GUIDED velocity stick reads as sluggish and
 # unresponsive -- the copter spends a second leaning before it goes anywhere, and
 # another one stopping. These are sport-airframe limits. They change the AIRFRAME,
-# not the control path (still CascadePID -> LOCAL_NED velocity), and the interactive
-# panel is a demo, so no P6 number is measured under them.
+# not the control path the follow loop flies (still CascadePID -> LOCAL_NED velocity),
+# and the interactive panel is a demo, so no P6 number is measured under them.
 #
-# Reversal time is what the operator actually feels: 2*v_max/accel. At 25 m/s and
-# 10 m/s^2 that is 5 s, which is the reported sluggishness. Accel is capped by lean,
-# not by WPNAV_ACCEL -- a_max = g*tan(ANGLE_MAX) -- and above ~60 deg a 2:1-thrust
-# copter can no longer hold altitude while leaning. So: 60 deg (17 m/s^2 of authority)
-# and a 15 m/s cruise, which reverses in ~1.8 s.
+# What the operator feels is REVERSAL TIME: top speed one way to top speed the other.
+# Everything below is what runners/sitl_reversal_check.py measured, at 45 m AGL:
+#
+#   path                                       15 m/s   10 m/s   6 m/s
+#   GUIDED velocity setpoint (stock gains)      3.2 s    2.8 s    2.7 s
+#   ... with PSC_VELXY_P raised 2 -> 9          2.6 s      -        -
+#   ... velocity + accel feedforward            2.05 s   1.7 s    1.31 s
+#   GUIDED attitude command, 65 deg lean          -      1.25 s   0.9 s
+#
+# Read the first row down, not across: the GUIDED velocity path costs ~2.7 s at ANY
+# speed, so it is not accel authority, it is lag inside AC_PosControl -- the shaped
+# target gets there in 0.4 s and the airframe is then dragged in behind it with a
+# ~0.65 s time constant. Raising ANGLE_MAX / WPNAV_ACCEL / PSC_JERK_XY / PSC_VELXY_P
+# barely touches it (all four were tried; the table is what came back). So the manual
+# pilot does NOT fly velocity setpoints -- see send_manual_attitude, which commands
+# lean directly and skips the position controller. These params still matter to it
+# (ANGLE_MAX caps the attitude target, ATC_INPUT_TC is its slew) and still govern the
+# follow loop, which stays on velocity.
+#
+# Ceilings, both measured, both airframe not param: 60 deg of lean settles at 13 m/s
+# (SITL drag), and 15 m/s of cruise needs 46 deg of steady lean. Altitude held to
+# 0.1 m through every reversal above -- the sag this comment used to warn about never
+# appeared, because the copter's altitude limiter caps lean near 62 deg long before
+# ANGLE_MAX's 75.
 SPORT_PARAMS = {
-    "ANGLE_MAX": 6000.0,      # cdeg lean limit (stock 3000) -- this is the accel authority
-    "WPNAV_ACCEL": 1700.0,    # cm/s^2 horizontal (stock 250); g*tan(60) is the real ceiling
-    "WPNAV_ACCEL_Z": 600.0,   # cm/s^2 vertical (stock 100)
-    "WPNAV_SPEED": 1500.0,    # cm/s horizontal cruise (stock 1000) -- lower ON PURPOSE
-    "WPNAV_SPEED_UP": 500.0,  # cm/s climb (stock 250)
-    "WPNAV_SPEED_DN": 400.0,  # cm/s descent (stock 150)
-    "WPNAV_JERK": 60.0,       # m/s^3 (stock 5) -- otherwise jerk re-imposes the old ramp
-    "ATC_INPUT_TC": 0.03,     # s of attitude smoothing (stock 0.15)
+    "ANGLE_MAX": 7500.0,      # cdeg lean limit (stock 3000) -- caps the attitude target
+    "WPNAV_ACCEL": 3000.0,    # cm/s^2 horizontal (stock 250); follow loop only
+    "WPNAV_ACCEL_Z": 2000.0,  # cm/s^2 vertical (stock 100)
+    "WPNAV_SPEED": 1500.0,    # cm/s horizontal cruise (stock 1000)
+    "WPNAV_SPEED_UP": 800.0,  # cm/s climb (stock 250). NOT higher: arm_and_takeoff
+                              # climbs under SIM_SPEEDUP 10, and 1200 overshot 45 m
+                              # by 68 m before the controller could stop it.
+    "WPNAV_SPEED_DN": 600.0,  # cm/s descent (stock 150)
+    "WPNAV_JERK": 200.0,      # m/s^3 (stock 5) -- otherwise jerk re-imposes the old ramp
+    # WPNAV_JERK is the WAYPOINT jerk and a GUIDED velocity setpoint does not go
+    # through waypoint nav -- PSC_JERK_* is the one that binds there.
+    # Kept as a MEASURED NEGATIVE: stock 2 = "look at the next waypoint", so the
+    # copter yaws to face wherever it is flying, and a reversal looked like it was
+    # paying for a 180 deg heading slew (the trace showed roll climbing while pitch
+    # fell). Setting 0 = hold heading moved the number 3.20 -> 3.25 s, i.e. not at
+    # all; the tilt vector was rotating for some other reason. Left at 0 because a
+    # camera rig should hold heading anyway -- the view is slaved to the GIMBAL's yaw
+    # through ned_to_carla (R-10) -- but do not expect seconds from it.
+    "WP_YAW_BEHAVIOR": 0.0,
+    "PSC_JERK_XY": 200.0,     # m/s^3 horizontal (stock 30)
+    "PSC_JERK_Z": 50.0,       # m/s^3 vertical (stock 5) -- q/e should bite immediately
+    "ATC_INPUT_TC": 0.02,     # s of attitude smoothing (stock 0.15) -- this one IS the
+                              # manual pilot's response time, it is the only filter left
+                              # between the key and the lean
+    # The attitude loop is what is left once the position controller is out of the
+    # path, so it is worth the last 0.15 s: doubling both gains took the 6 m/s reversal
+    # 1.05 -> 0.90 s. NOT higher -- 14.0/0.28 measured 1.00 s, i.e. it starts ringing
+    # and the ring costs more than the slew rate buys.
+    "ATC_ANG_RLL_P": 9.0,     # stock 4.5
+    "ATC_ANG_PIT_P": 9.0,
+    "ATC_RAT_RLL_P": 0.20,    # stock 0.135
+    "ATC_RAT_PIT_P": 0.20,
+    # q/e go out as the SET_ATTITUDE_TARGET thrust field, which Copter reads as a climb
+    # rate scaled by these. 6 m/s each way, reached in ~0.5 s at PILOT_ACCEL_Z 500.
+    "PILOT_SPEED_UP": 600.0,  # cm/s (stock 250)
+    "PILOT_SPEED_DN": 600.0,  # cm/s (stock 150)
+    "PILOT_ACCEL_Z": 500.0,   # cm/s^2 (stock 250)
 }
+
+# --- manual pilot: lean, not velocity ---------------------------------------
+# Why an angle and not a speed: see the table above. Everything here is measured on
+# the SITL quad at 45 m AGL, and the three numbers trade against each other.
+MANUAL_LEAN_DEG = 65.0   # commanded lean at full stick. 60 also works (13 m/s
+                         # terminal); 70 measured no faster, the attitude slew and
+                         # the drag dominate past ~65, and it costs altitude margin.
+MANUAL_LEAN_K = 0.5      # lean per m/s of velocity error: full lean past 2 m/s off.
+                         # This is the whole outer loop -- P, no I, no D. Higher
+                         # tested no faster (the copter is already at max lean).
+MANUAL_V_MAX = 6.0       # m/s top speed. THE number that sets reversal time on this
+                         # path: 6 -> 0.9 s, 7 -> 1.0-1.1 s, 10 -> 1.25 s. 6 is the
+                         # fastest that keeps a full reversal inside 1 s, which is the
+                         # spec the panel's copter is tuned to.
+MANUAL_CLIMB_MAX = 6.0   # m/s, must match PILOT_SPEED_UP/DN above
+
+
+def send_manual_attitude(m, vn, ve, vd, v_meas, yaw_rad):
+    """One manual-pilot command: world-NED velocity demand -> a GUIDED lean.
+
+    The panel's operator flies this; the follow loop still flies send_velocity. Both
+    are GUIDED, and Copter switches submode on whichever message arrives, so letting
+    go of the keys (send_velocity(0,0,0)) brakes and holds position with no mode change.
+
+    `vn, ve, vd` is the demand in m/s (down-positive), `v_meas` the achieved
+    (vx, vy, vz) straight off LOCAL_POSITION_NED, `yaw_rad` the AIRFRAME's heading --
+    the lean has to be resolved in the body frame the autopilot is holding, which is
+    not the gimbal yaw the keys were resolved in.
+    """
+    # P on velocity error, saturating: this is what makes a reversal a step input to
+    # the attitude controller instead of a ramp out of the position controller.
+    an = max(-1.0, min(1.0, MANUAL_LEAN_K * (vn - v_meas[0])))
+    ae = max(-1.0, min(1.0, MANUAL_LEAN_K * (ve - v_meas[1])))
+    c, s = math.cos(yaw_rad), math.sin(yaw_rad)
+    fwd, rgt = an * c + ae * s, -an * s + ae * c
+    lean = math.radians(MANUAL_LEAN_DEG)
+    # thrust is a CLIMB RATE here (0.5 = hold), not a throttle: Copter reads the field
+    # that way in guided angle control unless GUID_OPTIONS says otherwise.
+    thrust = 0.5 - 0.5 * max(-1.0, min(1.0, vd / MANUAL_CLIMB_MAX))
+    m.mav.set_attitude_target_send(
+        0, m.target_system, m.target_component,
+        0b00000111,                        # ignore body rates, use attitude + thrust
+        _quat(rgt * lean, -fwd * lean, yaw_rad), 0, 0, 0, thrust)
+
+
+def _quat(roll, pitch, yaw):
+    """RPY -> [w, x, y, z]. mavlink wants a quaternion, the autopilot wants Euler."""
+    cr, sr = math.cos(roll / 2), math.sin(roll / 2)
+    cp, sp = math.cos(pitch / 2), math.sin(pitch / 2)
+    cy, sy = math.cos(yaw / 2), math.sin(yaw / 2)
+    return [cr * cp * cy + sr * sp * sy, sr * cp * cy - cr * sp * sy,
+            cr * sp * cy + sr * cp * sy, cr * cp * sy - sr * sp * cy]
 
 
 def set_params(m, params, timeout=2.0):
