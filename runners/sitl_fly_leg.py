@@ -130,11 +130,26 @@ SPORT_PARAMS = {
 MANUAL_LEAN_DEG = 65.0   # commanded lean at full stick. 60 also works (13 m/s
                          # terminal); 70 measured no faster, the attitude slew and
                          # the drag dominate past ~65, and it costs altitude margin.
-MANUAL_LEAN_K = 0.5      # lean per m/s of velocity error: full lean past 2 m/s off.
-                         # This is the whole outer loop -- P, no I, no D. Higher
-                         # tested no faster (the copter is already at max lean).
+MANUAL_DRAG_K = 0.0066   # tan(lean) per (m/s)^2 -- the drag model, FIT AT THE SPEED
+                         # THIS PILOT FLIES: holding 6 m/s takes 13.3 deg measured, and
+                         # tan(13.3)/6^2 = 0.0066. A v^2 law fit at 15 m/s instead
+                         # (46 deg -> 0.0046) undershoots down here and the copter
+                         # cruises 5.74 for a demand of 6. Going the other way this
+                         # runs ~10 deg hot at 15 m/s, where the P term trims it back;
+                         # refit if MANUAL_V_MAX moves far.
+                         # This is the FEEDFORWARD, and it is what stopped the pilot
+                         # jittering: cruising at 6 m/s needs 9.4 deg, so a pure-P loop
+                         # that commands 65 deg until the error is small and 0 deg once
+                         # it is has no lean left to hold speed with. It overshot,
+                         # braked, and slammed back in -- a limit cycle the operator
+                         # felt as accelerate/brake on a held key.
+MANUAL_LEAN_K = 15.0     # deg of EXTRA lean per m/s of velocity error, on top of the
+                         # feedforward. Saturates ~3.7 m/s off, so a full reversal is
+                         # still a step to max lean; near the setpoint the correction
+                         # is proportional and small. P only -- the feedforward is
+                         # doing the job an integrator would.
 MANUAL_V_MAX = 6.0       # m/s top speed. THE number that sets reversal time on this
-                         # path: 6 -> 0.9 s, 7 -> 1.0-1.1 s, 10 -> 1.25 s. 6 is the
+                         # path: 6 -> 0.85 s, 7 -> ~1.0 s, 10 -> ~1.25 s. 6 is the
                          # fastest that keeps a full reversal inside 1 s, which is the
                          # spec the panel's copter is tuned to.
 MANUAL_CLIMB_MAX = 6.0   # m/s, must match PILOT_SPEED_UP/DN above
@@ -152,20 +167,31 @@ def send_manual_attitude(m, vn, ve, vd, v_meas, yaw_rad):
     the lean has to be resolved in the body frame the autopilot is holding, which is
     not the gimbal yaw the keys were resolved in.
     """
-    # P on velocity error, saturating: this is what makes a reversal a step input to
-    # the attitude controller instead of a ramp out of the position controller.
-    an = max(-1.0, min(1.0, MANUAL_LEAN_K * (vn - v_meas[0])))
-    ae = max(-1.0, min(1.0, MANUAL_LEAN_K * (ve - v_meas[1])))
+    # Feedforward + P, in DEGREES. The feedforward is the lean that holds the demanded
+    # speed against drag once there (v*|v| keeps the sign), so at steady state the P
+    # term goes to ~0 instead of having to carry the cruise lean itself. The P term
+    # still saturates the total on a reversal, which is what makes it a step input to
+    # the attitude controller rather than a ramp out of the position controller.
+    an = math.degrees(math.atan(MANUAL_DRAG_K * vn * abs(vn))) \
+        + MANUAL_LEAN_K * (vn - v_meas[0])
+    ae = math.degrees(math.atan(MANUAL_DRAG_K * ve * abs(ve))) \
+        + MANUAL_LEAN_K * (ve - v_meas[1])
+    # clamp the VECTOR, not each axis: clamping separately lets a diagonal demand ask
+    # for 65 deg on both and fly a 84 deg resultant, which the altitude limiter then
+    # quietly cuts back -- and the cut is not symmetric, so the copter turns.
+    mag = math.hypot(an, ae)
+    if mag > MANUAL_LEAN_DEG:
+        an, ae = an * MANUAL_LEAN_DEG / mag, ae * MANUAL_LEAN_DEG / mag
+    an, ae = math.radians(an), math.radians(ae)
     c, s = math.cos(yaw_rad), math.sin(yaw_rad)
     fwd, rgt = an * c + ae * s, -an * s + ae * c
-    lean = math.radians(MANUAL_LEAN_DEG)
     # thrust is a CLIMB RATE here (0.5 = hold), not a throttle: Copter reads the field
     # that way in guided angle control unless GUID_OPTIONS says otherwise.
     thrust = 0.5 - 0.5 * max(-1.0, min(1.0, vd / MANUAL_CLIMB_MAX))
     m.mav.set_attitude_target_send(
         0, m.target_system, m.target_component,
         0b00000111,                        # ignore body rates, use attitude + thrust
-        _quat(rgt * lean, -fwd * lean, yaw_rad), 0, 0, 0, thrust)
+        _quat(rgt, -fwd, yaw_rad), 0, 0, 0, thrust)
 
 
 def _quat(roll, pitch, yaw):

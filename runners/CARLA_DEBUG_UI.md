@@ -260,9 +260,10 @@ pymavlink, arms, takes off, then slaves the camera to the NED the autopilot repo
   identity `(vx, vy)` and what `tests/test_pilot_modes.py` asserts the key mapping
   against. Flipping a sign here does not crash, it flies away from the target.
 - **The hand-flown drone commands LEAN, not velocity** (2026-08-03). A `wasd` key sends
-  `SET_ATTITUDE_TARGET` (`sitl_fly_leg.send_manual_attitude`): a Python P loop on
-  velocity error, `MANUAL_LEAN_K` lean per m/s of error, saturating at
-  `MANUAL_LEAN_DEG` = 65°. Hands off, it drops back to a zero velocity setpoint, which
+  `SET_ATTITUDE_TARGET` (`sitl_fly_leg.send_manual_attitude`): a drag **feedforward**
+  `atan(MANUAL_DRAG_K·v|v|)` plus `MANUAL_LEAN_K` degrees of P per m/s of velocity
+  error, the *vector* clamped to `MANUAL_LEAN_DEG` = 65°. Hands off, it drops back to a
+  zero velocity setpoint, which
   brakes and then holds position. Copter picks its GUIDED submode off whichever message
   arrives, so this is not a mode change and the AUTO follow loop below is untouched.
   **Why:** a GUIDED velocity setpoint reverses in **~2.7 s at any speed** from 6 to
@@ -270,7 +271,17 @@ pymavlink, arms, takes off, then slaves the camera to the NED the autopilot repo
   (`shape_vel_accel_xy` takes its error against the *shaped* `_vel_desired`, not the
   measured velocity), not accel authority. Raising `PSC_VELXY_P` 2→9 bought 0.6 s;
   accel feedforward got 15 m/s to 2.05 s; neither reaches 1 s. Lean-commanded with
-  `MANUAL_V_MAX` = 6 m/s: **0.95 s**, altitude sag 0.4 m.
+  `MANUAL_V_MAX` = 6 m/s: **0.85 s**, altitude sag 0.0 m, holding 5.96 m/s with std
+  **0.00**.
+  **The feedforward is not optional, and it was found by flying it.** Pure P shipped
+  first, passed the reversal budget at 0.95 s, and felt wrong in the operator's hands —
+  surging and braking on a *held* key. A 6 m/s cruise needs only 13.3° of lean, so a
+  loop commanding 65° until the error is nearly gone and ~0° once it is has nothing
+  left to hold speed with: it overshot, decelerated, and slammed back in. A reversal
+  time cannot see a limit cycle, so the check now also cruises 6 s at top speed and
+  asserts the std dev of the achieved speed (`JITTER_MAX` = 0.5 m/s). `MANUAL_DRAG_K`
+  is fit at 6 m/s, not at the 46°/15 m/s cruise point — the v² law fit high cruises
+  5.74 for a demand of 6. Refit it if `MANUAL_V_MAX` moves far.
   Check: `.venv-ft/bin/python runners/sitl_reversal_check.py` (add `--velocity` for the
   old path's ~2.7 s baseline). Ceilings measured and recorded in `sitl_fly_leg.py`:
   70° lean is no faster than 65°, `ATC_ANG_*_P` 14.0 rings, and 60° lean tops out at
