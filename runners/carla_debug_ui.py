@@ -1122,7 +1122,7 @@ def main():
                                             (3, "DESIGNATE"), (4, "DELIVER"),
                                             (5, "FOLLOW"))}
     w1, w2, w3, w4, w5 = (stg[n]["body"] for n in range(1, 6))
-    w1_map, w1_spawn, w1_wipe = rrow(w1), rrow(w1), rrow(w1)
+    w1_map, w1_spawn, w1_traffic, w1_wipe = (rrow(w1) for _ in range(4))
     w2_pilot, w2_move, w2_speed = rrow(w2), rrow(w2), rrow(w2)
     w3_src, w3_click, w3_res, w3_trk, w3_cap, w3_drop = (rrow(w3) for _ in range(6))
     w4_src, w4_go = rrow(w4), rrow(w4)
@@ -1526,6 +1526,24 @@ def main():
     # they exist). Focusing there also keeps wasd out of the Spinbox and Combobox.
     # (the key list is the KEYS card in the rail; the slider is labelled because
     # unlabelled it read as a bare "45" next to a sentence of prose)
+    # How fast the autopilot traffic drives, live. The knob is the TRAFFIC MANAGER's,
+    # not the vehicle's: `global_percentage_speed_difference(p)` sets every autopilot
+    # car to p% BELOW the road's speed limit, existing cars included, and it survives
+    # into cars spawned later. Negative p drives ABOVE the limit, which is how you get a
+    # target that outruns a 5 Hz feed. Exposed as "% of the limit" because the API's
+    # sign is backwards from what an operator expects: 100 = at the limit, 200 = double.
+    # 70 is CARLA's own default (30% below), so the panel opens on the traffic every
+    # earlier run saw. There is a per-vehicle variant; global is what "the cars" means.
+    def set_traffic(pct):
+        traffic_manager(client).global_percentage_speed_difference(100.0 - float(pct))
+
+    traffic_speed = tk.Scale(w1_traffic, from_=20, to=200, orient=tk.HORIZONTAL,
+                             length=RAIL_W - 40, showvalue=True, sliderlength=16, width=11,
+                             bg=DARK, fg=MUTED, highlightthickness=0,
+                             label="traffic speed  % of limit", command=set_traffic)
+    traffic_speed.set(70)
+    traffic_speed.pack(side=tk.LEFT)
+
     speed = tk.Scale(w2_speed, from_=1, to=300, orient=tk.HORIZONTAL, length=RAIL_W - 40,
                      showvalue=True, sliderlength=16, width=11, bg=DARK, fg=MUTED,
                      highlightthickness=0, label="fly speed  m/s")
