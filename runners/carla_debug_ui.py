@@ -317,7 +317,6 @@ CMD_HZ = 20.0
 # target walk off frame (steady-state offset = v/kp). These are the raised gains the
 # P6.2 warm arm flew. ponytail: P only -- add D when it rings, not before.
 AUTO_KP_LAT = 0.06
-AUTO_MAX_V = 8.0
 # ...and it rings. A P-only pixel servo closed through ~0.3-1 s of carry+delivery
 # dead time is a limit cycle: the copter arrives, the box it is still reacting to is
 # a second old, so it overshoots and comes back -- visible as the view hunting around
@@ -3294,10 +3293,11 @@ def main():
             # up the screen at any heading.
             vn, ve, vd = manual_velocity(held & MOVE, v, gim["yaw"])
         elif auto and box is not None:
-            # AUTO_MAX_V, not the slider: the drone's AUTO limit is a flight-tuning
-            # number the P6.2 gains sit on, and it is below what the airframe can do
-            # anyway. The god camera is the one that gets the slider.
-            vn, ve = auto_velocity(box, gim["yaw"], AUTO_MAX_V)
+            # Same slider as the hand: AUTO's ceiling is the fly-speed slider clamped
+            # by MANUAL_V_MAX, so the operator sets one number and both modes obey it.
+            # P6.2's flown ceiling was 8 m/s, above what this airframe holds anyway --
+            # to re-fly that arm, set the slider, do not hardcode it back.
+            vn, ve = auto_velocity(box, gim["yaw"], v)
             vd = 0.0
         else:
             vn, ve, vd = 0.0, 0.0, 0.0

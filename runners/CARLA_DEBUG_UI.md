@@ -29,7 +29,7 @@ combination.
 |---|---|---|
 | **PILOT** | `god` \| `drone` | `god` flies a camera on a stick — perception in isolation, any view you like, no flight dynamics. `drone` arms an ArduCopter SITL and slaves the camera to the pose the autopilot reports (P6.1), so the pixels are a **consequence** of the control output. **Same keys either way** (`wasd` parallel to the ground, `qe` up/down, arrows look): pressing one of the two swaps the physics under the operator's hand and nothing else. |
 | **DESIGNATE** | `vlm` \| `oracle` | `vlm` runs the deployed grounder on a point crop around the click. `oracle` seeds the carry from the CARLA projected box and skips the VLM — which is the scope P6.2-DELIVERY's claim was measured in (G6: q8_0 is non-discriminative on a car at 45 m nadir). Switching between them separates "grounding failed" from "carry/control failed". |
-| **FOLLOW** | `manual` \| `assist` \| `auto` | `manual` = operator has sole authority. `assist` = the model aims (gimbal/look only, never position). `auto` = **closed loop**: the carried box drives the pilot through `CascadePID`. It flies **either** pilot — `drone` takes the PID output as `SET_POSITION_TARGET_LOCAL_NED` (the path `run_p62_flight.py` measured, capped at `AUTO_MAX_V` = 8 m/s because that is a flight tuning, not a preference), `god` integrates the same (vn, ve) into the spectator transform, capped by the fly-speed slider instead — no lean, no drag, so this is the mode for a target the airframe cannot keep up with. Under `auto` the god camera eases to nadir and refuses arrow pitch (the PID's screen axes assume nadir); heading is still the operator's, the PID is rotated by it. `auto` only refuses when `PILOT=drone` is selected with no link, and says so. |
+| **FOLLOW** | `manual` \| `assist` \| `auto` | `manual` = operator has sole authority. `assist` = the model aims (gimbal/look only, never position). `auto` = **closed loop**: the carried box drives the pilot through `CascadePID`. It flies **either** pilot — `drone` takes the PID output as `SET_POSITION_TARGET_LOCAL_NED` (the path `run_p62_flight.py` measured), `god` integrates the same (vn, ve) into the spectator transform — no lean, no drag, so this is the mode for a target the airframe cannot keep up with. **Both pilots cap AUTO at the fly-speed slider**, same as under the hand — the drone additionally clamped to `sitl_fly_leg.MANUAL_V_MAX` = 6 m/s. Under `auto` the god camera eases to nadir and refuses arrow pitch (the PID's screen axes assume nadir); heading is still the operator's, the PID is rotated by it. `auto` only refuses when `PILOT=drone` is selected with no link, and says so. |
 
 ## Run it
 
@@ -306,8 +306,9 @@ pymavlink, arms, takes off, then slaves the camera to the NED the autopilot repo
   (20 Hz) — the manual pilot is a closed loop on velocity error now, not a keepalive.
 - **AUTO gains are raised.** `CascadePID`'s default `kp_lat=0.02` holds a target only
   under dense (20 Hz oracle) delivery; at the on-device carry rate the steady-state
-  offset `v/kp` walks a moving target off frame. `AUTO_KP_LAT=0.06`, `AUTO_MAX_V=8.0` are
-  what the P6.2 warm arm flew. P only — add D when it rings, not before. Untuned against
+  offset `v/kp` walks a moving target off frame. `AUTO_KP_LAT=0.06` is what the P6.2 warm
+  arm flew (at 8 m/s, which is now the slider's job — set it to re-fly that arm). P only —
+  add D when it rings, not before. Untuned against
   the ~5.7 m/s the airframe actually achieves; `cmd` vs `got` is the instrument for that.
 - **Gotcha: `--alt` does not re-trim an airborne copter.** `arm_and_takeoff` returns the
   current altitude if the vehicle is already above 5 m, so a copter left flying by a
