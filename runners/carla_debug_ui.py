@@ -282,7 +282,17 @@ ORIN_GROUND_RES = 512
 # keeps climbing all the way to 1024 (0.859 -> 0.921). The value itself is owned by
 # `grounding.contract` (R-46) -- this panel is a consumer, not a second source of truth.
 ORIN_CARRY_SIZE = CARRY_IMAGE_SIZE
+# The zoom picker's values. "full" is the whole frame; every other entry is a NATIVE
+# px window cut around the box (EXP-6), fed to SAM2 at whatever the carry picker says
+# -- magnification and pixels-fed are two levers, so the panel offers both.
+CROP_SIDES = ("full", "256", "384", "512", "768", "1024")
 _EXP3 = {}
+
+
+def crop_px(v):
+    """Zoom picker value -> native px window side. Non-numeric ("full") means 0 = off."""
+    return int(v) if str(v).isdigit() else 0
+
 
 # --- copter pilot mode: the P6.1/P6.2 rig, live -----------------------------
 # The god pilot is a camera on a stick. The SYSTEM under test flies an ArduCopter
@@ -2127,7 +2137,12 @@ def main():
                 if caught_at is None and track["lag"] <= 1:
                     caught_at = time.time() - t0
                     track["catchup_s"] = caught_at
-                    track["msg"] = (f"vlm {vlm_s:.1f}s + catchup {caught_at:.1f}s, live"
+                    # ORACLE designation runs no VLM, and vlm_s is 0.0 exactly there:
+                    # "vlm 0.0s" read as an instant grounder rather than as no grounder.
+                    # Catch-up is still real without one -- the bridge init and the
+                    # backlog it accrues are what it measures, not the grounding.
+                    track["msg"] = ((f"vlm {vlm_s:.1f}s + " if vlm_s else "oracle, no vlm -- ")
+                                    + f"catchup {caught_at:.1f}s, live"
                                     f"  --  carry {hz:.1f} Hz Orin")
                     emit(ev="live", n=cursor, catchup_s=round(caught_at, 3))
                 elif caught_at is not None:
@@ -2152,7 +2167,7 @@ def main():
             # own ack. If the process died, get_bridge() respawns on the next follow.
             bridge_io.release()
 
-    def follow(caption, stop, ground_res, carry_crop=0):
+    def follow(caption, stop, ground_res, carry_size, carry_crop=0):
         """Whole-frame caption grounding on the Jetson -> carry on the Jetson.
 
         The other half of the click path: same native frame, no crop. The full 1920
@@ -2194,7 +2209,7 @@ def main():
             track["stamp"] += 1
         track["msg"] = f"grounded in {vlm_s:.1f}s, carrying on Orin..."
         orin_carry(seed_n, seed, seed_box, caption, vlm_s, raw,
-                   ORIN_CARRY_SIZE, None, stop, carry_crop)
+                   int(carry_size), None, stop, carry_crop)
 
     def hit_test_live(feed_x, feed_y):
         """Clicked feed pixel -> the CARLA vehicle under it (smallest projected box).
@@ -2440,7 +2455,7 @@ def main():
             track["msg"] = "designate=oracle needs a Shift-click on a car, not a caption"
             return
         _start_follow(follow, caption_entry.get(), _arm_track(), ground_res.get(),
-                      CARRY_CROP_SIDE if carry_crop_on.get() else 0)
+                      carry_size.get(), crop_px(crop_side.get()))
 
     def do_drop():
         # set the event INSIDE the lock, so a follow thread holding it is either
@@ -2497,19 +2512,22 @@ def main():
     carry_size = remember("carry_size", tk.IntVar(value=ORIN_CARRY_SIZE))
     ttk.Combobox(w3_res, textvariable=carry_size, width=5, state="readonly",
                  values=(640, 768, 896, 1024)).pack(side=tk.LEFT)
-    tk.Label(w3_res, text="Orin", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(6, 0))
     tracker_name = tk.StringVar(value="sam2")
     # EXP-6's escalation for a small/distant target, and the reason the carry dropdown
-    # should stay at 640: a fixed CARRY_CROP_SIDE native window carried at 640 buys the
-    # same accuracy as raising the dropdown to 1024 (d_IoU -0.002, d_PASS -1 of 38) at
-    # 2.7x the on-device rate. A checkbox, not a third resolution value, because it is a
-    # different lever -- magnification, not pixels fed.
-    # Default ON (2026-08-03, author): the panel's targets are distant cars, which is the
-    # regime EXP-6 measured the crop for. Uncheck to carry the whole frame.
-    carry_crop_on = remember("carry_crop", tk.BooleanVar(value=True))
-    tk.Checkbutton(w3_res, text=f"zoom {CARRY_CROP_SIDE}px", variable=carry_crop_on,
-                   bg=DARK, fg=MUTED, selectcolor=DARK, activebackground=DARK,
-                   activeforeground=TEXT).pack(side=tk.LEFT, padx=(10, 0))
+    # should stay at 640: a fixed 512 px native window carried at 640 buys the same
+    # accuracy as raising the dropdown to 1024 (d_IoU -0.002, d_PASS -1 of 38) at 2.7x
+    # the on-device rate. It is a DIFFERENT lever from the carry box next to it --
+    # magnification (native px cut out) vs pixels fed to SAM2 -- so both are pickable
+    # and neither is nailed to one value (2026-08-03, by request; it was a checkbox on a
+    # hardcoded CARRY_CROP_SIDE). `full` carries the whole frame. Only 512 is measured
+    # (EXP-6); every other side is a demo knob, and the mode echo prints whichever is on.
+    # Default 512: the panel's targets are distant cars, the regime EXP-6 measured.
+    # New pref key -- the old `carry_crop` was a bool, and a restored `true` would sit in
+    # this StringVar looking like a size.
+    tk.Label(w3_res, text="zoom", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(8, 2))
+    crop_side = remember("crop_side", tk.StringVar(value=str(CARRY_CROP_SIDE)))
+    ttk.Combobox(w3_res, textvariable=crop_side, width=5, state="readonly",
+                 values=CROP_SIDES).pack(side=tk.LEFT)
     # Own row (`w3_trk`, created with the others so it sits under the resolutions): the
     # res row is already full at RAIL_W. Writes the module-level TRACKER that
     # `_bridge_cmd` reads; `get_bridge` keys its resident process on (tracker, size), so
@@ -2792,7 +2810,12 @@ def main():
         carrying = track["stop"] is not None and not track["stop"].is_set()
         boxed = carrying and track["box"] is not None
         fm = pilot_follow_mode()
-        closed = boxed and fm in ("assist", "auto")
+        # LOOP is green when a control law is actually reading a box, which is what
+        # model_box() decides -- not merely "a box exists and the switch says auto".
+        # The two diverge for the whole catch-up, and ORACLE designation is where that
+        # is worst: the GT seed box appears on screen instantly, so the lamp used to go
+        # green with no VLM delay to hide it while model_box() was still returning None.
+        closed = model_box() is not None
         done = {1: bool(spawned), 2: armed, 3: boxed, 4: fm in ("assist", "auto")}
         # from after the LAST satisfied stage, not from stage 1: spectator is a legal
         # way to run the whole demo, so stage 2 is never "done" in it, and a hint that
@@ -2835,7 +2858,10 @@ def main():
         gm, cm, chz = track["ground_ms"], track["carry_ms"], track["carry_hz"]
         cu = track["catchup_s"]
         gtimes.config(text="   |   ".join((
-            _f("ground {:.0f} ms", gm),
+            # same reason as the stage-3 row: with no VLM in the loop the honest string
+            # is "oracle", not a 0 ms grounding time
+            ("ground oracle" if designate.get() == "oracle"
+             else _f("ground {:.0f} ms", gm)),
             (f"carry {cm:.0f} ms ({chz:.1f} Hz) Orin" if cm is not None else "carry --"),
             _f("catch-up {:.1f} s", cu),
             f"lag {track['lag']} f",
@@ -2848,8 +2874,9 @@ def main():
             f"designate {designate.get()}",
             f"follow {fm}" + ("" if fm == follow_mode.get() else " [auto needs a link]"),
             f"|  ground {ground_res.get()} Orin",
-            f"carry {carry_size.get()}" + (f"/crop {CARRY_CROP_SIDE}"
-                                           if carry_crop_on.get() else "") + " Orin",
+            f"carry {carry_size.get()}"
+            + (f"/crop {crop_px(crop_side.get())}px"
+               if crop_px(crop_side.get()) else "/full frame") + " Orin",
             "CARLA + SITL 3090",
         )))
         # Two lines of device cost: the live rail read, then the same watts as a delta
@@ -2898,8 +2925,7 @@ def main():
             track["msg"] = "no car under the click"
             return
         _start_follow(follow_click, v.id, (feed_x, feed_y), carry_size.get(),
-                      ground_res.get(), _arm_track(),
-                      CARRY_CROP_SIDE if carry_crop_on.get() else 0)
+                      ground_res.get(), _arm_track(), crop_px(crop_side.get()))
 
     def on_select_click(e):
         # Shift-click on the flown view -> feed px. The photo is centred in the label

@@ -47,14 +47,20 @@ def test_round_trip(root, tmp_path, monkeypatch):
     remembered = {"caption": ui.restore_pref(saved, "caption",
                                              tk.StringVar(value="the red car")),
                   "hold_k": ui.restore_pref(saved, "hold_k", tk.IntVar(value=3)),
-                  "carry_crop": ui.restore_pref(saved, "carry_crop",
-                                                tk.BooleanVar(value=True))}
+                  "crop_side": ui.restore_pref(saved, "crop_side",
+                                               tk.StringVar(value="512"))}
     assert remembered["caption"].get() == "the blue van"
     assert remembered["hold_k"].get() == 4
-    assert remembered["carry_crop"].get() is True   # absent key keeps the default
+    assert remembered["crop_side"].get() == "512"   # absent key keeps the default
     ui.save_prefs(remembered)
     assert ui.load_prefs() == {"caption": "the blue van", "hold_k": 4,
-                               "carry_crop": True}
+                               "crop_side": "512"}
+
+
+def test_crop_px_reads_the_zoom_picker():
+    """`full` is the only non-numeric entry, and it is the one that means "no crop"."""
+    assert ui.crop_px("full") == 0
+    assert [ui.crop_px(v) for v in ui.CROP_SIDES] == [0, 256, 384, 512, 768, 1024]
 
 
 def test_stale_value_reverts_to_the_code_default(root):

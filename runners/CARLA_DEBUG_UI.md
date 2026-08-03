@@ -120,7 +120,8 @@ Three rules the redesign follows, all of them costed rather than tasteful:
   the one flying the camera.
 - **Segmented switches for modes, comboboxes only for values.** `pilot`, `designate`
   and `follow` are switches whose state an operator has to be able to *see*, not open;
-  the map name and the two resolutions are value pickers and stay closed comboboxes. The
+  the map name, the two resolutions and the zoom are value pickers and stay closed
+  comboboxes. The
   Notebook is gone: both designation paths are one card, ordered by which one to reach
   for (Shift-click first — the EXP-3 point crop is what works at 45 m nadir — typed
   caption second). The three switches were plain radiobuttons for one revision and the
@@ -558,7 +559,8 @@ which is the assert that fails if anyone reintroduces a per-tick law.
 
 `~/.config/carla-debug-ui.json`, written once on close, read once on startup. Eleven
 switches are registered through `remember(name, var)`: `designate`, ground and carry
-resolution, carry-crop zoom, tracker, caption, authority (`follow_mode`), hold
+resolution, zoom (`crop_side`, the native-px crop window, `full` for none), tracker,
+caption, authority (`follow_mode`), hold
 mode and its k, fly speed, traffic speed. Everything
 else — the map, the fleet, anything that depends on a live server — is deliberately not
 remembered: restoring it would mean doing work at startup, not restoring a setting.
