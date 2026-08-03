@@ -29,7 +29,9 @@ asks and each one is a different demo:
             manual = operator has sole authority. assist = the model aims (gimbal
             only, never position). auto = closed loop, the delivered box drives the
             copter through CascadePID -> LOCAL_NED velocity, the same path
-            run_p62_flight measured (P6.2). auto needs PILOT=drone.
+            run_p62_flight measured (P6.2). auto flies EITHER pilot -- the drone
+            as velocity setpoints, the god camera as its own transform, and the god
+            camera is not speed-limited by an airframe.
 
     .venv-ft/bin/python runners/carla_debug_ui.py         # starts CARLA if needed
     .venv-ft/bin/python runners/carla_debug_ui.py --pilot drone     # + SITL
@@ -1103,7 +1105,13 @@ def main():
     # map-swap crash stayed a mystery -- the only evidence was a kernel journal line.
     # This costs nothing and prints the thread and line that did it.
     faulthandler.enable()
-    prefs = load_prefs()
+    # --selftest asserts the code's DEFAULTS, so it must not inherit the operator's
+    # saved ones. It already caught this by failing: a persisted tracker="dam4sam"
+    # made the bridge-command check fail on a panel that was working correctly, and a
+    # persisted follow_mode would have hidden a real mode bug just as easily.
+    # ponytail: read off sys.argv rather than args -- some argparse DEFAULTS come from
+    # prefs, so this has to be decided before the parser is built.
+    prefs = {} if "--selftest" in sys.argv else load_prefs()
     ap = argparse.ArgumentParser()
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=2000)
@@ -2691,7 +2699,7 @@ def main():
     # outranks the model for as long as it is held.
     follow_mode = remember("follow_mode", tk.StringVar(value="manual"))
     seg(w5_auth, follow_mode, FOLLOW_MODES)
-    tk.Label(w5, text="assist aims the camera. auto flies the copter.",
+    tk.Label(w5, text="assist aims the camera. auto flies the pilot.",
              bg=DARK, fg=MUTED, anchor=tk.W, font=("TkDefaultFont", 10)
              ).pack(side=tk.TOP, fill=tk.X)
 
@@ -2943,7 +2951,7 @@ def main():
             f"pilot {pilot['mode']}",
             f"acquire {acquire.get()}" + ("" if track["delivered"] else " (maintaining)"),
             f"designate {designate.get()}",
-            f"follow {fm}" + ("" if fm == follow_mode.get() else " [auto needs copter]"),
+            f"follow {fm}" + ("" if fm == follow_mode.get() else " [auto needs a link]"),
             f"|  ground {ground_res.get()} Orin",
             f"carry {carry_size.get()}" + (f"/crop {CARRY_CROP_SIDE}"
                                            if carry_crop_on.get() else "") + " Orin",
@@ -3171,16 +3179,48 @@ def main():
         return held_box() if fm in ("assist", "auto") else None
 
     def pilot_follow_mode():
-        """The follow mode actually in force. AUTO with no copter is not a mode.
+        """The follow mode actually in force. AUTO with a dead link is not a mode.
 
-        Reported rather than silently downgraded to assist: AUTO means position
-        authority, and quietly giving the model the camera instead would be a
-        different experiment wearing the same label.
+        AUTO means POSITION authority, and both pilots can give it that: the drone
+        flies velocity setpoints, the god camera moves its own transform. Only the
+        drone can fail to -- selected with no MAVLink link there is nothing to fly --
+        and that downgrade is reported rather than silently becoming assist, because
+        quietly handing the model the camera instead would be a different experiment
+        wearing the same label.
         """
         fm = follow_mode.get()
-        if fm == "auto" and (pilot["mode"] != "drone" or pilot["m"] is None):
+        if fm == "auto" and pilot["mode"] == "drone" and pilot["m"] is None:
             return "manual"
         return fm
+
+    def auto_velocity(box, yaw_deg, vmax):
+        """PID on the delivered box -> (vn, ve) in m/s at a view heading of `yaw_deg`.
+
+        The one AUTO steering law, flown by BOTH pilots: the drone hands it to the
+        autopilot as a velocity setpoint, the god camera integrates it into its own
+        transform. Same CascadePID -> LOCAL_NED path run_p62_flight flew, on the SAME
+        box the Orin carry published, so god-mode AUTO is the P6.2 loop with the
+        airframe taken out rather than a second controller that resembles it.
+        """
+        if pilot["pid"] is None or pilot["pid"].max_vx != vmax:
+            # rebuilt on a vmax change because the limit is per-instance (E10) and the
+            # god camera's cap is a slider the operator moves mid-flight
+            from sitl.cascade_pid import CascadePID
+            pilot["pid"] = CascadePID(img_w=CAM_W, img_h=CAM_H, kp_lat=AUTO_KP_LAT,
+                                      max_vx=vmax, max_vy=vmax)
+        cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
+        if math.hypot(cx - CAM_W / 2, cy - CAM_H / 2) < AUTO_DEADBAND_PX:
+            return 0.0, 0.0                  # centred enough: stop fighting
+        vel = pilot["pid"].compute({"cx": cx, "cy": cy,
+                                    "w": box[2] - box[0], "h": box[3] - box[1]})
+        # The PID's vx/vy are SCREEN axes (up, right); they only equal (north, east)
+        # while the view sits at yaw 0. It no longer always does -- the operator can
+        # spin the nadir view in either pilot -- so rotate by the heading being looked
+        # along. Same rotation manual_velocity applies, and the same one CARLA's own
+        # up/right vectors give for a pitch=-90 transform. At yaw 0 it is the identity,
+        # i.e. exactly the P6.2 mapping.
+        c, s = math.cos(math.radians(yaw_deg)), math.sin(math.radians(yaw_deg))
+        return vel["vx"] * c - vel["vy"] * s, vel["vx"] * s + vel["vy"] * c
 
     def charge_aim(now, box):
         """Update the outstanding ASSIST correction from a (possibly new) box.
@@ -3208,9 +3248,10 @@ def main():
         if aim["chase"] and now - aim["seen"] > CHASE_STALE:
             aim["chase"] = 0.0
 
-    def fly_spectator(now):
-        if not held and not (aim["yaw"] or aim["pitch"] or aim["chase"]
-                             or aim["floor"]):
+    def fly_spectator(now, box=None):
+        auto = pilot_follow_mode() == "auto"
+        if not held and not auto and not (aim["yaw"] or aim["pitch"] or aim["chase"]
+                                          or aim["floor"]):
             cam["t"] = None  # resync next time, the view may have moved elsewhere
             fly_t["last"] = None
             return
@@ -3238,15 +3279,34 @@ def main():
         # flew along the boresight, which at a nadir view meant `w` drove into the road
         # and the same key did something different in each mode.
         vn, ve, vd = manual_velocity(held & MOVE, speed.get(), t.rotation.yaw)
+        # AUTO drives the god camera exactly as it drives the drone -- the model gets
+        # POSITION, not just the view. Difference is the physics: no lean, no drag, no
+        # airframe, so the cap is the slider (300 m/s) instead of MANUAL_V_MAX. This is
+        # the mode to fly at a target the copter cannot keep up with.
+        if auto and not (held & MOVE) and box is not None:
+            vn, ve = auto_velocity(box, t.rotation.yaw, float(speed.get()))
+            vd = 0.0
+        pilot["vel"] = (vn, ve, vd)   # what the smoke run and the rail report
         t.location += carla.Location(vn * dt, ve * dt, -vd * dt)
         looking = held & LOOK.keys()
         for k in looking:
             dyaw, dpitch = LOOK[k]
             t.rotation.yaw += dyaw * 90 * dt
-            t.rotation.pitch = max(-89, min(89, t.rotation.pitch + dpitch * 90 * dt))
+            # Same refusal as the drone's gimbal: AUTO's screen axes assume a NADIR
+            # view, so up/down is not the operator's to give while it steers. Heading
+            # still is -- the PID is rotated by it, so any heading flies the same.
+            if not auto:
+                t.rotation.pitch = max(-89, min(89,
+                                                t.rotation.pitch + dpitch * 90 * dt))
+        if auto:
+            # ease to nadir rather than snap, and let AUTO reach a true -90 (the manual
+            # -89 stop exists so yaw still means something under the operator's hand)
+            t.rotation.pitch = max(-90.0, min(0.0, t.rotation.pitch
+                                              + ease((0.0, -90.0 - t.rotation.pitch),
+                                                     dt)[1]))
         # the operator wins the tie: while an arrow is held the model does not fight
         # it, otherwise the two would sum and the view would crawl against the input
-        if not looking:
+        elif not looking:
             dyaw, dpitch = ease((aim["yaw"], aim["pitch"]), dt)
             t.rotation.yaw += dyaw
             t.rotation.pitch = max(-89, min(89, t.rotation.pitch + dpitch))
@@ -3257,8 +3317,11 @@ def main():
         # does change the pixels -- the box grows toward the setpoint, the error
         # shrinks, and it settles on its own. A real closed loop where aim on a
         # frozen box is an open one.
-        # The operator wins the same tie as with look: a held wasd outranks it.
-        if aim["chase"] and not (held & MOVE):
+        # The operator wins the same tie as with look: a held wasd outranks it. AUTO
+        # outranks it too, and not just for tidiness: in AUTO the boresight is NADIR,
+        # so a chase that closed on a shrinking box would fly the camera straight into
+        # the road. AUTO closes range by choosing not to -- it holds altitude.
+        if aim["chase"] and not auto and not (held & MOVE):
             t.location += boresight(t.rotation.pitch, t.rotation.yaw) * (aim["chase"] * dt)
         # Min-AGL escape, same operator-wins tie: flying the camera low by hand is
         # a deliberate act, sinking into the road on a nose-down chase is not.
@@ -3352,31 +3415,11 @@ def main():
             # up the screen at any heading.
             vn, ve, vd = manual_velocity(held & MOVE, v, gim["yaw"])
         elif auto and box is not None:
-            if pilot["pid"] is None:
-                from sitl.cascade_pid import CascadePID
-                pilot["pid"] = CascadePID(img_w=CAM_W, img_h=CAM_H,
-                                          kp_lat=AUTO_KP_LAT,
-                                          max_vx=AUTO_MAX_V, max_vy=AUTO_MAX_V)
-            # Same CascadePID -> LOCAL_NED path run_p62_flight flew, on the SAME box
-            # the Orin carry published. cy above centre is north; cx right is east.
-            cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
-            if math.hypot(cx - CAM_W / 2, cy - CAM_H / 2) < AUTO_DEADBAND_PX:
-                vn, ve, vd = 0.0, 0.0, 0.0   # centred enough: stop fighting
-            else:
-                vel = pilot["pid"].compute({"cx": cx, "cy": cy,
-                                            "w": box[2] - box[0],
-                                            "h": box[3] - box[1]})
-                # The PID's vx/vy are SCREEN axes (up, right); they only equal
-                # (north, east) while the gimbal sits at yaw 0. It no longer always
-                # does -- the operator can spin the nadir view -- so rotate by the
-                # gimbal yaw. Same rotation manual_velocity applies, and the same one
-                # CARLA's own up/right vectors give for a pitch=-90 transform. At
-                # yaw 0 it is the identity, i.e. exactly the P6.2 mapping.
-                c = math.cos(math.radians(gim["yaw"]))
-                s = math.sin(math.radians(gim["yaw"]))
-                vn = vel["vx"] * c - vel["vy"] * s
-                ve = vel["vx"] * s + vel["vy"] * c
-                vd = 0.0
+            # AUTO_MAX_V, not the slider: the drone's AUTO limit is a flight-tuning
+            # number the P6.2 gains sit on, and it is below what the airframe can do
+            # anyway. The god camera is the one that gets the slider.
+            vn, ve = auto_velocity(box, gim["yaw"], AUTO_MAX_V)
+            vd = 0.0
         else:
             vn, ve, vd = 0.0, 0.0, 0.0
         pilot["vel"] = (vn, ve, vd)
@@ -3419,7 +3462,7 @@ def main():
             if not paused["on"]:
                 fly_copter(now, dt, box)
             return
-        fly_spectator(now)
+        fly_spectator(now, box)
 
     # Tk blocks in C, so SIGINT only lands while Python bytecode runs -- the
     # tick gives the interpreter that chance, and flies the spectator.
@@ -3432,7 +3475,12 @@ def main():
         # the one place teardown runs: nothing is half-executed here, so the
         # widgets are safe to destroy and no later callback can touch them
         if closing["want"]:
-            save_prefs(remembered)   # here, not in request_close: widgets still alive and
+            # saved HERE and not in request_close: the widgets are still alive and no
+            # later callback can touch them. Skipped under --selftest, which runs on
+            # the code's defaults and would otherwise stamp them over the operator's
+            # saved panel.
+            if not args.selftest:
+                save_prefs(remembered)
             unpause_on_exit()   # every exit path (window, q, r-reload) funnels through
             return
         # real render-tick rate (EMA). This is the display Hz the operator sees --
@@ -3528,8 +3576,10 @@ def main():
         def smoke_step():
             ph, dt = smoke["phase"], time.time() - smoke["t"]
             if ph == "wait":            # airborne, a frame in hand, a car on screen
-                ready = (pilot["mode"] == "drone" and not busy["on"]
-                         and latest["bgr"] is not None)
+                # EITHER pilot: AUTO flies both now, and the god camera needs no
+                # takeoff, so the only wait in god mode is for a frame with a car in it.
+                ready = ((pilot["mode"] != "drone" or pilot["m"] is not None)
+                         and not busy["on"] and latest["bgr"] is not None)
                 pt = nearest_on_screen() if ready else None
                 if pt is None:
                     if dt > 180:
@@ -3569,14 +3619,23 @@ def main():
                                  track["on_target"], scale=f.shape[1] / CAM_W,
                                  delivered=track["delivered"])
                     cv2.imwrite(str(p), f)
-                n, e, d = pilot["ned"]
-                mn, me, _ = pilot["ned_v"]
                 cn, ce, _ = pilot["vel"]
+                if pilot["mode"] == "drone":
+                    n, e, d = pilot["ned"]
+                    mn, me, _ = pilot["ned_v"]
+                    where = (f"ned N{n:.1f} E{e:.1f} alt {-d:.1f}"
+                             f"  cmd {math.hypot(cn, ce):.1f} m/s"
+                             f"  got {math.hypot(mn, me):.1f} m/s")
+                else:
+                    # No "got" for the god camera: it is kinematic, so the achieved
+                    # velocity IS the commanded one by construction. That is the whole
+                    # difference between the two pilots and the reason this one can
+                    # follow a target the airframe cannot.
+                    loc = (cam["t"] or cam["spec"].get_transform()).location
+                    where = (f"god x{loc.x:.1f} y{loc.y:.1f} alt {loc.z:.1f}"
+                             f"  cmd {math.hypot(cn, ce):.1f} m/s (kinematic: got == cmd)")
                 print(f"smoke OK: {p}\n  {gtimes.cget('text')}\n  {gmodes.cget('text')}"
-                      f"\n  ned N{n:.1f} E{e:.1f} alt {-d:.1f}"
-                      f"  cmd {(cn**2 + ce**2) ** 0.5:.1f} m/s"
-                      f"  got {(mn**2 + me**2) ** 0.5:.1f} m/s"
-                      f"\n  {track['msg']}", flush=True)
+                      f"\n  {where}\n  {track['msg']}", flush=True)
                 closing["want"] = True
                 return
             root.after(500, smoke_step)
@@ -3596,6 +3655,7 @@ def main():
                                           "feed": latest,
                                           "held": held, "designate": designate,
                                           "follow_caption": do_follow,
+                                          "pilot": pilot,
                                           "load": load_world,
                                           "close": unpause_on_exit}))
 
@@ -3711,10 +3771,16 @@ def _check_modes(md):
     assert track["delivered"] is True and track["cmd_t"] is not None
     assert track["deliver_s"] is None, "cold has not delivered until a box exists"
 
-    # AUTO is position authority; with no copter it must report itself unavailable
-    # rather than quietly steering the camera instead.
+    # AUTO is POSITION authority and both pilots can give it that -- the god camera
+    # moves its own transform, the drone flies setpoints. Only the drone can fail to,
+    # and that failure must be reported rather than quietly steering the camera under
+    # the same label.
     follow.set("auto")
+    assert md["pilot"]["mode"] == "god", "selftest assumes the default pilot"
+    assert md["eff_follow"]() == "auto", "auto must engage for the god camera"
+    md["pilot"]["mode"] = "drone"                 # selected, but never connected
     assert md["eff_follow"]() == "manual", "auto with no copter must not engage"
+    md["pilot"]["mode"] = "god"
     follow.set("assist")
     assert md["eff_follow"]() == "assist"
 

@@ -21,7 +21,7 @@ combination.
 | **PILOT** | `god` \| `drone` | `god` flies a camera on a stick — perception in isolation, any view you like, no flight dynamics. `drone` arms an ArduCopter SITL and slaves the camera to the pose the autopilot reports (P6.1), so the pixels are a **consequence** of the control output. **Same keys either way** (`wasd` parallel to the ground, `qe` up/down, arrows look): pressing one of the two swaps the physics under the operator's hand and nothing else. |
 | **ACQUIRE** | `warm` \| `cold` | `warm` maintains a track from the moment you designate and **delivers** it on command (P5.1 / P6.2-DELIVERY: maintain-and-deliver). `cold` does nothing until the command, then grounds under time pressure (E18 / R-34). The on-screen `deliver` timing is that comparison, measured live. |
 | **DESIGNATE** | `vlm` \| `oracle` | `vlm` runs the deployed grounder on a point crop around the click. `oracle` seeds the carry from the CARLA projected box and skips the VLM — which is the scope P6.2-DELIVERY's claim was measured in (G6: q8_0 is non-discriminative on a car at 45 m nadir). Switching between them separates "grounding failed" from "carry/control failed". |
-| **FOLLOW** | `manual` \| `assist` \| `auto` | `manual` = operator has sole authority. `assist` = the model aims (gimbal/look only, never position). `auto` = **closed loop**: the delivered box drives the copter through `CascadePID` → `SET_POSITION_TARGET_LOCAL_NED`, the same path `run_p62_flight.py` measured. `auto` needs `PILOT=drone` and says so if it does not have one. |
+| **FOLLOW** | `manual` \| `assist` \| `auto` | `manual` = operator has sole authority. `assist` = the model aims (gimbal/look only, never position). `auto` = **closed loop**: the delivered box drives the pilot through `CascadePID`. It flies **either** pilot — `drone` takes the PID output as `SET_POSITION_TARGET_LOCAL_NED` (the path `run_p62_flight.py` measured, capped at `AUTO_MAX_V` = 8 m/s because that is a flight tuning, not a preference), `god` integrates the same (vn, ve) into the spectator transform, capped by the fly-speed slider instead — no lean, no drag, so this is the mode for a target the airframe cannot keep up with. Under `auto` the god camera eases to nadir and refuses arrow pitch (the PID's screen axes assume nadir); heading is still the operator's, the PID is rotated by it. `auto` only refuses when `PILOT=drone` is selected with no link, and says so. |
 
 ## Run it
 
@@ -219,6 +219,7 @@ at, per the repo's visual-verification rule; they are in `carla_ui_proof/`.
 | `runs/carla-ui-spd` | copter / warm / **oracle** / auto | 0.00 s | 0 ms | 107 ms (9.3 Hz) | **231/234**, `lock 60/60` | `oracle-lock-45m.jpg` |
 | `runs/carla-ui-vlm` | copter / warm / **vlm** / auto | 0.00 s | **8500 ms** | 108 ms (9.3 Hz) | **0/417**, `DRIFT 82 s` | `vlm-g6-miss-45m.jpg` |
 | `runs/carla-ui-cold` | copter / **cold** / vlm / auto | **10.23 s** | ~8.5 s | — | — | — |
+| `runs/carla-ui-godauto` | **god** / cold / oracle / auto, 40 cars at 200% traffic speed, camera left at 20 m | 0.38 s | 0 ms | 196 ms (5.1 Hz) | **0/60**, `DRIFT 21 s` | `runs/carla-ui-godauto/smoke.png` |
 
 **The ORACLE run is the system working.** 40 cars, clean world, 45 s of AUTO flight:
 green box tight on a white SUV labelled `white SUV in the center`, held 231 of 234 carry
@@ -232,6 +233,16 @@ deep tree shadow. Carry then held that patch of asphalt perfectly: `0/417` on ta
 `DRIFT 82 s`, AUTO commanding 0.1 m/s because its target is not moving. **Nothing
 downstream failed.** This is why `designate oracle` exists and why P6.2-DELIVERY held
 designation constant in both arms.
+
+**The god-AUTO run steers, and fails at the tracker.** It is here as the check that AUTO
+moves the god camera at all: `pilot god ... follow auto ... cmd 5.7 m/s`, camera walked to
+x5.6 y-119.1. The frame was opened. It shows the box tight on a **sedan** — about 180 px
+long, which at 20 m and 90 deg FOV is 3.7 m — while the designated actor was a
+`vehicle.carlamotors.european_hgv`, 10 m and so ~480 px. The tracker swapped vehicles
+under a 200%-speed traffic flow at 20 m, and `lock 0/60` is scored against the designated
+HGV. So the camera is centred (181 px off) on the wrong car: **steering good, association
+lost.** Not a god-AUTO defect, and not evidence about god-AUTO's tracking either — the
+camera was left at 20 m, a 40 m footprint, which is not a geometry this stack is tuned at.
 
 **The panel carries at `image_size` 640 — EXP-1's adopted default (changed
 2026-07-26T15:05Z, was 512).** 640 is 99.4% of 1024's median IoU (0.811 vs 0.816) at 2.5x
