@@ -1019,6 +1019,10 @@ def main():
     ap.add_argument("--no-orin-telemetry", action="store_true",
                     help="do not poll the Orin's power rails. Passive (one cat/s over "
                          "one ssh), but a power campaign wants the device untouched")
+    ap.add_argument("--no-prewarm", action="store_true",
+                    help="start with an empty Orin: load the VLM and the carry from the "
+                         "DESIGNATE card's load row instead. The first designation then "
+                         "pays the boot, so delivery latency read off that one is a lie")
     args = ap.parse_args()
 
     client, carla_proc = ensure_carla(args.host, args.port, args.carla)
@@ -1124,7 +1128,8 @@ def main():
     w1, w2, w3, w4, w5 = (stg[n]["body"] for n in range(1, 6))
     w1_map, w1_spawn, w1_traffic, w1_wipe = (rrow(w1) for _ in range(4))
     w2_pilot, w2_move, w2_speed = rrow(w2), rrow(w2), rrow(w2)
-    w3_src, w3_click, w3_res, w3_trk, w3_cap, w3_drop = (rrow(w3) for _ in range(6))
+    (w3_src, w3_click, w3_res, w3_trk, w3_load,
+     w3_cap, w3_drop) = (rrow(w3) for _ in range(7))
     w4_src, w4_go = rrow(w4), rrow(w4)
     w5_auth = rrow(w5)
 
@@ -1433,6 +1438,13 @@ def main():
         finally:
             if got:
                 bridge_io.release()
+        # And the llama-server, which this path used to leak on EVERY close: the carry
+        # bridge was reaped here from the start, the ~4 GB server never was, so the Orin
+        # kept it until the next reboot or the next manual pkill.
+        try:
+            unload_backend()
+        except Exception:
+            traceback.print_exc()
         # Zero the GUIDED setpoint before letting go of the link. A copter left with a
         # live velocity command keeps flying it for ~3 s after the UI is gone; SITL is
         # cheap, but "it flew off after I closed the window" is not a demo.
@@ -1569,6 +1581,29 @@ def main():
                                               max_side=1024).__enter__()
             return backend["be"]
 
+    def unload_backend():
+        """Give the llama-server's ~4 GB back to the board (the load row's off switch).
+
+        The next ground call re-enters get_backend and pays the ~10 s boot again, which
+        is the trade the operator is making when they press it: 8 GB shared with SAM2,
+        so a 1024 carry and a resident server do not both fit comfortably.
+
+        The `pkill` is not belt-and-braces: JetsonBackend.close() kills the PID IT
+        launched, and every panel that died without running its exit path (pkill, a
+        crash, a hot reload) left its 4.0 GB server resident -- measured 2026-08-03, an
+        orphan with 53 min of uptime holding the board at 5.8/7.8 GB while the panel
+        showed both stages down. Single-user board, one model server, so sweeping by
+        name is the correct scope."""
+        with backend["lock"]:
+            be, backend["be"] = backend["be"], None
+            if be is not None:
+                be.close()
+        # `[l]lama-server`: the remote shell's own command line contains the pattern,
+        # so a plain -f pattern makes pkill kill the shell running it (measured: the
+        # ssh returned with the sweep half-done). The bracket does not match itself.
+        subprocess.run(["ssh", "jetson", "pkill -f '[l]lama-server' || true"],
+                       timeout=30, capture_output=True)
+
     # box is in PIXELS of the live frame, kept current by the follow thread; tick()
     # only ever reads it, so no lock for the read -- a dict assign is atomic under
     # the GIL. The lock exists for one thing: drop lands while the follow thread is
@@ -1648,6 +1683,16 @@ def main():
                 log.close()
             except Exception:
                 pass
+
+    def unload_bridge():
+        """Off switch for the carry. Takes bridge_io, so it waits out a live step.
+
+        Same orphan sweep as unload_backend, same reason: closing our pipe only reaps
+        the bridge THIS panel spawned."""
+        with bridge_io:
+            _kill_bridge()
+        subprocess.run(["ssh", "jetson", "pkill -f '[_]ssh_bridge.py' || true"],
+                       timeout=30, capture_output=True)
 
     def get_bridge(size):
         """The resident bridge for `size`, spawned if absent, dead, or wrong-sized.
@@ -2348,8 +2393,10 @@ def main():
     # same accuracy as raising the dropdown to 1024 (d_IoU -0.002, d_PASS -1 of 38) at
     # 2.7x the on-device rate. A checkbox, not a third resolution value, because it is a
     # different lever -- magnification, not pixels fed.
-    carry_crop_on = tk.BooleanVar(value=False)
-    tk.Checkbutton(w3_res, text=f"crop {CARRY_CROP_SIDE}", variable=carry_crop_on,
+    # Default ON (2026-08-03, author): the panel's targets are distant cars, which is the
+    # regime EXP-6 measured the crop for. Uncheck to carry the whole frame.
+    carry_crop_on = tk.BooleanVar(value=True)
+    tk.Checkbutton(w3_res, text=f"zoom {CARRY_CROP_SIDE}px", variable=carry_crop_on,
                    bg=DARK, fg=MUTED, selectcolor=DARK, activebackground=DARK,
                    activeforeground=TEXT).pack(side=tk.LEFT, padx=(10, 0))
     # Own row (`w3_trk`, created with the others so it sits under the resolutions): the
@@ -2359,6 +2406,63 @@ def main():
     tk.Label(w3_trk, text="tracker", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(0, 6))
     seg(w3_trk, tracker_name, TRACKERS)
     tracker_name.trace_add("write", lambda *_: TRACKER.__setitem__("name", tracker_name.get()))
+
+    # ---- Orin memory, on the operator's say-so ---------------------------------
+    # 8 GB shared: llama-server ~4 GB and a resident SAM2 leave ~1.3 GB of headroom
+    # (P6.7), so a bigger carry or a second tracker family means dropping the other
+    # one first. Both buttons load with whatever the rows ABOVE say at the moment of
+    # the press -- that is where the carry model and its resolution are chosen; this
+    # row only decides when the board pays for it. Off the UI thread: a load is ~6-10 s
+    # and an unload can wait a carry step for bridge_io.
+    load_busy = {"vlm": False, "carry": False}
+
+    def bg_load(key, fn, *a):
+        if load_busy[key]:
+            return
+        load_busy[key] = True
+
+        def run():
+            try:
+                fn(*a)
+            except Exception:
+                traceback.print_exc()   # a failed load is a red button, not a dead panel
+            finally:
+                load_busy[key] = False
+        threading.Thread(target=run, daemon=True).start()
+
+    def load_btn(parent, cmd):
+        b = tk.Button(parent, text="", command=cmd, bd=0, padx=10, pady=3, takefocus=0,
+                      font=("TkDefaultFont", 11, "bold"), bg=LINE, fg=MUTED,
+                      activebackground=DARK_HI, activeforeground=TEXT)
+        b.pack(side=tk.LEFT, padx=(0, 6))
+        return b
+
+    tk.Label(w3_load, text="Orin", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(0, 6))
+    vlm_btn = load_btn(w3_load, lambda: bg_load(
+        "vlm", unload_backend if backend["be"] is not None else get_backend))
+    def toggle_carry():
+        if bridge["proc"] is not None:
+            bg_load("carry", unload_bridge)
+        else:
+            # prewarm, not get_bridge: a bridge with no first forward through it is a
+            # loaded process that still charges the first designation for CUDA warmup.
+            bg_load("carry", prewarm_bridge, carry_size.get())
+
+    carry_btn = load_btn(w3_load, toggle_carry)
+
+    def paint_load():
+        on = backend["be"] is not None
+        setw(vlm_btn, text="VLM ..." if load_busy["vlm"] else ("VLM up" if on else "load VLM"),
+             bg=ACCENT if on else LINE, fg=DARK if on else MUTED)
+        p = bridge["proc"]
+        live = p is not None and p.poll() is None
+        setw(carry_btn,
+             text=("carry ..." if load_busy["carry"] else
+                   (f"{bridge['size'][0]} {bridge['size'][1]}" if live else "load carry")),
+             bg=ACCENT if live else LINE, fg=DARK if live else MUTED)
+        root.after(500, paint_load)
+    paint_load()
+
     caption_entry = tk.Entry(w3_cap, width=20)
     caption_entry.insert(0, "the red car")
     caption_entry.pack(side=tk.LEFT)
@@ -2557,7 +2661,6 @@ def main():
             lf = None if live["n"] == preview["ln"] else live["bgr"]
             if lf is not None:
                 lf, preview["ln"] = lf.copy(), live["n"]
-        raw = track["box"]
         box, locked, deliv = held_box(), track["on_target"], track["delivered"]
         label = track.get("label") or caption_entry.get()   # rich caption in click mode
         if lf is not None:
@@ -2568,10 +2671,10 @@ def main():
             # (2026-08-03): on a demo it reads as a second tracker output, and next to a
             # drifting carry box it is the one thing an eye locks onto. `track["gt_box"]`
             # is still maintained -- oracle designation and the oracle arm read it.
-            if raw is not None and box is not raw:   # FOH: where the box really was,
-                cv2.rectangle(lf, (int(raw[0] * sc), int(raw[1] * sc)),   # thin, so the
-                              (int(raw[2] * sc), int(raw[3] * sc)),       # coast is
-                              (120, 120, 120), 1)                         # visible
+            # The thin grey raw box (FOH: where the measurement really was, before the
+            # coast moved it) was drawn here and is gone for the same reason as the GT
+            # one (2026-08-03, author): one box on screen, the delivered one. The FOH
+            # displacement is still readable as a number in the instruments column.
             draw_overlay(lf, box, label, locked, scale=sc, delivered=deliv)
             _hold_why()      # the advice depends on the live lag, so retint it here
             preview["live"] = _photo(lf, big)
@@ -3198,7 +3301,7 @@ def main():
     elif args.auto_spawn and not args.selftest:
         root.after(200, queue(spawn_vehicles, args.auto_spawn))
 
-    if not args.selftest:
+    if not args.selftest and not args.no_prewarm:
         # Prewarm the Orin llama-server off the UI thread. Not an optimisation: the
         # first acquire otherwise charges the server boot to the delivery latency,
         # which is the one number on this panel that has to be honest.
