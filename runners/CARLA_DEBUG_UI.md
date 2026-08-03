@@ -29,7 +29,7 @@ combination.
 |---|---|---|
 | **PILOT** | `god` \| `drone` | `god` flies a camera on a stick — perception in isolation, any view you like, no flight dynamics. `drone` arms an ArduCopter SITL and slaves the camera to the pose the autopilot reports (P6.1), so the pixels are a **consequence** of the control output. **Same keys either way** (`wasd` parallel to the ground, `qe` up/down, arrows look): pressing one of the two swaps the physics under the operator's hand and nothing else. |
 | **DESIGNATE** | `vlm` \| `oracle` | `vlm` runs the deployed grounder on a point crop around the click. `oracle` seeds the carry from the CARLA projected box and skips the VLM — which is the scope P6.2-DELIVERY's claim was measured in (G6: q8_0 is non-discriminative on a car at 45 m nadir). Switching between them separates "grounding failed" from "carry/control failed". |
-| **FOLLOW** | `manual` \| `assist` \| `auto` | `manual` = operator has sole authority. `assist` = the model aims (gimbal/look only, never position). `auto` = **closed loop**: the carried box drives the pilot through `CascadePID`. It flies **either** pilot — `drone` takes the PID output as `SET_POSITION_TARGET_LOCAL_NED` (the path `run_p62_flight.py` measured), `god` integrates the same (vn, ve) into the spectator transform — no lean, no drag, so this is the mode for a target the airframe cannot keep up with. **Both pilots cap AUTO at the fly-speed slider**, same as under the hand — the drone additionally clamped to `sitl_fly_leg.MANUAL_V_MAX` = 6 m/s. Under `auto` the god camera eases to nadir and refuses arrow pitch (the PID's screen axes assume nadir); heading is still the operator's, the PID is rotated by it. `auto` only refuses when `PILOT=drone` is selected with no link, and says so. |
+| **FOLLOW** | `manual` \| `assist` \| `auto` | `manual` = operator has sole authority. `assist` = the model aims (gimbal/look only, never position). `auto` = **closed loop**: the carried box drives the pilot through `CascadePID`. It flies **either** pilot — `drone` takes the PID output as `SET_POSITION_TARGET_LOCAL_NED` (the path `run_p62_flight.py` measured), `god` integrates the same (vn, ve) into the spectator transform — no lean, no drag, so this is the mode for a target the airframe cannot keep up with. **Both pilots cap AUTO at the fly-speed slider**, same as under the hand — the drone additionally clamped to `sitl_fly_leg.V_CEIL` = 13 m/s. Under `auto` the god camera eases to nadir and refuses arrow pitch (the PID's screen axes assume nadir); heading is still the operator's, the PID is rotated by it. `auto` only refuses when `PILOT=drone` is selected with no link, and says so. |
 
 ## Run it
 
@@ -298,6 +298,19 @@ pymavlink, arms, takes off, then slaves the camera to the NED the autopilot repo
   asserts the std dev of the achieved speed (`JITTER_MAX` = 0.5 m/s). `MANUAL_DRAG_K`
   is fit at 6 m/s, not at the 46°/15 m/s cruise point — the v² law fit high cruises
   5.74 for a demand of 6. Refit it if `MANUAL_V_MAX` moves far.
+- **The fly-speed slider is a SPEED, and both pilots fly it.** `manual_velocity`
+  normalises the key vector, so `w`+`d` is the slider's number and not 1.41× it, and
+  `w`+`d`+`e` is not 1.73×. The god camera flies it exactly (it integrates the vector
+  itself); the drone flies it up to `sitl_fly_leg.V_CEIL` = 13 m/s flat, and 8 m/s
+  up/down (`MANUAL_CLIMB_MAX`, `PILOT_SPEED_UP/DN` = 800 cm/s). **Both ceilings are
+  measured, not chosen.** `--v 13` on the attitude path: reached in **1.00 s** from
+  hover, held **13.64 m/s** (the drag feedforward is fit at 6 and runs ~5% hot up
+  there), cruise std **0.00**, reversal **1.75 s**, altitude sag 0.0 m. Vertical was
+  asked for 13 with `PILOT_SPEED_UP` at 1300 and peaked at **8.2 up / 8.0 down** — the
+  quad is *thrust*-limited there, so the param went back down to what it can fly.
+  **What this costs:** 13 m/s reverses in 1.75 s, not the 0.85 s of `MANUAL_V_MAX`.
+  That number is now the *reversal spec* (and `sitl_reversal_check`'s default), not the
+  panel's limiter — set the slider to 6 to fly the tuned point.
   Check: `.venv-ft/bin/python runners/sitl_reversal_check.py` (add `--velocity` for the
   old path's ~2.7 s baseline). Ceilings measured and recorded in `sitl_fly_leg.py`:
   70° lean is no faster than 65°, `ATC_ANG_*_P` 14.0 rings, and 60° lean tops out at

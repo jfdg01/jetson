@@ -15,6 +15,7 @@ The sign asserts are the point. A flipped key->NED mapping does not crash, it fl
 the copter away from the target, and in a sim that reads as "the follow does not
 work" rather than as a typo.
 """
+import math
 import sys
 from pathlib import Path
 
@@ -41,8 +42,11 @@ def test_manual_velocity_signs():
     assert ui.manual_velocity(set(), v) == (0.0, 0.0, 0.0)
     # opposites cancel rather than latching whichever was pressed last
     assert ui.manual_velocity({"w", "s"}, v) == (0.0, 0.0, 0.0)
-    # diagonals compose, and nothing is normalised -- the cap is per-axis
-    assert ui.manual_velocity({"w", "d"}, v) == (v, v, 0.0)
+    # v is a SPEED: every key combination flies at |v|, so the slider reads true
+    for keys in ({"w"}, {"w", "d"}, {"w", "d", "e"}, {"a", "q"}, {"s", "a"}):
+        assert abs(math.hypot(*ui.manual_velocity(keys, v)) - v) < 1e-9, keys
+    r = v / math.sqrt(2)
+    assert ui.manual_velocity({"w", "d"}, v) == pytest.approx((r, r, 0.0))
 
 
 def test_manual_velocity_is_relative_to_the_view():

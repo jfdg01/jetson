@@ -118,9 +118,17 @@ SPORT_PARAMS = {
     "ATC_RAT_RLL_P": 0.20,    # stock 0.135
     "ATC_RAT_PIT_P": 0.20,
     # q/e go out as the SET_ATTITUDE_TARGET thrust field, which Copter reads as a climb
-    # rate scaled by these. 6 m/s each way, reached in ~0.5 s at PILOT_ACCEL_Z 500.
-    "PILOT_SPEED_UP": 600.0,  # cm/s (stock 250)
-    "PILOT_SPEED_DN": 600.0,  # cm/s (stock 150)
+    # rate scaled by these. 8 m/s each way (was 6); at PILOT_ACCEL_Z 500 that is ~1.6 s
+    # of ramp, so short taps are accel-limited and get a fraction of what they asked.
+    "PILOT_SPEED_UP": 800.0,  # cm/s (stock 250) -- MANUAL_CLIMB_MAX, so q/e fly the
+    "PILOT_SPEED_DN": 800.0,  # slider like wasd does up to the airframe's own ceiling.
+                              # MEASURED: asking for 13 m/s with these at 1300 peaked at
+                              # 8.2 up / 8.0 down, i.e. the quad is THRUST-limited well
+                              # below the param, and a param above what it can climb is
+                              # just the old lie with a bigger number. 8 m/s down is
+                              # 5.6 s from 45 m AGL to the road and there is no floor
+                              # escape on the copter (that is the god camera's), so `q`
+                              # held is the operator's own business.
     "PILOT_ACCEL_Z": 500.0,   # cm/s^2 (stock 250)
 }
 
@@ -148,11 +156,24 @@ MANUAL_LEAN_K = 15.0     # deg of EXTRA lean per m/s of velocity error, on top o
                          # still a step to max lean; near the setpoint the correction
                          # is proportional and small. P only -- the feedforward is
                          # doing the job an integrator would.
-MANUAL_V_MAX = 6.0       # m/s top speed. THE number that sets reversal time on this
-                         # path: 6 -> 0.85 s, 7 -> ~1.0 s, 10 -> ~1.25 s. 6 is the
-                         # fastest that keeps a full reversal inside 1 s, which is the
-                         # spec the panel's copter is tuned to.
-MANUAL_CLIMB_MAX = 6.0   # m/s, must match PILOT_SPEED_UP/DN above
+MANUAL_V_MAX = 6.0       # m/s. THE number that sets reversal time on this path:
+                         # 6 -> 0.85 s, 7 -> ~1.0 s, 10 -> ~1.25 s. 6 is the fastest
+                         # that keeps a full reversal inside 1 s. It is the REVERSAL
+                         # SPEC and the default of sitl_reversal_check, not a limiter:
+                         # the panel's slider is allowed up to V_CEIL, and the operator
+                         # who sets 15 is choosing speed over a sub-second reversal.
+V_CEIL = 13.0            # m/s the slider may demand of the copter. MEASURED terminal
+                         # speed, not a preference: 60 deg of lean settles at 13 in
+                         # SITL's drag, and the altitude limiter caps lean near 62 long
+                         # before ANGLE_MAX's 75, so there is no more to have on this
+                         # path -- `--v 15` was already recorded as never arriving.
+                         # Demand past it and the lean just saturates, i.e. the slider
+                         # goes back to lying, which is the thing this clamp is for.
+MANUAL_CLIMB_MAX = 8.0   # m/s, must match PILOT_SPEED_UP/DN above. Same reason as
+                         # V_CEIL and the same method: `e` at a slider of 13 climbing at
+                         # 6 was the vertical axis lying, and 8.2 up / 8.0 down is what
+                         # the airframe MEASURED when asked for 13. Vertical therefore
+                         # saturates below V_CEIL -- thrust, not a choice.
 
 
 def send_manual_attitude(m, vn, ve, vd, v_meas, yaw_rad):

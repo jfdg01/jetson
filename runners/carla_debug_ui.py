@@ -157,8 +157,8 @@ CHASE_TARGET_FRAC = 0.012
 CHASE_SPEED = 15.0          # m/s cap along the boresight, either direction. Matches
                             # SPORT_PARAMS["WPNAV_SPEED"] -- chase is a god-camera and
                             # a follow-loop speed, both of which still fly velocity
-                            # setpoints; only the manual copter is lean-commanded and
-                            # capped lower (sitl_fly_leg.MANUAL_V_MAX).
+                            # setpoints; the manual copter is lean-commanded and capped
+                            # at 13 (sitl_fly_leg.V_CEIL).
 # Min altitude the chase is allowed to reach, and how far above it the escape
 # climbs once breached. CARLA world z, and Town10's ground is ~0, so it doubles
 # as AGL. ponytail: flat-ground assumption. Raycast the terrain if a map with
@@ -301,10 +301,10 @@ COPTER_ALT = 45.0        # m AGL. P6.2-DELIVERY flew 45 m nadir. Note G6: q8_0 i
 # past the point where one box can produce that many steps per wall second the
 # speedup silently stops being real.
 ARM_SPEEDUP = 10.0
-# The copter's top speed is sitl_fly_leg.MANUAL_V_MAX, deliberately NOT duplicated
-# here -- it is one leg of a measured tuning (lean, gain, speed) that only makes sense
-# read together, and the panel is not the place that owns it. The fly slider goes to
-# 300, which is a god-camera speed, not a copter one, so the copter clamps to it.
+# The copter's top speed is sitl_fly_leg.V_CEIL, deliberately NOT duplicated here --
+# it is one leg of a measured tuning (lean, drag, speed) that only makes sense read
+# together, and the panel is not the place that owns it. The fly slider goes to 300,
+# which is a god-camera speed, not a copter one, so the copter clamps to it.
 GIMBAL_RATE = 90.0       # deg/s the arrow keys slew the gimbal in copter mode
 # A GUIDED setpoint expires after ~3 s of silence and the copter drops to loiter, so
 # it must be resent -- but not at the 60 Hz render tick. 20 Hz, up from 10: under the
@@ -427,13 +427,21 @@ def manual_velocity(held, v, yaw_deg=0.0):
     yaw_deg=0 is the north-up case and reduces to the old direct mapping.
 
     vd is DOWN-positive, hence `e` (up) being negative.
+
+    `v` is a SPEED, not a per-axis rate: the returned vector has magnitude v for any
+    combination of keys. Per-axis it used to be, so `w`+`d` flew 1.41x the slider and
+    `w`+`d`+`e` 1.73x -- the slider is read as "20 means 20 m/s" and a diagonal made
+    it lie by 41%.
     """
     f = ("w" in held) - ("s" in held)          # screen-up  (forward)
     r = ("d" in held) - ("a" in held)          # screen-right
+    u = ("q" in held) - ("e" in held)          # down-positive
+    mag = math.hypot(f, r, u) or 1.0
+    f, r, u = f / mag, r / mag, u / mag
     c, s = math.cos(math.radians(yaw_deg)), math.sin(math.radians(yaw_deg))
     vn = (f * c - r * s) * v
     ve = (f * s + r * c) * v
-    vd = (("q" in held) - ("e" in held)) * v
+    vd = u * v
     return vn, ve, vd
 
 
@@ -1697,14 +1705,16 @@ def main():
 
     speed = tk.Scale(w2_speed, from_=1, to=300, orient=tk.HORIZONTAL, length=RAIL_W - 40,
                      showvalue=True, sliderlength=16, width=11, bg=DARK, fg=MUTED,
-                     # the range is the GOD camera's; the drone clamps to
-                     # sitl_fly_leg.MANUAL_V_MAX, and a slider reading 45 while the
-                     # airframe flies 6 is a lying instrument, so the label says so
-                     # ponytail: 6 spelled out rather than read from
-                     # sitl_fly_leg.MANUAL_V_MAX -- that import pulls pymavlink and is
+                     # The number IS the speed: god flies exactly it (manual_velocity
+                     # normalises, so a diagonal is the same speed as an axis), the
+                     # drone flies it up to sitl_fly_leg.V_CEIL, the measured terminal
+                     # speed at max lean, and up/down saturates lower still because the
+                     # quad is thrust-limited there (MANUAL_CLIMB_MAX, also measured).
+                     # ponytail: 13/8 spelled out rather than read from
+                     # sitl_fly_leg.V_CEIL -- that import pulls pymavlink and is
                      # deliberately deferred to the drone button. Retune, retype.
                      highlightthickness=0,
-                     label="fly speed  m/s (drone caps at 6)")
+                     label="fly speed  m/s (drone: 13 flat, 8 up/down)")
     speed.set(45)
     remember("fly_speed", speed)
     speed.pack(side=tk.LEFT)
@@ -3159,7 +3169,7 @@ def main():
         vn, ve, vd = manual_velocity(held & MOVE, speed.get(), t.rotation.yaw)
         # AUTO drives the god camera exactly as it drives the drone -- the model gets
         # POSITION, not just the view. Difference is the physics: no lean, no drag, no
-        # airframe, so the cap is the slider (300 m/s) instead of MANUAL_V_MAX. This is
+        # airframe, so the cap is the whole slider (300 m/s) and not V_CEIL. This is
         # the mode to fly at a target the copter cannot keep up with.
         if auto and not (held & MOVE) and box is not None:
             vn, ve = auto_velocity(box, t.rotation.yaw, float(speed.get()))
@@ -3287,16 +3297,16 @@ def main():
             n, e, d, yaw_rad=math.radians(gim["yaw"]), pitch_deg=gim["pitch"]))
         # Command. A held key outranks the model, same tie as everywhere else; with
         # nothing held AUTO gets the stick and MANUAL/ASSIST hover.
-        v = min(float(speed.get()), mavfly.MANUAL_V_MAX)
+        v = min(float(speed.get()), mavfly.V_CEIL)
         if held & MOVE:
             # view-relative: the gimbal yaw the operator is looking along, so `w` is
             # up the screen at any heading.
             vn, ve, vd = manual_velocity(held & MOVE, v, gim["yaw"])
         elif auto and box is not None:
             # Same slider as the hand: AUTO's ceiling is the fly-speed slider clamped
-            # by MANUAL_V_MAX, so the operator sets one number and both modes obey it.
-            # P6.2's flown ceiling was 8 m/s, above what this airframe holds anyway --
-            # to re-fly that arm, set the slider, do not hardcode it back.
+            # by V_CEIL, so the operator sets one number and both modes obey it.
+            # P6.2's flown ceiling was 8 m/s -- to re-fly that arm, set the slider to
+            # 8, do not hardcode it back.
             vn, ve = auto_velocity(box, gim["yaw"], v)
             vd = 0.0
         else:
