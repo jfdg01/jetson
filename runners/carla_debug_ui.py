@@ -531,6 +531,43 @@ def match_actor(cam_tf, box, vehicles, snap):
     return best
 
 
+def coast_box(hist, now_n, k=2, tmax=2.0):
+    """FOH: the last published box translated at the velocity of the last `k` answers.
+
+    Mirror of `experiments/2026-07-28-tracker-capacity-sweep/analysis/consumer.py:coast`,
+    where `k=2` is exactly `aggregate.extrapolate`. Strictly causal -- only answers that
+    already landed, no GT, no model. This changes the CONSUMER, not the tracker: the box
+    on screen and the box the PID steers on, never what SAM2 computes.
+
+    Size is deliberately NOT coasted: the campaign measured that variant (`fohs`) as a
+    loss, -0.017 mIoU against plain FOH. `tmax` caps the extrapolation at two gaps so a
+    stalled carry cannot fling the box off screen while AUTO is flying at it.
+
+    `hist` is (frame index, box) pairs, oldest first.
+    """
+    h = list(hist)[-k:]
+    if not h:
+        return None
+    (n0, b0), (n1, b1) = h[0], h[-1]
+    if len(h) < 2 or n1 <= n0:
+        return b1
+    t = min(max((now_n - n1) / (n1 - n0), 0.0), tmax)
+    vx = ((b1[0] - b0[0]) + (b1[2] - b0[2])) / 2 * t
+    vy = ((b1[1] - b0[1]) + (b1[3] - b0[3])) / 2 * t
+    return [b1[0] + vx, b1[1] + vy, b1[2] + vx, b1[3] + vy]
+
+
+def coast_advice(lag):
+    """Which `k` the fps grid says is best at this delay, in frames of lag.
+
+    `raw/paced-grid-*`, arm sam2_c512, fraction of the GT(i) delay ceiling recovered:
+    15 fps (lag ~2-3 frames) foh5 58%, 30 fps (lag 5) foh3 52%, 60 fps (lag ~10) foh2
+    41%, 120 fps (lag ~20) foh2 28%. The elbow moves toward SHORT averages as the
+    horizon grows: over a long gap the oldest answers are describing a different motion.
+    """
+    return 5 if lag <= 3 else 3 if lag <= 6 else 2
+
+
 def draw_overlay(frame, box, label, locked, scale=1.0, delivered=True):
     """Box + caption onto a copy of the received frame. Green locked, red adrift.
 
@@ -1053,7 +1090,7 @@ def main():
     w2_pilot, w2_move, w2_speed = rrow(w2), rrow(w2), rrow(w2)
     w3_src, w3_click, w3_res, w3_cap, w3_drop = (rrow(w3) for _ in range(5))
     w4_src, w4_go = rrow(w4), rrow(w4)
-    w5_auth = rrow(w5)
+    w5_auth, w5_hold = rrow(w5), rrow(w5)
 
     # ---- instruments: ONE column that owns every number -------------------------
     # They were in four places at once (lamps, card headers, a bar across the bottom,
@@ -1486,7 +1523,11 @@ def main():
     # "stamp" counts published boxes. ASSIST needs it to tell a NEW measurement from
     # the same one sitting there: a box that stopped updating (occlusion) is a fixed
     # pixel error, and steering on it every tick is an integrator with no feedback.
+    # "hist" = the last five (frame index, box) actually published, for the consumer
+    # rule (ZOH/FOH, see coast_box). Only REAL measurements go in -- a seed box has no
+    # frame index it was measured on, so coasting off it would extrapolate a fiction.
     track = {"box": None, "msg": "", "lag": 0, "stop": None, "actor": None,
+             "hist": collections.deque(maxlen=5),
              "hits": 0, "steps": 0, "stamp": 0, "on_target": False, "drift": None,
              # lost_s = how long the mask has been empty (distinct from drift, which is
              # a box on the wrong object). Both have to be visible or the panel reports
@@ -1667,7 +1708,11 @@ def main():
         trace = (tdir / "trace.jsonl").open("w", buffering=1)
 
         def emit(**row):
-            trace.write(json.dumps(row) + "\n")
+            # the consumer rule goes on every row: a trace that does not say whether
+            # the boxes were coasted cannot be replayed against the raw ones.
+            hold = hold_mode.get()
+            trace.write(json.dumps(row | {"hold": hold if hold == "zoh"
+                                          else f"foh{hold_k.get()}"}) + "\n")
 
         cv2.imwrite(str(tdir / f"seed-{seed_n}.png"), seed)
         emit(ev="ground", caption=caption, seed_n=seed_n, vlm_s=round(vlm_s, 3),
@@ -1816,6 +1861,7 @@ def main():
                         if stop.is_set():
                             break
                         track["box"], track["actor"] = box, actor
+                        track["hist"].append((n, list(box)))
                         track["on_target"] = on_target
                         track["stamp"] += 1
                         track["hits"] += on_target
@@ -2161,6 +2207,7 @@ def main():
             _stop_current()              # one target at a time; reap its Orin bridge
             track["stop"] = threading.Event()
             track["box"], track["actor"] = None, None
+            track["hist"].clear()        # a new target's velocity is not the old one's
             track["on_target"], track["drift"], track["lost_s"] = False, None, None
             track["gt_box"] = None
             track["label"] = None        # caption mode: overlay uses the entry text
@@ -2207,6 +2254,7 @@ def main():
         with track_lock:
             _stop_current()
             track["box"], track["actor"], track["msg"] = None, None, "dropped"
+            track["hist"].clear()
             track["on_target"], track["drift"], track["label"] = False, None, None
             track["lost_s"], track["gt_box"] = None, None
             track["delivered"], track["cmd_t"] = True, None
@@ -2310,6 +2358,46 @@ def main():
              bg=DARK, fg=MUTED, anchor=tk.W, font=("TkDefaultFont", 10)
              ).pack(side=tk.TOP, fill=tk.X)
 
+    # -- stage 5, the CONSUMER rule ------------------------------------------------
+    # The box in the operator's hand is always late: the panel's own `lag` counts how
+    # many feed frames old it is. ZOH freezes it (what P6.2 flew, and the default here
+    # so that path is unchanged); FOH translates it at the velocity of the last `k`
+    # answers. Zero device cost -- it happens after SAM2, on boxes already published.
+    hold_mode = tk.StringVar(value="zoh")
+    hold_k = tk.IntVar(value=3)
+    seg(w5_hold, hold_mode, ("zoh", "foh"))
+    tk.Label(w5_hold, text="k", bg=DARK, fg=MUTED,
+             font=("TkDefaultFont", 10)).pack(side=tk.LEFT, padx=(8, 2))
+    tk.Scale(w5_hold, from_=2, to=5, resolution=1, orient=tk.HORIZONTAL,
+             variable=hold_k, length=110, showvalue=1, sliderlength=16, width=10,
+             bg=DARK, fg=TEXT, troughcolor=LINE, highlightthickness=0, bd=0
+             ).pack(side=tk.LEFT)
+    hold_why = tk.Label(w5, text="", bg=DARK, fg=MUTED, anchor=tk.W, justify=tk.LEFT,
+                        wraplength=RAIL_W - 30, font=("TkDefaultFont", 10))
+    hold_why.pack(side=tk.TOP, fill=tk.X)
+
+    def _hold_why(*_):
+        """Which k is best is a function of the LAG, so quote the live one.
+
+        Measured on UAV123 replay, not here: at 30 fps paced, FOH buys ~+0.10 mIoU over
+        ZOH (51-52% of the delay ceiling), and that is worth about a doubling of device
+        speed. The k that wins moves with the horizon -- see coast_advice.
+        """
+        if hold_mode.get() == "zoh":
+            hold_why.config(text="zoh: freeze the last box. The published P6.2 path.",
+                            fg=MUTED)
+            return
+        k, want, lag = hold_k.get(), coast_advice(track["lag"]), track["lag"]
+        t = (f"foh k={k}: coast at the last {k} answers' velocity. "
+             f"Short lag wants a long average (k=5 at ~3 frames), long lag a short one "
+             f"(k=2 past ~6). Lag now {lag}, so k={want}. Never above 5: fitting "
+             f"acceleration measured worse than ZOH.")
+        hold_why.config(text=t, fg=MUTED if k == want else WARN)
+
+    hold_mode.trace_add("write", _hold_why)
+    hold_k.trace_add("write", _hold_why)
+    _hold_why()
+
     # Live feed with the track drawn on it. In-memory PPM into PhotoImage runs at
     # ~115 FPS (no PIL, no disk); a PNG-per-frame round-trip does not. The image
     # MUST stay referenced in `preview` -- a local gets collected and the label
@@ -2367,12 +2455,26 @@ def main():
         return ImageTk.PhotoImage(Image.fromarray(
             cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)))
 
+    def held_box():
+        """The box the operator's side of the system holds: raw, or coasted under FOH.
+
+        Everything downstream reads THIS and not track["box"] -- the overlay and the
+        PID both. Delivery, drift and lock bookkeeping keep reading the raw one: FOH
+        creates and destroys no boxes, it only moves them, so it must not touch a
+        single timing or a single lock count.
+        """
+        b = track["box"]
+        if b is None or hold_mode.get() == "zoh":
+            return b
+        return coast_box(track["hist"], live["n"], hold_k.get()) or b
+
     def show_preview():
         with frame_lock:
             lf = None if live["n"] == preview["ln"] else live["bgr"]
             if lf is not None:
                 lf, preview["ln"] = lf.copy(), live["n"]
-        box, locked, deliv = track["box"], track["on_target"], track["delivered"]
+        raw = track["box"]
+        box, locked, deliv = held_box(), track["on_target"], track["delivered"]
         label = track.get("label") or caption_entry.get()   # rich caption in click mode
         if lf is not None:
             # the box is up to one feed period stale here -- it was measured on
@@ -2382,7 +2484,12 @@ def main():
             if gt is not None:      # soft blue: the CARLA truth, for the eye only
                 cv2.rectangle(lf, (int(gt[0] * sc), int(gt[1] * sc)),
                               (int(gt[2] * sc), int(gt[3] * sc)), (235, 180, 120), 1)
+            if raw is not None and box is not raw:   # FOH: where the box really was,
+                cv2.rectangle(lf, (int(raw[0] * sc), int(raw[1] * sc)),   # thin, so the
+                              (int(raw[2] * sc), int(raw[3] * sc)),       # coast is
+                              (120, 120, 120), 1)                         # visible
             draw_overlay(lf, box, label, locked, scale=sc, delivered=deliv)
+            _hold_why()      # the advice depends on the live lag, so retint it here
             preview["live"] = _photo(lf, big)
             big.config(image=preview["live"])
         # measured delivery rate, not the requested one -- headless or not, a
@@ -2698,7 +2805,7 @@ def main():
         if track["catchup_s"] is None:
             return None
         fm = pilot_follow_mode()
-        return track["box"] if fm in ("assist", "auto") else None
+        return held_box() if fm in ("assist", "auto") else None
 
     def pilot_follow_mode():
         """The follow mode actually in force. AUTO with no copter is not a mode.
@@ -3146,6 +3253,27 @@ def selftest(*a):
         raise SystemExit(1)
 
 
+def _check_coast():
+    """The FOH arithmetic, with no Tk and no CARLA in it.
+
+        python -c 'import runners.carla_debug_ui as u; u._check_coast()'
+    """
+    h = [(0, [0, 0, 10, 10]), (5, [5, 0, 15, 10]), (10, [10, 0, 20, 10])]
+    # one gap ahead of the newest answer: one more gap of motion, size untouched
+    assert coast_box(h, 15, 2) == [15, 0, 25, 10], coast_box(h, 15, 2)
+    # k=3 averages the same constant velocity, so it lands in the same place
+    assert coast_box(h, 15, 3) == [15, 0, 25, 10], coast_box(h, 15, 3)
+    # k=3 over a DECELERATION lags the newest gap -- that is the trade, not a bug
+    d = [(0, [0, 0, 10, 10]), (5, [8, 0, 18, 10]), (10, [10, 0, 20, 10])]
+    assert coast_box(d, 15, 2) == [12, 0, 22, 10] and coast_box(d, 15, 3) == [15, 0, 25, 10]
+    assert coast_box(h, 10, 2) == [10, 0, 20, 10]      # at the answer's own frame: no move
+    assert coast_box(h, 5, 2) == [10, 0, 20, 10]       # never extrapolate backwards
+    assert coast_box(h, 999, 2) == [20, 0, 30, 10]     # tmax: a stalled carry cannot fly off
+    assert coast_box(h[:1], 9, 2) == [0, 0, 10, 10] and coast_box([], 9, 2) is None
+    assert (coast_advice(2), coast_advice(5), coast_advice(20)) == (5, 3, 2)
+    print("coast ok")
+
+
 def _check_modes(md):
     """The WARM/COLD + follow-authority state machine, through the real widgets.
 
@@ -3153,6 +3281,7 @@ def _check_modes(md):
     thread is started by its callers, not by it), so this exercises exactly the
     bookkeeping that decides whether a box is the operator's or the system's.
     """
+    _check_coast()
     track, follow = md["track"], md["follow"]
 
     # WARM: designating starts maintaining. Nobody has asked, so nothing is delivered
