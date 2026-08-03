@@ -38,6 +38,7 @@ See runners/CARLA_DEBUG_UI.md.
 """
 import argparse
 import collections
+import faulthandler
 import json
 import math
 import os
@@ -1011,6 +1012,45 @@ def traffic_manager(client):
     return _TM[0]
 
 
+def stop_traffic_manager():
+    """Tear the TM down so the next traffic_manager() builds a fresh one.
+
+    The other half of surviving load_world. Handing autopilot back is NOT enough: the
+    TM registers batch-spawned vehicles asynchronously, so a car spawned shortly before
+    the swap can finish registering after the handback and then be stepped into memory
+    the episode teardown already freed -- SIGSEGV, from a C++ thread, with the main
+    thread sitting innocently in load_world. Measured, all three:
+    `check_map_swap.py race` and `destroy` both die, `tmoff` survives. Destroying the
+    cars first does not help; only shutting the TM down does.
+    """
+    if _TM:
+        try:
+            _TM[0].shut_down()
+        except RuntimeError:
+            pass          # already gone with a dead server: the point is the same
+        _TM.clear()
+
+
+def join_follow(track, seconds=15.0):
+    """Wait for the follow thread in `track` to die. False if it is still alive.
+
+    For a caller about to invalidate every CARLA handle in the process (load_world).
+    Dropping a track only SETS its stop event, and a follow blocked in the ~5 s Orin
+    grounding call keeps running for seconds after that -- still holding this episode's
+    world and vehicle list. Told-to-stop is not stopped, so the timeout is generous and
+    the False is load-bearing: swapping the map under a live carry step is a SIGSEGV
+    inside libcarla, not an exception anyone can catch.
+    """
+    t = track.get("thread")
+    if t is None or t is threading.current_thread():
+        return True
+    t.join(timeout=seconds)
+    if t.is_alive():
+        return False
+    track["thread"] = None
+    return True
+
+
 # Operator settings that survive a restart. One JSON blob of tk-variable values,
 # written on exit (including the 'r' hot reload), read at startup. Deliberately NOT
 # a schema: an unknown or stale key is dropped on load and a missing one keeps the
@@ -1056,6 +1096,10 @@ def save_prefs(remembered):
 
 
 def main():
+    # A libcarla segfault kills the panel with nothing on stdout, which is how the
+    # map-swap crash stayed a mystery -- the only evidence was a kernel journal line.
+    # This costs nothing and prints the thread and line that did it.
+    faulthandler.enable()
     prefs = load_prefs()
     ap = argparse.ArgumentParser()
     ap.add_argument("--host", default="127.0.0.1")
@@ -1280,6 +1324,20 @@ def main():
                  state="readonly", width=20).pack(side=tk.LEFT)
 
     def load_world(nxt):
+        # Drop and JOIN the follow first (drop_and_join is defined with the track,
+        # below). A carry thread caches this episode's world and vehicle list for the
+        # whole follow, so one more carry step after the swap dereferences memory the
+        # server already freed: SIGSEGV inside libcarla, in that thread, no Python
+        # exception, panel gone. Reproduced by `runners/check_map_swap.py stale`.
+        if not drop_and_join():
+            return (f"{nxt} NOT loaded: the follow thread is still running -- "
+                    "swapping the map now would segfault the panel")
+        veh_bbox.clear()      # the next episode reuses these actor ids for other cars
+        # fly() stands down on busy["world"], but the tick can have entered it just
+        # before that flag flipped and still be mid-RPC. One tick period of grace is
+        # ponytail: cheaper than a lock around every CARLA call in the panel. A fly()
+        # that takes longer than 50 ms is a different bug.
+        time.sleep(0.05)
         # Kill the camera FIRST. load_world tears down every actor server-side, and
         # a sensor whose stream is still live when its actor vanishes crashes the
         # client inside libcarla -- a SEGFAULT, not an exception, so there is no
@@ -1309,9 +1367,12 @@ def main():
                 pass
         if spawned:
             try:
-                world.wait_for_tick(seconds=2.0)
+                # paused = sync mode with nobody ticking, so wait_for_tick would only
+                # time out and the handback would never land. Tick it ourselves.
+                world.tick() if paused["on"] else world.wait_for_tick(seconds=2.0)
             except RuntimeError:
-                pass  # paused (sync mode, no ticker): don't hang the load forever
+                pass  # don't hang the load forever on a world that will not advance
+        stop_traffic_manager()   # the handback alone does not hold -- see its docstring
         # a non-drivable entry (e.g. AnnotationColorLandscape) raises here
         try:
             client.load_world(nxt)
@@ -1323,6 +1384,9 @@ def main():
             client.get_world().get_spectator(), None, None)
         attach_camera()
         spawned.clear()
+        # the fresh TM opens on CARLA's default, not on where the operator left the
+        # slider, so put the knob back where the panel says it is
+        set_traffic(traffic_speed.get())
         return out
 
     def load_selected(_event=None):
@@ -1708,6 +1772,9 @@ def main():
     # rule (ZOH/FOH, see coast_box). Only REAL measurements go in -- a seed box has no
     # frame index it was measured on, so coasting off it would extrapolate a fiction.
     track = {"box": None, "msg": "", "lag": 0, "stop": None, "actor": None,
+             # "thread" = the live follow thread, kept ONLY so a map swap can join it.
+             # Every CARLA handle it caches dies with the episode -- see drop_and_join.
+             "thread": None,
              "hist": collections.deque(maxlen=5),
              "hits": 0, "steps": 0, "stamp": 0, "on_target": False, "drift": None,
              # lost_s = how long the mask has been empty (distinct from drift, which is
@@ -2154,7 +2221,9 @@ def main():
         Same projection as match_actor (CAM_W x CAM_H, CAM_FOV), so the click lives in
         the same pixel space the tracker and the grounder do. Smallest-area containing
         box wins an overlap toward the nearer/topmost car."""
-        if cam["sensor"] is None:
+        # Same stand-down as fly(): mid-load every handle here belongs to the episode
+        # being torn down, and a click during a 3 s map swap is not a rare event.
+        if busy["world"] or cam["sensor"] is None:
             return None
         cam_tf = cam["sensor"].get_transform()
         world = client.get_world()
@@ -2434,9 +2503,8 @@ def main():
         if designate.get() == "oracle":
             track["msg"] = "designate=oracle needs a Shift-click on a car, not a caption"
             return
-        threading.Thread(target=follow, daemon=True,
-                         args=(caption_entry.get(), _arm_track(), ground_res.get(),
-                               CARRY_CROP_SIDE if carry_crop_on.get() else 0)).start()
+        _start_follow(follow, caption_entry.get(), _arm_track(), ground_res.get(),
+                      CARRY_CROP_SIDE if carry_crop_on.get() else 0)
 
     def do_drop():
         # set the event INSIDE the lock, so a follow thread holding it is either
@@ -2450,6 +2518,21 @@ def main():
             track["on_target"], track["drift"], track["label"] = False, None, None
             track["lost_s"], track["gt_box"] = None, None
             track["delivered"], track["cmd_t"] = True, None
+
+    def _start_follow(fn, *a):
+        """Start a follow thread and keep the handle -- a map swap has to JOIN it."""
+        if busy["world"]:
+            # it would capture the world that is being torn down; the armed track is
+            # inert without a thread, so refusing here loses nothing
+            track["msg"] = "world is being rebuilt -- wait for the load to finish"
+            return
+        track["thread"] = t = threading.Thread(target=fn, daemon=True, args=a)
+        t.start()
+
+    def drop_and_join(seconds=15.0):
+        """Tell the follow to stop, then WAIT for it. False if it will not die."""
+        do_drop()
+        return join_follow(track, seconds)
 
     # -- stage 3, DESIGNATE: pick the target and say who grounds it -----------------
     # The two designation paths were a two-tab Notebook, which read as two ways to do
@@ -2925,10 +3008,9 @@ def main():
         if v is None:
             track["msg"] = "no car under the click"
             return
-        threading.Thread(target=follow_click, daemon=True,
-                         args=(v.id, (feed_x, feed_y), carry_size.get(),
-                               ground_res.get(), _arm_track(),
-                               CARRY_CROP_SIDE if carry_crop_on.get() else 0)).start()
+        _start_follow(follow_click, v.id, (feed_x, feed_y), carry_size.get(),
+                      ground_res.get(), _arm_track(),
+                      CARRY_CROP_SIDE if carry_crop_on.get() else 0)
 
     def on_select_click(e):
         # Shift-click on the flown view -> feed px. The photo is centred in the label
@@ -3529,6 +3611,7 @@ def main():
                                           "feed": latest,
                                           "held": held, "designate": designate,
                                           "follow_caption": do_follow,
+                                          "load": load_world,
                                           "close": unpause_on_exit}))
 
     try:
@@ -3731,6 +3814,53 @@ def _selftest(root, client, spawned, bg, spawn_vehicles, spawn_walkers, clear, m
     left = [a for a in world.get_actors(ids)
             if a.type_id.startswith(("vehicle", "walker")) and snap.find(a.id)]
     assert not left, f"{len(left)} actors survived clear"
+
+    # -- the map swap. Nothing above this line may touch `world` again: load_world
+    # ends the episode every handle in this function belongs to.
+    #
+    # This used to kill the panel outright. Two holders survive into the new episode
+    # and both segfault inside libcarla on first use -- the carry thread (it caches the
+    # world + vehicle list for the whole follow) and the traffic manager (it steps every
+    # vehicle still registered with it). runners/check_map_swap.py reproduces each on
+    # its own; here both halves run through the real button path.
+    spawn_vehicles(10)                    # autopilot cars ON at swap time: hazard two
+    towns = [m.split("/")[-1] for m in client.get_available_maps()]
+    here = client.get_world().get_map().name.split("/")[-1]
+    nxt = next(m for m in towns if m != here and m.startswith("Town") and "Opt" not in m)
+
+    wedged = threading.Event()            # a follow stuck in its ~5 s Orin ground call
+    stuck = threading.Thread(target=wedged.wait, daemon=True)
+    stuck.start()
+    md["track"]["thread"] = stuck
+    msg = md["load"](nxt)
+    assert "NOT loaded" in msg, f"a wedged follow must block the swap, got {msg!r}"
+    assert client.get_world().get_map().name.endswith(here), "it swapped anyway"
+    wedged.set()
+    stuck.join(timeout=5.0)
+
+    msg = md["load"](nxt)                 # now it may go
+    assert msg == nxt, f"load_world said {msg!r}"
+    time.sleep(3.0)                       # the crash landed a beat after the swap
+    now = client.get_world().get_map().name
+    assert now.endswith(nxt), f"asked for {nxt}, got {now}"
+
+    # A swap that reattaches a DEAD camera is indistinguishable from a good one at this
+    # level: right map name, no exception, and a feed that never updates again. So look
+    # at the pixels. The frames arrive on CARLA's own callback thread, not on the tick.
+    live = md["live"]
+    n0 = live["n"]
+    for _ in range(100):
+        time.sleep(0.1)
+        if live["n"] > n0 + 5:
+            break
+    assert live["n"] > n0 + 5, f"only {live['n'] - n0} frames after the swap: dead camera"
+    f = live["bgr"].copy()   # the callback thread rebinds this between our two reads
+    flat = (f.reshape(-1, 3) == f[0, 0]).all(1).mean()
+    assert flat < 0.99, f"{flat:.0%} of the frame is one colour -- the render is dead"
+    shot = Path("runs/carla-ui/selftest-map-swap.png")
+    shot.parent.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(shot), f)
+    print(f"map swap ok: {here} -> {nxt}, panel alive, feed live ({shot})")
     print("ok")
     md["close"]()   # the real teardown, so the selftest leaks no camera either
 

@@ -497,6 +497,22 @@ to <0.1 deg on a re-measured target — and `test_a_frozen_box_is_worth_one_corr
 holds the total rotation to the one measured angle across a simulated 60 s occlusion,
 which is the assert that fails if anyone reintroduces a per-tick law.
 
+## Settings survive a restart
+
+`~/.config/carla-debug-ui.json`, written once on close, read once on startup. Twelve
+switches are registered through `remember(name, var)`: `designate`, ground and carry
+resolution, carry-crop zoom, tracker, caption, acquire, authority (`follow_mode`), hold
+mode and its k, fly speed, traffic speed. Everything
+else — the map, the fleet, anything that depends on a live server — is deliberately not
+remembered: restoring it would mean doing work at startup, not restoring a setting.
+
+Three things it has to survive, all tested in `tests/test_user_prefs.py`: no file (first
+run), a corrupt file (hand-edited, half-written), and a **stale value** — a saved tracker
+or resolution that a later revision no longer offers. `restore_pref` sets the variable,
+reads it back, and reverts to the widget's default if it no longer fits, because Tk's
+`IntVar.set()` accepts junk and only `.get()` raises. Saving happens in the close path
+while the widgets are still alive, not in `request_close`.
+
 ## Design constraints (the non-obvious ones)
 
 **The sim free-runs at its own pace.** This is the whole point: a real camera does not
@@ -554,8 +570,39 @@ it the traffic manager keeps stepping an actor that is already gone and the resu
 server-side error aborts the UI process. Same crash as the seed call, reached from the
 other end. **`load_world` is the third way in:** it destroys every actor server-side
 without asking, so clicking "load" with an autopilot fleet up killed the UI the same way
-(CARLA itself survived). `load_world()` now does the same handback-then-tick before the
-swap.
+(CARLA itself survived). `load_world()` does the same handback-then-tick before the swap
+— which is necessary and, on its own, still not enough. See below.
+
+**Changing the map ends the episode every handle belongs to** (fixed 2026-08-03T18:05Z).
+`client.load_world()` frees the world, its actors and the sensor server-side; a
+`carla.World` or `carla.Actor` object that outlives it dereferences freed memory inside
+`libcarla`. That is a SIGSEGV or a `std::terminate` in whatever thread touches it first —
+never a Python exception, so no `try/except` in the panel ever saw it. The symptom was
+"the UI or CARLA crashes when I change map"; CARLA was fine, the panel was simply gone,
+with nothing on stdout. Three holders, each reproduced on its own by
+`runners/check_map_swap.py` (`stale`, `driving`, `race`/`destroy`/`tmoff`):
+
+1. **The follow thread.** It caches `world` and the vehicle list for the life of a follow,
+   so one more carry step after the swap is the crash. Dropping the track only *sets* a
+   stop event, and a follow blocked in the ~5 s Orin grounding call keeps running for
+   seconds after that. `load_world` now drops **and joins** it (`join_follow`, 15 s) and
+   **refuses the swap** with a message if the thread will not die — told-to-stop is not
+   stopped.
+2. **Autopilot cars.** The traffic manager steps vehicles the swap already destroyed.
+   This is the handback above.
+3. **The traffic manager itself.** The handback is not enough: the TM registers
+   batch-spawned vehicles *asynchronously*, so a car spawned shortly before the swap can
+   finish registering after the handback lands and then be stepped into freed memory.
+   Measured 2/2 each: `race` (handback, no settle) segfaults, `destroy` (cars destroyed
+   first) still segfaults, `tmoff` survives. So the panel calls `tm.shut_down()` before
+   the load and re-applies the traffic-speed slider afterwards, because the rebuilt TM
+   comes up on CARLA's default, not on where the operator left it.
+
+Also part of the fix, all cheap: `veh_bbox.clear()` (the next episode reuses actor ids),
+a 50 ms grace for a `fly()` that entered the tick just before `busy["world"]` flipped,
+the same `busy["world"]` stand-down in `hit_test_live` (a click during a 3 s swap is not
+rare) and in follow start, and `faulthandler.enable()` at the top of `main()` so the next
+segfault names its own thread and line instead of leaving a kernel journal entry.
 
 ## Findings and incident history
 
@@ -671,7 +718,10 @@ the argv rewrite headless.
 | key→NED signs, **view-relative `wasd` through the real projection**, `_f` missing-vs-zero, maintained-vs-delivered overlay (amber, thick enough, brackets not a closed box) | `tests/test_pilot_modes.py` | nothing (carla egg importable) |
 | aim law: pan-not-snap, no overshoot, one correction per frozen box | `tests/test_center_delta.py` | nothing |
 | reload argv rewrite | `tests/test_reload_argv.py` | nothing |
-| mode switching, AUTO refusing without a copter, `oracle`+caption refusing, spawn determinism, cars actually driving | `carla_debug_ui.py --selftest` | a live CARLA |
+| prefs survive a restart, a corrupt/absent file, a stale value, an unwritable path | `tests/test_user_prefs.py` | nothing |
+| the map-swap gate: a wedged follow reports `False` and blocks the load | `tests/test_map_swap.py` | nothing |
+| mode switching, AUTO refusing without a copter, `oracle`+caption refusing, spawn determinism, cars actually driving, **the map swap end to end** (a wedged follow is refused, then a real Town-to-Town load with 10 autopilot cars up, then the reattached camera's frame is written to `runs/carla-ui/selftest-map-swap.png` and asserted not to be one flat colour) | `carla_debug_ui.py --selftest` | a live CARLA |
+| which of the three map-swap holders segfaults, one at a time | `runners/check_map_swap.py <mode>` | a live CARLA |
 | launch/close/relaunch, Ctrl+C exit | `tests/test_carla_lifecycle.py` | `CARLA_LIFECYCLE_TEST=1` + CARLA |
 
 ## What this cannot tell you
