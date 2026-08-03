@@ -557,15 +557,27 @@ def coast_box(hist, now_n, k=2, tmax=2.0):
     return [b1[0] + vx, b1[1] + vy, b1[2] + vx, b1[3] + vy]
 
 
-def coast_advice(lag):
-    """Which `k` the fps grid says is best at this delay, in frames of lag.
+def answer_gap(hist):
+    """Feed frames between the last two published answers = fps / tracker Hz, or None.
+
+    This, not the instantaneous backlog, is the horizon the extrapolation has to cover,
+    and it is the quantity the fps grid swept. Median over the history so one slow step
+    does not move the advice.
+    """
+    h = [n for n, _ in hist]
+    d = [b - a for a, b in zip(h, h[1:]) if b > a]
+    return sorted(d)[len(d) // 2] if d else None
+
+
+def coast_advice(gap):
+    """Which `k` the fps grid says is best at this many feed frames per answer.
 
     `raw/paced-grid-*`, arm sam2_c512, fraction of the GT(i) delay ceiling recovered:
-    15 fps (lag ~2-3 frames) foh5 58%, 30 fps (lag 5) foh3 52%, 60 fps (lag ~10) foh2
-    41%, 120 fps (lag ~20) foh2 28%. The elbow moves toward SHORT averages as the
-    horizon grows: over a long gap the oldest answers are describing a different motion.
+    15 fps (~2-3 f/answer) foh5 58%, 30 fps (~5) foh3 52%, 60 fps (~10) foh2 41%,
+    120 fps (~20) foh2 28%. The elbow moves toward SHORT averages as the horizon grows:
+    over a long gap the oldest answers are describing a different motion.
     """
-    return 5 if lag <= 3 else 3 if lag <= 6 else 2
+    return 5 if gap <= 3 else 3 if gap <= 6 else 2
 
 
 def draw_overlay(frame, box, label, locked, scale=1.0, delivered=True):
@@ -786,7 +798,10 @@ def card(parent, num, title):
     the SAME stage number, so "what did stage 3 cost" is one horizontal glance.
     """
     outer = tk.Frame(parent, bg=DARK, highlightthickness=1, highlightbackground=LINE)
-    outer.pack(side=tk.TOP, fill=tk.X, pady=(0, 6))
+    # 4, not 6: the rail is one line taller since stage 5 grew the ZOH/FOH row, and on
+    # the 2560x1080 head (the primary one here) that last line fell off the bottom.
+    # Five cards x 2 px buys it back without a scrollbar.
+    outer.pack(side=tk.TOP, fill=tk.X, pady=(0, 4))
     head = tk.Frame(outer, bg=DARK_HI)
     head.pack(side=tk.TOP, fill=tk.X)
     badge = None
@@ -1090,7 +1105,7 @@ def main():
     w2_pilot, w2_move, w2_speed = rrow(w2), rrow(w2), rrow(w2)
     w3_src, w3_click, w3_res, w3_cap, w3_drop = (rrow(w3) for _ in range(5))
     w4_src, w4_go = rrow(w4), rrow(w4)
-    w5_auth, w5_hold = rrow(w5), rrow(w5)
+    w5_auth = rrow(w5)
 
     # ---- instruments: ONE column that owns every number -------------------------
     # They were in four places at once (lamps, card headers, a bar across the bottom,
@@ -2363,6 +2378,11 @@ def main():
     # many feed frames old it is. ZOH freezes it (what P6.2 flew, and the default here
     # so that path is unchanged); FOH translates it at the velocity of the last `k`
     # answers. Zero device cost -- it happens after SAM2, on boxes already published.
+    # built HERE, not with the other rows up top: a row is positioned where it is
+    # created, and this one has to land under FOLLOW's own explanation, not between
+    # the buttons and it. The rail already overflows a 1440 px screen, so both the
+    # row and its note stay one line each.
+    w5_hold = rrow(w5)
     hold_mode = tk.StringVar(value="zoh")
     hold_k = tk.IntVar(value=3)
     seg(w5_hold, hold_mode, ("zoh", "foh"))
@@ -2377,25 +2397,41 @@ def main():
     hold_why.pack(side=tk.TOP, fill=tk.X)
 
     def _hold_why(*_):
-        """Which k is best is a function of the LAG, so quote the live one.
+        """Which k is best is a function of the tracker's RATE, so quote the live one.
+
+        Not track["lag"]: that is the instantaneous backlog, which is 0 with no track
+        running and spikes on one slow step. What the fps grid actually varied is the
+        gap in feed frames between two answers -- fps / tracker Hz -- so read it off
+        the published history, which is the tracker's own rate by construction.
 
         Measured on UAV123 replay, not here: at 30 fps paced, FOH buys ~+0.10 mIoU over
         ZOH (51-52% of the delay ceiling), and that is worth about a doubling of device
-        speed. The k that wins moves with the horizon -- see coast_advice.
+        speed. The slider stops at 5 because fitting acceleration measured WORSE
+        than ZOH.
         """
         if hold_mode.get() == "zoh":
-            hold_why.config(text="zoh: freeze the last box. The published P6.2 path.",
+            hold_why.config(text="zoh: freeze last box (P6.2's path).", fg=MUTED)
+            return
+        k, gap = hold_k.get(), answer_gap(track["hist"])
+        # ONE line, and short enough not to wrap: this label is the last widget in the
+        # rail and the rail already ends ~35 px above the bottom of a 1440 px screen.
+        # A second line is invisible, so the "never above 5" rationale lives in the
+        # docstring instead of on screen.
+        if gap is None:
+            hold_why.config(text=f"foh k={k}: coast on last {k}; no answers yet.",
                             fg=MUTED)
             return
-        k, want, lag = hold_k.get(), coast_advice(track["lag"]), track["lag"]
-        t = (f"foh k={k}: coast at the last {k} answers' velocity. "
-             f"Short lag wants a long average (k=5 at ~3 frames), long lag a short one "
-             f"(k=2 past ~6). Lag now {lag}, so k={want}. Never above 5: fitting "
-             f"acceleration measured worse than ZOH.")
+        want = coast_advice(gap)
+        t = f"foh k={k}: coast on last {k}; {gap:.0f} f/answer wants k={want}."
         hold_why.config(text=t, fg=MUTED if k == want else WARN)
 
     hold_mode.trace_add("write", _hold_why)
     hold_k.trace_add("write", _hold_why)
+    # AFTER the widgets: a Tk Scale writes its own value into the linked variable while
+    # it is built, so an IntVar set beforehand comes back as `from_` (seen live: the
+    # panel opened on foh/k=2 with these two lines missing).
+    hold_mode.set("zoh")
+    hold_k.set(3)
     _hold_why()
 
     # Live feed with the track drawn on it. In-memory PPM into PhotoImage runs at
@@ -3230,6 +3266,7 @@ def main():
                                           "acquire": acquire, "follow": follow_mode,
                                           "eff_follow": pilot_follow_mode,
                                           "box": model_box, "press": on_press,
+                                          "hold": hold_mode, "hold_k": hold_k, "live": live,
                                           "held": held, "designate": designate,
                                           "follow_caption": do_follow,
                                           "close": unpause_on_exit}))
@@ -3271,6 +3308,11 @@ def _check_coast():
     assert coast_box(h, 999, 2) == [20, 0, 30, 10]     # tmax: a stalled carry cannot fly off
     assert coast_box(h[:1], 9, 2) == [0, 0, 10, 10] and coast_box([], 9, 2) is None
     assert (coast_advice(2), coast_advice(5), coast_advice(20)) == (5, 3, 2)
+    # the advice reads the tracker's rate, so a slow answer must not swing it
+    assert answer_gap([]) is None and answer_gap([(3, None)]) is None
+    assert answer_gap([(0, None), (5, None), (10, None)]) == 5
+    assert answer_gap([(0, None), (5, None), (10, None), (40, None)]) == 5
+    assert coast_advice(answer_gap([(0, None), (2, None), (4, None)])) == 5
     print("coast ok")
 
 
@@ -3286,6 +3328,12 @@ def _check_modes(md):
 
     # WARM: designating starts maintaining. Nobody has asked, so nothing is delivered
     # and no control law may see the box -- that is the whole warm-start premise.
+    # The panel opens on the PUBLISHED path. Asserted because it did not: a Tk Scale
+    # writes `from_` into its linked variable while it is built, which silently moved
+    # the pair to foh/k=2 on a live launch.
+    assert md["hold"].get() == "zoh" and md["hold_k"].get() == 3, \
+        f'opened on {md["hold"].get()} k={md["hold_k"].get()}'
+
     md["acquire"].set("warm")
     md["arm"]()
     assert track["delivered"] is False and track["cmd_t"] is None
@@ -3296,7 +3344,25 @@ def _check_modes(md):
     assert track["delivered"] is True and track["cmd_t"] is not None
     assert track["deliver_s"] is not None and track["deliver_s"] < 0.5, \
         f"a maintained track must deliver instantly, got {track['deliver_s']}"
+    # ...and STILL not, until the carry has drained its backlog. That second gate
+    # (catchup_s, added after this check was written) is why the assert below stubs
+    # it: a box that is delivered but mid-catch-up is a real box from an old frame.
+    assert md["box"]() is None, "a mid-catch-up box must not reach a control law"
+    track["catchup_s"] = 1.0
     assert md["box"]() is not None, "a delivered box is what control steers on"
+
+    # the consumer rule sits between that box and the control law. ZOH is the
+    # published path: it must hand over exactly what the carry published, untouched.
+    assert md["box"]() == [10, 10, 20, 20]
+    md["hold"].set("foh")
+    assert md["box"]() == [10, 10, 20, 20], "FOH with one answer cannot invent motion"
+    # two answers a frame apart, moving right; the third feed frame is one gap on
+    track["hist"].extend([(10, [10, 10, 20, 20]), (11, [12, 10, 22, 20])])
+    md["live"]["n"] = 12
+    assert md["box"]() == [14, 10, 24, 20], md["box"]()
+    md["hold"].set("zoh")
+    assert md["box"]() == [10, 10, 20, 20], "zoh must be exactly the published box"
+    track["hist"].clear()
 
     # COLD: the designation IS the command, so the clock is already running and
     # whatever comes back is the operator's (and stale) from the first frame.
