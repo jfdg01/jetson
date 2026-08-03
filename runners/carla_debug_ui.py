@@ -5,8 +5,8 @@ Every stage is live -- no replay, no recorded numbers, no oracle box. CARLA rend
 on the 3090, ArduCopter SITL is the physics, and BOTH models run on the Orin
 (Qwen2-VL-2B Q8_0 grounding over ssh, SAM2 carry over the ssh-stdio bridge).
 
-Three orthogonal mode switches, because they are the three questions the thesis
-asks and each one is a different demo:
+Two orthogonal mode switches, because they are the questions the thesis asks and
+each one is a different demo:
 
   PILOT     god | drone
             god flies a camera on a stick -- perception in isolation, any view you
@@ -15,19 +15,9 @@ asks and each one is a different demo:
             the vehicle's own motion. SAME keys either way (wasd ground-parallel,
             q/e up-down, arrows look): pressing one of the two swaps the physics
             under the operator's hand and nothing else.
-  ACQUIRE   warm | cold
-            warm maintains a track from the moment you designate and DELIVERS it on
-            command (P5.1/P6.2-DELIVERY: maintain-and-deliver). cold does nothing
-            until the command, then grounds under time pressure (E18/R-34: the
-            ~4.8 s acquire lands the box stale). The `deliver` timing on screen is
-            that comparison, measured live. This is ONE maintained candidate, not a
-            shortlist to choose from: with N=1 maintain and select collapse, which
-            is the thesis position (R-28) and not a simplification of the demo --
-            the multi-candidate selector is OOM-killed at N=2 on the Orin (R-16) and
-            never beat a single-target carry in 8 runs (P5.3-P5.18, R-36).
   FOLLOW    manual | assist | auto
             manual = operator has sole authority. assist = the model aims (gimbal
-            only, never position). auto = closed loop, the delivered box drives the
+            only, never position). auto = closed loop, the carried box drives the
             copter through CascadePID -> LOCAL_NED velocity, the same path
             run_p62_flight measured (P6.2). auto flies EITHER pilot -- the drone
             as velocity setpoints, the god camera as its own transform, and the god
@@ -37,8 +27,15 @@ asks and each one is a different demo:
     .venv-ft/bin/python runners/carla_debug_ui.py --pilot drone     # + SITL
 
 Controls: click the view to take the stick. wasd/qe move, arrows look (gimbal in
-drone mode), space pause, t cycles FOLLOW, g delivers, Shift-click designates a car.
+drone mode), space pause, t cycles FOLLOW, Shift-click designates a car.
 See runners/CARLA_DEBUG_UI.md.
+
+The ACQUIRE warm|cold switch and its DELIVER stage (the `g` command press, the
+maintained-vs-delivered box, the command-to-box timing) were REMOVED on
+2026-08-03 by request: the demo cannot use them. A designated track is the
+operator's from the first box, so designation is the command. The measured
+warm-vs-cold numbers stand where they were taken (P5.1/P6.2-DELIVERY, E18/R-34,
+runners/CARLA_DEBUG_UI.md); nothing about them is re-measurable on this panel now.
 """
 import argparse
 import collections
@@ -197,9 +194,8 @@ NEXT_TIP = {
     1: "step 1 -- spawn cars, or the nadir view has nothing to follow",
     2: "step 2 -- press drone to fly the airframe (or stay god and fly the camera)",
     3: "step 3 -- Shift-click a car in the view, or type a caption and press follow",
-    4: "step 4 -- press deliver (g). That press IS the operator's command",
-    5: "step 5 -- pick assist or auto to close the loop",
-    6: "loop closed -- read the instruments column",
+    4: "step 4 -- pick assist or auto to close the loop",
+    5: "loop closed -- read the instruments column",
 }
 CHASE_CLIMB = 15.0
 CHASE_HIST = 5              # measurements median-filtered into one area reading
@@ -635,40 +631,25 @@ def coast_advice(gap):
     return 5 if gap <= 3 else 3 if gap <= 6 else 2
 
 
-def draw_overlay(frame, box, label, locked, scale=1.0, delivered=True):
+def draw_overlay(frame, box, label, locked, scale=1.0):
     """Box + caption onto a copy of the received frame. Green locked, red adrift.
 
-    An UNDELIVERED box (WARM: maintained, nobody has asked for it yet) is AMBER and
-    drawn as four corner brackets instead of a closed rectangle. That is not
-    decoration -- the whole warm-start claim is that the system tracks things it has
-    not been asked about, so the operator has to be able to see at a glance which box
-    is its own housekeeping and which one is theirs. It was grey and 1 px for one
-    revision and the report was immediate: "the first track is grey and hard to see".
-    Amber is the same "not yet yours" colour the NEXT hint and the stage badges use,
-    and brackets keep the shape distinguishable from the delivered box in a still.
+    One box, one meaning. The amber corner-bracket "maintained but not yet yours"
+    state went with the DELIVER stage (2026-08-03): with no command to wait for,
+    every box on screen is the operator's from the moment it exists.
     """
     if box is None:
         return frame
     p = [int(v * scale) for v in box]
-    if not delivered:
-        c, th, label = (63, 160, 224), max(2, int(2 * scale)), f"maintaining: {label}"
-        # bracket length: a fifth of the shorter side, so it scales with the target
-        # and never closes into a rectangle on a small box
-        k = max(6, min(p[2] - p[0], p[3] - p[1]) // 5)
-        for x, dx in ((p[0], k), (p[2], -k)):
-            for y, dy in ((p[1], k), (p[3], -k)):
-                cv2.line(frame, (x, y), (x + dx, y), c, th)
-                cv2.line(frame, (x, y), (x, y + dy), c, th)
-    else:
-        c = (0, 255, 0) if locked else (0, 0, 255)
-        cv2.rectangle(frame, (p[0], p[1]), (p[2], p[3]), c, max(1, int(2 * scale)))
+    c = (0, 255, 0) if locked else (0, 0, 255)
+    cv2.rectangle(frame, (p[0], p[1]), (p[2], p[3]), c, max(1, int(2 * scale)))
     cv2.putText(frame, label, (p[0], max(14, p[1] - 6)),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5 * scale, c, 1)
     return frame
 
 
 def _f(fmt, v):
-    """"deliver {:.2f} s" + None -> "deliver --". A missing stage reads as missing.
+    """"ground {:.0f} ms" + None -> "ground --". A missing stage reads as missing.
 
     Not 0.0 and not blank: a stage that has not run yet and a stage that ran in no
     time look identical on a status strip otherwise, and one of those is a bug.
@@ -853,9 +834,9 @@ def card(parent, num, title):
     the SAME stage number, so "what did stage 3 cost" is one horizontal glance.
     """
     outer = tk.Frame(parent, bg=DARK, highlightthickness=1, highlightbackground=LINE)
-    # 4, not 6: the rail is one line taller since stage 5 grew the ZOH/FOH row, and on
+    # 4, not 6: the rail is one line taller since FOLLOW grew the ZOH/FOH row, and on
     # the 2560x1080 head (the primary one here) that last line fell off the bottom.
-    # Five cards x 2 px buys it back without a scrollbar.
+    # Four cards x 2 px buys it back without a scrollbar.
     outer.pack(side=tk.TOP, fill=tk.X, pady=(0, 4))
     head = tk.Frame(outer, bg=DARK_HI)
     head.pack(side=tk.TOP, fill=tk.X)
@@ -1133,19 +1114,15 @@ def main():
                     help="destroy every vehicle/walker/camera in the world at startup, "
                          "including actors this process did not spawn (recovers a world "
                          "polluted by a crashed or leaky earlier run)")
-    # These two are both a flag and a saved setting, so the saved value rides in as
-    # the argparse DEFAULT -- an explicit flag then still wins, for free.
-    ap.add_argument("--acquire", choices=("warm", "cold"),
-                    default=prefs.get("acquire", "cold"),
-                    help="warm = maintain from designation and deliver on command; "
-                         "cold = the designation is the command (the stale-box arm)")
+    # Both a flag and a saved setting, so the saved value rides in as the argparse
+    # DEFAULT -- an explicit flag then still wins, for free.
     ap.add_argument("--designate", choices=("vlm", "oracle"),
                     default=prefs.get("designate", "vlm"),
                     help="seed the carry from the deployed VLM, or from CARLA's projected "
                          "box (P6.2-DELIVERY's ORACLE designation scope)")
     ap.add_argument("--smoke", type=float, default=0.0, metavar="SECONDS",
                     help="unattended live run: designate the car nearest frame centre, "
-                         "deliver, AUTO-follow for SECONDS, dump an overlay PNG, exit")
+                         "AUTO-follow for SECONDS, dump an overlay PNG, exit")
     ap.add_argument("--selftest", action="store_true",
                     help="spawn, check they move, clear, exit")
     ap.add_argument("--no-orin-telemetry", action="store_true",
@@ -1157,7 +1134,7 @@ def main():
     ap.add_argument("--no-prewarm", action="store_true",
                     help="start with an empty Orin: load the VLM and the carry from the "
                          "DESIGNATE card's load row instead. The first designation then "
-                         "pays the boot, so delivery latency read off that one is a lie")
+                         "pays the boot, so grounding time read off that one is a lie")
     args = ap.parse_args()
     set_feed_hz(args.feed_hz)
 
@@ -1265,19 +1242,17 @@ def main():
     hint = tk.Label(rail, text="", bg=DARK, fg=WARN, anchor=tk.W, justify=tk.LEFT,
                     wraplength=RAIL_W - 20, font=("TkDefaultFont", 11, "bold"))
     hint.pack(side=tk.TOP, fill=tk.X, pady=(0, 8))
-    # All five cards up front, in the operator's order, so the rail reads 1-2-3-4-5
+    # All four cards up front, in the operator's order, so the rail reads 1-2-3-4
     # top to bottom no matter where in this file each stage's widgets get built. Same
     # for the rows inside them: a row created here is a row positioned here.
     stg = {n: card(rail, n, t) for n, t in ((1, "WORLD"), (2, "PILOT"),
-                                            (3, "DESIGNATE"), (4, "DELIVER"),
-                                            (5, "FOLLOW"))}
-    w1, w2, w3, w4, w5 = (stg[n]["body"] for n in range(1, 6))
+                                            (3, "DESIGNATE"), (4, "FOLLOW"))}
+    w1, w2, w3, w4 = (stg[n]["body"] for n in range(1, 5))
     w1_map, w1_spawn, w1_traffic, w1_wipe = (rrow(w1) for _ in range(4))
     w2_pilot, w2_speed = rrow(w2), rrow(w2)
     (w3_src, w3_click, w3_res, w3_trk, w3_load,
      w3_cap, w3_drop) = (rrow(w3) for _ in range(7))
-    w4_src, w4_go = rrow(w4), rrow(w4)
-    w5_auth = rrow(w5)
+    w4_auth = rrow(w4)
 
     # ---- instruments: ONE column that owns every number -------------------------
     # They were in four places at once (lamps, card headers, a bar across the bottom,
@@ -1302,11 +1277,10 @@ def main():
     status = tk.Label(instr, text="", anchor=tk.W, justify=tk.LEFT, bg=DARK, fg=MUTED,
                       wraplength=INSTR_W - 12, font=("TkFixedFont", 10))
     status.pack(side=tk.TOP, fill=tk.X, pady=(0, 6))
-    # per-stage numbers, numbered to match the rail on the left: same 1-5, so "what
+    # per-stage numbers, numbered to match the rail on the left: same 1-4, so "what
     # did stage 3 cost" is one horizontal glance from the control that runs stage 3
     inum = {}
-    for n, t in ((1, "WORLD"), (2, "PILOT"), (3, "DESIGNATE"), (4, "DELIVER"),
-                 (5, "FOLLOW")):
+    for n, t in ((1, "WORLD"), (2, "PILOT"), (3, "DESIGNATE"), (4, "FOLLOW")):
         inum[n] = tk.Label(instr, text=f"{n} {t}", anchor=tk.W, bg=DARK, fg=TEXT,
                            font=("TkFixedFont", 11))
         inum[n].pack(side=tk.TOP, fill=tk.X)
@@ -1744,10 +1718,10 @@ def main():
         """The on-Orin llama-server, booted once.
 
         Booting it costs ~10 s of ssh + model load, and charging that to the first
-        acquire is a lie in the wrong direction: it made a live COLD delivery read
+        grounding call is a lie in the wrong direction: it once made a live cold read
         18.8 s against the ~4.85 s the thesis measures, because the first click paid
         for the server. Prewarmed at startup and locked, so the number on screen is
-        acquire and nothing else."""
+        grounding and nothing else."""
         with backend["lock"]:
             if backend["be"] is None:
                 from grounding.eval.backends import JetsonBackend
@@ -1808,14 +1782,7 @@ def main():
              # 60 Hz. The carry bridge is NOT here: it outlives any single track, see
              # `bridge` / get_bridge below (P6.7).
              "label": None, "ground_ms": None,
-             "carry_ms": None, "carry_hz": None, "catchup_s": None,
-             # WARM/COLD delivery. `delivered` is the whole difference between the two
-             # arms: a maintained track exists and is being carried but is NOT handed
-             # to the operator or to control until the command lands. cmd_t is when the
-             # command landed; deliver_s is command -> first box in hand, which is the
-             # ~0 s vs ~4.8 s that P5.1/R-34/P6.2-DELIVERY are about. It is measured
-             # here, live, not read from a table.
-             "delivered": True, "cmd_t": None, "deliver_s": None}
+             "carry_ms": None, "carry_hz": None, "catchup_s": None}
     track_lock = threading.Lock()
 
     # --- the resident on-Orin carry bridge (P6.7) -------------------------------
@@ -1899,7 +1866,7 @@ def main():
 
         Runs off the UI thread at start-up, beside the llama-server prewarm and for the
         same reason: otherwise the first designation is charged for the boot, and the
-        delivery latency this panel exists to show stops being honest. The dummy frame
+        stage timings this panel exists to show stop being honest. The dummy frame
         is a 320x240 black image -- SAM2 does not care what it segments, only that the
         graph is built and the kernels are compiled.
         """
@@ -1946,17 +1913,6 @@ def main():
         """
         if track.get("stop") is not None:
             track["stop"].set()
-
-    def _mark_delivered():
-        """Stamp deliver_s the first time a box exists after the command lands.
-
-        Caller holds track_lock. This is the one number the WARM/COLD switch exists to
-        show: command -> box in the operator's hands. WARM has already been carrying,
-        so it is bounded by one carry step; COLD has to ground first, so it is the
-        ~4.8 s acquire. Measured from the click/keypress, not from any stage boundary.
-        """
-        if track["delivered"] and track["deliver_s"] is None and track["cmd_t"]:
-            track["deliver_s"] = time.time() - track["cmd_t"]
 
     def orin_carry(seed_n, seed, seed_box, caption, vlm_s, raw, carry_size,
                    seed_actor_id, stop, carry_crop=0):
@@ -2143,7 +2099,6 @@ def main():
                         track["stamp"] += 1
                         track["hits"] += on_target
                         track["steps"] += 1
-                        _mark_delivered()   # WARM: this is the box the command gets
                     recent.append(on_target)
                     area = (box[2] - box[0]) * (box[3] - box[1])
                     emit(ev="step", n=n, lag=track["lag"], box=box, ms=ms,
@@ -2228,7 +2183,6 @@ def main():
                 return
             track["box"] = seed_box        # stale, but shows immediately
             track["stamp"] += 1
-            _mark_delivered()   # COLD: the box the command gets, and it is already stale
         track["msg"] = f"grounded in {vlm_s:.1f}s, carrying on Orin..."
         orin_carry(seed_n, seed, seed_box, caption, vlm_s, raw,
                    ORIN_CARRY_SIZE, None, stop, carry_crop)
@@ -2291,15 +2245,14 @@ def main():
             # the VLM entirely. This is not a shortcut, it is the scope P6.2-DELIVERY's
             # claim was measured in -- q8_0 is non-discriminative at 45 m nadir (G6), so
             # holding designation constant is the only way to show the carry + control
-            # half at the altitude the flagship flew. Watch WARM at the same altitude to
-            # see why: the grounder answers with a sliver of median strip.
+            # half at the altitude the flagship flew. Switch to vlm at the same altitude
+            # to see why: the grounder answers with a sliver of median strip.
             seed_box = [int(x) for x in a]
             with track_lock:
                 if stop.is_set():
                     return
                 track["box"] = seed_box
                 track["stamp"] += 1
-                _mark_delivered()
             track["ground_ms"] = 0.0
             track["msg"] = f"ORACLE designation {caption!r}, carrying on Orin..."
             orin_carry(seed_n, seed, seed_box, caption, 0.0, None,
@@ -2379,7 +2332,6 @@ def main():
                 return
             track["box"] = seed_box
             track["stamp"] += 1
-            _mark_delivered()   # COLD: same, one point-crop instead of a whole frame
         track["msg"] = f"grounded {caption!r} {gms['ms']:.0f} ms, carrying on Orin..."
         orin_carry(seed_n, seed, seed_box, caption, vlm_s, None,
                    int(carry_size), actor_id, stop, carry_crop)
@@ -2454,15 +2406,12 @@ def main():
                                  what="drone: SITL boot + climb, ~40 s")
               ).pack(side=tk.LEFT, padx=(4, 0))
     def _arm_track():
-        """Clear the old track, reap its Orin bridge, and set the WARM/COLD stance.
+        """Clear the old track and reap its Orin bridge.
 
-        Caller must NOT hold track_lock. Returns the new stop event. The one thing the
-        acquire mode changes here is who owns the box that is about to be produced:
-        COLD means the operator has already asked (this designation IS the command, so
-        clock starts now and whatever comes back is delivered stale), WARM means the
-        system starts maintaining and nobody has asked yet.
+        Caller must NOT hold track_lock. Returns the new stop event. The designation IS
+        the command since the DELIVER stage came out (2026-08-03): whatever the carry
+        produces is the operator's box the moment it exists.
         """
-        cold = acquire.get() == "cold"
         with track_lock:
             _stop_current()              # one target at a time; reap its Orin bridge
             track["stop"] = threading.Event()
@@ -2472,29 +2421,8 @@ def main():
             track["gt_box"] = None
             track["label"] = None        # caption mode: overlay uses the entry text
             track["ground_ms"] = track["carry_ms"] = track["carry_hz"] = None
-            track["catchup_s"] = track["deliver_s"] = None
-            track["delivered"] = cold
-            track["cmd_t"] = time.time() if cold else None
+            track["catchup_s"] = None
             return track["stop"]
-
-    def do_deliver(_event=None):
-        """The operator's command: hand the maintained track over. WARM's other half.
-
-        On a maintained (undelivered) track this is instant by construction -- the box
-        already exists, and deliver_s lands within one carry step. With nothing
-        maintained there is nothing to deliver, which is the honest answer rather than
-        silently falling back to a cold ground.
-        """
-        with track_lock:
-            if track["stop"] is None or track["stop"].is_set():
-                track["msg"] = "nothing maintained -- designate a target first"
-                return
-            if track["delivered"]:
-                return                   # already the operator's; not a re-command
-            track["delivered"], track["cmd_t"] = True, time.time()
-            track["deliver_s"] = None
-            if track["box"] is not None:
-                _mark_delivered()        # already carrying: delivered on the spot
 
     def do_follow(_event=None):
         # oracle designation needs a designated actor to read a GT box off, and a typed
@@ -2516,7 +2444,6 @@ def main():
             track["hist"].clear()
             track["on_target"], track["drift"], track["label"] = False, None, None
             track["lost_s"], track["gt_box"] = None, None
-            track["delivered"], track["cmd_t"] = True, None
 
     def _start_follow(fn, *a):
         """Start a follow thread and keep the handle -- a map swap has to JOIN it."""
@@ -2539,7 +2466,7 @@ def main():
     # ordered by which one you should reach for: Shift-click (the EXP-3 point crop,
     # what works at 45 m nadir) first, caption (whole-frame ground) second.
     #
-    # DESIGNATE source, orthogonal to acquire. vlm = the deployed Qwen2-VL-2B Q8_0
+    # DESIGNATE source. vlm = the deployed Qwen2-VL-2B Q8_0
     # point-crop grounds the clicked car on the Orin. oracle = the seed box comes from
     # CARLA's projected bounding box. Not a cheat switch: P6.2-DELIVERY held designation
     # constant with ORACLE in BOTH arms because q8_0 is non-discriminative at 45 m nadir
@@ -2658,52 +2585,24 @@ def main():
     tk.Label(w3, text="Your click stands in for the idle-window discovery: ONE "
                       "candidate, not a shortlist. With N=1 maintain and select are "
                       "the same act -- select is a measured dead end (R-16/R-28), so "
-                      "what stage 4 times is delivery, not choosing.",
+                      "the click designates, it does not choose.",
              bg=DARK, fg=MUTED, anchor=tk.W, justify=tk.LEFT,
              wraplength=RAIL_W - 28, font=("TkDefaultFont", 10)).pack(side=tk.TOP,
                                                                     fill=tk.X)
 
-    # -- stage 4, DELIVER: who owns the box, and the press that hands it over -------
-    # ACQUIRE. warm = maintain from designation, deliver on command (the thesis
-    # position: maintain-and-deliver). cold = the designation IS the command, so the
-    # ~4.8 s ground happens under time pressure and the box lands stale. Same code
-    # path either way -- the only difference is who owns the box while it is produced,
-    # which is exactly the comparison and the reason both live in one binary.
-    tk.Label(w4_src, text="acquire", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(0, 6))
-    acquire = remember("acquire", tk.StringVar(value=args.acquire))
-    seg(w4_src, acquire, ("warm", "cold"))
-    deliver_btn = tk.Button(w4_go, text="deliver  (g)", command=do_deliver)
-    deliver_btn.pack(side=tk.LEFT)
-    # "why does g exist?" -- asked by the person who commissioned the panel, which is
-    # the whole experiment failing to explain itself. g IS the operator's command
-    # arriving mid-flight: the premise of Part V is that it arrives late, so the two
-    # acquire modes differ ONLY in what the system was allowed to do before it. Say
-    # that here, in the mode's own words, and re-say it when the mode changes.
-    why = tk.Label(w4, text="", bg=DARK, fg=MUTED, anchor=tk.W, justify=tk.LEFT,
-                   wraplength=RAIL_W - 28, font=("TkDefaultFont", 10))
-    why.pack(side=tk.TOP, fill=tk.X)
-    WHY = {"warm": "g = the operator's command. The box already exists (stage 3 has "
-                   "been carrying it unasked), so g just hands it over: one carry "
-                   "step, ~0 s. This is maintain-and-deliver.",
-           "cold": "g = the operator's command AND the start of grounding: nothing "
-                   "was carried, so the VLM runs now, under time pressure, and the "
-                   "box lands ~4.8 s stale on a moving target."}
-    acquire.trace_add("write", lambda *_: why.config(text=WHY[acquire.get()]))
-    why.config(text=WHY[acquire.get()])
-
-    # -- stage 5, FOLLOW authority --------------------------------------------------
+    # -- stage 4, FOLLOW authority --------------------------------------------------
     # manual = operator alone. assist = the model AIMS (gimbal or spectator rotation;
-    # never position). auto = the closed loop -- the delivered box drives the copter
+    # never position). auto = the closed loop -- the carried box drives the copter
     # through CascadePID -> LOCAL_NED velocity, which is P6.2's own control path, so it
     # needs a copter to fly. Operator input stays live in all three: a held key
     # outranks the model for as long as it is held.
     follow_mode = remember("follow_mode", tk.StringVar(value="manual"))
-    seg(w5_auth, follow_mode, FOLLOW_MODES)
-    tk.Label(w5, text="assist aims the camera. auto flies the pilot.",
+    seg(w4_auth, follow_mode, FOLLOW_MODES)
+    tk.Label(w4, text="assist aims the camera. auto flies the pilot.",
              bg=DARK, fg=MUTED, anchor=tk.W, font=("TkDefaultFont", 10)
              ).pack(side=tk.TOP, fill=tk.X)
 
-    # -- stage 5, the CONSUMER rule ------------------------------------------------
+    # -- stage 4, the CONSUMER rule ------------------------------------------------
     # The box in the operator's hand is always late: the panel's own `lag` counts how
     # many feed frames old it is. ZOH freezes it (what P6.2 flew, and the default here
     # so that path is unchanged); FOH translates it at the velocity of the last `k`
@@ -2712,17 +2611,17 @@ def main():
     # created, and this one has to land under FOLLOW's own explanation, not between
     # the buttons and it. The rail already overflows a 1440 px screen, so both the
     # row and its note stay one line each.
-    w5_hold = rrow(w5)
+    w4_hold = rrow(w4)
     hold_mode = tk.StringVar(value="zoh")
     hold_k = tk.IntVar(value=3)
-    seg(w5_hold, hold_mode, ("zoh", "foh"))
-    tk.Label(w5_hold, text="k", bg=DARK, fg=MUTED,
+    seg(w4_hold, hold_mode, ("zoh", "foh"))
+    tk.Label(w4_hold, text="k", bg=DARK, fg=MUTED,
              font=("TkDefaultFont", 10)).pack(side=tk.LEFT, padx=(8, 2))
-    tk.Scale(w5_hold, from_=2, to=5, resolution=1, orient=tk.HORIZONTAL,
+    tk.Scale(w4_hold, from_=2, to=5, resolution=1, orient=tk.HORIZONTAL,
              variable=hold_k, length=110, showvalue=1, sliderlength=16, width=10,
              bg=DARK, fg=TEXT, troughcolor=LINE, highlightthickness=0, bd=0
              ).pack(side=tk.LEFT)
-    hold_why = tk.Label(w5, text="", bg=DARK, fg=MUTED, anchor=tk.W, justify=tk.LEFT,
+    hold_why = tk.Label(w4, text="", bg=DARK, fg=MUTED, anchor=tk.W, justify=tk.LEFT,
                         wraplength=RAIL_W - 30, font=("TkDefaultFont", 10))
     hold_why.pack(side=tk.TOP, fill=tk.X)
 
@@ -2795,7 +2694,7 @@ def main():
     # got clipped off the bottom of a 1043 px window -- screenshot again) and not as a
     # sentence of prose in a control row, which is where they were.
     tk.Label(vhead, text="wasd/qe move   arrows look   space pause   t follow mode   "
-                         "g deliver   Shift-click designate",
+                         "Shift-click designate",
              bg=DARK, fg=MUTED, font=("TkFixedFont", 10)).pack(side=tk.RIGHT, padx=(0, 4))
     big = tk.Label(vid, bg=DARK)
     big.pack(side=tk.TOP, fill=tk.BOTH, expand=True, pady=(4, 0))
@@ -2848,7 +2747,7 @@ def main():
             lf = None if live["n"] == preview["ln"] else live["bgr"]
             if lf is not None:
                 lf, preview["ln"] = lf.copy(), live["n"]
-        box, locked, deliv = held_box(), track["on_target"], track["delivered"]
+        box, locked = held_box(), track["on_target"]
         label = track.get("label") or caption_entry.get()   # rich caption in click mode
         if lf is not None:
             # the box is up to one feed period stale here -- measured on the feed
@@ -2860,9 +2759,9 @@ def main():
             # is still maintained -- oracle designation and the oracle arm read it.
             # The thin grey raw box (FOH: where the measurement really was, before the
             # coast moved it) was drawn here and is gone for the same reason as the GT
-            # one (2026-08-03, author): one box on screen, the delivered one. The FOH
+            # one (2026-08-03, author): one box on screen, the operator's. The FOH
             # displacement is still readable as a number in the instruments column.
-            draw_overlay(lf, box, label, locked, scale=sc, delivered=deliv)
+            draw_overlay(lf, box, label, locked, scale=sc)
             _hold_why()      # the advice depends on the live lag, so retint it here
             preview["live"] = _photo(lf, big)
             big.config(image=preview["live"])
@@ -2884,35 +2783,29 @@ def main():
         carrying = track["stop"] is not None and not track["stop"].is_set()
         boxed = carrying and track["box"] is not None
         fm = pilot_follow_mode()
-        closed = boxed and track["delivered"] and fm in ("assist", "auto")
-        done = {1: bool(spawned), 2: armed, 3: boxed,
-                4: boxed and track["delivered"], 5: fm in ("assist", "auto")}
+        closed = boxed and fm in ("assist", "auto")
+        done = {1: bool(spawned), 2: armed, 3: boxed, 4: fm in ("assist", "auto")}
         # from after the LAST satisfied stage, not from stage 1: spectator is a legal
         # way to run the whole demo, so stage 2 is never "done" in it, and a hint that
         # counted from the first gap would still be asking for a copter while the
         # operator was already carrying a target
-        last = max((n for n in range(1, 6) if done[n]), default=0)
-        nxt = next((n for n in range(last + 1, 6) if not done[n]), 6)
-        for n in range(1, 6):
+        last = max((n for n in range(1, 5) if done[n]), default=0)
+        nxt = next((n for n in range(last + 1, 5) if not done[n]), 5)
+        for n in range(1, 5):
             pill(stg[n]["badge"], n,
                  "on" if done[n] else "warn" if n == nxt else "off")
         setw(hint, text="NEXT   " + (f"working -- {busy['what']}" if busy["on"] else
                                      "waiting for the first camera frame" if fps < 1
                                      else NEXT_TIP[nxt]))
-        # the deliver button is the one control the hint can point AT, so it lights
-        # with the badge rather than sitting identical to every other button
-        setw(deliver_btn, bg=WARN if nxt == 4 else DARK_HI,
-             fg=DARK if nxt == 4 else TEXT)
         # lamps: colour + one word, no numbers (they are all below, in this column)
         pill(lamps["CARLA"], "CARLA", "on" if fps >= 1 else "bad")
         hz_now, warm_be = track["carry_hz"], backend["be"] is not None
         pill(lamps["ORIN"], "ORIN", "on" if hz_now or warm_be else "off")
         pill(lamps["COPTER"], "COPTER", "on" if armed else "off")
         state = ("bad" if track["drift"] or track["lost_s"] else
-                 "live" if boxed and track["delivered"] else
-                 "maintaining" if boxed else "none")
+                 "live" if boxed else "none")
         pill(lamps["TRACK"], "TRACK", {"bad": "bad", "live": "on",
-                                       "maintaining": "warn", "none": "off"}[state])
+                                       "none": "off"}[state])
         pill(lamps["LOOP"], "LOOP", "on" if closed else "off")
         # --- the numbers, one line per stage, numbered to match the rail ------------
         cn, ce, _cd = pilot["vel"]
@@ -2925,20 +2818,14 @@ def main():
         setw(inum[3], text="3 DESIGNATE  " + ("oracle GT box" if designate.get() == "oracle"
                                               else _f("ground {:.0f} ms Orin",
                                                       track["ground_ms"])))
-        setw(inum[4], text="4 DELIVER    " + _f("{:.2f} s command to box",
-                                                track["deliver_s"])
-                           + ("" if track["delivered"] else "   (maintaining)"))
-        setw(inum[5], text=f"5 FOLLOW     {fm}"
+        setw(inum[4], text=f"4 FOLLOW     {fm}"
                            + (f"   {(cn ** 2 + ce ** 2) ** 0.5:.1f} m/s" if armed else ""))
         gstatus.config(text=f"{track['msg']}",
                        fg=ALERT if track["drift"] or track["lost_s"] else TEXT)
         # live per-stage timings, refreshed every tick straight off the track dict.
-        # deliver comes FIRST because it is the number the whole warm-start argument
-        # is about (command -> box in hand); the rest is where that number came from.
         gm, cm, chz = track["ground_ms"], track["carry_ms"], track["carry_hz"]
-        cu, dv = track["catchup_s"], track["deliver_s"]
+        cu = track["catchup_s"]
         gtimes.config(text="   |   ".join((
-            _f("deliver {:.2f} s", dv),
             _f("ground {:.0f} ms", gm),
             (f"carry {cm:.0f} ms ({chz:.1f} Hz) Orin" if cm is not None else "carry --"),
             _f("catch-up {:.1f} s", cu),
@@ -2949,7 +2836,6 @@ def main():
         # Who is flying, what has been asked for, and which box runs which stage.
         gmodes.config(text="   ".join((
             f"pilot {pilot['mode']}",
-            f"acquire {acquire.get()}" + ("" if track["delivered"] else " (maintaining)"),
             f"designate {designate.get()}",
             f"follow {fm}" + ("" if fm == follow_mode.get() else " [auto needs a link]"),
             f"|  ground {ground_res.get()} Orin",
@@ -3041,12 +2927,6 @@ def main():
             if k not in held:
                 follow_mode.set(FOLLOW_MODES[
                     (FOLLOW_MODES.index(follow_mode.get()) + 1) % len(FOLLOW_MODES)])
-                held.add(k)
-            return
-        # g = the operator's command. Same guard: one delivery per press.
-        if k == "g":
-            if k not in held:
-                do_deliver()
                 held.add(k)
             return
         # paused means paused: the spectator still accepts set_transform while the
@@ -3162,12 +3042,11 @@ def main():
     def model_box():
         """The box the MODEL is allowed to steer on, or None.
 
-        The WARM gate lives here and nowhere else: a maintained track is a real box
-        being really carried, but until the operator's command lands it is not the
-        operator's box, so no control law may read it. That is the difference between
-        "we were already tracking it" and "we flew at something nobody asked for".
+        The command gate that used to live here went with the DELIVER stage
+        (2026-08-03): designating IS the command now, so any carried box is the
+        operator's and a control law may read it.
         """
-        if paused["on"] or not track["delivered"]:
+        if paused["on"]:
             return None
         # ...and not before the carry has drained its backlog. Mid-catch-up the box is
         # a real box from an OLD frame, so steering on it flies at where the target was
@@ -3194,7 +3073,7 @@ def main():
         return fm
 
     def auto_velocity(box, yaw_deg, vmax):
-        """PID on the delivered box -> (vn, ve) in m/s at a view heading of `yaw_deg`.
+        """PID on the carried box -> (vn, ve) in m/s at a view heading of `yaw_deg`.
 
         The one AUTO steering law, flown by BOTH pilots: the drone hands it to the
         autopilot as a velocity setpoint, the god camera integrates it into its own
@@ -3526,7 +3405,7 @@ def main():
 
     if not args.selftest and not args.no_prewarm:
         # Prewarm the Orin llama-server off the UI thread. Not an optimisation: the
-        # first acquire otherwise charges the server boot to the delivery latency,
+        # first grounding call otherwise charges the server boot to the box latency,
         # which is the one number on this panel that has to be honest.
         threading.Thread(target=get_backend, daemon=True).start()
         # Same argument, and P6.7 is the measurement behind it: prewarm the SAM2 carry
@@ -3537,7 +3416,7 @@ def main():
                          daemon=True).start()
 
     if args.smoke and not args.selftest:
-        # Unattended end-to-end run: designate the car nearest frame centre, deliver it,
+        # Unattended end-to-end run: designate the car nearest frame centre,
         # hand the copter to AUTO, fly for N seconds, dump an overlay frame and exit.
         # It exists because synthetic clicks are banned in this repo (xdotool XTEST goes
         # to whatever window has focus and has typed into the user's terminal before),
@@ -3598,12 +3477,11 @@ def main():
                           flush=True)
                     do_click_follow(cx, cy, actor=v)
                     smoke["phase"], smoke["t"] = "maintain", time.time()
-            elif ph == "maintain":      # let the ground + catch-up finish, then command
+            elif ph == "maintain":      # let the ground + catch-up finish, then fly
                 if track["box"] is not None and track["catchup_s"] is not None:
-                    do_deliver()
                     follow_mode.set("auto")
-                    print(f"smoke: delivered in {track['deliver_s']:.3f} s, AUTO engaged",
-                          flush=True)
+                    print(f"smoke: box caught up in {track['catchup_s']:.3f} s, "
+                          "AUTO engaged", flush=True)
                     smoke["phase"], smoke["t"] = "fly", time.time()
                 elif dt > 60:
                     print(f"SMOKE FAIL: no carried box after {dt:.0f}s ({track['msg']})")
@@ -3616,8 +3494,7 @@ def main():
                 p = out_dir / "smoke.png"
                 if f is not None:
                     draw_overlay(f, track["box"], track.get("label") or "",
-                                 track["on_target"], scale=f.shape[1] / CAM_W,
-                                 delivered=track["delivered"])
+                                 track["on_target"], scale=f.shape[1] / CAM_W)
                     cv2.imwrite(str(p), f)
                 cn, ce, _ = pilot["vel"]
                 if pilot["mode"] == "drone":
@@ -3646,9 +3523,9 @@ def main():
         root.withdraw()  # runs the real widgets, shows no window
         root.after(100, lambda: selftest(root, client, spawned, bg,
                                          spawn_vehicles, spawn_walkers, clear,
-                                         {"arm": _arm_track, "deliver": do_deliver,
+                                         {"arm": _arm_track,
                                           "drop": do_drop, "track": track,
-                                          "acquire": acquire, "follow": follow_mode,
+                                          "follow": follow_mode,
                                           "eff_follow": pilot_follow_mode,
                                           "box": model_box, "press": on_press,
                                           "hold": hold_mode, "hold_k": hold_k, "live": live,
@@ -3716,39 +3593,30 @@ def _check_coast():
 
 
 def _check_modes(md):
-    """The WARM/COLD + follow-authority state machine, through the real widgets.
+    """The catch-up gate + follow-authority state machine, through the real widgets.
 
     No Jetson and no copter needed: _arm_track only sets the stance (the grounding
     thread is started by its callers, not by it), so this exercises exactly the
-    bookkeeping that decides whether a box is the operator's or the system's.
+    bookkeeping that decides whether a box may reach a control law.
     """
     _check_coast()
     track, follow = md["track"], md["follow"]
 
-    # WARM: designating starts maintaining. Nobody has asked, so nothing is delivered
-    # and no control law may see the box -- that is the whole warm-start premise.
     # The panel opens on the PUBLISHED path. Asserted because it did not: a Tk Scale
     # writes `from_` into its linked variable while it is built, which silently moved
     # the pair to foh/k=2 on a live launch.
     assert md["hold"].get() == "zoh" and md["hold_k"].get() == 3, \
         f'opened on {md["hold"].get()} k={md["hold_k"].get()}'
 
-    md["acquire"].set("warm")
     md["arm"]()
-    assert track["delivered"] is False and track["cmd_t"] is None
     follow.set("assist")
     track["box"] = [10, 10, 20, 20]      # pretend the carry published one
-    assert md["box"]() is None, "an undelivered box must not reach a control law"
-    md["deliver"]()
-    assert track["delivered"] is True and track["cmd_t"] is not None
-    assert track["deliver_s"] is not None and track["deliver_s"] < 0.5, \
-        f"a maintained track must deliver instantly, got {track['deliver_s']}"
-    # ...and STILL not, until the carry has drained its backlog. That second gate
-    # (catchup_s, added after this check was written) is why the assert below stubs
-    # it: a box that is delivered but mid-catch-up is a real box from an old frame.
+    # The one remaining gate: not until the carry has drained its backlog. A box
+    # mid-catch-up is a real box from an OLD frame, so steering on it flies at where
+    # the target was seconds ago.
     assert md["box"]() is None, "a mid-catch-up box must not reach a control law"
     track["catchup_s"] = 1.0
-    assert md["box"]() is not None, "a delivered box is what control steers on"
+    assert md["box"]() is not None, "a caught-up box is what control steers on"
 
     # the consumer rule sits between that box and the control law. ZOH is the
     # published path: it must hand over exactly what the carry published, untouched.
@@ -3764,12 +3632,10 @@ def _check_modes(md):
     assert md["box"]() == [10, 10, 20, 20], "zoh must be exactly the published box"
     track["hist"].clear()
 
-    # COLD: the designation IS the command, so the clock is already running and
-    # whatever comes back is the operator's (and stale) from the first frame.
-    md["acquire"].set("cold")
+    # re-arming resets the catch-up gate: a fresh designation is mid-catch-up again.
     md["arm"]()
-    assert track["delivered"] is True and track["cmd_t"] is not None
-    assert track["deliver_s"] is None, "cold has not delivered until a box exists"
+    assert track["catchup_s"] is None and md["box"]() is None, \
+        "a re-armed track must re-gate on catch-up"
 
     # AUTO is POSITION authority and both pilots can give it that -- the god camera
     # moves its own transform, the drone flies setpoints. Only the drone can fail to,
@@ -3809,7 +3675,7 @@ def _check_modes(md):
     md["designate"].set("vlm")
 
     md["drop"]()
-    assert track["box"] is None and track["delivered"] is True
+    assert track["box"] is None
     print("modes ok")
 
 

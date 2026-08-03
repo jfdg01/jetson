@@ -1,10 +1,15 @@
-"""Pure-function guards for the demo UI's pilot + delivery additions.
+"""Pure-function guards for the demo UI's pilot + overlay additions.
 
 Server-free by construction: everything here is a plain function in
 runners/carla_debug_ui.py, so `make test` runs it with no CARLA, no SITL and no
-Jetson. The stateful half (WARM/COLD delivery, follow-mode cycling, AUTO refusing
+Jetson. The stateful half (the catch-up gate, follow-mode cycling, AUTO refusing
 to run without a copter) is asserted through the real widgets in the UI's own
 `--selftest`, which needs a CARLA to build a client at all.
+
+The DELIVER stage came out of the panel on 2026-08-03, and with it the two checks
+that lived here: the `deliver` timing format and the amber maintained-vs-delivered
+overlay. Their replacements below cover the same two mechanisms (a missing stage
+must not print as 0.00; the overlay colour must track lock state).
 
 The sign asserts are the point. A flipped key->NED mapping does not crash, it flies
 the copter away from the target, and in a sim that reads as "the follow does not
@@ -73,9 +78,9 @@ def test_manual_velocity_is_relative_to_the_view():
 
 def test_missing_stage_reads_as_missing():
     """A stage that has not run must not print as 0.00 -- one of those is a bug."""
-    assert ui._f("deliver {:.2f} s", 0.04) == "deliver 0.04 s"
-    assert ui._f("deliver {:.2f} s", 0.0) == "deliver 0.00 s"
-    assert ui._f("deliver {:.2f} s", None) == "deliver --"
+    assert ui._f("catch-up {:.1f} s", 6.5) == "catch-up 6.5 s"
+    assert ui._f("catch-up {:.1f} s", 0.0) == "catch-up 0.0 s"
+    assert ui._f("catch-up {:.1f} s", None) == "catch-up --"
     assert ui._f("ground {:.0f} ms", None) == "ground --"
 
 
@@ -83,28 +88,21 @@ def _colours(img):
     return {tuple(int(c) for c in px) for px in img.reshape(-1, 3)} - {(0, 0, 0)}
 
 
-def test_maintained_box_is_drawn_differently_from_a_delivered_one():
-    """The WARM overlay distinction, checked in pixels rather than by reading code.
+def test_locked_and_adrift_boxes_are_drawn_differently():
+    """The one overlay distinction left, checked in pixels rather than by reading code.
 
-    A maintained box (nobody has asked for it yet) must not be paintable as the
-    green "this is your target" box -- that is the one thing an operator watching a
-    warm-start demo has to be able to tell apart.
+    Green = on target, red = adrift. It is the only thing on screen that says whether
+    the carry still has the car, so a colour that stopped tracking `locked` would be
+    invisible in review and load-bearing in the demo.
     """
     box = (20, 20, 60, 60)
-    delivered = ui.draw_overlay(np.zeros((100, 100, 3), np.uint8), box, "x", True)
-    maintained = ui.draw_overlay(np.zeros((100, 100, 3), np.uint8), box, "x", True,
-                                 delivered=False)
-    assert (0, 255, 0) in _colours(delivered), "a delivered on-target box is green"
-    assert (0, 255, 0) not in _colours(maintained), "maintained must not read as locked"
-    # visible means AMBER and at least 2 px thick: it was grey and 1 px once and the
-    # operator could not see it, which is the bug this assert exists to keep fixed
-    assert (63, 160, 224) in _colours(maintained), "maintained is the amber 'not yours'"
-    assert (maintained == np.array([63, 160, 224])).all(2).sum() > 40, "too faint"
-    # brackets, not a closed rectangle: the middle of each edge stays background
-    assert not _colours(maintained[40:41, 20:61]), "the box must not be closed"
-    # and a delivered box that has drifted is red, not green (unchanged behaviour)
+    locked = ui.draw_overlay(np.zeros((100, 100, 3), np.uint8), box, "x", True)
     adrift = ui.draw_overlay(np.zeros((100, 100, 3), np.uint8), box, "x", False)
-    assert (0, 0, 255) in _colours(adrift)
+    assert (0, 255, 0) in _colours(locked), "an on-target box is green"
+    assert (0, 255, 0) not in _colours(adrift), "an adrift box must not read as locked"
+    assert (0, 0, 255) in _colours(adrift), "an adrift box is red"
+    # at least 2 px thick: a 1 px box was invisible on the live feed once
+    assert (locked == np.array([0, 255, 0])).all(2).sum() > 40, "too faint"
 
 
 def test_no_box_draws_nothing():

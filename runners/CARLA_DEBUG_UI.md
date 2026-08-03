@@ -11,17 +11,25 @@ Qwen2-VL-2B Q8_0 grounding over `JetsonBackend` (ssh), SAM2 carry over the ssh-s
 bridge at `~/sam2-bench/carry_ssh_bridge.py`. No SAM2 on the 3090, ever: the 3090 runs
 only the simulator.
 
-## The four switches
+## The three switches
 
 Each one is a different demo, and they compose. Everything is live in every
 combination.
 
+> **ACQUIRE (`warm`|`cold`) and the DELIVER stage were removed 2026-08-03T18:05Z**, by
+> request: the demo cannot use them. Gone from the panel: the switch, the `deliver (g)`
+> button and the `g` key, the `4 DELIVER` instrument row, the `deliver` timing, the amber
+> "maintained but not yet yours" overlay, and the `acquire` pref. A designated track is
+> the operator's from its first box — designation is the command — so FOLLOW is now step
+> 4 and `model_box()` gates on catch-up alone. Nothing about warm-vs-cold is measurable
+> on this panel any more; the numbers that were taken with it stand where they were
+> taken (P5.1 / P6.2-DELIVERY, E18 / R-34, and the run tables below).
+
 | switch | values | what it changes |
 |---|---|---|
 | **PILOT** | `god` \| `drone` | `god` flies a camera on a stick — perception in isolation, any view you like, no flight dynamics. `drone` arms an ArduCopter SITL and slaves the camera to the pose the autopilot reports (P6.1), so the pixels are a **consequence** of the control output. **Same keys either way** (`wasd` parallel to the ground, `qe` up/down, arrows look): pressing one of the two swaps the physics under the operator's hand and nothing else. |
-| **ACQUIRE** | `warm` \| `cold` | `warm` maintains a track from the moment you designate and **delivers** it on command (P5.1 / P6.2-DELIVERY: maintain-and-deliver). `cold` does nothing until the command, then grounds under time pressure (E18 / R-34). The on-screen `deliver` timing is that comparison, measured live. |
 | **DESIGNATE** | `vlm` \| `oracle` | `vlm` runs the deployed grounder on a point crop around the click. `oracle` seeds the carry from the CARLA projected box and skips the VLM — which is the scope P6.2-DELIVERY's claim was measured in (G6: q8_0 is non-discriminative on a car at 45 m nadir). Switching between them separates "grounding failed" from "carry/control failed". |
-| **FOLLOW** | `manual` \| `assist` \| `auto` | `manual` = operator has sole authority. `assist` = the model aims (gimbal/look only, never position). `auto` = **closed loop**: the delivered box drives the pilot through `CascadePID`. It flies **either** pilot — `drone` takes the PID output as `SET_POSITION_TARGET_LOCAL_NED` (the path `run_p62_flight.py` measured, capped at `AUTO_MAX_V` = 8 m/s because that is a flight tuning, not a preference), `god` integrates the same (vn, ve) into the spectator transform, capped by the fly-speed slider instead — no lean, no drag, so this is the mode for a target the airframe cannot keep up with. Under `auto` the god camera eases to nadir and refuses arrow pitch (the PID's screen axes assume nadir); heading is still the operator's, the PID is rotated by it. `auto` only refuses when `PILOT=drone` is selected with no link, and says so. |
+| **FOLLOW** | `manual` \| `assist` \| `auto` | `manual` = operator has sole authority. `assist` = the model aims (gimbal/look only, never position). `auto` = **closed loop**: the carried box drives the pilot through `CascadePID`. It flies **either** pilot — `drone` takes the PID output as `SET_POSITION_TARGET_LOCAL_NED` (the path `run_p62_flight.py` measured, capped at `AUTO_MAX_V` = 8 m/s because that is a flight tuning, not a preference), `god` integrates the same (vn, ve) into the spectator transform, capped by the fly-speed slider instead — no lean, no drag, so this is the mode for a target the airframe cannot keep up with. Under `auto` the god camera eases to nadir and refuses arrow pitch (the PID's screen axes assume nadir); heading is still the operator's, the PID is rotated by it. `auto` only refuses when `PILOT=drone` is selected with no link, and says so. |
 
 ## Run it
 
@@ -29,7 +37,7 @@ combination.
 .venv-ft/bin/python runners/carla_debug_ui.py                       # god, starts CARLA if needed
 .venv-ft/bin/python runners/carla_debug_ui.py --pilot drone         # + SITL, arm, take off to --alt
 .venv-ft/bin/python runners/carla_debug_ui.py --clean-world         # destroy every leftover actor first
-.venv-ft/bin/python runners/carla_debug_ui.py --designate oracle --acquire cold
+.venv-ft/bin/python runners/carla_debug_ui.py --designate oracle
 .venv-ft/bin/python runners/carla_debug_ui.py --pilot drone --smoke 45 \
     --out runs/carla-ui-spd --clean-world --auto-spawn 40           # unattended, writes smoke.png
 ```
@@ -45,7 +53,7 @@ combination.
 
 Controls: click the view to take the stick — the green border is the only "am I flying?"
 signal. `wasd` move, `qe` up/down, arrows look (gimbal in drone mode), `space` pause,
-`t` cycles FOLLOW, `g` delivers, **Shift-click a car designates it**, `drop` stops. The
+`t` cycles FOLLOW, **Shift-click a car designates it**, `drop` stops. The
 key list is printed on the video header, where the keys are used.
 
 **`wasd` is relative to the VIEW, not to north** (drone mode, 2026-07-25T17:10Z). The
@@ -59,7 +67,8 @@ the assert in screen terms — push `w`, and the ground must slide *down* the fr
 runs it through the real `project()` + `ned_to_carla` at five yaws.
 
 `--smoke N` is the unattended path: it finds the car nearest frame centre, designates it,
-delivers, engages AUTO, flies for N seconds, then writes `smoke.png` and prints the
+waits for the carry to catch up, engages AUTO, flies for N seconds, then writes
+`smoke.png` and prints the
 verdict line and the mode echo. Synthetic key injection is banned in this repo (`xdotool keydown` is a
 global XTEST event and has typed into the user's terminal), so `--smoke` calls the same
 functions the widgets call instead of faking input.
@@ -82,11 +91,10 @@ is it ALIVE.** Three regions:
   not yet, red = failing. A lamp answers "is it alive"; the instruments column answers
   "how well". They carried their own numbers (rate, carry Hz, altitude, drift seconds)
   for one revision and that is what put the same fact in four places at once.
-- **A 340 px stage rail**, five numbered cards in operator order: **1 WORLD**,
-  **2 PILOT**, **3 DESIGNATE**, **4 DELIVER**, **5 FOLLOW**. Controls only — no numbers
-  at all. The numbered badge is green when the stage is satisfied, amber when it is the
-  next one to do, grey otherwise, and the `deliver (g)` button lights amber with badge 4
-  because it is the one control the `NEXT` line can point *at*.
+- **A 340 px stage rail**, four numbered cards in operator order: **1 WORLD**,
+  **2 PILOT**, **3 DESIGNATE**, **4 FOLLOW**. Controls only — no numbers at all. The
+  numbered badge is green when the stage is satisfied, amber when it is the next one to
+  do, grey otherwise.
 - **One amber `NEXT` line** above the cards — the only prose on the panel, and it names a
   single action ("step 3 -- Shift-click a car in the view, or type a caption and press
   follow"). It is computed from the **last satisfied** stage, not the first unsatisfied
@@ -110,7 +118,7 @@ Three rules the redesign follows, all of them costed rather than tasteful:
 - **Progressive disclosure by disabling and by ordering, never by hiding.** Hiding a
   widget costs a geometry pass per state change, and the tick that would pay for it is
   the one flying the camera.
-- **Segmented switches for modes, comboboxes only for values.** `acquire`, `designate`
+- **Segmented switches for modes, comboboxes only for values.** `pilot`, `designate`
   and `follow` are switches whose state an operator has to be able to *see*, not open;
   the map name and the two resolutions are value pickers and stay closed comboboxes. The
   Notebook is gone: both designation paths are one card, ordered by which one to reach
@@ -143,9 +151,8 @@ carry 9.4 Hz Orin, lag 0, lock 60/60 (207/210 all)          <- verdict, largest 
 1 WORLD      30 cars spawned   30 Hz render
 2 PILOT      copter  44.6 m AGL
 3 DESIGNATE  oracle GT box
-4 DELIVER    0.00 s command to box
-5 FOLLOW     auto  0.0 m/s
-deliver 0.00 s | ground 0 ms | carry 106 ms (9.4 Hz) Orin | catch-up 6.5 s | lag 0 f | feed 5 Hz | disp 25 Hz
+4 FOLLOW     auto  0.0 m/s
+ground 0 ms | carry 106 ms (9.4 Hz) Orin | catch-up 6.5 s | lag 0 f | feed 5 Hz | disp 25 Hz
 orin  9.31 W  tj 59 C  gpu 100%  ram 7.0/7.8 GB              <- what the Orin COSTS (P6.6)
 +4.12 W over idle  2.11 J/frame  (P6.6: idle 5.19, carry 10.84 W)
 armed mode 4  alt 44.6 m  gimbal -90/0
@@ -153,7 +160,7 @@ N  101.9  E  -25.7  D  -44.6
 cmd -0.0  0.0  0.0   got 0.1 m/s
 ```
 
-The five per-stage lines carry the **same numbers 1-5 as the rail cards** on the other
+The four per-stage lines carry the **same numbers 1-4 as the rail cards** on the other
 side of the picture, so "what did stage 3 cost" is one horizontal glance from the control
 that runs stage 3. That is why `card()` no longer has a `val` label.
 
@@ -167,8 +174,6 @@ with it: the `PLOT_HZ/PLOT_N/PLOT_H` constants, the `plot` label, the `hist`/`lo
 in `preview`, and `test_graph_draws_and_survives_holes`. Restore from git if the shape is
 ever wanted back on screen.
 
-- **`deliver`** — command to box in hand. First, because it is the number the whole
-  warm-start argument is about. WARM is ~0.00 s by construction; COLD is the grounding.
 - **`ground`** — the on-device VLM point-crop call only. `0 ms` under `designate oracle`
   because there is no call.
 - **`carry`** — ms per SAM2 step on the Orin, and the rate it implies.
@@ -537,9 +542,9 @@ which is the assert that fails if anyone reintroduces a per-tick law.
 
 ## Settings survive a restart
 
-`~/.config/carla-debug-ui.json`, written once on close, read once on startup. Twelve
+`~/.config/carla-debug-ui.json`, written once on close, read once on startup. Eleven
 switches are registered through `remember(name, var)`: `designate`, ground and carry
-resolution, carry-crop zoom, tracker, caption, acquire, authority (`follow_mode`), hold
+resolution, carry-crop zoom, tracker, caption, authority (`follow_mode`), hold
 mode and its k, fly speed, traffic speed. Everything
 else — the map, the fleet, anything that depends on a live server — is deliberately not
 remembered: restoring it would mean doing work at startup, not restoring a setting.
@@ -754,7 +759,7 @@ the argv rewrite headless.
 
 | what | where | needs |
 |---|---|---|
-| key→NED signs, **view-relative `wasd` through the real projection**, `_f` missing-vs-zero, maintained-vs-delivered overlay (amber, thick enough, brackets not a closed box) | `tests/test_pilot_modes.py` | nothing (carla egg importable) |
+| key→NED signs, **view-relative `wasd` through the real projection**, `_f` missing-vs-zero, locked-vs-adrift overlay colour (green vs red, thick enough to see) | `tests/test_pilot_modes.py` | nothing (carla egg importable) |
 | aim law: pan-not-snap, no overshoot, one correction per frozen box | `tests/test_center_delta.py` | nothing |
 | reload argv rewrite | `tests/test_reload_argv.py` | nothing |
 | prefs survive a restart, a corrupt/absent file, a stale value, an unwritable path | `tests/test_user_prefs.py` | nothing |
@@ -786,7 +791,7 @@ standard. Specific traps:
 - **Key handling.** Synthetic key injection is banned in this repo: `xdotool keydown` is
   a global XTEST event and goes to whatever window has focus — it once typed into the
   user's terminal. Verification needs a human at the keyboard. `--smoke` covers the
-  designate → deliver → AUTO path by calling the same functions the widgets call.
+  designate → catch-up → AUTO path by calling the same functions the widgets call.
 - **Resize by dragging the frame.** The WM ignores `xdotool windowsize`, so the debounced
   respawn is confirmed only via maximise/restore.
 - **Layout fit at any other window size.** No assert catches a rail that overflows
