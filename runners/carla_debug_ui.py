@@ -209,7 +209,28 @@ CARRY_TRT_PLANS = {}
 _CARRY_TRT_PLANS_DISABLED = {640: "enc640.plan"}
 
 
+# The other two trackers the capacity sweep probed, behind the same socket. Both vendor
+# their own modified `sam2` fork, which cannot coexist with the `sam2 1.1.0` in
+# ~/sam2-bench/.venv, so each gets the interpreter the sweep already built for it and a
+# second bridge (`device/arm_ssh_bridge.py`, deployed to ~/tracker-sweep/code). The sam2
+# entry deliberately stays on the ORIGINAL bridge: every measured Part VI number came
+# through it, and it is StreamCarry, not the sweep's `Sam2Arm` wrapper.
+#   dam4sam   distractor-resolving memory (Videnovic et al.), bf16
+#   samurai   Kalman-reweighted memory selection (Yang et al.), fp16 as published
+# Neither has been measured in closed loop -- the sweep ran replayed UAV123. Selecting one
+# here is a demo lever, not a result.
+ARM_BRIDGE = ("cd ~/tracker-sweep/code && ../.venv-{fam}/bin/python -u arm_ssh_bridge.py "
+              "--family {fam} --size {size}")
+TRACKERS = ("sam2", "dam4sam", "samurai")
+# Read by `_bridge_cmd`, written by the stage-3 selector. A dict and not a plain global
+# because `get_bridge` closes over it from a worker thread; a rebind would not be seen.
+TRACKER = {"name": "sam2"}
+
+
 def _bridge_cmd(size: int) -> str:
+    fam = TRACKER["name"]
+    if fam != "sam2":
+        return ARM_BRIDGE.format(fam=fam, size=int(size))
     plan = CARRY_TRT_PLANS.get(int(size))
     return CARRY_BRIDGE.format(size=int(size), trt=f" --trt-encoder {plan}" if plan else "")
 # 512 IS EXP-2's operating point, not a compromise below it: EXP-2's winning PT arm never
@@ -1103,7 +1124,7 @@ def main():
     w1, w2, w3, w4, w5 = (stg[n]["body"] for n in range(1, 6))
     w1_map, w1_spawn, w1_wipe = rrow(w1), rrow(w1), rrow(w1)
     w2_pilot, w2_move, w2_speed = rrow(w2), rrow(w2), rrow(w2)
-    w3_src, w3_click, w3_res, w3_cap, w3_drop = (rrow(w3) for _ in range(5))
+    w3_src, w3_click, w3_res, w3_trk, w3_cap, w3_drop = (rrow(w3) for _ in range(6))
     w4_src, w4_go = rrow(w4), rrow(w4)
     w5_auth = rrow(w5)
 
@@ -1618,9 +1639,10 @@ def main():
         panel's combobox costs exactly today's 6 s cold start, once.
         """
         size = int(size)
+        key = (TRACKER["name"], size)
         with bridge_io:
             p = bridge["proc"]
-            if p is not None and (p.poll() is not None or bridge["size"] != size):
+            if p is not None and (p.poll() is not None or bridge["size"] != key):
                 _kill_bridge()
                 p = None
             if p is None:
@@ -1629,7 +1651,7 @@ def main():
                 bridge["proc"] = p = subprocess.Popen(
                     ["ssh", "-T", "-q", "jetson", _bridge_cmd(size)],
                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=bridge["log"])
-                bridge["size"] = size
+                bridge["size"] = key   # (tracker, size): switching EITHER respawns
             return p
 
     def prewarm_bridge(size):
@@ -2302,6 +2324,7 @@ def main():
     ttk.Combobox(w3_res, textvariable=carry_size, width=5, state="readonly",
                  values=(640, 768, 896, 1024)).pack(side=tk.LEFT)
     tk.Label(w3_res, text="Orin", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(6, 0))
+    tracker_name = tk.StringVar(value="sam2")
     # EXP-6's escalation for a small/distant target, and the reason the carry dropdown
     # should stay at 640: a fixed CARRY_CROP_SIDE native window carried at 640 buys the
     # same accuracy as raising the dropdown to 1024 (d_IoU -0.002, d_PASS -1 of 38) at
@@ -2311,6 +2334,13 @@ def main():
     tk.Checkbutton(w3_res, text=f"crop {CARRY_CROP_SIDE}", variable=carry_crop_on,
                    bg=DARK, fg=MUTED, selectcolor=DARK, activebackground=DARK,
                    activeforeground=TEXT).pack(side=tk.LEFT, padx=(10, 0))
+    # Own row (`w3_trk`, created with the others so it sits under the resolutions): the
+    # res row is already full at RAIL_W. Writes the module-level TRACKER that
+    # `_bridge_cmd` reads; `get_bridge` keys its resident process on (tracker, size), so
+    # flipping this costs one cold start and nothing else.
+    tk.Label(w3_trk, text="tracker", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(0, 6))
+    seg(w3_trk, tracker_name, TRACKERS)
+    tracker_name.trace_add("write", lambda *_: TRACKER.__setitem__("name", tracker_name.get()))
     caption_entry = tk.Entry(w3_cap, width=20)
     caption_entry.insert(0, "the red car")
     caption_entry.pack(side=tk.LEFT)
@@ -3313,6 +3343,17 @@ def _check_coast():
     assert answer_gap([(0, None), (5, None), (10, None)]) == 5
     assert answer_gap([(0, None), (5, None), (10, None), (40, None)]) == 5
     assert coast_advice(answer_gap([(0, None), (2, None), (4, None)])) == 5
+    # The tracker selector rewrites the bridge COMMAND, so a wrong arm shows up as a
+    # working panel running the wrong model -- silent. Pin the three commands instead.
+    try:
+        assert "sam2-bench" in _bridge_cmd(640) and "--image-size 640" in _bridge_cmd(640)
+        for fam in ("dam4sam", "samurai"):
+            TRACKER["name"] = fam
+            c = _bridge_cmd(768)
+            assert f".venv-{fam}/bin/python" in c and f"--family {fam} --size 768" in c, c
+            assert "--trt-encoder" not in c   # the TRT plan is StreamCarry's, not theirs
+    finally:
+        TRACKER["name"] = "sam2"
     print("coast ok")
 
 
