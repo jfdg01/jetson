@@ -77,21 +77,31 @@ from runners.orin_telemetry import OrinTelemetry
 # different aspect. fov is HORIZONTAL in CARLA, so square keeps the 90 deg across
 # and widens the vertical from ~59 to 90 -- more ground under a nadir camera.
 CAM_W, CAM_H, CAM_FOV = 960, 960, 90
-# 5 Hz feed. The catch-up only converges if the tracker outruns the camera:
-# SAM2.1-hiera-tiny is 14.4 FPS @1024 on the 3090, so at 5 Hz a ~20-frame backlog
-# (one ~3.9 s VLM call) drains in ~2.1 s at stride 1. At 20 Hz it never converges.
-CAM_HZ = 5.0
-# One camera, two rates: the operator sees 30 Hz, the Jetson every 6th
-# frame. Two sensors would double the render cost to show the same pixels.
+# The Jetson gets EVERY rendered frame (`--feed-hz` to decimate). It used to get one
+# in six, and the reason no longer held:
+#   * "at 20 Hz the catch-up never converges" was true of stride-1 replay, where the
+#     backlog drains at (carry_hz - CAM_HZ). Since CATCHUP_JUMP the tracker jumps to
+#     the newest pending frame, so the feed rate does not enter convergence at all.
+#   * decimating does not save the Orin any work: the carry is 5.76-6.27 Hz measured
+#     (R-46, P6.6) and takes the newest frame whenever it is free. More frames on the
+#     host only means the one it takes is fresher -- 0-33 ms old instead of 0-200 ms.
+#   * at 5 Hz against a ~6 Hz carry the gap is ~1 feed frame per answer, which is BELOW
+#     everything the paced fps grid measured (2-20 f/answer). At 30 Hz it is ~5, which
+#     is the grid's own 30 fps row (foh k=3, 52% of the delay ceiling). The consumer
+#     rule now runs in the regime it was measured in.
+# Cost is host-side only: a 1920->960 INTER_AREA resize per frame on the sensor callback
+# instead of one in six, and a 120-frame ring that now holds 4 s instead of 24 s.
+CAM_HZ = 30.0
+# What the operator is rendered. Feed == live unless --feed-hz says otherwise.
 LIVE_HZ = 30.0
-FEED_EVERY = round(LIVE_HZ / CAM_HZ)
+FEED_EVERY = max(1, round(LIVE_HZ / CAM_HZ))
 # Same seed every run, so "the scene" means one scene across sessions. Only holds
 # on a world with no other traffic in it -- an occupied spawn point is rejected
 # server-side and silently drops that car, so re-spawn on top of an old fleet is
 # not the same fleet. Startup loads a fresh server, which is the case that counts.
 SPAWN_SEED = 1234
 AUTO_SPAWN = 50   # vehicles spawned once on startup; --auto-spawn 0 to skip
-# On-Orin SAM2 carry runs ~6-10 Hz (image_size 512-640, measured), the feed 5 Hz.
+# On-Orin SAM2 carry runs ~6-10 Hz (image_size 512-640, measured), well under the feed.
 # Replaying EVERY buffered frame drains at only (carry_hz - CAM_HZ) ~= a few frames/s,
 # so a ~4.5 s grounding backlog took seconds to clear and never felt live. Instead,
 # when behind, JUMP toward the newest pending frame: SAM2 re-anchors by APPEARANCE
@@ -100,7 +110,24 @@ AUTO_SPAWN = 50   # vehicles spawned once on startup; --auto-spawn 0 to skip
 # one step from skipping so far it loses a genuinely fast target. Steady-state this
 # self-regulates: when carry outpaces the feed there is <=1 pending and it takes it
 # (smooth); when it falls behind it jumps back to live. P5.1's idle_catchup, sharpened.
-CATCHUP_JUMP = 12
+# In SECONDS of feed, not frames: a fixed 12-frame cap was 2.4 s of skip at 5 Hz and
+# would be 0.4 s at 30, which turns a cold 4.85 s backlog into a slow crawl instead of
+# one jump. 2.4 s reproduces the old cap exactly at --feed-hz 5.
+CATCHUP_SEC = 2.4
+CATCHUP_JUMP = max(1, round(CATCHUP_SEC * CAM_HZ))
+
+
+def set_feed_hz(hz):
+    """Rebind the three feed-rate globals (`--feed-hz`).
+
+    A function and not three lines in main() because CAM_HZ is read by module-level
+    helpers -- the coast advice, the instruments strip -- that have no args in scope,
+    and because `global` after the argparse default would be a SyntaxError.
+    """
+    global CAM_HZ, FEED_EVERY, CATCHUP_JUMP
+    CAM_HZ = float(hz)
+    FEED_EVERY = max(1, round(LIVE_HZ / CAM_HZ))
+    CATCHUP_JUMP = max(1, round(CATCHUP_SEC * CAM_HZ))
 # What the OPERATOR is rendered, fixed: 1920x1920 (3.7 Mpx) every live frame. It no
 # longer tracks the window -- the display just downscales, which supersamples rather
 # than blurs, and no window drag respawns the sensor. The model's feed is unaffected:
@@ -176,8 +203,9 @@ CHASE_HIST = 5              # measurements median-filtered into one area reading
 CHASE_GAIN = 2.5            # halved with CHASE_SPEED: same approach shape against
                             # half the cruise limit, instead of saturating the cap
 CHASE_DEADBAND = 0.15
-# How long a latched speed survives without a new box. One 5 Hz feed period is
-# 0.2 s, so this tolerates a couple of dropped measurements and no more.
+# How long a latched speed survives without a new box. In ANSWERS, not feed frames:
+# the carry replies ~6 Hz whatever the feed does, so 0.6 s tolerates a couple of
+# dropped answers and no more.
 CHASE_STALE = 0.6
 REMOTE_DIR = "/home/jfdg/grounding"
 REMOTE_GGUF = f"{REMOTE_DIR}/phase3-terse100eos-1024-q8_0.gguf"
@@ -480,8 +508,8 @@ def project(world_loc, cam_tf, w=CAM_W, h=CAM_H, fov=CAM_FOV):
 
 # How long the box may sit on the wrong vehicle (or on no vehicle at all) before
 # the UI calls it drift. Long enough to ride out an occlusion or a bad frame or
-# two, short enough that the operator is not steering a lie: at 5 Hz that is ~25
-# consecutive bad measurements, which is not a glitch.
+# two, short enough that the operator is not steering a lie: at ~6 answers/s that is
+# ~30 consecutive bad measurements, which is not a glitch.
 DRIFT_S = 5.0
 
 
@@ -1019,11 +1047,15 @@ def main():
     ap.add_argument("--no-orin-telemetry", action="store_true",
                     help="do not poll the Orin's power rails. Passive (one cat/s over "
                          "one ssh), but a power campaign wants the device untouched")
+    ap.add_argument("--feed-hz", type=float, default=CAM_HZ, metavar="HZ",
+                    help="rate handed to the Jetson (default: every rendered frame). "
+                         "5 reproduces the decimated feed every Part V/VI number ran on")
     ap.add_argument("--no-prewarm", action="store_true",
                     help="start with an empty Orin: load the VLM and the carry from the "
                          "DESIGNATE card's load row instead. The first designation then "
                          "pays the boot, so delivery latency read off that one is a lie")
     args = ap.parse_args()
+    set_feed_hz(args.feed_hz)
 
     client, carla_proc = ensure_carla(args.host, args.port, args.carla)
     # ensure_carla returns None for a server it did not start, which after a hot
@@ -1385,8 +1417,7 @@ def main():
     # Pause = flip the server into synchronous mode and never tick it. Nothing
     # advances: traffic, physics and the camera all stop, so the last frame just
     # sits there. Resume puts it back to async, which is how the rig normally runs
-    # (the sim must free-run at its own pace -- that is the whole point of the
-    # separate 5 Hz feed).
+    # (the sim must free-run at its own pace).
     paused = {"on": False}
 
     def toggle_pause():
@@ -1542,7 +1573,7 @@ def main():
     # not the vehicle's: `global_percentage_speed_difference(p)` sets every autopilot
     # car to p% BELOW the road's speed limit, existing cars included, and it survives
     # into cars spawned later. Negative p drives ABOVE the limit, which is how you get a
-    # target that outruns a 5 Hz feed. Exposed as "% of the limit" because the API's
+    # target that outruns the carry. Exposed as "% of the limit" because the API's
     # sign is backwards from what an operator expects: 100 = at the limit, 200 = double.
     # 70 is CARLA's own default (30% below), so the panel opens on the traffic every
     # earlier run saw. There is a per-vehicle variant; global is what "the cars" means.
@@ -2650,11 +2681,18 @@ def main():
         PID both. Delivery, drift and lock bookkeeping keep reading the raw one: FOH
         creates and destroys no boxes, it only moves them, so it must not touch a
         single timing or a single lock count.
+
+        `now_n` is the FEED counter, because that is the clock `track["hist"]` is
+        stamped on. It used to be `live["n"]`, the render counter, and with the old 6x
+        decimation the two bases differed by 6x: `t = (now_n - n1) / (n1 - n0)` came out
+        in the hundreds and clamped to `tmax` on every single call, so FOH was not
+        extrapolating proportionally to staleness at all -- it was pinned at its 2-gap
+        cap forever. The selftest never caught it because it sets both from one base.
         """
         b = track["box"]
         if b is None or hold_mode.get() == "zoh":
             return b
-        return coast_box(track["hist"], live["n"], hold_k.get()) or b
+        return coast_box(track["hist"], latest["n"], hold_k.get()) or b
 
     def show_preview():
         with frame_lock:
@@ -2664,8 +2702,8 @@ def main():
         box, locked, deliv = held_box(), track["on_target"], track["delivered"]
         label = track.get("label") or caption_entry.get()   # rich caption in click mode
         if lf is not None:
-            # the box is up to one feed period stale here -- it was measured on
-            # the 5 Hz frame, drawn on the 60 Hz one. Same camera, so it lines up.
+            # the box is up to one feed period stale here -- measured on the feed
+            # frame, drawn on the live one. Same camera, so it lines up.
             sc = lf.shape[1] / CAM_W
             # The soft-blue CARLA GT rectangle used to be drawn here. Removed by request
             # (2026-08-03): on a demo it reads as a second tracker output, and next to a
@@ -2918,16 +2956,18 @@ def main():
     # The spectator is a pose, not a sensor -- it has no pixels to grab. Attaching
     # an RGB camera to it makes the flown view readable, and attach_to means the
     # pose follows for free, including when CarlaUE4's own viewport WASD moves it.
-    live = {"bgr": None, "n": 0}       # 60 Hz, what the operator flies
+    live = {"bgr": None, "n": 0}       # LIVE_HZ, what the operator flies
     # "bgr" = the CAM_W feed the carry eats; "full" = the SAME instant at native
     # sensor resolution, kept so a click can crop from the real pixels instead of
     # the downscaled copy. It is a reference to the frame already in live["bgr"],
     # not a copy -- no extra per-frame cost.
-    latest = {"bgr": None, "full": None, "n": 0}     # 5 Hz, what the Jetson is handed
+    latest = {"bgr": None, "full": None, "n": 0}   # CAM_HZ, what the Jetson is handed
     frame_lock = threading.Lock()
     # Backlog for the catch-up: the VLM grounds frame N but the world is at N+20 by
     # the time the box lands, so the tracker replays N..now instead of starting
-    # stale. 120 frames @5 Hz = 24 s of history, ~190 MB.
+    # stale. 120 frames = 4 s at the default 30 Hz feed (~340 MB) and 24 s at
+    # --feed-hz 5. Depth barely matters since the catch-up jumps to the NEWEST
+    # pending frame: what is consumed is the head, never the tail.
     backlog = collections.deque(maxlen=120)
 
     def on_image(img):
@@ -2936,8 +2976,8 @@ def main():
         with frame_lock:
             live["bgr"] = bgr
             live["n"] += 1
-            # the Jetson only gets every FEED_EVERY-th frame -- one camera, two
-            # rates -- and always at CAM_W x CAM_H, so VLM/tracker cost and the
+            # the Jetson gets every FEED_EVERY-th frame (1 = all of them, the
+            # default) and always at CAM_W x CAM_H, so VLM/tracker cost and the
             # pixel coords of every box stay put when the window is resized
             if live["n"] % FEED_EVERY == 0:
                 latest["full"] = bgr
@@ -3418,6 +3458,7 @@ def main():
                                           "eff_follow": pilot_follow_mode,
                                           "box": model_box, "press": on_press,
                                           "hold": hold_mode, "hold_k": hold_k, "live": live,
+                                          "feed": latest,
                                           "held": held, "designate": designate,
                                           "follow_caption": do_follow,
                                           "close": unpause_on_exit}))
@@ -3520,7 +3561,8 @@ def _check_modes(md):
     assert md["box"]() == [10, 10, 20, 20], "FOH with one answer cannot invent motion"
     # two answers a frame apart, moving right; the third feed frame is one gap on
     track["hist"].extend([(10, [10, 10, 20, 20]), (11, [12, 10, 22, 20])])
-    md["live"]["n"] = 12
+    md["feed"]["n"] = 12          # FEED counter: the clock hist is stamped on
+    md["live"]["n"] = 12 * 6      # render counter 6x ahead -- must not reach coast_box
     assert md["box"]() == [14, 10, 24, 20], md["box"]()
     md["hold"].set("zoh")
     assert md["box"]() == [10, 10, 20, 20], "zoh must be exactly the published box"
