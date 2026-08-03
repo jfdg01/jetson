@@ -1011,7 +1011,52 @@ def traffic_manager(client):
     return _TM[0]
 
 
+# Operator settings that survive a restart. One JSON blob of tk-variable values,
+# written on exit (including the 'r' hot reload), read at startup. Deliberately NOT
+# a schema: an unknown or stale key is dropped on load and a missing one keeps the
+# code's default, so adding or deleting a widget needs no migration. Nothing that
+# describes the WORLD lives here (map, spawned cars) -- only what the operator set.
+# ponytail: whole file rewritten on close, no partial writes; it is ~15 keys.
+PREFS_PATH = Path.home() / ".config" / "carla-debug-ui.json"
+
+
+def load_prefs():
+    """Last session's settings, or {} if there is no readable file."""
+    try:
+        return json.loads(PREFS_PATH.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def restore_pref(prefs, name, var):
+    """Set `var` from prefs[name], reverting if the saved value no longer fits.
+
+    Set-then-get, not a try around set(): tkinter's IntVar.set() accepts any string
+    and only raises on the read, so a stale "1024px" from an older build would sit
+    there looking fine until the first get() blew up in a callback.
+    """
+    if name in prefs:
+        was = var.get()
+        try:
+            var.set(prefs[name])
+            var.get()
+        except (tk.TclError, ValueError):
+            var.set(was)
+    return var
+
+
+def save_prefs(remembered):
+    """Write every registered variable's current value. Never raises."""
+    try:
+        PREFS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        PREFS_PATH.write_text(json.dumps(
+            {k: v.get() for k, v in remembered.items()}, indent=1) + "\n")
+    except OSError as e:
+        print(f"prefs not saved: {e}", flush=True)
+
+
 def main():
+    prefs = load_prefs()
     ap = argparse.ArgumentParser()
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=2000)
@@ -1033,10 +1078,14 @@ def main():
                     help="destroy every vehicle/walker/camera in the world at startup, "
                          "including actors this process did not spawn (recovers a world "
                          "polluted by a crashed or leaky earlier run)")
-    ap.add_argument("--acquire", choices=("warm", "cold"), default="cold",
+    # These two are both a flag and a saved setting, so the saved value rides in as
+    # the argparse DEFAULT -- an explicit flag then still wins, for free.
+    ap.add_argument("--acquire", choices=("warm", "cold"),
+                    default=prefs.get("acquire", "cold"),
                     help="warm = maintain from designation and deliver on command; "
                          "cold = the designation is the command (the stale-box arm)")
-    ap.add_argument("--designate", choices=("vlm", "oracle"), default="vlm",
+    ap.add_argument("--designate", choices=("vlm", "oracle"),
+                    default=prefs.get("designate", "vlm"),
                     help="seed the carry from the deployed VLM, or from CARLA's projected "
                          "box (P6.2-DELIVERY's ORACLE designation scope)")
     ap.add_argument("--smoke", type=float, default=0.0, metavar="SECONDS",
@@ -1071,6 +1120,16 @@ def main():
     root = tk.Tk()
     root.title("CARLA debug")
     apply_dark(root)
+
+    # Anything with .get()/.set() qualifies -- tk variables and tk.Scale both do -- so
+    # the registry needs no per-widget code. Call remember() AFTER the widget's own
+    # trace_add, so restoring a value fires the same side effects a click would.
+    remembered = {}
+
+    def remember(name, var):
+        remembered[name] = restore_pref(prefs, name, var)
+        return var
+
     # Start maximised so the sensor picks the full-screen resolution on the first
     # attach. mutter ignores -zoomed when it is set before the window is mapped,
     # so an explicit screen-sized geometry is the one that actually takes.
@@ -1585,12 +1644,14 @@ def main():
                              bg=DARK, fg=MUTED, highlightthickness=0,
                              label="traffic speed  % of limit", command=set_traffic)
     traffic_speed.set(70)
+    remember("traffic_speed", traffic_speed)
     traffic_speed.pack(side=tk.LEFT)
 
     speed = tk.Scale(w2_speed, from_=1, to=300, orient=tk.HORIZONTAL, length=RAIL_W - 40,
                      showvalue=True, sliderlength=16, width=11, bg=DARK, fg=MUTED,
                      highlightthickness=0, label="fly speed  m/s")
     speed.set(45)
+    remember("fly_speed", speed)
     speed.pack(side=tk.LEFT)
 
     # --- "follow that car": ground the frame the operator is looking at ---
@@ -2406,15 +2467,16 @@ def main():
     # between a switch an operator can see the state of and one they have to open.
     tk.Label(w3_src, text="source", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(0, 6))
     designate = tk.StringVar(value=args.designate)
+    remember("designate", designate)
     seg(w3_src, designate, ("vlm", "oracle"))
     tk.Label(w3_click, text="Shift-click a car in the flown view", bg=DARK, fg=TEXT
              ).pack(side=tk.LEFT)
     tk.Label(w3_res, text="ground", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(0, 2))
-    ground_res = tk.IntVar(value=ORIN_GROUND_RES)
+    ground_res = remember("ground_res", tk.IntVar(value=ORIN_GROUND_RES))
     ttk.Combobox(w3_res, textvariable=ground_res, width=5, state="readonly",
                  values=(256, 512, 768, 1024)).pack(side=tk.LEFT)
     tk.Label(w3_res, text="carry", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(10, 2))
-    carry_size = tk.IntVar(value=ORIN_CARRY_SIZE)
+    carry_size = remember("carry_size", tk.IntVar(value=ORIN_CARRY_SIZE))
     ttk.Combobox(w3_res, textvariable=carry_size, width=5, state="readonly",
                  values=(640, 768, 896, 1024)).pack(side=tk.LEFT)
     tk.Label(w3_res, text="Orin", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(6, 0))
@@ -2426,7 +2488,7 @@ def main():
     # different lever -- magnification, not pixels fed.
     # Default ON (2026-08-03, author): the panel's targets are distant cars, which is the
     # regime EXP-6 measured the crop for. Uncheck to carry the whole frame.
-    carry_crop_on = tk.BooleanVar(value=True)
+    carry_crop_on = remember("carry_crop", tk.BooleanVar(value=True))
     tk.Checkbutton(w3_res, text=f"zoom {CARRY_CROP_SIDE}px", variable=carry_crop_on,
                    bg=DARK, fg=MUTED, selectcolor=DARK, activebackground=DARK,
                    activeforeground=TEXT).pack(side=tk.LEFT, padx=(10, 0))
@@ -2437,6 +2499,7 @@ def main():
     tk.Label(w3_trk, text="tracker", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(0, 6))
     seg(w3_trk, tracker_name, TRACKERS)
     tracker_name.trace_add("write", lambda *_: TRACKER.__setitem__("name", tracker_name.get()))
+    remember("tracker", tracker_name)   # after the trace: restoring must write TRACKER
 
     # ---- Orin memory, on the operator's say-so ---------------------------------
     # 8 GB shared: llama-server ~4 GB and a resident SAM2 leave ~1.3 GB of headroom
@@ -2494,8 +2557,10 @@ def main():
         root.after(500, paint_load)
     paint_load()
 
-    caption_entry = tk.Entry(w3_cap, width=20)
-    caption_entry.insert(0, "the red car")
+    # textvariable, not .insert(): an Entry has no .set(), and the prefs registry wants
+    # one. caption_entry.get() reads the same string either way.
+    caption_var = remember("caption", tk.StringVar(value="the red car"))
+    caption_entry = tk.Entry(w3_cap, width=20, textvariable=caption_var)
     caption_entry.pack(side=tk.LEFT)
     caption_entry.bind("<Return>", do_follow)
     tk.Button(w3_cap, text="follow", command=do_follow).pack(side=tk.LEFT, padx=(4, 0))
@@ -2523,7 +2588,7 @@ def main():
     # path either way -- the only difference is who owns the box while it is produced,
     # which is exactly the comparison and the reason both live in one binary.
     tk.Label(w4_src, text="acquire", bg=DARK, fg=MUTED).pack(side=tk.LEFT, padx=(0, 6))
-    acquire = tk.StringVar(value=args.acquire)
+    acquire = remember("acquire", tk.StringVar(value=args.acquire))
     seg(w4_src, acquire, ("warm", "cold"))
     deliver_btn = tk.Button(w4_go, text="deliver  (g)", command=do_deliver)
     deliver_btn.pack(side=tk.LEFT)
@@ -2550,7 +2615,7 @@ def main():
     # through CascadePID -> LOCAL_NED velocity, which is P6.2's own control path, so it
     # needs a copter to fly. Operator input stays live in all three: a held key
     # outranks the model for as long as it is held.
-    follow_mode = tk.StringVar(value="manual")
+    follow_mode = remember("follow_mode", tk.StringVar(value="manual"))
     seg(w5_auth, follow_mode, FOLLOW_MODES)
     tk.Label(w5, text="assist aims the camera. auto flies the copter.",
              bg=DARK, fg=MUTED, anchor=tk.W, font=("TkDefaultFont", 10)
@@ -2610,6 +2675,8 @@ def main():
 
     hold_mode.trace_add("write", _hold_why)
     hold_k.trace_add("write", _hold_why)
+    remember("hold_mode", hold_mode)
+    remember("hold_k", hold_k)
     # AFTER the widgets: a Tk Scale writes its own value into the linked variable while
     # it is built, so an IntVar set beforehand comes back as `from_` (seen live: the
     # panel opened on foh/k=2 with these two lines missing).
@@ -3298,7 +3365,8 @@ def main():
         # the one place teardown runs: nothing is half-executed here, so the
         # widgets are safe to destroy and no later callback can touch them
         if closing["want"]:
-            unpause_on_exit()
+            save_prefs(remembered)   # here, not in request_close: widgets still alive and
+            unpause_on_exit()   # every exit path (window, q, r-reload) funnels through
             return
         # real render-tick rate (EMA). This is the display Hz the operator sees --
         # distinct from the CARLA server fps -- and it is what collapsed to ~5 when
