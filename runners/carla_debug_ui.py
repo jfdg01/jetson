@@ -2564,10 +2564,10 @@ def main():
             # the box is up to one feed period stale here -- it was measured on
             # the 5 Hz frame, drawn on the 60 Hz one. Same camera, so it lines up.
             sc = lf.shape[1] / CAM_W
-            gt = track["gt_box"]
-            if gt is not None:      # soft blue: the CARLA truth, for the eye only
-                cv2.rectangle(lf, (int(gt[0] * sc), int(gt[1] * sc)),
-                              (int(gt[2] * sc), int(gt[3] * sc)), (235, 180, 120), 1)
+            # The soft-blue CARLA GT rectangle used to be drawn here. Removed by request
+            # (2026-08-03): on a demo it reads as a second tracker output, and next to a
+            # drifting carry box it is the one thing an eye locks onto. `track["gt_box"]`
+            # is still maintained -- oracle designation and the oracle arm read it.
             if raw is not None and box is not raw:   # FOH: where the box really was,
                 cv2.rectangle(lf, (int(raw[0] * sc), int(raw[1] * sc)),   # thin, so the
                               (int(raw[2] * sc), int(raw[3] * sc)),       # coast is
