@@ -47,14 +47,16 @@ FIT = ["sam2_c512", "sam2_t512", "sam2_c640", "sam2_t640", C704, "sam2_t768"]
 LEAK = ["bike2", "car1_3", "uav1_2", "uav2", "uav7"]
 
 
-def rate(rows: dict, arm: str) -> float:
+def rate(rows: dict, arm: str, keep: set | None = None) -> float:
     """Median fraction of stream frames the arm answered on."""
-    v = [r["proc"] / r["frames"] for r in by_seq(rows, arm).values()]
+    d = by_seq(rows, arm)
+    v = [r["proc"] / r["frames"] for s, r in d.items() if keep is None or s in keep]
     return float(np.median(v)) if v else float("nan")
 
 
-def level(rows: dict, arm: str) -> tuple[float, int]:
-    v = [r["mean_iou"] for r in by_seq(rows, arm).values()]
+def level(rows: dict, arm: str, keep: set | None = None) -> tuple[float, int]:
+    d = by_seq(rows, arm)
+    v = [r["mean_iou"] for s, r in d.items() if keep is None or s in keep]
     return (float(np.median(v)), len(v)) if v else (float("nan"), 0)
 
 
@@ -156,25 +158,37 @@ def main() -> None:
               f"{'LEY FALSADA' if hard >= 2 else 'compatible con la ley (nulo acotado, no equivalencia)'}")
 
     # ---- D3: fit the curve on SAM2 alone, predict the new arms out of sample
+    #
+    # CORRECCION sobre lo pre-registrado. D3 se registro como medianas por brazo, y eso compara
+    # poblaciones distintas: los brazos `c*` se caen en los cinco clips 720x480 y puntuan sobre 25,
+    # los tres nuevos sobre 30. Corrido asi, los tres errores salian -0.068/-0.065/-0.062, mismo
+    # signo y misma magnitud -- la firma de un sesgo de construccion, no de tres fallos. Se reporta
+    # sobre el conjunto comun a todos los brazos implicados, y ademas tal como se registro, para
+    # que la correccion quede a la vista en vez de sustituida en silencio.
     print("\nD3  curva ajustada SOLO con los brazos SAM2, brazos nuevos predichos fuera de muestra")
     for f in paced:
-        x = [rate(zoh[f], a) for a in FIT]
-        y = [level(zoh[f], a)[0] for a in FIT]
-        ok = [i for i, (u, v) in enumerate(zip(x, y)) if np.isfinite(u) and np.isfinite(v) and u > 0]
-        if len(ok) < 3:
-            continue
-        b, c = np.polyfit(np.log([x[i] for i in ok]), [y[i] for i in ok], 1)
-        r = np.corrcoef(np.log([x[i] for i in ok]), [y[i] for i in ok])[0, 1]
-        print(f"  {f:g} fps   mIoU = {b:+.3f}*log(tasa) {c:+.3f}   R2={r * r:.3f}   "
-              f"n_ajuste={len(ok)} brazos SAM2")
-        print(f"    {'brazo':16s}{'tasa':>8s}{'predicha':>10s}{'medida':>9s}{'error':>9s}")
-        for a in NEW:
-            u, (v, n) = rate(zoh[f], a), level(zoh[f], a)
-            if not np.isfinite(u) or not n:
+        sets = [set(by_seq(zoh[f], a)) for a in FIT + NEW]
+        keep = set.intersection(*[s for s in sets if s])
+        print(f"  {f:g} fps   conjunto comun a los {len(FIT + NEW)} brazos: n={len(keep)}")
+        for tag, k in (("comun", keep), ("como se registro", None)):
+            x = [rate(zoh[f], a, k) for a in FIT]
+            y = [level(zoh[f], a, k)[0] for a in FIT]
+            ok = [i for i, (u, v) in enumerate(zip(x, y))
+                  if np.isfinite(u) and np.isfinite(v) and u > 0]
+            if len(ok) < 3:
                 continue
-            pred = b * np.log(u) + c
-            print(f"    {a:16s}{u:8.3f}{pred:10.3f}{v:9.3f}{v - pred:+9.3f}"
-                  f"{'   dentro' if abs(v - pred) <= 0.05 else '   FUERA de 0.05'}")
+            b, c = np.polyfit(np.log([x[i] for i in ok]), [y[i] for i in ok], 1)
+            r = np.corrcoef(np.log([x[i] for i in ok]), [y[i] for i in ok])[0, 1]
+            print(f"    [{tag}] mIoU = {b:+.3f}*log(tasa) {c:+.3f}   R2={r * r:.3f}   "
+                  f"n_ajuste={len(ok)} brazos SAM2")
+            print(f"    {'brazo':16s}{'tasa':>8s}{'n':>4s}{'predicha':>10s}{'medida':>9s}{'error':>9s}")
+            for a in NEW:
+                u, (v, n) = rate(zoh[f], a, k), level(zoh[f], a, k)
+                if not np.isfinite(u) or not n:
+                    continue
+                pred = b * np.log(u) + c
+                print(f"    {a:16s}{u:8.3f}{n:4d}{pred:10.3f}{v:9.3f}{v - pred:+9.3f}"
+                      f"{'   dentro' if abs(v - pred) <= 0.05 else '   FUERA de 0.05'}")
 
     # ---- D4: the note-27 debt, its own family, secondary
     print("\nD4  asym_lt - asym_b, familia Holm propia de 4, SECUNDARIA (no entra en la de arriba)")

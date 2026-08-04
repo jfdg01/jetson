@@ -1,0 +1,645 @@
+manifest written; NV Power Mode: 15W 0 | governor schedutil
+[1/4] dam4sam_t960 x bike1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  350/3085  12s  29.47 fps  eta 93s
+  750/3085  25s  29.45 fps  eta 79s
+  1550/3085  53s  29.40 fps  eta 52s
+{"arm": "dam4sam_t960", "seq": "bike1", "frames": 257, "w": 1280, "h": 720, "fps_stream": 30.0, "stream_frames": 3085, "init_ms": 8986.685825977474, "warmup_frames": 5, "ms_p50": 395.59802785515785, "ms_p95": 418.122919742018, "ms_p99": 420.72796262800694, "ms_max": 693.8793663866818, "fps": 2.5278184661884477, "decode_ms_p50": 7.634300505742431, "lost_frames": 0, "conf_frames": 256, "rss_peak_mb": 2601.21484375, "gpu_peak_mb": 737.36328125}
+  116.9s wall, temps NoneC
+[2/4] samurai_t640 x bike1 ...
+/home/jfdg/trackers/samurai/sam2/sam2/sam2_video_predictor.py:961: UserWarning: cannot import name '_C' from 'sam2' (/home/jfdg/trackers/samurai/sam2/sam2/__init__.py)
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+[93mSAMURAI mode: True[0m
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+  250/3085  9s  28.88 fps  eta 98s
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+  550/3085  19s  28.83 fps  eta 88s
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+  750/3085  26s  28.87 fps  eta 81s
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+  1050/3085  36s  28.83 fps  eta 71s
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+  1400/3085  49s  28.77 fps  eta 59s
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+  1650/3085  57s  28.72 fps  eta 50s
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+  1950/3085  68s  28.60 fps  eta 40s
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+  2150/3085  75s  28.58 fps  eta 33s
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+  2350/3085  82s  28.60 fps  eta 26s
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+  2550/3085  89s  28.63 fps  eta 19s
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]propagate in video:   0%|          | 0/1 [00:00<?, ?it/s]
+{"arm": "samurai_t640", "seq": "bike1", "frames": 543, "w": 1280, "h": 720, "fps_stream": 30.0, "stream_frames": 3085, "init_ms": 5404.779179953039, "warmup_frames": 5, "ms_p50": 189.246344845742, "ms_p95": 191.48342665284872, "ms_p99": 192.23523946478963, "ms_max": 312.7743019722402, "fps": 5.284117908935666, "decode_ms_p50": 7.711662910878658, "lost_frames": 0, "conf_frames": 542, "rss_peak_mb": 2095.1796875, "gpu_peak_mb": 531.82421875}
+  114.6s wall, temps NoneC
+[3/4] dam4sam_t640 x bike1 ...
+/home/jfdg/trackers/DAM4SAM/sam2/sam2_video_predictor.py:1059: UserWarning: /home/jfdg/trackers/DAM4SAM/sam2/_C.so: cannot open shared object file: No such file or directory
+
+Skipping the post-processing step due to the error above. You can still use SAM 2 and it's OK to ignore the error above, although some post-processing functionality may be limited (which doesn't affect the results in most cases; see https://github.com/facebookresearch/sam2/blob/main/INSTALL.md).
+  pred_masks_gpu = fill_holes_in_mask_scores(
+  450/3085  16s  28.99 fps  eta 91s
+  1450/3085  50s  28.92 fps  eta 57s
+  1600/3085  55s  28.92 fps  eta 51s
+  1750/3085  61s  28.87 fps  eta 46s
+  2150/3085  75s  28.77 fps  eta 32s
+  2200/3085  76s  28.78 fps  eta 31s
+  2250/3085  78s  28.79 fps  eta 29s
+  3050/3085  106s  28.84 fps  eta 1s
+{"arm": "dam4sam_t640", "seq": "bike1", "frames": 490, "w": 1280, "h": 720, "fps_stream": 30.0, "stream_frames": 3085, "init_ms": 7801.461656112224, "warmup_frames": 5, "ms_p50": 214.00624886155128, "ms_p95": 219.13047265261412, "ms_p99": 220.52510528359562, "ms_max": 470.74880823493004, "fps": 4.672760750303781, "decode_ms_p50": 7.656380999833345, "lost_frames": 0, "conf_frames": 489, "rss_peak_mb": 2295.19140625, "gpu_peak_mb": 522.87548828125}
+  117.2s wall, temps NoneC
+[4/4] asym_lt x bike1 ...
+==============> Switch To Deploy
+  50/3085  2s  26.58 fps  eta 114s
+  150/3085  6s  26.30 fps  eta 112s
+  200/3085  8s  26.16 fps  eta 110s
+  250/3085  10s  26.11 fps  eta 109s
+  300/3085  11s  26.16 fps  eta 106s
+  350/3085  13s  26.24 fps  eta 104s
+  400/3085  15s  26.29 fps  eta 102s
+  450/3085  17s  26.32 fps  eta 100s
+  500/3085  19s  26.33 fps  eta 98s
+  550/3085  21s  26.33 fps  eta 96s
+  600/3085  23s  26.30 fps  eta 94s
+  650/3085  25s  26.27 fps  eta 93s
+  700/3085  27s  26.25 fps  eta 91s
+  750/3085  29s  26.25 fps  eta 89s
+  800/3085  30s  26.27 fps  eta 87s
+  850/3085  32s  26.28 fps  eta 85s
+  900/3085  34s  26.28 fps  eta 83s
+  950/3085  36s  26.26 fps  eta 81s
+  1050/3085  40s  26.34 fps  eta 77s
+  1100/3085  42s  26.35 fps  eta 75s
+  1150/3085  44s  26.28 fps  eta 74s
+  1200/3085  46s  26.25 fps  eta 72s
+  1250/3085  48s  26.21 fps  eta 70s
+  1300/3085  50s  26.19 fps  eta 68s
+  1350/3085  52s  26.16 fps  eta 66s
+  1400/3085  54s  26.14 fps  eta 64s
+  1450/3085  56s  26.11 fps  eta 63s
+  1500/3085  58s  26.08 fps  eta 61s
+  1550/3085  59s  26.05 fps  eta 59s
+  1600/3085  61s  26.03 fps  eta 57s
+  1650/3085  63s  25.99 fps  eta 55s
+  1700/3085  65s  25.96 fps  eta 53s
+  1750/3085  68s  25.92 fps  eta 52s
+  1800/3085  70s  25.88 fps  eta 50s
+  1850/3085  72s  25.84 fps  eta 48s
+  1950/3085  76s  25.81 fps  eta 44s
+  2000/3085  78s  25.78 fps  eta 42s
+  2050/3085  80s  25.75 fps  eta 40s
+  2100/3085  82s  25.73 fps  eta 38s
+  2150/3085  84s  25.73 fps  eta 36s
+  2200/3085  85s  25.73 fps  eta 34s
+  2250/3085  87s  25.73 fps  eta 32s
+  2300/3085  89s  25.73 fps  eta 31s
+  2350/3085  91s  25.71 fps  eta 29s
+  2400/3085  93s  25.69 fps  eta 27s
+  2550/3085  99s  25.78 fps  eta 21s
+  2700/3085  104s  25.88 fps  eta 15s
+  2750/3085  106s  25.88 fps  eta 13s
+  2800/3085  108s  25.88 fps  eta 11s
+  2850/3085  110s  25.88 fps  eta 9s
+  2900/3085  112s  25.89 fps  eta 7s
+  2950/3085  114s  25.90 fps  eta 5s
+  3000/3085  116s  25.91 fps  eta 3s
+  3050/3085  118s  25.92 fps  eta 1s
+{"arm": "asym_lt", "seq": "bike1", "frames": 2802, "w": 1280, "h": 720, "fps_stream": 30.0, "stream_frames": 3085, "init_ms": 5118.267767131329, "warmup_frames": 5, "ms_p50": 31.47454420104623, "ms_p95": 36.45899333059788, "ms_p99": 181.54915524646646, "ms_max": 196.8779992312193, "fps": 31.77170711710448, "decode_ms_p50": 6.878792308270931, "lost_frames": 56, "conf_frames": 2801, "rss_peak_mb": 1038.8984375, "gpu_peak_mb": 51.56591796875}
+  126.0s wall, temps NoneC
+DONE
