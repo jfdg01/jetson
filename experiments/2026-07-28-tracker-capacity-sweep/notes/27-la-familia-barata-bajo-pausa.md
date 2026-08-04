@@ -244,9 +244,16 @@ supuso que no la había**, no que haya que mudarse a ella.
 
 - **`asym_lt` pausado.** El brazo con envoltorio de largo plazo es el candidato obvio dado el
   mecanismo de §6, y quedó fuera a propósito: un eje por tanda. Ahora tiene una hipótesis concreta
-  detrás en vez de ser una casilla más.
+  detrás en vez de ser una casilla más. **Cerrado por la nota 28 §5-§6:** pierde en las cuatro
+  celdas y el hueco se debe a que emite `None` donde `asym_b` emite caja.
 - **Redetección de ningún tipo.** §6 dice qué falta, no que se haya probado.
 - **DAM4SAM y SAMURAI pausados.** Siguen sin una sola corrida pausada, igual que `asym_b` hasta hoy.
+  **Cerrado por la nota 28 §3:** los dos caen sobre la curva de coste de SAM2.
+
+**Alcance corregido por la nota 28.** Esta nota deja abiertas dos lecturas de la ventaja de
+AsymTrack, ley de coste o ley de familia. La nota 28 mide brazos de otra familia **al coste de
+SAM2** y encuentra que caen sobre la curva: la lectura buena es la de coste, y la identidad del
+brazo es un residuo de ±0.04.
 - **Dónde está el codo de §7.** Las tasas dicen que cae entre 15 y 30 fps, pero no hay ninguna
   velocidad medida ahí en medio, así que "entre 15 y 30" es todo lo que sostienen los datos.
 - **Sin verificación visual de las celdas a 15, 30 y 60 fps.** Los dos clips mirados son de la pasada

@@ -1,7 +1,8 @@
 # Pre-registro: la curva pausada, ¿es ciega a la familia?
 
 Parte de [`../README.md`](../README.md). **Sellado: 2026-08-04T14:05Z** (hora local de Madrid).
-**Estado: PRE-REGISTRADO, sin correr.**
+**Estado: CORRIDO Y CERRADO** el 2026-08-04T17:05Z. Resultados en §7 y lectura en
+[`28-la-curva-pausada-es-ciega-a-la-familia.md`](28-la-curva-pausada-es-ciega-a-la-familia.md).
 
 ## 1. Por qué existe
 
@@ -183,31 +184,71 @@ sobre lo que pasa en pantalla. Sin imagen, no hay afirmación sobre píxeles.
 Aserción barata en el propio análisis: si un brazo nuevo devuelve la misma caja en todos los
 fotogramas procesados de un clip, el brazo no está siguiendo nada y la celda es INVÁLIDA, no un 0.
 
-## 7. Resultados (TBD)
+## 7. Resultados
 
 | par | fps | salida | n | d mediana | gana | p | p Holm | margen | dentro |
 | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
-| D1 `samurai_t640 − sam2_c704` | 30 | ZOH | | | | | | [−0.077, +0.023] | |
-| D1 | 30 | FOH | | | | | | [−0.077, +0.023] | |
-| D1 | 120 | ZOH | | | | | | [−0.077, +0.023] | |
-| D1 | 120 | FOH | | | | | | [−0.077, +0.023] | |
-| D2 `dam4sam_t640 − sam2_c704` | 30 | ZOH | | | | | | [−0.080, +0.020] | |
-| D2 | 30 | FOH | | | | | | [−0.080, +0.020] | |
-| D2 | 120 | ZOH | | | | | | [−0.080, +0.020] | |
-| D2 | 120 | FOH | | | | | | [−0.080, +0.020] | |
+| D1 `samurai_t640 − sam2_c704` | 30 | ZOH | 25 | −0.003 | 9/25 | 1.9e−01 | 5.7e−01 | [−0.077, +0.023] | sí |
+| D1 | 30 | FOH | 25 | −0.028 | 7/25 | 1.3e−03 | 5.2e−03 | [−0.077, +0.023] | sí |
+| D1 | 120 | ZOH | 25 | +0.000 | 13/25 | 9.2e−01 | 1.0e+00 | [−0.077, +0.023] | sí |
+| D1 | 120 | FOH | 25 | −0.004 | 10/25 | 6.0e−01 | 1.0e+00 | [−0.077, +0.023] | sí |
+| D2 `dam4sam_t640 − sam2_c704` | 30 | ZOH | 25 | −0.018 | 3/25 | 6.6e−06 | 4.6e−05 | [−0.080, +0.020] | sí |
+| D2 | 30 | FOH | 25 | −0.039 | 4/25 | 5.2e−06 | 4.2e−05 | [−0.080, +0.020] | sí |
+| D2 | 120 | ZOH | 25 | −0.006 | 5/25 | 3.3e−04 | 1.6e−03 | [−0.080, +0.020] | sí |
+| D2 | 120 | FOH | 25 | −0.030 | 6/25 | 2.5e−04 | 1.5e−03 | [−0.080, +0.020] | sí |
 
-| D3 fuera de muestra | tasa | predicha | medida | error |
-| --- | ---: | ---: | ---: | ---: |
-| `samurai_t640` | | | | |
-| `dam4sam_t640` | | | | |
-| `dam4sam_t960` | | | | |
+**8 de 8 celdas dentro del margen.** Ninguna celda fuera, así que ni D1 ni D2 falsan la ley de
+coste. Es un **nulo acotado**: la diferencia entre familias a igual coste cabe en el margen
+registrado, no está demostrado que sea cero.
+
+D3, **corregido sobre el conjunto común** — la versión pre-registrada comparaba medianas por brazo
+y eso cruza poblaciones (los `c*` se caen en los cinco clips 720x480 y puntúan sobre 25, los tres
+nuevos sobre 30). Se dan las dos:
+
+| D3 fuera de muestra | fps | tasa | n | predicha | medida | error | dentro de ±0.05 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| `samurai_t640` | 30 | 0.179 | 25 | 0.304 | 0.295 | −0.009 | sí |
+| `dam4sam_t640` | 30 | 0.164 | 25 | 0.286 | 0.270 | −0.016 | sí |
+| `dam4sam_t960` | 30 | 0.086 | 25 | 0.145 | 0.161 | +0.016 | sí |
+| `samurai_t640` | 120 | 0.046 | 24 | 0.124 | 0.111 | −0.012 | sí |
+| `dam4sam_t640` | 120 | 0.042 | 24 | 0.114 | 0.117 | +0.003 | sí |
+| `dam4sam_t960` | 120 | 0.023 | 24 | 0.055 | 0.073 | +0.017 | sí |
+
+Ajuste sobre los seis brazos SAM2: `mIoU = +0.217·log(tasa) + 0.679`, R²=0.998 a 30 fps;
+`+0.101·log(tasa) + 0.433`, R²=0.998 a 120. **Tal como se registró** (medianas por brazo, n
+distinto) los seis errores salían −0.068/−0.065/−0.062 y −0.051/−0.056/−0.057: mismo signo y misma
+magnitud en los seis, que es la firma de un sesgo de construcción y no de seis fallos.
 
 | D4 `asym_lt − asym_b` | fps | salida | n | d mediana | gana | p | p Holm |
 | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: |
-| | 30 | ZOH | | | | | |
-| | 30 | FOH | | | | | |
-| | 120 | ZOH | | | | | |
-| | 120 | FOH | | | | | |
+| | 30 | ZOH | 30 | −0.076 | 4/30 | 2.0e−06 | 6.0e−06 |
+| | 30 | FOH | 30 | −0.096 | 3/30 | 1.2e−06 | 4.8e−06 |
+| | 120 | ZOH | 30 | −0.003 | 8/30 | 3.6e−03 | 7.3e−03 |
+| | 120 | FOH | 30 | −0.001 | 8/30 | 2.4e−02 | 2.4e−02 |
 
-- **D0** (controles sin pausar): TBD.
-- **Coste:** TBD contra ~1.9 h estimadas.
+Sin los cinco clips que ajustaron sus umbrales: −0.075, −0.095, −0.005, −0.001 (n=25). La fuga no
+mueve nada.
+
+**La predicción de D4 sale falsada en la magnitud.** Se registró que `|d|` **crece** con fps;
+crece al revés: 0.076 a 30 fps y 0.003 a 120. El sentido sí se acertó — `asym_lt` pierde en las
+cuatro celdas — y la noticia registrada (que ganase bajo FOH a 120) no ocurre.
+
+- **D0** (controles sin pausar, pareado por clip, n=30): `samurai_t640 − sam2_c704` −0.026 (7/30,
+  p=0.013); `dam4sam_t640 − sam2_c704` −0.016 (8/30, p=0.005); `dam4sam_t960 − sam2_c704` +0.001
+  (15/30, p=0.49). `asym_lt − asym_b` sobre n=53: −0.019 (10/53, p<0.001). Con los 10 clips que
+  faltaban, la mIoU sin pausar de `samurai_t640` cae de **0.761 (n=20) a 0.699 (n=30)** — queda
+  medido que aquel 0.761 era el subconjunto fácil, que es justo lo que §1 supuso sin poder medirlo.
+- **Coste:** **2.41 h de dispositivo en 281 corridas**, contra ~1.9 h estimadas (+27%). Tres
+  corridas de las 284 no existen: `dam4sam_t960` sobre `uav2`, `uav5` y `wakeboard7` a 120 fps
+  aborta con `AssertionError: sequence too short to have any post-warmup frames` — el flujo dura
+  1.1-1.7 s y el brazo necesita 7.3 s de arranque más 0.4 s por inferencia. Límite del protocolo,
+  no fallo del brazo. La desviación del coste está casi entera en `xfam-30` (1.17 h contra 1.00
+  estimada): la p50 pausada de los brazos DAM4SAM sale por encima de la sin pausar (214.0 contra
+  204.0 ms en `t640`), o sea que la estimación por p50 sin pausar subestima.
+- **Números esperados contra medidos** (mIoU pausada a 30 fps, ZOH, sobre los 25 comunes):
+  `samurai_t640` ~0.28 estimada / 0.295 medida; `dam4sam_t640` ~0.28 / 0.270; `dam4sam_t960` ~0.17 /
+  0.161. Estimar con la curva en vez de restando medianas de brazo acertó dentro de 0.02 en los
+  tres. `asym_lt` ~0.64 estimada / 0.483 medida sobre 30 — ahí la estimación falla, y falla porque
+  supuso tasa ~0.97 cuando la medida es 0.825.
+- **Aserción barata:** ningún brazo devolvió la misma caja en todos los fotogramas procesados de
+  ningún clip, en ninguna de las dos velocidades.
