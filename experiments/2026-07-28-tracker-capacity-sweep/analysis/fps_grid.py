@@ -108,20 +108,27 @@ def main() -> None:
         line += f"{np.median([r['proc'] / r['frames'] for r in v]):14.3f}" if v else f"{'--':>14s}"
     print(f"{'tasa':16s}{line}")
 
+    # `d` alone is not comparable across fps: the whole mIoU scale collapses from 0.57 at 15 fps to
+    # 0.15 at 120, so a shrinking absolute gap can be a floor effect rather than a real turn. `d/niv`
+    # divides by the median level of `sam2_c512` at that fps. Ratio of two medians over the same
+    # clips, NOT a paired quantity -- same caveat as `% del techo` in nota 24; no interval on it.
+    def level(f: float) -> float:
+        return float(np.median([r["mean_iou"] for r in by_seq(zoh[f], "sam2_c512").values()]))
+
     # ---- H1: does the operating point drop in resolution as fps rises?
     print("\nH1  sam2_c512 menos sam2_c640, pareado por clip, ZOH")
-    print(f"{'fps':>6s}{'n':>5s}{'d mediana':>12s}{'gana':>9s}{'p':>10s}")
+    print(f"{'fps':>6s}{'n':>5s}{'d mediana':>12s}{'gana':>9s}{'p':>10s}{'d/niv':>9s}")
     for f in fps_list:
         n, m, w, p = paired(by_seq(zoh[f], "sam2_c512"), by_seq(zoh[f], "sam2_c640"))
-        print(f"{f:6g}{n:5d}{m:+12.3f}{w:5d}/{n:<3d}{p:10.1e}")
+        print(f"{f:6g}{n:5d}{m:+12.3f}{w:5d}/{n:<3d}{p:10.1e}{m / level(f):8.1%}")
     print("  positivo y creciente con fps = H1. Plano = el resultado de la nota 19 era un corte.")
 
     # ---- H2: does FOH's gain grow with fps?
     print("\nH2  FOH menos ZOH, pareado sobre TODOS los pares brazo-clip")
-    print(f"{'fps':>6s}{'n':>5s}{'d mediana':>12s}{'gana':>9s}{'p':>10s}")
+    print(f"{'fps':>6s}{'n':>5s}{'d mediana':>12s}{'gana':>9s}{'p':>10s}{'d/niv':>9s}")
     for f in fps_list:
         n, m, w, p = paired(foh[f], zoh[f])
-        print(f"{f:6g}{n:5d}{m:+12.3f}{w:5d}/{n:<3d}{p:10.1e}")
+        print(f"{f:6g}{n:5d}{m:+12.3f}{w:5d}/{n:<3d}{p:10.1e}{m / level(f):8.1%}")
     print("  creciente = FOH corrige retardo. Plano = no es retardo lo que corrige.")
 
     # ---- H3: does `lead`'s null break at high fps?

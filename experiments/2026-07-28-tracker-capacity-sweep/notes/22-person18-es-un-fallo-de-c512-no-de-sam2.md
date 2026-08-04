@@ -7,6 +7,11 @@ Parte de [`../README.md`](../README.md).
 **Datos:** `raw/paced-sweep-30/`, clips en `proof/foh__person18_c640.mp4` y `proof/foh__person20.mp4`
 **Código:** `b188ee6` (`analysis/render_foh.py`).
 
+> **Acotada por la nota 26** (2026-08-04): la explicación por contexto de recorte se confirma en
+> `person18` (0.239 -> 0.782 ensanchando solo la ventana, con la misma entrada de 512, con
+> verificación visual) y **no** se sostiene en agregado sobre los 25 clips. Ver
+> [`26-ventana-contra-entrada.md`](26-ventana-contra-entrada.md) §4 y §6.
+
 ## 1. Por qué existe
 
 La nota 21 cerró que `person18` es un fallo de **escala**: la caja cubre las piernas, alto pred/GT

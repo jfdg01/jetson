@@ -43,6 +43,23 @@ se ejecutan.
   degradación por desajuste entrenamiento/inferencia, no capacidad.
 - **Los brazos de frame completo (`family="sam2"`) aplastan** anisótropamente donde la literatura
   hace letterbox (SAM1, SAM2-image, YOLO). Confunde capacidad con distorsión de aspecto.
+- **Entradas por debajo de 512 y ventanas por encima de 640.** El 2x2 de la nota 26 dice que bajo
+  pausa manda la entrada (el eje es de coste) y que la ventana es gratis en agregado; los dos
+  extremos que eso sugiere están sin correr, y el 2x2 solo tiene dos puntos por eje.
+- **Por qué `w640_i512` se hunde sin pausar** (0.699 contra 0.785 de `c640`, misma ventana). La
+  entrada de 512 sobre recorte de 640 pierde algo que el diseño de la nota 26 no aísla.
+- **El 2x2 bajo FOH y a otras velocidades.** Todo el de la nota 26 es ZOH a 30 fps, y la nota 24
+  mostró que la ordenación pausada depende del consumidor.
+
+## Rig
+
+- **El manifiesto no sella hora.** `manifest.json` guarda térmicas y raíles pero ningún timestamp, y
+  los mtime de `raw/` los pisa cualquier `git checkout`. La cabecera "Cuándo" de las notas 25 y 26
+  está **acotada por commits, no medida**. Añadir `started_at` / `finished_at` en UTC al manifiesto;
+  es una línea y arregla la trazabilidad de toda tanda futura.
+- **Elegir la celda de cheque de reutilización por estabilidad, no por interés.** La de la nota 26
+  cayó sobre `person18`, el único clip bimodal del conjunto, y dio un falso fallo que costó 0.55 h de
+  controles.
 
 ## Datos
 

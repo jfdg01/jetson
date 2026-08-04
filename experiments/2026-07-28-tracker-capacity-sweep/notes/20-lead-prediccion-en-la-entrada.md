@@ -8,6 +8,10 @@ Parte de [`../README.md`](../README.md).
 **Código:** `42d64c5` (`Sam2CropArm(lead=True)` y el registro del brazo), `analysis/lead.py`,
 `analysis/test_lead.py`.
 
+> **Corregida por la nota 25** (2026-08-04): el nulo de `lead` aguanta de 15 a 120 fps mientras el
+> salto entre respuestas crece 2.2 -> 16.9 px, así que deja de ser un nulo acotado y pasa a ser un
+> resultado. Ver [`25-la-rejilla-de-fps.md`](25-la-rejilla-de-fps.md) §5.
+
 ## 1. Por qué existe la tanda
 
 La nota 19 cerró que bajo protocolo pausado (`--fps 30`, descarte a la última) la caja que llega al

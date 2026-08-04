@@ -128,7 +128,7 @@ El detalle completo de cada tanda vive en `notes/`. Aquí queda el resumen y el 
 de cada tabla, las verificaciones visuales y los tropiezos están en el fichero enlazado. Cada fichero
 abre con su fecha, su rango horario y su coste de dispositivo.
 
-**Coste total del barrido: ~53.9 h de dispositivo** sobre la Jetson a 15 W, 1333 corridas (la nota
+**Coste total del barrido: ~60.4 h de dispositivo** sobre la Jetson a 15 W, 1920 corridas (la nota
 18 no añade ninguna: es reanálisis). Es una
 estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON de `raw/`; no incluye el tiempo muerto
 entre etapas ni los renders de overlay, así que el reloj de pared es mayor.
@@ -365,3 +365,34 @@ es que el movimiento no es predecible a 5 fotogramas, no el orden del estimador.
 con consecuencias: `c640 − c512` vale −0.043 bajo ZOH, −0.018 bajo FOH y **+0.037 bajo el techo**, o
 sea que el punto de operación pausado es propiedad de la pareja seguidor+consumidor, no del
 seguidor. El cambio de signo es débil (mediana +0.003, p=4.5e−02) y no despliega nada.
+
+### 25. La rejilla de fps — [`notes/25-la-rejilla-de-fps.md`](notes/25-la-rejilla-de-fps.md) · 3.30 h
+
+Las notas 2 y 19 tenían los dos extremos (sin pausar y una sola velocidad pausada) y ningún eje entre
+ellos. Siete brazos a 15, 30, 60 y 120 fps, n=25: **la ordenación de brazos es idéntica en las cuatro
+columnas** (`c512_lead` ~ `c512` > `c640` > `c704` > `t640` > `t768`) mientras la tasa de respuesta
+cae 0.663 -> 0.084. El punto de operación pausado no se mueve entre 15 y 120 fps. H1 (`c512 − c640`)
+sale significativa en las cuatro velocidades (+0.054 / +0.060 / +0.071 / +0.035, p <= 1.3e−03), o sea
+que la nota 19 **no** era un corte de ruido; normalizada por el nivel crece hasta 60 fps y se satura,
+y a 15 fps se estrecha pero no invierte — el cruce hacia `c640` está por debajo de 15 fps. H2 (FOH
+sobre ZOH) crece con fps como se predijo pero **no tiende a cero a 15 fps** (+0.047, 57/75,
+p=1.2e−08): la parte pre-registrada que falla. Y H3 cierra la nota 20: `lead` sigue nulo de 15 a 120
+fps mientras el salto entre respuestas crece 2.2 -> 16.9 px, así que **su nulo acotado pasa a ser un
+resultado**. Sin verificación visual de esta tanda.
+
+### 26. Ventana contra entrada — [`notes/26-ventana-contra-entrada.md`](notes/26-ventana-contra-entrada.md) · 3.17 h
+
+Toda la campaña comparaba `c512` contra `c640` moviendo dos cosas a la vez. El 2x2 las desata
+(`sam2_w640_i512`, `sam2_w512_i640`) y el resultado pausado es claro: **el eje `c512`-`c640` es un
+eje de coste, no de contexto**. Mover solo los píxeles reproduce −0.059 del hueco de −0.068 (Holm
+1.5e−03); mover solo la ventana deja −0.016 sin significación, y W3 nulo dice que suman. Sin pausar
+el plano es plano (25 puntos entre la mejor celda y la peor). **W4 es falsa como se escribió**:
+`w640_i512` gana a `c640` pausado (+0.049, 23/25) pero **pierde** sin pausar (−0.024, Holm 4.6e−02)
+y nunca bate a `c512`; gana porque `c640` es caro, no porque él sea bueno. El punto de operación no
+se mueve. La celda de cheque de reutilización de controles **falló**, se recorrieron los dos
+controles pausados enteros y los cuatro contrastes coinciden — el fallo era la celda (cayó sobre
+`person18`, bimodal), no la reutilización: dos sesiones dan rho 0.995/0.999 y \|d\| mediana 0.002.
+**Verificación visual hecha** sobre `person18` f697: la ventana de 512, centrada en una caja ya
+desviada, se lleva la cabeza fuera de su propio campo de visión (IoU 0.37, máscara solo en las
+piernas) mientras `w640_i512` con la **misma entrada de 512** cubre la persona entera (IoU 0.91) —
+confirma la hipótesis de contexto de la nota 22 en ese clip, y solo en ese clip.
