@@ -128,7 +128,7 @@ El detalle completo de cada tanda vive en `notes/`. Aquí queda el resumen y el 
 de cada tabla, las verificaciones visuales y los tropiezos están en el fichero enlazado. Cada fichero
 abre con su fecha, su rango horario y su coste de dispositivo.
 
-**Coste total del barrido: ~61.3 h de dispositivo** sobre la Jetson a 15 W, 2041 corridas (la nota
+**Coste total del barrido: ~63.7 h de dispositivo** sobre la Jetson a 15 W, 2322 corridas (la nota
 18 no añade ninguna: es reanálisis). Es una
 estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON de `raw/`; no incluye el tiempo muerto
 entre etapas ni los renders de overlay, así que el reloj de pared es mayor.
@@ -423,3 +423,26 @@ control. **Verificación visual hecha** sobre `truck3` f360 a 120 fps: `sam2_c51
 (ZOH 0.00, FOH 0.79, la caja azul alcanza al camión) y `asym_b` es pérdida de identidad (ZOH 0.00,
 FOH 0.00, las dos cajas aparcadas en otro vehículo) — por eso FOH le come la mitad de la ventaja al
 brazo barato: no hay velocidad que extrapolar cuando lo que se pierde es el objeto.
+
+### 28. La curva pausada es ciega a la familia — [`notes/28-la-curva-pausada-es-ciega-a-la-familia.md`](notes/28-la-curva-pausada-es-ciega-a-la-familia.md) · 2.41 h
+
+La nota 27 deja dos lecturas de la ventaja de AsymTrack —ley de coste o ley de familia— y solo se
+separan con brazos de otra familia **al coste de SAM2**, no por debajo. SAMURAI y DAM4SAM sobre
+`tiny` lo son. Pareados contra `sam2_c704` a 30 y 120 fps, ZOH y FOH: **8 de 8 celdas dentro del
+margen registrado**, |d| máxima 0.039 contra los 0.168 que costaba cambiar de coste. Y la prueba
+dura, D3: la curva `mIoU = a·log(tasa)+b` ajustada **solo con los seis brazos SAM2** predice los
+tres brazos nuevos fuera de muestra con errores de −0.009 a +0.017, seis de seis dentro del ±0.05.
+**Corrección explícita:** D3 se registró como medianas por brazo y así cruza poblaciones —los `c*`
+puntúan sobre 25 clips, los nuevos sobre 30—; corrido tal cual daba −0.068/−0.065/−0.062, mismo
+signo y magnitud, la firma de un sesgo de construcción. Se reportan las dos versiones. **D4
+secundaria, `asym_lt` pausado:** pierde en las cuatro celdas (−0.076 / −0.096 / −0.003 / −0.001) y
+la predicción registrada falla en la magnitud —se dijo que |d| crecería con fps y encoge 25x—; el
+hueco entero es `asym_lt` emitiendo `None` (puntúa 0) donde `asym_b` emite una caja posiblemente
+mala, y a más pausa menos ocasiones de declararse perdido. **Dos contras y un hallazgo lateral:**
+el ajuste son 6 puntos y 2 parámetros, lo que pesa es la predicción fuera de muestra; los brazos
+nuevos ya perdían sin pausar (−0.026 y −0.016), y con los 10 clips que faltaban la mIoU sin pausar
+de `samurai_t640` cae de **0.761 (n=20) a 0.699 (n=30)** — aquel número era el subconjunto fácil.
+`asym_lt` tiene **dos regímenes de coste**: 29-37 ms en 29 clips y 178.9 ms con 429/553 fotogramas
+perdidos en `bike2`, o sea que un brazo con re-detección rompe el supuesto de coste constante sobre
+el que se apoya toda la ley. **Sin verificación visual de esta tanda** — el pre-registro la exigía
+solo si D1 o D2 salían falsadas, y no salieron; sí corrió la aserción de caja congelada, limpia.

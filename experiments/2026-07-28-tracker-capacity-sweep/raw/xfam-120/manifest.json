@@ -1,0 +1,210 @@
+{
+ "utc": "2026-08-04T14:20:37Z",
+ "arms": [
+  "samurai_t640",
+  "dam4sam_t640",
+  "dam4sam_t960",
+  "asym_lt"
+ ],
+ "seqs": [
+  "bike1",
+  "bike2",
+  "bird1_1",
+  "bird1_3",
+  "boat3",
+  "boat6",
+  "building5",
+  "car12",
+  "car1_3",
+  "car16_1",
+  "car8_2",
+  "car9",
+  "group1_2",
+  "group2_3",
+  "person18",
+  "person19_3",
+  "person20",
+  "person21",
+  "person4_1",
+  "truck2",
+  "truck3",
+  "uav1_2",
+  "uav2",
+  "uav3",
+  "uav5",
+  "uav7",
+  "wakeboard1",
+  "wakeboard5",
+  "wakeboard7",
+  "wakeboard8"
+ ],
+ "seed": 0,
+ "fps_stream": 120.0,
+ "nvpmodel": "NV Power Mode: 15W\n0",
+ "governor": "schedutil",
+ "nproc": "6",
+ "l4t": "# R36 (release), REVISION: 5.0, GCID: 43688277, BOARD: generic, EABI: aarch64, DATE: Fri Jan 16 03:50:45 UTC 2026\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia",
+ "meminfo": {
+  "MemTotal": "        7789948 kB",
+  "MemAvailable": "    5979716 kB",
+  "SwapTotal": "       3894960 kB",
+  "SwapFree": "        3445988 kB"
+ },
+ "thermals_start": {
+  "cpu-thermal": 59.562,
+  "gpu-thermal": 59.093,
+  "soc0-thermal": 56.093,
+  "soc1-thermal": 57.968,
+  "soc2-thermal": 57.875,
+  "tj-thermal": 59.562
+ },
+ "rails_start": {
+  "VDD_IN": 6.378176,
+  "VDD_CPU_GPU_CV": 1.77984,
+  "VDD_SOC": 1.463424
+ },
+ "code_sha256": "b75b6f842105abfb7d9983734f0bd78ae72a6fd5ed6c97e26c02c6f7f4e748eb",
+ "freeze": {
+  "/home/jfdg/tracker-sweep/.venv-asym/bin/python": "anyio==4.14.2\nbeautifulsoup4==4.15.0\ncertifi==2026.7.22\ncffi==2.1.0\ncharset-normalizer==3.4.9\nclick==8.4.2\ncolorama==0.4.6\ncython==3.2.9\neasydict==1.13\nexceptiongroup==1.3.1\nfilelock==3.32.0\nfsspec==2026.7.0\ngdown==6.1.0\nh11==0.16.0\nhf-xet==1.5.2\nhttpcore==1.0.9\nhttpx==0.28.1\nhuggingface-hub==1.25.1\nidna==3.18\njinja2==3.1.6\njpeg4py==0.1.4\nlmdb==2.3.0\nmarkupsafe==3.0.3\nmpmath==1.3.0\nnetworkx==3.4.2\nnumpy==1.26.4\nopencv-python-headless==5.0.0.93\npackaging==26.2\npandas==2.3.3\npillow==12.3.0\nprotobuf==7.35.1\npycocotools==2.0.11\npycparser==3.0\npysocks==1.7.1\npython-dateutil==2.9.0.post0\npytz==2026.3.post1\npyyaml==6.0.3\nrequests==2.34.2\nsafetensors==0.8.0\nscipy==1.15.3\nsix==1.17.0\nsoupsieve==2.9.1\nsympy==1.14.0\ntensorboardx==2.6.5\nthop==0.1.1.post2209072238\ntimm==0.9.2\ntorch==2.8.0\ntorchvision==0.23.0\ntqdm==4.70.0\ntyping-extensions==4.16.0\ntzdata==2026.3\nurllib3==2.7.0\nyacs==0.1.8",
+  "/home/jfdg/tracker-sweep/.venv-dam4sam/bin/python": "antlr4-python3-runtime==4.9.3\nattributee==0.1.9\nattrs==26.1.0\nbidict==0.23.1\ncachetools==7.1.6\ncertifi==2026.7.22\ncharset-normalizer==3.4.9\ncolorama==0.4.6\ncontourpy==1.3.2\ncycler==0.12.1\ndominate==2.9.1\nfilelock==3.32.2\nfonttools==4.63.0\nfsspec==2026.7.0\nhydra-core==1.3.3\nidna==3.18\niopath==0.1.10\njinja2==3.1.6\njsonschema==4.26.0\njsonschema-specifications==2025.9.1\nkiwisolver==1.5.0\nlazy-object-proxy==1.12.0\nllvmlite==0.48.0\nmarkupsafe==3.0.3\nmatplotlib==3.10.9\nmpmath==1.3.0\nnetworkx==3.4.2\nnumba==0.66.0\nnumpy==1.26.4\nomegaconf==2.3.1\nopencv-python==4.11.0.86\nopencv-python-headless==4.11.0.86\nordered-set==4.1.0\npackaging==26.2\nphx-class-registry==5.1.0\npillow==12.3.0\nportalocker==3.2.0\npylatex==1.4.2\npyparsing==3.3.2\npython-dateutil==2.9.0.post0\npyyaml==6.0.3\nreferencing==0.37.0\nrequests==2.34.2\nrpds-py==0.30.0\nsix==1.17.0\nsympy==1.14.0\ntorch==2.8.0\ntorchvision==0.23.0\ntqdm==4.68.3\ntyping-extensions==4.16.0\nurllib3==2.7.0\nvot-toolkit==0.7.1\nvot-trax==4.0.2",
+  "/home/jfdg/tracker-sweep/.venv-samurai/bin/python": "antlr4-python3-runtime==4.9.3\nfilelock==3.32.2\nfsspec==2026.7.0\nhydra-core==1.3.3\niopath==0.1.10\njinja2==3.1.6\nloguru==0.7.3\nmarkupsafe==3.0.3\nmpmath==1.3.0\nnetworkx==3.4.2\nnumpy==1.26.4\nomegaconf==2.3.1\nopencv-python-headless==4.11.0.86\npackaging==26.2\npillow==12.3.0\nportalocker==3.2.0\npyyaml==6.0.3\nscipy==1.15.3\nsympy==1.14.0\ntorch==2.8.0\ntorchvision==0.23.0\ntqdm==4.70.0\ntyping-extensions==4.16.0"
+ },
+ "big_procs": "",
+ "frame_size": {
+  "bike1": [
+   1280,
+   720
+  ],
+  "bike2": [
+   1280,
+   720
+  ],
+  "bird1_1": [
+   1280,
+   720
+  ],
+  "bird1_3": [
+   1280,
+   720
+  ],
+  "boat3": [
+   1280,
+   720
+  ],
+  "boat6": [
+   1280,
+   720
+  ],
+  "building5": [
+   1280,
+   720
+  ],
+  "car12": [
+   1280,
+   720
+  ],
+  "car1_3": [
+   1280,
+   720
+  ],
+  "car16_1": [
+   1280,
+   720
+  ],
+  "car8_2": [
+   1280,
+   720
+  ],
+  "car9": [
+   1280,
+   720
+  ],
+  "group1_2": [
+   1280,
+   720
+  ],
+  "group2_3": [
+   1280,
+   720
+  ],
+  "person18": [
+   1280,
+   720
+  ],
+  "person19_3": [
+   1280,
+   720
+  ],
+  "person20": [
+   1280,
+   720
+  ],
+  "person21": [
+   1280,
+   720
+  ],
+  "person4_1": [
+   1280,
+   720
+  ],
+  "truck2": [
+   1280,
+   720
+  ],
+  "truck3": [
+   1280,
+   720
+  ],
+  "uav1_2": [
+   720,
+   480
+  ],
+  "uav2": [
+   720,
+   480
+  ],
+  "uav3": [
+   720,
+   480
+  ],
+  "uav5": [
+   720,
+   480
+  ],
+  "uav7": [
+   720,
+   480
+  ],
+  "wakeboard1": [
+   1280,
+   720
+  ],
+  "wakeboard5": [
+   1280,
+   720
+  ],
+  "wakeboard7": [
+   1280,
+   720
+  ],
+  "wakeboard8": [
+   1280,
+   720
+  ]
+ },
+ "gated": [],
+ "thermals_end": {
+  "cpu-thermal": 61.031,
+  "gpu-thermal": 60.375,
+  "soc0-thermal": 57.562,
+  "soc1-thermal": 59.343,
+  "soc2-thermal": 59.156,
+  "tj-thermal": 61.031
+ },
+ "rails_end": {
+  "VDD_IN": 6.14048,
+  "VDD_CPU_GPU_CV": 1.423872,
+  "VDD_SOC": 1.502976
+ },
+ "finished_utc": "2026-08-04T14:52:56Z"
+}
