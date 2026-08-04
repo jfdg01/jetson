@@ -250,12 +250,75 @@ _CARRY_TRT_PLANS_DISABLED = {640: "enc640.plan"}
 #   samurai   Kalman-reweighted memory selection (Yang et al.), fp16 as published
 # Neither has been measured in closed loop -- the sweep ran replayed UAV123. Selecting one
 # here is a demo lever, not a result.
+#   asym      AsymTrack-B (Zhu et al., AAAI 2025), 3.36M params, bf16
+# `asym` is the sweep's own recommendation and the only arm here that is not SAM2-shaped.
+# It is 29.8 ms on this board against SAM2's 190.7 at its best carry size (nota 28), which
+# is the whole point: at a 30 fps feed it answers every frame, so the panel's consumer rule
+# never has to hold a stale box at all. Its `--size` is ignored -- template 192 / search 384
+# are baked into the cfg -- so the carry dropdown next to it does nothing while it is
+# selected. Two prices for that speed, both measured: unpaced mIoU 0.775 over 123 clips
+# (better than SAM2, not worse), and NO presence signal -- lost fraction exactly 0.000, it
+# emits a box on every frame including the ones where the target left. That second one is
+# what LOSS_GATE below exists for.
 ARM_BRIDGE = ("cd ~/tracker-sweep/code && ../.venv-{fam}/bin/python -u arm_ssh_bridge.py "
               "--family {fam} --size {size}")
-TRACKERS = ("sam2", "dam4sam", "samurai")
+TRACKERS = ("sam2", "dam4sam", "samurai", "asym")
 # Read by `_bridge_cmd`, written by the stage-3 selector. A dict and not a plain global
 # because `get_bridge` closes over it from a worker thread; a rebind would not be seen.
 TRACKER = {"name": "sam2"}
+
+# The loss signal AsymTrack does not have. Every SAM2-family arm says "gone" by returning
+# box=None and the panel already runs that branch (`ev="lost"`); `asym` never takes it, so
+# without a gate the copter keeps flying at whatever the tracker locked onto next. The
+# failure is not hypothetical -- the sweep's `truck3` frame 360 shows both boxes parked
+# confidently on the wrong vehicle.
+#
+# The rule is `AsymLtArm`'s, thresholds and all: conf under tau_lo for k consecutive
+# answers = unsure, and only conf at or above tau_hi clears it. tau_lo/tau_hi come from
+# `analysis/presence.py --thresholds` fitted on UAV123, and they apply to `conf` (the
+# corner-head softmax peak), NOT to `conf_cos`.
+#
+# What the gate does NOT do is what `asym_lt` does next. That arm runs a re-detector, and
+# the sweep priced it: -0.076 mIoU against plain `asym_b`, from re-attaching to the wrong
+# thing. Here "unsure" only withholds the box from the control law -- the box stays on
+# screen, and re-designation stays the operator's Shift-click.
+#
+# UNTUNED FOR CARLA. The thresholds were fitted on UAV123 crops, and the bridge smoke test
+# (a white square on flat grey, tracked correctly) reads conf ~= 0.36, already under tau_lo:
+# on a low-texture target this gate latches immediately. `conf` is on the status strip so
+# the threshold can be set from what the panel actually reads.
+LOSS_GATE = {"tau_lo": 0.3920, "tau_hi": 0.7293, "k": 3}
+
+# What `--optimal` selects: the sweep's recommended deployment, in one flag. Applied by
+# writing into `prefs`, so every one of these stays a widget the operator can flip back.
+#   tracker  asym  -- 29.8 ms, so a 30 fps feed leaves the paced regime entirely
+#   hold     foh   -- +0.069 mIoU at zero device cost, and free insurance for the frames
+#                     a shared GPU does steal (nota 24)
+#   gate     on    -- see LOSS_GATE; this is the one part that is not yet measured here
+OPTIMAL = {"tracker": "asym", "hold_mode": "foh", "loss_gate": True}
+
+
+def gate_step(state, conf, tau_lo=None, tau_hi=None, k=None):
+    """Advance the presence hysteresis one answer. True = do not steer on this box.
+
+    `state` is a dict carrying "low" (consecutive answers under tau_lo) and "unsure";
+    mutated in place so the carry thread keeps no other bookkeeping. A tracker that
+    publishes no confidence at all (every SAM2 arm: `conf` is None) is never gated --
+    it has its own way of saying "gone" and this would only double-count it.
+    """
+    tau_lo = LOSS_GATE["tau_lo"] if tau_lo is None else tau_lo
+    tau_hi = LOSS_GATE["tau_hi"] if tau_hi is None else tau_hi
+    k = LOSS_GATE["k"] if k is None else k
+    if conf is None:
+        state["low"], state["unsure"] = 0, False
+    elif state["unsure"]:
+        if conf >= tau_hi:
+            state["low"], state["unsure"] = 0, False
+    else:
+        state["low"] = state["low"] + 1 if conf < tau_lo else 0
+        if state["low"] >= k:
+            state["unsure"] = True
+    return state["unsure"]
 
 
 def _bridge_cmd(size: int) -> str:
@@ -1152,7 +1215,13 @@ def main():
                     help="start with an empty Orin: load the VLM and the carry from the "
                          "DESIGNATE card's load row instead. The first designation then "
                          "pays the boot, so grounding time read off that one is a lie")
+    ap.add_argument("--optimal", action="store_true",
+                    help=f"open on the capacity sweep's recommended carry: {OPTIMAL}. "
+                         "Every part of it stays a widget -- this only sets where the "
+                         "panel starts, and the saved prefs are overridden for one run")
     args = ap.parse_args()
+    if args.optimal:
+        prefs.update(OPTIMAL)
     set_feed_hz(args.feed_hz)
 
     client, carla_proc = ensure_carla(args.host, args.port, args.carla)
@@ -1801,7 +1870,11 @@ def main():
              # 60 Hz. The carry bridge is NOT here: it outlives any single track, see
              # `bridge` / get_bridge below (P6.7).
              "label": None, "ground_ms": None,
-             "carry_ms": None, "carry_hz": None, "catchup_s": None}
+             "carry_ms": None, "carry_hz": None, "catchup_s": None,
+             # conf = the tracker's own presence score, None for every arm that has no
+             # such output (all the SAM2 ones). unsure = LOSS_GATE's verdict on it, the
+             # reason `model_box` may withhold a box that is right there on screen.
+             "conf": None, "unsure": False}
     track_lock = threading.Lock()
 
     # --- the resident on-Orin carry bridge (P6.7) -------------------------------
@@ -2002,6 +2075,7 @@ def main():
             last_match, cur_actor, cur_aid = 0.0, None, None
             seed_id, bad_since, flagged = seed_actor_id, None, False
             lost_since = None      # start of the current run of empty masks, if any
+            gate = {"low": 0, "unsure": False}   # LOSS_GATE's hysteresis, per follow
             # Fetch the world + vehicle list ONCE (cars are spawned up front). Each
             # step then takes a SINGLE world snapshot and reads every transform from
             # it, so match_actor makes ~1 RPC/step instead of one get_transform() per
@@ -2036,6 +2110,17 @@ def main():
                     emit(ev="bridge_died", n=n, rc=rc)
                     break
                 b, ms = r.get("box"), r.get("ms")
+                # The presence gate runs on EVERY answer, before the box/no-box split, so
+                # a tracker that never says "gone" still has a way to. `conf` is None for
+                # the SAM2 arms and gate_step no-ops on that. Only the verdict is stored
+                # here; whether it actually withholds the box is `model_box`'s call, so
+                # turning the gate off cannot lose the reading that justifies it.
+                was_unsure = gate["unsure"]
+                track["conf"] = r.get("conf")
+                track["unsure"] = gate_step(gate, r.get("conf"), loss_tau.get())
+                if track["unsure"] != was_unsure:
+                    emit(ev="unsure" if track["unsure"] else "sure",
+                         n=n, conf=r.get("conf"), conf_cos=r.get("conf_cos"))
                 if b is not None and carry_crop:
                     b = [b[0] + win[0], b[1] + win[1], b[2] + win[0], b[3] + win[1]]
                     # Re-centre only on the way out (dead band), and only on a box the
@@ -2446,6 +2531,7 @@ def main():
             track["label"] = None        # caption mode: overlay uses the entry text
             track["ground_ms"] = track["carry_ms"] = track["carry_hz"] = None
             track["catchup_s"] = None
+            track["conf"], track["unsure"] = None, False
             return track["stop"]
 
     def do_follow(_event=None):
@@ -2690,7 +2776,39 @@ def main():
     # panel opened on foh/k=2 with these two lines missing).
     hold_mode.set("zoh")
     hold_k.set(3)
+    # ...and the saved value on top of the code default, which is what `remember` means
+    # everywhere else in this rail. It could not happen above, because these two lines
+    # would have thrown it away -- so this pair was write-only until now: it was saved
+    # every session and restored in no session. --optimal rides in the same way, through
+    # `prefs`. --selftest passes an empty prefs, so the asserted defaults survive.
+    restore_pref(prefs, "hold_mode", hold_mode)
+    restore_pref(prefs, "hold_k", hold_k)
     _hold_why()
+
+    # -- stage 4, the PRESENCE gate ------------------------------------------------
+    # Only meaningful for a tracker that publishes a confidence, which today is `asym`
+    # alone; with any SAM2 arm selected `conf` is None and the gate never fires. Its
+    # threshold is a slider and not a constant because LOSS_GATE's tau_lo was fitted on
+    # UAV123 and nothing here has been tuned on CARLA yet -- the live `conf` is on the
+    # status strip, so it can be set against what the panel is actually reading.
+    w4_gate = rrow(w4)
+    loss_gate = tk.BooleanVar(value=False)
+    tk.Checkbutton(w4_gate, text="loss gate", variable=loss_gate, bg=DARK, fg=TEXT,
+                   selectcolor=LINE, activebackground=DARK, activeforeground=TEXT,
+                   highlightthickness=0, bd=0, font=("TkDefaultFont", 10)
+                   ).pack(side=tk.LEFT)
+    remember("loss_gate", loss_gate)           # after the widget, same reason as below
+    loss_tau = tk.DoubleVar(value=LOSS_GATE["tau_lo"])
+    tk.Scale(w4_gate, from_=0.05, to=0.95, resolution=0.01, orient=tk.HORIZONTAL,
+             variable=loss_tau, length=110, showvalue=1, sliderlength=16, width=10,
+             bg=DARK, fg=TEXT, troughcolor=LINE, highlightthickness=0, bd=0
+             ).pack(side=tk.LEFT, padx=(8, 0))
+    loss_tau.set(LOSS_GATE["tau_lo"])          # same Tk Scale gotcha as hold_k above
+    restore_pref(prefs, "loss_tau", loss_tau)
+    remembered["loss_tau"] = loss_tau
+    tk.Label(w4, text="gate: hold the box back while the tracker is unsure.",
+             bg=DARK, fg=MUTED, anchor=tk.W, font=("TkDefaultFont", 10)
+             ).pack(side=tk.TOP, fill=tk.X)
 
     # Live feed with the track drawn on it. In-memory PPM into PhotoImage runs at
     # ~115 FPS (no PIL, no disk); a PNG-per-frame round-trip does not. The image
@@ -2864,6 +2982,11 @@ def main():
              else _f("ground {:.0f} ms", gm)),
             (f"carry {cm:.0f} ms ({chz:.1f} Hz) Orin" if cm is not None else "carry --"),
             _f("catch-up {:.1f} s", cu),
+            # The gate's own input, so a threshold can be picked off a running follow
+            # instead of off UAV123. Absent for every tracker that has no such output.
+            *((f"conf {track['conf']:.2f}"
+               + (" UNSURE" if track["unsure"] else ""),)
+              if track["conf"] is not None else ()),
             f"lag {track['lag']} f",
             f"feed {CAM_HZ:.0f} Hz",
             f"disp {preview['disp']:.0f} Hz",
@@ -3088,6 +3211,11 @@ def main():
         # seconds ago -- the copter moves before it knows where to go. catchup_s latches
         # the first time lag<=1, which is exactly "locked in".
         if track["catchup_s"] is None:
+            return None
+        # ...and not while the presence gate says the tracker is unsure. A box is on
+        # screen for the operator either way; this only decides whether a control law
+        # may fly at it. See LOSS_GATE -- it exists because `asym` cannot return None.
+        if loss_gate.get() and track["unsure"]:
             return None
         fm = pilot_follow_mode()
         return held_box() if fm in ("assist", "auto") else None
@@ -3565,6 +3693,7 @@ def main():
                                           "eff_follow": pilot_follow_mode,
                                           "box": model_box, "press": on_press,
                                           "hold": hold_mode, "hold_k": hold_k, "live": live,
+                                          "loss_gate": loss_gate,
                                           "feed": latest,
                                           "held": held, "designate": designate,
                                           "follow_caption": do_follow,
@@ -3618,13 +3747,26 @@ def _check_coast():
     # working panel running the wrong model -- silent. Pin the three commands instead.
     try:
         assert "sam2-bench" in _bridge_cmd(640) and "--image-size 640" in _bridge_cmd(640)
-        for fam in ("dam4sam", "samurai"):
+        for fam in ("dam4sam", "samurai", "asym"):
             TRACKER["name"] = fam
             c = _bridge_cmd(768)
             assert f".venv-{fam}/bin/python" in c and f"--family {fam} --size 768" in c, c
             assert "--trt-encoder" not in c   # the TRT plan is StreamCarry's, not theirs
     finally:
         TRACKER["name"] = "sam2"
+
+    # The presence gate. Its whole job is to be HARDER to enter than to leave, because
+    # `asym` publishes a box either way: a gate that flapped would hand the control law
+    # a box on every other frame instead of withholding it.
+    g = {"low": 0, "unsure": False}
+    assert not gate_step(g, None), "no confidence output means no gate"
+    assert not any(gate_step(g, 0.30) for _ in range(2)), "one dip is not a loss"
+    assert gate_step(g, 0.30), "tau_lo for k answers is"
+    assert gate_step(g, 0.60), "tau_lo does not clear it -- only tau_hi does"
+    assert not gate_step(g, 0.80) and g["low"] == 0, "tau_hi clears it"
+    assert not gate_step(g, 0.30) and gate_step(g, 0.30) is False, "the count restarts"
+    g2 = {"low": 0, "unsure": False}
+    assert not any(gate_step(g2, 0.30, tau_lo=0.1) for _ in range(9)), "the slider is live"
     print("coast ok")
 
 
@@ -3667,6 +3809,18 @@ def _check_modes(md):
     md["hold"].set("zoh")
     assert md["box"]() == [10, 10, 20, 20], "zoh must be exactly the published box"
     track["hist"].clear()
+
+    # the presence gate sits between them and the control law, and only when it is on:
+    # this is the one path by which `asym` -- which never returns box=None -- can stop
+    # steering. The box itself stays put, because the operator keeps seeing it.
+    track["unsure"] = True
+    assert md["box"]() == [10, 10, 20, 20], "gate off must change nothing"
+    md["loss_gate"].set(True)
+    assert md["box"]() is None, "an unsure tracker must not reach a control law"
+    assert track["box"] == [10, 10, 20, 20], "the gate withholds a box, never clears it"
+    track["unsure"] = False
+    assert md["box"]() == [10, 10, 20, 20]
+    md["loss_gate"].set(False)
 
     # re-arming resets the catch-up gate: a fresh designation is mid-catch-up again.
     md["arm"]()

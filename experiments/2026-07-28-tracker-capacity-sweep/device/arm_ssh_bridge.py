@@ -54,6 +54,10 @@ FAMILIES = {
     # fp16 default = published SAMURAI. nota 16: DAM4SAM runs bf16, so a SAMURAI-vs-DAM4SAM
     # delta seen in this panel is precision plus policy. `--amp bf16` prices the halves apart.
     "samurai": lambda n: trackers.SamuraiArm(size=n),
+    # AsymTrack-B (nota 06). `n` is IGNORED and that is not a bug: template 192 / search 384
+    # are baked into the cfg, so this arm costs its 29.8 ms whatever the panel's carry
+    # dropdown says. Interpreter is `../.venv-asym`, same naming rule as the other two.
+    "asym": lambda n: trackers.AsymArm("base"),
 }
 
 
@@ -134,6 +138,15 @@ def main():
             box, _ = tr.step(_decode(msg[1]))
             _send(out, {"box": list(box) if box is not None else None,
                         "ms": round(1000 * (time.perf_counter() - ts), 1),
+                        # Presence surrogates -- AsymTrack only (`AsymArm._corner_peak` and
+                        # `._cosine`), None for every SAM2-family arm, which signals absence
+                        # by returning box=None instead. `asym_b` cannot use that channel:
+                        # nota 28 section 6 measured its lost fraction at exactly 0.000, it
+                        # emits a box on every frame including the ones where the target is
+                        # gone. A consumer that wants a loss signal off this arm has to read
+                        # these two numbers, which is what the panel's loss gate does.
+                        "conf": getattr(tr, "conf", None),
+                        "conf_cos": getattr(tr, "conf_cos", None),
                         "cuda_mb": _cuda_mb(),
                         "rss_mb": round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024, 1)})
     print("[bridge] stdin closed, exiting", file=sys.stderr, flush=True)
