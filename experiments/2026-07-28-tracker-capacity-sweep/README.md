@@ -128,7 +128,7 @@ El detalle completo de cada tanda vive en `notes/`. Aquí queda el resumen y el 
 de cada tabla, las verificaciones visuales y los tropiezos están en el fichero enlazado. Cada fichero
 abre con su fecha, su rango horario y su coste de dispositivo.
 
-**Coste total del barrido: ~60.4 h de dispositivo** sobre la Jetson a 15 W, 1920 corridas (la nota
+**Coste total del barrido: ~61.3 h de dispositivo** sobre la Jetson a 15 W, 2041 corridas (la nota
 18 no añade ninguna: es reanálisis). Es una
 estimación, `sum(init_ms + frames * ms_p50)` sobre los JSON de `raw/`; no incluye el tiempo muerto
 entre etapas ni los renders de overlay, así que el reloj de pared es mayor.
@@ -379,6 +379,8 @@ sobre ZOH) crece con fps como se predijo pero **no tiende a cero a 15 fps** (+0.
 p=1.2e−08): la parte pre-registrada que falla. Y H3 cierra la nota 20: `lead` sigue nulo de 15 a 120
 fps mientras el salto entre respuestas crece 2.2 -> 16.9 px, así que **su nulo acotado pasa a ser un
 resultado**. Sin verificación visual de esta tanda.
+**Alcance corregido por la nota 27:** "la ordenación es por coste" está medida dentro de la familia
+SAM2; el brazo más barato de la placa no es `c512` y no estaba en esta rejilla.
 
 ### 26. Ventana contra entrada — [`notes/26-ventana-contra-entrada.md`](notes/26-ventana-contra-entrada.md) · 3.17 h
 
@@ -392,7 +394,32 @@ y nunca bate a `c512`; gana porque `c640` es caro, no porque él sea bueno. El p
 se mueve. La celda de cheque de reutilización de controles **falló**, se recorrieron los dos
 controles pausados enteros y los cuatro contrastes coinciden — el fallo era la celda (cayó sobre
 `person18`, bimodal), no la reutilización: dos sesiones dan rho 0.995/0.999 y \|d\| mediana 0.002.
+Añadido el mismo día (§8, coste cero): **bajo FOH el plano se aplana y ningún contraste sobrevive
+Holm** — W2 pasa de −0.059 a −0.019, W4 de +0.049 a +0.019 y el hueco de referencia se parte por la
+mitad. El titular del eje de coste lleva "bajo ZOH" pegado; con un consumidor que interpola, la
+ventaja de ser barato vale la mitad, justo lo que la nota 24 predecía.
 **Verificación visual hecha** sobre `person18` f697: la ventana de 512, centrada en una caja ya
 desviada, se lleva la cabeza fuera de su propio campo de visión (IoU 0.37, máscara solo en las
 piernas) mientras `w640_i512` con la **misma entrada de 512** cubre la persona entera (IoU 0.91) —
 confirma la hipótesis de contexto de la nota 22 en ese clip, y solo en ese clip.
+**Alcance corregido por la nota 27:** el eje de coste se descompone aquí dentro de SAM2; cruzando de
+familia el mismo eje da un efecto 2.8x mayor que cualquier celda de este 2x2.
+
+### 27. La familia barata bajo pausa — [`notes/27-la-familia-barata-bajo-pausa.md`](notes/27-la-familia-barata-bajo-pausa.md) · 0.85 h
+
+Toda la rejilla pausada compara SAM2 contra SAM2, así que "bajo pausa la ordenación es por coste"
+nunca se probó contra otra familia. AsymTrack-B empata sin pausar (−0.009, 14/30) y cuesta 3.4x
+menos, y pausado gana en las ocho celdas: **+0.068 / +0.168 / +0.151 / +0.167 bajo ZOH** a
+15/30/60/120 fps, seis de ocho con Holm < 0.05, y el mayor es **2.8x el efecto más grande que la
+campaña había medido en ningún eje** (+0.060 de `c512` sobre `c640`, nota 19). **Y aun así A1 no
+gana:** la regla congelada pedía >=3 de 4 en cada salida y FOH sale 2/4 (15 fps 16/25 y 60 fps
+18/25, Holm 0.073 los dos). FOH aplana la ventaja al 47-74% de su valor ZOH — la predicción de la
+nota 26 §8 confirmada en otro eje. A2 falla como estaba escrita: la ventaja no crece con fps, es un
+escalón entre 15 y 30, y el codo está donde `asym_b` deja de estar topado a tasa 1.0, no donde
+empieza a tirar fotogramas. A3 cumplido (desvío máximo 0.048, explicado: el p50 sube 29.3 a 30.4 ms
+bajo pausa). **El contra es de construcción:** n=25 porque la puerta `upscales` quita los cinco
+clips de 720x480, y cuatro de los cinco peores de `asym_b` son justo esos — se reportan aparte y sin
+control. **Verificación visual hecha** sobre `truck3` f360 a 120 fps: `sam2_c512` es puro retraso
+(ZOH 0.00, FOH 0.79, la caja azul alcanza al camión) y `asym_b` es pérdida de identidad (ZOH 0.00,
+FOH 0.00, las dos cajas aparcadas en otro vehículo) — por eso FOH le come la mitad de la ventaja al
+brazo barato: no hay velocidad que extrapolar cuando lo que se pierde es el objeto.

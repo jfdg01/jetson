@@ -51,6 +51,22 @@ se ejecutan.
 - **El 2x2 bajo FOH y a otras velocidades.** Todo el de la nota 26 es ZOH a 30 fps, y la nota 24
   mostró que la ordenación pausada depende del consumidor.
 
+## Familia barata bajo pausa (abierto por la nota 27)
+
+- **`asym_lt` pausado.** Ya no es una celda más de la rejilla: la nota 27 §6 midió que lo que hunde a
+  `asym_b` es **pérdida de identidad**, no retraso, y `asym_lt` es exactamente el brazo que añade la
+  maquinaria de recuperación. La hipótesis es que recupera los tres `uav*` que `asym_b` deja por
+  debajo de 0.01, y que bajo FOH conserva la ventaja que `asym_b` pierde.
+- **DAM4SAM y SAMURAI nunca se han pausado.** Todo el arco pausado (notas 19-27) es SAM2 más un
+  AsymTrack. Con la ordenación por coste ahora medida entre familias, las dos que quedan tienen que
+  entrar antes de decir nada sobre el punto de operación de la placa.
+- **Velocidades entre 15 y 30 fps.** El codo de A2 no está donde se registró: la ventaja da un escalón
+  entre esas dos velocidades, que es donde `asym_b` deja de estar topado a tasa 1.0. Sin puntos
+  intermedios el escalón no se localiza.
+- **El cruce FOH entre 30 y 60 fps.** `asym_b` bajo FOH a 120 (0.549) queda por encima de `sam2_c512`
+  a 60 (0.529) y por debajo de su 30 (0.634); el punto donde se cruzan es lo que decide si el brazo
+  barato compra velocidad real para un consumidor que interpola.
+
 ## Rig
 
 - **El manifiesto no sella hora.** `manifest.json` guarda térmicas y raíles pero ningún timestamp, y

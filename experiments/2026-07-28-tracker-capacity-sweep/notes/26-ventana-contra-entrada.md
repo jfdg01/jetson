@@ -71,7 +71,8 @@ con los controles reutilizados de `paced-sweep-30`):
 
 ## 4. Qué dice esto
 
-**W2 gana y W1 pierde, pausado. El eje `c512`-`c640` es un eje de coste, no de contexto.** El hueco
+**W2 gana y W1 pierde, pausado bajo ZOH. El eje `c512`-`c640` es un eje de coste, no de contexto**
+— pero solo con ese consumidor, ver §8. El hueco
 de referencia pausado es −0.068; mover **sólo los píxeles** (ventana 512 fija, entrada 640) reproduce
 −0.059 de esos −0.068, y mover **sólo la ventana** (entrada 512 fija) deja −0.016 sin significación.
 W3 es nulo, o sea que las dos palancas suman, y la suma la domina una sola. Traducido: bajo pausa,
@@ -182,7 +183,51 @@ sobre un recorte de 512, y su `ms_p50` real salió por encima del de `c640` que 
 Las 0.60 h de controles no estaban estimadas porque eran contingentes al cheque — y el cheque falló,
 así que se pagaron.
 
-## 8. Cómo no sobreleer
+## 8. Todo lo anterior es bajo ZOH: con FOH el plano se aplana
+
+Añadido el 2026-08-04T12:35Z, sin dispositivo — es el mismo dato con la otra salida. La nota 24
+dejó dicho que el punto de operación pausado es propiedad de la **pareja** seguidor+consumidor
+(`c640 − c512` vale −0.043 bajo ZOH, −0.018 bajo FOH y +0.037 bajo el techo `GT(i)`), así que el 2x2
+había que recorrerlo con las dos reglas antes de afirmar nada sobre el eje.
+
+```
+analysis/wingrid.py raw/wingrid-ctl2-30 raw/wingrid-30 --foh
+```
+
+| pausado 30, FOH | entrada 512 | entrada 640 |
+| --- | ---: | ---: |
+| **ventana 512** | 0.638 | 0.592 |
+| **ventana 640** | 0.586 | 0.603 |
+
+Referencia `c640 − c512` = −0.034 (5/25), la mitad de los −0.068 de ZOH.
+
+| contraste | d mediana ZOH | d mediana FOH | gana FOH | p Holm FOH |
+| --- | ---: | ---: | ---: | ---: |
+| W1 contexto | −0.016 | −0.022 | 8/25 | 1.0e−01 |
+| W2 píxeles | **−0.059** | −0.019 | 8/25 | 2.4e−01 |
+| W3 aditividad | −0.019 | −0.016 | 9/25 | 6.2e−01 |
+| W4 operación | **+0.049** | +0.019 | 17/25 | 6.2e−01 |
+
+**Ningún contraste sobrevive Holm bajo FOH.** Los dos que mandaban bajo ZOH se quedan en un tercio
+de su tamaño. Sin pausar, FOH y ZOH dan tablas idénticas hasta el último decimal, que es la
+comprobación interna de que la regla solo actúa sobre huecos.
+
+Lo que hay que leer aquí:
+
+- **El titular de la §4 lleva "bajo ZOH" pegado y no se puede citar sin él.** Bajo ZOH cada
+  fotograma no contestado se paga entero, así que contestar más veces —que es lo que compra bajar
+  los píxeles— vale el máximo posible. FOH recupera el 51% del hueco por su cuenta (nota 24), y la
+  ventaja de ser barato se reduce en la misma proporción. Las dos medidas encajan.
+- **No es un desmentido de la descomposición, es una pérdida de potencia.** W2 sigue siendo la mayor
+  parte del hueco de referencia (−0.019 de −0.034, 56%, contra 87% bajo ZOH) y el orden de los cuatro
+  contrastes no cambia. Lo que cae es la magnitud y con ella la significación: bajo FOH esto es un
+  **nulo acotado**, no una demostración de que el eje no exista.
+- **Consecuencia para lo que venga.** Cualquier palanca que compre tasa de respuesta pagando calidad
+  —bajar más los píxeles, por ejemplo— tiene su mejor caso bajo ZOH y la mitad de recorrido bajo FOH,
+  mientras que la degradación de calidad que paga es la misma con los dos consumidores. Medir una
+  palanca así con una sola salida es elegir el resultado de antemano.
+
+## 9. Cómo no sobreleer
 
 - **n=25, cuatro contrastes, Holm dentro de la familia.** Los dos que sobreviven pausado (W2 y W4)
   lo hacen con holgura (Holm 1.5e−03 y 1.1e−03) y con 23/25 y 5/25 clips; los otros dos no. W4 sin
@@ -199,16 +244,14 @@ así que se pagaron.
 - **`person18` es un clip.** Falsa la explicación de la nota 22 como regla general y la confirma como
   descripción de ese clip. No se puede usar para sostener una política.
 - **El análisis de cola de la §4 es exploratorio**, no pre-registrado, y no lleva corrección.
-- **Todo a ZOH.** La nota 24 mostró que la ordenación pausada depende del consumidor; este 2x2 no se
-  ha recorrido bajo FOH.
 
-## 9. Qué no se midió
+## 10. Qué no se midió
 
 No se midió: ninguna entrada por debajo de 512 ni ninguna ventana por encima de 640, que es hacia
-donde apunta el resultado de la §4; el 2x2 bajo FOH ni bajo el techo `GT(i)`; el 2x2 a otras
+donde apunta el resultado de la §4; el 2x2 bajo el techo `GT(i)` (bajo FOH sí, §8); el 2x2 a otras
 velocidades que 30 fps (la rejilla de la nota 25 sólo tiene la diagonal); y por qué `w640_i512` se
 hunde a 0.699 sin pausar cuando `c640` está en 0.785 con la misma ventana — la entrada de 512 sobre
 recorte de 640 pierde algo que este diseño no aísla.
 
 La verificación visual cubre `person18` en los dos brazos de la §6 y **nada más**. Ninguna afirmación
-de las §2-§5 se apoya en píxeles mirados.
+de las §2-§5 ni de la §8 se apoya en píxeles mirados.

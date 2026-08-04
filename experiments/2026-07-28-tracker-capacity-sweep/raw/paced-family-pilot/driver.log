@@ -1,0 +1,66 @@
+manifest written; NV Power Mode: 15W 0 | governor schedutil
+[1/1] asym_b x bike1 ...
+==============> Switch To Deploy
+  50/3085  2s  26.17 fps  eta 116s
+  100/3085  4s  24.95 fps  eta 120s
+  150/3085  6s  24.59 fps  eta 119s
+  200/3085  8s  24.48 fps  eta 118s
+  250/3085  10s  24.49 fps  eta 116s
+  300/3085  12s  24.51 fps  eta 114s
+  350/3085  14s  24.56 fps  eta 111s
+  400/3085  16s  24.61 fps  eta 109s
+  450/3085  18s  24.64 fps  eta 107s
+  500/3085  20s  24.65 fps  eta 105s
+  550/3085  22s  24.65 fps  eta 103s
+  600/3085  24s  24.62 fps  eta 101s
+  650/3085  26s  24.59 fps  eta 99s
+  700/3085  28s  24.58 fps  eta 97s
+  750/3085  31s  24.58 fps  eta 95s
+  800/3085  33s  24.59 fps  eta 93s
+  850/3085  35s  24.61 fps  eta 91s
+  900/3085  37s  24.60 fps  eta 89s
+  950/3085  39s  24.59 fps  eta 87s
+  1000/3085  41s  24.58 fps  eta 85s
+  1050/3085  43s  24.55 fps  eta 83s
+  1100/3085  45s  24.54 fps  eta 81s
+  1150/3085  47s  24.53 fps  eta 79s
+  1200/3085  49s  24.52 fps  eta 77s
+  1250/3085  51s  24.53 fps  eta 75s
+  1300/3085  53s  24.54 fps  eta 73s
+  1350/3085  55s  24.54 fps  eta 71s
+  1400/3085  57s  24.54 fps  eta 69s
+  1450/3085  59s  24.54 fps  eta 67s
+  1500/3085  61s  24.54 fps  eta 65s
+  1550/3085  63s  24.54 fps  eta 63s
+  1600/3085  65s  24.54 fps  eta 61s
+  1650/3085  67s  24.53 fps  eta 58s
+  1700/3085  69s  24.53 fps  eta 56s
+  1750/3085  71s  24.53 fps  eta 54s
+  1800/3085  73s  24.52 fps  eta 52s
+  1850/3085  76s  24.50 fps  eta 50s
+  1900/3085  78s  24.47 fps  eta 48s
+  1950/3085  80s  24.46 fps  eta 46s
+  2000/3085  82s  24.46 fps  eta 44s
+  2050/3085  84s  24.46 fps  eta 42s
+  2100/3085  86s  24.46 fps  eta 40s
+  2150/3085  88s  24.46 fps  eta 38s
+  2200/3085  90s  24.46 fps  eta 36s
+  2250/3085  92s  24.45 fps  eta 34s
+  2300/3085  94s  24.45 fps  eta 32s
+  2350/3085  96s  24.43 fps  eta 30s
+  2400/3085  98s  24.42 fps  eta 28s
+  2450/3085  100s  24.42 fps  eta 26s
+  2500/3085  102s  24.42 fps  eta 24s
+  2550/3085  104s  24.42 fps  eta 22s
+  2600/3085  106s  24.43 fps  eta 20s
+  2700/3085  111s  24.43 fps  eta 16s
+  2750/3085  113s  24.42 fps  eta 14s
+  2800/3085  115s  24.42 fps  eta 12s
+  2850/3085  117s  24.42 fps  eta 10s
+  2900/3085  119s  24.43 fps  eta 8s
+  2950/3085  121s  24.44 fps  eta 6s
+  3000/3085  123s  24.45 fps  eta 3s
+  3050/3085  125s  24.45 fps  eta 1s
+{"arm": "asym_b", "seq": "bike1", "frames": 3021, "w": 1280, "h": 720, "fps_stream": 30.0, "stream_frames": 3085, "init_ms": 6392.066449858248, "warmup_frames": 5, "ms_p50": 31.74650715664029, "ms_p95": 38.32576139830053, "ms_p99": 39.7179748211056, "ms_max": 41.574744042009115, "fps": 31.49952828088787, "decode_ms_p50": 7.609552936628461, "lost_frames": 0, "conf_frames": 3020, "rss_peak_mb": 1058.4296875, "gpu_peak_mb": 51.56591796875}
+  134.5s wall, temps NoneC
+DONE

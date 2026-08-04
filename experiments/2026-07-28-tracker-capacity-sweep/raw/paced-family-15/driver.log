@@ -1,0 +1,653 @@
+manifest written; NV Power Mode: 15W 0 | governor schedutil
+[1/30] asym_b x bird1_3 ...
+==============> Switch To Deploy
+  50/865  2s  23.66 fps  eta 34s
+  100/865  4s  24.79 fps  eta 31s
+  150/865  6s  24.78 fps  eta 29s
+  200/865  9s  21.84 fps  eta 30s
+  250/865  12s  20.53 fps  eta 30s
+  300/865  15s  19.67 fps  eta 29s
+  350/865  18s  19.67 fps  eta 26s
+  400/865  21s  19.51 fps  eta 24s
+  450/865  24s  19.06 fps  eta 22s
+  500/865  27s  18.74 fps  eta 19s
+  550/865  30s  18.51 fps  eta 17s
+  600/865  32s  18.53 fps  eta 14s
+  650/865  35s  18.58 fps  eta 12s
+  700/865  38s  18.65 fps  eta 9s
+  750/865  40s  18.59 fps  eta 6s
+  800/865  42s  18.91 fps  eta 3s
+  850/865  44s  19.15 fps  eta 1s
+{"arm": "asym_b", "seq": "bird1_3", "frames": 859, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 865, "init_ms": 5112.533397972584, "warmup_frames": 5, "ms_p50": 49.73816592246294, "ms_p95": 56.96989158168435, "ms_p99": 57.64772990718484, "ms_max": 58.195135090500116, "fps": 20.105284974900457, "decode_ms_p50": 6.441585253924131, "lost_frames": 0, "conf_frames": 858, "rss_peak_mb": 1125.515625, "gpu_peak_mb": 51.56591796875}
+  52.2s wall, temps NoneC
+[2/30] asym_b x car8_2 ...
+==============> Switch To Deploy
+  50/1219  2s  21.37 fps  eta 55s
+  100/1219  4s  22.36 fps  eta 50s
+  150/1219  7s  22.73 fps  eta 47s
+  200/1219  9s  22.98 fps  eta 44s
+  250/1219  11s  23.11 fps  eta 42s
+  300/1219  13s  23.21 fps  eta 40s
+  350/1219  15s  23.27 fps  eta 37s
+  400/1219  17s  23.33 fps  eta 35s
+  450/1219  19s  23.35 fps  eta 33s
+  500/1219  21s  23.36 fps  eta 31s
+  550/1219  24s  23.38 fps  eta 29s
+  600/1219  26s  23.36 fps  eta 27s
+  650/1219  28s  23.36 fps  eta 24s
+  700/1219  30s  23.39 fps  eta 22s
+  750/1219  32s  23.42 fps  eta 20s
+  800/1219  34s  23.43 fps  eta 18s
+  850/1219  36s  23.40 fps  eta 16s
+  900/1219  39s  23.37 fps  eta 14s
+  950/1219  41s  23.21 fps  eta 12s
+  1000/1219  43s  23.10 fps  eta 9s
+  1050/1219  45s  23.11 fps  eta 7s
+  1100/1219  48s  23.08 fps  eta 5s
+  1150/1219  50s  23.00 fps  eta 3s
+  1200/1219  52s  22.94 fps  eta 1s
+{"arm": "asym_b", "seq": "car8_2", "frames": 1213, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 1219, "init_ms": 5096.856706775725, "warmup_frames": 5, "ms_p50": 32.76480408385396, "ms_p95": 38.104254798963666, "ms_p99": 40.023529753088965, "ms_max": 42.547855991870165, "fps": 30.52055484417763, "decode_ms_p50": 8.28705937601626, "lost_frames": 0, "conf_frames": 1212, "rss_peak_mb": 1064.6953125, "gpu_peak_mb": 51.56591796875}
+  60.1s wall, temps NoneC
+[3/30] asym_b x person4_1 ...
+==============> Switch To Deploy
+  50/1501  2s  22.95 fps  eta 63s
+  100/1501  4s  23.98 fps  eta 58s
+  150/1501  6s  24.33 fps  eta 56s
+  200/1501  8s  24.54 fps  eta 53s
+  250/1501  10s  24.64 fps  eta 51s
+  300/1501  12s  24.70 fps  eta 49s
+  350/1501  14s  24.76 fps  eta 46s
+  400/1501  16s  24.81 fps  eta 44s
+  450/1501  18s  24.84 fps  eta 42s
+  500/1501  20s  24.85 fps  eta 40s
+  550/1501  22s  24.85 fps  eta 38s
+  600/1501  24s  24.83 fps  eta 36s
+  650/1501  26s  24.80 fps  eta 34s
+  700/1501  28s  24.77 fps  eta 32s
+  750/1501  30s  24.73 fps  eta 30s
+  800/1501  32s  24.68 fps  eta 28s
+  850/1501  35s  24.61 fps  eta 26s
+  900/1501  37s  24.57 fps  eta 24s
+  950/1501  39s  24.53 fps  eta 22s
+  1000/1501  41s  24.51 fps  eta 20s
+  1050/1501  43s  24.49 fps  eta 18s
+  1100/1501  45s  24.48 fps  eta 16s
+  1150/1501  47s  24.48 fps  eta 14s
+  1200/1501  49s  24.47 fps  eta 12s
+  1250/1501  51s  24.47 fps  eta 10s
+  1300/1501  53s  24.45 fps  eta 8s
+  1350/1501  55s  24.44 fps  eta 6s
+  1400/1501  57s  24.43 fps  eta 4s
+  1450/1501  59s  24.41 fps  eta 2s
+  1500/1501  62s  24.38 fps  eta 0s
+{"arm": "asym_b", "seq": "person4_1", "frames": 1495, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 1501, "init_ms": 5079.125045333058, "warmup_frames": 5, "ms_p50": 31.13266220316291, "ms_p95": 32.48394252732396, "ms_p99": 32.97519888728857, "ms_max": 38.07982802391052, "fps": 32.12060675936687, "decode_ms_p50": 8.228721329942346, "lost_frames": 0, "conf_frames": 1494, "rss_peak_mb": 1058.83203125, "gpu_peak_mb": 51.56591796875}
+  68.4s wall, temps NoneC
+[4/30] asym_b x person21 ...
+==============> Switch To Deploy
+  50/487  2s  22.78 fps  eta 19s
+  100/487  4s  23.76 fps  eta 16s
+  150/487  6s  24.15 fps  eta 14s
+  200/487  8s  24.46 fps  eta 12s
+  250/487  10s  24.62 fps  eta 10s
+  300/487  12s  24.70 fps  eta 8s
+  350/487  14s  24.72 fps  eta 6s
+  400/487  16s  24.73 fps  eta 4s
+  450/487  18s  24.70 fps  eta 1s
+{"arm": "asym_b", "seq": "person21", "frames": 481, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 487, "init_ms": 5125.019480008632, "warmup_frames": 5, "ms_p50": 29.945973306894302, "ms_p95": 30.702787823975086, "ms_p99": 31.132037118077278, "ms_max": 31.42770892009139, "fps": 33.39347129417815, "decode_ms_p50": 8.49162507802248, "lost_frames": 0, "conf_frames": 480, "rss_peak_mb": 1061.04296875, "gpu_peak_mb": 51.56591796875}
+  26.6s wall, temps NoneC
+[5/30] asym_b x boat6 ...
+==============> Switch To Deploy
+  50/805  2s  23.60 fps  eta 32s
+  100/805  4s  24.76 fps  eta 28s
+  150/805  6s  25.19 fps  eta 26s
+  200/805  8s  25.40 fps  eta 24s
+  250/805  10s  25.51 fps  eta 22s
+  300/805  12s  25.58 fps  eta 20s
+  350/805  14s  25.63 fps  eta 18s
+  400/805  16s  25.66 fps  eta 16s
+  450/805  18s  25.68 fps  eta 14s
+  500/805  19s  25.70 fps  eta 12s
+  550/805  21s  25.70 fps  eta 10s
+  600/805  23s  25.69 fps  eta 8s
+  650/805  25s  25.65 fps  eta 6s
+  700/805  27s  25.58 fps  eta 4s
+  750/805  29s  25.48 fps  eta 2s
+  800/805  32s  25.20 fps  eta 0s
+{"arm": "asym_b", "seq": "boat6", "frames": 799, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 805, "init_ms": 5094.311497174203, "warmup_frames": 5, "ms_p50": 30.381825286895037, "ms_p95": 35.69999858736991, "ms_p99": 43.86983189731837, "ms_max": 46.46152909845114, "fps": 32.91441480414747, "decode_ms_p50": 6.574708269909024, "lost_frames": 0, "conf_frames": 798, "rss_peak_mb": 1062.421875, "gpu_peak_mb": 51.56591796875}
+  38.9s wall, temps NoneC
+[6/30] asym_b x bike1 ...
+==============> Switch To Deploy
+  50/3085  2s  22.61 fps  eta 134s
+  100/3085  4s  23.38 fps  eta 128s
+  150/3085  6s  23.74 fps  eta 124s
+  200/3085  8s  24.12 fps  eta 120s
+  250/3085  10s  24.41 fps  eta 116s
+  300/3085  12s  24.64 fps  eta 113s
+  350/3085  14s  24.83 fps  eta 110s
+  400/3085  16s  24.97 fps  eta 108s
+  450/3085  18s  25.08 fps  eta 105s
+  500/3085  20s  25.14 fps  eta 103s
+  550/3085  22s  25.19 fps  eta 101s
+  600/3085  24s  25.21 fps  eta 99s
+  650/3085  26s  25.23 fps  eta 97s
+  700/3085  28s  25.24 fps  eta 94s
+  750/3085  30s  25.28 fps  eta 92s
+  800/3085  32s  25.33 fps  eta 90s
+  850/3085  34s  25.36 fps  eta 88s
+  900/3085  35s  25.37 fps  eta 86s
+  950/3085  37s  25.38 fps  eta 84s
+  1000/3085  39s  25.38 fps  eta 82s
+  1050/3085  41s  25.36 fps  eta 80s
+  1100/3085  43s  25.37 fps  eta 78s
+  1150/3085  45s  25.36 fps  eta 76s
+  1200/3085  47s  25.37 fps  eta 74s
+  1250/3085  49s  25.39 fps  eta 72s
+  1300/3085  51s  25.41 fps  eta 70s
+  1350/3085  53s  25.42 fps  eta 68s
+  1400/3085  55s  25.43 fps  eta 66s
+  1450/3085  57s  25.43 fps  eta 64s
+  1500/3085  59s  25.44 fps  eta 62s
+  1550/3085  61s  25.44 fps  eta 60s
+  1600/3085  63s  25.44 fps  eta 58s
+  1650/3085  65s  25.44 fps  eta 56s
+  1700/3085  67s  25.45 fps  eta 54s
+  1750/3085  69s  25.45 fps  eta 52s
+  1800/3085  71s  25.45 fps  eta 50s
+  1850/3085  73s  25.44 fps  eta 49s
+  1900/3085  75s  25.41 fps  eta 47s
+  1950/3085  77s  25.40 fps  eta 45s
+  2000/3085  79s  25.40 fps  eta 43s
+  2050/3085  81s  25.41 fps  eta 41s
+  2100/3085  83s  25.41 fps  eta 39s
+  2150/3085  85s  25.42 fps  eta 37s
+  2200/3085  87s  25.42 fps  eta 35s
+  2250/3085  89s  25.42 fps  eta 33s
+  2300/3085  91s  25.41 fps  eta 31s
+  2350/3085  93s  25.39 fps  eta 29s
+  2400/3085  95s  25.33 fps  eta 27s
+  2450/3085  97s  25.24 fps  eta 25s
+  2500/3085  99s  25.15 fps  eta 23s
+  2550/3085  102s  25.07 fps  eta 21s
+  2600/3085  104s  25.00 fps  eta 19s
+  2650/3085  106s  24.94 fps  eta 17s
+  2700/3085  108s  24.91 fps  eta 15s
+  2750/3085  110s  24.90 fps  eta 13s
+  2800/3085  112s  24.89 fps  eta 11s
+  2850/3085  114s  24.91 fps  eta 9s
+  2900/3085  116s  24.92 fps  eta 7s
+  2950/3085  118s  24.94 fps  eta 5s
+  3000/3085  120s  24.95 fps  eta 3s
+  3050/3085  122s  24.97 fps  eta 1s
+{"arm": "asym_b", "seq": "bike1", "frames": 3079, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 3085, "init_ms": 5084.137407131493, "warmup_frames": 5, "ms_p50": 32.32319001108408, "ms_p95": 38.782462663948536, "ms_p99": 39.57610739395022, "ms_max": 41.35674796998501, "fps": 30.937540498233183, "decode_ms_p50": 6.8220102693885565, "lost_frames": 0, "conf_frames": 3078, "rss_peak_mb": 1064.93359375, "gpu_peak_mb": 51.56591796875}
+  130.4s wall, temps NoneC
+[7/30] asym_b x car12 ...
+==============> Switch To Deploy
+  50/499  2s  22.67 fps  eta 20s
+  100/499  4s  23.63 fps  eta 17s
+  150/499  6s  23.65 fps  eta 15s
+  200/499  8s  23.85 fps  eta 13s
+  250/499  10s  23.94 fps  eta 10s
+  300/499  12s  24.08 fps  eta 8s
+  350/499  16s  21.92 fps  eta 7s
+  400/499  19s  20.68 fps  eta 5s
+  450/499  23s  19.74 fps  eta 2s
+{"arm": "asym_b", "seq": "car12", "frames": 493, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 499, "init_ms": 5082.3789751157165, "warmup_frames": 5, "ms_p50": 30.6563270278275, "ms_p95": 63.18957838229834, "ms_p99": 74.21882335096596, "ms_max": 86.12814918160439, "fps": 32.61969377780565, "decode_ms_p50": 8.884931216016412, "lost_frames": 0, "conf_frames": 492, "rss_peak_mb": 1126.05859375, "gpu_peak_mb": 51.56591796875}
+  32.7s wall, temps NoneC
+[8/30] asym_b x wakeboard1 ...
+==============> Switch To Deploy
+  50/421  2s  21.60 fps  eta 17s
+  100/421  4s  22.45 fps  eta 14s
+  150/421  7s  22.75 fps  eta 12s
+  200/421  9s  22.94 fps  eta 10s
+  250/421  11s  23.09 fps  eta 7s
+  300/421  13s  23.30 fps  eta 5s
+  350/421  15s  23.48 fps  eta 3s
+  400/421  17s  23.61 fps  eta 1s
+{"arm": "asym_b", "seq": "wakeboard1", "frames": 415, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 421, "init_ms": 5176.01120332256, "warmup_frames": 5, "ms_p50": 31.613664701581, "ms_p95": 33.69621820747852, "ms_p99": 34.61069928482175, "ms_max": 35.725458059459925, "fps": 31.631891128078863, "decode_ms_p50": 8.99480632506311, "lost_frames": 0, "conf_frames": 414, "rss_peak_mb": 1060.92578125, "gpu_peak_mb": 51.56591796875}
+  24.7s wall, temps NoneC
+[9/30] asym_b x wakeboard8 ...
+==============> Switch To Deploy
+  50/1543  2s  23.05 fps  eta 65s
+  100/1543  4s  24.23 fps  eta 60s
+  150/1543  6s  24.64 fps  eta 57s
+  200/1543  8s  24.94 fps  eta 54s
+  250/1543  10s  25.09 fps  eta 52s
+  300/1543  12s  25.21 fps  eta 49s
+  350/1543  14s  25.30 fps  eta 47s
+  400/1543  16s  25.36 fps  eta 45s
+  450/1543  18s  25.41 fps  eta 43s
+  500/1543  20s  25.45 fps  eta 41s
+  550/1543  22s  25.50 fps  eta 39s
+  600/1543  23s  25.54 fps  eta 37s
+  650/1543  25s  25.58 fps  eta 35s
+  700/1543  27s  25.60 fps  eta 33s
+  750/1543  29s  25.62 fps  eta 31s
+  800/1543  31s  25.63 fps  eta 29s
+  850/1543  33s  25.62 fps  eta 27s
+  900/1543  35s  25.64 fps  eta 25s
+  950/1543  37s  25.66 fps  eta 23s
+  1000/1543  39s  25.69 fps  eta 21s
+  1050/1543  41s  25.70 fps  eta 19s
+  1100/1543  43s  25.69 fps  eta 17s
+  1150/1543  45s  25.68 fps  eta 15s
+  1200/1543  47s  25.65 fps  eta 13s
+  1250/1543  49s  25.64 fps  eta 11s
+  1300/1543  51s  25.63 fps  eta 9s
+  1350/1543  53s  25.62 fps  eta 8s
+  1400/1543  55s  25.62 fps  eta 6s
+  1450/1543  57s  25.63 fps  eta 4s
+  1500/1543  59s  25.64 fps  eta 2s
+{"arm": "asym_b", "seq": "wakeboard8", "frames": 1537, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 1543, "init_ms": 5120.864136144519, "warmup_frames": 5, "ms_p50": 29.5114628970623, "ms_p95": 29.931986471638083, "ms_p99": 30.18719032406807, "ms_max": 30.539683997631073, "fps": 33.885138242318185, "decode_ms_p50": 7.724371273070574, "lost_frames": 0, "conf_frames": 1536, "rss_peak_mb": 1050.80078125, "gpu_peak_mb": 51.56591796875}
+  67.1s wall, temps NoneC
+[10/30] asym_b x person18 ...
+==============> Switch To Deploy
+  50/1393  2s  20.12 fps  eta 67s
+  100/1393  5s  20.71 fps  eta 62s
+  150/1393  7s  21.02 fps  eta 59s
+  200/1393  9s  21.22 fps  eta 56s
+  250/1393  12s  21.22 fps  eta 54s
+  300/1393  14s  21.15 fps  eta 52s
+  350/1393  17s  21.14 fps  eta 49s
+  400/1393  19s  21.15 fps  eta 47s
+  450/1393  21s  21.21 fps  eta 44s
+  500/1393  24s  21.26 fps  eta 42s
+  550/1393  26s  21.29 fps  eta 40s
+  600/1393  28s  21.31 fps  eta 37s
+  650/1393  30s  21.34 fps  eta 35s
+  700/1393  33s  21.38 fps  eta 32s
+  750/1393  35s  21.41 fps  eta 30s
+  800/1393  37s  21.41 fps  eta 28s
+  850/1393  40s  21.41 fps  eta 25s
+  900/1393  42s  21.42 fps  eta 23s
+  950/1393  44s  21.44 fps  eta 21s
+  1000/1393  47s  21.48 fps  eta 18s
+  1050/1393  49s  21.56 fps  eta 16s
+  1100/1393  51s  21.66 fps  eta 14s
+  1150/1393  53s  21.77 fps  eta 11s
+  1200/1393  55s  21.87 fps  eta 9s
+  1250/1393  57s  21.98 fps  eta 7s
+  1300/1393  59s  22.07 fps  eta 4s
+  1350/1393  61s  22.12 fps  eta 2s
+{"arm": "asym_b", "seq": "person18", "frames": 1387, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 1393, "init_ms": 5162.021685857326, "warmup_frames": 5, "ms_p50": 36.86839994043112, "ms_p95": 39.352084044367075, "ms_p99": 40.35848695784807, "ms_max": 43.51728595793247, "fps": 27.123498758170044, "decode_ms_p50": 7.238694233819842, "lost_frames": 0, "conf_frames": 1386, "rss_peak_mb": 1064.5, "gpu_peak_mb": 51.56591796875}
+  69.9s wall, temps NoneC
+[11/30] asym_b x truck3 ...
+==============> Switch To Deploy
+  50/535  2s  22.56 fps  eta 21s
+  100/535  4s  23.64 fps  eta 18s
+  150/535  6s  24.02 fps  eta 16s
+  200/535  8s  24.24 fps  eta 14s
+  250/535  10s  24.34 fps  eta 12s
+  300/535  12s  24.39 fps  eta 10s
+  350/535  14s  24.45 fps  eta 8s
+  400/535  16s  24.46 fps  eta 6s
+  450/535  18s  24.49 fps  eta 3s
+  500/535  20s  24.52 fps  eta 1s
+{"arm": "asym_b", "seq": "truck3", "frames": 529, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 535, "init_ms": 5118.88989713043, "warmup_frames": 5, "ms_p50": 29.83773034065962, "ms_p95": 30.117540806531906, "ms_p99": 30.295966304838657, "ms_max": 30.60053801164031, "fps": 33.514613497170345, "decode_ms_p50": 8.920063264667988, "lost_frames": 0, "conf_frames": 528, "rss_peak_mb": 1047.109375, "gpu_peak_mb": 51.56591796875}
+  28.7s wall, temps NoneC
+[12/30] asym_b x uav7 ...
+==============> Switch To Deploy
+  50/373  2s  26.29 fps  eta 12s
+  100/373  4s  28.06 fps  eta 10s
+  150/373  5s  28.69 fps  eta 8s
+  200/373  7s  29.02 fps  eta 6s
+  250/373  9s  29.23 fps  eta 4s
+  300/373  10s  29.32 fps  eta 2s
+  350/373  12s  29.35 fps  eta 1s
+{"arm": "asym_b", "seq": "uav7", "frames": 367, "w": 720, "h": 480, "fps_stream": 15.0, "stream_frames": 373, "init_ms": 5144.53269680962, "warmup_frames": 5, "ms_p50": 28.995105996727943, "ms_p95": 29.936413746327162, "ms_p99": 32.337988261133425, "ms_max": 34.00096110999584, "fps": 34.488578869580564, "decode_ms_p50": 3.196198493242264, "lost_frames": 0, "conf_frames": 366, "rss_peak_mb": 1042.578125, "gpu_peak_mb": 51.56591796875}
+  19.7s wall, temps NoneC
+[13/30] asym_b x uav1_2 ...
+==============> Switch To Deploy
+  50/823  2s  25.22 fps  eta 31s
+  100/823  4s  27.33 fps  eta 26s
+  150/823  5s  28.05 fps  eta 24s
+  200/823  7s  28.49 fps  eta 22s
+  250/823  9s  28.77 fps  eta 20s
+  300/823  10s  28.97 fps  eta 18s
+  350/823  12s  29.11 fps  eta 16s
+  400/823  14s  29.22 fps  eta 14s
+  450/823  15s  29.30 fps  eta 13s
+  500/823  17s  29.32 fps  eta 11s
+  550/823  19s  29.33 fps  eta 9s
+  600/823  20s  29.30 fps  eta 8s
+  650/823  22s  28.97 fps  eta 6s
+  700/823  24s  28.92 fps  eta 4s
+  750/823  26s  28.94 fps  eta 3s
+  800/823  28s  28.99 fps  eta 1s
+{"arm": "asym_b", "seq": "uav1_2", "frames": 817, "w": 720, "h": 480, "fps_stream": 15.0, "stream_frames": 823, "init_ms": 5128.834020812064, "warmup_frames": 5, "ms_p50": 29.77521810680628, "ms_p95": 32.26641612127423, "ms_p99": 35.86594592779875, "ms_max": 39.32768199592829, "fps": 33.58497648658403, "decode_ms_p50": 3.5180479753762484, "lost_frames": 0, "conf_frames": 816, "rss_peak_mb": 1043.375, "gpu_peak_mb": 51.56591796875}
+  35.3s wall, temps NoneC
+[14/30] asym_b x bird1_1 ...
+==============> Switch To Deploy
+  50/253  2s  22.88 fps  eta 9s
+  100/253  4s  23.61 fps  eta 6s
+  150/253  7s  21.40 fps  eta 5s
+  200/253  10s  20.13 fps  eta 3s
+  250/253  12s  20.95 fps  eta 0s
+{"arm": "asym_b", "seq": "bird1_1", "frames": 247, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 253, "init_ms": 5131.690361071378, "warmup_frames": 5, "ms_p50": 32.410177402198315, "ms_p95": 50.08011078462005, "ms_p99": 61.14282850176096, "ms_max": 70.301647298038, "fps": 30.854505595275516, "decode_ms_p50": 6.816007196903229, "lost_frames": 0, "conf_frames": 246, "rss_peak_mb": 1088.640625, "gpu_peak_mb": 51.56591796875}
+  19.0s wall, temps NoneC
+[15/30] asym_b x truck2 ...
+==============> Switch To Deploy
+  50/385  2s  22.87 fps  eta 15s
+  100/385  4s  23.95 fps  eta 12s
+  150/385  6s  24.32 fps  eta 10s
+  200/385  8s  24.52 fps  eta 8s
+  250/385  10s  24.60 fps  eta 5s
+  300/385  12s  24.63 fps  eta 3s
+  350/385  14s  24.64 fps  eta 1s
+{"arm": "asym_b", "seq": "truck2", "frames": 379, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 385, "init_ms": 5151.186926756054, "warmup_frames": 5, "ms_p50": 30.113651882857084, "ms_p95": 30.550380796194077, "ms_p99": 30.728618279099464, "ms_max": 31.0202706605196, "fps": 33.20753005613623, "decode_ms_p50": 8.294019848108292, "lost_frames": 0, "conf_frames": 378, "rss_peak_mb": 1055.078125, "gpu_peak_mb": 51.56591796875}
+  22.6s wall, temps NoneC
+[16/30] asym_b x boat3 ...
+==============> Switch To Deploy
+  50/901  2s  21.54 fps  eta 40s
+  100/901  5s  22.21 fps  eta 36s
+  150/901  7s  22.39 fps  eta 34s
+  200/901  9s  22.38 fps  eta 31s
+  250/901  11s  22.29 fps  eta 29s
+  300/901  14s  22.19 fps  eta 27s
+  350/901  16s  22.12 fps  eta 25s
+  400/901  18s  22.08 fps  eta 23s
+  450/901  20s  22.04 fps  eta 20s
+  500/901  23s  22.03 fps  eta 18s
+  550/901  25s  22.05 fps  eta 16s
+  600/901  27s  22.08 fps  eta 14s
+  650/901  29s  22.13 fps  eta 11s
+  700/901  32s  22.16 fps  eta 9s
+  750/901  34s  22.22 fps  eta 7s
+  800/901  36s  22.31 fps  eta 5s
+  850/901  38s  22.38 fps  eta 2s
+  900/901  40s  22.45 fps  eta 0s
+{"arm": "asym_b", "seq": "boat3", "frames": 895, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 901, "init_ms": 5140.822610352188, "warmup_frames": 5, "ms_p50": 34.31889461353421, "ms_p95": 36.57755274325609, "ms_p99": 36.83676952496171, "ms_max": 37.66415314748883, "fps": 29.138467636006954, "decode_ms_p50": 8.81224311888218, "lost_frames": 0, "conf_frames": 894, "rss_peak_mb": 1048.06640625, "gpu_peak_mb": 51.56591796875}
+  47.1s wall, temps NoneC
+[17/30] asym_b x uav3 ...
+==============> Switch To Deploy
+  50/265  2s  26.29 fps  eta 8s
+  100/265  4s  27.91 fps  eta 6s
+  150/265  5s  28.10 fps  eta 4s
+  200/265  7s  28.54 fps  eta 2s
+  250/265  9s  28.84 fps  eta 1s
+{"arm": "asym_b", "seq": "uav3", "frames": 259, "w": 720, "h": 480, "fps_stream": 15.0, "stream_frames": 265, "init_ms": 5140.696392860264, "warmup_frames": 5, "ms_p50": 29.37697572633624, "ms_p95": 31.351410783827305, "ms_p99": 31.85217697173357, "ms_max": 32.25079318508506, "fps": 34.04026368526109, "decode_ms_p50": 3.0856796074658632, "lost_frames": 0, "conf_frames": 258, "rss_peak_mb": 1034.09375, "gpu_peak_mb": 51.56591796875}
+  16.1s wall, temps NoneC
+[18/30] asym_b x building5 ...
+==============> Switch To Deploy
+  50/481  2s  23.75 fps  eta 18s
+  100/481  4s  24.91 fps  eta 15s
+  150/481  6s  25.33 fps  eta 13s
+  200/481  8s  25.57 fps  eta 11s
+  250/481  10s  25.69 fps  eta 9s
+  300/481  12s  25.78 fps  eta 7s
+  350/481  14s  25.85 fps  eta 5s
+  400/481  15s  25.88 fps  eta 3s
+  450/481  17s  25.89 fps  eta 1s
+{"arm": "asym_b", "seq": "building5", "frames": 475, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 481, "init_ms": 5127.600398845971, "warmup_frames": 5, "ms_p50": 30.430316925048828, "ms_p95": 30.71875376626849, "ms_p99": 31.088120248168707, "ms_max": 31.72600595280528, "fps": 32.861964680257614, "decode_ms_p50": 6.036346545442939, "lost_frames": 0, "conf_frames": 474, "rss_peak_mb": 1046.84765625, "gpu_peak_mb": 51.56591796875}
+  25.5s wall, temps NoneC
+[19/30] asym_b x car9 ...
+==============> Switch To Deploy
+  50/1879  2s  21.51 fps  eta 85s
+  100/1879  4s  22.49 fps  eta 79s
+  150/1879  7s  22.84 fps  eta 76s
+  200/1879  9s  23.13 fps  eta 73s
+  250/1879  11s  23.33 fps  eta 70s
+  300/1879  13s  23.51 fps  eta 67s
+  350/1879  15s  23.67 fps  eta 65s
+  400/1879  17s  23.79 fps  eta 62s
+  450/1879  19s  23.87 fps  eta 60s
+  500/1879  21s  23.96 fps  eta 58s
+  550/1879  23s  24.02 fps  eta 55s
+  600/1879  25s  24.08 fps  eta 53s
+  650/1879  27s  24.12 fps  eta 51s
+  700/1879  29s  24.15 fps  eta 49s
+  750/1879  31s  24.18 fps  eta 47s
+  800/1879  33s  24.22 fps  eta 45s
+  850/1879  35s  24.16 fps  eta 43s
+  900/1879  37s  24.19 fps  eta 40s
+  950/1879  39s  24.22 fps  eta 38s
+  1000/1879  41s  24.25 fps  eta 36s
+  1050/1879  43s  24.27 fps  eta 34s
+  1100/1879  45s  24.30 fps  eta 32s
+  1150/1879  47s  24.33 fps  eta 30s
+  1200/1879  49s  24.35 fps  eta 28s
+  1250/1879  51s  24.37 fps  eta 26s
+  1300/1879  53s  24.38 fps  eta 24s
+  1350/1879  55s  24.40 fps  eta 22s
+  1400/1879  57s  24.42 fps  eta 20s
+  1450/1879  59s  24.43 fps  eta 18s
+  1500/1879  61s  24.44 fps  eta 16s
+  1550/1879  63s  24.45 fps  eta 13s
+  1600/1879  65s  24.46 fps  eta 11s
+  1650/1879  67s  24.47 fps  eta 9s
+  1700/1879  69s  24.48 fps  eta 7s
+  1750/1879  71s  24.50 fps  eta 5s
+  1800/1879  73s  24.52 fps  eta 3s
+  1850/1879  75s  24.54 fps  eta 1s
+{"arm": "asym_b", "seq": "car9", "frames": 1873, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 1879, "init_ms": 5120.67012116313, "warmup_frames": 5, "ms_p50": 30.586793087422848, "ms_p95": 32.58180292323232, "ms_p99": 34.075591182336204, "ms_max": 37.89632814005017, "fps": 32.69384917672836, "decode_ms_p50": 8.127400418743491, "lost_frames": 0, "conf_frames": 1872, "rss_peak_mb": 1043.5390625, "gpu_peak_mb": 51.56591796875}
+  83.5s wall, temps NoneC
+[20/30] asym_b x uav2 ...
+==============> Switch To Deploy
+  50/133  2s  26.33 fps  eta 3s
+  100/133  4s  28.11 fps  eta 1s
+{"arm": "asym_b", "seq": "uav2", "frames": 127, "w": 720, "h": 480, "fps_stream": 15.0, "stream_frames": 133, "init_ms": 5278.62544497475, "warmup_frames": 5, "ms_p50": 28.770376928150654, "ms_p95": 29.592418111860752, "ms_p99": 30.159449018537998, "ms_max": 30.282262712717056, "fps": 34.757973539844045, "decode_ms_p50": 3.2472030725330114, "lost_frames": 0, "conf_frames": 126, "rss_peak_mb": 1025.2265625, "gpu_peak_mb": 51.56591796875}
+  11.7s wall, temps NoneC
+[21/30] asym_b x car16_1 ...
+==============> Switch To Deploy
+  50/415  2s  23.70 fps  eta 15s
+  100/415  4s  24.90 fps  eta 13s
+  150/415  6s  25.29 fps  eta 10s
+  200/415  8s  25.42 fps  eta 8s
+  250/415  10s  25.26 fps  eta 7s
+  300/415  13s  23.88 fps  eta 5s
+  350/415  15s  23.11 fps  eta 3s
+  400/415  17s  23.27 fps  eta 1s
+{"arm": "asym_b", "seq": "car16_1", "frames": 409, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 415, "init_ms": 5088.866081088781, "warmup_frames": 5, "ms_p50": 31.09294129535556, "ms_p95": 47.13722784072161, "ms_p99": 50.75931360945108, "ms_max": 52.430449053645134, "fps": 32.16164049907279, "decode_ms_p50": 7.2489392478019, "lost_frames": 0, "conf_frames": 408, "rss_peak_mb": 1054.35546875, "gpu_peak_mb": 51.56591796875}
+  24.6s wall, temps NoneC
+[22/30] asym_b x wakeboard7 ...
+==============> Switch To Deploy
+  50/199  2s  23.18 fps  eta 6s
+  100/199  4s  24.22 fps  eta 4s
+  150/199  6s  24.46 fps  eta 2s
+{"arm": "asym_b", "seq": "wakeboard7", "frames": 193, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 199, "init_ms": 5098.436078988016, "warmup_frames": 5, "ms_p50": 30.330162961035967, "ms_p95": 30.670972960069776, "ms_p99": 30.790551314130425, "ms_max": 30.90512426570058, "fps": 32.97047896790607, "decode_ms_p50": 7.637046976014972, "lost_frames": 0, "conf_frames": 192, "rss_peak_mb": 1035.21484375, "gpu_peak_mb": 51.56591796875}
+  15.0s wall, temps NoneC
+[23/30] asym_b x person19_3 ...
+==============> Switch To Deploy
+  50/1567  2s  22.78 fps  eta 67s
+  100/1567  4s  23.88 fps  eta 61s
+  150/1567  6s  24.28 fps  eta 58s
+  200/1567  8s  24.50 fps  eta 56s
+  250/1567  10s  24.61 fps  eta 54s
+  300/1567  12s  24.69 fps  eta 51s
+  350/1567  14s  24.71 fps  eta 49s
+  400/1567  16s  24.72 fps  eta 47s
+  450/1567  18s  24.73 fps  eta 45s
+  500/1567  20s  24.75 fps  eta 43s
+  550/1567  22s  24.77 fps  eta 41s
+  600/1567  24s  24.77 fps  eta 39s
+  650/1567  26s  24.79 fps  eta 37s
+  700/1567  28s  24.80 fps  eta 35s
+  750/1567  30s  24.79 fps  eta 33s
+  800/1567  32s  24.82 fps  eta 31s
+  850/1567  35s  24.57 fps  eta 29s
+  900/1567  37s  24.57 fps  eta 27s
+  950/1567  39s  24.57 fps  eta 25s
+  1000/1567  41s  24.61 fps  eta 23s
+  1050/1567  43s  24.65 fps  eta 21s
+  1100/1567  45s  24.69 fps  eta 19s
+  1150/1567  47s  24.73 fps  eta 17s
+  1200/1567  48s  24.76 fps  eta 15s
+  1250/1567  50s  24.79 fps  eta 13s
+  1300/1567  52s  24.81 fps  eta 11s
+  1350/1567  54s  24.83 fps  eta 9s
+  1400/1567  56s  24.84 fps  eta 7s
+  1450/1567  58s  24.87 fps  eta 5s
+  1500/1567  60s  24.89 fps  eta 3s
+  1550/1567  62s  24.90 fps  eta 1s
+{"arm": "asym_b", "seq": "person19_3", "frames": 1561, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 1567, "init_ms": 5132.144171278924, "warmup_frames": 5, "ms_p50": 30.840410385280848, "ms_p95": 31.79851067252457, "ms_p99": 41.95176271721726, "ms_max": 61.97584234178066, "fps": 32.42499005386998, "decode_ms_p50": 7.588547421619296, "lost_frames": 0, "conf_frames": 1560, "rss_peak_mb": 1062.7265625, "gpu_peak_mb": 51.56591796875}
+  69.9s wall, temps NoneC
+[24/30] asym_b x person20 ...
+==============> Switch To Deploy
+  50/1783  2s  22.68 fps  eta 76s
+  100/1783  4s  23.66 fps  eta 71s
+  150/1783  6s  24.01 fps  eta 68s
+  200/1783  8s  24.20 fps  eta 65s
+  250/1783  10s  24.30 fps  eta 63s
+  300/1783  12s  24.37 fps  eta 61s
+  350/1783  14s  24.39 fps  eta 59s
+  400/1783  16s  24.34 fps  eta 57s
+  450/1783  19s  24.24 fps  eta 55s
+  500/1783  21s  24.12 fps  eta 53s
+  550/1783  23s  24.02 fps  eta 51s
+  600/1783  25s  23.94 fps  eta 49s
+  650/1783  27s  23.80 fps  eta 48s
+  700/1783  30s  23.61 fps  eta 46s
+  750/1783  32s  23.38 fps  eta 44s
+  800/1783  35s  23.17 fps  eta 42s
+  850/1783  37s  22.97 fps  eta 41s
+  900/1783  39s  22.79 fps  eta 39s
+  950/1783  42s  22.62 fps  eta 37s
+  1000/1783  44s  22.48 fps  eta 35s
+  1050/1783  47s  22.38 fps  eta 33s
+  1100/1783  49s  22.32 fps  eta 31s
+  1150/1783  52s  22.32 fps  eta 28s
+  1200/1783  54s  22.29 fps  eta 26s
+  1250/1783  56s  22.26 fps  eta 24s
+  1300/1783  58s  22.25 fps  eta 22s
+  1350/1783  61s  22.25 fps  eta 19s
+  1400/1783  63s  22.30 fps  eta 17s
+  1450/1783  65s  22.38 fps  eta 15s
+  1500/1783  67s  22.46 fps  eta 13s
+  1550/1783  69s  22.53 fps  eta 10s
+  1600/1783  71s  22.61 fps  eta 8s
+  1650/1783  73s  22.67 fps  eta 6s
+  1700/1783  75s  22.70 fps  eta 4s
+  1750/1783  77s  22.61 fps  eta 1s
+{"arm": "asym_b", "seq": "person20", "frames": 1777, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 1783, "init_ms": 5153.4626935608685, "warmup_frames": 5, "ms_p50": 34.680231008678675, "ms_p95": 42.62633668258786, "ms_p99": 43.87084501795471, "ms_max": 49.41170010715723, "fps": 28.83487136373894, "decode_ms_p50": 7.6748833525925875, "lost_frames": 0, "conf_frames": 1776, "rss_peak_mb": 1041.34765625, "gpu_peak_mb": 51.56591796875}
+  86.0s wall, temps NoneC
+[25/30] asym_b x car1_3 ...
+==============> Switch To Deploy
+  50/1003  2s  23.23 fps  eta 41s
+  100/1003  4s  24.29 fps  eta 37s
+  150/1003  6s  24.63 fps  eta 35s
+  200/1003  8s  24.83 fps  eta 32s
+  250/1003  10s  24.93 fps  eta 30s
+  300/1003  12s  25.01 fps  eta 28s
+  350/1003  14s  25.09 fps  eta 26s
+  400/1003  16s  25.13 fps  eta 24s
+  450/1003  18s  25.14 fps  eta 22s
+  500/1003  20s  25.13 fps  eta 20s
+  550/1003  22s  25.13 fps  eta 18s
+  600/1003  24s  25.15 fps  eta 16s
+  650/1003  26s  25.18 fps  eta 14s
+  700/1003  28s  25.18 fps  eta 12s
+  750/1003  30s  25.19 fps  eta 10s
+  800/1003  32s  25.20 fps  eta 8s
+  850/1003  34s  25.20 fps  eta 6s
+  900/1003  36s  25.20 fps  eta 4s
+  950/1003  38s  25.20 fps  eta 2s
+  1000/1003  40s  25.20 fps  eta 0s
+{"arm": "asym_b", "seq": "car1_3", "frames": 997, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 1003, "init_ms": 5123.329648282379, "warmup_frames": 5, "ms_p50": 30.456514097750187, "ms_p95": 31.0427222866565, "ms_p99": 31.209827959537506, "ms_max": 32.18667581677437, "fps": 32.83369845907184, "decode_ms_p50": 7.301479112356901, "lost_frames": 0, "conf_frames": 996, "rss_peak_mb": 1025.7578125, "gpu_peak_mb": 51.56591796875}
+  46.7s wall, temps NoneC
+[26/30] asym_b x bike2 ...
+==============> Switch To Deploy
+  50/553  2s  22.83 fps  eta 22s
+  100/553  4s  23.91 fps  eta 19s
+  150/553  6s  24.28 fps  eta 17s
+  200/553  8s  24.52 fps  eta 14s
+  250/553  10s  24.66 fps  eta 12s
+  300/553  12s  24.75 fps  eta 10s
+  350/553  14s  24.84 fps  eta 8s
+  400/553  16s  24.91 fps  eta 6s
+  450/553  18s  24.94 fps  eta 4s
+  500/553  20s  24.97 fps  eta 2s
+  550/553  22s  24.96 fps  eta 0s
+{"arm": "asym_b", "seq": "bike2", "frames": 547, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 553, "init_ms": 5094.75218039006, "warmup_frames": 5, "ms_p50": 29.65059829875827, "ms_p95": 30.003473162651062, "ms_p99": 30.245437473058704, "ms_max": 30.721028335392475, "fps": 33.726132266338745, "decode_ms_p50": 8.332916535437107, "lost_frames": 0, "conf_frames": 546, "rss_peak_mb": 1025.125, "gpu_peak_mb": 51.56591796875}
+  29.0s wall, temps NoneC
+[27/30] asym_b x group2_3 ...
+==============> Switch To Deploy
+  50/913  2s  23.14 fps  eta 37s
+  100/913  4s  24.22 fps  eta 34s
+  150/913  6s  24.58 fps  eta 31s
+  200/913  8s  24.79 fps  eta 29s
+  250/913  10s  24.89 fps  eta 27s
+  300/913  12s  24.94 fps  eta 25s
+  350/913  14s  24.95 fps  eta 23s
+  400/913  16s  24.94 fps  eta 21s
+  450/913  18s  24.91 fps  eta 19s
+  500/913  20s  24.92 fps  eta 17s
+  550/913  22s  24.94 fps  eta 15s
+  600/913  24s  24.96 fps  eta 13s
+  650/913  26s  24.96 fps  eta 11s
+  700/913  28s  25.00 fps  eta 9s
+  750/913  30s  25.03 fps  eta 7s
+  800/913  32s  25.05 fps  eta 5s
+  850/913  34s  25.05 fps  eta 3s
+  900/913  36s  25.03 fps  eta 1s
+{"arm": "asym_b", "seq": "group2_3", "frames": 907, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 913, "init_ms": 5103.639398701489, "warmup_frames": 5, "ms_p50": 29.637057799845934, "ms_p95": 30.97047284245491, "ms_p99": 31.838529743254185, "ms_max": 32.56203839555383, "fps": 33.74154097054797, "decode_ms_p50": 8.574762614443898, "lost_frames": 0, "conf_frames": 906, "rss_peak_mb": 1021.828125, "gpu_peak_mb": 51.56591796875}
+  43.4s wall, temps NoneC
+[28/30] asym_b x uav5 ...
+==============> Switch To Deploy
+  50/139  2s  26.27 fps  eta 3s
+  100/139  4s  28.03 fps  eta 1s
+{"arm": "asym_b", "seq": "uav5", "frames": 133, "w": 720, "h": 480, "fps_stream": 15.0, "stream_frames": 139, "init_ms": 5108.39547496289, "warmup_frames": 5, "ms_p50": 29.257845133543015, "ms_p95": 30.165321053937078, "ms_p99": 31.519773248583075, "ms_max": 32.15322503820062, "fps": 34.17886708455975, "decode_ms_p50": 3.1077866442501545, "lost_frames": 0, "conf_frames": 132, "rss_peak_mb": 1022.171875, "gpu_peak_mb": 51.56591796875}
+  11.8s wall, temps NoneC
+[29/30] asym_b x group1_2 ...
+==============> Switch To Deploy
+  50/1183  2s  22.62 fps  eta 50s
+  100/1183  4s  23.65 fps  eta 46s
+  150/1183  6s  24.06 fps  eta 43s
+  200/1183  8s  24.31 fps  eta 40s
+  250/1183  10s  24.44 fps  eta 38s
+  300/1183  12s  24.55 fps  eta 36s
+  350/1183  14s  24.63 fps  eta 34s
+  400/1183  16s  24.68 fps  eta 32s
+  450/1183  18s  24.72 fps  eta 30s
+  500/1183  20s  24.76 fps  eta 28s
+  550/1183  22s  24.79 fps  eta 26s
+  600/1183  24s  24.81 fps  eta 23s
+  650/1183  26s  24.84 fps  eta 21s
+  700/1183  28s  24.86 fps  eta 19s
+  750/1183  30s  24.87 fps  eta 17s
+  800/1183  32s  24.89 fps  eta 15s
+  850/1183  34s  24.92 fps  eta 13s
+  900/1183  36s  24.93 fps  eta 11s
+  950/1183  38s  24.94 fps  eta 9s
+  1000/1183  40s  24.95 fps  eta 7s
+  1050/1183  42s  24.96 fps  eta 5s
+  1100/1183  44s  24.97 fps  eta 3s
+  1150/1183  46s  24.98 fps  eta 1s
+{"arm": "asym_b", "seq": "group1_2", "frames": 1177, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 1183, "init_ms": 5125.730065163225, "warmup_frames": 5, "ms_p50": 30.433811713010073, "ms_p95": 30.77897522598505, "ms_p99": 30.985547928139567, "ms_max": 32.16724004596472, "fps": 32.85819106163795, "decode_ms_p50": 7.629118161275983, "lost_frames": 0, "conf_frames": 1176, "rss_peak_mb": 1021.609375, "gpu_peak_mb": 51.56591796875}
+  54.3s wall, temps NoneC
+[30/30] asym_b x wakeboard5 ...
+==============> Switch To Deploy
+  50/1675  2s  22.84 fps  eta 71s
+  100/1675  4s  23.69 fps  eta 66s
+  150/1675  6s  24.01 fps  eta 64s
+  200/1675  8s  24.22 fps  eta 61s
+  250/1675  10s  24.37 fps  eta 58s
+  300/1675  12s  24.52 fps  eta 56s
+  350/1675  14s  24.65 fps  eta 54s
+  400/1675  16s  24.75 fps  eta 52s
+  450/1675  18s  24.82 fps  eta 49s
+  500/1675  20s  24.86 fps  eta 47s
+  550/1675  22s  24.90 fps  eta 45s
+  600/1675  24s  24.90 fps  eta 43s
+  650/1675  26s  24.92 fps  eta 41s
+  700/1675  28s  24.95 fps  eta 39s
+  750/1675  30s  25.01 fps  eta 37s
+  800/1675  32s  25.06 fps  eta 35s
+  850/1675  34s  25.12 fps  eta 33s
+  900/1675  36s  25.17 fps  eta 31s
+  950/1675  38s  25.22 fps  eta 29s
+  1000/1675  40s  25.28 fps  eta 27s
+  1050/1675  41s  25.32 fps  eta 25s
+  1100/1675  43s  25.37 fps  eta 23s
+  1150/1675  45s  25.42 fps  eta 21s
+  1200/1675  47s  25.47 fps  eta 19s
+  1250/1675  49s  25.52 fps  eta 17s
+  1300/1675  51s  25.57 fps  eta 15s
+  1350/1675  53s  25.62 fps  eta 13s
+  1400/1675  55s  25.67 fps  eta 11s
+  1450/1675  56s  25.71 fps  eta 9s
+  1500/1675  58s  25.75 fps  eta 7s
+  1550/1675  60s  25.79 fps  eta 5s
+  1600/1675  62s  25.82 fps  eta 3s
+  1650/1675  64s  25.84 fps  eta 1s
+{"arm": "asym_b", "seq": "wakeboard5", "frames": 1669, "w": 1280, "h": 720, "fps_stream": 15.0, "stream_frames": 1675, "init_ms": 5121.428654994816, "warmup_frames": 5, "ms_p50": 30.060228891670704, "ms_p95": 31.41914359293878, "ms_p99": 31.798883629962802, "ms_max": 32.393706031143665, "fps": 33.2665464259684, "decode_ms_p50": 7.2754425927996635, "lost_frames": 0, "conf_frames": 1668, "rss_peak_mb": 1021.09765625, "gpu_peak_mb": 51.56591796875}
+  71.7s wall, temps NoneC
+DONE
