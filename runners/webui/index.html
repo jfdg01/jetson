@@ -1,0 +1,21 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>carla webui</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #111; color: #ccc; font: 14px system-ui, sans-serif; }
+  #view { display: block; width: 100vw; height: 100vh; object-fit: contain; }
+  #stats { position: fixed; top: 8px; left: 8px; padding: 4px 8px; background: #0009; border-radius: 4px; }
+</style>
+<img id="view" src="/stream" alt="carla stream">
+<div id="stats">connecting</div>
+<script>
+  const stats = document.getElementById("stats");
+  setInterval(async () => {
+    try {
+      const j = await (await fetch("/stats")).json();
+      stats.textContent = `sensor ${j.fps.toFixed(0)} Hz  frame ${j.n}  ${j.w}x${j.h}`;
+    } catch (e) {
+      stats.textContent = "server gone";
+    }
+  }, 1000);
+</script>

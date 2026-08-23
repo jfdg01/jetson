@@ -1211,3 +1211,30 @@ changed memory pressure rather than compute. Nothing here measures that. Anythin
 materially faster carry at 640 has to attack memory attention or per-step overhead, and EXP-8 already
 priced the memory ring at ~19.5 ms and rejected the trade. Detail:
 `experiments/2026-07-26-encoder-runtime-capacity/README.md`.
+
+### The Tk panel is replaced by a web UI built from scratch, stdlib only (webui v1, 2026-08-23T12:50Z)
+
+`runners/carla_debug_ui.py` (4027 lines, Tkinter) is no longer the operator panel. A new
+`runners/webui/` starts over: `server.py` (stdlib `http.server`, one CARLA camera hung off the
+spectator, JPEG once per frame in the CARLA callback thread, MJPEG to the browser, `/stats` JSON)
+and `index.html` (one `<img>`, one status line). v1 streams and nothing else; fly, designate and
+follow come back one at a time, each as its own reviewed commit. Nothing is imported from the old
+panel — the author chose a clean rebuild over a port so the old file's debts stay in the old file.
+
+*Why:* the author dislikes Tk, and the old panel's tick did two jobs on one thread — it flew the
+camera and painted the frame with `ImageTk` — so the display rate (`disp`) sagged under the GIL
+and the last uncommitted change on it was a profiler to find out where. A browser decodes the
+JPEG off the Python thread and `cv2.imencode` releases the GIL, so the paint cost leaves the
+server. Stdlib over FastAPI/websockets: for a stream plus a few commands a second, MJPEG + SSE +
+POST cover it with zero new dependencies; websockets buy a bidirectional binary channel the
+demo does not need yet, and can be added to the same page if a later stage does.
+
+*What was given up:* every feature of the old panel until it is rebuilt (world/spawn/traffic,
+tracker pickers, prefs, hot reload, selftest), and the old panel's own measured findings
+(`runners/CARLA_DEBUG_UI.md`), which stay as history. The uncommitted month-old change on the
+old file (an `asym_clamp` tracker entry, `--live-side`, `--live-hz`, `--profile-tick`) was
+discarded by the author, unrecorded.
+
+*Verified:* `server.py --smoke 20` on CARLA 0.9.16 / Town10HD_Opt, 960x960 @ 30 Hz, 3090:
+frame counter moves, dominant grey shade 1.4 %, frame opened and is a lit nadir intersection
+(`experiments/raw/webui/`).
