@@ -85,3 +85,17 @@ Render, sim, camera-feed and overlay work **fails silently** — black frames, u
 - Don't leave findings in chat — land them via the workflow above before the session ends.
 - **Isolate infra from experiment runs.** CLAUDE.md, skills and tooling changes go on `main` or their own branch, never onto an `experiment/<slug>` branch, and never while an executor is mid-run in the shared worktree (stash until it merges).
 - **Install what you need** (`ffmpeg`, a package, a Jetson wheel) — in a venv, never global, documented in the relevant `experiments/` README. Only stops: interactive password (Jetson `apt`) — ask the user — and destructive actions.
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues on `jfdg01/jetson`, through the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` + `docs/adr/` at the root, made lazily by `/domain-modeling`. See `docs/agents/domain.md`.
