@@ -88,3 +88,39 @@ El [Reglamento de Régimen Académico](https://www.ujaen.es/gobierno/vicest/site
 El art. 17 del Reglamento de Régimen Académico define la autoría, literal:
 
 > "la consideración del Trabajo Fin de Grado o del Trabajo Fin de Máster como obra individual (cuya autoría corresponde al/la estudiante) o colectiva (estudiante y tutor) vendrá determinada por el carácter y extensión de la participación del tutor/a en el desarrollo del Trabajo."
+
+## Convocatorias 2026-27
+
+[Calendario TFM 2026/27](https://eps.ujaen.es/sites/centro_eps/files/uploads/documents/TFM/2026_27/Calendarios%20TFM%20curso%202026_27.pdf), página 2, para los másteres en Ingeniería Informática y en Ingeniería Mecatrónica. Lo aprobó la Comisión de Trabajos y Proyectos Fin de Carrera el 29 de junio de 2026. Las fechas salen de los colores del calendario, leídos en la imagen de la página:
+
+| Convocatoria | Empieza el período | Último día de entrega | Último día de defensa | Cierre del acta |
+| --- | --- | --- | --- | --- |
+| Extraordinaria I | 5 oct 2026 | 23 oct 2026 | 4 nov 2026 | 6 nov 2026 |
+| Ordinaria I | 9 nov 2026 | 12 mar 2027 | 31 mar 2027 | 2 abr 2027 |
+| Ordinaria II | 5 abr 2027 | 9 jul 2027 | 21 jul 2027 | 23 jul 2027 |
+| Extraordinaria II | 26 jul 2027 | 6 sep 2027 | 15 sep 2027 | 17 sep 2027 |
+
+El plazo de entrega de Extraordinaria I venció antes de esta consulta.
+
+El art. 18 del Reglamento de Régimen Académico da al máster "un máximo de cuatro" convocatorias por asignatura y dos por curso, y admite el TFM en la ordinaria 1. El art. 19 pone requisitos a la extraordinaria 1.
+
+Para entregar hay que tener superados los créditos de las demás materias (normativa EPSJ, art. 7.3). La guía docente los cifra en 78.
+
+## Entrega
+
+La [página de la EPSJ](https://eps.ujaen.es/principal/trabajo-fin-de-grado-master) manda usar el formulario "Entrega TFG/ TFM" de PLATEA, con los ficheros comprimidos en uno si hay varios, más la documentación para CREA y la autorización. El art. 7.4 de la normativa EPSJ y la guía docente hablan del Registro auxiliar de la EPSJ, "por el procedimiento establecido por ésta", con al menos una copia digital de la memoria.
+
+## Dudas entre fuentes
+
+- La memoria de verificación (fecha 04/06/2025) remite a una normativa de TFM de la EPSJ de 2015. La normativa de julio de 2025 deroga la de 2017.
+- Los criterios de estilo nombran solo el TFG. La página de la EPSJ los enlaza y dice que su apartado "es de aplicación a todos los títulos de grado y de máster de la EPSJ".
+
+## No encontrado
+
+- Extensión mínima o máxima en páginas o palabras.
+- Declaración de autoría u originalidad firmada, o modelo de ella.
+- Definición de "empleo fraudulento" de IA, obligación de declarar su uso, o directriz oficial sobre IA generativa en el TFM. El [plan PID-UJA 2025-2029](https://formacion.ujaen.es/assets/descargas/pid20252029.pdf) y la [noticia de formación en IA](https://diariodigital.ujaen.es/formacion/la-universidad-de-jaen-inicia-la-formacion-todo-su-estudiantado-en-ia-generativa-con) no regulan el TFM.
+- Plantilla LaTeX oficial: la página de la EPSJ solo ofrece Word.
+- Curso o fecha de los criterios de estilo.
+- Normas de estilo o carátula de máster publicadas para 2026-27: la carátula está en la carpeta `2025_2026` y los criterios no tienen curso.
+- Modelo de portada del Vicerrectorado (art. 6.7 del reglamento UJA) distinto de la carátula de la EPSJ.
