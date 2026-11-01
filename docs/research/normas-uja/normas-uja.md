@@ -64,3 +64,27 @@ Los dos artículos difieren en una frase: la EPSJ dice "de todo o parte del cont
 El [Reglamento de Régimen Académico](https://www.ujaen.es/gobierno/vicest/sites/gobierno_vicest/files/uploads/normativas/D11_Regl_Reg_AcademicoEval_Alumn_%20diciembre2014.pdf) (versión de diciembre de 2014) no nombra la IA. Su art. 23.1 dice, literal, sobre el fraude:
 
 > "El alumnado de la Universidad de Jaén tiene el deber inexcusable de aceptar como buena práctica académica la de abstenerse de la utilización o cooperación en procedimientos fraudulentos en las pruebas de evaluación, en los trabajos que se realicen o en documentos oficiales de la Universidad."
+
+## Documentos que firma el autor
+
+**La declaración de autoría u originalidad no aparece** en ningún modelo publicado de los revisados: carátula, CREA, autorización, plantillas y guía. Lo más cercano a la autoría, literal, está abajo.
+
+1. [Autorización de publicación en CREA](https://eps.ujaen.es/sites/centro_eps/files/uploads/CREA.Autorizacion.Publicacion.docx). La firman el autor y el tutor, y la exigen el art. 7.5 de la normativa EPSJ y la página de la EPSJ. Marca Sí o No en "Propiedad intelectual compartida (artículo 17. del RRAEA - márquese lo que corresponda)" y en esta cláusula:
+
+   > "AMBOS AUTORIZAN A la Universidad de Jaén (UJA) para publicar el citado Trabajo Fin de Grado/Máster/Título en CREA con fines docentes y de investigación, en el formato que se considere necesario para su libre acceso, permitiendo solamente la visualización del mismo. Esta autorización viene refrendada por la firma del director/a o tutor/a del trabajo. La UJA, en virtud del presente documento, adquiere el derecho de poder difundir el Trabajo Fin de Grado/Máster/Título a través de Internet o de otros medios."
+
+   > "Los derechos de autor/a quedan protegidos mediante la autorización de cesión no exclusiva de derechos entre la Universidad y el autor/a, o en su caso, autores/as, que se reserva/n el derecho de publicar sus trabajos en otras editoriales y soportes."
+
+2. Documentación para CREA, enlazada en **Extensión** y situada en una carpeta de la web llamada `2025_2026`. La firma el estudiante: "Fdo. (estudiante):". Pide resumen, summary, códigos UNESCO y descriptores. Su texto no declara autoría.
+
+3. Primera página de la memoria. Los criterios dicen, en texto redactado para el TFG:
+
+   > "En la primera página estarán los mismos datos de la portada con la firma del alumno y con el nombre del tutor/a y su firma dando el VºBº a la defensa del TFG."
+
+4. Solo si procede: un acuerdo de confidencialidad (reglamento UJA, art. 11), y un acuerdo de coautoría (art. 10.3), que pide:
+
+   > "Tanto el o la estudiante como la persona que ejerza la tutoría deberán firmar un acuerdo expreso en el que se detallen las contribuciones específicas de cada cual y se establezca el orden de autoría."
+
+El art. 17 del Reglamento de Régimen Académico define la autoría, literal:
+
+> "la consideración del Trabajo Fin de Grado o del Trabajo Fin de Máster como obra individual (cuya autoría corresponde al/la estudiante) o colectiva (estudiante y tutor) vendrá determinada por el carácter y extensión de la participación del tutor/a en el desarrollo del Trabajo."
