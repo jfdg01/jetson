@@ -42,7 +42,7 @@ Dos plantillas Word, públicas, que la [página de TFG/TFM de la EPSJ](https://e
 - [`plantilla-digital.docx`](https://eps.ujaen.es/sites/centro_eps/files/uploads/plantilla-digital.docx), 694 KB.
 - [`plantilla-impreso.docx`](https://eps.ujaen.es/sites/centro_eps/files/uploads/plantilla-impreso.docx), 693 KB.
 
-La misma página dice "Carátulas (de uso obligatorio)". La [carátula de máster](https://eps.ujaen.es/sites/centro_eps/files/uploads/documents/TFM/2025_2026/Portada-%20Repositorio%20-%20Trabajos%20fin%20de%20ma%CC%81ster%20(4).docx) está en una carpeta de la web llamada `2025_2026`. Pide fecha, licencia CC, título, estudiante, máster, tutoría y departamento.
+La misma página dice "Carátulas (de uso obligatorio)". La [carátula de máster](https://eps.ujaen.es/sites/centro_eps/files/uploads/documents/TFM/2025_2026/Portada-%20Repositorio%20-%20Trabajos%20fin%20de%20ma%CC%81ster%20(4).docx) está en una carpeta de la web llamada `2025_2026`. Pide fecha, licencia CC, título, estudiante, máster, tutoría y departamento. Tiene un solo campo de máster, y la página no ofrece una carátula para un doble máster.
 
 ## Formato
 
@@ -65,11 +65,20 @@ Los criterios dan la estructura por modalidad. Las modalidades son las del art. 
 
 > Trabajos teóricos o experimentales: "se estructurarán, en la medida de lo posible, en los siguientes apartados: Introducción, Antecedentes, Objetivos, Material y Métodos, Resultados y Discusión, Conclusiones, Planos y Anexos (si proceden) y Bibliografía."
 
-La guía docente marca los criterios específicos de proyectos de ingeniería como "no es de obligado cumplimiento en esta titulación". Reparte la nota así: aspectos propios 60 %, formales 25 %, defensa 15 %. La [rúbrica](https://eps.ujaen.es/sites/centro_eps/files/uploads/documents/Otros/R%C3%BAbrica%20evaluaci%C3%B3n%20TFG%20TFM.xlsx) está en la web de la EPSJ.
+Las dos guías difieren en los criterios específicos de proyectos de ingeniería: la 77616001 los marca como "no es de obligado cumplimiento en esta titulación", y la 77616002 no lleva esa frase. La 77616002 añade a la evaluación tres puntos (CTI1, CTI2 y CTI3): sistemas seguros y consumo responsable, igualdad de oportunidades y oportunidades de trabajo. Las dos reparten la nota así: aspectos propios 60 %, formales 25 %, defensa 15 %. La [rúbrica](https://eps.ujaen.es/sites/centro_eps/files/uploads/documents/Otros/R%C3%BAbrica%20evaluaci%C3%B3n%20TFG%20TFM.xlsx) está en la web de la EPSJ.
 
 ## Idioma
 
-La guía docente, la [página del máster](https://www.ujaen.es/estudios/oferta-academica/masteres/master-universitario-en-ingenieria-informatica) y la [memoria de verificación](https://www.ujaen.es/estudios/oferta-academica/sites/segundonivel_oferta_academica/files/uploads/node_pagina_de_master/2025-06/memoria-mu-ingenieria-informatica.pdf) dan el castellano como idioma del título, y la memoria marca "No" en inglés para el TFM. Otro idioma se rige por el art. 6.5 del reglamento UJA. Literal:
+Las fuentes oficiales no coinciden, y ninguna da una regla propia del doble máster:
+
+| Fuente | Idioma |
+| --- | --- |
+| Guías 77616001 y 77616002 | "Idioma de impartición: Castellano" |
+| [Página del doble máster](https://www.ujaen.es/estudios/oferta-academica/masteres/doble-master-universitario-en-ingenieria-informatica-y-seguridad-informatica) | Ficha general: Castellano e Inglés. Fichas de asignaturas: Castellano |
+| [Memoria de Ingeniería Informática](https://www.ujaen.es/estudios/oferta-academica/sites/segundonivel_oferta_academica/files/uploads/node_pagina_de_master/2025-06/memoria-mu-ingenieria-informatica.pdf), fecha 04/06/2025 | TFM: castellano Sí, inglés No |
+| [Memoria de Seguridad Informática](https://www.ujaen.es/estudios/oferta-academica/sites/segundonivel_oferta_academica/files/uploads/node_pagina_de_master/2025-06/memoria-mu-seguridad-informatica.pdf), fecha 04/06/2025 | TFM: castellano Sí, inglés Sí |
+
+Otro idioma se rige por el art. 6.5 del reglamento UJA. Literal:
 
 > "El TFE se podrá elaborar y defender en un idioma distinto al español, a solicitud del profesorado tutor y del alumnado dirigida a la Comisión del TFE, siempre que el idioma elegido por el alumno o la alumna se encuentre entre los que se han utilizado en la impartición del título o se trate de alumnado entrante de movilidad. En estos casos, el TFE se acompañará de un resumen y de unas conclusiones en español. No será necesaria solicitud en aquellos títulos impartidos íntegramente en otro idioma."
 
@@ -93,7 +102,7 @@ El [Reglamento de Régimen Académico](https://www.ujaen.es/gobierno/vicest/site
 
 ## Documentos que firma el autor
 
-**La declaración de autoría u originalidad no aparece** en ningún modelo publicado de los revisados: carátula, CREA, autorización, plantillas y guía. Lo más cercano a la autoría, literal, está abajo.
+**La declaración de autoría u originalidad no aparece** en ningún modelo publicado de los revisados: carátula, CREA, autorización, plantillas y guías. Lo más cercano a la autoría, literal, está abajo.
 
 1. [Autorización de publicación en CREA](https://eps.ujaen.es/sites/centro_eps/files/uploads/CREA.Autorizacion.Publicacion.docx). La firman el autor y el tutor, y la exigen el art. 7.5 de la normativa EPSJ y la página de la EPSJ. Marca Sí o No en "Propiedad intelectual compartida (artículo 17. del RRAEA - márquese lo que corresponda)" y en esta cláusula:
 
@@ -134,7 +143,7 @@ Para entregar hay que tener superados los créditos de las demás materias (norm
 
 ## Entrega
 
-La [página de la EPSJ](https://eps.ujaen.es/principal/trabajo-fin-de-grado-master) manda usar el formulario "Entrega TFG/ TFM" de PLATEA, con los ficheros comprimidos en uno si hay varios, más la documentación para CREA y la autorización. El art. 7.4 de la normativa EPSJ y la guía docente hablan del Registro auxiliar de la EPSJ, "por el procedimiento establecido por ésta", con al menos una copia digital de la memoria.
+La [página de la EPSJ](https://eps.ujaen.es/principal/trabajo-fin-de-grado-master) manda usar el formulario "Entrega TFG/ TFM" de PLATEA, con los ficheros comprimidos en uno si hay varios, más la documentación para CREA y la autorización. El art. 7.4 de la normativa EPSJ y las dos guías hablan del Registro auxiliar de la EPSJ, "por el procedimiento establecido por ésta", con al menos una copia digital de la memoria.
 
 ## Dudas entre fuentes
 
