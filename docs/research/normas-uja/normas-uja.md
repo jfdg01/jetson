@@ -139,7 +139,22 @@ El plazo de entrega de Extraordinaria I venció antes de esta consulta.
 
 El art. 18 del Reglamento de Régimen Académico da al máster "un máximo de cuatro" convocatorias por asignatura y dos por curso, y admite el TFM en la ordinaria 1. El art. 19 pone requisitos a la extraordinaria 1.
 
-Para entregar hay que tener superados los créditos de las demás materias (normativa EPSJ, art. 7.3). La guía docente los cifra en 78.
+## Créditos para entregar
+
+El art. 7.3 de la normativa EPSJ dice, literal:
+
+> "El TFM podrá ser presentado y defendido por el alumnado, una vez que haya cursado y superado los créditos de todas las materias restantes del plan de estudios."
+
+La [página de la EPSJ](https://eps.ujaen.es/principal/trabajo-fin-de-grado-master) dice: "Para poder entregar y defender el TFM, el/la estudiante deberá haber aprobado todas las demás asignaturas del plan de estudios."
+
+Las dos guías dan requisitos distintos:
+
+- 77616001: "para poder entregar y defender el TFM, el estudiante deberá haber cursado y superado los 78 créditos del resto de los módulos que integran el Máster", según la memoria del máster en Ingeniería Informática, "sin perjuicio de lo que la normativa de la Universidad o del Centro establezcan".
+- 77616002: "Los requisitos de esta asignatura vienen regulados por la Normativa de TFE de la Universidad de Jaén y de la propia EPSJ."
+
+**La cifra para el doble máster: no encontrada.** El plan del doble máster suma 101 ECTS fuera de los TFM (92 + 9), una suma de su tabla que ninguna norma da como requisito. Tampoco está escrito si un TFM debe superarse antes de entregar el otro.
+
+La guía 77616001 pide además, para matricularse, estar matriculado "en el resto de las asignaturas requeridas para finalizar los estudios".
 
 ## Entrega
 
