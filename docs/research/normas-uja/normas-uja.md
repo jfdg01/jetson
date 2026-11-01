@@ -1,13 +1,39 @@
 # Normas del TFM en la UJA, curso 2026-27
 
-Máster en Ingeniería Informática, asignatura 74016001. Consulta: 2026-11-01T14:09Z. Issue: `normas-uja` (#11).
+Doble Máster Universitario en Ingeniería Informática y Seguridad Informática, asignaturas 77616001 y 77616002. Consulta: 2026-11-01T14:25Z. Issue: `normas-uja` (#11).
 
 ## Las normas que mandan
 
 - [Reglamento UJA de TFE](https://www.ujaen.es/gobierno/secgen/sites/gobierno_secgen/files/uploads/normativas/estudiantes/CG202323_anexo02_Normativa_Trabajos%20TFE_v7_Para%20CONSEJO%20DE%20GOBIERNO%20(1).pdf), Consejo de Gobierno, 20 de marzo de 2025.
 - [Normativa TFE de la EPSJ](https://eps.ujaen.es/sites/centro_eps/files/uploads/documents/normativa/Normativa%20TFE%20EPSJ_Aprobada%2021Julio2025.pdf), Junta de Escuela, 21 de julio de 2025.
-- [Guía docente 2026-27](https://uvirtual.ujaen.es/pub/es/informacionacademica/catalogofichasdocentesasignaturas/p/2026-27/4/740A/74016001/es/2026-27-74016001_es.html) de la asignatura: 12 ECTS.
+- Las dos guías docentes 2026-27, enlazadas en **El título y los dos TFM**.
 - [Criterios y normas de estilo](https://eps.ujaen.es/sites/centro_epsj/files/uploads/documents/grados/TFG/criteriosYestilo_TFG.pdf) de la EPSJ. Su texto nombra solo el TFG y no muestra curso ni fecha.
+
+## El título y los dos TFM
+
+El nombre oficial es [Doble Máster Universitario en Ingeniería Informática y Seguridad Informática](https://www.ujaen.es/estudios/oferta-academica/masteres/doble-master-universitario-en-ingenieria-informatica-y-seguridad-informatica). La [lista de másteres de la UJA](https://www.ujaen.es/estudios/oferta-academica/masteres) no tiene ningún máster llamado "Ciberseguridad": el título de esa materia es el [Máster Universitario en Seguridad Informática](https://www.ujaen.es/estudios/oferta-academica/masteres/master-universitario-en-seguridad-informatica). Su nombre formal es [Programa Conjunto de Estudios Oficiales](https://eps.ujaen.es/sites/centro_eps/files/uploads/documents/masteres/Tabla%20de%20equivalencias%20PCEO%20m%C3%A1steres%20Inform%C3%A1tica%20y%20Seguridad%20Inform%C3%A1tica.pdf) para la obtención de los dos másteres.
+
+El centro del doble máster y de los dos másteres es la Escuela Politécnica Superior de Jaén (EPSJ). El [plan de estudios](https://eps.ujaen.es/masteres-oficiales/doble-master-en-ingenieria-informatica-y-seguridad-informatica/plan-de-estudios) suma 125 ECTS en dos cursos: 92 obligatorios, 9 de prácticas externas y 12 de cada TFM.
+
+Hay dos TFM, y cada uno tiene su asignatura y su guía:
+
+| Código | Asignatura | ECTS | Curso |
+| --- | --- | --- | --- |
+| [77616001](https://uvirtual.ujaen.es/pub/es/informacionacademica/catalogofichasdocentesasignaturas/p/2026-27/4/776A/77616001/es/2026-27-77616001_es.html) | Trabajo fin de Máster - Ingeniería informática | 12 | 2 |
+| [77616002](https://uvirtual.ujaen.es/pub/es/informacionacademica/catalogofichasdocentesasignaturas/p/2026-27/4/776A/77616002/es/2026-27-77616002_es.html) | Trabajo fin de Máster - Seguridad informática | 12 | 2 |
+
+El plan los pone en el segundo cuatrimestre del segundo curso, y las guías dicen "DURACION INDETERMINADA". Las [características del título](https://eps.ujaen.es/masteres-oficiales/doble-master-en-ingenieria-informatica-y-seguridad-informatica/caracteristicas) dicen, literal:
+
+> "Es necesario la realización de un doble Trabajo Fin de Máster acorde con el Real Decreto 1393/2007."
+
+**Si un mismo trabajo sirve para los dos TFM: no encontrado.** El reglamento UJA, la normativa EPSJ y la [Normativa de Másteres](https://cep.ujaen.es/sites/centro_cep/files/uploads/Normativa/Normativa%20M%C3%A1ster%20Oficial%202021.pdf) no lo regulan. Los datos oficiales más cercanos son estos:
+
+- La guía 77616001 pide un "proyecto integral de Ingeniería en Informática de naturaleza profesional", y la 77616002 un "proyecto integral de seguridad informática".
+- Las dos guías piden un "ejercicio original realizado individualmente".
+- La tabla de equivalencias no equipara un TFM con el otro.
+- El art. 10 de la Normativa de Másteres dice que estos programas "faciliten al alumnado la obtención independiente de los dos títulos".
+
+Las dos guías tienen el mismo coordinador: Pedro Jacinto Castro Guzmán (pjcastro@ujaen.es).
 
 ## Plantilla
 
