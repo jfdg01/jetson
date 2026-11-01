@@ -126,7 +126,9 @@ El art. 17 del Reglamento de Régimen Académico define la autoría, literal:
 
 ## Convocatorias 2026-27
 
-[Calendario TFM 2026/27](https://eps.ujaen.es/sites/centro_eps/files/uploads/documents/TFM/2026_27/Calendarios%20TFM%20curso%202026_27.pdf), página 2, para los másteres en Ingeniería Informática y en Ingeniería Mecatrónica. Lo aprobó la Comisión de Trabajos y Proyectos Fin de Carrera el 29 de junio de 2026. Las fechas salen de los colores del calendario, leídos en la imagen de la página:
+No hay un calendario propio del doble máster. El [Calendario TFM 2026/27](https://eps.ujaen.es/sites/centro_eps/files/uploads/documents/TFM/2026_27/Calendarios%20TFM%20curso%202026_27.pdf) no lo nombra, y tiene una página para cada uno de los dos másteres que lo componen. Lo aprobó la Comisión de Trabajos y Proyectos Fin de Carrera el 29 de junio de 2026. Las fechas salen de los colores del calendario, leídos en la imagen de cada página.
+
+Página 2, "Másteres U. en Ingeniería Informática y en Ingeniería Mecatrónica":
 
 | Convocatoria | Empieza el período | Último día de entrega | Último día de defensa | Cierre del acta |
 | --- | --- | --- | --- | --- |
@@ -135,7 +137,28 @@ El art. 17 del Reglamento de Régimen Académico define la autoría, literal:
 | Ordinaria II | 5 abr 2027 | 9 jul 2027 | 21 jul 2027 | 23 jul 2027 |
 | Extraordinaria II | 26 jul 2027 | 6 sep 2027 | 15 sep 2027 | 17 sep 2027 |
 
-El plazo de entrega de Extraordinaria I venció antes de esta consulta.
+Página 1, "Máster U. en Ingeniería Industrial; en Seguridad Informática; en Ing. Mecatrónica y Robótica (2025)":
+
+| Convocatoria | Empieza el período | Último día de entrega | Último día de defensa | Cierre del acta |
+| --- | --- | --- | --- | --- |
+| Extraordinaria I | 5 oct 2026 | 23 oct 2026 | 4 nov 2026 | 6 nov 2026 |
+| Ordinaria I | 9 nov 2026 | 5 mar 2027 | 16 mar 2027 | 18 mar 2027 |
+| Ordinaria II | 29 mar 2027 | 22 jul 2027 | 3 sep 2027 | 6 sep 2027 |
+| Extraordinaria II | 7 sep 2027 | 1 dic 2027 | 15 dic 2027 | 17 dic 2027 |
+
+**Qué página rige cada TFM del doble máster: no encontrado.** Cada página nombra uno de los dos másteres, pero ningún texto reparte así los TFM. El texto más cercano está en la [página de calendario y exámenes](https://eps.ujaen.es/principal/calendario-academico-y-examenes), y se refiere a los exámenes: "Doble Máster Universitario en Ingeniería Informática y Seguridad Informática: ver calendarios de los másteres que lo componen." Las [listas de asignación de 2025-26](https://eps.ujaen.es/sites/centro_eps/files/uploads/Asignaci%C3%B3n_Definitiva_1C_25-26_TFM.pdf), de un curso anterior, tienen una sección por máster y ninguna para el doble.
+
+El plazo de entrega de Extraordinaria I venció antes de esta consulta. Las dos páginas difieren desde Ordinaria I, cuya entrega vence el 5 de marzo en la página 1 y el 12 de marzo en la página 2.
+
+El [calendario de actuaciones del primer cuatrimestre](https://eps.ujaen.es/sites/centro_eps/files/uploads/documents/TFM/2026_27/PropuestaCalendarioTFM_2026_27_Cuatr_1.pdf) fija la asignación de TFM:
+
+| Actuación | Fecha |
+| --- | --- |
+| La Comisión aprueba las propuestas | 9 nov 2026 |
+| Elección por el alumnado | 12 a 20 nov 2026 |
+| Fin de la matriculación | 16 nov 2026 |
+| Asignación provisional | 24 nov 2026 |
+| Asignación definitiva | 4 dic 2026 |
 
 El art. 18 del Reglamento de Régimen Académico da al máster "un máximo de cuatro" convocatorias por asignatura y dos por curso, y admite el TFM en la ordinaria 1. El art. 19 pone requisitos a la extraordinaria 1.
 
