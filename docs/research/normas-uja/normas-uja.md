@@ -11,7 +11,7 @@ Doble Máster Universitario en Ingeniería Informática y Seguridad Informática
 
 ## El título y los dos TFM
 
-El nombre oficial es [Doble Máster Universitario en Ingeniería Informática y Seguridad Informática](https://www.ujaen.es/estudios/oferta-academica/masteres/doble-master-universitario-en-ingenieria-informatica-y-seguridad-informatica). La [lista de másteres de la UJA](https://www.ujaen.es/estudios/oferta-academica/masteres) no tiene ningún máster llamado "Ciberseguridad": el título de esa materia es el [Máster Universitario en Seguridad Informática](https://www.ujaen.es/estudios/oferta-academica/masteres/master-universitario-en-seguridad-informatica). Su nombre formal es [Programa Conjunto de Estudios Oficiales](https://eps.ujaen.es/sites/centro_eps/files/uploads/documents/masteres/Tabla%20de%20equivalencias%20PCEO%20m%C3%A1steres%20Inform%C3%A1tica%20y%20Seguridad%20Inform%C3%A1tica.pdf) para la obtención de los dos másteres.
+El nombre oficial es [Doble Máster Universitario en Ingeniería Informática y Seguridad Informática](https://www.ujaen.es/estudios/oferta-academica/masteres/doble-master-universitario-en-ingenieria-informatica-y-seguridad-informatica). La [lista de másteres de la UJA](https://www.ujaen.es/estudios/oferta-academica/masteres) no tiene ningún máster llamado "Ciberseguridad": el título de esa materia es el [Máster Universitario en Seguridad Informática](https://www.ujaen.es/estudios/oferta-academica/masteres/master-universitario-en-seguridad-informatica). El nombre formal del doble máster es [Programa Conjunto de Estudios Oficiales](https://eps.ujaen.es/sites/centro_eps/files/uploads/documents/masteres/Tabla%20de%20equivalencias%20PCEO%20m%C3%A1steres%20Inform%C3%A1tica%20y%20Seguridad%20Inform%C3%A1tica.pdf) para la obtención de los dos másteres.
 
 El centro del doble máster y de los dos másteres es la Escuela Politécnica Superior de Jaén (EPSJ). El [plan de estudios](https://eps.ujaen.es/masteres-oficiales/doble-master-en-ingenieria-informatica-y-seguridad-informatica/plan-de-estudios) suma 125 ECTS en dos cursos: 92 obligatorios, 9 de prácticas externas y 12 de cada TFM.
 
@@ -50,7 +50,7 @@ Los criterios fijan: DIN A4, márgenes de 2,5 cm, interlineado 1,5, Arial 12, te
 
 ## Extensión
 
-**No encontrada.** El art. 2.8 de la normativa EPSJ remite la extensión a la guía docente y a las normas de estilo, y ninguna de las dos da un número de páginas ni de palabras. Los únicos límites hallados son:
+**No encontrada.** El art. 2.8 de la normativa EPSJ remite la extensión a la guía docente y a las normas de estilo, y ni las dos guías ni esas normas dan un número de páginas o de palabras. Los únicos límites hallados son:
 
 - La exposición de la defensa dura menos de 20 minutos, con preguntas hasta 20 minutos más, salvo otro máximo de la Comisión (normativa EPSJ, art. 8.3).
 - El resumen y el summary de la [documentación para CREA](https://eps.ujaen.es/sites/centro_eps/files/uploads/documents/TFG/2025_2026/Documentaci%C3%B3n%20para%20CREA_UJA%20EPSJ%20-definitivo.docx), el repositorio de la UJA, tienen 150 palabras como máximo cada uno.
@@ -185,11 +185,19 @@ La [página de la EPSJ](https://eps.ujaen.es/principal/trabajo-fin-de-grado-mast
 
 ## Dudas entre fuentes
 
-- La memoria de verificación (fecha 04/06/2025) remite a una normativa de TFM de la EPSJ de 2015. La normativa de julio de 2025 deroga la de 2017.
+- Las dos memorias de verificación (fecha 04/06/2025) remiten a una normativa de TFM de la EPSJ de 2015. La normativa de julio de 2025 deroga la de 2017.
+- Las [características del título](https://eps.ujaen.es/masteres-oficiales/doble-master-en-ingenieria-informatica-y-seguridad-informatica/caracteristicas) empiezan con "Máster Universitario en Ingeniería Industrial y de Máster Universitario en Seguridad Informática", en la página del doble máster en Ingeniería Informática y Seguridad Informática. La [propuesta del título en el acta del 3 de marzo de 2017](https://eps.ujaen.es/sites/centro_epsj/files/uploads/documents/masteres/Ingenier%C3%ADa%20Informatica/CoordinacionAcademica/2017_03_03_Acta_ComisionAcademica_sesion12.pdf) recoge el doble TFM para Ingeniería Informática y Seguridad Informática.
+- La misma página cita el Real Decreto 1393/2007. El reglamento UJA y la normativa EPSJ citan el Real Decreto 822/2021.
+- La página del doble máster da castellano e inglés como idiomas, y las dos guías solo castellano (ver **Idioma**).
 - Los criterios de estilo nombran solo el TFG. La página de la EPSJ los enlaza y dice que su apartado "es de aplicación a todos los títulos de grado y de máster de la EPSJ".
 
 ## No encontrado
 
+- Si un mismo trabajo puede servir para los dos TFM.
+- Un calendario de TFM propio del doble máster, o qué página del calendario rige cada TFM.
+- La cifra de créditos para entregar en el doble máster, y si un TFM debe superarse antes de entregar el otro.
+- Una regla de idioma, una carátula o una regla sobre IA propias del doble máster.
+- Un convenio del programa conjunto: el art. 1.3 de las dos normas remite a "convenios específicos" los títulos conjuntos e interuniversitarios.
 - Extensión mínima o máxima en páginas o palabras.
 - Declaración de autoría u originalidad firmada, o modelo de ella.
 - Definición de "empleo fraudulento" de IA, obligación de declarar su uso, o directriz oficial sobre IA generativa en el TFM. El [plan PID-UJA 2025-2029](https://formacion.ujaen.es/assets/descargas/pid20252029.pdf) y la [noticia de formación en IA](https://diariodigital.ujaen.es/formacion/la-universidad-de-jaen-inicia-la-formacion-todo-su-estudiantado-en-ia-generativa-con) no regulan el TFM.
