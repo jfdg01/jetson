@@ -40,3 +40,27 @@ Los criterios dan la estructura por modalidad. Las modalidades son las del art. 
 > Trabajos teóricos o experimentales: "se estructurarán, en la medida de lo posible, en los siguientes apartados: Introducción, Antecedentes, Objetivos, Material y Métodos, Resultados y Discusión, Conclusiones, Planos y Anexos (si proceden) y Bibliografía."
 
 La guía docente marca los criterios específicos de proyectos de ingeniería como "no es de obligado cumplimiento en esta titulación". Reparte la nota así: aspectos propios 60 %, formales 25 %, defensa 15 %. La [rúbrica](https://eps.ujaen.es/sites/centro_eps/files/uploads/documents/Otros/R%C3%BAbrica%20evaluaci%C3%B3n%20TFG%20TFM.xlsx) está en la web de la EPSJ.
+
+## Idioma
+
+La guía docente, la [página del máster](https://www.ujaen.es/estudios/oferta-academica/masteres/master-universitario-en-ingenieria-informatica) y la [memoria de verificación](https://www.ujaen.es/estudios/oferta-academica/sites/segundonivel_oferta_academica/files/uploads/node_pagina_de_master/2025-06/memoria-mu-ingenieria-informatica.pdf) dan el castellano como idioma del título, y la memoria marca "No" en inglés para el TFM. Otro idioma se rige por el art. 6.5 del reglamento UJA. Literal:
+
+> "El TFE se podrá elaborar y defender en un idioma distinto al español, a solicitud del profesorado tutor y del alumnado dirigida a la Comisión del TFE, siempre que el idioma elegido por el alumno o la alumna se encuentre entre los que se han utilizado en la impartición del título o se trate de alumnado entrante de movilidad. En estos casos, el TFE se acompañará de un resumen y de unas conclusiones en español. No será necesaria solicitud en aquellos títulos impartidos íntegramente en otro idioma."
+
+Los dos textos piden lenguaje no sexista (reglamento UJA, art. 6.6; normativa EPSJ, art. 7.8).
+
+## Reglas sobre IA
+
+Reglamento UJA, art. 9, literal:
+
+> "El plagio, entendido como la presentación de un trabajo hecho por otra persona como propio o la copia de textos sin citar su procedencia y dándolos como de elaboración propia, y/o el empleo fraudulento de herramientas de IA o similares para la generación de contenido del TFE, conllevarán automáticamente la calificación numérica de cero. Esta consecuencia debe entenderse sin perjuicio de las responsabilidades disciplinarias en las que pudiera incurrir el alumnado que plagie."
+
+Normativa EPSJ, art. 13, literal:
+
+> "El plagio, entendido como la presentación de un trabajo hecho por otra persona como propio o la copia de textos sin citar su procedencia y dándolos como de elaboración propia, y/o el empleo fraudulento de herramientas de IA o similares para la generación de todo o parte del contenido del TFE, conllevarán automáticamente la calificación numérica de cero. Esta consecuencia debe entenderse sin perjuicio de las responsabilidades disciplinarias en las que pudiera incurrir el alumnado que plagie."
+
+Los dos artículos difieren en una frase: la EPSJ dice "de todo o parte del contenido". Son las dos únicas menciones a herramientas de IA en los textos revisados. Ninguno define "empleo fraudulento", y ninguno exige declarar el uso de IA ni da un modelo para declararlo.
+
+El [Reglamento de Régimen Académico](https://www.ujaen.es/gobierno/vicest/sites/gobierno_vicest/files/uploads/normativas/D11_Regl_Reg_AcademicoEval_Alumn_%20diciembre2014.pdf) (versión de diciembre de 2014) no nombra la IA. Su art. 23.1 dice, literal, sobre el fraude:
+
+> "El alumnado de la Universidad de Jaén tiene el deber inexcusable de aceptar como buena práctica académica la de abstenerse de la utilización o cooperación en procedimientos fraudulentos en las pruebas de evaluación, en los trabajos que se realicen o en documentos oficiales de la Universidad."
