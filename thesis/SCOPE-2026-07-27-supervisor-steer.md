@@ -128,7 +128,7 @@ zero-sum at the existing 80-page body, so it is a redistribution and not a reque
 Total 80, unchanged. -8 from caps 2/4/6, +8 to cap08.
 
 Real flight is proposed to live **inside cap08 as its second half**, not as an eleventh
-chapter; splitting it later is one line in `thesis/borrador/assemble.py`'s `CHAPTERS` list.
+chapter.
 
 What is given up by this proposal, stated so it is auditable: cap04 loses 4 pages of
 single-frame grounding narrative, which is where Parts I-II live, so the exploratory campaign

@@ -39,15 +39,12 @@ audit that found the apparatus wrong. This one was opened by the apparatus runni
 finish criterion — "the thesis chapters are written from the corrected claim set" —
 has not been started.
 
-**Author steer, 2026-07-25: the thesis text is NOT started yet.** It waited on
-supervisor confirmation of scope. Everything below is split by whether it can be worked
-*while experimenting* (the R series, yes) or only *once writing begins* (the W series).
+The thesis writing lives in the GitHub map `Mapa: escribir y entregar la tesis` (#10).
 
 **Superseded in part, 2026-07-27: scope is now confirmed** —
 `thesis/SCOPE-2026-07-27-supervisor-steer.md`. Focus on tracking, a real-drone test that
 includes the piloting, airframe chosen by September, target regime **200 km/h**. The evidence
-programme stays live. W-2 and W-4 are resolved by the steer, W-3 narrows, W-1 remains deferred
-on a different blocker. Nothing was pre-registered — the author deferred Part VII the same day.
+programme stays live. Nothing was pre-registered — the author deferred Part VII the same day.
 
 
 ## Status board — R series (integrity; work these any time)
@@ -68,35 +65,6 @@ on a different blocker. Nothing was pre-registered — the author deferred Part 
 | R-50 | `tests/test_carla_lifecycle.py` never runs in `make test` | P3 | OPEN |
 | R-55 | EXP-4 publishes p-values outside `claims.json`, exactly as R-44's EXP-1/EXP-2 did | P1 | OPEN — R-44's *demote* pick applies verbatim, but the scope asked for was EXP-1/EXP-2/EXP-6 |
 | R-53 | The live panel cold-started a SAM2 bridge per designation (P6.7 measured the fix; panel now resident) | **P1** | DONE |
-
-## Status board — W series (the writing programme)
-
-**Scope confirmed 2026-07-27** — see `thesis/SCOPE-2026-07-27-supervisor-steer.md` for the
-steer, its measured consequences and a *proposed* (not applied) page rebalance. The supervisor
-asked for: focus on tracking, a real-drone test including the piloting, and an airframe chosen
-by September. The target regime is new — **attack drones at 200 km/h**, i.e. 22x the fastest
-ownship motion this repository has ever measured. Nothing was pre-registered; the author
-deferred that on the same day.
-
-W-3, W-5, W-6, W-7, W-8 and W-9 are **not** blocked — they are preparation that makes
-the writing possible and can be done at any time. W-1 is still deferred, but for a new reason
-(see its row); W-2 and W-4 are resolved by the steer.
-
-| ID | Task | Blocked? | Status |
-|---|---|---|---|
-| W-1 | Write the 287 paragraphs (cap01–cap10) | yes | DEFERRED — no longer on scope. Waits on cap08's campaign existing, and on whether the 200 km/h regime changes what caps 7/9 may claim. Caps 1–7, 9–10 are not blocked by the airframe |
-| W-2 | ~~cap04 is the weakest chapter and needs the most work~~ | no | **INVERTED** by the 2026-07-27 steer — cap04 is single-frame grounding, now de-prioritised. Shrink the budget (11 → 7) to fit the scaffold instead of thickening the scaffold. A reduction in work, not a task |
-| W-3 | Reconstruct the Part I–III figures — those campaigns have no `proof/` | **no** | OPEN — **narrowed**: Part III is tracking and stays mandatory; the Part I–II figures drop to optional with cap04's budget |
-| W-4 | cap08's scaffold is ~2x its page budget | no | **RESOLVED** by the 2026-07-27 steer — the budget moves (4 → 12), the scaffold was right. Applied only when the rebalance in the scope doc is accepted |
-| W-5 | `00-esquema.md` has no chapter plan for cap01 or cap02 | **no** | OPEN |
-| W-6 | The two finished method documents are not in the assembly | **no** | OPEN |
-| W-7 | cap01 carries a bracket that breaks pandoc's citation parser | **no** | OPEN |
-| W-8 | Two competing claim-reference forms across chapters | **no** | OPEN |
-| W-9 | cap03's mean-IoU figure has never been computed | **no** | OPEN |
-| W-10 | cap09 must carry the speed-regime threat: every result here was measured 22x below the stated 200 km/h target, and the Part V idle-window premise shrinks to ~4 s of FOV dwell at 200 m | **no** | OPEN — new 2026-07-27, holds whether or not anything ever flies |
-
----
-
 
 ## R-45 — EXP-1/2/3 break the frozen experiment-ID scheme — **AUTHOR**
 
@@ -185,10 +153,8 @@ caveat on `P5.1-warm-vs-cold` / `P5.2a-warm-generalization` in `claims.json`, re
 into `stats-report.md`; a DECISIONS entry under Part VI; finding 21 and the DESIGNATE card
 text in the demo panel (`runners/CARLA_DEBUG_UI_FINDINGS.md`).
 **Still open (author):** whether the thesis headline changes, and whether R-52 runs.
-Concretely, retiring the framing touches a chapter *title*: `cap07-grounding-anticipatorio.md`
-("Grounding anticipatorio", plus `00-esquema.md` §Capítulo 7) is named after the phrase this
-threat retires. Not renamed here — a chapter title is an author decision, and the honest
-minimum (the S6 section in cap09) is landed either way.
+Retiring the framing means that no chapter title uses "Grounding anticipatorio", the phrase
+this threat retires. A chapter title is an author decision, and the thesis must state S6 either way.
 
 *Side observation, not fixed here:* the P6.2-DELIVERY and P6.2-COUPLING caveats are
 ASCII-folded Spanish (`fisica`, `designacion`) — they were written after the 65-caveat
@@ -222,92 +188,6 @@ Recorded so a future session does not re-propose them:
 - **Do not grow Part VI** beyond "infrastructure built, claim not yet made" until
   R-12/R-4/R-13/R-14 are done.
 - **Do not port SAM2 in order to rescue P5.19.** See R-16.
-
----
-
-## The writing programme, W-1..W-9
-
-### The one number that matters
-
-`thesis/borrador/` holds ten chapters, 33,005 words, 40 tables, 38 figures that all
-resolve on disk, 3 code listings, 27 bib keys all cited and all present — and **287
-paragraph specs with zero paragraphs of written body prose.** Every chapter carries
-`Guion de párrafos. Sustituir cada viñeta por prosa.` and consists of bullets of the form
-`- **P1 — El titular.**`. The outline's own status line, `Texto: no empezado.`, is
-literally accurate.
-
-The scaffold is unusually load-bearing, which is the good news: the remaining work is
-genuinely *writing*, not deciding. Estimate ~3–4 weeks at ~5 paragraphs/hour with
-number-checking against `claims.json` — mark that as an estimate.
-
-### W-1 — Write the 287 paragraphs — BLOCKED
-
-Blocked on supervisor confirmation of scope. Do not start chapters before that
-confirmation: the scope decision changes the page budgets, and W-4 shows the budgets are
-already wrong.
-
-### W-2 — cap04 is the weakest chapter — BLOCKED
-
-Thinnest scaffold against the largest budget: 2,930 words / 26 paragraph specs for an
-11-page target (2.4 specs per page, against 4.2 in cap07 and 7.0 in cap08). It also
-carries the most pending figures — three `[FIGURA POR GENERAR]`, including the Part I
-fidelity gap and the backbone bake-off. Its only three embedded images come from the R-13
-OWLv2 comparison, i.e. from Part III, not from Parts I–II which the chapter is about.
-Depends on W-3.
-
-### W-3 — Reconstruct the Part I–III figures — OPEN, **not blocked**
-
-**49 of 89 campaign directories have a `proof/`; the earliest is `2026-07-03-chase-acquire`.**
-Every campaign before that date — all of Parts I–III — has none. That is the blocker
-behind cap04's and cap05's pending figures: they must be reconstructed from raw logs.
-
-This is the single most valuable thing that can be done *before* the go-ahead, because it
-is data recovery, not prose, and it gets harder as memory of those runs fades. Per
-CLAUDE.md DoD-7 the figures come from a committed `make_proof.py`-style script
-reproducible from the run data, saved as PNG.
-
-### W-4 — cap08 overshoots its page budget — BLOCKED
-
-`00-esquema.md` budgets cap08 at **4** pages and says "P6.0 y P6.1 dejan de narrarse como
-resultados". cap08 is now the second-largest scaffold: 4,204 words, 28 specs, 9 figures,
-6 tables — about 8–9 pages. The outline was rebalanced *before* P6.2-DELIVERY landed and
-became a Holm survivor. Either the budget moves or the content is cut; that is a scope
-decision, hence blocked.
-
-### W-5 — cap01 and cap02 have no chapter plan — OPEN, not blocked
-
-`00-esquema.md` contains per-chapter design sections for **Capítulo 3 through Capítulo 10
-only**. cap01 and cap02 exist solely as rows in the structure table, so their scaffolds
-were generated without the outline's evidence-mapping discipline. cap02 is the thinnest
-literature scaffold (22 specs / 8 pages) and is the only chapter that states it defends
-nothing.
-
-### W-6 — The finished method documents are not in the assembly — OPEN, not blocked
-
-`thesis/01-metodo-estadistico.md` (3,676 words) and `thesis/02-metodo-multiagente.md`
-(2,090 words) are **the only written Spanish prose in `thesis/`** — real text, not
-scaffolds. Neither appears in `thesis/borrador/assemble.py`'s `CHAPTERS` list, so neither reaches
-`TFM-borrador.pdf`, despite both being planned as annexes. Add annex targets to the
-assembler and reconcile them against the two cap03 sections that summarise them.
-
-### W-7 — A bracket that breaks pandoc — OPEN, not blocked, cheap
-
-`cap01-introduccion.md` ends a bullet with `[@dosovitskiy2017carla no aplica aquí]`. The
-key is real, but the free text inside the bracket breaks pandoc's citation parser, and
-the citation is meaningless there — it sits on a paragraph about the Orin Nano's 15 W
-ceiling. It reads like a leftover editorial marker. Delete the bracket.
-
-### W-8 — Two competing claim-reference forms — OPEN, not blocked, cheap
-
-cap04 and cap08 use the backticked `` [claim `ID`] `` (12 + 22 occurrences); cap06 (11)
-and cap07 (14) use the bare `[claim ID]`. Pick one — the backticked form is now the
-majority — and normalise the other 25.
-
-### W-9 — cap03's mean-IoU figure was never computed — OPEN, not blocked
-
-`cap03-plataforma-metodo-metricas.md` retains a genuine evidence-debt note: "no hay un
-valor de IoU medio registrado todavía ... hay que calcularla antes de cerrar el
-capítulo". This is a real open measurement, not a stale-number defect.
 
 ---
 

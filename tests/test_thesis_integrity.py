@@ -645,7 +645,7 @@ def test_readme_quotes_no_stale_claim_count(claims):
 # propagates into every later session; a wrong number in an experiment README is
 # read by whoever is already looking at that experiment.
 _FIRST_READ = ("README.md", "CLAUDE.md", "docs/questions/part5-anticipatory.md",
-               "docs/questions/part6-flight.md", "thesis/00-esquema.md")
+               "docs/questions/part6-flight.md")
 
 # Any mention of deflation on the same line clears it: the correct construction
 # is "p = X, and p = Y al deflactar a N clips", which names both on one line.
@@ -723,15 +723,3 @@ def test_first_read_surfaces_cite_the_deflated_p(claims):
                             f"(deflated: {evaluate(by_id[cid]).p_value:.3g})")
     assert not bad, (
         "first-read surfaces must cite the deflated p (HANDOFF I2):\n  " + "\n  ".join(bad))
-
-
-def test_tfm_borrador_is_not_stale():
-    """The committed draft is a build artifact; a hand edit or a chapter edit
-    without a regeneration silently forks it from `thesis/borrador/cap*.md`."""
-    import subprocess
-    import sys
-
-    r = subprocess.run(
-        [sys.executable, str(REPO / "thesis" / "borrador" / "assemble.py"), "--check"],
-        capture_output=True, text=True)
-    assert r.returncode == 0, r.stderr.strip() or r.stdout.strip()
