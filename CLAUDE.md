@@ -36,7 +36,7 @@ Per-experiment record is source of truth; ledgers are rollups pointing back to i
 | `QUESTIONS.md` → `docs/questions/part{1-n}-*.md` | ledger: research question + one-line verdict | **append** under the run's Part |
 | `DECISIONS.md` → `docs/decisions/part{1-n}-*.md` | ledger: cross-cutting choices + rationale | **append** under the run's Part |
 | `HANDOFF.md` | **read first** — thesis-integrity invariants + session entry/exit protocol. Volatile state in `thesis/REMEDIATION.md`, enforcement in `tests/test_thesis_integrity.py` | rarely — a checkable invariant belongs in the test |
-| `SOURCES.md` | every external paper/model/dataset (link + what for) | **append** when you pull one in |
+| `SOURCES.md` | registro antiguo de fuentes, sin mantener | no se edita |
 | `README.md` | hardware/platform survey + this map | edit when the platform changes |
 | `grounding/` | v2/v3 package (`contract.py`, `data/`, `eval/`, `train/`, `export/`, `deploy/`, `resolution.py`, `roi.py`) | — |
 | `runners/` | Part-I automation + SITL follow stack (`sitl/`); `legacy/` = archived | — |
@@ -53,7 +53,7 @@ Not done until:
 2. **RESULTS** row(s) appended under the run's Part.
 3. **QUESTIONS** entry (RQ/`Q-*` id + one-line verdict) appended.
 4. **DECISIONS** entry appended — only if a non-trivial choice was made.
-5. **SOURCES** appended if a new paper/model/dataset was used.
+5. Una fuente nueva entra en `thesis/refs.bib`.
 6. New Part? row in each of the three ledger root indexes + `docs/{results,questions,decisions}/partN-*.md`.
 7. **2–3 thesis deliverables** in `experiments/<campaign>/proof/`, committed and captioned (what it shows, which run/config). Positive = before/after; negative = proof it didn't work. **Clip when the behaviour is the point** (locks/drifts/switches), **figure when the numbers are the point** — figures from a committed `make_proof.py`-style script reproducible from `runs/*/results.json`, saved PNG.
 

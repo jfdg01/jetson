@@ -1,5 +1,7 @@
 # SOURCES
 
+Este documento no se mantiene, y no recibe fuentes nuevas. Las fuentes de la tesis viven en `thesis/refs.bib`.
+
 External papers, models, and datasets we cite or use. One entry per source:
 the link, and **where it was used** (experiment/Part). No descriptions —
 the per-experiment README is the source of truth. Append; newest at the bottom.
