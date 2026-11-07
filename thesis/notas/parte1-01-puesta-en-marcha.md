@@ -34,3 +34,14 @@ Se ejecutó el modelo Llama-3.2-3B-Instruct, cuantizado a Q4_K_M, sobre llama.cp
 | Eficiencia, con la potencia de pico | 1,1 tok/s·W⁻¹ (0,94 J/token) |
 
 
+## Referencias
+
+[1] NVIDIA Corporation, "Quick Start," in NVIDIA Jetson Linux Developer Guide, r36.5. [Online]. Available: <https://docs.nvidia.com/jetson/archives/r36.5/DeveloperGuide/IN/QuickStart.html>. Accessed: Nov. 7, 2026.
+
+[2] NVIDIA Corporation, "Jetson Orin Nano Series, Jetson Orin NX Series and Jetson AGX Orin Series," in NVIDIA Jetson Linux Developer Guide, r36.5. [Online]. Available: <https://docs.nvidia.com/jetson/archives/r36.5/DeveloperGuide/SD/PlatformPowerAndPerformance/JetsonOrinNanoSeriesJetsonOrinNxSeriesAndJetsonAgxOrinSeries.html>. Accessed: Nov. 7, 2026.
+
+[3] ggml-org, "llama.cpp," commit 57fe1f0 (b9620), Jun. 13, 2026. [Online]. Available: <https://github.com/ggml-org/llama.cpp/tree/57fe1f07c3b6a1de3f4fff19098e2056a85275b7>. Accessed: Nov. 7, 2026.
+
+[4] ggml-org, "llama.cpp/tools/llama-bench," commit 57fe1f0 (b9620), Jun. 13, 2026. [Online]. Available: <https://github.com/ggml-org/llama.cpp/blob/57fe1f07c3b6a1de3f4fff19098e2056a85275b7/tools/llama-bench/README.md>. Accessed: Nov. 7, 2026.
+
+[5] NVIDIA Corporation, "Tegrastats Utility," in NVIDIA Jetson Linux Developer Guide, r36.5. [Online]. Available: <https://docs.nvidia.com/jetson/archives/r36.5/DeveloperGuide/AT/JetsonLinuxDevelopmentTools/TegrastatsUtility.html>. Accessed: Nov. 7, 2026.
