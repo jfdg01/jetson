@@ -11,7 +11,7 @@ Esta guía fija la forma de la prosa de la tesis: cada nota de `thesis/notas/` y
 ## Los tiempos verbales
 
 - El pasado narra lo que se hizo: «se midió», «se descartó».
-- El presente dice lo que sigue siendo verdad («el *decode* depende del ancho de banda») y lo que muestra una figura («la figura 1.3 muestra»).
+- El presente dice lo que sigue siendo verdad («el *decode* depende del ancho de banda») y lo que muestra una figura («la Figura 1.3 muestra»).
 
 ## Las palabras
 
@@ -42,11 +42,13 @@ Esta guía fija la forma de la prosa de la tesis: cada nota de `thesis/notas/` y
 - El identificador es el número de la sección de primer nivel y el orden dentro de ella: la primera tabla de la sección 1 es la «Tabla 1.1», y la segunda es la «Tabla 1.2».
 - Las figuras, las tablas y los bloques de código se numeran por separado: un bloque de código después de esas dos tablas es el «Bloque de código 1.1».
 - El documento tiene un índice de figuras, un índice de tablas y un índice de bloques de código.
-- El texto cita cada figura, tabla y bloque de código por su identificador antes de que aparezca.
+- El texto cita cada figura, tabla y bloque de código por su identificador, con mayúscula, antes de que aparezca: «la Tabla 2.1 muestra».
 
 ## Las referencias
 
 Las referencias siguen el estilo IEEE: un número entre corchetes en el texto, [1], y la lista al final en el orden de la primera cita. Las fuentes viven en `thesis/refs.bib`.
+
+Cada URL de la lista de referencias es un enlace que se abre con un clic desde el PDF.
 
 ## La revisión
 
