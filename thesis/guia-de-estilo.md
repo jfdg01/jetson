@@ -16,7 +16,7 @@ Esta guía fija la forma de la prosa de la tesis: cada nota de `thesis/notas/` y
 ## Las palabras
 
 - Un concepto tiene un solo nombre en todo el documento.
-- Una sigla se define en su primer uso: «el *time to first token* (TTFT)».
+- Una sigla se define en su primer uso: «el *time to first token* (TTFT)». CPU y GPU no se definen, porque son de uso general.
 - Un extranjerismo va en cursiva (*prefill*, *throughput*), salvo que tenga una traducción fija en la tesis.
 - Un adjetivo de valor («muy bueno», «potente») se quita.
 - Se evitan el gerundio de posterioridad («se midió, obteniendo 14 tok/s»), «en base a», «a nivel de» y «de cara a».
