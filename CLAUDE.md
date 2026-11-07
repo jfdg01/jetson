@@ -83,6 +83,7 @@ Render, sim, camera-feed and overlay work **fails silently** — black frames, u
 ## Working agreement
 
 - Don't leave findings in chat — land them via the workflow above before the session ends.
+- La prosa de la tesis sigue `thesis/guia-de-estilo.md`, que dice también cuándo la revisa el agente.
 - **Isolate infra from experiment runs.** CLAUDE.md, skills and tooling changes go on `main` or their own branch, never onto an `experiment/<slug>` branch, and never while an executor is mid-run in the shared worktree (stash until it merges).
 - **Install what you need** (`ffmpeg`, a package, a Jetson wheel) — in a venv, never global, documented in the relevant `experiments/` README. Only stops: interactive password (Jetson `apt`) — ask the user — and destructive actions.
 
