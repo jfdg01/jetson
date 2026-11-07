@@ -11,7 +11,7 @@ Esta guía fija la forma de la prosa de la tesis: cada nota de `thesis/notas/` y
 ## Los tiempos verbales
 
 - El pasado narra lo que se hizo: «se midió», «se descartó».
-- El presente dice lo que sigue siendo verdad («el *decode* depende del ancho de banda») y lo que muestra una figura («la figura 3 muestra»).
+- El presente dice lo que sigue siendo verdad («el *decode* depende del ancho de banda») y lo que muestra una figura («la figura 1.3 muestra»).
 
 ## Las palabras
 
@@ -33,11 +33,14 @@ Esta guía fija la forma de la prosa de la tesis: cada nota de `thesis/notas/` y
 - La unidad es del SI, y va separada del número por un espacio: 15 W, 66,9 °C, 25 %.
 - Las comillas son las angulares «», después las inglesas “ ” y después las simples ‘ ’.
 
-## Los títulos, las figuras y las tablas
+## Los títulos, las figuras, las tablas y los bloques de código
 
 - Un título lleva mayúscula solo en la primera palabra y en los nombres propios: «Puesta en marcha de la placa».
-- Una figura y una tabla van numeradas, con un pie que se entiende sin el texto.
-- El texto cita cada figura y cada tabla antes de que aparezca.
+- Cada figura, tabla y bloque de código lleva encima una leyenda con su identificador y una descripción corta que se entiende sin el texto.
+- El identificador es el número de la sección de primer nivel y el orden dentro de ella: la primera tabla de la sección 1 es la «Tabla 1.1», y la segunda es la «Tabla 1.2».
+- Las figuras, las tablas y los bloques de código se numeran por separado: un bloque de código después de esas dos tablas es el «Bloque de código 1.1».
+- El documento tiene un índice de figuras, un índice de tablas y un índice de bloques de código.
+- El texto cita cada figura, tabla y bloque de código por su identificador antes de que aparezca.
 
 ## Las referencias
 
