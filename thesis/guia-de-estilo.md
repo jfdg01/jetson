@@ -37,6 +37,8 @@ Esta guía fija la forma de la prosa de la tesis: cada nota de `thesis/notas/` y
 
 - Un título lleva mayúscula solo en la primera palabra y en los nombres propios: «Puesta en marcha de la placa».
 - Cada figura, tabla y bloque de código lleva encima una leyenda con su identificador y una descripción corta que se entiende sin el texto.
+- La leyenda describe lo que muestra el elemento, y no lo explica. La explicación va en la prosa.
+- La leyenda no repite lo que dice la prosa. Si no tiene nada que añadir, lleva solo el identificador y la descripción corta.
 - El identificador es el número de la sección de primer nivel y el orden dentro de ella: la primera tabla de la sección 1 es la «Tabla 1.1», y la segunda es la «Tabla 1.2».
 - Las figuras, las tablas y los bloques de código se numeran por separado: un bloque de código después de esas dos tablas es el «Bloque de código 1.1».
 - El documento tiene un índice de figuras, un índice de tablas y un índice de bloques de código.
