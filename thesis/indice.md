@@ -12,6 +12,8 @@ acronym_index: false
 
 El índice sigue los apartados que los criterios de la EPSJ piden a un trabajo experimental: Introducción, Antecedentes, Objetivos, Material y Métodos, Resultados y Discusión, Conclusiones, Anexos y Bibliografía. Las páginas preliminares salen de la carátula obligatoria, de la documentación para CREA y de `declaracion-ia.md`.
 
+El índice entero es provisional. Una sección puede cambiar, salir o entrar en cualquier momento, con una decisión del autor o del tutor. Los cambios serán menos frecuentes a medida que la tesis madure.
+
 Cada sección lleva su fuente en el repo y uno de estos estados:
 
 - **vacía**: la sección no tiene texto.
