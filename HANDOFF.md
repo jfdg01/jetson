@@ -1,35 +1,17 @@
-# HANDOFF — how this project survives across sessions
+# HANDOFF: la entrada de cada sesión
 
-Read this before doing anything else. Then read `thesis/REMEDIATION.md` and work
-the first task that is not `DONE`.
+Lee este archivo antes de cualquier trabajo.
 
-`thesis/REMEDIATION.md` carries only the open work. The closed waves (R-1..R-44,
-R-46, R-47, R-52..R-54) moved to `thesis/remediation-archive/wave*.md` on
-2026-07-26 — open those only to audit history or to cite a closed task's original
-write-up, never as part of the entry protocol.
+El trabajo de la tesis dura meses y cruza muchas conversaciones. Una conversación se compacta o termina a mitad de una tarea, y una sesión nueva vuelve a discutir una decisión cerrada. El repo es la memoria, y el chat no.
 
-This file exists because the remaining work is a **months-long programme across
-many conversations**, and a conversation is not a durable medium. Context gets
-compacted, sessions end mid-task, and a fresh session confidently re-litigates a
-decision that was settled three weeks ago. The repository is the memory; a chat is
-not.
+| Capa | Archivo | Guarda |
+|---|---|---|
+| Ideales | `HANDOFF.md` | los invariantes y la entrada de una sesión |
+| Comprobación | `tests/test_thesis_integrity.py` | los invariantes que una máquina comprueba |
 
-## The three layers, and why it is not one file
+Un doc pide, y un test se niega a pasar. Un invariante que una máquina puede comprobar pasa al test.
 
-| Layer | File | Changes | Holds |
-|---|---|---|---|
-| Ideals | `HANDOFF.md` (this file) | rarely | the invariants and the session protocol |
-| State | `thesis/REMEDIATION.md` | every session | task list, status, what is next |
-| Enforcement | `tests/test_thesis_integrity.py` | when a rule becomes checkable | the invariants that a machine can check |
-
-They are split because they change at different rates. Mixing a stable
-constitution with a volatile to-do list means the constitution gets churned in
-every diff and stops being read. And the third layer is the one that actually
-works: **a doc asks nicely, a test refuses to go green.** Anything that can be
-moved from layer 1 to layer 3 should be.
-
-`CLAUDE.md` remains the project map and the lab-notebook rules. This file does not
-replace it; it governs the remediation programme specifically.
+El estado del trabajo vive en el mapa `Mapa: escribir y entregar la tesis` (#10). `CLAUDE.md` es el mapa del repo y las reglas del cuaderno.
 
 ## Invariants
 
@@ -80,13 +62,7 @@ correct (`ByteTracker.update`, on CPU) and sits one bullet below the SAM2 carry 
 which is roughly 160 ms/frame. Both numbers are honest. The passage they form is not.
 When auditing, read the surrounding claim, not the cell.
 
-**I8 — Cite by quoted string, not by line number.** Line numbers rot silently on the
-next edit, and a stale one costs a future session real time before it works out that
-the citation is broken rather than the file. This invariant was earned the hard way:
-the first version of I6 above cited `README.md:47` for a line that is at 49, and
-`thesis/REMEDIATION.md` R-6 attributed a quote to `README.md` that lives in
-`docs/_legacy/INFORME_PROGRESO.md` — three bad anchors, written the same day, in the
-two documents a new session reads first.
+**I8 — Cita por un texto entre comillas, no por un número de línea.** Un número de línea se pudre en silencio con la edición siguiente. Una sesión futura pierde tiempo antes de ver que la cita está rota, y no el archivo.
 
 **I7 — Do not trust your first read of someone else's schema.** Guessing a JSON
 field name yields a confident, precise, wrong number. Verified in this repo: an
@@ -94,52 +70,10 @@ attempt to recompute the shadow-RG arm guessed `shadow.pass` and `target_id`,
 neither of which exist, and produced `b=39, c=7` instead of the true `b=4, c=2`.
 Print the schema first. A number you cannot re-derive twice is not a number.
 
-## Ratchets
+## La sesión
 
-Some invariants are not satisfied yet. Making them hard assertions today would leave
-`make test` red, and a permanently red suite trains everyone to ignore it. Those are
-written as **ratchets**: the test asserts the violation count has not grown past a
-recorded ceiling, and *fails with a congratulation* when you have improved on it,
-telling you to lower the ceiling.
-
-Fix some, lower the number, commit. Never raise one — a rising ceiling is exactly
-the regression the file exists to catch.
-
-## Session protocol
-
-**On entry**
-
-1. Read this file and `thesis/REMEDIATION.md`.
-2. Run `make test`. Green is the precondition for starting work, not a nice-to-have.
-3. Pick the first task that is not `DONE` and whose preconditions are met. Do not
-   re-plan the programme; if the plan looks wrong, say so and change it deliberately
-   rather than drifting.
-
-**On exit** (or when the context is about to compact)
-
-1. Update the task's status and its `Evidence` cell in `thesis/REMEDIATION.md`.
-   A task is `DONE` only when its stated done-criterion is mechanically satisfied.
-2. Commit. An uncommitted improvement does not survive a session.
-3. If blocked, write the blocker into the task row. A blocker discovered and not
-   written down is rediscovered from scratch later, which has already happened here.
-
-## What good looks like
-
-The programme is finished when: every claim in the registry carries a machine and
-resolves to evidence; every number in `README.md` and the ledgers is traceable;
-the thesis chapters are written from the corrected claim set; and
-`tests/test_thesis_integrity.py` has no ratchets left above zero.
-
-**The last of those four no longer discriminates** (R-48, 2026-07-25): the only ratchet
-ever written, `MAX_CLAIMS_WITHOUT_MACHINE`, was closed on 2026-07-21, so the condition is
-already satisfied and proves nothing. Do not quote it as evidence the programme is done
-until R-48 replaces it with a criterion that still has teeth.
-
-**Where the work is, as of 2026-07-26.** R-1..R-44, R-46, R-47 and R-52..R-54 all read
-`DONE`; the open tasks are R-45, R-48, R-49, R-50, R-51, R-55 and the W series, and they
-are the whole of `thesis/REMEDIATION.md` now that the closed waves are archived. The third condition above —
-writing the chapters — is **deliberately not started**: it waits on the supervisor
-confirming the thesis scope. Experiments continue in the meantime, and note the standing
-cost that R-39 exists to catch: every new experiment registered inside a Part re-runs
-Holm over every claim already published in that Part, and one claim has already been
-lost that way.
+1. Lee este archivo.
+2. Corre `make test`. Una suite en verde es la condición para empezar.
+3. Abre el mapa (#10), y trabaja un ticket con `/wayfinder`.
+4. Haz el commit de cada cambio con la skill `flujo-git`. Un cambio sin commit no sobrevive a la sesión.
+5. Escribe un bloqueo en su ticket. Un bloqueo sin escribir se descubre otra vez desde cero.

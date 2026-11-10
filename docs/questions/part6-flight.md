@@ -4,7 +4,7 @@
 > warm-start select survive when the pixels are a consequence of the system's own control output —
 > self-induced ego-motion, real wall-clock latency, and a controller actually consuming the box?
 > Index: [`../../QUESTIONS.md`](../../QUESTIONS.md).
-> Companion docs: `RESULTS.md` (numbers) · `DECISIONS.md` (choices) · `SOURCES.md` (citations).
+> Companion docs: `RESULTS.md` (numbers) · `DECISIONS.md` (choices) · `thesis/refs.bib` (citations).
 > RQ ids preserved from each experiment's pre-registration; `Q-*` ids formulated here for runs with no explicit RQ.
 
 ---

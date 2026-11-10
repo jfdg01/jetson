@@ -332,7 +332,7 @@ def _bridge_cmd(size: int) -> str:
 # upscaled 2x to 512. The 1024 in EXP-2 is its whole-frame NL baseline (`MAX_SIDE`), which
 # the crop beat. Corrected here 2026-07-26 -- the earlier comment ("512, not EXP-2's 1024",
 # and "256 starves colour on a nadir car") had the mechanism wrong; see R-47 RESOLVED in
-# thesis/REMEDIATION.md. The real knob is pixels on target fed to the encoder, and every
+# thesis/remediation-archive/. The real knob is pixels on target fed to the encoder, and every
 # run agrees on its direction: EXP-3 shows the SAME 256 px window at 1024 (4x) beats it at
 # 256 (1x), and EXP-4 shows a native-1920 crop beats the 960 feed crop. 1024 stays off by
 # default because it costs 8.9x the latency (median 9063 ms vs 1017 ms) and the panel is a

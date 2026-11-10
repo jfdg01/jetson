@@ -87,7 +87,7 @@ problem that can be attacked from the existing rig with no new hardware.
 
 ## Consequences for the writing programme
 
-Against `thesis/REMEDIATION.md`:
+Against `thesis/remediation-archive/`:
 
 - **W-4 resolves, in the "budget moves" direction.** cap08 is budgeted at 4 pages against an
   8-9 page scaffold. With tracking and real flight as the focus, the scaffold is right and the

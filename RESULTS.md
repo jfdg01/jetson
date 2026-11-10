@@ -3,7 +3,7 @@
 > Thin redirect. Every metric table + per-campaign pointer lives in the per-Part file below —
 > open only the one you're working on, so a session doesn't drag all other chapters into context.
 > Append, never overwrite. See `CLAUDE.md` for required fields.
-> Companion indexes: **`QUESTIONS.md`** (RQs) · **`DECISIONS.md`** (choices) · `SOURCES.md` (citations).
+> Companion indexes: **`QUESTIONS.md`** (RQs) · **`DECISIONS.md`** (choices) · `thesis/refs.bib` (citations).
 
 | Part | File | Scope |
 |---|---|---|

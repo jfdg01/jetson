@@ -1,5 +1,7 @@
 # REMEDIATION — the task ledger
 
+Este registro está cerrado. Sus tareas abiertas (R-45, R-48, R-49, R-50, R-55 y la serie W) quedan fuera del alcance de la tesis, porque el trabajo experimental está congelado.
+
 Working state for the thesis-integrity programme. Rules and rationale are in
 `HANDOFF.md`; this file is only *what is left to do and what proves it is done*.
 

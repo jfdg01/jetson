@@ -10,14 +10,14 @@ Every experiment records: exact command, software versions, power mode, date. Ne
 
 ## Project parts
 
-I–IV complete (frozen), V paused at P5.20 (reopened once for P5.21), VI in progress.
+Las seis Partes están congeladas, sin experimentos nuevos. La tesis es el único entregable, y su trabajo vive en el mapa `Mapa: escribir y entregar la tesis` (#10).
 
 - **I — Exploratory:** device benchmarks + VLM grounding fine-tune (Stages 1–4).
 - **II — v2 single-frame grounding:** Qwen2-VL-2B Q8_0, RefDrone IoU@0.25 = 62.6%. Phases 0–4 done.
 - **III — v3 object permanence:** persistent moving-target tracking, T0–T4 done. Terse+ROI levers deployed (~2.0 s ROI re-anchor, 85.2% IoU@0.25).
 - **IV — v4 end-to-end workflow:** NL→ground→track→fly hardened. Acquire-latency arc E18–E23 closed on UAV123: ~4.85 s cold acquire lands stale; operator-phrase crop hint (E20) is the only sub-2s acquire but hint-fragile; automating it (E21/E22) and widening the crop cell (E23) failed.
 - **V — v5 anticipatory grounding / warm-start acquire:** premise — the prompt arrives mid-flight, so pre-prompt stream is free compute: carry salient objects over the idle window, select on command. Warm start works and generalizes past cars (P5.1, P5.2). Carry levers closed as measured negatives: P5.15 (carry not the fragile part), P5.20 (capacity dead), P5.21 (ROI re-anchor mildly regresses plain carry — keep ROI-crop for acquire prefill only). Residuals: P5.19 grace precision, carry drift. Proposal: `experiments/PART5-PROPOSAL-anticipatory-grounding.md`.
-- **VI — v6 closed-loop flight (in progress):** Part V ran on replayed video; VI puts warm-start select in front of a flying copter so pixels are a consequence of its own control. Rig `runners/run_phase_c.py` (ArduCopter SITL physics, pose-slaved renderer, VLM→ByteTrack→PID→MAVLink). P6.0 gate PASS, P6.1 renderer swap Gazebo→CARLA YES, P6.2 closed-loop select-and-follow vs oracle no-coupling control. **P6.2-DELIVERY is the flagship** and the one properly-powered VI number (survives Holm per-Part and globally); caveat is load-bearing — grounding held constant by **ORACLE designation**, so the claim is control-coupling *conditional on correct designation*, not grounding+delivery jointly. P6.2-COUPLING is a **bounded null**, never proven equivalence. Deployed: **SAM2 track-res 640** (EXP-1), 1024 as size-gated fallback for small/distant targets. Proposal: `experiments/PART6-PROPOSAL-closed-loop-flight.md`.
+- **VI — v6 closed-loop flight:** Part V ran on replayed video; VI puts warm-start select in front of a flying copter so pixels are a consequence of its own control. Rig `runners/run_phase_c.py` (ArduCopter SITL physics, pose-slaved renderer, VLM→ByteTrack→PID→MAVLink). P6.0 gate PASS, P6.1 renderer swap Gazebo→CARLA YES, P6.2 closed-loop select-and-follow vs oracle no-coupling control. **P6.2-DELIVERY is the flagship** and the one properly-powered VI number (survives Holm per-Part and globally); caveat is load-bearing — grounding held constant by **ORACLE designation**, so the claim is control-coupling *conditional on correct designation*, not grounding+delivery jointly. P6.2-COUPLING is a **bounded null**, never proven equivalence. Deployed: **SAM2 track-res 640** (EXP-1), 1024 as size-gated fallback for small/distant targets. Proposal: `experiments/PART6-PROPOSAL-closed-loop-flight.md`.
 
 **Standing decisions.** (R-28, author, 2026-07-23) The thesis defends **maintain-and-deliver, not select** — every Part V and VI result supports it; selecting among candidates ships as a measured proposal, not a result. Do **not** adopt `ardupilot_gazebo` lockstep and do **not** put the copter under CARLA physics — pose-slaving already gives the ego-motion under test and is what made the renderer swappable.
 
@@ -35,29 +35,12 @@ Per-experiment record is source of truth; ledgers are rollups pointing back to i
 | `RESULTS.md` → `docs/results/part{1-n}-*.md` | ledger: metric tables, one row per run | **append** under the run's Part |
 | `QUESTIONS.md` → `docs/questions/part{1-n}-*.md` | ledger: research question + one-line verdict | **append** under the run's Part |
 | `DECISIONS.md` → `docs/decisions/part{1-n}-*.md` | ledger: cross-cutting choices + rationale | **append** under the run's Part |
-| `HANDOFF.md` | **read first** — thesis-integrity invariants + session entry/exit protocol. Volatile state in `thesis/REMEDIATION.md`, enforcement in `tests/test_thesis_integrity.py` | rarely — a checkable invariant belongs in the test |
-| `SOURCES.md` | registro antiguo de fuentes, sin mantener | no se edita |
+| `HANDOFF.md` | **se lee primero**: los invariantes de la integridad de la tesis y la entrada de una sesión. `tests/test_thesis_integrity.py` los comprueba | rara vez: un invariante que se puede comprobar va al test |
 | `README.md` | hardware/platform survey + this map | edit when the platform changes |
 | `grounding/` | v2/v3 package (`contract.py`, `data/`, `eval/`, `train/`, `export/`, `deploy/`, `resolution.py`, `roi.py`) | — |
 | `runners/` | Part-I automation + SITL follow stack (`sitl/`); `legacy/` = archived | — |
 
 The three ledger roots are **thin redirects** (Part table only) — open only the Part you're writing. Per-run entries go in the per-Part doc, never the root.
-
-## Per-experiment workflow (definition of done)
-
-**Write the README _before_ you run anything.** `experiments/<campaign>/README.md` is a self-contained handoff: a fresh session with no context opens this one file and can start, continue, document or complete the experiment. Pre-register the exact command, versions, power mode, start date, context/restrictions, decisions + rationale, and up-front estimates (runtime, expected numbers — labelled as estimates). Leave a `## Results (TBD)` placeholder with the table shape you expect, plus current status / next step. Fill it in after the run and record estimate-vs-actual where they diverge — a wrong estimate is content.
-
-Not done until:
-
-1. `experiments/<campaign>/README.md` filled with what worked **and** what didn't.
-2. **RESULTS** row(s) appended under the run's Part.
-3. **QUESTIONS** entry (RQ/`Q-*` id + one-line verdict) appended.
-4. **DECISIONS** entry appended — only if a non-trivial choice was made.
-5. Una fuente nueva entra en `thesis/refs.bib`.
-6. New Part? row in each of the three ledger root indexes + `docs/{results,questions,decisions}/partN-*.md`.
-7. **2–3 thesis deliverables** in `experiments/<campaign>/proof/`, committed and captioned (what it shows, which run/config). Positive = before/after; negative = proof it didn't work. **Clip when the behaviour is the point** (locks/drifts/switches), **figure when the numbers are the point** — figures from a committed `make_proof.py`-style script reproducible from `runs/*/results.json`, saved PNG.
-
-Every number carries its config (power mode, flags, ctx).
 
 ## Look at it: visual verification is mandatory
 
@@ -82,9 +65,10 @@ Render, sim, camera-feed and overlay work **fails silently** — black frames, u
 
 ## Working agreement
 
-- Don't leave findings in chat — land them via the workflow above before the session ends.
+- Un hallazgo no se queda en el chat: entra en el repo antes del fin de la sesión.
+- Una fuente nueva entra en `thesis/refs.bib`.
+- Cada número lleva su configuración: el modo de potencia, los flags y el contexto.
 - La prosa de la tesis sigue `thesis/guia-de-estilo.md`, que dice también cuándo la revisa el agente.
-- **Isolate infra from experiment runs.** CLAUDE.md, skills and tooling changes go on `main` or their own branch, never onto an `experiment/<slug>` branch, and never while an executor is mid-run in the shared worktree (stash until it merges).
 - **Install what you need** (`ffmpeg`, a package, a Jetson wheel) — in a venv, never global, documented in the relevant `experiments/` README. Only stops: interactive password (Jetson `apt`) — ask the user — and destructive actions.
 
 ## Agent skills

@@ -2,7 +2,7 @@
 
 > Thin redirect. Every research question and its one-line verdict lives in the per-Part file below —
 > open only the one you're working on, so a session doesn't drag all four chapters into context.
-> Companion indexes: **`RESULTS.md`** (numbers) · **`DECISIONS.md`** (choices & why) · `SOURCES.md` (citations).
+> Companion indexes: **`RESULTS.md`** (numbers) · **`DECISIONS.md`** (choices & why) · `thesis/refs.bib` (citations).
 >
 > RQ ids preserved from each experiment's pre-registration where they exist; `Q-*` ids are
 > formulated in the per-Part doc for runs that didn't pre-register an explicit RQ.

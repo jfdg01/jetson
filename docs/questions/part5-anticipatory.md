@@ -4,7 +4,7 @@
 > compute. Can we keep salient objects tracked over the idle window and SELECT on command,
 > approaching the E18 B-oracle ceiling (6/6) instead of the cold-acquire floor (E18-A 1/6)?
 > Index: [`../../QUESTIONS.md`](../../QUESTIONS.md).
-> Companion docs: `RESULTS.md` (numbers) · `DECISIONS.md` (choices) · `SOURCES.md` (citations).
+> Companion docs: `RESULTS.md` (numbers) · `DECISIONS.md` (choices) · `thesis/refs.bib` (citations).
 > RQ ids preserved from each experiment's pre-registration; `Q-*` ids formulated here for runs with no explicit RQ.
 
 ---

@@ -89,7 +89,7 @@ la decisión de **no** volver a medir la Parte V en la placa, y por qué, está 
 
 ## Estructura del repo
 
-El repositorio es un cuaderno de laboratorio en dos partes:
+El repositorio es un cuaderno de laboratorio, y su base son dos partes:
 
 - **Parte I — Exploratoria** (`experiments/`, `runners/`, `runners/legacy/`, `archive/`): campañas de benchmark del dispositivo y el arco inicial de fine-tune del VLM (Stages 1–4). Congelada como registro histórico.
 - **Parte II — Rebuild principled** (paquete `grounding/`): reconstrucción deliberada organizada en torno a **un único contrato compartido** (`grounding/contract.py`: prompt, parser y métricas, importados por todos los módulos para que no vuelvan a divergir) y un flujo *fidelidad-antes-que-GPU* con fases con puerta. Ver [`grounding/README.md`](grounding/README.md).
@@ -117,6 +117,6 @@ El objetivo de despliegue, y la máquina donde corre el sistema entregado, es un
 
 Parte del trabajo experimental — ablaciones, la referencia HF bf16, el simulador y la generación de escenas — corrió en una estación de trabajo con **RTX 3090**; el reparto exacto está en «Sobre las cifras» arriba.
 
-El detalle completo del hardware, el stack CUDA/TensorRT y las convenciones de entorno está en [`CURRENT-SETUP.md`](CURRENT-SETUP.md) y en el histórico de la Parte I.
+El detalle completo del hardware y del stack CUDA está en [`docs/results/part1-exploratory.md`](docs/results/part1-exploratory.md).
 </content>
 </invoke>

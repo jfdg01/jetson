@@ -277,7 +277,7 @@ def test_caveats_agree_with_the_computed_holm_verdict(claims):
 
 
 # --- ratchets ---------------------------------------------------------------
-# Lower these as the remediation tasks in thesis/REMEDIATION.md land. Never raise
+# Lower these as the remediation tasks in thesis/remediation-archive/ land. Never raise
 # one: a rising ceiling is the regression this file exists to prevent.
 
 MAX_CLAIMS_WITHOUT_MACHINE = 0  # R-2. Reached 2026-07-21; this one is now a hard rule.

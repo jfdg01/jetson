@@ -648,7 +648,7 @@ survives a long window.
 
 Landed as caveat S6 on `P6.2-DELIVERY-warm-vs-cold-closedloop` with pointer caveats on
 `P5.1-warm-vs-cold` and `P5.2a-warm-generalization`, regenerated into `stats-report.md`;
-R-51/R-52 in `thesis/REMEDIATION.md`; finding 21 and the DESIGNATE card text in the panel.
+R-51/R-52 in `thesis/remediation-archive/`; finding 21 and the DESIGNATE card text in the panel.
 
 ### P6.7 — the SAM2 carry bridge is RESIDENT, not per-designation (2026-07-25T19:50Z)
 
