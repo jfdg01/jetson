@@ -52,5 +52,6 @@ Cada URL de la lista de referencias es un enlace que se abre con un clic desde e
 
 ## La revisión
 
-- El agente comprueba cada nota contra esta guía antes de su commit. Señala cada fallo con su línea y su regla, y no reescribe la prosa: el autor corrige.
+- El agente escribe la prosa en párrafos cortos, una sección acotada cada vez, y el autor lee y edita cada párrafo.
+- El agente comprueba cada nota contra esta guía antes de su commit. En un texto del agente, el agente corrige cada fallo. En un texto del autor, el agente señala cada fallo con su línea y su regla, y no reescribe la prosa: el autor corrige.
 - Al cierre de la lectura de cada Parte, el autor relee esta guía. Una regla que no sirve se cambia o se quita, y una regla nueva entra.
